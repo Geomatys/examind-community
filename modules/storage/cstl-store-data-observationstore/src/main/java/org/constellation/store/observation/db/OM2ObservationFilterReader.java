@@ -339,7 +339,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                /*
                 * Compute procedure measure request
                 */
-                int offset = applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
+                int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+                FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
                 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
                 final String fieldOrdering;
@@ -350,7 +351,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
                     fieldOrdering = "m.\"id\"";
                 }
-                measureRequest.appendValue(-1).append(sqlMeasureRequest, !profile).append("ORDER BY ").append(fieldOrdering);
+                measureRequest.appendValue(-1).append(measureFilter, !profile).append("ORDER BY ").append(fieldOrdering);
 
                 final String name = rs.getString("identifier");
                 final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
@@ -479,6 +480,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final Phenomenon phen = getPhenomenon(version, observedProperty, c);
                 final int pid = getPIDFromProcedure(procedure, c);
                 final List<Field> fields = readFields(procedure, true, c);
+                final List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 final Process proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(version, procedure, c);});
                 final TemporalGeometricPrimitive time = buildTime(version, timeID, startTime, endTime);
 
@@ -486,31 +488,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  *  BUILD RESULT
                  */
                 final Field mainField = getMainField(procedure, c);
-                boolean notProfile   = FieldType.TIME.equals(mainField.type);
+                boolean notProfile    = FieldType.TIME.equals(mainField.type);
 
-                List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
-                if (notProfile) {
-                    sqlMeasureRequest.replaceAll("$time", mainField.name);
-                }
-                /**
-                 * there is an issue here because the filter should be applied on each field separately
-                 * Actually the filter is apply on each field with a "AND"
-                 */
-                while (sqlMeasureRequest.contains("${allphen")) {
-                    String measureFilter = sqlMeasureRequest.getRequest();
-                    int opos = measureFilter.indexOf("${allphen");
-                    int cpos = measureFilter.indexOf("}", opos + 9);
-                    String block = measureFilter.substring(opos, cpos + 1);
-                    StringBuilder sb = new StringBuilder();
-                    for (FieldPhenomenon field : fieldPhen) {
-                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.getField().name + "\"").replace('}', ' ')).append(") ");
-                    }
-                    sqlMeasureRequest.replaceFirst(block, sb.toString());
-                    sqlMeasureRequest.duplicateNamedParam("allphen", fieldPhen.size());
-                }
+                final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fieldPhen.stream().map(f -> f.getField()).toList());
 
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
-                measureRequest.appendValue(oid).append(" ").append(sqlMeasureRequest, notProfile);
+                measureRequest.appendValue(oid).append(" ").append(measureFilter, notProfile);
                 measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
 
                 /**
@@ -565,33 +548,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return applyPostPagination(hints, observations);
     }
 
-    private int applyFilterOnMeasureRequest(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock, Field mainField, List<Field> fields) {
+    /**
+     * Return the index of the first measure fields.
+     *
+     * @param profile Set to {@code true} if the current observation is a Profile.
+     * @param profileWithTime Set to {@code true} if the time has to be included in the result for a profile.
+     * @param includeIDInDataBlock Set to {@code true} if the measure identifier has to be included in the result.
+     * 
+     * @return The index where starts the measure fields.
+     */
+    private  int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
         int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
-        if (!profile) {
-            sqlMeasureRequest.replaceAll("$time", mainField.name);
-        }
         if (profileWithTime) {
             offset++;
         }
         if (includeIDInDataBlock) {
             offset++;
-        }
-        while (sqlMeasureRequest.contains("${allphen")) {
-            String measureFilter = sqlMeasureRequest.getRequest();
-            int opos = measureFilter.indexOf("${allphen");
-            int cpos = measureFilter.indexOf("}", opos + 9);
-            String block = measureFilter.substring(opos, cpos + 1);
-            StringBuilder sb = new StringBuilder();
-            for (int i = offset; i < fields.size(); i++) {
-                Field field = fields.get(i);
-                sb.append(" AND (").append(block.replace("${allphen", "\"" + field.name + "\"").replace('}', ' ')).append(") ");
-            }
-            sqlMeasureRequest.replaceFirst(block, sb.toString());
-            sqlMeasureRequest.duplicateNamedParam("allphen", fields.size() - offset);
-        }
-        for (int i = offset; i < fields.size(); i++) {
-            Field f = fields.get(i);
-            sqlMeasureRequest.replaceAll("$phen" + (i - offset), f.name);
         }
         return offset;
     }
@@ -654,8 +626,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-            applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
-            sqlRequest.append(sqlMeasureRequest);
+            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            sqlRequest.append(measureFilter);
             
             final String fieldOrdering;
             if (mainField != null) {
@@ -735,8 +708,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-            applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
-            sqlRequest.append(sqlMeasureRequest);
+            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            sqlRequest.append(measureFilter);
             
             final FilterSQLRequest fieldRequest = sqlRequest.clone();
             final String fieldOrdering;
@@ -814,7 +788,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-           int offset = applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
+            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            // TODO the measure filter is not used ? need testing
 
             // calculate step
             final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), mainField, c, width);

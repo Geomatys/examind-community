@@ -845,6 +845,46 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     /**
+     * Apply the filters on the measure tables to the SQL measure request and return a cloned version.
+     * Those filters can be on one or all the phenomenon fields, or on the main time field in a Timeseries context.
+     *
+     * @param offset The index where starts the measure fields.
+     * @param mainField Main field of the current observation.
+     * @param fields fields list.
+     *
+     * @return a filtered measure request.
+     */
+    protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, Field mainField, List<Field> fields) {
+        FilterSQLRequest result = sqlMeasureRequest.clone();
+
+        result.replaceAll("$time", mainField.name);
+
+        /**
+         * there is an issue here in a measurement context.
+         * The filter should be applied on each field separately
+         * Actually the filter is apply on each field with a "AND"
+         */
+        while (result.contains("${allphen")) {
+            String measureFilter = result.getRequest();
+            int opos = measureFilter.indexOf("${allphen");
+            int cpos = measureFilter.indexOf("}", opos + 9);
+            String block = measureFilter.substring(opos, cpos + 1);
+            StringBuilder sb = new StringBuilder();
+            for (int i = offset; i < fields.size(); i++) {
+                Field field = fields.get(i);
+                sb.append(" AND (").append(block.replace("${allphen", "\"" + field.name + "\"").replace('}', ' ')).append(") ");
+            }
+            result.replaceFirst(block, sb.toString());
+            result.duplicateNamedParam("allphen", fields.size() - offset);
+        }
+        for (int i = offset; i < fields.size(); i++) {
+            Field f = fields.get(i);
+            result.replaceAll("$phen" + (i - offset), f.name);
+        }
+        return result;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -911,10 +951,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int pid                 = getPIDFromProcedure(procedure, c);
                     final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure, c);
-                    boolean isTimeField           = false;
-                    if (mainField != null) {
-                        isTimeField = FieldType.TIME.equals(mainField.type);
-                    }
+                    boolean profile               = !FieldType.TIME.equals(mainField.type);
 
                     final String select;
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -922,21 +959,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     } else {
                         select = "\"id\"";
                     }
-                    final String sqlRequest;
-                    if (isTimeField) {
-                        sqlRequest = "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
-                                + "WHERE \"id_observation\" = ? " + sqlMeasureRequest.replaceAll("$time", mainField.name)
-                                + "ORDER BY m.\"id\"";
-                    } else {
-                        sqlRequest = "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ? ORDER BY m.\"id\"";
-                    }
+                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields);
+                    final FilterSQLRequest sqlRequest = new FilterSQLRequest( "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
+                    sqlRequest.appendValue(oid).append(measureFilter, !profile).append("ORDER BY m.\"id\"");
+                    LOGGER.fine(sqlRequest.getRequest());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
                         List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
-                        LOGGER.fine(sqlRequest);
-                        try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
-                            stmt.setInt(1, oid);
+                        
+                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()))) {
                             try (final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
                                     final Integer rid = rs2.getInt("id");
@@ -954,9 +986,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         }
 
                     } else {
-                        LOGGER.fine(sqlRequest);
-                        try (final PreparedStatement stmt = c.prepareStatement(sqlRequest)) {
-                            stmt.setInt(1, oid);
+                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()))) {
                             try (final ResultSet rs2 = stmt.executeQuery()) {
                                 while (rs2.next()) {
                                     final Integer rid = rs2.getInt("id");

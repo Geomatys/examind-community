@@ -49,6 +49,7 @@ import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.GmlInstant;
+import org.geotoolkit.gml.xml.v311.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
@@ -57,6 +58,7 @@ import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -70,6 +72,7 @@ import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
+import org.opengis.filter.TemporalOperator;
 import org.opengis.geometry.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
@@ -1153,7 +1156,7 @@ public class ObservationStoreProviderTest {
         assertEquals(result, 109L);
 
         FeatureQuery query = new FeatureQuery();
-        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setSelection(filter);
         hints = new HashMap<>();
         hints.put(INCLUDE_FOI_IN_TEMPLATE, false);
@@ -1262,6 +1265,128 @@ public class ObservationStoreProviderTest {
         hints.put(RESULT_MODEL, OBSERVATION_QNAME);
         result = omPr.getCount(query, hints);
         assertEquals(result, 13L);
+
+        /**
+         * Filter on result - Timeseries
+         */
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
+        query = new FeatureQuery();
+        BinaryComparisonOperator le = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        BinaryComparisonOperator eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        filter = ff.and(le, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        // 6 because it include the measure of the other phenomenon
+        assertEquals(result, 6L);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
+        query = new FeatureQuery();
+        le = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        filter = ff.and(le, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 3L);
+
+        /**
+         * Filter on result - Profile
+         */
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
+        query = new FeatureQuery();
+        le = ff.lessOrEqual(ff.property("result[0]") , ff.literal(20.0));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
+        filter = ff.and(le, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        // 20 because it include the measure of the other phenomenon
+        assertEquals(result, 20L);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
+        query = new FeatureQuery();
+        le = ff.lessOrEqual(ff.property("result[0]") , ff.literal(20.0));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
+        filter = ff.and(le, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 8L);
+
+        /**
+         * Filter on Time - Timeseries
+         */
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
+        query = new FeatureQuery();
+        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(new TimeInstantType(FORMAT.parse("2007-05-01T15:00:00.0Z"))));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        filter = ff.and(be, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 6L);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
+        query = new FeatureQuery();
+        be = ff.before(ff.property("phenomenonTime") , ff.literal(new TimeInstantType(FORMAT.parse("2007-05-01T15:00:00.0Z"))));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        filter = ff.and(be, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 3L);
+
+        /**
+         * Filter on Time - Profile
+         */
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
+        query = new FeatureQuery();
+        be = ff.before(ff.property("phenomenonTime") , ff.literal(new TimeInstantType(FORMAT.parse("2000-12-12T00:00:00.0Z"))));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
+        filter = ff.and(be, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 28L);
+
+        hints = new HashMap<>();
+        hints.put(OBJECT_TYPE, OMEntity.OBSERVATION);
+        hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
+        hints.put(RESULT_MODEL, OBSERVATION_QNAME);
+        query = new FeatureQuery();
+        be = ff.before(ff.property("phenomenonTime") , ff.literal(new TimeInstantType(FORMAT.parse("2000-12-12T00:00:00.0Z"))));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
+        filter = ff.and(be, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query, hints);
+
+        assertEquals(result, 14L);
     }
 
     @Test
@@ -2016,8 +2141,6 @@ public class ObservationStoreProviderTest {
                         + "urn:ogc:object:sensor:GEOM:2-dec-7,2000-12-22T00:00:00.0,12,18.5@@";
 
         assertEquals(expectedResult, result);
-
-
     }
 
     private static String getPhenomenonId(Observation o) {

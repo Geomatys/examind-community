@@ -960,6 +960,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         result = (ObservationCollectionType) worker.getObservation(request);
 
         assertEquals(result.getMember().size(), 1);
+        
+        obsResult =  (ObservationType) result.getMember().iterator().next();
+        assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
+        obsR      = (DataArrayPropertyType) obsResult.getResult();
+        assertEquals((Integer)1, obsR.getDataArray().getElementCount().getCount().getValue());
 
         assertEquals(result.getMember().iterator().next().getName().getCode(), "urn:ogc:object:observation:GEOM:304");
 
