@@ -91,6 +91,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     protected final DataSource source;
     protected final String schemaPrefix;
     protected final boolean timescaleDB;
+    protected final int maxFieldByTable;
 
     protected final boolean isPostgres;
     protected final GenericNameIndex<FeatureType> types;
@@ -137,6 +138,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                 }
                 this.schemaPrefix = sp;
             }
+            this.maxFieldByTable = (int) params.parameter(SOSDatabaseObservationStoreFactory.MAX_FIELD_BY_TABLE.getName().toString()).getValue();
 
             // build database structure if needed
             buildDatasource();
@@ -253,7 +255,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     public synchronized ObservationWriter getWriter() throws DataStoreException {
         if (writer == null) {
             final Map<String,Object> properties = getBasicProperties();
-            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB, maxFieldByTable);
         }
         return writer;
     }

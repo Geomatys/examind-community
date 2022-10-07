@@ -231,6 +231,22 @@ public class FilterSQLRequest {
         throw new IllegalArgumentException("No parameter \"" + name + "\" found!");
     }
 
+    public FilterSQLRequest replaceSelect(String replacement) {
+        String s = this.sqlRequest.toString();
+        int fromPos = s.indexOf(" FROM");
+        if (fromPos == -1) throw new IllegalArgumentException("No from clause found.");
+        s = "SELECT " + replacement + s.substring(fromPos);
+        this.sqlRequest = new StringBuilder(s);
+
+        String cs = this.conditionalRequest.toString();
+        int fromPosc = s.indexOf(" FROM");
+        if (fromPos != -1) {
+            s = "SELECT " + replacement + s.substring(fromPosc);
+            this.conditionalRequest = new StringBuilder(cs);
+        }
+        return this;
+    }
+
     public FilterSQLRequest replaceFirst(String text, String replacement) {
         String s = this.sqlRequest.toString();
         s = StringUtils.replaceOnce(s, text, replacement);

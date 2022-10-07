@@ -26,7 +26,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
@@ -45,49 +47,71 @@ import org.geotoolkit.temporal.object.ISODateParser;
 public class OM2MeasureSQLInserter {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
-    
+
     private final TextBlock encoding;
-    private final String tableName;
+    private final String baseTableName;
     private final String schemaPrefix;
     private final boolean isPostgres;
-    private final List<Field> fields;
+    private final List<DbField> fields;
 
     private final ISODateParser dateParser = new ISODateParser();
 
     // calculated fields
-    private final String insertRequest;
+    private final Map<Integer, String> insertRequests;
 
-    public OM2MeasureSQLInserter(final TextBlock encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<Field> fields) throws DataStoreException {
+    public OM2MeasureSQLInserter(final TextBlock encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<DbField> fields) throws DataStoreException {
         this.encoding = encoding;
-        this.tableName = "mesure" + pid;
+        this.baseTableName = "mesure" + pid;
         this.schemaPrefix = schemaPrefix;
         this.fields = flatFields(fields);
         this.isPostgres = isPostgres;
-        this.insertRequest = buildInsertRequest();
+        this.insertRequests = buildInsertRequests();
     }
 
     /**
-     * Build the measure insertion request.
-     * 
+     * Build the measure insertion requests.
+     *
      * @return A SQL request.
      * @throws DataStoreException If a field contains forbidden characters.
      */
-    private String buildInsertRequest() throws DataStoreException {
-        StringBuilder sql = new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tableName + "\" (\"id_observation\", \"id\", ");
-        for (Field field : fields) {
+    private Map<Integer, String> buildInsertRequests() throws DataStoreException {
+        Map<Integer, StringBuilder> builders = new HashMap<>();
+        for (DbField field : fields) {
             if (Util.containsForbiddenCharacter(field.name)) {
                 throw new DataStoreException("Invalid field name");
             }
+            StringBuilder sql = builders.computeIfAbsent(field.tableNumber, tn ->
+            {
+                String suffix = "";
+                if (tn > 1) {
+                    suffix = "_" + tn;
+                }
+                return new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" (\"id_observation\", \"id\", ");
+            });
             sql.append('"').append(field.name).append("\",");
         }
-        sql.setCharAt(sql.length() - 1, ' ');
-        sql.append(") VALUES ");
-        return sql.toString();
+
+        Map<Integer, String> results = new HashMap<>();
+        for (Entry<Integer, StringBuilder> builder : builders.entrySet()) {
+            StringBuilder sql = builder.getValue();
+            sql.setCharAt(sql.length() - 1, ' ');
+            sql.append(") VALUES ");
+            results.put(builder.getKey(), sql.toString());
+        }
+        return results;
     }
 
+    private Map<Integer, StringBuilder> newInsertBatch() {
+        Map<Integer, StringBuilder>  results = new HashMap<>();
+        for (Entry<Integer, String> ir : insertRequests.entrySet()) {
+            results.put(ir.getKey(), new StringBuilder(ir.getValue()));
+        }
+        return results;
+    }
+    
     /**
      * Insert a data values block into the measure table.
-     * 
+     *
      * @param c SQL connection.
      * @param oid Observation identifier.
      * @param values A data values block.
@@ -104,55 +128,62 @@ public class OM2MeasureSQLInserter {
         int mid =  update ? getLastMeasureId(c, oid) : 1;
         int sqlCpt = 0;
         try (final Statement stmtSQL = c.createStatement()) {
-            StringBuilder sql = new StringBuilder(insertRequest);
+            Map<Integer, StringBuilder> builders = newInsertBatch();
             while (tokenizer.hasMoreTokens()) {
                 String block = tokenizer.nextToken().trim();
                 if (block.isEmpty()) {
                     continue;
                 }
 
-                List<Entry<String, String>> fieldValues = new ArrayList<>();
+                List<Entry<DbField, String>> fieldValues = new ArrayList<>();
                 for (int i = 0; i < fields.size(); i++) {
-                    final Field field              = fields.get(i);
+                    final DbField field            = fields.get(i);
                     final boolean lastTokenInBlock = (i == fields.size() - 1);
                     final String[] nextToken       = extractNextValue(block, field, lastTokenInBlock);
                     final String value             = nextToken[0];
                     block                          = nextToken[1];
-                    fieldValues.add(new AbstractMap.SimpleEntry<>(field.name, value));
+
+                    fieldValues.add(new AbstractMap.SimpleEntry<>(field, value));
                 }
+
                 // look for an existing line to update
                 if (update) {
-                    final Entry<String, String> main = fieldValues.get(0);
-                    try (final PreparedStatement measExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" " +
-                                                                        "WHERE \"id_observation\" = ? AND \"" + main.getKey() + "\" = " + main.getValue())) {
+                    final Entry<DbField, String> main = fieldValues.get(0);
+                    try (final PreparedStatement measExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" " +
+                                                                        "WHERE \"id_observation\" = ? AND \"" + main.getKey().name + "\" = " + main.getValue())) {
                         measExist.setInt(1, oid);
                         try (final ResultSet rs = measExist.executeQuery()) {
                             // there is an existing line
                             if (rs.next()) {
-                                String upSql = buildUpdateLine(rs.getInt(1), oid, fieldValues);
-                                //stmtUp.executeUpdate(upSql);
-                                stmtSQL.addBatch(upSql);
+                                List<String> upSqls = buildUpdateLines(rs.getInt(1), oid, fieldValues);
+                                for (String upSql : upSqls) {
+                                    stmtSQL.addBatch(upSql);
+                                }
                                 continue;
                             } else {
-                                sql.append(buildInsertLine(mid, oid, fieldValues));
+                                buildInsertLine(mid, oid, fieldValues, builders);
                             }
                         }
                     }
                 } else {
-                    sql.append(buildInsertLine(mid, oid, fieldValues));
+                    buildInsertLine(mid, oid, fieldValues, builders);
                 }
                 mid++;
                 sqlCpt++;
                 if (sqlCpt > 99) {
-                    endBatch(sql);
-                    stmtSQL.addBatch(sql.toString());
+                    endBatch(builders);
+                    for (StringBuilder builder : builders.values()) {
+                        stmtSQL.addBatch(builder.toString());
+                    }
                     sqlCpt = 0;
-                    sql = new StringBuilder(insertRequest);
+                    builders = newInsertBatch();
                 }
             }
             if (sqlCpt > 0) {
-                endBatch(sql);
-                stmtSQL.addBatch(sql.toString());
+                endBatch(builders);
+                for (StringBuilder builder : builders.values()) {
+                    stmtSQL.addBatch(builder.toString());
+                }
             }
             stmtSQL.executeBatch();
         }
@@ -210,20 +241,24 @@ public class OM2MeasureSQLInserter {
      *
      * @return A SQL insert part, to add in a SQL Batch.
      */
-    private String buildInsertLine(int mid, int oid, List<Entry<String, String>> fieldValues) {
-        StringBuilder sql = new StringBuilder();
-        sql.append('(').append(oid).append(',').append(mid).append(',');
-        for (Entry<String, String> entry : fieldValues) {
+    private void buildInsertLine(int mid, int oid, List<Entry<DbField, String>> fieldValues, Map<Integer, StringBuilder> builders) {
+
+        for (StringBuilder builder : builders.values()) {
+            builder.append('(').append(oid).append(',').append(mid).append(',');
+        }
+        for (Entry<DbField, String> entry : fieldValues) {
+            StringBuilder builder = builders.get(entry.getKey().tableNumber);
             String value = entry.getValue();
             if (value != null && !value.isEmpty()) {
-                sql.append(value).append(",");
+                builder.append(value).append(",");
             } else {
-                sql.append("NULL,");
+                builder.append("NULL,");
             }
         }
-        sql.setCharAt(sql.length() - 1, ' ');
-        sql.append("),\n");
-        return sql.toString();
+        for (StringBuilder builder : builders.values()) {
+            builder.setCharAt(builder.length() - 1, ' ');
+            builder.append("),\n");
+        }
     }
 
     /**
@@ -236,7 +271,7 @@ public class OM2MeasureSQLInserter {
      * @throws SQLException
      */
     private int getLastMeasureId(Connection c, int oid) throws SQLException {
-        try (final PreparedStatement maxId = c.prepareStatement("SELECT max(\"id\") FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" WHERE \"id_observation\" = ? ")) {
+        try (final PreparedStatement maxId = c.prepareStatement("SELECT max(\"id\") FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"id_observation\" = ? ")) {
             maxId.setInt(1, oid);
             try (final ResultSet rs = maxId.executeQuery()) {
                 // there is an existing line
@@ -257,12 +292,21 @@ public class OM2MeasureSQLInserter {
      *
      * @return A SQL update query, to add in a SQL Batch.
      */
-    private String buildUpdateLine(int mid, int oid, List<Entry<String, String>> fieldValues) {
-        StringBuilder sql = new StringBuilder("UPDATE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" SET ");
+    private List<String> buildUpdateLines(int mid, int oid, List<Entry<DbField, String>> fieldValues) {
+        Map<Integer, StringBuilder> builders = new HashMap<>();
         
         for (int i = 1; i < fieldValues.size(); i++) {
-            Entry<String, String> entry = fieldValues.get(i);
-            sql.append('"').append(entry.getKey()).append("\" = ");
+            Entry<DbField, String> entry = fieldValues.get(i);
+
+            StringBuilder sql = builders.computeIfAbsent(entry.getKey().tableNumber, tn ->
+            {
+                String suffix = "";
+                if (tn > 1) {
+                    suffix = "_" + tn;
+                }
+                return new StringBuilder("UPDATE \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" SET ");
+            });
+            sql.append('"').append(entry.getKey().name).append("\" = ");
             String value = entry.getValue();
             if (value != null && !value.isEmpty()) {
                 sql.append(value).append(",");
@@ -270,12 +314,17 @@ public class OM2MeasureSQLInserter {
                 sql.append("NULL,");
             }
         }
-        sql.setCharAt(sql.length() - 1, ' ');
-        sql.append(" WHERE \"id\" = ").append(mid).append(" AND \"id_observation\" = ").append(oid);
-        if (isPostgres) {
-            sql.append(';');
+        List<String> results = new ArrayList<>();
+        for (Entry<Integer, StringBuilder> builder : builders.entrySet()) {
+            StringBuilder sql = builder.getValue();
+            sql.setCharAt(sql.length() - 1, ' ');
+            sql.append(" WHERE \"id\" = ").append(mid).append(" AND \"id_observation\" = ").append(oid);
+            if (isPostgres) {
+                sql.append(';');
+            }
+            results.add(sql.toString());
         }
-        return sql.toString();
+        return results;
     }
 
     /**
@@ -283,12 +332,14 @@ public class OM2MeasureSQLInserter {
      *
      * @param sql A builder containing a SQL batch.
      */
-    private void endBatch(StringBuilder sql) {
-         sql.setCharAt(sql.length() - 2, ' ');
-        if (isPostgres) {
-            sql.setCharAt(sql.length() - 1, ';');
-        } else {
-            sql.setCharAt(sql.length() - 1, ' ');
+    private void endBatch(Map<Integer, StringBuilder> builders) {
+        for (StringBuilder builder : builders.values()) {
+            builder.setCharAt(builder.length() - 2, ' ');
+            if (isPostgres) {
+                builder.setCharAt(builder.length() - 1, ';');
+            } else {
+                builder.setCharAt(builder.length() - 1, ' ');
+            }
         }
     }
 }

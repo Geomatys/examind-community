@@ -646,7 +646,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     throw new DataStoreException("Measurement extraction need a field index specified");
                 }
                 Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
-                List<Element> resultQuality = buildResultQuality(identifier, measureId, selectedField, c);
+                List<Element> resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
                 final Object result = getResult(identifier, resultModel, measureId, selectedField, version, c);
                 return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null, resultQuality);
             } else {
@@ -681,8 +681,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     private DataArrayProperty buildComplexResult2(final String identifier, final Integer measureId, final String version, final Connection c) throws DataStoreException, SQLException {
 
-        final int pid              = getPIDFromObservation(identifier, c);
         final String procedure     = getProcedureFromObservation(identifier, c);
+        final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
         final List<Field> fields   = readFields(procedure, false, c);
         final String arrayID       = "dataArray-0"; // TODO
         final String recordID      = "datarecord-0"; // TODO
@@ -695,7 +695,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         int nbValue                 = 0;
         final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, encoding, false);
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
-        String query                = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+        String query                = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                                     + "WHERE \"id_observation\" = o.\"id\" "
                                     + "AND o.\"identifier\"=?";
         if (measureId != null) {
@@ -718,14 +718,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     private Object buildMeasureResult(final String identifier, final Integer measureId, final Field selectedField, final String version, final Connection c) throws DataStoreException, SQLException {
-        final int pid              = getPIDFromObservation(identifier, c);
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
+        final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
         final double value;
         final String name;
         final String uom   = selectedField.uom;
-        String query       = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+        String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
                            + "AND o.\"identifier\"=?";
         if (measureId != null) {
@@ -752,12 +752,12 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     /*
     * Not optimal at all. should be merged with buildResult
     */
-    private List<Element> buildResultQuality(final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
-        final int pid              = getPIDFromObservation(identifier, c);
+    private List<Element> buildResultQuality(final String identifier, final String procedure, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        String query       = "SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m, \"" + schemaPrefix + "om\".\"observations\" o "
+        final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+        String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
                            + "AND o.\"identifier\"=?";
         if (measureId != null) {

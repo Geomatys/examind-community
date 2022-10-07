@@ -92,13 +92,26 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
              BUILDER.addName("timescaledb").setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
 
     /**
+     * Max field by table, Optional.
+     * Maximum number of field by measure table.
+     * If the number of fields exceed this value, another measure table will be created.
+     */
+    public static final String MAX_FIELD_BY_TABLE_NAME = "max-field-by-table";
+    public static final ParameterDescriptor<Integer> MAX_FIELD_BY_TABLE = BUILDER
+            .addName(MAX_FIELD_BY_TABLE_NAME)
+            .setRemarks(MAX_FIELD_BY_TABLE_NAME)
+            .setRequired(false)
+            .create(Integer.class, 1000);
+    
+    /**
      * Parameter for database user password
      */
     public static final ParameterDescriptor<String> PASSWD =
              BUILDER.addName("password").setRemarks("Password").setRequired(false).create(String.class, null);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
-            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE, OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB);
+            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {

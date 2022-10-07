@@ -199,21 +199,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private void initFilterGetResult(final Map<String, Object> hints) {
+    private void initFilterGetResult(final Map<String, Object> hints) throws DataStoreException {
         firstFilter = false;
         this.responseMode = (ResponseModeType) hints.get("responseMode");
         currentProcedure  = (String) hints.get("procedure");
         try(final Connection c = source.getConnection()) {
-            final int pid = getPIDFromProcedure(currentProcedure, c);
+            final int[] pidNumber = getPIDFromProcedure(currentProcedure, c);
+            final String measureJoin = getMeasureTableJoin(pidNumber);
             currentOMType = getProcedureOMType(currentProcedure, c);
-            sqlRequest = new FilterSQLRequest("SELECT m.* "
-                                            + "FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m "
+            StringBuilder select = new StringBuilder("m.* ");
+            for (int i = 1; i < pidNumber[1]; i++) {
+                select.append(", m").append(i + 1).append(".* ");
+            }
+
+            sqlRequest = new FilterSQLRequest("SELECT " + select.toString() + " "
+                                            + "FROM "   + measureJoin + ",\"" + schemaPrefix + "om\".\"observations\" o "
                                             + "WHERE o.\"id\" = m.\"id_observation\"");
 
             //we add to the request the property of the template
             sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
         } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "Error while initailizing getResultFilter", ex);
+            throw new DataStoreException("Error while initailizing getResultFilter", ex);
         }
     }
 
@@ -948,19 +954,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int oid                 = rs.getInt("id");
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
-                    final int pid                 = getPIDFromProcedure(procedure, c);
+                    final String measureJoin      = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
                     final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure, c);
                     boolean profile               = !FieldType.TIME.equals(mainField.type);
 
                     final String select;
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        select = "m.*";
+                        select = "*";
                     } else {
-                        select = "\"id\"";
+                        select = "m.\"id\"";
                     }
                     final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields);
-                    final FilterSQLRequest sqlRequest = new FilterSQLRequest( "SELECT " + select + " FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
+                    final FilterSQLRequest sqlRequest = new FilterSQLRequest( "SELECT " + select + " FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
                     sqlRequest.appendValue(oid).append(measureFilter, !profile).append("ORDER BY m.\"id\"");
                     LOGGER.fine(sqlRequest.getRequest());
 
@@ -968,33 +974,38 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
                         List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                         
-                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()))) {
-                            try (final ResultSet rs2 = stmt.executeQuery()) {
-                                while (rs2.next()) {
-                                    final Integer rid = rs2.getInt("id");
-                                    if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                                        for (int i = 0; i < fieldPhen.size(); i++) {
-                                            FieldPhenomenon field = fieldPhen.get(i);
-                                            final String value = rs2.getString(field.getField().name);
-                                            if (value != null) {
-                                                results.add(name + '-' + field.getField().index + '-' + rid);
-                                            }
+                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                             final ResultSet rs2 = stmt.executeQuery()) {
+                            while (rs2.next()) {
+                                final Integer rid = rs2.getInt("id");
+                                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                                    for (int i = 0; i < fieldPhen.size(); i++) {
+                                        FieldPhenomenon field = fieldPhen.get(i);
+                                        final String value = rs2.getString(field.getField().name);
+                                        if (value != null) {
+                                            results.add(name + '-' + field.getField().index + '-' + rid);
                                         }
                                     }
                                 }
                             }
+                        } catch (SQLException ex) {
+                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
+                            throw new DataStoreException("the service has throw a SQL Exception.");
                         }
+                        
 
                     } else {
-                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()))) {
-                            try (final ResultSet rs2 = stmt.executeQuery()) {
-                                while (rs2.next()) {
-                                    final Integer rid = rs2.getInt("id");
-                                    if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                                        results.add(name + '-' + rid);
-                                    }
+                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+                            final ResultSet rs2 = stmt.executeQuery()) {
+                            while (rs2.next()) {
+                                final Integer rid = rs2.getInt("id");
+                                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                                    results.add(name + '-' + rid);
                                 }
                             }
+                        } catch (SQLException ex) {
+                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
+                            throw new DataStoreException("the service has throw a SQL Exception.");
                         }
                     }
                 }

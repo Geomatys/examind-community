@@ -277,16 +277,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             while (rs.next()) {
                 int nbValue = 0;
-                final String procedure = rs.getString("procedure");
-                final String featureID = rs.getString("foi");
-                final int oid = rs.getInt("id");
-                Observation observation = observations.get(procedure + '-' + featureID);
-                final int pid = getPIDFromProcedure(procedure, c);
-                final Field mainField = getMainField(procedure, c);
-                boolean profile       = false;
-                if (mainField != null) {
-                    profile = !FieldType.TIME.equals(mainField.type);
-                }
+                final String procedure   = rs.getString("procedure");
+                final String featureID   = rs.getString("foi");
+                final int oid            = rs.getInt("id");
+                Observation observation  = observations.get(procedure + '-' + featureID);
+                final String measureJoin = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+                final Field mainField    = getMainField(procedure, c);
+                boolean profile          = !FieldType.TIME.equals(mainField.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
                /*
                 * Compute procedure fields
@@ -342,16 +339,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
                 FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
                 
-                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
-                final String fieldOrdering;
-                if (mainField != null) {
-                    fieldOrdering = "m.\"" + mainField.name + "\"";
-                } else {
-                    // we keep this fallback where no main field is found.
-                    // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
-                    fieldOrdering = "m.\"id\"";
-                }
-                measureRequest.appendValue(-1).append(measureFilter, !profile).append("ORDER BY ").append(fieldOrdering);
+                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
+                measureRequest.appendValue(-1).append(measureFilter, !profile).append("ORDER BY ").append("m.\"" + mainField.name + "\"");
 
                 final String name = rs.getString("identifier");
                 final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
@@ -478,7 +467,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String observedProperty = rs.getString("observed_property");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
                 final Phenomenon phen = getPhenomenon(version, observedProperty, c);
-                final int pid = getPIDFromProcedure(procedure, c);
+                final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
                 final List<Field> fields = readFields(procedure, true, c);
                 final List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 final Process proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(version, procedure, c);});
@@ -492,7 +481,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fieldPhen.stream().map(f -> f.getField()).toList());
 
-                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m WHERE \"id_observation\" = ");
+                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
                 measureRequest.appendValue(oid).append(" ").append(measureFilter, notProfile);
                 measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
 
@@ -576,7 +565,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Integer decimationSize       = getIntegerHint(hints, DECIMATION_SIZE, null);
         final boolean countRequest         = "count".equals(responseFormat);
         boolean includeTimeForProfile      = !countRequest && getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
-        final boolean includeQualityFields  = getBooleanHint(hints, SEPARATED_OBSERVATION,  true);
+        final boolean includeQualityFields = getBooleanHint(hints, SEPARATED_OBSERVATION,  true);
         final boolean profile              = "profile".equals(currentOMType);
         final boolean profileWithTime      = profile && includeTimeForProfile;
         final boolean includeIDInDataBlock = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
@@ -869,15 +858,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         if (getLoc) {
             request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ",
-                                 "SELECT MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), hl.\"procedure\" ");
+                                 "SELECT MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
             request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
 
         } else {
             if (profile) {
-                request.replaceFirst("SELECT m.*", "SELECT MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
                 request.append(" group by o.\"id\" order by o.\"id\"");
             } else {
-                request.replaceFirst("SELECT m.*", "SELECT MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
             }
         }
         LOGGER.fine(request.toString());
@@ -929,6 +918,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 results.put(key, result);
             }
             return results;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", request.toString());
+            throw ex;
         }
     }
 
@@ -984,13 +976,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 features.add(buildFoi(version, id, name, desc, sf, geom, crs));
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (FactoryException ex) {
-            LOGGER.log(Level.SEVERE, "FactoryException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.WARNING, "FactoryException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a Factory Exception:" + ex.getMessage(), ex);
         } catch (ParseException ex) {
-            LOGGER.log(Level.SEVERE, "ParseException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.WARNING, "ParseException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a Parse Exception:" + ex.getMessage(), ex);
         }
         return features;

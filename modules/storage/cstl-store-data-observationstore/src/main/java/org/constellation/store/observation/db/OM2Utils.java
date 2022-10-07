@@ -292,14 +292,14 @@ public class OM2Utils {
         return buildSamplingFeature(version, id, name, description, prop);
     }
 
-    public static  List<Field> flatFields(List<Field> fields) {
-        final List<Field> results = new ArrayList<>();
-        for (Field field : fields) {
+    public static List<DbField> flatFields(List<DbField> fields) {
+        final List<DbField> results = new ArrayList<>();
+        for (DbField field : fields) {
             results.add(field);
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
                     String name = field.name + "_quality_" + qField.name;
-                    Field newField = new Field(null, qField.type, name, qField.label, qField.description, qField.uom);
+                    DbField newField = new DbField(null, qField.type, name, qField.label, qField.description, qField.uom, field.tableNumber);
                     results.add(newField);
                 }
             }

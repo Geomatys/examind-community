@@ -4,7 +4,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.2');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.3');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -68,7 +68,8 @@ CREATE TABLE "$SCHEMAom"."procedures" (
     "type"   character varying(200),
     "om_type" character varying(100),
     "name" character varying(200),
-    "description" character varying(1000)
+    "description" character varying(1000),
+    "nb_table" integer NOT NULL DEFAULT 1
 );
 
 CREATE TABLE "$SCHEMAom"."procedure_descriptions" (
@@ -78,7 +79,8 @@ CREATE TABLE "$SCHEMAom"."procedure_descriptions" (
     "field_type"        character varying(30),
     "field_definition"  character varying(200),
     "uom"               character varying(20),
-    "parent"            character varying(63)
+    "parent"            character varying(63),
+    "table_number"      integer NOT NULL DEFAULT 1
 );
 
 CREATE TABLE "$SCHEMAom"."sampling_features" (

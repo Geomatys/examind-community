@@ -15,12 +15,12 @@
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"></om:type>
     <om:phenomenonTime>
         <gml:TimeInstant gml:id="time-6001-1">
-            <gml:timePosition>1980-03-01T21:52:00.000</gml:timePosition>
+            <gml:timePosition>2000-01-01T01:00:00.0</gml:timePosition>
         </gml:TimeInstant>
     </om:phenomenonTime>
     <om:resultTime></om:resultTime>
-    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"></om:procedure>
-    <om:observedProperty xlink:href="depth"></om:observedProperty>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:multi_table_sensor"></om:procedure>
+    <om:observedProperty xlink:href="f12"/>
     <om:featureOfInterest>
         <sas:SF_SpatialSamplingFeature gml:id="station-001">
             <gml:description>Point d'eau BSSS</gml:description>
@@ -35,12 +35,6 @@
             </sas:shape>
         </sas:SF_SpatialSamplingFeature>
     </om:featureOfInterest>
-    <om:resultQuality>
-        <gmd:DQ_QuantitativeAttributeAccuracy>
-            <gmd:nameOfMeasure>
-                <gcol:CharacterString>qflag</gcol:CharacterString>
-            </gmd:nameOfMeasure>
-        </gmd:DQ_QuantitativeAttributeAccuracy>
-    </om:resultQuality>
-    <om:result xsi:type="gml:measureType" uom="m"/>
+    <om:resultQuality/>
+    <om:result xsi:type="gml:measureType" uom="m">12.0</om:result>
 </om:Observation>

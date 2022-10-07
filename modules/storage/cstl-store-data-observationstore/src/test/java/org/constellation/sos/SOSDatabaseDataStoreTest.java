@@ -194,6 +194,6 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof AbstractObservation);
         result = (AbstractObservation) obs;
 
-        assertEqualsMeasurement(measExpected, result);
+        assertEqualsMeasurement(measExpected, result, true);
     }
 }

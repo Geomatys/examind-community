@@ -101,6 +101,7 @@ public class ObservationStoreProviderWriteTest {
         dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
         dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
         dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+        dbConfig.parameter("max-field-by-table").setValue(10);
 
         DataProviderFactory pFactory = new ObservationStoreProviderService();
         final ParameterValueGroup providerConfig = pFactory.getProviderDescriptor().createValue();
@@ -127,7 +128,7 @@ public class ObservationStoreProviderWriteTest {
     }
 
     @Test
-    public void writeObservationTest() throws Exception {
+    public void writeObservationQualityTest() throws Exception {
         Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
         u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
 
@@ -211,7 +212,7 @@ public class ObservationStoreProviderWriteTest {
         assertTrue(template instanceof AbstractObservation);
         resultTemplate   = (AbstractObservation) template;
 
-        assertEqualsMeasurement(expectedMeasTemplate, resultTemplate);
+        assertEqualsMeasurement(expectedMeasTemplate, resultTemplate, true);
 
        /*
         * get the full observation
@@ -240,23 +241,146 @@ public class ObservationStoreProviderWriteTest {
         assertTrue(results.get(0) instanceof AbstractObservation);
         result   = (AbstractObservation) results.get(0);
 
-        assertEqualsMeasurement(measExpected, result);
+        assertEqualsMeasurement(measExpected, result, true);
     }
 
+    @Test
+    public void writeObservationMultiTableTest() throws Exception {
+        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
+        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
+
+        // we get the expected observation template
+        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTemplate = (AbstractObservation) o;
+
+        // we get the observation to write (and to read after)
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_meas_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedMeasTemplate = (AbstractObservation) o;
+
+        // we get the observation to write (and to read after)
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expected = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation measExpected = (AbstractObservation) o;
+
+        SOSMarshallerPool.getInstance().recycle(u);
+
+        String oid = omPr.writeObservation(expected);
+
+          /*
+         * get template from reader
+         */
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi_table_sensor", "2.0.0");
+
+        assertTrue(template instanceof AbstractObservation);
+        AbstractObservation resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+       /*
+        * alternative method to get the template from filter reader
+        */
+        Map<String, Object> hints = new HashMap<>();
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
+        hints.put(VERSION, "2.0.0");
+        FeatureQuery query = new FeatureQuery();
+        BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        List<Observation> results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        assertEquals(1, results.size());
+        template = results.get(0);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+        /*
+        * to get the measurement template from filter reader
+        */
+        hints = new HashMap<>();
+        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
+        hints.put(VERSION, "2.0.0");
+        query = new FeatureQuery();
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        assertEquals(12, results.size());
+        template = results.get(11);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsMeasurement(expectedMeasTemplate, resultTemplate, false);
+
+       /*
+        * get the full observation
+        */
+        hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        query = new FeatureQuery();
+        ResourceId filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof AbstractObservation);
+        AbstractObservation result   = (AbstractObservation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+        /*
+        * get the measurment observation
+        */
+        hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "inline", null, hints);
+        assertEquals(24, results.size());
+
+        assertTrue(results.get(11) instanceof AbstractObservation);
+        result   = (AbstractObservation) results.get(11);
+
+        assertEqualsMeasurement(measExpected, result, false);
+
+    }
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */
-    public static void assertEqualsMeasurement(AbstractObservation expected, AbstractObservation result) {
+    public static void assertEqualsMeasurement(AbstractObservation expected, AbstractObservation result, boolean hasQuality) {
         assertTrue(result.getResult()   instanceof Measure);
         assertTrue(expected.getResult() instanceof Measure);
 
-        Measure expRes = (Measure) result.getResult();
+        Measure expRes = (Measure) expected.getResult();
         Measure resRes = (Measure) result.getResult();
 
-        assertEquals(expRes, resRes);
+        assertEquals(expRes.getValue(), resRes.getValue(), 0.0);
 
-        Assert.assertNotNull(result.getQuality());
-        Assert.assertNotNull(expected.getQuality());
+        assertEquals(result.getProcedure().getHref(), expected.getProcedure().getHref());
+
+        if (hasQuality) {
+            Assert.assertNotNull(result.getQuality());
+            Assert.assertNotNull(expected.getQuality());
+        }
+
+        // does not work on result
+        //assertEquals(expected, result);
     }
     
     /**

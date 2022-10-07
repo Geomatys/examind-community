@@ -448,6 +448,28 @@ public class OM2BaseReader {
         }
     }
 
+    protected List<DbField> completeDbField(final String procedureID, final List<String> fieldNames, final Connection c) throws SQLException {
+        List<DbField> results = new ArrayList<>();
+        for (String fieldName : fieldNames) {
+            results.add(completeDbField(procedureID, fieldName, c));
+        }
+        return results;
+    }
+
+    protected DbField completeDbField(final String procedureID, final String fieldName, final Connection c) throws SQLException {
+        final String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL AND \"field_name\" = ?";
+        try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
+            stmt.setString(1, procedureID);
+            stmt.setString(2, fieldName);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return getFieldFromDb(rs, procedureID, c, true);
+                }
+            }
+        }
+        throw new SQLException("No field " + fieldName + " found for procedure:" + procedureID);
+    }
+
     protected Field getTimeField(final String procedureID, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' AND \"parent\" IS NULL ORDER BY \"order\"")) {//NOSONAR
             stmt.setString(1, procedureID);
@@ -530,14 +552,16 @@ public class OM2BaseReader {
         }
     }
 
-    private Field getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
+    private DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
-        final Field f = new Field(rs.getInt("order"),
+        final DbField f = new DbField(
+                         rs.getInt("order"),
                          FieldType.fromLabel(rs.getString("field_type")),
                          fieldName,
                          null,
                          rs.getString("field_definition"),
-                         rs.getString("uom"));
+                         rs.getString("uom"),
+                         rs.getInt("table_number"));
 
         if (fetchQualityFields) {
             try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\"=? ORDER BY \"order\"")) {//NOSONAR
@@ -553,28 +577,57 @@ public class OM2BaseReader {
         return f;
     }
 
-    protected int getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
+    protected String getMeasureTableJoin(int[] pidNumber) {
+        int pid = pidNumber[0];
+        int nbTable = pidNumber[1];
+        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m");
+        for (int i = 1; i < nbTable; i++) {
+            String alias = "m" + (i+1);
+            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
+        }
+        return result.toString();
+    }
+
+    /**
+     * Return the PID (internal int procedure identifier) and the number of measure table associated for the specified observation.
+     * If there is no procedure for the specified procedure id, thsi method will return {-1, 0}
+     * 
+     * @param obsIdentifier Observation identifier.
+     * @param c A SQL connection.
+     *
+     * @return A int array with PID and number of measure table.
+     * @throws SQLException id The sql query fails.
+     */
+    protected int[] getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                int pid = -1;
+            try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    pid = rs.getInt(1);
+                    return new int[] {rs.getInt(1), rs.getInt(2)};
                 }
-                return pid;
+                return new int[] {-1, 0};
             }
         }
     }
 
-    protected int getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+    /**
+     * Return the PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
+     *
+     * z
+     *
+     * @param procedure Procedure identifier.
+     * @param c A SQL connection.
+     *
+     * @return A int array with PID and number of measure table.
+     */
+    protected int[] getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
             try(final ResultSet rs = stmt.executeQuery()) {
-                int pid = -1;
                 if (rs.next()) {
-                    pid = rs.getInt(1);
+                    return new int[] {rs.getInt(1), rs.getInt(2)};
                 }
-                return pid;
+                return new int[] {-1, 0};
             }
         }
     }

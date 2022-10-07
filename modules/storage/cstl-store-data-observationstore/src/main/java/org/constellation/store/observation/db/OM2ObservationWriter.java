@@ -56,9 +56,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -86,6 +88,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private final boolean allowSensorStructureUpdate = true;
 
+    private final int maxFieldByTable;
+
     /**
      * Build a new Observation writer for the given data source.
      *
@@ -97,12 +101,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      *
      * @throws org.apache.sis.storage.DataStoreException
      */
-    public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+    public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB, final int maxFieldByTable) throws DataStoreException {
         super(properties, schemaPrefix, false, isPostgres, timescaleDB);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
         this.source = source;
+        this.maxFieldByTable = maxFieldByTable;
     }
 
     /**
@@ -384,8 +389,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 String newPhen = writePhenomenon(phenomenon, c, false);
                 
                 observationName = replacingObs.name;
-                final int pid = getPIDFromProcedure(procedureID, c);
-                writeResult(replacingObs.id, pid, procedureID, observation.getResult(), c, true);
+                final int[] pidNumber = getPIDFromProcedure(procedureID, c);
+                writeResult(replacingObs.id, pidNumber[0], procedureID, observation.getResult(), c, true);
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 if (!replacingObs.phenomenonId.equals(newPhen)) {
                     List<Field> readFields = readFields(procedureID, true, c);
@@ -593,7 +598,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                     }
 
-                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?)")) {//NOSONAR
+                    // compute the number of measure table needed
+                    int nbTable = procedure.fields.size() / maxFieldByTable;
+                    if (procedure.fields.size() % maxFieldByTable > 1) {
+                        nbTable++;
+                    }
+
+                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, procedure.id);
                         AbstractGeometry position = procedure.spatialBound.getLastGeometry("2.0.0");
                         if (position != null) {
@@ -634,6 +645,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else {
                             stmtInsert.setNull(9, java.sql.Types.VARCHAR);
                         }
+                        stmtInsert.setInt(10, nbTable);
                         stmtInsert.executeUpdate();
                     }
 
@@ -720,12 +732,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private static final Field MEASURE_SINGLE_FIELD = new Field(1, FieldType.QUANTITY, "value", null, null, null);
+    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldType.QUANTITY, "value", null, null, null, 1);
 
     private void writeResult(final int oid, final int pid, final String procedureID, final Object result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof Measure || result instanceof org.apache.sis.internal.jaxb.gml.Measure) {
             
-            buildMeasureTable(procedureID, pid, Arrays.asList(MEASURE_SINGLE_FIELD), c);
+            buildMeasureTable(procedureID, pid, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
             if (update) {
                 try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
                     stmt.setDouble(1, getMeasureValue(result));
@@ -745,8 +757,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final TextBlock encoding = verifyDataArray(array);
             final List<Field> fields = getFieldList(array.getPropertyElementType().getAbstractRecord());
             buildMeasureTable(procedureID, pid, fields, c);
-            final String values       = array.getValues();
-            OM2MeasureSQLInserter msi = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, fields);
+
+            final String values          = array.getValues();
+            final List<DbField> dbFields = completeDbField(procedureID, fields.stream().map(f -> f.name).toList(), c);
+            OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, dbFields);
             msi.fillMesureTable(c, oid, values, update);
 
         } else if (result != null) {
@@ -1067,29 +1081,35 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public synchronized void removeObservationForProcedure(final String procedureID) throws DataStoreException {
-        try(final Connection c = source.getConnection()) {
-            final int pid = getPIDFromProcedure(procedureID, c);
-            if (pid == -1) {
-                LOGGER.log(Level.FINE, "Unable to find a procedure:{0}", procedureID);
-                return;
-            }
+        try (final Connection c = source.getConnection()) {
+            final int[] pidNumber = getPIDFromProcedure(procedureID, c);
 
-            boolean mesureTableExist = true;
-            try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"")) {//NOSONAR
-                stmtExist.executeQuery();
-            } catch (SQLException ex) {
-                LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", pid);
-                mesureTableExist = false;
-            }
+            // remove from measures tables
+            for (int i = 0; i < pidNumber[1]; i++) {
+                String suffix = pidNumber[0] + "";
+                if (i > 0) {
+                    suffix = suffix + "_" + (i + 1);
+                }
 
-            //NEW
-            try(final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)");//NOSONAR
-                final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
+                boolean mesureTableExist = true;
+                try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"")) {//NOSONAR
+                    stmtExist.executeQuery();
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", suffix);
+                    mesureTableExist = false;
+                }
 
                 if (mesureTableExist) {
-                    stmtMes.setString(1, procedureID);
-                    stmtMes.executeUpdate();
+                    try (final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)")) {//NOSONAR
+
+                        stmtMes.setString(1, procedureID);
+                        stmtMes.executeUpdate();
+                    }
                 }
+            }
+
+            // remove from observation table
+            try(final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
 
                 stmtObs.setString(1, procedureID);
                 stmtObs.executeUpdate();
@@ -1106,9 +1126,24 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     public synchronized void removeProcedure(final String procedureID) throws DataStoreException {
         try {
             removeObservationForProcedure(procedureID);
-            try(final Connection c = source.getConnection()) {
-                final int pid = getPIDFromProcedure(procedureID, c);
+            try (final Connection c = source.getConnection()) {
 
+                // remove measure tables
+                try (final Statement stmtDrop = c.createStatement()) {
+                    final int[] pidNumber = getPIDFromProcedure(procedureID, c);
+
+                    for (int i = 0; i < pidNumber[1]; i++) {
+                        String suffix = pidNumber[0] + "";
+                        if (i > 0) {
+                            suffix = suffix + "_" + (i + 1);
+                        }
+                        stmtDrop.executeUpdate("DROP TABLE \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"");//NOSONAR
+                    }
+                }  catch (SQLException ex) {
+                    // it happen that the table does not exist
+                    LOGGER.log(Level.WARNING, "Unable to remove measure table.{0}", ex.getMessage());
+                }
+                
                 try (final PreparedStatement stmtObsP = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
                      final PreparedStatement stmtFoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
                      final PreparedStatement stmtHl  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?");//NOSONAR
@@ -1135,18 +1170,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmtObs.executeUpdate();
                 }
 
-                // remove measure table
-                if (pid == -1) {
-                    LOGGER.log(Level.FINE, "Unable to find a procedure:{0}", procedureID);
-                    return;
-                }
-
-                try (final Statement stmtDrop = c.createStatement()) {
-                    stmtDrop.executeUpdate("DROP TABLE \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"");//NOSONAR
-                }  catch (SQLException ex) {
-                    // it happen that the table does not exist
-                    LOGGER.log(Level.WARNING, "Unable to remove measure table.{0}", ex.getMessage());
-                }
                 final String cleanOPQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\""
                                           + " WHERE  \"id\" NOT IN (SELECT DISTINCT \"observed_property\" FROM \"" + schemaPrefix + "om\".\"observations\") "
                                           + " AND    \"id\" NOT IN (SELECT DISTINCT \"phenomenon\"        FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\")"
@@ -1196,20 +1219,29 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public synchronized void removeObservation(final String observationID) throws DataStoreException {
-        try(final Connection c              = source.getConnection()) {
-            final int pid                   = getPIDFromObservation(observationID, c);
-            if (pid != -1) {
-                try(final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" WHERE id_observation IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?)");//NOSONAR
-                    final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?")) {//NOSONAR
+        try(final Connection c     = source.getConnection()) {
+            final int[] pidNumber  = getPIDFromObservation(observationID, c);
+            final int pid          = pidNumber[0];
+            final int nbTable      = pidNumber[1];
+
+            // remove from measure tables
+            for (int i = 0; i < nbTable; i++) {
+                String suffix = pid + "";
+                if (i > 0) {
+                    suffix = suffix + "_" + (i + 1);
+                }
+                try (final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE id_observation IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?)")){//NOSONAR
                     stmtMes.setString(1, observationID);
                     stmtMes.executeUpdate();
-
-                    stmtObs.setString(1, observationID);
-                    stmtObs.executeUpdate();
                 }
-            } else {
-                LOGGER.fine("No observation " + observationID + " exisitng. Unable to delete");
             }
+            
+            // remove from observation table
+            try(final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?")) {//NOSONAR
+                stmtObs.setString(1, observationID);
+                stmtObs.executeUpdate();
+            }
+            
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting observation.", ex);
         }
@@ -1228,22 +1260,50 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         return false;
     }
 
+    private Entry<String,StringBuilder> createTableBaseInsert(int i, String baseTableName) {
+        String suffix = "";
+        if (i > 1) {
+            suffix = "_" + i;
+        }
+        final String tableName = baseTableName + suffix;
+        final StringBuilder sb = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\"("
+                                                 + "\"id_observation\" integer NOT NULL,"
+                                                 + "\"id\"             integer NOT NULL,");
+        return new AbstractMap.SimpleEntry<>(tableName, sb);
+    }
+
     private void buildMeasureTable(final String procedureID, final int pid, final List<Field> fields, final Connection c) throws SQLException, DataStoreException {
         if (fields == null || fields.isEmpty()) {
             throw new DataStoreException("measure fields can not be empty");
         }
-        final String tableName = "mesure" + pid;
+        final String baseTableName = "mesure" + pid;
+        
+
         //look for existence
         final boolean exist = measureTableExist(pid);
-
         if (!exist) {
-            // Build measure table
-            final StringBuilder sb = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
-                                                     + "\"id_observation\" integer NOT NULL,"
-                                                     + "\"id\"             integer NOT NULL,");
+            final List<DbField> dbFields = new ArrayList<>();
+            Map<Integer, Entry<String, StringBuilder>> creationTablesStmt = new LinkedHashMap<>();
             boolean firstField = true;
-            Field mainField = null;
-            for (Field field : fields) {
+            Field mainField    = null;
+            int fieldCpt       = 0;
+            int nbTable        = 0;
+            int nbTabField     = -1;
+
+            // Build measures tables
+            while (fieldCpt < fields.size()) {
+                
+                 // create new table
+                if (nbTabField == -1 || nbTabField > maxFieldByTable) {
+                    nbTable++;
+                    creationTablesStmt.put(nbTable, createTableBaseInsert(nbTable, baseTableName));
+                    nbTabField = 0;
+                }
+                StringBuilder sb = creationTablesStmt.get(nbTable).getValue();
+
+                final Field field = fields.get(fieldCpt);
+                dbFields.add(new DbField(field, nbTable));
+
                 if (Util.containsForbiddenCharacter(field.name)) {
                     throw new DataStoreException("Invalid field name");
                 }
@@ -1253,48 +1313,85 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     mainField = field;
                     sb.append(" NOT NULL");
                     firstField = false;
-                } 
+                }
                 sb.append(",");
                 if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                     for (Field qField : field.qualityFields) {
                         String columnName = field.name + "_quality_" + qField.name;
                         sb.append('"').append(columnName).append("\" ").append(qField.getSQLType(isPostgres, false));
                         sb.append(",");
+                        nbTabField++;
                     }
                 }
+                fieldCpt++;
+                nbTabField++;
             }
-            sb.setCharAt(sb.length() - 1, ' ');
-            sb.append(")");
 
             if (mainField == null) {
                 throw new DataStoreException("No main field was found");
             }
             
-            try(final Statement stmt = c.createStatement()) {
-                stmt.executeUpdate(sb.toString());
-                // main field should not be in the primary key (timescaledb compatibility)
-                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\", \"" + mainField.name + "\")");//NOSONAR
-                stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
-                
-                //only for timeseries for now
-                if (timescaleDB && FieldType.TIME.equals(mainField.type)) {
-                    stmt.execute("SELECT create_hypertable('\"" + schemaPrefix + "mesures\".\"" + tableName + "\"', '" + mainField.name + "')");//NOSONAR
+            try (final Statement stmt = c.createStatement()) {
+
+                // build measures tables
+                boolean first = false;
+                for (Entry<String, StringBuilder> entry : creationTablesStmt.values()) {
+                    String tableName = entry.getKey();
+                    StringBuilder tableStsmt = entry.getValue();
+                    // close statement
+                    tableStsmt.setCharAt(tableStsmt.length() - 1, ' ');
+                    tableStsmt.append(")");
+                    
+                    stmt.executeUpdate(tableStsmt.toString());
+
+                    String mainFieldPk = "";
+                    if (first) {
+                        mainFieldPk = ", \"" + mainField.name + "\"";
+                        first = false;
+                    }
+                    // main field should not be in the primary key (timescaledb compatibility)
+                    stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")");//NOSONAR
+                    stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
+
+                    //only for timeseries for now
+                    if (timescaleDB && FieldType.TIME.equals(mainField.type)) {
+                        stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + mainField.name + "')");//NOSONAR
+                    }
                 }
+
+                // update table count
+                stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + procedureID + "'");//NOSONAR
             }
 
             //fill procedure_descriptions table
-            insertFields(procedureID, fields, 1, c);
+            insertFields(procedureID, dbFields, 1, c);
+
 
         } else if (allowSensorStructureUpdate) {
-            final List<Field> oldfields = readFields(procedureID, false, c);
-            final List<Field> newfields = new ArrayList<>();
+            final int [] pidNumber       = getPIDFromProcedure(procedureID, c);
+            final int nbTable            = pidNumber[1];
+            final List<Field> oldfields  = readFields(procedureID, false, c);
+            final List<Field> newfields  = new ArrayList<>();
+            final List<DbField> dbFields = new ArrayList<>();
             for (Field field : fields) {
                 if (!oldfields.contains(field)) {
                     newfields.add(field);
+                    dbFields.add(new DbField(field, nbTable)); // TODO. see comment under
                 }
             }
-            // Update measure table
+
+            /**
+             * Update measure table by adding new fields.
+             *
+             * TODO: this update mode actually do not handle the multi measure table mecanism.
+             * It will add all the new fields to the last measure table.
+             * we need to handle when the next fields reach the max comlumn limit and then, create a new table.
+             */
             try (Statement addColumnStmt = c.createStatement()) {
+                String tableName = baseTableName;
+                if (nbTable > 1) {
+                    tableName = "_" + nbTable;
+                }
                 for (Field newField : newfields) {
                     StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.name + "\" ");
                     sb.append(newField.getSQLType(isPostgres, false));
@@ -1312,18 +1409,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
 
             //fill procedure_descriptions table
-            insertFields(procedureID, newfields, oldfields.size() + 1, c);
+            insertFields(procedureID, dbFields, oldfields.size() + 1, c);
         }
     }
 
-    private void insertFields(String procedureID, List<Field> fields, int offset, final Connection c) throws SQLException {
-        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?)")) {//NOSONAR
-            for (Field field : fields) {
+    private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {
+        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?)")) {//NOSONAR
+            for (DbField field : fields) {
                 insertField(insertFieldStmt, procedureID, field, null, offset);
                 if (field.qualityFields != null) {
                     int qOffset = 1;
                     for (Field qfield : field.qualityFields) {
-                        insertField(insertFieldStmt, procedureID, qfield, field.name, qOffset);
+                        insertField(insertFieldStmt, procedureID, (DbField)qfield, field.name, qOffset);
                         qOffset++;
                     }
                 }
@@ -1332,7 +1429,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private void insertField(PreparedStatement insertFieldStmt, String procedureID, Field field, String parent, int offset) throws SQLException {
+    private void insertField(PreparedStatement insertFieldStmt, String procedureID, DbField field, String parent, int offset) throws SQLException {
         insertFieldStmt.setString(1, procedureID);
         insertFieldStmt.setInt(2, offset);
         insertFieldStmt.setString(3, field.name);
@@ -1352,6 +1449,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         } else {
             insertFieldStmt.setNull(7, java.sql.Types.VARCHAR);
         }
+        insertFieldStmt.setInt(8, field.tableNumber);
         insertFieldStmt.executeUpdate();
     }
 
