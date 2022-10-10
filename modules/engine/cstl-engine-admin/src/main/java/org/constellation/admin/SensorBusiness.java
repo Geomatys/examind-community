@@ -641,7 +641,7 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     @Transactional
-    public Integer generateSensorForData(final int dataID, final ProcedureTree process, Integer providerID, final String parentID) throws ConfigurationException {
+    public Integer generateSensor(final ProcedureTree process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException {
         
         if (providerID == null) {
             providerID = getDefaultInternalProviderID();
@@ -674,15 +674,18 @@ public class SensorBusiness implements ISensorBusiness {
         final List<String> component = new ArrayList<>();
         for (ProcedureTree child : process.getChildren()) {
             component.add(child.getId());
-            generateSensorForData(dataID, child, providerID, process.getId());
+            generateSensor(child, providerID, process.getId(), dataID);
         }
         prop.put("component", component);
         final String sml = MetadataUtilities.getTemplateSensorMLString(prop, process.getType());
 
         // update sensor metadata
         updateSensorMetadata(sid, sml);
+        
         // link data to created sensor
-        linkDataToSensor(dataID, sid);
+        if (dataID != null) {
+            linkDataToSensor(dataID, sid);
+        }
         return sid;
     }
 

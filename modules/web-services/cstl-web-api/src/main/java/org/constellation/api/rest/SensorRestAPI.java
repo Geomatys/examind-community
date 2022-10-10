@@ -302,7 +302,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         try {
             final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
             for (ProcedureTree process : procedures) {
-                sensorBusiness.generateSensorForData(dataId, process, smlProviderId, null);
+                sensorBusiness.generateSensor(process, smlProviderId, null, dataId);
             }
             IOUtils.write("The sensors has been succesfully generated", response.getOutputStream(), StandardCharsets.UTF_8);
             return new ResponseEntity(OK);

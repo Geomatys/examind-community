@@ -419,9 +419,9 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Integer generateSensorForData(final int dataID, final ProcedureTree process, Integer serviceID, final String parentID) throws ConfigurationException {
+    public Integer generateSensor(final ProcedureTree process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
         Integer smlId = getSensorProviderId(serviceID);
-        return sensorBusiness.generateSensorForData(0, process, smlId, parentID);
+        return sensorBusiness.generateSensor(process, smlId, parentID, dataID);
     }
 
     public boolean importSensor(Integer id, String sensorID) throws ConstellationException {

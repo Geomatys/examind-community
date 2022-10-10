@@ -181,16 +181,16 @@ public interface ISensorBusiness {
 
     /**
      * Generate or update sensor(s) for the specified process.
-     * Then the sensor are linked with the specified data.
+     * Then the sensor are linked with a data (if specified).
      *
-     * @param dataID
-     * @param process
-     * @param providerID
-     * @param parentID
+     * @param process A procedure tree extracted from an observation store.
+     * @param providerID Sensor provider id where the sensor will be generated. Can be {@code null} and the default provider will be used.
+     * @param parentID Parent sensor identifier.
+     * @param dataID A data id, to link with the newly created sensor. Can be {@code null}
      *
      * @return the root sensor id.
      * @throws ConfigurationException
      */
-    Integer generateSensorForData(final int dataID, final ProcedureTree process, Integer providerID, final String parentID) throws ConfigurationException;
+    Integer generateSensor(final ProcedureTree process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException;
 
 }

@@ -472,7 +472,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                         // generate sensor
                         for (ProcedureTree process : result.getProcedures()) {
                             sensorServBusiness.writeProcedure(sosRef.getId(), process);
-                            Integer sid =  sensorBusiness.generateSensorForData(dataId, process, null, null);
+                            Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
                             sensorBusiness.addSensorToService(sosRef.getId(), sid);
                         }
                         result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));

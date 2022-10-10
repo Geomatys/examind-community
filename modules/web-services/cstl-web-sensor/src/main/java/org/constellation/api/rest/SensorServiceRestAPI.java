@@ -241,7 +241,7 @@ public class SensorServiceRestAPI {
 
                 // SensorML generation
                 for (ProcedureTree process : result.getProcedures()) {
-                    sensorServiceBusiness.generateSensorForData(dataID, process, serviceId, null);
+                    sensorServiceBusiness.generateSensor(process, serviceId, null, dataID);
                     updateSensorLocation(serviceId, process);
                 }
             } else {
