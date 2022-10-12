@@ -61,6 +61,8 @@ import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
+import org.geotoolkit.observation.delegate.StoreDelegatingObservationFilter;
+import org.geotoolkit.observation.delegate.StoreDelegatingObservationReader;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.sos.xml.ResponseModeType;
