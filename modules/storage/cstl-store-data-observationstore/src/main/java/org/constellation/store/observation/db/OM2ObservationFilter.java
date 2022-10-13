@@ -38,12 +38,13 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
@@ -65,6 +66,7 @@ import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -169,6 +171,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.limit      = getLongHint(hints, PAGE_LIMIT);
         this.offset     = getLongHint(hints, PAGE_OFFSET);
         this.version    = getVersionFromHints(hints);
+        this.includeTimeInTemplate = getBooleanHint(hints, INCLUDE_TIME_IN_TEMPLATE, false);
+        this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
+        this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
+        this.includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
+        this.separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
+        this.noCompositePhenomenon = getBooleanHint(hints, NO_COMPOSITE_PHENOMENON, false);
+        this.resultMode            = (ResultMode) hints.get(RESULT_MODE);
+        this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
+        this.limit                 = getLongHint(hints, PAGE_LIMIT);
+        this.offset                = getLongHint(hints, PAGE_OFFSET);
 
         switch (objectType) {
             case FEATURE_OF_INTEREST: initFilterGetFeatureOfInterest(); break;
@@ -270,7 +282,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetPhenomenon(final Map<String, Object> hints) {
         sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
-        noCompositePhenomenon = getBooleanHint(hints, NO_COMPOSITE_PHENOMENON, false);
         if (noCompositePhenomenon) {
             sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
             firstFilter = false;
@@ -1261,7 +1272,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
-        Map<String, Object> hints = Collections.EMPTY_MAP;
         String request;
         switch (objectType) {
             case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(); break;

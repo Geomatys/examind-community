@@ -88,8 +88,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     private String responseFormat;
 
-    private String version;
-
     protected QName resultModel;
 
     protected ResponseModeType requestMode;
@@ -97,6 +95,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     protected final List<Filter> eventTimes = new ArrayList<>();
 
     protected OMEntity objectType = null;
+    protected String version      = null;
     
     /**
      * Clone a  Generic Observation Filter for CSTL O&amp;M datasource.
@@ -477,7 +476,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     @Override
     public List<Phenomenon> getPhenomenons() throws DataStoreException {
-        final Set<String> fid              = getIdentifiers();
+        final Set<String> fid       = getIdentifiers();
         Map<String, Object> filters = new HashMap<>();
         filters.put(SOS_VERSION, version);
         filters.put(IDENTIFIER,  fid);

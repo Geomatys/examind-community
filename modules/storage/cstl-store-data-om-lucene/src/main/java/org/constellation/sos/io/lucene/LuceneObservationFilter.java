@@ -76,9 +76,10 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     protected final String phenomenonIdBase;
 
-    protected String version;
+    protected String version = null;
 
     protected OMEntity objectType = null;
+    
     private static final String OR_OPERATOR = " OR ";
 
     public LuceneObservationFilter(final LuceneObservationFilter omFilter) throws DataStoreException {

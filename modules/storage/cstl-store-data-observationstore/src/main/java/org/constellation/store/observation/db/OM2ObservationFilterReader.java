@@ -246,13 +246,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private List<Observation> getComplexObservations() throws DataStoreException {
-        final TextBlock encoding            = getDefaultTextEncoding(version);
-        final ResultBuilder values          = new ResultBuilder(resultMode, encoding, false);
-        
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Process> processMap       = new LinkedHashMap<>();
         final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
-        
+        final TextBlock encoding                    = getDefaultTextEncoding(version);
+        if (resultMode == null) {
+            resultMode = ResultMode.CSV;
+        }
+        final ResultBuilder values          = new ResultBuilder(resultMode, encoding, false);
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -553,9 +554,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final boolean profileWithTime      = profile && includeTimeForProfile;
         if (decimationSize != null && !countRequest) {
             if (timescaleDB) {
-                return getDecimatedResultsTimeScale(decimationSize, includeTimeForProfile, includeIDInDataBlock);
+                return getDecimatedResultsTimeScale();
             } else {
-                return getDecimatedResults(decimationSize, includeTimeForProfile, includeIDInDataBlock);
+                return getDecimatedResults();
             }
         }
         try (final Connection c = source.getConnection()) {
@@ -648,9 +649,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private Object getDecimatedResults(final int width, boolean includeTimeInProfile, boolean includeIDInDataBlock) throws DataStoreException {
+    private Object getDecimatedResults() throws DataStoreException {
         final boolean profile = "profile".equals(currentOMType);
-        final boolean profileWithTime = profile && includeTimeInProfile;
+        final boolean profileWithTime = profile && includeTimeForProfile;
         try (final Connection c = source.getConnection()) {
 
             /**
@@ -709,9 +710,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              * 3) Extract results.
              */
-            final Map<Object, long[]> times = getMainFieldStep(fieldRequest, mainField, c, width);
+            final Map<Object, long[]> times = getMainFieldStep(fieldRequest, mainField, c, decimationSize);
             final int mainFieldIndex = fields.indexOf(mainField);
-            ResultProcessor processor = new DefaultResultDecimator(fields, profile, includeIDInDataBlock, width, fieldFilters, mainFieldIndex, currentProcedure, times);
+            ResultProcessor processor = new DefaultResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainFieldIndex, currentProcedure, times);
             ResultBuilder values = processor.initResultBuilder(responseFormat, false);
 
             try (final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
@@ -729,9 +730,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private Object getDecimatedResultsTimeScale(final int width, boolean includeTimeInProfile, boolean includeIDInDataBlock) throws DataStoreException {
+    private Object getDecimatedResultsTimeScale() throws DataStoreException {
         final boolean profile = "profile".equals(currentOMType);
-        final boolean profileWithTime = profile && includeTimeInProfile;
+        final boolean profileWithTime = profile && includeTimeForProfile;
         try(final Connection c = source.getConnection()) {
 
             /**
@@ -764,7 +765,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // TODO the measure filter is not used ? need testing
 
             // calculate step
-            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), mainField, c, width);
+            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), fields.get(0), c, decimationSize);
             final long step;
             if (profile) {
                 // choose the first step
@@ -806,7 +807,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              * 3) Extract results.
              */
             final int mainFieldIndex = fields.indexOf(mainField);
-            ResultProcessor processor = new TimeScaleResultDecimator(fields, profile, includeIDInDataBlock, width, fieldFilters, mainFieldIndex, currentProcedure);
+            ResultProcessor processor = new TimeScaleResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainFieldIndex, currentProcedure);
             ResultBuilder values = processor.initResultBuilder(responseFormat, false);
             try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                  final ResultSet rs            = pstmt.executeQuery()) {
@@ -1253,7 +1254,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
 
-        int nbCell = decimSize;
+        int nbCell = decimationSize;
 
         try (final Connection c = source.getConnection()) {
 

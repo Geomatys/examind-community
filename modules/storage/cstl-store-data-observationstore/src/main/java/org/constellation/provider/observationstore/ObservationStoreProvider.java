@@ -926,14 +926,17 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         List<String> observedProperties = new ArrayList<>();
         List<String> procedures         = new ArrayList<>();
         List<String> fois               = new ArrayList<>();
+        hints                           = new HashMap<>(hints);
 
         if (q instanceof FeatureQuery) {
             FeatureQuery query = (FeatureQuery) q;
-            if (query.getLimit().isPresent()) {
-                hints.put(PAGE_LIMIT, Long.toString(query.getLimit().getAsLong()));
-            }
-            if (query.getOffset()!= 0) {
-                hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));
+            if (!count) {
+                if (query.getLimit().isPresent()) {
+                    hints.put(PAGE_LIMIT, Long.toString(query.getLimit().getAsLong()));
+                }
+                if (query.getOffset()!= 0) {
+                    hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));
+                }
             }
             localOmFilter.init(entityType, hints);
             handleFilter(entityType, query.getSelection(), localOmFilter, observedProperties, procedures, fois);

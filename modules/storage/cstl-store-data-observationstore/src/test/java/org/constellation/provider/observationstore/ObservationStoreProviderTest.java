@@ -146,7 +146,7 @@ public class ObservationStoreProviderTest {
     public void getProceduresTest() throws Exception {
         assertNotNull(omPr);
 
-        List<ProcedureTree> procs = omPr.getProcedureTrees(null, null);
+        List<ProcedureTree> procs = omPr.getProcedureTrees(null, new HashMap<>());
         assertEquals(13, procs.size());
 
         Set<String> resultIds = new HashSet<>();
