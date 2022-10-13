@@ -72,6 +72,7 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterDescriptor;
+import org.opengis.parameter.ParameterDescriptor;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -147,18 +148,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String separator = inputParameters.getValue(SEPARATOR);
         final String charQuote = inputParameters.getValue(CHARQUOTE);
-        final List<String> mainColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(MAIN_COLUMN.getName().getCode())) {
-                mainColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
-        final List<String> dateColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(DATE_COLUMN.getName().getCode())) {
-                dateColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
+        final List<String> mainColumns = getMultipleValues(MAIN_COLUMN);
+        final List<String> dateColumns = getMultipleValues(DATE_COLUMN);
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
         final String longitudeColumn = inputParameters.getValue(LONGITUDE_COLUMN);
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
@@ -170,21 +161,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
         final String obsPropId   = inputParameters.getValue(OBS_PROP_ID);
-        final List<String> obsPropColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMN.getName().getCode())) {
-                obsPropColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
+        final List<String> obsPropColumns = getMultipleValues(OBS_PROP_COLUMN);
         final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
         final String obsPropName  = inputParameters.getValue(OBS_PROP_NAME);
-
-        final List<String> ObsPropNameColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_NAME_COLUMN.getName().getCode())) {
-                ObsPropNameColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
+        final List<String> ObsPropNameColumns = getMultipleValues(OBS_PROP_NAME_COLUMN);
+        final List<String> obsPropFilterColumns = getMultipleValues(OBS_PROP_COLUMNS_FILTER);
 
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
@@ -192,13 +173,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // prepare the results
         int nbFileInserted = 0;
         int nbObsInserted  = 0;
-
-        final List<String> obsPropFilterColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(OBS_PROP_COLUMNS_FILTER.getName().getCode())) {
-                obsPropFilterColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
 
         if (observationType == null && !storeId.equals("observationCsvFlatFile")) {
             throw new ProcessException("The observation type can't be null except for csvFlat store with type column", this);
@@ -337,7 +311,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DIRECT_COLUMN_INDEX.getName().toString(), Boolean.toString(directColumnIndex));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.NO_HEADER.getName().toString(), Boolean.toString(noHeader));
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
             
             final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
             if (extraStoreParams != null) {
@@ -373,15 +346,21 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             // in the case of a null format, meaning that multiple format are accepted.
                             // we need to determine the format of each file
                             if (format == null) {
+                                boolean formatFound = false;
                                 Optional<FileBean> fb = datasourceBusiness.getAnalyzedPath(dsId, p.getPath());
                                 if (fb.isPresent()) {
                                     List<StoreFormat> types = fb.get().getTypes();
                                     for (StoreFormat sf : types) {
                                         if (storeId.equals(sf.getStore())) {
                                             provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), sf.getFormat());
+                                            formatFound = true;
                                             break;
                                         }
                                     }
+                                }
+                                if (!formatFound) {
+                                    fireWarningOccurred("Unable to determine the format of file:" + p.getPath(), (float) this.progress, null);
+                                    continue;
                                 }
                             }
                             fireAndLog("Integrating data file: " + p.getPath(), 0);
@@ -548,4 +527,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         this.progress = this.progress + progress;
         fireProgressing(msg, (float) this.progress, false);
     }
+
+    private List<String> getMultipleValues(ParameterDescriptor<String> desc) {
+        List<String> results = new ArrayList<>();
+        for (GeneralParameterValue param : inputParameters.values()) {
+            if (param instanceof ParameterValue pval) {
+                if (param.getDescriptor().getName().getCode().equals(desc.getName().getCode())) {
+                    results.add(pval.stringValue());
+                }
+            }
+        }
+        return results;
+    }
+
 }

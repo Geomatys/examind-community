@@ -216,7 +216,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
             // -- single observation related variables --
             String currentProc;
-            Long currentTime;
+            Long currentTime                      = null;
             String currentFoi                     = null;
             List<String> currentMainColumns       = mainColumns;
             String currentObstType                = observationType;
@@ -269,19 +269,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 currentFoi = getColumnValue(foiIndex, line, currentFoi);
 
                 // look for current date (for profile observation separation)
-                if (!dateIndexes.equals(mainIndexes) ) {
-                    String value = "";
-                    try {
-                        for (Integer dateIndex : dateIndexes) {
-                            value += line[dateIndex];
-                        }
-                        currentTime = sdf.parse(value).getTime();
-                    } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                if (!dateIndexes.equals(mainIndexes)) {
+                    Optional<Long> dateO = parseDate(line, null, dateIndexes, sdf, lineNumber);
+                    if (dateO.isPresent()) {
+                        currentTime = dateO.get();
+                    } else {
                         continue;
                     }
-                } else {
-                    currentTime = null;
                 }
 
                 
@@ -336,20 +330,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 // update temporal interval
                 Long millis = null;
                 if (!dateIndexes.isEmpty()) {
-                    String value = "";
-                    try {
-                        if (currentTime != null) {
-                            millis = currentTime;
-                        } else {
-                            for (Integer dateIndex : dateIndexes) {
-                                value += line[dateIndex];
-                            }
-                            millis = sdf.parse(value).getTime();
-                        }
+                    Optional<Long> dateO = parseDate(line, millis, dateIndexes, sdf, lineNumber);
+                    if (dateO.isPresent()) {
+                        millis = dateO.get();
                         result.spatialBound.addDate(millis);
                         currentBlock.addDate(millis);
-                    } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                    } else {
                         continue;
                     }
                 }
@@ -369,31 +355,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // parse main value
-                Number mainValue;
-                String value = "";
-                try {
-                     // assume that for profile main field is a double
-                    if (currentObstType.equals("Profile")) {
-                        if (mainIndexes.size() > 1) {
-                            throw new DataStoreException("Multiple main columns is not yet supported for Profile");
-                        }
-                        value = line[mainIndexes.get(0)];
-                        mainValue = parseDouble(value);
-
-                    // assume that is a date otherwise
-                    } else {
-                        // little optimization if date column == main column
-                        if (millis != null) {
-                            mainValue = millis;
-                        } else {
-                            for (Integer dateIndex : dateIndexes) {
-                                value += line[dateIndex];
-                            }
-                            mainValue = sdf.parse(value).getTime();
-                        }
-                    }
-                } catch (ParseException | NumberFormatException ex) {
-                    LOGGER.fine(String.format("Problem parsing date/double for main field at line %d (value='%s'). skipping line...", lineNumber, value));
+                Optional<? extends Number> mainO = parseMain(line, millis, mainIndexes, sdf, lineNumber, currentObstType);
+                Number mainValue ;
+                if (mainO.isPresent()) {
+                    mainValue = mainO.get();
+                } else {
                     continue;
                 }
 

@@ -271,6 +271,8 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
             inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/dbase; subtype=\"om\""));
         } else if (ext.equals(".xlsx")) {
             inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\""));
+        } else if (ext.equals(".xls")) {
+            inputs.add(new Parameter(FORMAT_NAME,   String.class, FORMAT_DESC,   FORMAT_DESC,   1, 1, "application/vnd.ms-excel; subtype=\"om\""));
         }
 
         chain.setInputs(inputs);
