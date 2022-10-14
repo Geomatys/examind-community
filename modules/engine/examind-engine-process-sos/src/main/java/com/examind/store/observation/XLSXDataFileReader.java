@@ -18,13 +18,17 @@
 */
 package com.examind.store.observation;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ooxml.util.PackageHelper;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
@@ -40,11 +44,27 @@ import org.apache.sis.internal.storage.io.IOUtilities;
 public class XLSXDataFileReader implements DataFileReader {
 
     private final Workbook workbook;
+    private boolean headerAlreadyRead = false;
+    private Iterator<String[]> it = null;
 
     public XLSXDataFileReader(Path dataFile) throws IOException {
         final String ext = IOUtilities.extension(dataFile);
         if ("xlsx".equals(ext)){
-            workbook = new XSSFWorkbook(Files.newInputStream(dataFile));
+            File f = null;
+            try {
+                f = dataFile.toFile();
+            } catch (UnsupportedOperationException ex) {
+                // don't log. we'll use the inputStream instead
+            }
+            try {
+                if (f == null) {
+                    workbook = new XSSFWorkbook(PackageHelper.open(Files.newInputStream(dataFile), true));
+                } else {
+                    workbook  = new XSSFWorkbook(f);
+                }
+            } catch (InvalidFormatException ex) {
+                throw new IOException(ex);
+            }
         } else if ("xls".equals(ext)){
             workbook = new HSSFWorkbook(Files.newInputStream(dataFile));
         } else {
@@ -54,50 +74,54 @@ public class XLSXDataFileReader implements DataFileReader {
 
     @Override
     public Iterator<String[]> iterator(boolean skipHeaders) {
-        final Sheet sheet = workbook.getSheetAt(0);
-        final Iterator<Row> it = sheet.rowIterator();
+        final Iterator<String[]> it = getIterator();
+        if (skipHeaders && !headerAlreadyRead && it.hasNext()) it.next();
+        return it;
+    }
 
-        if (skipHeaders) {
-            if (it.hasNext()) {
-                // skip headers
-                it.next();
-            }
-        }
+    private Iterator<String[]> getIterator() {
+        if (it == null) {
+            final Sheet sheet = workbook.getSheetAt(0);
+            final Iterator<Row> rit = sheet.rowIterator();
 
-        return new Iterator<String[]>() {
-            @Override
-            public boolean hasNext() {
-               return it.hasNext();
-            }
+            it = new Iterator<String[]>() {
 
-            @Override
-            public String[] next() {
-                List<String> results = new ArrayList<>();
-                final Row row = it.next();
-                int lastColumn = row.getLastCellNum();
-                for (int cn = 0; cn < lastColumn; cn++) {
-                    Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    switch (cell.getCellType()) {
-                        case STRING: results.add(cell.getRichStringCellValue().getString()); break;
-                        case NUMERIC:
-                            if (DateUtil.isCellDateFormatted(cell)) {
-                                results.add(cell.getDateCellValue() + "");
-                            } else {
-                                String numVal = cell.getNumericCellValue() + "";
-                                // special case where integer are transformed to double
-                                if (numVal.endsWith(".0")) {
-                                    numVal = numVal.substring(0, numVal.length() -2);
-                                }
-                                results.add(numVal);
-                            } break;
-                        case BOOLEAN: results.add(cell.getBooleanCellValue() + ""); break;
-                        case FORMULA: results.add(cell.getCellFormula() + ""); break;
-                        default: results.add("");
-                    }
+
+                @Override
+                public boolean hasNext() {
+                   return rit.hasNext();
                 }
-                return results.toArray(new String[0]);
-            }
-        };
+
+                @Override
+                public String[] next() {
+                    final Row row = rit.next();
+                    int lastColumn = row.getLastCellNum();
+                    String[] results = new String[lastColumn];
+                    for (int cn = 0; cn < lastColumn; cn++) {
+                        Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                        switch (cell.getCellType()) {
+                            case STRING: results[cn] = cell.getRichStringCellValue().getString(); break;
+                            case NUMERIC:
+                                if (DateUtil.isCellDateFormatted(cell)) {
+                                    results[cn] = cell.getDateCellValue() + "";
+                                } else {
+                                    String numVal = cell.getNumericCellValue() + "";
+                                    // special case where integer are transformed to double
+                                    if (numVal.endsWith(".0")) {
+                                        numVal = numVal.substring(0, numVal.length() -2);
+                                    }
+                                    results[cn] = numVal;
+                                } break;
+                            case BOOLEAN: results[cn] = cell.getBooleanCellValue() + ""; break;
+                            case FORMULA: results[cn] = cell.getCellFormula() + ""; break;
+                            default: results[cn] = "";
+                        }
+                    }
+                    return results;
+                }
+            };
+        }
+        return it;
     }
 
     @Override
@@ -108,7 +132,7 @@ public class XLSXDataFileReader implements DataFileReader {
     @Override
     public String[] getHeaders() throws IOException {
         final Iterator<String[]> it = iterator(false);
-
+        headerAlreadyRead = true;
         // at least one line is expected to contain headers information
         if (it.hasNext()) {
 

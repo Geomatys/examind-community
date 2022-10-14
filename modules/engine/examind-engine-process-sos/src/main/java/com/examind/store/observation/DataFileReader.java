@@ -23,13 +23,26 @@ import java.io.IOException;
 import java.util.Iterator;
 
 /**
- *
+ * Interface for data file reader allowing to iterate over CSV like file.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 public interface DataFileReader extends Closeable {
 
+    /**
+     * Return an iterator on the file.
+     * If an iterator has already been built by this reader, it will be cahed and returned here.
+     *
+     * @param skipHeaders if {@code true} the header will be skipped and the next line will be a data one.
+     *
+     */
     Iterator<String[]> iterator(boolean skipHeaders);
 
+    /**
+     * Return the data file headers.
+     * 
+     * @throws IOException If a the headers can not be found.
+     */
     String[] getHeaders() throws IOException;
 
 }

@@ -59,20 +59,28 @@ public class CsvFlatUtils {
 
             // extract all codes
             final Iterator<String[]> it = reader.iterator(!noHeader);
+            long lineNb = 0L;
             line:while (it.hasNext()) {
+                lineNb++;
                 final String[] line = it.next();
                 String computed = "";
                 boolean first = true;
                 for(Integer i : measureCodeIndex) {
                     final String nextCode = line[i];
-                    if (nextCode == null || nextCode.isEmpty()) continue line;
+                    if (nextCode == null || nextCode.isEmpty()) {
+                        LOGGER.warning("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
+                        continue line;
+                    } else if (Util.containsForbiddenCharacter(nextCode)) {
+                        LOGGER.warning("Invalid measure ignored due to invalid character. Value: " + nextCode + " at line " + lineNb + " column " + i);
+                        continue line;
+                    }
                     if (!first) {
                         computed += "-";
                     }
                     computed += nextCode;
                     first = false;
                 }
-                if (!Util.containsForbiddenCharacter(computed) && computed.indexOf('.') == -1 && computed.length() < 64) {
+                if (computed.length() < 64) {
                     storeCode.add(computed);
                 } else {
                     LOGGER.warning("Invalid measure column value excluded: " + computed);

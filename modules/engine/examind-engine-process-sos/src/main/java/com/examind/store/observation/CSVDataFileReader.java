@@ -48,12 +48,7 @@ public class CSVDataFileReader implements DataFileReader {
     @Override
     public Iterator<String[]> iterator(boolean skipHeaders) {
         final Iterator<String[]> it = getIterator();
-        if (skipHeaders && !headerAlreadyRead) {
-            if (it.hasNext()) {
-                // skip headers
-                it.next();
-            }
-        }
+         if (skipHeaders && !headerAlreadyRead && it.hasNext()) it.next();
         return it;
     }
 

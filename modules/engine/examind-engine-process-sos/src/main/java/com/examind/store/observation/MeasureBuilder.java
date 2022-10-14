@@ -49,6 +49,8 @@ public class MeasureBuilder {
     private final List<String> mainColumns;
 
     public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> mainColumns) {
+        if (mainColumns == null    || mainColumns.isEmpty())    throw new IllegalArgumentException("mains columns should not be null or empty");
+        if (measureColumns == null || measureColumns.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
         this.isProfile = isProfile;
         // initialize description
         for (String mc : measureColumns) {

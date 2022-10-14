@@ -149,6 +149,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
             final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers);
 
+            if (mainIndexes.isEmpty()) {
+                throw new DataStoreException("Unexpected column main:" + mainColumns);
+            }
+
             final List<String> measureFields = new ArrayList<>();
             if ("Profile".equals(observationType))   {
                 if (mainColumns.size() > 1) {
