@@ -84,6 +84,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStore.RESPONSE_FORMAT;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.model.OMEntity;
@@ -105,12 +106,6 @@ import org.opengis.observation.Process;
 public class OM2ObservationReader extends OM2BaseReader implements ObservationReader {
 
     protected final DataSource source;
-
-    private static final Map<String, List<String>> RESPONSE_FORMAT = new HashMap<>();
-    static {
-        RESPONSE_FORMAT.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
-        RESPONSE_FORMAT.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-    }
 
     private final Map<String, List<String>> acceptedSensorMLFormats = new HashMap<>();
 

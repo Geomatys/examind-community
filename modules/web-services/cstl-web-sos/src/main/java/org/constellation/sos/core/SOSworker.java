@@ -1511,7 +1511,7 @@ public class SOSworker extends SensorWorker {
                                                values,
                                                null);
         try {
-            obs.setName(null); //omStore.getReader().getNewObservationId());
+            obs.setName(null);
             obs.setResult(array);
             obs.setSamplingTimePeriod(extractTimeBounds(currentVersion, values, encoding));
             omProvider.writeObservation(obs);
@@ -1772,7 +1772,7 @@ public class SOSworker extends SensorWorker {
                 final AbstractObservation obs = (AbstractObservation) observation;
                 if (obs != null) {
                     obs.setProcedure(sensorId);
-                    obs.setName(null);//omStore.getReader().getNewObservationId());
+                    obs.setName(null);
                     LOGGER.log(Level.FINER, "samplingTime received: {0}", obs.getSamplingTime());
                     LOGGER.log(Level.FINER, "template received:\n{0}", obs.toString());
                 } else {

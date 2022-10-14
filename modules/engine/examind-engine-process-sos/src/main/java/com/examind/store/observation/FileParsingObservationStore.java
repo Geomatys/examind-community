@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -241,6 +242,17 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     @Override
     public ObservationWriter getWriter() {
         return null;
+    }
+
+    @Override
+    public ObservationStoreCapabilities getCapabilities() {
+        final Map<String, List<String>> responseFormats = new HashMap<>();
+        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+
+        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
+
+        return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
     }
 
     @Override
