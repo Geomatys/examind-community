@@ -20,12 +20,9 @@ package com.examind.store.observation;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ooxml.util.PackageHelper;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -100,7 +97,9 @@ public class XLSXDataFileReader implements DataFileReader {
                     for (int cn = 0; cn < lastColumn; cn++) {
                         Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                         switch (cell.getCellType()) {
-                            case STRING: results[cn] = cell.getRichStringCellValue().getString(); break;
+                            case STRING: String value = cell.getRichStringCellValue().getString();
+                                         value = value.trim();
+                                         results[cn] = value; break;
                             case NUMERIC:
                                 if (DateUtil.isCellDateFormatted(cell)) {
                                     results[cn] = cell.getDateCellValue() + "";
