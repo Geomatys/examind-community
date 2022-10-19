@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 import static com.examind.store.observation.csvflat.CsvFlatUtils.*;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
+import com.examind.store.observation.ObservedProperty;
 import org.constellation.exception.ConstellationStoreException;
 
 /**
@@ -283,54 +284,16 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                 }
 
-                
-                String observedProperty = "";
-                if (obsPropId != null && !obsPropId.isEmpty()) {
-                    // Use fixed value
-                    observedProperty = obsPropId;
-                } else {
-                    // Concatenate observedProperty from input code columns
-                    boolean first = true;
-                    for (Integer codeColumnIndex : obsPropColumnIndexes) {
-                        if (!first) {
-                            observedProperty += "-";
-                        }
-                        observedProperty += line[codeColumnIndex];
-                        first = false;
-                    }
-                }
+                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex);
 
                 // checks if row matches the observed properties wanted
-                if (!sortedMeasureColumns.contains(observedProperty)) {
+                if (!sortedMeasureColumns.contains(observedProperty.id)) {
                     continue;
                 }
 
                 ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumns, currentObstType, qualityColumns, qualityTypes);
 
-                String observedPropertyName = "";
-                if (obsPropName != null && !obsPropName.isEmpty()) {
-                    // Use fixed value
-                    observedProperty = obsPropName;
-                } else {
-                    // Concatenate observedProperty name
-                    boolean first = true;
-                    for (Integer index : obsPropNameColumnIndexes) {
-                        if (!first) {
-                            observedPropertyName += "-";
-                        }
-                        observedPropertyName += line[index];
-                        first = false;
-                    }
-                }
-
-                if (!observedPropertyName.isEmpty()) {
-                    currentBlock.updateObservedPropertyName(observedProperty, observedPropertyName);
-                }
-
-                String observedPropertyUOM = getColumnValue(uomColumnIndex, line, null);
-                if (observedPropertyUOM != null) {
-                    currentBlock.updateObservedPropertyUOM(observedProperty, observedPropertyUOM);
-                }
+                currentBlock.updateObservedProperty(observedProperty);
 
                 // update temporal interval
                 Long millis = null;
@@ -382,7 +345,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     Integer qIndex = qualityIndexes.get(i);
                     qualityValues[i] = line[qIndex];
                  }
-                currentBlock.appendValue(mainValue, observedProperty, measureValue, lineNumber, qualityValues);
+                currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues);
             }
 
 
@@ -401,6 +364,44 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
+    }
+
+    protected ObservedProperty parseObservedProperty(String[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
+        String observedProperty = "";
+        if (obsPropId != null && !obsPropId.isEmpty()) {
+            // Use fixed value
+            observedProperty = obsPropId;
+        } else {
+            // Concatenate observedProperty from input code columns
+            boolean first = true;
+            for (Integer codeColumnIndex : obsPropColumnIndexes) {
+                if (!first) {
+                    observedProperty += "-";
+                }
+                observedProperty += line[codeColumnIndex];
+                first = false;
+            }
+        }
+
+        String observedPropertyName = "";
+        if (obsPropName != null && !obsPropName.isEmpty()) {
+            // Use fixed value
+            observedProperty = obsPropName;
+        } else {
+            // Concatenate observedProperty name
+            boolean first = true;
+            for (Integer index : obsPropNameColumnIndexes) {
+                if (!first) {
+                    observedPropertyName += "-";
+                }
+                observedPropertyName += line[index];
+                first = false;
+            }
+        }
+
+        String observedPropertyUOM = getColumnValue(uomColumnIndex, line, null);
+
+        return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
     }
 
     @Override

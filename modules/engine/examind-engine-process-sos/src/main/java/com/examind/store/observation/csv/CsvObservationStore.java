@@ -48,6 +48,7 @@ import org.opengis.util.GenericName;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
 import com.examind.store.observation.ObservationBlock;
+import com.examind.store.observation.ObservedProperty;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
@@ -167,8 +168,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
 
             // special case where there is no header, and a specified observation peorperty identifier
+            ObservedProperty fixedObsProp = null;
             if (directColumnIndex && noHeader && obsPropId != null) {
                 measureFields.add(obsPropId);
+                fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
             }
             
              // final result
@@ -232,6 +235,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
                 ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType, qualityColumns, qualityTypes);
 
+                if (fixedObsProp != null) {
+                    currentBlock.updateObservedProperty(fixedObsProp);
+                }
+                
                 /*
                 a- build spatio-temporal information
                 ==================================*/

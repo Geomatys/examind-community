@@ -38,21 +38,21 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public class ObservationBlock {
 
-    public String procedureId;
+    public final String procedureId;
 
-    public String procedureName;
+    public final String procedureName;
 
-    public String procedureDesc;
+    public final String procedureDesc;
 
     public String featureID;
 
-    public String observationType;
+    public final String observationType;
 
     private final Positions positions;
 
-    public MeasureBuilder cmb;
+    public final MeasureBuilder cmb;
     
-    public GeoSpatialBound currentSpaBound;
+    public final GeoSpatialBound currentSpaBound;
 
     public ObservationBlock(String procedureId, String procedureName, String procedureDesc, String featureID, MeasureBuilder cmb, String observationType) {
         this.procedureId = procedureId;
@@ -102,12 +102,8 @@ public class ObservationBlock {
         cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues);
     }
 
-    public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {
-        cmb.updateObservedPropertyName(observedProperty, observedPropertyName);
-    }
-
-    public void updateObservedPropertyUOM(String observedProperty, String uom) {
-        cmb.updateObservedPropertyUOM(observedProperty, uom);
+    public void updateObservedProperty(ObservedProperty observedProperty) {
+        cmb.updateObservedProperty(observedProperty);
     }
 
     public static class Positions {

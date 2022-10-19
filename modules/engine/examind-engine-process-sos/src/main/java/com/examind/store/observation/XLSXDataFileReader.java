@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.logging.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ooxml.util.PackageHelper;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -43,6 +44,8 @@ public class XLSXDataFileReader implements DataFileReader {
     private final Workbook workbook;
     private boolean headerAlreadyRead = false;
     private Iterator<String[]> it = null;
+
+    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
     public XLSXDataFileReader(Path dataFile) throws IOException {
         final String ext = IOUtilities.extension(dataFile);
@@ -93,30 +96,35 @@ public class XLSXDataFileReader implements DataFileReader {
                 public String[] next() {
                     final Row row = rit.next();
                     int lastColumn = row.getLastCellNum();
-                    String[] results = new String[lastColumn];
-                    for (int cn = 0; cn < lastColumn; cn++) {
-                        Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                        switch (cell.getCellType()) {
-                            case STRING: String value = cell.getRichStringCellValue().getString();
-                                         value = value.trim();
-                                         results[cn] = value; break;
-                            case NUMERIC:
-                                if (DateUtil.isCellDateFormatted(cell)) {
-                                    results[cn] = cell.getDateCellValue() + "";
-                                } else {
-                                    String numVal = cell.getNumericCellValue() + "";
-                                    // special case where integer are transformed to double
-                                    if (numVal.endsWith(".0")) {
-                                        numVal = numVal.substring(0, numVal.length() -2);
-                                    }
-                                    results[cn] = numVal;
-                                } break;
-                            case BOOLEAN: results[cn] = cell.getBooleanCellValue() + ""; break;
-                            case FORMULA: results[cn] = cell.getCellFormula() + ""; break;
-                            default: results[cn] = "";
+                    if (lastColumn > 0) {
+                        String[] results = new String[lastColumn];
+                        for (int cn = 0; cn < lastColumn; cn++) {
+                            Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                            switch (cell.getCellType()) {
+                                case STRING: String value = cell.getRichStringCellValue().getString();
+                                             value = value.trim();
+                                             results[cn] = value; break;
+                                case NUMERIC:
+                                    if (DateUtil.isCellDateFormatted(cell)) {
+                                        results[cn] = cell.getDateCellValue() + "";
+                                    } else {
+                                        String numVal = cell.getNumericCellValue() + "";
+                                        // special case where integer are transformed to double
+                                        if (numVal.endsWith(".0")) {
+                                            numVal = numVal.substring(0, numVal.length() -2);
+                                        }
+                                        results[cn] = numVal;
+                                    } break;
+                                case BOOLEAN: results[cn] = cell.getBooleanCellValue() + ""; break;
+                                case FORMULA: results[cn] = cell.getCellFormula() + ""; break;
+                                default: results[cn] = "";
+                            }
                         }
+                        return results;
+                    } else {
+                        LOGGER.warning("Empty line in xls file");
+                        return new String[0];
                     }
-                    return results;
                 }
             };
         }

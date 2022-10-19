@@ -146,20 +146,14 @@ public class MeasureBuilder {
         return filteredMeasure;
     }
 
-    public void updateObservedPropertyName(String observedProperty, String observedPropertyName) {
-        MeasureField field = measureColumns.get(observedProperty);
+    public void updateObservedProperty(ObservedProperty observedProperty) {
+        MeasureField field = measureColumns.get(observedProperty.id);
         if (field != null) {
-            field.label = observedPropertyName;
+            field.label = observedProperty.name;
+            field.uom   = observedProperty.uom;
         }
     }
 
-    public void updateObservedPropertyUOM(String observedProperty, String uom) {
-        MeasureField field = measureColumns.get(observedProperty);
-        if (field != null) {
-            field.uom = uom;
-        }
-    }
-     
      public MeasureStringBuilder buildMeasureStringBuilderFromMap() {
        final Set<String> measureColumnFound = getMeasureFromMap();
         MeasureStringBuilder result = new MeasureStringBuilder();
