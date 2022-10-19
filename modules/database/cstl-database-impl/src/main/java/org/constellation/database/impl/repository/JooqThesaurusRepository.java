@@ -85,6 +85,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
     @Override
     public Thesaurus getByUri(String uri) {
+        if (uri == null) return null;
         final Record one = dsl.select().from(THESAURUS).where(THESAURUS.URI.eq(uri)).fetchOne();
         if (one == null) return null;
         final Thesaurus th = convertToDto(one.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));
@@ -94,6 +95,7 @@ public class JooqThesaurusRepository extends AbstractJooqRespository<ThesaurusRe
 
     @Override
     public Thesaurus getByName(String name) {
+        if (name == null) return null;
         final Record one = dsl.select().from(THESAURUS).where(THESAURUS.NAME.eq(name)).fetchOne();
         if (one == null) return null;
         final Thesaurus th = convertToDto(one.into(com.examind.database.api.jooq.tables.pojos.Thesaurus.class));

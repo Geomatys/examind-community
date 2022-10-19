@@ -20,6 +20,7 @@ package org.constellation.thesaurus.api;
 
 
 import java.util.Map;
+import java.util.Optional;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.thesaurus.Thesaurus;
 import org.geotoolkit.thw.model.WriteableThesaurus;
@@ -38,13 +39,21 @@ public interface IThesaurusBusiness {
     Map<String, Thesaurus> listThesaurus();
 
     /**
+     * Search thesaurus by URI.
+     *
+     * @param thesaurusURI searched thesaurus uri
+     *
+     * @return The thesaurus or empty if it does not exist.
+     */
+    Optional<Thesaurus> getThesaurusByURI(String thesaurusURI);
+
+    /**
      * Search thesaurus URI from thesaurus name.
      *
      * @param thesaurusName searched thesaurus name
-     * @return thesaurus URI String
-     * @throws ThesaurusException if thesaurus name is not contained in loaded thesaurus list.
+     * @return thesaurus URI or empty if it does not exist.
      */
-    String getThesaurusURIByName(String thesaurusName) throws ThesaurusException;
+    Optional<String> getThesaurusURIByName(String thesaurusName);
 
     /**
      * Create new {@link WriteableThesaurus} object to manipulate thesaurus.

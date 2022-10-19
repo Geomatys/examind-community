@@ -78,12 +78,17 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
     }
 
     @Override
-    public String getThesaurusURIByName(String thesaurusName) throws ThesaurusException {
+    public Optional<Thesaurus> getThesaurusByURI(String thesaurusURI) {
+        return Optional.ofNullable(thesaurusRepository.getByUri(thesaurusURI));
+    }
+
+    @Override
+    public Optional<String> getThesaurusURIByName(String thesaurusName) {
         final Thesaurus th = thesaurusRepository.getByName(thesaurusName);
         if (th != null) {
-            return th.getUri();
+            return Optional.of(th.getUri());
         }
-        throw new ThesaurusException("Unknown thesaurus named "+thesaurusName);
+        return Optional.empty();
     }
 
     @Override

@@ -104,9 +104,7 @@ public class THWRestAPI {
         try (DirectoryStream<java.nio.file.Path> dirStream = Files.newDirectoryStream(thDir)) {
             for (java.nio.file.Path path : dirStream) {
                 final String name = IOUtilities.filenameWithoutExtension(path);
-                try {
-                    thesaurusBusiness.getThesaurusURIByName(name);
-                } catch (ThesaurusException ex) {
+                if (thesaurusBusiness.getThesaurusURIByName(name).isEmpty()) {
                     try (InputStream stream = Files.newInputStream(path)){
                         final Unmarshaller unmarshaller = pool.acquireUnmarshaller();
                         Object object = unmarshaller.unmarshal(stream);
