@@ -32,6 +32,7 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -131,7 +132,16 @@ public class CsvObservationStoreTest {
 
         List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
         Assert.assertEquals(1, procedures.size());
-        Assert.assertEquals(4, procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        ProcedureTree pt = procedures.get(0);
+        Assert.assertEquals(4, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject("2.0.0");
+        Assert.assertTrue(time instanceof TimePeriodType);
+
+        tp = (TimePeriodType) time;
+        Assert.assertEquals("2018-11-02T07:10:52.000" , tp.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-13T03:55:49.000" , tp.getEndPosition().getValue());
     }
 
     @Test
@@ -187,6 +197,15 @@ public class CsvObservationStoreTest {
 
         List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
         Assert.assertEquals(1, procedures.size());
-        Assert.assertEquals(1, procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        ProcedureTree pt = procedures.get(0);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject("2.0.0");
+        Assert.assertTrue(time instanceof TimePeriodType);
+
+        tp = (TimePeriodType) time;
+        Assert.assertEquals("2018-10-30T00:29:00.000" , tp.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-30T11:59:00.000" , tp.getEndPosition().getValue());
     }
 }

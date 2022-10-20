@@ -147,7 +147,14 @@ public class CsvFlatObservationStoreTest {
         Assert.assertEquals(1, procedures.size());
         proc = procedures.get(0);
         Assert.assertEquals("urn:surval:25049001", proc.id);
-        Assert.assertEquals(1, procedures.get(0).spatialBound.getHistoricalLocations().size());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        time = proc.spatialBound.getTimeObject("2.0.0");
+        Assert.assertTrue(time instanceof TimePeriodType);
+
+        tp = (TimePeriodType) time;
+        Assert.assertEquals("1987-06-01" , tp.getBeginPosition().getValue());
+        Assert.assertEquals("2019-12-17" , tp.getEndPosition().getValue());
     }
 
 

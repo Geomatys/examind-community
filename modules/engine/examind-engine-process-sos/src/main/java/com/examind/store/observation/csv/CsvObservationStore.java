@@ -362,7 +362,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             if (!noHeader) {
                 headers = reader.getHeaders();
             }
-            int count = 1;
+            int lineNumber = 1;
 
             // prepare spatial/time column indices
             final List<String> measureFields = new ArrayList<>();
@@ -373,7 +373,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             int procDescIndex = getColumnIndex(procedureNameColumn, headers);
 
             // used to fill measure Fields list
-            getColumnIndexes(measureColumns, headers, measureFields);
+            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && obsPropId != null) {
@@ -386,7 +386,15 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             ProcedureTree currentPTree        = null;
             final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
+                lineNumber++;
                 final String[] line   = it.next();
+
+                // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
+                    continue;
+                }
+                
                 AbstractGeometry geom = null;
                 Date dateParse        = null;
                 final String currentProc;
@@ -412,8 +420,9 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                             value += line[dateIndex];
                         }
                         dateParse = new SimpleDateFormat(this.dateFormat).parse(value);
+                        currentPTree.spatialBound.addDate(dateParse);
                     } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", count, value));
+                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", lineNumber, value));
                         continue;
                     }
                 }
@@ -422,6 +431,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 try {
                     final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
                     if (position.length == 2) {
+                        // only record when the sensor move
                         final String posKey = currentProc + '-' + position[0] + "_" + position[1];
                         if (!knownPositions.contains(posKey)) {
                             knownPositions.add(posKey);
@@ -431,7 +441,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         }
                     }
                 } catch (NumberFormatException | ParseException ex) {
-                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", count, ex.getMessage()));
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
                     continue;
                 }
                 previousProc = currentProc;

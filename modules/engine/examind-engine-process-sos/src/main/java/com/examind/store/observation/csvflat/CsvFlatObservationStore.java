@@ -419,10 +419,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 headers = reader.getHeaders();
             }
 
+            final List<Integer> doubleFields         = new ArrayList<>();
             final List<Integer> dateIndexes           = getColumnIndexes(dateColumns, headers);
             final List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers);
-            int latitudeIndex   = getColumnIndex(latitudeColumn, headers);
-            int longitudeIndex  = getColumnIndex(longitudeColumn, headers);
+            int latitudeIndex   = getColumnIndex(latitudeColumn, headers, doubleFields);
+            int longitudeIndex  = getColumnIndex(longitudeColumn, headers, doubleFields);
+            int valueColumnIndex = getColumnIndex(valueColumn, headers, doubleFields);
             int procedureIndex  = getColumnIndex(procedureColumn, headers);
             int procDescIndex   = getColumnIndex(procedureNameColumn, headers);
             int typeColumnIndex = getColumnIndex(typeColumn, headers);
@@ -432,11 +434,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             final Set<String> knownPositions  = new HashSet<>();
             String previousProc               = null;
             ProcedureTree currentPTree        = null;
-            int count                         = 1;
+            int lineNumber                    = 1;
             
             final Iterator<String[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
-                count++;
+                lineNumber++;
                 final String[] line   = it.next();
                 AbstractGeometry geom = null;
                 Date dateParse        = null;
@@ -448,6 +450,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
                 } else {
                     currentObstType = observationType;
+                }
+
+                // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
+                    continue;
                 }
 
                 final String currentProc;
@@ -494,8 +502,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             value += line[dateIndex];
                         }
                         dateParse = new SimpleDateFormat(this.dateFormat).parse(value);
+                        currentPTree.spatialBound.addDate(dateParse);
                     } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", count, value));
+                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", lineNumber, value));
                         continue;
                     }
                 }
@@ -504,7 +513,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 try {
                     final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
                     if (position.length == 2) {
-                        // only rcord when the sensor move
+                        // only record when the sensor move
                         final String posKey = currentProc + '-' + position[0] + "_" + position[1];
                         if (!knownPositions.contains(posKey)) {
                             knownPositions.add(posKey);
@@ -514,7 +523,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         }
                     }
                 } catch (NumberFormatException | ParseException ex) {
-                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", count, ex.getMessage()));
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
                     continue;
                 }
                 previousProc = currentProc;
