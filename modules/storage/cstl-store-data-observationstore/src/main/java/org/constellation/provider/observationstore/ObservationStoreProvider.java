@@ -45,6 +45,7 @@ import org.apache.sis.storage.Resource;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBJECT_TYPE;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
+import org.apache.sis.util.Utilities;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
@@ -109,6 +110,7 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -120,14 +122,6 @@ import org.opengis.util.FactoryException;
 public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore> implements ObservationProvider {
 
     private SOSProviderCapabilities capabilities = null;
-
-    private static final int GET_OBS  = 0;
-    private static final int GET_FEA  = 1;
-    private static final int GET_PHEN = 2;
-    private static final int GET_PROC = 3;
-    private static final int GET_OFF  = 4;
-    private static final int GET_RES  = 5;
-    private static final int GET_LOC  = 6;
 
     public ObservationStoreProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws DataStoreException{
         super(providerId,service,param);
@@ -200,8 +194,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.HISTORICAL_LOCATION, hints);
-            handleQuery(q, localOmFilter, GET_LOC, hints);
+            handleQuery(q, localOmFilter, OMEntity.HISTORICAL_LOCATION, hints);
             return localOmFilter.getSensorHistoricalLocations(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -212,8 +205,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Map<String, Geometry> getLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.LOCATION, hints);
-            handleQuery(q, localOmFilter, GET_LOC, hints);
+            handleQuery(q, localOmFilter, OMEntity.LOCATION, hints);
             return localOmFilter.getSensorLocations(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -224,8 +216,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.HISTORICAL_LOCATION, hints);
-            handleQuery(q, localOmFilter, GET_LOC, hints);
+            handleQuery(q, localOmFilter, OMEntity.HISTORICAL_LOCATION, hints);
             return localOmFilter.getSensorTimes(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -241,8 +232,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Collection<String> getPhenomenonNames(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.OBSERVED_PROPERTY, hints);
-            handleQuery(q, localOmFilter, GET_PHEN, hints);
+            handleQuery(q, localOmFilter, OMEntity.OBSERVED_PROPERTY, hints);
             return localOmFilter.getIdentifiers(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -254,8 +244,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             // we clone the filter for this request
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.OBSERVED_PROPERTY, hints);
-            handleQuery(q, localOmFilter, GET_PHEN, hints);
+            handleQuery(q, localOmFilter, OMEntity.OBSERVED_PROPERTY, hints);
             return localOmFilter.getPhenomenons(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -266,8 +255,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Collection<String> getProcedureNames(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.PROCEDURE, hints);
-            handleQuery(q, localOmFilter, GET_PROC, hints);
+            handleQuery(q, localOmFilter, OMEntity.PROCEDURE, hints);
             return localOmFilter.getIdentifiers(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -278,8 +266,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Collection<String> getFeatureOfInterestNames(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.FEATURE_OF_INTEREST, hints);
-            handleQuery(q, localOmFilter, GET_FEA, hints);
+            handleQuery(q, localOmFilter, OMEntity.FEATURE_OF_INTEREST, hints);
             return localOmFilter.getIdentifiers(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -350,8 +337,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Collection<String> getOfferingNames(Query q, final Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.OFFERING, hints);
-            handleQuery(q, localOmFilter, GET_OFF, hints);
+            handleQuery(q, localOmFilter, OMEntity.OFFERING, hints);
             return localOmFilter.getIdentifiers(hints);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -372,7 +358,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             hints.put(RESULT_MODEL, resultModel);
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             localOmFilter.init(OMEntity.OBSERVATION, hints);
-            handleQuery(q, localOmFilter, GET_OBS, hints);
+            handleQuery(q, localOmFilter, OMEntity.OBSERVATION, hints);
 
             return localOmFilter.getIdentifiers(hints);
         } catch (DataStoreException ex) {
@@ -728,8 +714,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public List<SamplingFeature> getFeatureOfInterest(Query q, Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.FEATURE_OF_INTEREST, hints);
-            handleQuery(q, localOmFilter, GET_FEA, hints);
+            handleQuery(q, localOmFilter, OMEntity.FEATURE_OF_INTEREST, hints);
 
             return localOmFilter.getFeatureOfInterests(hints);
         } catch (DataStoreException ex) {
@@ -761,8 +746,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
 
             // we clone the filter for this request
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.OBSERVATION, hints);
-            handleQuery(q, localOmFilter, GET_OBS, hints);
+            handleQuery(q, localOmFilter, OMEntity.OBSERVATION, hints);
 
             if (responseFormat != null) {
                 localOmFilter.setResponseFormat(responseFormat);
@@ -777,8 +761,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public List<Process> getProcedures(Query q, Map<String, Object> hints) throws ConstellationStoreException {
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
-            localOmFilter.init(OMEntity.PROCEDURE, hints);
-            handleQuery(q, localOmFilter, GET_PROC, hints);
+            handleQuery(q, localOmFilter, OMEntity.PROCEDURE, hints);
             return localOmFilter.getProcesses(hints);
 
         } catch (DataStoreException ex) {
@@ -802,8 +785,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 mode = ResponseModeType.INLINE;
             }
             hints.put(RESPONSE_MODE, mode);
-            localOmFilter.init(OMEntity.RESULT, hints);
-            handleQuery(q, localOmFilter, GET_RES, hints);
+            handleQuery(q, localOmFilter, OMEntity.RESULT, hints);
             localOmFilter.setResponseFormat(responseFormat);
             return localOmFilter.getResults(hints);
 
@@ -829,47 +811,25 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             if (resultModel == null) {
                 resultModel = OBSERVATION_QNAME;
             }
-            int mode;
             switch (objectType) {
                 case OBSERVED_PROPERTY:
-                    localOmFilter.init(OMEntity.OBSERVED_PROPERTY, hints);
-                    mode = GET_PHEN;
-                    break;
                 case PROCEDURE:
-                    localOmFilter.init(OMEntity.PROCEDURE, hints);
-                    mode = GET_PROC;
-                    break;
                 case FEATURE_OF_INTEREST:
-                    localOmFilter.init(OMEntity.FEATURE_OF_INTEREST, hints);
-                    mode = GET_FEA;
-                    break;
                 case OFFERING:
-                    localOmFilter.init(OMEntity.OFFERING, hints);
-                    mode = GET_OFF;
-                    break;
                 case LOCATION:
-                    localOmFilter.init(OMEntity.LOCATION, hints);
-                    mode = GET_LOC;
-                    break;
                 case HISTORICAL_LOCATION:
-                    localOmFilter.init(OMEntity.HISTORICAL_LOCATION, hints);
-                    mode = GET_LOC;
                     break;
                 case OBSERVATION:
                     hints.put(RESPONSE_MODE, responseMode);
                     hints.put(RESULT_MODEL, resultModel);
-                    localOmFilter.init(OMEntity.OBSERVATION, hints);
-                    mode = GET_OBS;
                     break;
                 case RESULT:
                     hints.put(RESPONSE_MODE, responseMode);
                     hints.put(RESULT_MODEL, resultModel);
-                    localOmFilter.init(OMEntity.RESULT, hints);
-                    mode = GET_RES;
                     break;
                 default: throw new ConstellationStoreException("unsuported objectType parameter " + objectType + " for getCount()");
             }
-            handleQuery(q, localOmFilter, mode, hints);
+            handleQuery(q, localOmFilter, objectType, true, hints);
             return localOmFilter.getCount();
 
         } catch (DataStoreException ex) {
@@ -991,23 +951,30 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         return null;
     }
 
-    private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final int mode, Map<String, Object> hints) throws ConstellationStoreException, DataStoreException {
+    private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final OMEntity entityType, Map<String, Object> hints) throws ConstellationStoreException, DataStoreException {
+        handleQuery(q, localOmFilter, entityType, false, hints);
+    }
+
+    private void handleQuery(Query q, final ObservationFilterReader localOmFilter, final OMEntity entityType, boolean count, Map<String, Object> hints) throws ConstellationStoreException, DataStoreException {
         List<String> observedProperties = new ArrayList<>();
         List<String> procedures         = new ArrayList<>();
         List<String> fois               = new ArrayList<>();
 
         if (q instanceof FeatureQuery) {
-                FeatureQuery query = (FeatureQuery) q;
-                handleFilter(mode, query.getSelection(), localOmFilter, observedProperties, procedures, fois);
-                if (query.getLimit().isPresent()) {
-                    hints.put(PAGE_LIMIT, Long.toString(query.getLimit().getAsLong()));
-                }
-                if (query.getOffset()!= 0) {
-                    hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));
-                }
-
+            FeatureQuery query = (FeatureQuery) q;
+            if (query.getLimit().isPresent()) {
+                hints.put(PAGE_LIMIT, Long.toString(query.getLimit().getAsLong()));
+            }
+            if (query.getOffset()!= 0) {
+                hints.put(PAGE_OFFSET, Long.toString(query.getOffset()));
+            }
+            localOmFilter.init(entityType, hints);
+            handleFilter(entityType, query.getSelection(), localOmFilter, observedProperties, procedures, fois);
+            
         } else if (q != null) {
             throw new ConstellationStoreException("Only FeatureQuery are supported for now");
+        } else {
+            localOmFilter.init(entityType, hints);
         }
 
         // TODO Spatial BBOX
@@ -1016,7 +983,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         localOmFilter.setFeatureOfInterest(fois);
     }
 
-    private void handleFilter(int mode, Filter filter, final ObservationFilterReader localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
+    private void handleFilter(OMEntity mode, Filter filter, final ObservationFilterReader localOmFilter, List<String> observedProperties, List<String> procedures, List<String> fois) throws ConstellationStoreException, DataStoreException {
         if (Filter.include().equals(filter) || filter == null) {
             return;
         }
@@ -1044,22 +1011,23 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             ids.add(idf.getIdentifier());
 
             switch (mode) {
-                case GET_FEA:
+                case FEATURE_OF_INTEREST:
                     localOmFilter.setFeatureOfInterest(ids);
                     break;
-                case GET_OBS:
+                case OBSERVATION:
                     localOmFilter.setObservationIds(ids);
                     break;
-                case GET_PHEN:
+                case OBSERVED_PROPERTY:
                     localOmFilter.setObservedProperties(ids);
                     break;
-                case GET_PROC:
+                case PROCEDURE:
                     localOmFilter.setProcedure(ids);
                     break;
-                case GET_OFF:
+                case OFFERING:
                     localOmFilter.setOfferings(ids);
                     break;
-                case GET_LOC:
+                case LOCATION:
+                case HISTORICAL_LOCATION:
                     localOmFilter.setProcedure(ids);
                     break;
                 default:
@@ -1084,7 +1052,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
 
             switch (mode) {
-                case GET_LOC:
+                case LOCATION:
                     localOmFilter.setBoundingBox(env);
                     break;
                 default:
@@ -1186,8 +1154,14 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             try {
                 org.locationtech.jts.geom.Geometry jtsGeometry = GeometrytoJTS.toJTS(geom);
                 // reproject to CRS:84
-                final MathTransform mt = CRS.findOperation(geom.getCoordinateReferenceSystem(true), CommonCRS.defaultGeographic(), null).getMathTransform();
-                results.add(JTS.transform(jtsGeometry, mt));
+                CoordinateReferenceSystem crs = JTS.getCoordinateReferenceSystem(jtsGeometry);
+                if (crs != null && !Utilities.equalsIgnoreMetadata(crs, CommonCRS.defaultGeographic())) {
+                    final MathTransform mt = CRS.findOperation(crs, CommonCRS.defaultGeographic(), null).getMathTransform();
+                    results.add(JTS.transform(jtsGeometry, mt));
+                } else {
+                    // already in CRS:84 or no information about CRS.
+                    results.add(jtsGeometry);
+                }
             } catch (FactoryException | TransformException ex) {
                 throw new ConstellationStoreException("Sensor geometry cannot be converted to geographic coordinates", ex);
             }
