@@ -58,7 +58,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -71,6 +70,8 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import static org.geotoolkit.observation.OMUtils.componentsEquals;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Observation;
@@ -469,7 +470,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         for (ServiceProcessReference sosRef : sosRefs) {
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
-            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new FeatureQuery(), Collections.singletonMap("version", "1.0.0")));
+            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery(), Collections.singletonMap("version", "1.0.0")));
             final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
 
             boolean alreadyInserted = false;
@@ -581,7 +582,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     }
 
     private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {
-        return provider.getFeatureOfInterest(new FeatureQuery(), Collections.singletonMap("version", "2.0.0"));
+        return provider.getFeatureOfInterest(new SamplingFeatureQuery(), Collections.singletonMap("version", "2.0.0"));
     }
 
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {

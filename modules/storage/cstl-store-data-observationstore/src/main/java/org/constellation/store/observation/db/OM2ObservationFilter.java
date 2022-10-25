@@ -51,9 +51,9 @@ import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.JTS;
@@ -174,10 +174,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.includeTimeInTemplate = getBooleanHint(hints, INCLUDE_TIME_IN_TEMPLATE, false);
         this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
         this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        this.includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
+        this.includeQualityFields  = getBooleanHint(hints, INCLUDE_QUALITY_FIELD,  true);
         this.separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
         this.noCompositePhenomenon = getBooleanHint(hints, NO_COMPOSITE_PHENOMENON, false);
         this.resultMode            = (ResultMode) hints.get(RESULT_MODE);
+        this.responseFormat        = (String) hints.get(RESPONSE_FORMAT);
         this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
         this.limit                 = getLongHint(hints, PAGE_LIMIT);
         this.offset                = getLongHint(hints, PAGE_OFFSET);

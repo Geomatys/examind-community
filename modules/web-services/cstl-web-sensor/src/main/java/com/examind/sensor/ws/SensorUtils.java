@@ -64,6 +64,8 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorData;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.CompositePhenomenon;
@@ -309,7 +311,7 @@ public final class SensorUtils {
         final FilterFactory ff = FilterUtilities.FF;
         final Set<String> phenomenons = new HashSet<>();
 
-        FeatureQuery query = new FeatureQuery();
+        AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY);
         query.setSelection(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
         Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
         phenos.forEach(p -> {

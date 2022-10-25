@@ -61,8 +61,6 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     private ObservationReader reader;
 
-    private String responseFormat;
-
     public LuceneObservationFilterReader(final LuceneObservationFilterReader omFilter) throws DataStoreException {
         super(omFilter);
         this.reader = omFilter.reader;

@@ -144,7 +144,8 @@ public class FileObservationReader implements ObservationReader {
         }
     }
 
-    private Collection<String> getOfferingNames(final String version, String sensorType) throws DataStoreException {
+    private Collection<String> getOfferingNames(String version, String sensorType) throws DataStoreException {
+        version = version == null ? "2.0.0" : version;
         // TODO filter on sensor type
         final List<String> offeringNames = new ArrayList<>();
         if (Files.isDirectory(offeringDirectory)) {

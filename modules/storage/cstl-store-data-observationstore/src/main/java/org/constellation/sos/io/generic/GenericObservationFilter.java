@@ -151,6 +151,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     private void initFilterObservation(Map<String, Object> hints) {
         this.requestMode = (ResponseModeType) hints.get("responseMode");
         this.resultModel = (QName) hints.get("resultModel");
+        this.responseFormat = (String) hints.get("responseFormat");
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterObservation"));
         final From from;
@@ -175,6 +176,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     private void initFilterGetResult(Map<String, Object> hints) {
         String procedure = (String) hints.get("procedure");
         this.resultModel = (QName) hints.get("resultModel");
+        this.responseFormat = (String) hints.get("responseFormat");
         currentQuery              = new Query();
         final Select select       = new Select(configurationQuery.getSelect("filterResult"));
         final From from           = new From(configurationQuery.getFrom("observations"));

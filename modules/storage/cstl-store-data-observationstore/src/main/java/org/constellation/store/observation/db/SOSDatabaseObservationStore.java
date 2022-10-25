@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -65,18 +66,24 @@ import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.observation.AbstractObservationStore;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
+import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.filter.ResourceId;
 import org.opengis.metadata.Metadata;
+import org.opengis.observation.Observation;
+import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
@@ -215,7 +222,39 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      */
     @Override
     protected Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
-        return reader.getSensorLocations(sensorID, "2.0.0");
+        return getReader().getSensorLocations(sensorID, "2.0.0");
+    }
+
+    @Override
+    public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
+        final List<ExtractionResult.ProcedureTree> results = new ArrayList<>();
+
+        final ObservationFilterReader procFilter = getFilter();
+        procFilter.init(OMEntity.PROCEDURE, Collections.EMPTY_MAP);
+
+        for (Process p : procFilter.getProcesses()) {
+            
+            final org.geotoolkit.observation.xml.Process proc  =  (org.geotoolkit.observation.xml.Process) p;
+            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
+
+            AbstractObservation template = (AbstractObservation) getReader().getTemplateForProcedure(proc.getHref(), "2.0.0");
+
+            if (template != null) {
+                final PhenomenonProperty phenProp = template.getPropertyObservedProperty();
+                if (phenProp != null) {
+                    final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
+                    for (String field : fields) {
+                        if (!procedure.fields.contains(field)) {
+                            procedure.fields.add(field);
+                        }
+                    }
+                }
+                procedure.spatialBound.appendLocation(template.getSamplingTime(), template.getFeatureOfInterest());
+                procedure.spatialBound.getHistoricalLocations().putAll(getSensorLocations(proc.getHref(), "2.0.0"));
+            }
+            results.add(procedure);
+        }
+        return results;
     }
 
     /**
@@ -234,7 +273,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
         final ExtractionResult result = new ExtractionResult();
-        result.spatialBound.addTime(reader.getEventTime("2.0.0"));
+        result.spatialBound.addTime(getReader().getEventTime("2.0.0"));
         return result.spatialBound.getTimeObject("2.0.0");
     }
 

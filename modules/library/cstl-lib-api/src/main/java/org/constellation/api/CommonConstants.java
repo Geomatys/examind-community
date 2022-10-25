@@ -72,7 +72,6 @@ public class CommonConstants {
 
     public static final String SOS = "SOS";
     public static final String ALL = "All";
-    public static final String OBJECT_TYPE = "objectType";
     public static final String OFFERING = "offering";
     public static final String LOCATION = "location";
     public static final String OBSERVED_PROPERTY = "observedProperty";

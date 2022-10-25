@@ -145,21 +145,20 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             throw new DataStoreException("Missing entity type parameter");
         }
         String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
             case OBSERVED_PROPERTY:   return getPhenomenonNames();
             case PROCEDURE:           return getProcedureNames(sensorType);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(version, sensorType);
+            case OFFERING:            return getOfferingNames(sensorType);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    private List<String> getOfferingNames(final String version, final String sensorType) throws DataStoreException {
+    private List<String> getOfferingNames(final String sensorType) throws DataStoreException {
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement()) {
             final List<String> results = new ArrayList<>();
@@ -192,14 +191,13 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
         String identifier   = (String) hints.get(IDENTIFIER);
         String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
             case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(version, sensorType).contains(identifier);
+            case OFFERING:            return getOfferingNames(sensorType).contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
@@ -220,7 +218,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } else if (identifierVal instanceof String) {
             identifiers.add((String) identifierVal);
         } else if (identifierVal == null) {
-            identifiers.addAll(getOfferingNames(version, sensorType));
+            identifiers.addAll(getOfferingNames(sensorType));
         }
         final List<ObservationOffering> offerings = new ArrayList<>();
         for (String offeringName : identifiers) {

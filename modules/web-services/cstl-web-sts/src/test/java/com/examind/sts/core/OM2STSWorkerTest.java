@@ -1206,7 +1206,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .name("urn:ogc:object:sensor:GEOM:10")
+                .name("Sensor 10")
                 .iotId("urn:ogc:object:sensor:GEOM:10")
                 .description("")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1330,7 +1330,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .name("urn:ogc:object:sensor:GEOM:test-id")
+                .name("Sensor test id")
                 .iotId("urn:ogc:object:sensor:GEOM:test-id")
                 .description("")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1686,7 +1686,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .name("urn:ogc:object:sensor:GEOM:10")
+                .name("Sensor 10")
                 .iotId("urn:ogc:object:sensor:GEOM:10")
                 .description("")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")
@@ -1823,7 +1823,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setObservedPropertyIotNavigationLink(null);
 
         org.geotoolkit.sts.json.Sensor sensor = new org.geotoolkit.sts.json.Sensor()
-                .name("urn:ogc:object:sensor:GEOM:test-id")
+                .name("Sensor test id")
                 .iotId("urn:ogc:object:sensor:GEOM:test-id")
                 .description("")
                 .encodingType("http://www.opengis.net/doc/IS/SensorML/2.0")

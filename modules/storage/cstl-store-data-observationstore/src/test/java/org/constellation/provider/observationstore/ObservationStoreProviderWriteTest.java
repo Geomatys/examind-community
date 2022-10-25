@@ -44,6 +44,7 @@ import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.ObservationFilterFlags.INCLUDE_FOI_IN_TEMPLATE;
 import static org.geotoolkit.observation.ObservationFilterFlags.VERSION;
+import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.storage.DataStores;
@@ -181,13 +182,13 @@ public class ObservationStoreProviderWriteTest {
        /*
         * alternative method to get the template from filter reader
         */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME,  "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
         Map<String, Object> hints = new HashMap<>();
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         hints.put(VERSION, "2.0.0");
-        FeatureQuery query = new FeatureQuery();
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
         query.setSelection(eqFilter);
-        List<Observation> results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        List<Observation> results = omPr.getObservations(query, hints);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -200,12 +201,12 @@ public class ObservationStoreProviderWriteTest {
         * to get the measurement template from filter reader
         */
         hints = new HashMap<>();
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         hints.put(VERSION, "2.0.0");
-        query = new FeatureQuery();
+        query = new ObservationQuery(MEASUREMENT_QNAME,  "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
         eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
         query.setSelection(eqFilter);
-        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        results = omPr.getObservations(query, hints);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -219,10 +220,11 @@ public class ObservationStoreProviderWriteTest {
         */
         hints = new HashMap<>();
         hints.put(VERSION, "2.0.0");
-        query = new FeatureQuery();
+        query = new ObservationQuery(OBSERVATION_QNAME,  "inline", null);
         ResourceId filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        query.setIncludeQualityFields(true);
+        results = omPr.getObservations(query, hints);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof AbstractObservation);
@@ -235,7 +237,10 @@ public class ObservationStoreProviderWriteTest {
         */
         hints = new HashMap<>();
         hints.put(VERSION, "2.0.0");
-        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "inline", null, hints);
+        query = new ObservationQuery(MEASUREMENT_QNAME,  "inline", null);
+        filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query, hints);
         assertEquals(5, results.size());
 
         assertTrue(results.get(0) instanceof AbstractObservation);
@@ -298,12 +303,12 @@ public class ObservationStoreProviderWriteTest {
         * alternative method to get the template from filter reader
         */
         Map<String, Object> hints = new HashMap<>();
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         hints.put(VERSION, "2.0.0");
-        FeatureQuery query = new FeatureQuery();
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
-        List<Observation> results = omPr.getObservations(query,  OBSERVATION_QNAME, "resultTemplate", null, hints);
+        List<Observation> results = omPr.getObservations(query, hints);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -316,12 +321,12 @@ public class ObservationStoreProviderWriteTest {
         * to get the measurement template from filter reader
         */
         hints = new HashMap<>();
-        hints.put(INCLUDE_FOI_IN_TEMPLATE, true);
         hints.put(VERSION, "2.0.0");
-        query = new FeatureQuery();
+        query = new ObservationQuery(MEASUREMENT_QNAME, "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
         eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
-        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "resultTemplate", null, hints);
+        results = omPr.getObservations(query, hints);
         assertEquals(12, results.size());
         template = results.get(11);
 
@@ -335,10 +340,10 @@ public class ObservationStoreProviderWriteTest {
         */
         hints = new HashMap<>();
         hints.put(VERSION, "2.0.0");
-        query = new FeatureQuery();
+        query = new ObservationQuery(OBSERVATION_QNAME, "inline", null);
         ResourceId filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  OBSERVATION_QNAME, "inline", null, hints);
+        results = omPr.getObservations(query, hints);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof AbstractObservation);
@@ -351,7 +356,10 @@ public class ObservationStoreProviderWriteTest {
         */
         hints = new HashMap<>();
         hints.put(VERSION, "2.0.0");
-        results = omPr.getObservations(query,  MEASUREMENT_QNAME, "inline", null, hints);
+        query = new ObservationQuery(MEASUREMENT_QNAME, "inline", null);
+        filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query, hints);
         assertEquals(24, results.size());
 
         assertTrue(results.get(11) instanceof AbstractObservation);

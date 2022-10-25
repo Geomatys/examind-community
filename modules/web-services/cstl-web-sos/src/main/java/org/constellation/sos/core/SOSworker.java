@@ -158,6 +158,11 @@ import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
 import java.util.stream.Collectors;
 import org.constellation.api.WorkerState;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.query.IdentifierQuery;
+import org.geotoolkit.observation.query.ObservationQuery;
+import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.ogc.xml.BBOX;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
@@ -474,18 +479,16 @@ public class SOSworker extends SensorWorker {
                 final Collection<String> phenNames = new ArrayList<>();
                 final List<String> queryableResultProperties = new ArrayList<>();
 
-                foiNames.addAll(omProvider.getFeatureOfInterestNames(null, Collections.EMPTY_MAP));
-                phenNames.addAll(omProvider.getPhenomenonNames(null, Collections.EMPTY_MAP));
+                foiNames.addAll(omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST), Collections.EMPTY_MAP));
+                phenNames.addAll(omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP));
 
-                FeatureQuery stQuery = null;
+                Filter stFilter = null;
                 if (sensorTypeFilter != null) {
-                    stQuery = new FeatureQuery();
                     BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
-                    stQuery.setSelection(filter);
                 }
 
-                final Collection<String>  procNames  = omProvider.getProcedureNames(stQuery, hints);
-                final Collection<String> offNames    = omProvider.getOfferingNames(stQuery, hints);
+                final Collection<String>  procNames  = omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE, stFilter), hints);
+                final Collection<String> offNames    = omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.OFFERING, stFilter), hints);
                 TemporalGeometricPrimitive eventTime = omProvider.getTime(currentVersion);
 
                 queryableResultProperties.addAll(getProviderCapabilities().queryableResultProperties);
@@ -747,7 +750,7 @@ public class SOSworker extends SensorWorker {
                 }
                 oids.add(ff.resourceId(oid));
             }
-            final FeatureQuery subquery = new FeatureQuery();
+            final ObservationQuery subquery = new ObservationQuery(request.getResultModel(), "inline", request.getResponseFormat());
             Filter filter;
             switch (oids.size()) {
                 case 0:  filter = Filter.exclude(); break;
@@ -755,7 +758,7 @@ public class SOSworker extends SensorWorker {
                 default: filter = ff.or(oids); break;
             }
             subquery.setSelection(filter);
-            observation = omProvider.getObservations(subquery, request.getResultModel(), "inline", request.getResponseFormat(), Collections.singletonMap("version", currentVersion))
+            observation = omProvider.getObservations(subquery, Collections.singletonMap("version", currentVersion))
                                     .stream()
                                     .map(obs -> (AbstractObservation)obs)
                                     .toList();
@@ -904,7 +907,7 @@ public class SOSworker extends SensorWorker {
                         throw new CstlServiceException(" the procedure parameter is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
                     }
 
-                    if (!omProvider.existProcedure(procedure)) {
+                    if (!omProvider.existEntity(new IdentifierQuery(OMEntity.PROCEDURE, procedure))) {
                         throw new CstlServiceException(" this process is not registred in the table", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                     if (!offerings.isEmpty()) {
@@ -938,7 +941,7 @@ public class SOSworker extends SensorWorker {
             final List<String> observedProperties = requestObservation.getObservedProperty();
             if (observedProperties != null && !observedProperties.isEmpty()) {
                 for (String observedProperty : observedProperties) {
-                    if (!omProvider.existPhenomenon(observedProperty)) {
+                    if (!omProvider.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, observedProperty))) {
                         throw new CstlServiceException(" this phenomenon " + observedProperty + " is not registred in the datasource!",
                                 INVALID_PARAMETER_VALUE, "observedProperty");
                     }
@@ -952,7 +955,7 @@ public class SOSworker extends SensorWorker {
 
                 //verify that the station is registred in the DB.
                 for (final String samplingFeatureName : requestObservation.getFeatureIds()) {
-                    if (!omProvider.existFeatureOfInterest(samplingFeatureName)) {
+                    if (!omProvider.existEntity(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, samplingFeatureName))) {
                         throw new CstlServiceException("the feature of interest "+ samplingFeatureName + " is not registered",
                                                          INVALID_PARAMETER_VALUE, "featureOfInterest");
                     }
@@ -1059,15 +1062,15 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            FeatureQuery query = new FeatureQuery();
-            query.setSelection(buildFilter(times, observedProperties, procedures, featureOfInterest, bboxFilter, resultFilter));
-
+            Filter filter = buildFilter(times, observedProperties, procedures, featureOfInterest, bboxFilter, resultFilter);
             if (!outOfBand) {
+
+                final ObservationQuery query = new ObservationQuery(filter, resultModel, responseMode.value(), responseFormat);
 
                 /*
                  * - The filterReader execute a request and return directly the observations
                  */
-                final List<Observation> matchingResult = omProvider.getObservations(query, resultModel, responseMode.value(), responseFormat, Collections.singletonMap("version", currentVersion));
+                final List<Observation> matchingResult = omProvider.getObservations(query, Collections.singletonMap("version", currentVersion));
                 final Envelope computedBounds;
                 if (pc.computeCollectionBound) {
                     computedBounds = null; //localOmFilter.getCollectionBoundingShape(); for now no implementation perform this
@@ -1119,8 +1122,9 @@ public class SOSworker extends SensorWorker {
                 ocResponse = normalizeDocument(currentVersion, ocResponse);
                 response   = ocResponse;
             } else {
+                final ResultQuery query = new ResultQuery(filter, resultModel, OUT_OF_BAND.value(), null, responseFormat);
                 try {
-                    response = omProvider.getResults(null, resultModel, OUT_OF_BAND.value(), query, responseFormat, Collections.singletonMap("version", currentVersion));
+                    response = omProvider.getResults(query, Collections.singletonMap("version", currentVersion));
                 } catch(UnsupportedOperationException ex) {
                     throw new CstlServiceException("Out of band response mode has been yet implemented for this data source", NO_APPLICABLE_CODE, RESPONSE_MODE);
                 }
@@ -1187,7 +1191,7 @@ public class SOSworker extends SensorWorker {
                 if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                     throw new CstlServiceException("The observedProperty parameter must be specified", MISSING_PARAMETER_VALUE, "observedProperty");
                 } else {
-                    if (!omProvider.existPhenomenon(request.getObservedProperty())) {
+                    if (!omProvider.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, request.getObservedProperty()))) {
                         throw new CstlServiceException("The observedProperty parameter is invalid", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
                     observedProperties.add(request.getObservedProperty());
@@ -1252,11 +1256,11 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            FeatureQuery query = new FeatureQuery();
+            ResultQuery query = new ResultQuery(resultModel, INLINE.value(), procedure, null);
             query.setSelection(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
-            values = (String) omProvider.getResults(procedure, resultModel, INLINE.value(), query, null, Collections.singletonMap("version", currentVersion));
+            values = (String) omProvider.getResults(query, Collections.singletonMap("version", currentVersion));
 
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -1361,7 +1365,7 @@ public class SOSworker extends SensorWorker {
                     // CITE
                     if (observedProperty.isEmpty()) {
                         throw new CstlServiceException("The observedProperty name is empty", MISSING_PARAMETER_VALUE, "observedProperty");
-                    } else if (!omProvider.existPhenomenon(observedProperty)){
+                    } else if (!omProvider.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, observedProperty))){
                         throw new CstlServiceException("This observedProperty is not registered", INVALID_PARAMETER_VALUE, "observedProperty");
                     }
                 }
@@ -1373,7 +1377,7 @@ public class SOSworker extends SensorWorker {
                     // CITE
                     if (procedure.isEmpty()) {
                         throw new CstlServiceException("The procedure name is empty", MISSING_PARAMETER_VALUE, PROCEDURE);
-                    } else if (!omProvider.existProcedure(procedure)){
+                    } else if (!omProvider.existEntity(new IdentifierQuery(OMEntity.PROCEDURE, procedure))) {
                         throw new CstlServiceException("This procedure is not registered", INVALID_PARAMETER_VALUE, PROCEDURE);
                     }
                 }
@@ -1382,7 +1386,7 @@ public class SOSworker extends SensorWorker {
 
             if (ofilter) {
 
-                FeatureQuery query = new FeatureQuery();
+                AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST);
                 query.setSelection(buildFilter(request.getTemporalFilters(), request.getObservedProperty(), request.getProcedure(), null, null, null));
                 final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query, Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
@@ -1391,7 +1395,7 @@ public class SOSworker extends SensorWorker {
              * - Request for all foi
              */
             } else {
-                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(new FeatureQuery(), Collections.singletonMap("version", currentVersion));
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(null, Collections.singletonMap("version", currentVersion));
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
@@ -1417,7 +1421,7 @@ public class SOSworker extends SensorWorker {
 
         final TemporalPrimitive result;
         try {
-            if (omProvider.existFeatureOfInterest(fid)) {
+            if (omProvider.existEntity(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, fid))) {
                 result = omProvider.getTimeForFeatureOfInterest(currentVersion, fid);
             } else {
                 throw new CstlServiceException("there is not such samplingFeature on the server", INVALID_PARAMETER_VALUE);
@@ -1535,15 +1539,14 @@ public class SOSworker extends SensorWorker {
         final AbstractEncoding encoding;
 
         try {
-            final boolean offeringExist = omProvider.existOffering(request.getOffering(), currentVersion);
-            if (!offeringExist) {
+            if (!omProvider.existEntity(new IdentifierQuery(OMEntity.OFFERING, request.getOffering()))) {
                 throw new CstlServiceException("offering parameter is invalid.", INVALID_PARAMETER_VALUE, "offering");
             }
 
             if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                 throw new CstlServiceException("observedProperty parameter is missing.", MISSING_PARAMETER_VALUE, "observedProperty");
             }
-            if (!omProvider.existPhenomenon(request.getObservedProperty())) {
+            if (!omProvider.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, request.getObservedProperty()))) {
                 throw new CstlServiceException(" this phenomenon " + request.getObservedProperty() + " is not registred in the datasource!",
                         INVALID_PARAMETER_VALUE, "observedProperty");
             }
@@ -1556,13 +1559,13 @@ public class SOSworker extends SensorWorker {
             filters.add(ff.equal(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
 
             // we clone the filter for this request
-            final FeatureQuery query = new FeatureQuery();
+           final ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE.value(), request.getResponseFormat());
             if (filters.size() == 1) {
                 query.setSelection(filters.get(0));
             } else if (filters.size() > 1) {
                 query.setSelection(ff.and(filters));
             }
-            final List<Observation> matchingResult = omProvider.getObservations(query, OBSERVATION_QNAME, RESULT_TEMPLATE.value(), request.getResponseFormat(), Collections.singletonMap("version", currentVersion));
+            final List<Observation> matchingResult = omProvider.getObservations(query, Collections.singletonMap("version", currentVersion));
             if (matchingResult.isEmpty()) {
                 throw new CstlServiceException("there is no result template matching the arguments");
             } else {
@@ -1756,7 +1759,7 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("The offering identifiers are missing.",
                                                  MISSING_PARAMETER_VALUE, "offering");
                 } else {
-                    final boolean offExist = omProvider.existOffering(offeringNames.get(0), currentVersion);
+                    final boolean offExist = omProvider.existEntity(new IdentifierQuery(OMEntity.OFFERING, offeringNames.get(0)));
                     if (offExist) {
                         // TODO
                     } else {

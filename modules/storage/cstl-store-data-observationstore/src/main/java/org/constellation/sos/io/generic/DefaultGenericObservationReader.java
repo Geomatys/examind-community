@@ -137,7 +137,8 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
-    private List<String> getOfferingNames(final String version, String sensorType) throws DataStoreException {
+    private List<String> getOfferingNames(String version, String sensorType) throws DataStoreException {
+        version = version == null ? "2.0.0" : version;
         try {
             if (version.equals("1.0.0")) {
                 final Values values = loadData("var01");

@@ -2,6 +2,9 @@
   "value" : [ {
     "description" : "",
     "name" : "Sensor 12",
+    "properties": {
+        "type": "timeseries"
+    },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:12",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:12)",
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:12)/HistoricalLocations",
@@ -10,6 +13,9 @@
   }, {
     "description" : "",
     "name" : "Sensor 13",
+    "properties": {
+        "type": "timeseries"
+    },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:13)",
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:13)/HistoricalLocations",

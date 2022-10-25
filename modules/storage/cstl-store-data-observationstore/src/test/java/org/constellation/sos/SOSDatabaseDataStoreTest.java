@@ -53,6 +53,7 @@ import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
+import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Test;
@@ -195,5 +196,14 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         result = (AbstractObservation) obs;
 
         assertEqualsMeasurement(measExpected, result, true);
+    }
+
+    @Test
+    public void getProceduresTest() throws Exception {
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+
+        List<ExtractionResult.ProcedureTree> procedures = omStore.getProcedures();
+        Assert.assertEquals(15, procedures.size());
     }
 }

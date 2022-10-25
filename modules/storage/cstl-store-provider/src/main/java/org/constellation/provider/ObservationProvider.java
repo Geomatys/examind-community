@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.namespace.QName;
 import org.apache.sis.storage.Query;
 import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.Offering;
@@ -45,15 +44,7 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public interface ObservationProvider extends DataProvider {
 
-    Collection<String> getOfferingNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
-
-    Collection<String> getProcedureNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
-
-    Collection<String> getPhenomenonNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
-
-    Collection<String> getFeatureOfInterestNames(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
-    
-    Collection<String> getObservationNames(Query query, QName resultModel, String responseMode, final Map<String, Object> hints) throws ConstellationStoreException;
+    Collection<String> getIdentifiers(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
 
     List<ProcedureTree> getProcedureTrees(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
@@ -61,25 +52,19 @@ public interface ObservationProvider extends DataProvider {
 
     List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, QName resultModel, String responseMode, String responseFormat, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
     List<Process> getProcedures(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
     List<Offering> getOfferings(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
 
-    Object getResults(final String sensorID, QName resultModel, String responseMode, Query q, String responseFormat, Map<String, Object> hints) throws ConstellationStoreException;
+    Object getResults(Query q, Map<String, Object> hints) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
     Object getSensorLocation(final String sensorID, final String gmlVersion) throws ConstellationStoreException;
 
-    boolean existPhenomenon(final String phenomenonName) throws ConstellationStoreException;
-
-    boolean existProcedure(final String procedureName) throws ConstellationStoreException;
-
-    boolean existFeatureOfInterest(final String foiName) throws ConstellationStoreException;
-
-    boolean existOffering(final String offeringName, String version) throws ConstellationStoreException;
+    boolean existEntity(final Query q) throws ConstellationStoreException;
 
     Offering getOffering(String name, String version) throws ConstellationStoreException;
 

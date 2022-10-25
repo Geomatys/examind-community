@@ -31,6 +31,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.generic.Automatic;
+import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -39,6 +40,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.getOrCreate;
+import org.constellation.provider.SensorProvider;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
@@ -410,11 +412,11 @@ public class TestEnvironment {
 
         public void generateSensors(ISensorBusiness sensorBusiness, int omProviderId, int smlProviderId) throws ConstellationException {
            ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(omProviderId);
-           Collection<String> procs   = omProv.getProcedureNames(null, new HashMap<>());
+           List<ProcedureTree> procs   = omProv.getProcedureTrees(null, new HashMap<>());
 
            // default sensor initialisation from the sensor present in the OM provider
-            for (String proc : procs) {
-                sensorBusiness.create(proc, proc, null, "system", null, null, null, Long.MIN_VALUE, smlProviderId);
+            for (ProcedureTree proc : procs) {
+                sensorBusiness.generateSensor(proc, smlProviderId, null, null);
             }
 
             // complete some sensor with sml
@@ -422,6 +424,10 @@ public class TestEnvironment {
             createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ2.xml", "urn:ogc:object:sensor:GEOM:2", "GEOM 2", "component", "profile", smlProviderId, sensorBusiness);
             createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµtest-1.xml", "urn:ogc:object:sensor:GEOM:test-1", "test 1", "system", "timeseries", smlProviderId, sensorBusiness);
             createOrUpdateSensor("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ8.xml", "urn:ogc:object:sensor:GEOM:8", "GEOM 8", "system", "timeseries", smlProviderId, sensorBusiness);
+
+            // reload sml provider to take the manually added
+            SensorProvider smProv = (SensorProvider) DataProviders.getProvider(smlProviderId);
+            smProv.reload();
         }
 
         private void createOrUpdateSensor(String fileName, String sensorId, String name, String smlType, String omType, int smlProviderId, ISensorBusiness sensorBusiness) throws ConstellationException {
@@ -435,7 +441,7 @@ public class TestEnvironment {
                 sensorBusiness.update(s);
                 sensorBusiness.updateSensorMetadata(sensorId, sml);
             } else {
-                sensorBusiness.create(sensorId, sensorId, null, "system", null, null, null, Long.MIN_VALUE, smlProviderId);
+                sensorBusiness.create(sensorId, sensorId, null, "system", null, null, sml, Long.MIN_VALUE, smlProviderId);
             }
         }
 

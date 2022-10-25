@@ -1,7 +1,7 @@
 {
   "value" : [ {
     "description" : "",
-    "name" : "urn:ogc:object:sensor:GEOM:12",
+    "name" : "Sensor 12",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:12",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:12)",
@@ -9,7 +9,7 @@
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:12)/MultiDatastreams"
   }, {
     "description" : "",
-    "name" : "urn:ogc:object:sensor:GEOM:13",
+    "name" : "Sensor 13",
     "encodingType" : "http://www.opengis.net/doc/IS/SensorML/2.0",
     "@iot.id" : "urn:ogc:object:sensor:GEOM:13",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:13)",

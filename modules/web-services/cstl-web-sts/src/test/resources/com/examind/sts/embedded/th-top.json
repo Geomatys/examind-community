@@ -13,6 +13,9 @@
   }, {
     "description" : "",
     "name" : "Sensor 10",
+    "properties": {
+        "type": "timeseries"
+    },
     "@iot.id" : "urn:ogc:object:sensor:GEOM:10",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:10)",
     "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:10)/HistoricalLocations",

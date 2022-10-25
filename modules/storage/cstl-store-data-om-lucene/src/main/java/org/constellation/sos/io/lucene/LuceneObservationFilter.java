@@ -74,6 +74,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     protected ResponseModeType responseMode;
 
+    protected String responseFormat;
+
     protected final String phenomenonIdBase;
 
     protected String version = null;
@@ -117,6 +119,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     
     private void initFilterObservation(final Map<String, Object> hints) {
         this.responseMode = (ResponseModeType) hints.get("responseMode");
+        this.responseFormat = (String) hints.get("responseFormat");
         this.resultModel = (QName) hints.get("resultModel");
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             luceneRequest = new StringBuilder("type:measurement ");
@@ -134,6 +137,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     private void initFilterGetResult(final Map<String, Object> hints) {
         String procedure = (String) hints.get("procedure");
+        this.responseFormat = (String) hints.get("responseFormat");
         this.resultModel = (QName) hints.get("resultModel");
         this.responseMode = (ResponseModeType) hints.get("responseMode");
         if (resultModel.equals(MEASUREMENT_QNAME)) {

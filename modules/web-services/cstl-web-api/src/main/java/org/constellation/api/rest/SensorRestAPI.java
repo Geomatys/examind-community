@@ -85,6 +85,9 @@ import static org.springframework.http.MediaType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.constellation.ws.ISensorConfigurer;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.query.IdentifierQuery;
 
 /**
  *
@@ -452,7 +455,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames(null, Collections.EMPTY_MAP));
+                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP));
                     } else {
                         LOGGER.warning("Searching phenomenon on a non-observation provider");
                     }
@@ -492,8 +495,8 @@ public class SensorRestAPI extends AbstractRestAPI {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
                         ObservationProvider omP = (ObservationProvider) prov;
-                        if (omP.existPhenomenon(observedProperty)) {
-                            sensorIDS.addAll(omP.getProcedureNames(null, Collections.EMPTY_MAP));
+                        if (omP.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, observedProperty))) {
+                            sensorIDS.addAll(omP.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP));
                         }
                     }
                 }
@@ -529,7 +532,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getPhenomenonNames(null, Collections.EMPTY_MAP));
+                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP));
                     }
                 }
                 return new ResponseEntity(new StringList(phenomenons),OK);

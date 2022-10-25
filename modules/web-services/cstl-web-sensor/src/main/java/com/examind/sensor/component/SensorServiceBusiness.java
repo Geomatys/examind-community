@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.storage.FeatureQuery;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.Sensor;
@@ -48,9 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.constellation.api.CommonConstants;
-import static org.constellation.api.CommonConstants.OBJECT_TYPE;
-import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -61,6 +58,9 @@ import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
 import org.locationtech.jts.geom.Geometry;
@@ -220,7 +220,7 @@ public class SensorServiceBusiness {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             try {
-                return pr.getProcedureNames(null, Collections.EMPTY_MAP);
+                return pr.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP);
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
@@ -233,7 +233,7 @@ public class SensorServiceBusiness {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             try {
-                return pr.getCount(null, Collections.singletonMap(OBJECT_TYPE, PROCEDURE));
+                return pr.getCount(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP);
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
@@ -245,7 +245,7 @@ public class SensorServiceBusiness {
     public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
-            FeatureQuery query = new FeatureQuery();
+            AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.PROCEDURE);
             query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
             Stream<String> processes = pr.getProcedures(query, Collections.emptyMap())
                                          .stream()
@@ -337,7 +337,7 @@ public class SensorServiceBusiness {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             // TODO this results are not filtered on linked sensors
-            return pr.getPhenomenonNames(null, Collections.EMPTY_MAP);
+            return pr.getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -395,15 +395,14 @@ public class SensorServiceBusiness {
     public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile, final boolean includeIdInDatablock) throws ConfigurationException {
         try {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
-            FeatureQuery query = new FeatureQuery();
+            ResultQuery query = new ResultQuery(OBSERVATION_QNAME, "inline", sensorID, resultFormat);
+            query.setIncludeIdInDataBlock(includeIdInDatablock);
+            query.setIncludeTimeForProfile(timeforProfile);
             query.setSelection(buildFilter(start, end, observedProperties, foi));
-            Map<String, Object> hints = new HashMap<>();
             if (width != null) {
-                hints.put("decimSize", Integer.toString(width));
+                query.setDecimationSize(width);
             }
-            hints.put("includeTimeForProfile", timeforProfile);
-            hints.put("includeIDInDataBlock", includeIdInDatablock);
-            return pr.getResults(sensorID, CommonConstants.OBSERVATION_QNAME, "inline", query, resultFormat, hints);
+            return pr.getResults(query, new HashMap<>());
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
