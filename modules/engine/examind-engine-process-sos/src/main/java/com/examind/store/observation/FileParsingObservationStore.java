@@ -209,17 +209,12 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     @Override
     public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null, null, new HashSet<>(), new HashSet<>());
+        return getResults(null, null);
     }
 
     @Override
     public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
-        return getResults(null, sensorIDs, new HashSet<>(), new HashSet<>());
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
+        return getResults(null, sensorIDs);
     }
 
     /**

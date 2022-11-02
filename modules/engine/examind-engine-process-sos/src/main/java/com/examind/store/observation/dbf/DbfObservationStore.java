@@ -166,22 +166,16 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
     @Override
     public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null, null, new HashSet<>(), new HashSet<>());
+        return getResults(null, null);
     }
 
     @Override
     public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
-        return getResults(null, sensorIDs, new HashSet<>(), new HashSet<>());
+        return getResults(null, sensorIDs);
     }
 
     @Override
     public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        return getResults(affectedSensorId, sensorIDs, new HashSet<>(), new HashSet<>());
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
-            final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
         if (affectedSensorId != null) {
             LOGGER.warning("DBFObservation store does not allow to override sensor ID");
         }
@@ -258,7 +252,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                     default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
                 }
 
-                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", Collections.EMPTY_SET);
                 result.phenomenons.add(phenomenon);
 
 
@@ -324,7 +318,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         if (previousFoi != null) {
                             foiID = previousFoi;
                         }
-                        final SamplingFeature sp = buildFOIById(foiID, positions, samplingFeatures);
+                        final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
                         result.addFeatureOfInterest(sp);
                         globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 
@@ -451,7 +445,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 if (previousFoi != null) {
                     foiID = previousFoi;
                 }
-                final SamplingFeature sp = buildFOIById(foiID, positions, samplingFeatures);
+                final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
                 result.addFeatureOfInterest(sp);
                 globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
 

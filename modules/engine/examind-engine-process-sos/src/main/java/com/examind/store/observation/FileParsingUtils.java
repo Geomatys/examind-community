@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.gml.xml.Point;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.observation.OMUtils;
@@ -188,7 +189,7 @@ public class FileParsingUtils {
         return sp;
     }
 
-    private static boolean equalsGeom(Geometry current, List<DirectPosition> positions) {
+    private static boolean equalsGeom(Geometry existing, List<DirectPosition> positions) {
         // the problem here is that the axis will be flipped after save,
         // so we need to flip the axis for comparison...
         Geometry spGeometry;
@@ -202,7 +203,19 @@ public class FileParsingUtils {
             final DirectPosition position = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(positions.get(0).getOrdinate(1), positions.get(0).getOrdinate(0)));
             spGeometry = (Geometry) SOSXmlFactory.buildPoint("2.0.0", "SamplingPoint", position);
         }
-        return current.equals(spGeometry);
+        return existing.equals(spGeometry);
+    }
+
+    public static boolean equalsGeom(Geometry current, Geometry existing) {
+        // the problem here is that the axis will be flipped after save,
+        // so we need to flip the axis for comparison... TODO
+        if (current instanceof Point && existing instanceof Point exPt) {
+            org.geotoolkit.gml.xml.DirectPosition pos = exPt.getPos();
+            final DirectPosition position = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(pos.getOrdinate(1), pos.getOrdinate(0)));
+            Geometry spGeometry = (Geometry) SOSXmlFactory.buildPoint("2.0.0", "SamplingPoint", position);
+            return current.equals(spGeometry);
+        }
+        return false;
     }
 
     public static SamplingFeature buildFOIById(String foiID, final List<DirectPosition> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {

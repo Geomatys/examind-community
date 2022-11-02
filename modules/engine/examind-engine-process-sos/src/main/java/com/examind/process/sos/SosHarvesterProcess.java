@@ -50,9 +50,11 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.examind.sensor.component.SensorServiceBusiness;
+import static com.examind.store.observation.FileParsingUtils.equalsGeom;
 import com.google.common.base.Objects;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -68,7 +70,10 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
+import static org.geotoolkit.observation.OMUtils.componentsEquals;
 import org.geotoolkit.observation.xml.AbstractObservation;
+import org.opengis.observation.CompositePhenomenon;
+import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterDescriptor;
@@ -477,7 +482,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             // import observations
             if (!alreadyInserted) {
                 try {
-                    final ExtractionResult result = omProvider.extractResults(null, null, existingPhenomenons, existingFois);
+                    final ExtractionResult result = omProvider.extractResults();
+                    reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
                     if (!result.getObservations().isEmpty()) {
 
                         // generate sensor
@@ -508,6 +514,70 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
         }
         return nbObsTotal;
+    }
+
+    public void reuseExistingPhenomenonAndFOI(final ExtractionResult result, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingFois) {
+        /**
+         * look for an already existing (composite) phenomenon to use instead of inserting a new one
+         */
+        Map<String, Phenomenon> phenomenonToReplace = new HashMap<>();
+        List<Phenomenon> phenToRemove = new ArrayList<>();
+        for (Phenomenon newPhen : result.getPhenomenons()) {
+            if (newPhen instanceof org.geotoolkit.swe.xml.CompositePhenomenon newCompo) {
+                for (org.opengis.observation.Phenomenon existingPhen : existingPhenomenons) {
+                    if (existingPhen instanceof CompositePhenomenon existingCphen) {
+                        if (componentsEquals(existingCphen.getComponent(), newCompo.getComponent())) {
+                            phenomenonToReplace.put(newCompo.getId(), existingCphen);
+                            phenToRemove.add(newPhen);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        result.getPhenomenons().addAll(phenomenonToReplace.values());
+        result.getPhenomenons().removeAll(phenToRemove);
+
+        /**
+         * look for an already existing sampling feature to use instead of inserting a new one.
+         * we look for an equal geometry (only work for point)
+         */
+        Map<String, SamplingFeature> featureToReplace = new HashMap<>();
+        List<SamplingFeature> foiToRemove = new ArrayList<>();
+        for (SamplingFeature newFoi : result.getFeatureOfInterest()) {
+            if (newFoi instanceof org.geotoolkit.sampling.xml.SamplingFeature newSFoi) {
+                for (SamplingFeature existingFoi : existingFois) {
+                    if (existingFoi instanceof org.geotoolkit.sampling.xml.SamplingFeature existingSFoi) {
+                        if (existingSFoi.getGeometry() != null && newSFoi.getGeometry() != null && equalsGeom(newSFoi.getGeometry(), existingSFoi.getGeometry())) {
+                            featureToReplace.put(newSFoi.getId(), existingSFoi);
+                            foiToRemove.add(newFoi);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        result.getFeatureOfInterest().addAll(featureToReplace.values());
+        result.getFeatureOfInterest().removeAll(foiToRemove);
+
+
+        // replace phenomenons / feature of interests in each observation
+        for (Observation obs : result.getObservations()) {
+            if (obs instanceof AbstractObservation aobs) {
+                if (obs.getObservedProperty() instanceof org.geotoolkit.swe.xml.CompositePhenomenon cphen) {
+                    Phenomenon existPhen = phenomenonToReplace.get(cphen.getId());
+                    if (existPhen != null) {
+                        aobs.setFullObservedProperty(existPhen);
+                    }
+                }
+                if (obs.getFeatureOfInterest() instanceof org.geotoolkit.sampling.xml.SamplingFeature foi) {
+                    SamplingFeature existFoi = featureToReplace.get(foi.getId());
+                    if (existFoi != null) {
+                        aobs.setFullFeatureOfInterest(existFoi);
+                    }
+                }
+            }
+        }
     }
 
     private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {

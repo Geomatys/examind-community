@@ -161,8 +161,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs,
-            final Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) throws DataStoreException {
+    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
 
         // open csv file with a delimiter set as process SosHarvester input.
         try (final DataFileReader reader = getDataFileReader()) {
@@ -352,6 +351,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             /*
             3- build results
             =============*/
+            final Set<org.opengis.observation.Phenomenon> phenomenons = new HashSet<>();
+            final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures = new HashSet<>();
             int obsCpt = 0;
             final String fileName = dataFile.getFileName().toString();
             for (ObservationBlock ob : observationBlock.values()) {
