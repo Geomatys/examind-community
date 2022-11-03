@@ -41,6 +41,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.display2d.service.VisitDef;
+import org.geotoolkit.feature.ReprojectMapper;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.opengis.feature.Feature;
@@ -106,6 +107,11 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
                             throw new BackingStoreException("Error while applying query on single feature.", ex);
                         }
                     }
+
+                    // Force data CRS to be the same as requested by user (CRS parameter from GetFeatureInfo query)
+                    final ReprojectMapper mapper = new ReprojectMapper(feat.getType(), context.getObjectiveCRS2D());
+                    feat = mapper.apply(feat);
+
                     final GenericName layerName = getNameForFeatureLayer(layer);
                     nextProjectedFeature(layerName, feat, (RenderingContext2D) context, (SearchAreaJ2D) area);
                 } else if (resource instanceof GridCoverageResource) {
