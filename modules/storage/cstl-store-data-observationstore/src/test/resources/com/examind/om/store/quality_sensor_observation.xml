@@ -7,7 +7,7 @@
                    xmlns:sf="http://www.opengis.net/sampling/2.0"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                   gml:id="obs-304">
+                   gml:id="obs-6001">
     <gml:name>urn:ogc:object:observation:GEOM:6001</gml:name>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>

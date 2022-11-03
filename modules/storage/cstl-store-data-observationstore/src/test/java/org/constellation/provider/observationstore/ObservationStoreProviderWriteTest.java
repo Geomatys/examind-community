@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -30,7 +31,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.xml.XML;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -40,12 +40,13 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import static org.geotoolkit.observation.ObservationFilterFlags.INCLUDE_FOI_IN_TEMPLATE;
 import static org.geotoolkit.observation.ObservationFilterFlags.VERSION;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.xml.AbstractObservation;
+import org.geotoolkit.observation.xml.v200.OMProcessPropertyType;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
@@ -64,9 +65,17 @@ import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
+import org.opengis.metadata.quality.Element;
+import org.opengis.metadata.quality.QuantitativeResult;
+import org.opengis.metadata.quality.Result;
 import org.opengis.observation.Measure;
 import org.opengis.observation.Observation;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalObject;
+import org.opengis.util.MemberName;
+import org.opengis.util.RecordType;
+import org.opengis.util.Type;
 
 /**
  *
@@ -184,6 +193,7 @@ public class ObservationStoreProviderWriteTest {
         */
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME,  "resultTemplate", null);
         query.setIncludeFoiInTemplate(true);
+        query.setIncludeTimeInTemplate(true);
         Map<String, Object> hints = new HashMap<>();
         hints.put(VERSION, "2.0.0");
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
@@ -306,6 +316,7 @@ public class ObservationStoreProviderWriteTest {
         hints.put(VERSION, "2.0.0");
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, "resultTemplate", null);
         query.setIncludeFoiInTemplate(true);
+        query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
         List<Observation> results = omPr.getObservations(query, hints);
@@ -368,6 +379,205 @@ public class ObservationStoreProviderWriteTest {
         assertEqualsMeasurement(measExpected, result, false);
 
     }
+
+    @Test
+    public void writeObservationMultiTypeTest() throws Exception {
+        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
+        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
+
+        // we get the expected observation template
+        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_sensor_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTemplate = (AbstractObservation) o;
+
+        // we get the observation to write (and to read after)
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_text_sensor_meas_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTextMeasTemplate = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_bool_sensor_meas_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedBoolMeasTemplate = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_time_sensor_meas_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTimeMeasTemplate = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_double_sensor_meas_template.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedDoubleMeasTemplate = (AbstractObservation) o;
+
+        // we get the observation to write (and to read after)
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_sensor_observation.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expected = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_text_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTextMeas = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_bool_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedBoolMeas = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_time_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedTimeMeas = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_double_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expectedDoubleMeas = (AbstractObservation) o;
+
+        SOSMarshallerPool.getInstance().recycle(u);
+
+        String oid = omPr.writeObservation(expected);
+
+           /*
+         * get template from reader
+         */
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi-type", "2.0.0");
+
+        assertTrue(template instanceof AbstractObservation);
+        AbstractObservation resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+       /*
+        * alternative method to get the template from filter reader
+        */
+        Map<String, Object> hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
+        query.setIncludeTimeInTemplate(true);
+        BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi-type"));
+        query.setSelection(eqFilter);
+        List<Observation> results = omPr.getObservations(query, hints);
+        assertEquals(1, results.size());
+        template = results.get(0);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+        /*
+        * to get the measurement template from filter reader
+        */
+        hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        query = new ObservationQuery(MEASUREMENT_QNAME, "resultTemplate", null);
+        query.setIncludeFoiInTemplate(true);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi-type"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query, hints);
+        assertEquals(4, results.size());
+        template = results.get(0);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsMeasObservation(expectedBoolMeasTemplate, resultTemplate, false);
+
+        template = results.get(1);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsMeasObservation(expectedTextMeasTemplate, resultTemplate, false);
+
+        template = results.get(2);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsMeasObservation(expectedTimeMeasTemplate, resultTemplate, false);
+
+        template = results.get(3);
+
+        assertTrue(template instanceof AbstractObservation);
+        resultTemplate   = (AbstractObservation) template;
+
+        assertEqualsMeasurement(expectedDoubleMeasTemplate, resultTemplate, false);
+
+       /*
+        * get the full observation
+        */
+        hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        query = new ObservationQuery(OBSERVATION_QNAME, "inline", null);
+        ResourceId filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query, hints);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof AbstractObservation);
+        AbstractObservation result   = (AbstractObservation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+        /*
+        * get the measurment observation
+        */
+        hints = new HashMap<>();
+        hints.put(VERSION, "2.0.0");
+        query = new ObservationQuery(MEASUREMENT_QNAME, "inline", null);
+        filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query, hints);
+        assertEquals(8, results.size());
+
+        assertTrue(results.get(0) instanceof AbstractObservation);
+        result   = (AbstractObservation) results.get(0);
+
+        assertEqualsMeasObservation(expectedBoolMeas, result, false);
+
+        assertTrue(results.get(1) instanceof AbstractObservation);
+        result   = (AbstractObservation) results.get(1);
+
+        assertEqualsMeasObservation(expectedTextMeas, result, false);
+
+        assertTrue(results.get(2) instanceof AbstractObservation);
+        result   = (AbstractObservation) results.get(2);
+
+        assertEqualsMeasObservation(expectedTimeMeas, result, false);
+
+        assertTrue(results.get(3) instanceof AbstractObservation);
+        result   = (AbstractObservation) results.get(3);
+
+        assertEqualsMeasurement(expectedDoubleMeas, result, false);
+    }
+
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */
@@ -380,21 +590,114 @@ public class ObservationStoreProviderWriteTest {
 
         assertEquals(expRes.getValue(), resRes.getValue(), 0.0);
 
+        // remove non xml existant  property
+        if (result.getProcedure() instanceof OMProcessPropertyType omProc) {
+            omProc.setName(null);
+        }
+        
+        assertEquals(result.getId(), expected.getId());
+        assertEquals(result.getName().getCode(), expected.getName().getCode());
+        assertEquals(result.getPropertyObservedProperty(), expected.getPropertyObservedProperty());
         assertEquals(result.getProcedure().getHref(), expected.getProcedure().getHref());
+
+        assertEquals(result.getPropertyFeatureOfInterest(), expected.getPropertyFeatureOfInterest());
+        assertEquals(result.getFeatureOfInterest(), expected.getFeatureOfInterest());
+
+        if (hasQuality) {
+            Element expQual = expected.getQuality();
+            Element resQual = result.getQuality();
+            Assert.assertNotNull(resQual);
+            Assert.assertNotNull(expQual);
+
+            assertEquals(expQual.getResults().size(), resQual.getResults().size());
+            Iterator<? extends Result> expIt = expQual.getResults().iterator();
+            Iterator<? extends Result> resIt = resQual.getResults().iterator();
+            for (int i = 0; i < expQual.getResults().size(); i++) {
+                Result expQRes = expIt.next();
+                Result resQRes = resIt.next();
+                assertTrue(expQRes instanceof QuantitativeResult);
+                assertTrue(resQRes instanceof QuantitativeResult);
+                QuantitativeResult expQR = (QuantitativeResult) expQRes;
+                QuantitativeResult resQR = (QuantitativeResult) resQRes;
+                RecordType expVt = expQR.getValueType();
+                RecordType resVt = resQR.getValueType();
+                Map<MemberName, Type> expFT = expVt.getFieldTypes();
+                Map<MemberName, Type> resFT = resVt.getFieldTypes();
+                assertEquals(expFT.size(), resFT.size());
+                Iterator<MemberName> expFtIt = expFT.keySet().iterator();
+                Iterator<MemberName> resFtIt = resFT.keySet().iterator();
+                while (expFtIt.hasNext() && resFtIt.hasNext()) {
+                    MemberName expKey = expFtIt.next();
+                    MemberName resKey = resFtIt.next();
+                    assertEquals(expKey.scope(), resKey.scope());
+                    assertEquals(expKey, resKey);
+                    Type expType = expFT.get(expKey);
+                    Type resType = resFT.get(resKey);
+                    assertEquals(expType, resType);
+                }
+                assertEquals(expFT, resFT);
+                assertEquals(expVt.getFieldTypes(), resVt.getFieldTypes());
+                assertEquals(expVt.getMembers(),    resVt.getMembers());
+                assertEquals(expVt.getTypeName(),   resVt.getTypeName());
+                assertEquals(expQR.getValueType(),  resQR.getValueType());
+                assertEquals(expQRes, resQRes);
+            }
+            assertEquals(expQual.getResults(), resQual.getResults());
+            assertEquals(expQual, resQual);
+            
+        }
+
+        // does not work on result
+        assertEquals(expected, result);
+    }
+
+    public static void assertEqualsMeasObservation(AbstractObservation expected, AbstractObservation result, boolean hasQuality) {
+
+        assertEquals(expected.getResult(), result.getResult());
+
+        assertEquals(result.getId(), expected.getId());
+        assertEquals(result.getName().getCode(), expected.getName().getCode());
+        assertEquals(result.getPropertyObservedProperty(), expected.getPropertyObservedProperty());
+        assertEquals(result.getProcedure().getHref(), expected.getProcedure().getHref());
+
+        // remove non xml existant  property
+        if (result.getProcedure() instanceof OMProcessPropertyType omProc) {
+            omProc.setName(null);
+        }
+        assertEquals(result.getProcedure(), expected.getProcedure());
+        assertEquals(result.getSamplingTime(), expected.getSamplingTime());
+        assertEquals(result.getPropertyFeatureOfInterest(), expected.getPropertyFeatureOfInterest());
+        assertEquals(result.getFeatureOfInterest(), expected.getFeatureOfInterest());
 
         if (hasQuality) {
             Assert.assertNotNull(result.getQuality());
             Assert.assertNotNull(expected.getQuality());
+            assertEquals(result.getQuality(), expected.getQuality());
         }
 
-        // does not work on result
-        //assertEquals(expected, result);
+        assertEquals(expected, result);
     }
     
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */
     public static void assertEqualsObservation(AbstractObservation expected, AbstractObservation result) {
+
+        assertEquals(result.getId(), expected.getId());
+        assertEquals(result.getName().getCode(), expected.getName().getCode());
+        assertEquals(result.getPropertyObservedProperty(), expected.getPropertyObservedProperty());
+        assertEquals(result.getProcedure().getHref(), expected.getProcedure().getHref());
+
+        // remove non xml existant  property
+        if (result.getProcedure() instanceof OMProcessPropertyType omProc) {
+            omProc.setName(null);
+        }
+        
+        assertEquals(result.getProcedure(), expected.getProcedure());
+        assertEqualsTime(result.getSamplingTime(), expected.getSamplingTime());
+        assertEquals(result.getPropertyFeatureOfInterest(), expected.getPropertyFeatureOfInterest());
+        assertEquals(result.getFeatureOfInterest(), expected.getFeatureOfInterest());
+        assertEquals(result.getResultQuality(), expected.getResultQuality());
 
         assertTrue(result.getResult()   instanceof DataArrayPropertyType);
         assertTrue(expected.getResult() instanceof DataArrayPropertyType);
@@ -437,6 +740,17 @@ public class ObservationStoreProviderWriteTest {
         assertEquals(expectedDA, resultDA);
         assertEquals(expectedDAP, resultDAP);
         assertEquals(expected.getResult(), result.getResult());
+
+        assertEquals(expected, result);
+    }
+
+    public static void assertEqualsTime(TemporalObject expected, TemporalObject result) {
+
+        /*if (expected instanceof TimePeriodType  expPeriod && result instanceof TimePeriodType resPeriod) {
+            assertEquals(expPeriod.getBeginPosition().getDate(), resPeriod.getBeginPosition().getDate());
+            assertEquals(expPeriod.getEndPosition().getDate(), resPeriod.getEndPosition().getDate());
+        }*/
+        assertEquals(expected, result);
     }
 
     private static void assertEqualsDataComponent(AbstractDataComponent expected, AbstractDataComponent result) {

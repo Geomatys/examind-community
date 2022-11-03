@@ -424,6 +424,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         expResults.add("urn:ogc:object:sensor:GEOM:8");
         expResults.add("urn:ogc:object:sensor:GEOM:9");
         expResults.add("urn:ogc:object:sensor:GEOM:test-id");
+        expResults.add("urn:ogc:object:sensor:GEOM:multi-type");
         Assert.assertEquals(expResults, results);
     }
 
@@ -469,9 +470,14 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getObservedPropertiesIds(sid);
         Set<String> expResults = new HashSet<>();
+        expResults.add("age");
         expResults.add("aggregatePhenomenon");
         expResults.add("aggregatePhenomenon-2");
+        expResults.add("color");
         expResults.add("depth");
+        expResults.add("expiration");
+        expResults.add("isHot");
+        expResults.add("multi-type-phenomenon");
         expResults.add("temperature");
         expResults.add("salinity");
         Assert.assertEquals(expResults, results);

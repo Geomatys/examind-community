@@ -108,6 +108,22 @@
             "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations",
             "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
         }, {
+            "unitOfMeasurement": [{}, {}, {}, {}],
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [42.38798858151254, -4.144984627896044]
+            },
+            "phenomenonTime": "1980-03-01T20:52:00Z/1981-03-01T21:52:00Z",
+            "resultTime": "1980-03-01T20:52:00Z/1981-03-01T21:52:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:multi-type",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/Observations",
+            "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
+        }, {
             "unitOfMeasurement": [{
                     "name": "m",
                     "symbol": "m",

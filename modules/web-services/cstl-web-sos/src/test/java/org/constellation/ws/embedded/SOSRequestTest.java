@@ -414,7 +414,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
-        instances.add(new Instance(1, "default", "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 15, ServiceStatus.STARTED, "null/sos/default"));
+        instances.add(new Instance(1, "default", "Constellation SOS Server", "Constellation SOS Server", "sos", versions, 16, ServiceStatus.STARTED, "null/sos/default"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

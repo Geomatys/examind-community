@@ -7,7 +7,7 @@
                    xmlns:sf="http://www.opengis.net/sampling/2.0"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                   gml:id="obs-304">
+                   gml:id="obs-90000">
     <gml:name>urn:ogc:object:observation:GEOM:90000</gml:name>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>
@@ -46,62 +46,62 @@
                     </swe:field>
                     <swe:field name="f1">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f1">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>             
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f2">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f2">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f3">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f3">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f4">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f4">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f5">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f5">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f6">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f6">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f7">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f7">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f8">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f8">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f9">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f9">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f10">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f10">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f11">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f11">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                     <swe:field name="f12">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:f12">                            
-                            <swe:uom/>                        
+                            <swe:uom code="m"/>                        
                         </swe:Quantity>
                     </swe:field>
                 </swe:DataRecord>

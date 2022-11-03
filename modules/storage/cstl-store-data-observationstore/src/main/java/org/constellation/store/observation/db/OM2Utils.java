@@ -21,20 +21,11 @@ package org.constellation.store.observation.db;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
-import org.apache.sis.measure.Units;
-import org.apache.sis.metadata.iso.quality.DefaultQuantitativeAttributeAccuracy;
-import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.util.iso.DefaultRecord;
-import org.apache.sis.util.iso.DefaultRecordSchema;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
@@ -44,6 +35,7 @@ import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingCurve;
@@ -70,7 +62,6 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.WKBWriter;
-import org.opengis.metadata.quality.Element;
 import org.opengis.observation.Measure;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -80,7 +71,6 @@ import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
-import org.opengis.util.RecordType;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -302,24 +292,15 @@ public class OM2Utils {
         return results;
     }
 
-    public static Element createQualityElement(Field field, Object value) {
-        DefaultQuantitativeAttributeAccuracy element = new DefaultQuantitativeAttributeAccuracy();
-        element.setNamesOfMeasure(Arrays.asList(new SimpleInternationalString(field.name)));
-        if (value != null) {
-            DefaultQuantitativeResult res      = new DefaultQuantitativeResult();
-            DefaultRecordSchema schema         = new DefaultRecordSchema(null, null, "MySchema");
-            Map<CharSequence,Class<?>> fieldss = new LinkedHashMap<>();
-            fieldss.put("value",    field.type.getJavaType());
-            RecordType rt = schema.createRecordType("MyRecordType", fieldss);
-
-            DefaultRecord r = new DefaultRecord(rt);
-            r.set(rt.getMembers().iterator().next(), value);
-            res.setValues(Arrays.asList(r));
-            if (field.uom != null) {
-                res.setValueUnit(Units.valueOf(field.uom));
-            }
-            element.setResults(Arrays.asList(res));
+    public static String getOmTypeFromField(FieldType fType) {
+        if (fType == FieldType.QUANTITY) {
+            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+        } else if (fType == FieldType.BOOLEAN) {
+            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation";
+        } else if (fType == FieldType.TIME) {
+            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation";
+        } else {
+            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
         }
-        return element;
     }
 }

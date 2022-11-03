@@ -693,7 +693,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Measure meas = (Measure) obs.getResult();
                 observation.setResult(meas.getValue());
             } else {
-                throw new ConstellationStoreException("unexpected result type:" + obs.getResult());
+                observation.setResult(obs.getResult());
             }
         }
 

@@ -1,5 +1,5 @@
 {
-  "@iot.count" : 5,
+  "@iot.count" : 6,
   "value" : [ {
     "unitOfMeasurement" : [ {
       "name" : "m",

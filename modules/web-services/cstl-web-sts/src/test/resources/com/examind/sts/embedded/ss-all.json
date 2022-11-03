@@ -97,6 +97,14 @@
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:9)/MultiDatastreams"
         }, {
             "description": "",
+            "name": "Sensor multi type",
+            "encodingType": "http://www.opengis.net/doc/IS/SensorML/2.0",
+            "@iot.id": "urn:ogc:object:sensor:GEOM:multi-type",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:multi-type)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:multi-type)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:multi-type)/MultiDatastreams"
+        }, {
+            "description": "",
             "name": "Sensor quality",
             "encodingType": "http://www.opengis.net/doc/IS/SensorML/2.0",
             "@iot.id": "urn:ogc:object:sensor:GEOM:quality_sensor",

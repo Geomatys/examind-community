@@ -59,11 +59,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
@@ -74,16 +78,14 @@ import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildMeasure;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
+import static org.constellation.store.observation.db.OM2Utils.getOmTypeFromField;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.RESPONSE_FORMAT;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.gml.xml.GMLXmlFactory;
@@ -92,9 +94,12 @@ import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.result.ResultBuilder;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.buildMeasure;
 import org.opengis.metadata.quality.Element;
+import org.opengis.observation.CompositePhenomenon;
 import org.opengis.observation.Process;
 
 
@@ -543,11 +548,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
                 String[] component = observationID.split("-");
                 if (component.length == 3) {
-                    identifier = component[0];
+                    identifier    = observationIdBase + component[0];
                     fieldIndex    = Integer.parseInt(component[1]);
                     measureId     = Integer.parseInt(component[2]);
                 } else if (component.length == 2) {
-                    identifier = component[0];
+                    identifier    = observationIdBase + component[0];
                     measureId     = Integer.parseInt(component[1]);
                 } else if (component.length != 1) {
                     LOGGER.fine("Malformed ID received: " + observationID + ". We expected between 1 and 3 parts, but got " + component.length + ". It might lead to unspecified behaviour");
@@ -597,7 +602,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final String observedProperty;
             final String procedure;
             final String foi;
-            final TemporalGeometricPrimitive time;
+            TemporalGeometricPrimitive time = null;
 
             try(final PreparedStatement stmt  = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
                 stmt.setString(1, identifier);
@@ -609,8 +614,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                             time = buildTimeInstant(version, timeID, b.replace(' ', 'T'));
                         } else if (b != null && e != null) {
                             time = buildTimePeriod(version, timeID, b.replace(' ', 'T'), e.replace(' ', 'T'));
-                        } else {
-                            time = null;
                         }
                         observedProperty = rs.getString(5);
                         procedure = rs.getString(6);
@@ -630,7 +633,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 final String procedureID = procedure.substring(sensorIdBase.length());
                 name = observationTemplateIdBase + procedureID;
             } else {
-                name = identifier;
+                name = observationIdBase + observationID;
             }
 
             final Process proc = getProcess(version, procedure, c);
@@ -641,7 +644,18 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
                 List<Element> resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
                 final Object result = getResult(identifier, resultModel, measureId, selectedField, version, c);
-                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, phen, proc, result, time, null, resultQuality);
+                final String omType = getOmTypeFromField(selectedField.type);
+                final Phenomenon simplePhen;
+                if (phen instanceof CompositePhenomenon) {
+                    simplePhen = getPhenomenon(version, selectedField.name, c);
+                } else {
+                    simplePhen = phen;
+                }
+                final Field mainField = getMainField(procedure, c);
+                if (FieldType.TIME.equals(mainField.type)) {
+                    time = getMeasureTimeForProfile(timeID, identifier, mainField, c, measureId, version);
+                }
+                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, simplePhen, proc, result, time, null, resultQuality, omType);
             } else {
                 final Object result = getResult(identifier, resultModel, measureId, null, version, c);
                 return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
@@ -715,9 +729,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
         final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
-        final double value;
-        final String name;
-        final String uom   = selectedField.uom;
+        final String uom           = selectedField.uom;
+        final FieldType fType      = selectedField.type;
         String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
                            + "AND o.\"identifier\"=?";
@@ -730,16 +743,48 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    name = "measure-00" + rs.getString("id");
-                    value = Double.parseDouble(rs.getString(selectedField.name));
+                    String name = "measure-00" + rs.getString("id");
+                    if (fType == FieldType.QUANTITY) {
+                        Double dValue = rs.getDouble(selectedField.name);
+                        return buildMeasure(version, name, uom, dValue);
+                    } else if (fType == FieldType.BOOLEAN) {
+                        Boolean result = rs.getBoolean(selectedField.name);
+                        return result;
+                    } else if (fType == FieldType.TIME) {
+                        Timestamp ts = rs.getTimestamp(selectedField.name);
+                        GregorianCalendar cal = new GregorianCalendar();
+                        cal.setTimeInMillis(ts.getTime());
+                        XMLGregorianCalendar result = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal) ;
+                        return result;
+                    } else {
+                        return rs.getString(selectedField.name);
+                    }
                 } else {
                     return null;
                 }
             }
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException | DatatypeConfigurationException ex) {
             throw new DataStoreException("Unable ta parse the result value as a double");
         }
-        return buildMeasure(version, uom, value);
+    }
+
+    private TemporalGeometricPrimitive getMeasureTimeForProfile(String timeID, String identifier, Field mainField, final Connection c, int measureId, String version) throws SQLException {
+        final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
+        String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
+                           + "WHERE \"id_observation\" = o.\"id\" "
+                           + "AND o.\"identifier\" = ? "
+                           + "AND m.\"id\" = ?";
+        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
+            stmt.setString(1, identifier);
+            stmt.setInt(2, measureId);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    final String t = rs.getString(mainField.name);
+                    return buildTimeInstant(version, timeID, t.replace(' ', 'T'));
+                }
+            }
+        }
+        return null;
     }
 
     /*

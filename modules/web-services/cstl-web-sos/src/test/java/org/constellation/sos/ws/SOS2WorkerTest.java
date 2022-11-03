@@ -131,7 +131,8 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
     @Inject
     protected ISensorBusiness sensorBusiness;
 
-
+    protected static final int NB_SENSOR = 16;
+    
     protected static SOSworker worker;
 
     protected static MarshallerPool marshallerPool;
@@ -213,7 +214,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(), 15);
+        assertEquals(result.getContents().getOfferings().size(), NB_SENSOR);
 
         /*
          *  TEST 2 : full get capabilities
@@ -232,7 +233,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(), 15);
+        assertEquals(result.getContents().getOfferings().size(), NB_SENSOR);
         assertNotNull(result);
 
         /*
@@ -306,7 +307,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals(result.getContents().getOfferings().size(),  15);
+        assertEquals(result.getContents().getOfferings().size(),  NB_SENSOR);
         assertNotNull(result);
 
     }
@@ -1243,6 +1244,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult.getQuality(), result.getQuality());
+        assertEquals(expResult.getSamplingTime(), result.getSamplingTime());
         assertEquals(expResult.getResultQuality(), result.getResultQuality());
         assertEquals(expResult, result);
         marshallerPool.recycle(unmarshaller);

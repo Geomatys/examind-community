@@ -23,7 +23,7 @@
             <gml:name>10972X0137-PONT</gml:name>
             <gml:boundedBy xsi:nil="true"></gml:boundedBy>
             <sa:type xlink:href="http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingPoint"></sa:type>
-            <sa:sampledFeature></sa:sampledFeature>
+            <sa:sampledFeature xlink:href="urn:-sandre:object:bdrhf:123X"/>
             <sas:shape>
                 <gml:Point srsName="urn:ogc:def:crs:EPSG:9.9.1:27582" srsDimension="2" gml:id="pt-station-001">
                     <gml:pos>65400.0 1731368.0</gml:pos>
@@ -31,6 +31,5 @@
             </sas:shape>
         </sas:SF_SpatialSamplingFeature>
     </om:featureOfInterest>
-    <om:resultQuality/>
-    <om:result xsi:type="gml:measureType"/>
+    <om:result xsi:type="gml:measureType"  uom="m"/>
 </om:Observation>

@@ -1,5 +1,5 @@
 {
-  "@iot.count" : 20,
+  "@iot.count" : 21,
   "value" : [ {
     "@iot.id" : "urn:ogc:object:sensor:GEOM:10-1241178420000",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations(urn:ogc:object:sensor:GEOM:10-1241178420000)",

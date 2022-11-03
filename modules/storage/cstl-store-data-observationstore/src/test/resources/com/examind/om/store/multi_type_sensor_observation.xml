@@ -7,18 +7,18 @@
                    xmlns:sf="http://www.opengis.net/sampling/2.0"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                   gml:id="obs-quality_sensor">
-    <gml:name>urn:ogc:object:observation:template:GEOM:quality_sensor</gml:name>
+                   gml:id="obs-7001">
+    <gml:name>urn:ogc:object:observation:GEOM:7001</gml:name>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>
-        <gml:TimePeriod gml:id="time-6001">
+        <gml:TimePeriod gml:id="time-7001">
             <gml:beginPosition>1980-03-01T21:52:00.0</gml:beginPosition>
-            <gml:endPosition>1984-03-01T21:52:00.0</gml:endPosition>
+            <gml:endPosition>1981-03-01T22:52:00.0</gml:endPosition>
         </gml:TimePeriod>
     </om:phenomenonTime>
     <om:resultTime/>
-    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"/>
-    <om:observedProperty xlink:href="depth"/>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:multi-type"/>
+    <om:observedProperty xlink:href="multi-type-phenomenon"/>
     <om:featureOfInterest>
         <sams:SF_SpatialSamplingFeature gml:id="station-001">
             <gml:description>Point d'eau BSSS</gml:description>
@@ -36,20 +36,30 @@
         <swe:DataArray id="dataArray-0">
             <swe:elementCount>
                 <swe:Count>
-                    <swe:value>0</swe:value>
+                    <swe:value>2</swe:value>
                 </swe:Count>
             </swe:elementCount>
             <swe:elementType name="dataArray-0">
                 <swe:DataRecord id="datarecord-0">
                     <swe:field name="Time">
-                        <swe:Time definition="urn:ogc:data:time:iso8601"/>
+                        <swe:Time definition="urn:ogc:data:time:iso8601">
+                            <swe:uom/>
+                        </swe:Time>
                     </swe:field>
-                    <swe:field name="depth">
-                        <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:depth">
-                            <swe:quality>
-                                <swe:Text id="qflag" definition="urn:ogc:def:phenomenon:GEOM:quality_flag"/>
-                            </swe:quality>
-                            <swe:uom code="m"/>
+                    <swe:field name="isHot">
+                        <swe:Boolean definition="urn:ogc:def:phenomenon:GEOM:isHot"/>
+                    </swe:field>
+                    <swe:field name="color">
+                        <swe:Text definition="urn:ogc:def:phenomenon:GEOM:color"/>
+                    </swe:field>
+                    <swe:field name="expiration">
+                        <swe:Time definition="urn:ogc:data:time:iso8601">
+                            <swe:uom/>
+                        </swe:Time>
+                    </swe:field>
+                    <swe:field name="age">
+                        <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:age">                            
+                            <swe:uom/>                        
                         </swe:Quantity>
                     </swe:field>
                 </swe:DataRecord>
@@ -57,6 +67,7 @@
             <swe:encoding>
                 <swe:TextEncoding blockSeparator="@@" decimalSeparator="." tokenSeparator="," id="encoding-1"/>
             </swe:encoding>
+            <swe:values>1980-03-01T21:52:00.0,false,blue,2000-01-01T22:10:00.0,12.0@@1981-03-01T22:52:00.0,true,red,2001-01-01T22:10:00.0,14.0@@</swe:values>
         </swe:DataArray>
     </om:result>
 </om:OM_Observation>

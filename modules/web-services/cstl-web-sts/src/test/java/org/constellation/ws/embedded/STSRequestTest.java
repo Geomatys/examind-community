@@ -387,7 +387,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "185");
+        expResult = expResult.replace("\"{count}\"", "193");
         compareJSON(expResult, result);
     }
 
@@ -556,7 +556,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "3");
+        expResult = expResult.replace("\"{count}\"", "7");
         compareJSON(expResult, result);
     }
 
@@ -625,7 +625,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-skip.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$skip=22");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$skip=26");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
@@ -647,7 +647,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "22");
+        expResult = expResult.replace("\"{count}\"", "26");
         compareJSON(expResult, result);
     }
 
@@ -821,7 +821,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "13");
+        expResult = expResult.replace("\"{count}\"", "14");
         compareJSON(expResult, result);
     }
 
@@ -888,7 +888,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "15");
+        expResult = expResult.replace("\"{count}\"", "16");
         compareJSON(expResult, result);
     }
 
@@ -1024,7 +1024,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "15");
+        expResult = expResult.replace("\"{count}\"", "16");
         compareJSON(expResult, result);
     }
 
@@ -1121,7 +1121,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "15");
+        expResult = expResult.replace("\"{count}\"", "16");
         compareJSON(expResult, result);
     }
 
@@ -1284,7 +1284,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "20");
+        expResult = expResult.replace("\"{count}\"", "21");
         compareJSON(expResult, result);
 
     }
@@ -1704,7 +1704,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0");
-        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 15, ServiceStatus.STARTED, "null/sts/default/v1.1"));
+        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 16, ServiceStatus.STARTED, "null/sts/default/v1.1"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

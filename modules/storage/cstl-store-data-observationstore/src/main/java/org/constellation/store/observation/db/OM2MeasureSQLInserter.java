@@ -228,6 +228,13 @@ public class OM2MeasureSQLInserter {
                 throw new DataStoreException("Invalid value inserted");
             }
             value = "'" + value + "'";
+        } else if (FieldType.BOOLEAN.equals(field.type)) {
+            boolean parsed = Boolean.parseBoolean(value);
+            if (isPostgres) {
+                 value = Boolean.toString(parsed);
+            } else {
+                value = parsed ? "1" : "0";
+            }
         }
         return new String[] {value, block};
     }

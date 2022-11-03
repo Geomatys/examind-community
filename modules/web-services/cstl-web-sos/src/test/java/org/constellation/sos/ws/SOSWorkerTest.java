@@ -128,6 +128,8 @@ public abstract class SOSWorkerTest extends SpringContextTest {
     @Inject
     protected ISensorBusiness sensorBusiness;
 
+    protected static final int NB_SENSOR = 16;
+
     protected static SOSworker worker;
 
     protected static MarshallerPool marshallerPool;
@@ -209,7 +211,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", NB_SENSOR, result.getContents().getOfferings().size());
 
         /*
          *  TEST 2 : full get capabilities
@@ -228,7 +230,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() != null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", NB_SENSOR, result.getContents().getOfferings().size());
         assertNotNull(result);
 
         /*
@@ -302,7 +304,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertTrue(result.getServiceProvider() == null);
         assertTrue(result.getContents() != null);
         assertTrue(result.getContents().getOfferings() != null);
-        assertEquals("nb offering!", 15, result.getContents().getOfferings().size());
+        assertEquals("nb offering!", NB_SENSOR, result.getContents().getOfferings().size());
         assertNotNull(result);
 
     }

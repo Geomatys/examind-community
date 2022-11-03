@@ -63,18 +63,18 @@ public class FieldParser {
         for (int i = 0; i < fields.size(); i++) {
 
             Field field = fields.get(i);
-            parseField(field, rs, i <= offset, null);
+            parseField(field, rs, i, offset, null);
 
             if (includeQuality && field.qualityFields != null) {
                 for (Field qField : field.qualityFields) {
-                    parseField(qField, rs, false, field);
+                    parseField(qField, rs, -1, -1, field);
                 }
             }
         }
         nbValue = values.endBlock();
     }
 
-    private void parseField(Field field, ResultSet rs,  boolean beforeMain, Field parent) throws SQLException {
+    private void parseField(Field field, ResultSet rs, int fieldIndex,  int offset, Field parent) throws SQLException {
         String fieldName;
         if (parent != null) {
            fieldName = parent.name + "_quality_" + field.name;
@@ -84,16 +84,19 @@ public class FieldParser {
         switch (field.type) {
             case TIME:
                 // profile with time field
-                if (profileWithTime && beforeMain) {
+                if (profileWithTime && fieldIndex < offset) {
                     values.appendTime(firstTime);
                 } else {
                     Date t = dateFromTS(rs.getTimestamp(fieldName));
                     values.appendTime(t);
-                    if (first) {
-                        firstTime = t;
-                        first = false;
+                    
+                    if (fieldIndex < offset) {
+                        if (first) {
+                            firstTime = t;
+                            first = false;
+                        }
+                        lastTime = t;
                     }
-                    lastTime = t;
                 }
                 break;
             case QUANTITY:

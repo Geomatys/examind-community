@@ -9,15 +9,11 @@
                 xmlns:ogc="http://www.opengis.net/ogc" 
                 xmlns:ows="http://www.opengis.net/ows/1.1" 
                 xmlns:gcol="http://www.isotc211.org/2005/gco" 
-                xmlns:swe="http://www.opengis.net/swe/1.0" gml:id="obs-6001-2-1">
-    <gml:name>urn:ogc:object:observation:GEOM:6001-2-1</gml:name>
+                xmlns:swe="http://www.opengis.net/swe/1.0" gml:id="obs-quality_sensor-2">
+    <gml:name>urn:ogc:object:observation:template:GEOM:quality_sensor-2</gml:name>
     <gml:boundedBy xsi:nil="true"></gml:boundedBy>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"></om:type>
-    <om:phenomenonTime>
-        <gml:TimeInstant gml:id="time-6001-1">
-            <gml:timePosition>1980-03-01T21:52:00.000</gml:timePosition>
-        </gml:TimeInstant>
-    </om:phenomenonTime>
+    <om:phenomenonTime/>
     <om:resultTime></om:resultTime>
     <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:quality_sensor"></om:procedure>
     <om:observedProperty xlink:href="depth"></om:observedProperty>
@@ -27,7 +23,7 @@
             <gml:name>10972X0137-PONT</gml:name>
             <gml:boundedBy xsi:nil="true"></gml:boundedBy>
             <sa:type xlink:href="http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingPoint"></sa:type>
-            <sa:sampledFeature></sa:sampledFeature>
+            <sa:sampledFeature xlink:href="urn:-sandre:object:bdrhf:123X"/>
             <sas:shape>
                 <gml:Point srsName="urn:ogc:def:crs:EPSG:9.9.1:27582" srsDimension="2" gml:id="pt-station-001">
                     <gml:pos>65400.0 1731368.0</gml:pos>

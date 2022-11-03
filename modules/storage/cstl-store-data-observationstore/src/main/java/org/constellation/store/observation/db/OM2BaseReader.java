@@ -49,6 +49,7 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVA
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
+import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
@@ -706,7 +707,11 @@ public class OM2BaseReader {
                     }
                     
                 }
-                results.add(OM2Utils.createQualityElement(field, value));
+                try {
+                    results.add(OMUtils.createQualityElement2(field, value));
+                } catch (ReflectiveOperationException ex) {
+                    throw new SQLException(ex);
+                }
             }
         }
         return results;

@@ -29,12 +29,17 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.sql.DataSource;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
@@ -229,9 +234,24 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (includeTimeInTemplate) {
                     tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID, version);
                 }
-                final Object result = buildMeasure(version, field.uom, null);
+                Object result = null;
+                final String observationType;
+                if (field.type == FieldType.QUANTITY) {
+                    result =buildMeasure(version, field.uom, null);
+                    observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+                } else if (field.type == FieldType.BOOLEAN) {
+                    observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation";
+                } else if (field.type == FieldType.TEXT) {
+                    result = "";
+                    observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
+                } else if (field.type == FieldType.TIME) {
+                    observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation";
+                } else {
+                    observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
+                }
                 final List<Element> resultQuality = buildResultQuality(field, null);
-                observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenIndex, name + '-' + phenIndex, null, foi, phen, proc, result, tempTime, null, resultQuality));
+
+                observations.add(OMXmlFactory.buildMeasurement(version, obsID + '-' + phenIndex, name + '-' + phenIndex, null, foi, phen, proc, result, tempTime, null, resultQuality, observationType));
                 
             }
         } catch (SQLException ex) {
@@ -490,20 +510,35 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                             for (int i = 0; i < fieldPhen.size(); i++) {
                                 FieldPhenomenon field = fieldPhen.get(i);
-                                Double dValue = null;
-                                final String value = rs2.getString(field.getField().name);
+                                FieldType fType = field.getField().type;
+                                String fName    = field.getField().name;
+                                final String value = rs2.getString(fName);
                                 if (value != null) {
-                                    try {
-                                        dValue = Double.valueOf(value);
-                                    } catch (NumberFormatException ex) {
-                                        throw new DataStoreException("Unable ta parse the result value as a double (value=" + value + ")");
+                                    Object result = null;
+                                    final String observationType;
+                                    if (fType == FieldType.QUANTITY) {
+                                        Double dValue = rs2.getDouble(fName);
+                                        result = buildMeasure(version, "measure-00" + rid, field.getField().uom, dValue);
+                                        observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+                                    } else if (fType == FieldType.BOOLEAN) {
+                                        result = rs2.getBoolean(fName);
+                                        observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation";
+                                    } else if (fType == FieldType.TIME) {
+                                        Timestamp ts = rs2.getTimestamp(fName);
+                                        GregorianCalendar cal = new GregorianCalendar();
+                                        cal.setTimeInMillis(ts.getTime());
+                                        result = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal) ;
+                                        observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation";
+                                    } else {
+                                        result = value;
+                                        observationType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
                                     }
+                                    
                                     final FeatureProperty foi = buildFeatureProperty(version, feature); // do not share the same object
-                                    final Object result = buildMeasure(version, field.getField().uom, dValue);
                                     final String measId =  obsID + '-' + field.getField().index + '-' + rid;
                                     final String measName = name + '-' + field.getField().index + '-' + rid;
                                     List<Element> resultQuality = buildResultQuality(field.getField(), rs2);
-                                    observations.add(OMXmlFactory.buildMeasurement(version, measId, measName, null, foi, field.getPhenomenon(), proc, result, measureTime, null, resultQuality));
+                                    observations.add(OMXmlFactory.buildMeasurement(version, measId, measName, null, foi, field.getPhenomenon(), proc, result, measureTime, null, resultQuality, observationType));
                                 }
                             }
                         }
@@ -514,8 +549,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        } catch (DataStoreException ex) {
-            throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
+        } catch (DataStoreException | DatatypeConfigurationException ex) {
+            throw new DataStoreException("the service has throw an Exception:" + ex.getMessage(), ex);
         } catch (RuntimeException ex) {
             throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }

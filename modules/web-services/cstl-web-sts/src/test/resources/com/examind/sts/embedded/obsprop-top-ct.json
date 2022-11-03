@@ -1,13 +1,13 @@
 {
-  "value" : [ {
-    "name" : "depth",
-    "definition" : "urn:ogc:def:phenomenon:GEOM:depth",
-    "description" : "the depth in water",
-    "@iot.id" : "depth",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/Datastreams",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams"
-  } ],
-  "@iot.count" : 3,
-  "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties?$skip=1&$top=1&$count=true"
+    "value": [{
+            "name": "age",
+            "definition": "urn:ogc:def:phenomenon:GEOM:age",
+            "description": "current age",
+            "@iot.id": "age",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/MultiDatastreams"
+        }],
+    "@iot.count": 7,
+    "@iot.nextLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties?$skip=1&$top=1&$count=true"
 }

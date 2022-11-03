@@ -35,6 +35,7 @@ import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.xml.XML;
+import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsMeasObservation;
 import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsMeasurement;
 import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsObservation;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
@@ -89,6 +90,10 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) SOSDatabaseObservationStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
             parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SGBDTYPE).setValue("derby");
             parameters.getOrCreate(SOSDatabaseObservationStoreFactory.DERBYURL).setValue(url);
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.PHENOMENON_ID_BASE).setValue("urn:ogc:def:phenomenon:GEOM:");
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE).setValue("urn:ogc:object:observation:template:GEOM:");
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.OBSERVATION_ID_BASE).setValue("urn:ogc:object:observation:GEOM:");
+            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SENSOR_ID_BASE).setValue("urn:ogc:object:sensor:GEOM:");
 
             store = new SOSDatabaseObservationStore(parameters);
 
@@ -159,7 +164,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
     }
 
     @Test
-    public void readerTest() throws Exception {
+    public void readerQualityTest() throws Exception {
         Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
         u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
 
@@ -199,11 +204,51 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
     }
 
     @Test
+    public void readerMultiTypeTest() throws Exception {
+        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
+        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
+
+        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_sensor_observation.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation expected = (AbstractObservation) o;
+
+        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_time_sensor_measurement.xml"));
+        if (o instanceof JAXBElement jb) {
+            o = jb.getValue();
+        }
+        Assert.assertTrue(o instanceof AbstractObservation);
+        AbstractObservation measExpected = (AbstractObservation) o;
+
+        SOSMarshallerPool.getInstance().recycle(u);
+
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
+        Assert.assertTrue(obs instanceof AbstractObservation);
+        AbstractObservation result = (AbstractObservation) obs;
+
+        assertEqualsObservation(expected, result);
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001-4-1", MEASUREMENT_QNAME, ResponseModeType.INLINE, "2.0.0");
+        Assert.assertTrue(obs instanceof AbstractObservation);
+        result = (AbstractObservation) obs;
+
+        assertEqualsMeasObservation(measExpected, result, false);
+    }
+
+    @Test
     public void getProceduresTest() throws Exception {
         Assert.assertTrue(store instanceof ObservationStore);
         ObservationStore omStore = (ObservationStore) store;
 
         List<ExtractionResult.ProcedureTree> procedures = omStore.getProcedures();
-        Assert.assertEquals(15, procedures.size());
+        Assert.assertEquals(16, procedures.size());
     }
 }

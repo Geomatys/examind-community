@@ -3,6 +3,11 @@ INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('aggregatePhenomenon',   'aggregatePhenomenon',   'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'the aggregation of temperature and depth phenomenons');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('salinity',              'salinity',              'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('aggregatePhenomenon-2', 'aggregatePhenomenon-2', 'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('isHot',                 'isHot',                 'urn:ogc:def:phenomenon:GEOM:isHot',                 'hotness boolean indicator');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('color',                 'color',                 'urn:ogc:def:phenomenon:GEOM:color',                 'the color label');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('expiration',            'expiration',            'urn:ogc:def:phenomenon:GEOM:expiration',            'Expiration date');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('age',                   'age',                   'urn:ogc:def:phenomenon:GEOM:age',                   'current age');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('multi-type-phenomenon', 'multi-type-phenomenon', 'urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon', 'the aggregation of variable phenomenons type');
 
 -- v100 --
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);
@@ -12,23 +17,28 @@ INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggr
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon-2', 'temperature', 1);
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon-2', 'salinity', 2);
 
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenomenon', 'isHot',      0);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenomenon', 'color',      1);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenomenon', 'expiration', 2);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenomenon', 'age',        3);
 ---------
 
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',              x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries', 'Sensor 1',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',              x'000000000140f207a9e96900384139bf0a15544d08', 27582, 2,  NULL, 'component', 'profile',    'Sensor 2',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',              x'00000000014044000000000000c008000000000000', 4326,  3,  NULL, 'system',    'timeseries', 'Sensor 3',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',              x'000000000140240000000000004024000000000000', 4326,  4,  NULL, 'system',    'timeseries', 'Sensor 4',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-1',         x'000000000140140000000000004024000000000000', 4326,  5,  NULL, 'system',    'timeseries', 'Sensor test 1',  null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',              x'000000000140140000000000004014000000000000', 4326,  6,  NULL, 'system',    'timeseries', 'Sensor 6',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',              x'00000000014145b7ca31487fc1c138da59f139abf8', 27582, 7,  NULL, 'system',    'timeseries', 'Sensor 7',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',              x'000000000140efef0000000000413a6b2800000000', 27582, 8,  NULL, 'system',    'timeseries', 'Sensor 8',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',              x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile',    'Sensor 9',       null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10',             x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries', 'Sensor 10',      null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-id',        x'000000000140efef0000000000413a6b2800000000', 27582, 11, NULL, 'system',    'timeseries', 'Sensor test id', null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:12',             x'000000000140efef0000000000413a6b2800000000', 27582, 12, NULL, 'system',    'timeseries', 'Sensor 12',      null, 2);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:13',             x'00000000014044000000000000c008000000000000',  4326, 13, NULL, 'system',    'timeseries', 'Sensor 13',      null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:14',             x'000000000140f207a9e96900384139bf0a15544d08', 27582, 14, NULL, 'system',    'profile',    'Sensor 14',      null, 1);
-INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', x'000000000140f207a9e96900384139bf0a15544d08', 27582, 15, NULL, 'system',    'profile',    'Sensor quality', null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',              x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries', 'Sensor 1',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:2',              x'000000000140f207a9e96900384139bf0a15544d08', 27582, 2,  NULL, 'component', 'profile',    'Sensor 2',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:3',              x'00000000014044000000000000c008000000000000', 4326,  3,  NULL, 'system',    'timeseries', 'Sensor 3',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:4',              x'000000000140240000000000004024000000000000', 4326,  4,  NULL, 'system',    'timeseries', 'Sensor 4',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-1',         x'000000000140140000000000004024000000000000', 4326,  5,  NULL, 'system',    'timeseries', 'Sensor test 1',     null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:6',              x'000000000140140000000000004014000000000000', 4326,  6,  NULL, 'system',    'timeseries', 'Sensor 6',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:7',              x'00000000014145b7ca31487fc1c138da59f139abf8', 27582, 7,  NULL, 'system',    'timeseries', 'Sensor 7',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:8',              x'000000000140efef0000000000413a6b2800000000', 27582, 8,  NULL, 'system',    'timeseries', 'Sensor 8',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:9',              x'000000000140efef0000000000413a6b2800000000', 27582, 9,  NULL, 'system',    'profile',    'Sensor 9',          null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:10',             x'000000000140efef0000000000413a6b2800000000', 27582, 10, NULL, 'system',    'timeseries', 'Sensor 10',         null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:test-id',        x'000000000140efef0000000000413a6b2800000000', 27582, 11, NULL, 'system',    'timeseries', 'Sensor test id',    null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:12',             x'000000000140efef0000000000413a6b2800000000', 27582, 12, NULL, 'system',    'timeseries', 'Sensor 12',         null, 2);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:13',             x'00000000014044000000000000c008000000000000',  4326, 13, NULL, 'system',    'timeseries', 'Sensor 13',         null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:14',             x'000000000140f207a9e96900384139bf0a15544d08', 27582, 14, NULL, 'system',    'profile',    'Sensor 14',         null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', x'000000000140f207a9e96900384139bf0a15544d08', 27582, 15, NULL, 'system',    'profile',    'Sensor quality',    null, 1);
+INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     x'000000000140f207a9e96900384139bf0a15544d08', 27582, 16, NULL, 'system',    'timeseries', 'Sensor multi type', null, 1);
 
 
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',              '2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
@@ -51,6 +61,7 @@ INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:14',
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:14',             '2000-12-22 00:00:00.0', x'00000000014144f902f95b5e67c13b3ac452c1ca80', 27582);
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:14',             '2000-12-24 00:00:00.0', x'00000000014144f902f95b5e67c13b3ac452c1ca80', 27582);
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', '1980-03-01 21:52:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
+INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     '1980-03-01 21:52:00.0', x'000000000140efef0000000000413a6b2800000000', 27582);
 
 
 INSERT INTO "om"."sampling_features" VALUES ('station-001', '10972X0137-PONT' , 'Point d''eau BSSS', 'urn:-sandre:object:bdrhf:123X', x'000000000140efef0000000000413a6b2800000000', 27582);
@@ -76,6 +87,7 @@ INSERT INTO "om"."offerings" VALUES ('offering-12', NULL, 'offering-12', '2000-1
 INSERT INTO "om"."offerings" VALUES ('offering-13', NULL, 'offering-13', '2000-01-01 00:00:00.0', NULL,                    'urn:ogc:object:sensor:GEOM:13');
 INSERT INTO "om"."offerings" VALUES ('offering-14', NULL, 'offering-14', '2001-01-01 00:00:00.0', '2000-12-24 00:00:00.0', 'urn:ogc:object:sensor:GEOM:14');
 INSERT INTO "om"."offerings" VALUES ('offering-15', NULL, 'offering-15', '1980-03-01 21:52:00.0', '1984-03-01 21:52:00.0', 'urn:ogc:object:sensor:GEOM:quality_sensor');
+INSERT INTO "om"."offerings" VALUES ('offering-16', NULL, 'offering-16', '1980-03-01 21:52:00.0', '1981-03-01 22:52:00.0', 'urn:ogc:object:sensor:GEOM:multi-type');
 
 INSERT INTO "om"."offering_foi" VALUES ('offering-3', 'station-001');
 INSERT INTO "om"."offering_foi" VALUES ('offering-4', 'station-001');
@@ -89,6 +101,7 @@ INSERT INTO "om"."offering_foi" VALUES ('offering-12','station-001');
 INSERT INTO "om"."offering_foi" VALUES ('offering-13','station-002');
 INSERT INTO "om"."offering_foi" VALUES ('offering-14','station-002');
 INSERT INTO "om"."offering_foi" VALUES ('offering-15','station-001');
+INSERT INTO "om"."offering_foi" VALUES ('offering-16','station-001');
 
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','aggregatePhenomenon');
@@ -137,6 +150,12 @@ INSERT INTO "om"."offering_observed_properties" VALUES ('offering-14','salinity'
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-15','depth');
 
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-16','isHot');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-16','color');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-16','expiration');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-16','age');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-16','multi-type-phenomenon');
+
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:201',   201, '2000-12-01 00:00:00.0', NULL,                    'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:2',              'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:202',   202, '2000-12-11 00:00:00.0', NULL,                    'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:2',              'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:203',   203, '2000-12-22 00:00:00.0', NULL,                    'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:2',              'station-002');
@@ -162,6 +181,7 @@ INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:5002',
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:5003', 5003, '2000-12-22 00:00:00.0', NULL,                    'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:14',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:5004', 5004, '2000-12-24 00:00:00.0', NULL,                    'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:14',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:6001', 6001, '1980-03-01 21:52:00.0', '1984-03-01 21:52:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:quality_sensor', 'station-001');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:7001', 7001, '1980-03-01 21:52:00.0', '1981-03-01 22:52:00.0', 'multi-type-phenomenon', 'urn:ogc:object:sensor:GEOM:multi-type',     'station-001');
 
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:2',              1, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm',   NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:2',              2, 'temperature', 'Quantity', 'urn:ogc:def:phenomenon:GEOM:temperature',  '°C',  NULL,    1);
@@ -196,6 +216,11 @@ INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:1
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 2, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm',   NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 1, 'qflag',       'Text',     'urn:ogc:def:phenomenon:GEOM:quality_flag', NULL,  'depth', 1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     2, 'isHot',       'Boolean',  'urn:ogc:def:phenomenon:GEOM:isHot',        NULL,  NULL,    1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     3, 'color',       'Text',     'urn:ogc:def:phenomenon:GEOM:color',        NULL,  NULL,    1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     4, 'expiration',  'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     5, 'age',         'Quantity', 'urn:ogc:def:phenomenon:GEOM:age',          NULL,  NULL,    1);
 
 CREATE TABLE "mesures"."mesure2"("id_observation" integer NOT NULL,
                                  "id"             integer NOT NULL,
@@ -410,3 +435,14 @@ INSERT INTO "mesures"."mesure15" VALUES (6001, 2,  '1981-03-01 21:52:00', 6.56, 
 INSERT INTO "mesures"."mesure15" VALUES (6001, 3,  '1982-03-01 21:52:00', 6.56, 'ok');
 INSERT INTO "mesures"."mesure15" VALUES (6001, 4,  '1983-03-01 21:52:00', 6.56, 'ko');
 INSERT INTO "mesures"."mesure15" VALUES (6001, 5,  '1984-03-01 21:52:00', 6.56, 'ok');
+
+CREATE TABLE "mesures"."mesure16"("id_observation"      integer NOT NULL,
+                                  "id"                  integer NOT NULL,
+                                  "Time"                timestamp NOT NULL,
+                                  "isHot"               integer,
+                                  "color"               character varying(10000),
+                                  "expiration"          timestamp,
+                                  "age"                 double); 
+
+INSERT INTO "mesures"."mesure16" VALUES (7001, 1,  '1980-03-01 21:52:00', 0, 'blue', '2000-01-01 22:10:00', 12);
+INSERT INTO "mesures"."mesure16" VALUES (7001, 2,  '1981-03-01 22:52:00', 1, 'red',  '2001-01-01 22:10:00', 14);

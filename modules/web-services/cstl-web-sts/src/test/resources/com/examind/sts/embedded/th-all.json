@@ -132,6 +132,17 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:9)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:9)/MultiDatastreams"
         }, {
+            "name": "Sensor multi type",
+            "description": "",
+            "properties": {
+                "type": "timeseries"
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:multi-type",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:multi-type)",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:multi-type)/HistoricalLocations",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:multi-type)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:multi-type)/MultiDatastreams"
+        }, {
             "name": "Sensor quality",
             "description": "",
             "properties": {

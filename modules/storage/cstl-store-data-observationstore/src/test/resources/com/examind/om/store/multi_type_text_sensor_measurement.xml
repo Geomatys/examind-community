@@ -5,22 +5,23 @@
                 xmlns:gmd="http://www.isotc211.org/2005/gmd" 
                 xmlns:gml="http://www.opengis.net/gml/3.2" 
                 xmlns:xlink="http://www.w3.org/1999/xlink" 
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
                 xmlns:ogc="http://www.opengis.net/ogc" 
                 xmlns:ows="http://www.opengis.net/ows/1.1" 
                 xmlns:gcol="http://www.isotc211.org/2005/gco" 
-                xmlns:swe="http://www.opengis.net/swe/1.0" gml:id="obs-90000-13-1">
-    <gml:name>urn:ogc:object:observation:GEOM:90000-13-1</gml:name>
+                xmlns:swe="http://www.opengis.net/swe/1.0" gml:id="obs-7001-3-1">
+    <gml:name>urn:ogc:object:observation:GEOM:7001-3-1</gml:name>
     <gml:boundedBy xsi:nil="true"></gml:boundedBy>
-    <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"></om:type>
+    <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation"></om:type>
     <om:phenomenonTime>
         <gml:TimeInstant gml:id="time-6001-1">
-            <gml:timePosition>2000-01-01T01:00:00.0</gml:timePosition>
+            <gml:timePosition>1980-03-01T21:52:00.000</gml:timePosition>
         </gml:TimeInstant>
     </om:phenomenonTime>
-    <om:resultTime></om:resultTime>
-    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:multi_table_sensor"></om:procedure>
-    <om:observedProperty xlink:href="f12"/>
+    <om:resultTime/>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:multi-type"></om:procedure>
+    <om:observedProperty xlink:href="color"/>
     <om:featureOfInterest>
         <sas:SF_SpatialSamplingFeature gml:id="station-001">
             <gml:description>Point d'eau BSSS</gml:description>
@@ -35,5 +36,5 @@
             </sas:shape>
         </sas:SF_SpatialSamplingFeature>
     </om:featureOfInterest>
-    <om:result xsi:type="gml:measureType" uom="m">12.0</om:result>
+    <om:result xsi:type="xs:string">blue</om:result>
 </om:Observation>

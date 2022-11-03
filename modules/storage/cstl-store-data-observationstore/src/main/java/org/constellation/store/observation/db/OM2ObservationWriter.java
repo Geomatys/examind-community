@@ -70,6 +70,7 @@ import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
+import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.model.FieldType;
@@ -708,7 +709,16 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         stmtInsert.setString(1, foi.getId());
                         stmtInsert.setString(2, (foi.getName() != null) ? foi.getName().getCode() : null);
                         stmtInsert.setString(3, foi.getDescription());
-                        stmtInsert.setNull(4, java.sql.Types.VARCHAR); // TODO
+                        if (!foi.getSampledFeatures().isEmpty()) {
+                            FeatureProperty foiProp = foi.getSampledFeatures().get(0);
+                            if (foiProp != null) {
+                                stmtInsert.setString(4, foiProp.getHref());
+                            } else {
+                                stmtInsert.setNull(4, java.sql.Types.VARCHAR);
+                            }
+                        } else {
+                            stmtInsert.setNull(4, java.sql.Types.VARCHAR);
+                        }
 
                         if (foi.getGeometry() != null) {
                             try {
