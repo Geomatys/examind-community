@@ -72,6 +72,8 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static java.lang.Double.NaN;
+import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.geometry.GeneralEnvelope;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -104,6 +106,7 @@ import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ogc.xml.OGCJAXBStatics.FILTER_COMPARISON_ISLESS;
+import org.opengis.geometry.Envelope;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -229,6 +232,20 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "query_layers=Lakes&info_format=text/plain&"
             + "X=60&Y=60";
 
+    private static final String WMS_GETFEATUREINFO_PLAIN_FEAT_REPROJECTED = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png&width=200&height=100&"
+            + "crs=EPSG:4326&BbOx=-0.0020,0,0,0.0040&"
+            + "layers=Lakes&styles=&"
+            + "query_layers=Lakes&info_format=text/plain&"
+            + "i=60&j=60";
+
+    private static final String WMS_GETFEATUREINFO_PLAIN_FEAT_REPROJECTED2 = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png&width=200&height=100&"
+            + "crs=EPSG:3857&BbOx=0,-222.63898163026252,445.2779631730943,0&"
+            + "layers=Lakes&styles=&"
+            + "query_layers=Lakes&info_format=text/plain&"
+            + "i=60&j=60";
+    
     private static final String WMS_GETFEATUREINFO_PLAIN_FEAT2 = "QuErY_LaYeRs=BasicPolygons&I=50&"
             + "LaYeRs=BasicPolygons&StYlEs=&WiDtH=100&CrS=CRS:84&"
             + "ReQuEsT=GetFeatureInfo&InFo_fOrMaT=text/plain&BbOx=-2,2,2,6"
@@ -688,6 +705,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 waitForRestStart("wms", "wms2");
 
                 initialized = true;
+
+                GeneralEnvelope env = new GeneralEnvelope(org.apache.sis.referencing.CRS.forCode("EPSG:4326"));
+                env.setRange(0, -0.0020, 0);
+                env.setRange(1, 0, 0.0040);
+                System.out.println("ENV:" + env);
+                env = (GeneralEnvelope) Envelopes.transform(env, org.apache.sis.referencing.CRS.forCode("EPSG:3857"));
+                System.out.println("ENV R:" + env);
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -1212,6 +1236,42 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "Lakes.1;MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;\n\n";
 
         String result = getStringResponse(gfi);
+
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
+    }
+
+    /**
+     * Ensure that returned features are reprojected according to specified CRS.
+     * This test queries coordinates in lat/lon order. The check consist in ensuring that coordinates have been flipped
+     * correctly.
+     * Opportunist check: verify that WMS 1.3.0 axis order of CRS definitions.
+     */
+    @Test
+    @Order(order = 14)
+    public void testWMSGetFeatureInfoPlainShapeReprojected() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT_REPROJECTED);
+
+        String expResult
+                = "Lakes\n"
+                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
+                + "Lakes.1;MULTIPOLYGON (((-0.0018 0.0006, -0.0006 0.001, -0.0001 0.0024, -0.0015 0.0031, -0.0018 0.0006), (-0.0011 0.0017, -0.0011 0.0025, -0.0006 0.0025, -0.0006 0.0017, -0.0011 0.0017)));101;Blue Lake;\n\n";
+
+        String result = getStringResponse(gfi);
+
+        assertNotNull(expResult);
+        assertEquals(expResult, result);
+
+        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_FEAT_REPROJECTED2);
+
+        expResult
+                = "Lakes\n"
+                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
+                + "Lakes.1;MULTIPOLYGON (((66.79169447596414 -200.37508346162957, 111.31949079327357 -66.7916944775693, 267.16677790385654 -11.131949078903947, 345.09042145914805 -166.97923620897757, 66.79169447596414 -200.37508346162957), (189.24313434856506 -122.4514398800355, 278.29872698318394 -122.4514398800355, 278.29872698318394 -66.7916944775693, 189.24313434856506 -66.7916944775693, 189.24313434856506 -122.4514398800355)));101;Blue Lake;\n\n";
+
+        result = getStringResponse(gfi);
 
         assertNotNull(expResult);
         assertEquals(expResult, result);
