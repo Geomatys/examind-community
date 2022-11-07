@@ -149,6 +149,7 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
 
 /**
  * A WMS worker for a local WMS service which handles requests from REST
@@ -916,16 +917,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final Color color = getFI.getBackground();
             background = (color == null) ? Color.WHITE : color;
         }
-        final CanvasDef cdef = new CanvasDef(canvasDimension,null);
+        CanvasDef cdef = new CanvasDef(canvasDimension,null);
         cdef.setBackground(background);
         cdef.setEnvelope(refEnv);
         cdef.setAzimuth(azimuth);
-        try {
-            //force longitude first
-            cdef.setLongitudeFirst();
-        } catch (TransformException | FactoryException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        }
+        cdef = adaptToVersion(cdef, WMSVersion.getVersion(getFI.getVersion().toString()));
 
         // 4. SHAPE
         final int pixelTolerance = 3;
@@ -1171,20 +1167,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final Color color = getMap.getBackground();
             background = (color == null) ? Color.WHITE : color;
         }
-        final CanvasDef cdef = new CanvasDef(canvasDimension,refEnv);
+
+        CanvasDef cdef = new CanvasDef(canvasDimension,refEnv);
         cdef.setBackground(background);
         cdef.setAzimuth(azimuth);
+        cdef = adaptToVersion(cdef, WMSVersion.getVersion(queryVersion));
 
         // 4. IMAGE
         final String mime = getMap.getFormat();
         final OutputDef odef = mapPortrayal.getOutputDef(mime);
-
-        try {
-            //force longitude first
-            cdef.setLongitudeFirst();
-        } catch (TransformException | FactoryException ex) {
-            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-        }
 
         final PortrayalResponse response = new PortrayalResponse(cdef, sdef, odef);
         if (!mapPortrayal.isCoverageWriter() && DefaultPortrayalService.isImageFormat(odef.getMime())) {
@@ -1198,6 +1189,22 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return response;
     }
 
+    /**
+     * Try to force easting/northing orientation on older WMS versions (< 1.3.0).
+     * In 1.3.0, the standard clearly states that the service must interpret CRS codes according to their definition,
+     * i.e. it must respect axis order.
+     * However, on older WMS versions, (1.1.0), the standard document enforce east/north order on read systems.
+     */
+    private CanvasDef adaptToVersion(@NonNull CanvasDef canvas, @NonNull WMSVersion version) throws CstlServiceException {
+        if (version.compareTo(WMSVersion.v130) >= 0) return canvas;
+
+        try {
+            //force longitude first
+            return canvas.setLongitudeFirst();
+        } catch (TransformException | FactoryException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+    }
 
     /**
      * Extract additional filters contained in the request.
