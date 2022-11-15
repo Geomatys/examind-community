@@ -130,27 +130,10 @@ public final class ParamUtilities extends Static {
         ensureNonNull("input", input);
         ensureNonNull("descriptor", descriptor);
         try {
-            final ParameterValueReader reader = new ParameterValueReader(descriptor);
+            final ParameterValueReader reader = new ParameterValueReader(descriptor, true);
             reader.setInput(input);
             return reader.read();
         } catch (XMLStreamException ex) {
-
-            try {
-                //check for old namespace parameter for backward compatibility
-                final Document doc = read(input);
-                final Element root = doc.getDocumentElement();
-                final Element nsElement = DomUtilities.firstElement(root, "namespace", true);
-                if (nsElement != null) {
-                    //remove it and retry parsing
-                    nsElement.getParentNode().removeChild(nsElement);
-                    final ParameterValueReader reader = new ParameterValueReader(descriptor);
-                    reader.setInput(new DOMSource(root));
-                    return reader.read();
-                }
-            } catch (ParserConfigurationException | SAXException | XMLStreamException ex1) {
-                // do nothing
-            }
-
             throw new IOException("An error occurred while parsing ParameterDescriptorGroup XML.", ex);
         }
     }
