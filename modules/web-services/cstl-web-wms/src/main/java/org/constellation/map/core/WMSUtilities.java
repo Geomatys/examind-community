@@ -20,17 +20,33 @@ package org.constellation.map.core;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
+import org.apache.sis.measure.Range;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.ext.legend.DefaultLegendService;
 import org.geotoolkit.display2d.ext.legend.LegendTemplate;
 import org.geotoolkit.display2d.service.DefaultGlyphService;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureQuery;
+import org.apache.sis.storage.FeatureSet;
+import org.constellation.exception.ConstellationStoreException;
+import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.style.MutableFeatureTypeStyle;
 import org.geotoolkit.style.MutableRule;
 import org.geotoolkit.style.MutableStyle;
+import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Expression;
+import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.style.Style;
 
 /**
@@ -41,7 +57,7 @@ public class WMSUtilities {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws");
 
-    public static BufferedImage getLegendGraphic(final MapItem mapItem, Dimension dimension, final LegendTemplate template,
+    public static BufferedImage getLegendGraphicImg(final MapItem mapItem, Dimension dimension, final LegendTemplate template,
                                           final Style style, final String rule, final Double scale)
                                           throws PortrayalException
     {
@@ -147,4 +163,116 @@ public class WMSUtilities {
         return null;
     }
 
+    /**
+     * Ensure that the data envelope is not empty. It can occurs with vector data, on a single point.
+     * 
+     * @param inputGeoBox the box to verify.
+     * @return the input box extendd if needed.
+     */
+    public static GeographicBoundingBox notEmptyBBOX(GeographicBoundingBox inputGeoBox) {
+        final double width  = inputGeoBox.getEastBoundLongitude() - inputGeoBox.getWestBoundLongitude();
+        final double height = inputGeoBox.getNorthBoundLatitude() - inputGeoBox.getSouthBoundLatitude();
+        if (width == 0 && height == 0) {
+            final double diffWidth = Math.nextUp(inputGeoBox.getEastBoundLongitude()) - inputGeoBox.getEastBoundLongitude();
+            final double diffHeight = Math.nextUp(inputGeoBox.getNorthBoundLatitude()) - inputGeoBox.getNorthBoundLatitude();
+            inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude() - diffWidth,
+                                                inputGeoBox.getSouthBoundLatitude() - diffHeight,
+                                                Math.nextUp(inputGeoBox.getEastBoundLongitude()),
+                                                Math.nextUp(inputGeoBox.getNorthBoundLatitude()));
+        }
+        if (width == 0) {
+            final double diffWidth = Math.nextUp(inputGeoBox.getEastBoundLongitude()) - inputGeoBox.getEastBoundLongitude();
+            inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude() - diffWidth,
+                                                inputGeoBox.getSouthBoundLatitude(),
+                                                Math.nextUp(inputGeoBox.getEastBoundLongitude()),
+                                                inputGeoBox.getNorthBoundLatitude());
+        }
+        if (height == 0) {
+            final double diffHeight = Math.nextUp(inputGeoBox.getNorthBoundLatitude()) - inputGeoBox.getNorthBoundLatitude();
+            inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude(),
+                                                inputGeoBox.getSouthBoundLatitude() - diffHeight,
+                                                inputGeoBox.getEastBoundLongitude(),
+                                                Math.nextUp(inputGeoBox.getNorthBoundLatitude()));
+        }
+        // fix for overlapping box
+        if (inputGeoBox.getWestBoundLongitude() > inputGeoBox.getEastBoundLongitude()) {
+            inputGeoBox = new LatLonBoundingBox(-180,
+                                                 inputGeoBox.getSouthBoundLatitude(),
+                                                 180,
+                                                 inputGeoBox.getNorthBoundLatitude());
+        }
+        return inputGeoBox;
+    }
+
+     /**
+     * Get all values of given extra dimension.
+     * @return collection never null, can be empty.
+     */
+    public static List<Range> getDimensionRange(FeatureSet fs, Expression lower, Expression upper) throws ConstellationStoreException {
+        try {
+            final Set<String> properties = new HashSet<>();
+            ListingPropertyVisitor.VISITOR.visit(lower, properties);
+            ListingPropertyVisitor.VISITOR.visit(upper, properties);
+
+            final FeatureQuery qb = new FeatureQuery();
+            qb.setProjection(properties.toArray(String[]::new));
+            final FeatureSet col = fs.subset(qb);
+
+            try (Stream<Feature> stream = col.features(false)) {
+                return stream
+                        .map(f -> {
+                            return new Range(
+                                    Comparable.class,
+                                    (Comparable) lower.apply(f), true,
+                                    (Comparable) upper.apply(f), true
+                            );
+                        })
+                        .toList();
+            }
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    public static String printValues(Set<Range> refs) {
+        boolean isAllDouble = true;
+        List<Double> doubleValues = new ArrayList<>();
+        List<String> stringValues = new ArrayList<>();
+        for (Range r : refs) {
+            try {
+                if (isAllDouble && r.getMinValue().compareTo(r.getMaxValue()) != 0) {
+                    stringValues.add(r.getMinValue().toString());
+                    doubleValues.add(Double.parseDouble(r.getMinValue().toString()));
+                } else {
+                    isAllDouble = false;
+                    stringValues.add(r.getMinValue().toString() + "-" + r.getMaxValue().toString());
+                }
+            } catch (NumberFormatException ex) {
+                isAllDouble = false;
+                break;
+            }
+        }
+
+
+        if (isAllDouble) {
+            Collections.sort(doubleValues);
+            stringValues.clear();
+            for (Double d : doubleValues) {
+                stringValues.add(String.valueOf(d));
+            }
+        } else {
+            Collections.sort(stringValues);
+        }
+
+        final StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (String val : stringValues) {
+            if (!first) {
+                sb.append(",");
+            }
+            sb.append(val);
+            first = false;
+        }
+        return sb.toString();
+    }
 }

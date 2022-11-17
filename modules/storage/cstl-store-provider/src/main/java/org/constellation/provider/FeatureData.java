@@ -19,12 +19,13 @@
 
 package org.constellation.provider;
 
+import java.util.List;
 import org.opengis.feature.FeatureType;
 
 import org.apache.sis.storage.FeatureSet;
 
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.Data;
+import org.opengis.filter.ValueReference;
 
 /**
  * Layer details for Feature sources.
@@ -37,4 +38,8 @@ public interface FeatureData extends Data<FeatureSet> {
     FeatureType getType() throws ConstellationStoreException;
 
     Object[] getPropertyValues(String property) throws ConstellationStoreException;
+
+    List<ValueReference> getTimeDimension();
+
+    List<ValueReference> getElevationDimension();
 }

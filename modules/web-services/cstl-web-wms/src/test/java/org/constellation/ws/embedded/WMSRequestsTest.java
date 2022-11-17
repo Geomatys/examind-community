@@ -102,6 +102,8 @@ import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ogc.xml.OGCJAXBStatics.FILTER_COMPARISON_ISLESS;
+import org.geotoolkit.wms.xml.v111.Dimension;
+import org.geotoolkit.wms.xml.v111.Extent;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -135,8 +137,6 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
      * URLs which will be tested on the server.
      */
     private static final String WMS_GETCAPABILITIES_111 = "request=GetCapabilities&service=WMS&version=1.1.1";
-
-    private static final String WMS_GETCAPABILITIES_WMS1_111 = "request=GetCapabilities&service=WMS&version=1.1.1";
 
     private static final String WMS_GETCAPABILITIES_130 = "request=GetCapabilities&service=WMS&version=1.3.0";
 
@@ -578,6 +578,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     dataBusiness.deleteAll();
                     providerBusiness.removeAll();
                 } catch (Exception ex) {
+                    LOGGER.log(Level.SEVERE, "Error whle cleaning database before test", ex);
                 }
 
                 WMSPortrayal.setEmptyExtension(true);
@@ -1067,12 +1068,24 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(bboxGeo.getEastBoundLongitude(), 180.0, 0.2);
         assertEquals(bboxGeo.getNorthBoundLatitude(),  90.0, 0.2);
 
+        layer = (Layer) responseCaps.getLayerFromName(JCOL_FILTER);
+        assertEquals(1, layer.getDimension().size());
+        Dimension elevation = layer.getDimension().get(0);
+        assertEquals("Ellipsoidal height", elevation.getName());
+        assertEquals("", elevation.getValue());
+
+        assertEquals(1, layer.getExtent().size());
+        Extent extent = layer.getExtent().get(0);
+        assertEquals("Ellipsoidal height", extent.getName());
+        assertEquals("1000-1000,1100-1100,1200-1200,1300-1300,700-700,800-800,900-900", extent.getvalue());
+
+
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/default?", currentUrl);
 
         // Creates a valid GetCapabilities url.
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_111);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_111);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1092,28 +1105,32 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?", currentUrl);
 
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_111);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_130);
 
         // Try to marshall something from the response returned by the server.
-        // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
-        assertTrue(obj instanceof WMT_MS_Capabilities);
-        responseCaps = (WMT_MS_Capabilities) obj;
+        assertTrue(obj instanceof WMSCapabilities);
+        WMSCapabilities responseCaps130 = (WMSCapabilities) obj;
 
-        currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
+        org.geotoolkit.wms.xml.v130.Layer layer130 = (org.geotoolkit.wms.xml.v130.Layer) responseCaps130.getLayerFromName(JCOL_FILTER);
+        org.geotoolkit.wms.xml.v130.Dimension elevation130 = layer130.getDimension().get(0);
+
+        assertEquals("Ellipsoidal height", elevation130.getName());
+        assertEquals("1000-1000,1100-1100,1200-1200,1300-1300,700-700,800-800,900-900", elevation130.getValue());
+
+        currentUrl = responseCaps130.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/default?", currentUrl);
 
         // Creates a valid GetCapabilities url.
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1_111);
-        //the service WMS2 does not support 1.1.0 version
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_111);
+        //the service WMS2 does not support 1.1.0 version so it respond in 1.3.0
         obj = unmarshallResponse(getCapsUrl);
         assertTrue("was :" + obj.getClass().getName(), obj instanceof WMSCapabilities);
 
         // Creates a valid GetCapabilities url.
         getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_130);
         // Try to marshall something from the response returned by the server.
-        // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
         assertTrue(obj instanceof WMSCapabilities);
     }

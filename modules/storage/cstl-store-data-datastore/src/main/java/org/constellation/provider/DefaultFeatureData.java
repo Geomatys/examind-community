@@ -19,9 +19,11 @@
 package org.constellation.provider;
 
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -104,18 +106,27 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
 
         final FilterFactory ff = FilterUtilities.FF;
 
-        if(dateStart != null)       this.dateStartField = ff.property(dateStart);
-        else                        this.dateStartField = null;
+        this.dateStartField = dateStart != null ? ff.property(dateStart) : null;
+        this.dateEndField   = dateEnd   != null ? ff.property(dateEnd)   : null;
 
-        if(dateEnd != null)         this.dateEndField = ff.property(dateEnd);
-        else                        this.dateEndField = null;
+        this.elevationStartField = elevationStart != null ? ff.property(elevationStart) : null;
+        this.elevationEndField   = elevationEnd   != null ? ff.property(elevationEnd)   : null;
+    }
 
-        if(elevationStart != null)      this.elevationStartField = ff.property(elevationStart);
-        else                            this.elevationStartField = null;
+    @Override
+    public List<ValueReference> getTimeDimension() {
+        List<ValueReference> results = new ArrayList<>();
+        if (dateStartField != null) results.add(dateStartField);
+        if (dateEndField != null) results.add(dateEndField);
+        return results;
+    }
 
-        if(elevationEnd != null)        this.elevationEndField = ff.property(elevationEnd);
-        else                            this.elevationEndField = null;
-
+    @Override
+    public List<ValueReference> getElevationDimension() {
+        List<ValueReference> results = new ArrayList<>();
+        if (dateStartField != null) results.add(dateStartField);
+        if (dateEndField != null) results.add(dateEndField);
+        return results;
     }
 
     /**

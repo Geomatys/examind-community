@@ -117,6 +117,7 @@ public interface Data<T extends Resource> {
     GenericName getName();
 
     /**
+     * @return A set of dimension ranges. Never {@code null}.
      */
     SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException;
 

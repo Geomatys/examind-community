@@ -33,12 +33,10 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Named;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.measure.Range;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.IdentifiedObjects;
@@ -64,6 +62,7 @@ import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
 import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
+import static org.constellation.map.core.WMSUtilities.*;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.portrayal.CstlPortrayalService;
@@ -83,12 +82,10 @@ import org.geotoolkit.display2d.service.DefaultPortrayalService;
 import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.factory.Hints;
-import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
 import org.apache.sis.portrayal.MapLayers;
-import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.api.WorkerState;
@@ -131,10 +128,7 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createLegendURL;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createLogoURL;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
-import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.geotoolkit.wms.xml.v130.Capability;
-import org.opengis.feature.Feature;
-import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
@@ -364,37 +358,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             // We ensure that the data envelope is not empty. It can occurs with vector data, on a single point.
-            final double width  = inputGeoBox.getEastBoundLongitude() - inputGeoBox.getWestBoundLongitude();
-            final double height = inputGeoBox.getNorthBoundLatitude() - inputGeoBox.getSouthBoundLatitude();
-            if (width == 0 && height == 0) {
-                final double diffWidth = Math.nextUp(inputGeoBox.getEastBoundLongitude()) - inputGeoBox.getEastBoundLongitude();
-                final double diffHeight = Math.nextUp(inputGeoBox.getNorthBoundLatitude()) - inputGeoBox.getNorthBoundLatitude();
-                inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude() - diffWidth,
-                                                    inputGeoBox.getSouthBoundLatitude() - diffHeight,
-                                                    Math.nextUp(inputGeoBox.getEastBoundLongitude()),
-                                                    Math.nextUp(inputGeoBox.getNorthBoundLatitude()));
-            }
-            if (width == 0) {
-                final double diffWidth = Math.nextUp(inputGeoBox.getEastBoundLongitude()) - inputGeoBox.getEastBoundLongitude();
-                inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude() - diffWidth, inputGeoBox.getSouthBoundLatitude(),
-                        Math.nextUp(inputGeoBox.getEastBoundLongitude()), inputGeoBox.getNorthBoundLatitude());
-            }
-            if (height == 0) {
-                final double diffHeight = Math.nextUp(inputGeoBox.getNorthBoundLatitude()) - inputGeoBox.getNorthBoundLatitude();
-                inputGeoBox = new LatLonBoundingBox(inputGeoBox.getWestBoundLongitude(), inputGeoBox.getSouthBoundLatitude() - diffHeight,
-                        inputGeoBox.getEastBoundLongitude(), Math.nextUp(inputGeoBox.getNorthBoundLatitude()));
-            }
-            // fix for overlapping box
-            if (inputGeoBox.getWestBoundLongitude() > inputGeoBox.getEastBoundLongitude()) {
-                inputGeoBox = new LatLonBoundingBox(-180, inputGeoBox.getSouthBoundLatitude(),
-                                                     180, inputGeoBox.getNorthBoundLatitude());
-            }
+            inputGeoBox = notEmptyBBOX(inputGeoBox);
 
             // List of elevations, times and dim_range values.
             final List<AbstractDimension> dimensions = new ArrayList<>();
 
             /*
-             * Dimension: the available date
+             * Dimension: the available dates
              */
             try {
                 final SortedSet<Date> dates = layer.getAvailableTimes();
@@ -413,7 +383,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             /*
-             * Dimension: the available elevation
+             * Dimension: the available elevations
              */
             try {
                final SortedSet<Number> elevations = layer.getAvailableElevations();
@@ -437,7 +407,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
            }
 
             /*
-             * Dimension: the dimension range
+             * Dimension: the dimension range.
+             * TODO: why this block ignore the dimension after the first?
              */
             try {
                final SortedSet<DimensionRange> ranges = layer.getSampleValueRanges();
@@ -445,7 +416,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 * parameter. Otherwise it can be a multiple sample dimensions layer, and we
                 * don't apply the dim_range.
                 */
-               if (ranges != null && ranges.size() == 1 && ranges.first() != null) {
+               if (ranges.size() == 1 && ranges.first() != null) {
                    final DimensionRange firstRange = ranges.first();
                    final double minRange = firstRange.getMin();
                    final double maxRange = firstRange.getMax();
@@ -455,32 +426,23 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                    AbstractDimension dim = createDimension(queryVersion, minRange + "," + maxRange, "dim_range", unit, unitSymbol, defaut, null, null, null);
                    dimensions.add(dim);
                }
-           } catch (ConstellationStoreException ex) {
+            } catch (ConstellationStoreException ex) {
                LOGGER.log(Level.WARNING, "Error retrieving range values for the layer :" + layer.getName(), ex);
-           }
-            //-- execute only if it is a CoverageData
-            Double nativeResolutionX = null;
-            Double nativeResolutionY = null;
-            if (data instanceof CoverageData covdata) {
-                try {
-                    for (org.constellation.dto.Dimension d : covdata.getSpecialDimensions()) {
-                        dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(),
-                                d.getUnitSymbol(), d.getDefault(), null, null, null));
-                    }
+            }
 
-                    double[] nativeResolution = covdata.getGeometry().getResolution(true);
-                    nativeResolutionX = nativeResolution[0];
-                    nativeResolutionY = nativeResolution[1];
-                } catch (Exception ex) {
-                    LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-                }
+            // get resolution
+            Double[] nativeResolution = new Double[2];
+            try {
+                nativeResolution = layer.getResolution();
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
 
             // Verify extra dimensions
             try {
                 dimensions.addAll(getExtraDimensions(layer, queryVersion));
-            } catch (DataStoreException ex) {
-                LOGGER.log(Level.INFO, ex.getMessage(), ex);
+            } catch (ConstellationStoreException ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 break;
             }
 
@@ -525,7 +487,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                             rightHanded.getMinimum(0),
                             rightHanded.getMinimum(1),
                             rightHanded.getMaximum(0),
-                            rightHanded.getMaximum(1), nativeResolutionX, nativeResolutionY);
+                            rightHanded.getMaximum(1), nativeResolution[0], nativeResolution[1]);
                     } catch (TransformException ex) {
                         LOGGER.log(Level.INFO, "Error retrieving data crs for the layer :" + layer.getName(), ex);
                     }
@@ -549,7 +511,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         nativeEnv.getMinimum(0),
                         nativeEnv.getMinimum(1),
                         nativeEnv.getMaximum(0),
-                        nativeEnv.getMaximum(1), nativeResolutionX, nativeResolutionY);
+                        nativeEnv.getMaximum(1), nativeResolution[0], nativeResolution[1]);
                 }
 
             }
@@ -579,10 +541,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
 
             final AbstractGeographicBoundingBox bbox = createGeographicBoundingBox(queryVersion, inputGeoBox);
-            final AbstractLayer outputLayerO = createLayer(queryVersion, layerName,
-                    _abstract, keyword,
-                    supportedCrs, bbox, outputBBox, queryable, dimensions, styles);
-            if (nativeBBox!=null && !nativeBBox.getCRSCode().equals(outputBBox.getCRSCode())) {
+            final AbstractLayer outputLayerO = createLayer(queryVersion, layerName, _abstract, keyword, supportedCrs, bbox, outputBBox, queryable, dimensions, styles);
+            if (nativeBBox != null && !nativeBBox.getCRSCode().equals(outputBBox.getCRSCode())) {
                 ((List) outputLayerO.getBoundingBox()).add(0, nativeBBox);
             }
 
@@ -628,92 +588,54 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         return inCapabilities;
     }
 
-    private String printValues(Set<Range> refs) {
-        boolean isAllDouble = true;
-        List<Double> doubleValues = new ArrayList<>();
-        List<String> stringValues = new ArrayList<>();
-        for (Range r : refs) {
-            try {
-                if (isAllDouble && r.getMinValue().compareTo(r.getMaxValue()) != 0) {
-                    stringValues.add(r.getMinValue().toString());
-                    doubleValues.add(Double.parseDouble(r.getMinValue().toString()));
-                } else {
-                    isAllDouble = false;
-                    stringValues.add(r.getMinValue().toString() + "-" + r.getMaxValue().toString());
-                }
-            } catch (NumberFormatException ex) {
-                isAllDouble = false;
-                break;
-            }
-        }
-        
-
-        if (isAllDouble) {
-            Collections.sort(doubleValues);
-            stringValues.clear();
-            for (Double d : doubleValues) {
-                stringValues.add(String.valueOf(d));
-            }
-        } else {
-            Collections.sort(stringValues);
-        }
-
-        final StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (String val : stringValues) {
-            if (!first) {
-                sb.append(",");
-            }
-            sb.append(val);
-            first = false;
-        }
-        return sb.toString();
-    }
-
     /**
-     * Get extra dimensions from a {@link MapLayer} containing a {@link FeatureSet}.
+     * Get extra dimensions from a layer.
      *
-     * @param fml {@link MapLayer}
+     * @param layer A layer.
      * @param queryVersion Version of the request.
      * @return A list of extra dimensions, never {@code null}
      * @throws DataStoreException
      */
-    private List<AbstractDimension> getExtraDimensions(final LayerCache layer, final String queryVersion) throws DataStoreException {
+    private List<AbstractDimension> getExtraDimensions(final LayerCache layer, final String queryVersion) throws ConstellationStoreException {
         // TODO handle the mapcontxt data case where we should merge the dimensions values
-
-        if (!(layer.getData() instanceof FeatureData)) return new ArrayList<>();
-
         final List<AbstractDimension> dimensions = new ArrayList<>();
-        if (layer.hasFilterAndDimension()) {
-            final FeatureSet fs = (FeatureSet) layer.getData().getOrigin();
-            final List<DimensionDef> dims = layer.getDimensiondefinition();
-            for (DimensionDef ddef : dims) {
-                final Collection<Range> collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
+        if (layer.getData() instanceof CoverageData covData) {
+            for (org.constellation.dto.Dimension d : covData.getSpecialDimensions()) {
+                dimensions.add(createDimension(queryVersion, d.getValue(), d.getName(), d.getUnits(), d.getUnitSymbol(), d.getDefault(), null, null, null));
+            }
+        } else if (layer.getData() instanceof FeatureData fdata) {
 
-                // Transform it to a set in order to filter same values
-                final Set<Range> refs = new HashSet<>();
-                for (Range ref : collRefs) {
-                    refs.add(ref);
+            if (layer.hasFilterAndDimension()) {
+                final FeatureSet fs = fdata.getOrigin();
+                final List<DimensionDef> dims = layer.getDimensiondefinition();
+                for (DimensionDef ddef : dims) {
+                    final Collection<Range> collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
+
+                    // Transform it to a set in order to filter same values
+                    final Set<Range> refs = new HashSet<>();
+                    for (Range ref : collRefs) {
+                        refs.add(ref);
+                    }
+
+                    if (refs.isEmpty()) {
+                        // Dimension applied on a layer which has no values: just skip this dimension
+                        continue;
+                    }
+
+                    final String sortedValues = printValues(refs);
+                    final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
+                    final String unit = unitSymbol;
+                    final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
+                    final String defaut = "";
+
+                    final AbstractDimension adim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
+                        new org.geotoolkit.wms.xml.v111.Dimension(sortedValues, axisName, unit,
+                            unitSymbol, defaut, null, null, null) :
+                        new org.geotoolkit.wms.xml.v130.Dimension(sortedValues, axisName, unit,
+                            unitSymbol, defaut, null, null, null);
+
+                    dimensions.add(adim);
                 }
-
-                if (refs.isEmpty()) {
-                    // Dimension applied on a layer which has no values: just skip this dimension
-                    continue;
-                }
-
-                final String sortedValues = printValues(refs);
-                final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
-                final String unit = unitSymbol;
-                final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
-                final String defaut = "";
-
-                final AbstractDimension adim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
-                    new org.geotoolkit.wms.xml.v111.Dimension(sortedValues, axisName, unit,
-                        unitSymbol, defaut, null, null, null) :
-                    new org.geotoolkit.wms.xml.v130.Dimension(sortedValues, axisName, unit,
-                        unitSymbol, defaut, null, null, null);
-
-                dimensions.add(adim);
             }
         }
         return dimensions;
@@ -1048,7 +970,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     ms = getStyle(styleRef);
                 }
             }
-            image = WMSUtilities.getLegendGraphic(data.getMapLayer(ms), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+            image = getLegendGraphicImg(data.getMapLayer(ms), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
         } catch (PortrayalException | ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1435,33 +1357,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             i++;
         }
         return results;
-    }
-
-    /**
-     * Get all values of given extra dimension.
-     * @return collection never null, can be empty.
-     */
-    private static Collection<Range> getDimensionRange(FeatureSet fs, Expression lower, Expression upper) throws DataStoreException {
-
-        final Set<String> properties = new HashSet<>();
-        ListingPropertyVisitor.VISITOR.visit(lower, properties);
-        ListingPropertyVisitor.VISITOR.visit(upper, properties);
-
-        final FeatureQuery qb = new FeatureQuery();
-        qb.setProjection(properties.toArray(String[]::new));
-        final FeatureSet col = fs.subset(qb);
-
-        try (Stream<Feature> stream = col.features(false)) {
-            return stream
-                    .map(f -> {
-                        return new Range(
-                                Comparable.class,
-                                (Comparable) lower.apply(f), true,
-                                (Comparable) upper.apply(f), true
-                        );
-                    })
-                    .collect(Collectors.toList());
-        }
     }
 
     /**

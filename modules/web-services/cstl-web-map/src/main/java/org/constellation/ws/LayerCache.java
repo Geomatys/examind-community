@@ -56,6 +56,8 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.map.util.DimensionDef;
 import org.constellation.provider.Data;
 import org.constellation.map.util.DtoToOGCFilterTransformer;
+import org.constellation.provider.CoverageData;
+import static org.constellation.ws.AbstractWorker.LOGGER;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import static org.geotoolkit.filter.FilterUtilities.FF;
 import org.opengis.filter.Expression;
@@ -269,7 +271,7 @@ public class LayerCache {
     }
     
     public SortedSet<DimensionRange> getSampleValueRanges() throws ConstellationStoreException {
-        SortedSet<DimensionRange> dims;
+        final SortedSet<DimensionRange> dims;
         if (getDbData().getCachedInfo()) {
             if (getDbData().getHasDim()) {
                 dims = dataBusiness.getDataDimensionRange(nip.dataId);
@@ -280,6 +282,16 @@ public class LayerCache {
             dims = data.getSampleValueRanges();
         }
         return dims;
+    }
+
+    public Double[] getResolution() throws ConstellationStoreException {
+        Double[] results = new Double[2];
+        if (data instanceof CoverageData covdata) {
+            double[] nativeResolution = covdata.getGeometry().getResolution(true);
+            results[0] = nativeResolution[0];
+            results[1] = nativeResolution[1];
+        }
+        return results;
     }
 
     public boolean hasFilterAndDimension() {

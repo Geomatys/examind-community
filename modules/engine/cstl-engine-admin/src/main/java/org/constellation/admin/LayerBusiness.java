@@ -128,6 +128,7 @@ public class LayerBusiness implements ILayerBusiness {
             if(user.isPresent()) {
                 layer.setOwnerId(user.get().getId());
             }
+
             final String configXml = Util.writeConfigurationObject(config);
             layer.setConfig(configXml);
 
