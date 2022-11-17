@@ -788,7 +788,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      fields.add(f);
                  }
             }
-             final Field mainField = getMainField(currentProcedure, c);
+            final Field mainField = getMainField(currentProcedure, c);
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
                 fields.add(0, new Field(0, FieldType.TIME, "time_begin", null, "time", null));
@@ -801,7 +801,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-           applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
+           int offset = applyFilterOnMeasureRequest(profile, profileWithTime, includeIDInDataBlock, mainField, fields);
 
             // calculate step
             final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), mainField, c, width);
@@ -822,7 +822,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 select.append(" ms', \"");
             }
             select.append(mainField.name).append("\") AS step");
-            for (int i = 1; i < fields.size(); i++) {
+            for (int i = offset; i < fields.size(); i++) {
                  select.append(", avg(\"").append(fields.get(i).name).append("\") AS \"").append(fields.get(i).name).append("\"");
             }
             if (profile) {

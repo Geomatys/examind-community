@@ -1270,7 +1270,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 
                 //only for timeseries for now
                 if (timescaleDB && FieldType.TIME.equals(mainField.type)) {
-                    stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + tableName + "', '" + mainField.name + "')");//NOSONAR
+                    stmt.execute("SELECT create_hypertable('\"" + schemaPrefix + "mesures\".\"" + tableName + "\"', '" + mainField.name + "')");//NOSONAR
                 }
             }
 

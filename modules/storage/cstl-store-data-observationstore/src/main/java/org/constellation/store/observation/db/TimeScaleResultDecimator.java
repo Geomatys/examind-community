@@ -49,14 +49,11 @@ public class TimeScaleResultDecimator extends ResultDecimator {
                 Field field = fields.get(i);
                 String fieldName = field.name;
                 
-                 // time for profile field
-                if (i < mainFieldIndex && field.type == FieldType.TIME) {
-                    Date t = dateFromTS(rs.getTimestamp("time_begin"));
-                    values.appendTime(t);
                 // id field
-                } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
+                if (i < mainFieldIndex && field.type == FieldType.TEXT) {
                     values.appendString(sensorId + "-dec-" + cpt);
                     cpt++;
+                    continue;
                 // main field
                 } else if (i == mainFieldIndex) {
                     fieldName = "step";
