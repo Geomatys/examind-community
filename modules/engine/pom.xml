@@ -10,7 +10,6 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.examind.community</groupId>
     <artifactId>engine</artifactId>
     <packaging>pom</packaging>
     <name>Engine</name>
@@ -23,6 +22,7 @@
         <module>cstl-engine-templating</module>
         <module>examind-engine-process-sos</module>
         <module>examind-engine-oauth2</module>
+        <module>examind-engine-heat-map</module>
     </modules>
 
 </project>
