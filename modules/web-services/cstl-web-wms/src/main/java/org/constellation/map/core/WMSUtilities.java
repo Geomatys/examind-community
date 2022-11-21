@@ -235,42 +235,18 @@ public class WMSUtilities {
     }
 
     public static String printValues(Set<Range> refs) {
-        boolean isAllDouble = true;
-        List<Double> doubleValues = new ArrayList<>();
-        List<String> stringValues = new ArrayList<>();
-        for (Range r : refs) {
-            try {
-                if (isAllDouble && r.getMinValue().compareTo(r.getMaxValue()) != 0) {
-                    stringValues.add(r.getMinValue().toString());
-                    doubleValues.add(Double.parseDouble(r.getMinValue().toString()));
-                } else {
-                    isAllDouble = false;
-                    stringValues.add(r.getMinValue().toString() + "-" + r.getMaxValue().toString());
-                }
-            } catch (NumberFormatException ex) {
-                isAllDouble = false;
-                break;
-            }
-        }
-
-
-        if (isAllDouble) {
-            Collections.sort(doubleValues);
-            stringValues.clear();
-            for (Double d : doubleValues) {
-                stringValues.add(String.valueOf(d));
-            }
-        } else {
-            Collections.sort(stringValues);
-        }
-
         final StringBuilder sb = new StringBuilder();
         boolean first = true;
-        for (String val : stringValues) {
+        for (Range r : refs) {
             if (!first) {
                 sb.append(",");
             }
-            sb.append(val);
+            if (r.getMinValue().compareTo(r.getMaxValue()) != 0) {
+                sb.append(r.getMinValue()).append("-").append(r.getMaxValue());
+            } else {
+                sb.append(r.getMinValue());
+            }
+            
             first = false;
         }
         return sb.toString();

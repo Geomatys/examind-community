@@ -57,11 +57,12 @@ import org.constellation.map.util.DimensionDef;
 import org.constellation.provider.Data;
 import org.constellation.map.util.DtoToOGCFilterTransformer;
 import org.constellation.provider.CoverageData;
-import static org.constellation.ws.AbstractWorker.LOGGER;
+import org.constellation.provider.FeatureData;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import static org.geotoolkit.filter.FilterUtilities.FF;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
+import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -282,6 +283,13 @@ public class LayerCache {
             dims = data.getSampleValueRanges();
         }
         return dims;
+    }
+
+    public List<ValueReference> getTimeDimension() {
+        if (data instanceof FeatureData featdata) {
+            return featdata.getTimeDimension();
+        }
+        return new ArrayList<>();
     }
 
     public Double[] getResolution() throws ConstellationStoreException {

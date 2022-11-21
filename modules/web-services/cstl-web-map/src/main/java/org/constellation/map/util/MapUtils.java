@@ -19,6 +19,7 @@
 package org.constellation.map.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,17 +27,19 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.util.ArgumentChecks;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.filter.FilterUtilities;
+import static org.geotoolkit.filter.FilterUtilities.FF;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.opengis.filter.Filter;
+import org.opengis.filter.Literal;
 import org.opengis.filter.SortProperty;
+import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
@@ -156,7 +159,6 @@ public class MapUtils {
         final String key = (String)  param.getKey();
         if (key.startsWith("dim_") || key.startsWith("DIM_")) {
             final String dimName = key.substring(4);
-            final DefaultFilterFactory factory = FilterUtilities.FF;
             Object value = param.getValue();
             // try to parse a double
             try {
@@ -165,7 +167,7 @@ public class MapUtils {
                 // not a number
                 LOGGER.log(Level.FINER, "Received dimension value is not a number", ex);
             }
-            return factory.equal(factory.property(dimName), factory.literal(value));
+            return FF.equal(FF.property(dimName), FF.literal(value));
         }
         return null;
     }
@@ -184,4 +186,105 @@ public class MapUtils {
                 .collect(Collectors.toList());
     }
 
+    public static Filter buildTimeFilter(List<Date> times, List<ValueReference> tDims) {
+        ArgumentChecks.ensureNonNull("times", times);
+        ArgumentChecks.ensureNonNull("tDims", tDims);
+
+        // time instant filter
+        if (times.size() == 1) {
+            Date singleTime = times.get(0);
+
+            //  features with time attribute equals to filter time.
+            if (tDims.size() == 1) {
+                return FF.tequals(tDims.get(0), FF.literal(singleTime));
+
+            // features with period including the filter time.
+            } else if (tDims.size() == 2) {
+                ValueReference st = tDims.get(0);
+                ValueReference en = tDims.get(1);
+                Literal literal = FF.literal(singleTime);
+                Filter start =
+                FF.or(FF.before(st, literal),
+                      FF.tequals(st, literal));
+                Filter end =
+                FF.or(FF.after(en, literal),
+                      FF.tequals(en, literal));
+
+                return FF.and(start, end);
+            }
+
+        // time instant filter
+        } else if (times.size() == 2) {
+            Date startTime = times.get(0);
+            Date endTime   = times.get(1);
+
+            //  features with time attribute included in the filter period.
+            if (tDims.size() == 1) {
+                ValueReference is = tDims.get(0);
+                Filter start =
+                FF.or(FF.after(is,   FF.literal(startTime)),
+                      FF.tequals(is, FF.literal(startTime)));
+
+                Filter end =
+                FF.or(FF.before(is,  FF.literal(endTime)),
+                      FF.tequals(is, FF.literal(endTime)));
+
+                return FF.and(start, end);
+            } else if (tDims.size() == 2) {
+                ValueReference st = tDims.get(0);
+                ValueReference en = tDims.get(1);
+
+                // 1. feature with period included in the filter period
+                Filter start1 =
+                FF.or(FF.after(st,   FF.literal(startTime)),
+                      FF.tequals(st, FF.literal(startTime)));
+                Filter end1 =
+                FF.or(FF.before(en,  FF.literal(endTime)),
+                      FF.tequals(en, FF.literal(endTime)));
+                Filter<? super Object> f1 = FF.and(start1, end1);
+
+                // 2. features which overlaps the start bound of filter period
+                Filter<? super Object> start2_1 =
+                FF.or(FF.before(st, FF.literal(startTime)),
+                      FF.tequals(st, FF.literal(startTime)));
+
+                Filter<? super Object> end2_1 =
+                FF.or(FF.before(en, FF.literal(endTime)),
+                      FF.tequals(en, FF.literal(endTime)));
+
+                Filter<? super Object> end2_12 =
+                FF.or(FF.after(en, FF.literal(startTime)),
+                      FF.tequals(en, FF.literal(startTime)));
+
+                Filter<? super Object> f2 = FF.and(Arrays.asList(start2_1, end2_1, end2_12));
+
+                // 3. features which overlaps the end bound of filter period
+                Filter<? super Object> start3_1 =
+                FF.or(FF.after(st, FF.literal(startTime)),
+                      FF.tequals(st, FF.literal(startTime)));
+
+                Filter<? super Object> end3_1 =
+                FF.or(FF.after(en, FF.literal(endTime)),
+                      FF.tequals(en, FF.literal(endTime)));
+
+                Filter<? super Object> start3_12 =
+                FF.or(FF.before(st, FF.literal(endTime)),
+                      FF.tequals(st, FF.literal(endTime)));
+
+                Filter<? super Object> f3 = FF.and(Arrays.asList(start3_1, end3_1, start3_12));
+
+                // 4. features which overlaps the whole filter period
+                Filter start4 =
+                FF.or(FF.before(st,   FF.literal(startTime)),
+                      FF.tequals(st, FF.literal(startTime)));
+                Filter end4 =
+                FF.or(FF.after(en,  FF.literal(endTime)),
+                      FF.tequals(en, FF.literal(endTime)));
+                Filter<? super Object> f4 = FF.and(start4, end4);
+
+                return FF.or(Arrays.asList(f1, f2, f3, f4));
+            }
+        }
+        return null;
+    }
 }

@@ -1077,7 +1077,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1, layer.getExtent().size());
         Extent extent = layer.getExtent().get(0);
         assertEquals("Ellipsoidal height", extent.getName());
-        assertEquals("1000-1000,1100-1100,1200-1200,1300-1300,700-700,800-800,900-900", extent.getvalue());
+        assertEquals("1200,1000,800,1300,1100,900,700", extent.getvalue());
 
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
@@ -1116,7 +1116,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         org.geotoolkit.wms.xml.v130.Dimension elevation130 = layer130.getDimension().get(0);
 
         assertEquals("Ellipsoidal height", elevation130.getName());
-        assertEquals("1000-1000,1100-1100,1200-1200,1300-1300,700-700,800-800,900-900", elevation130.getValue());
+        assertEquals("1200,1000,800,1300,1100,900,700", elevation130.getValue());
 
         currentUrl = responseCaps130.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 

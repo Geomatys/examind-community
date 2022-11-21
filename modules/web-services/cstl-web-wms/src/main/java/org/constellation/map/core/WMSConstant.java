@@ -58,6 +58,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import org.constellation.api.ServiceDef;
 import org.constellation.ws.MimeType;
 
 /**
@@ -253,6 +254,20 @@ public final class WMSConstant {
         EXCEPTION_130.add(EXCEPTION_130_XML);
         EXCEPTION_130.add(EXCEPTION_130_INIMAGE);
         EXCEPTION_130.add(EXCEPTION_130_BLANK);
+    }
+
+    public static boolean isErrorInImage(String exceptionFormat, String queryVersion) {
+        if (queryVersion.equals(ServiceDef.WMS_1_3_0.version.toString())) {
+           return EXCEPTION_130_INIMAGE.equalsIgnoreCase(exceptionFormat);
+        }
+        return EXCEPTION_111_INIMAGE.equalsIgnoreCase(exceptionFormat);
+    }
+
+    public static boolean isErrorBlank(String exceptionFormat, String queryVersion) {
+        if (queryVersion.equals(ServiceDef.WMS_1_3_0.version.toString())) {
+           return EXCEPTION_130_BLANK.equalsIgnoreCase(exceptionFormat);
+        }
+        return EXCEPTION_111_BLANK.equalsIgnoreCase(exceptionFormat);
     }
 
     /**

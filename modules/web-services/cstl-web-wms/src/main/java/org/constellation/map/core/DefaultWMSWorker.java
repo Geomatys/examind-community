@@ -56,10 +56,6 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_111_INIMAGE;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_BLANK;
-import static org.constellation.map.core.WMSConstant.EXCEPTION_130_INIMAGE;
 import static org.constellation.map.core.WMSConstant.KEY_LAYER;
 import static org.constellation.map.core.WMSConstant.KEY_LAYERS;
 import static org.constellation.map.core.WMSUtilities.*;
@@ -99,6 +95,7 @@ import org.constellation.map.util.MapUtils;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.constellation.map.util.MapUtils.transformJAXBFilter;
 import org.constellation.provider.FeatureData;
+import static org.geotoolkit.filter.FilterUtilities.FF;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -130,6 +127,7 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.filter.Filter;
+import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -430,20 +428,20 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                LOGGER.log(Level.WARNING, "Error retrieving range values for the layer :" + layer.getName(), ex);
             }
 
-            // get resolution
-            Double[] nativeResolution = new Double[2];
-            try {
-                nativeResolution = layer.getResolution();
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-            }
-
             // Verify extra dimensions
             try {
                 dimensions.addAll(getExtraDimensions(layer, queryVersion));
             } catch (ConstellationStoreException ex) {
                 LOGGER.log(Level.WARNING, ex.getMessage(), ex);
                 break;
+            }
+
+            // get resolution
+            Double[] nativeResolution = new Double[2];
+            try {
+                nativeResolution = layer.getResolution();
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
 
             /*
@@ -591,7 +589,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     /**
      * Get extra dimensions from a layer.
      *
-     * @param layer A layer.
+     * @param layer A layer (not {@code null}).
      * @param queryVersion Version of the request.
      * @return A list of extra dimensions, never {@code null}
      * @throws DataStoreException
@@ -816,7 +814,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final Map<String, Object> extraParams = getFI.getParameters();
         
         // Build additional filters
-        List<Filter> extraFilters = extractAdditionalFilters(getFI);
+        List<Filter> extraFilters = extractAdditionalFilters(getFI, layersCache);
 
         final SceneDef sdef = new SceneDef();
 
@@ -1000,15 +998,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     	//
         // TODO support BLANK exception format for WMS1.1.1 and WMS1.3.0
         final String errorType = getMap.getExceptionFormat();
-        final boolean errorInImage;
-        final boolean errorBlank;
-        if (queryVersion.equals(ServiceDef.WMS_1_3_0.version.toString())) {
-            errorInImage = EXCEPTION_130_INIMAGE.equalsIgnoreCase(errorType);
-            errorBlank = EXCEPTION_130_BLANK.equalsIgnoreCase(errorType);
-        } else {
-            errorInImage = EXCEPTION_111_INIMAGE.equalsIgnoreCase(errorType);
-            errorBlank = EXCEPTION_111_BLANK.equalsIgnoreCase(errorType);
-        }
+        final boolean errorInImage = WMSConstant.isErrorInImage(errorType, queryVersion);
+        final boolean errorBlank   = WMSConstant.isErrorBlank(errorType, queryVersion);
 
         // get the List of layer references
         final List<GenericName> layerNames = getMap.getLayers();
@@ -1054,7 +1045,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final Map<String, Object> extraParams = getMap.getParameters();
         
         // Build additional filters
-        List<Filter> extraFilters = extractAdditionalFilters(getMap);
+        List<Filter> extraFilters = extractAdditionalFilters(getMap, layersCache);
 
         final SceneDef sdef = new SceneDef();
         sdef.extensions().add(mapPortrayal.getExtension());
@@ -1136,10 +1127,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return A filter list.
      * @throws CstlServiceException If an error occurs in filter parsing.
      */
-    private List<Filter> extractAdditionalFilters(GetMap getMap) throws CstlServiceException {
+    private List<Filter> extractAdditionalFilters(GetMap getMap, List<LayerCache> layersCache) throws CstlServiceException {
         // Build additional filters
         List<Filter> extraFilters = new ArrayList<>();
 
+        // extra dimension filters
         Map<String, Object> extraParams = getMap.getParameters();
         extraFilters.addAll(MapUtils.resolveExtraFilters(extraParams));
 
@@ -1158,6 +1150,15 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             } catch (CQLException e) {
                 throw new CstlServiceException("Error while parsing CQL filter", e);
             }
+        }
+
+        // add time filters
+        // TODO aggragate filters
+        for (LayerCache layer: layersCache) {
+            List<ValueReference> tDims = layer.getTimeDimension();
+            List<Date> times = getMap.getTime();
+            Filter tFilter = MapUtils.buildTimeFilter(times, tDims);
+            extraFilters.add(tFilter);
         }
         return extraFilters;
     }
