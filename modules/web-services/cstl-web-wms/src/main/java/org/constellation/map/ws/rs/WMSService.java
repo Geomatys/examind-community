@@ -570,7 +570,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         }
         final ArrayList<Date> dates = new ArrayList<>();
         try {
-            TimeParser.parse(strTime, 0l, dates);
+            TimeParser.parse(strTime, 0l, dates, true);
         } catch (ParseException ex) {
             throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE, KEY_TIME.toLowerCase());
         }
