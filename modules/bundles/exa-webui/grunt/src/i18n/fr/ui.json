@@ -976,6 +976,8 @@
   "layer.listing.selected.edit.layer.name": "Titre de la couche",
   "layer.listing.selected.edit.layer.alias": "Alias de la couche",
   "layer.listing.selected.edit.layer.alias.inuse": "Alias de la couche déja utilisé",
+  "layer.listing.selected.edit.layer.alias.missing": "Alias de la couche manquant",
+  "layer.listing.selected.edit.layer.alias.invalid": "L'alias contient un caractère interdit",
   "layer.listing.title": "Liste des couches",
   "layer.listing.modal.dataviewer": "Visualisation de la donnée",
   "login.form.button": "Connexion",

@@ -514,11 +514,11 @@ public class DataBusiness implements IDataBusiness {
             }
         }
 
-       String title = data.getName();
+       String title = data.getNamespace() != null ? data.getNamespace() + ':' + data.getName() : data.getName();
        Integer dsid = data.getDatasetId();
-       if(dsid != null && dsid >= 0) {
+       if (dsid != null && dsid >= 0) {
            String datasetId = datasetRepository.findById(dsid).getIdentifier();
-            title = datasetId + " / " + data.getName();
+           title = datasetId + " / " + title;
        }
        final int providerId = data.getProviderId();
        final String providerName = getProviderIdentifier(providerId);

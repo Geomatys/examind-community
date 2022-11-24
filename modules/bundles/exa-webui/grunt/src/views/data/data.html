@@ -315,7 +315,7 @@
                                              ng-if="dc.selection.data && dc.selection.data.length === 1"
                                              ng-class="{'block-vector': dc.selection.data[0].type === 'VECTOR', 'block-raster': dc.selection.data[0].type === 'COVERAGE'}">
                                             <h6 translate="label.title">Title</h6>
-                                            <span style="word-wrap: break-word;">{{dc.selection.data[0].name}}</span>
+                                            <span style="word-wrap: break-word;">{{dc.selection.data[0].namespace ? (dc.selection.data[0].namespace + ':' + dc.selection.data[0].name) : dc.selection.data[0].name}}</span>
                                             <div class="row description-block">
                                                 <div class="col-sm-3 col-md-2">
                                                     <img src="img/block-content-date.svg" alt=""/>

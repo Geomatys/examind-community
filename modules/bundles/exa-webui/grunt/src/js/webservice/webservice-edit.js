@@ -817,20 +817,27 @@ angular.module('cstl-webservice-edit', [
         };
         
         $scope.checkAlias = function () {
+            $scope.errors.nameEmpty   = false;
+            $scope.errors.nameInuse   = false;
+            $scope.errors.nameInvalid = false;
+            
             if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
-                $scope.errors.nameErr = true;
+                $scope.errors.nameEmpty = true;
+                return false;
+            }
+            if ($scope.layerForm.alias.includes(':')) {
+                $scope.errors.nameInvalid = true;
                 return false;
             }
             if ($scope.layerForm.alias === $scope.selectedLayer.alias) {
-                $scope.errors.nameErr = false;
                 return true;
             }
             Examind.map.isAvailableAlias($scope.serviceId, $scope.layerForm.alias)
                 .then(function (response) {
-                    $scope.errors.nameErr = response.data === "false";
+                    $scope.errors.nameInuse = response.data === "false";
                     return response.data === "true";
                 }, function (reason) {
-                    $scope.errors.nameErr = true;
+                    $scope.errors.nameInuse = true;
                     return false;
                 });
         };
@@ -857,16 +864,24 @@ angular.module('cstl-webservice-edit', [
         };
         
         $scope.checkAlias = function () {
+            $scope.errors.nameEmpty   = false;
+            $scope.errors.nameInuse   = false;
+            $scope.errors.nameInvalid = false;
+                
             if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
-                $scope.errors.nameErr = true;
+                $scope.errors.nameEmpty = true;
+                return false;
+            }
+            if ($scope.layerForm.alias.includes(':')) {
+                $scope.errors.nameInvalid = true;
                 return false;
             }
             Examind.map.isAvailableAlias($scope.layer.service, $scope.layerForm.alias)
                 .then(function (response) {
-                    $scope.errors.nameErr = response.data === "false";
+                    $scope.errors.nameInuse = response.data === "false";
                     return response.data === "true";
                 }, function (reason) {
-                    $scope.errors.nameErr = true;
+                    $scope.errors.nameInuse = true;
                     return false;
                 });
         };
@@ -1296,7 +1311,7 @@ angular.module('cstl-webservice-edit', [
                     var layer = {
                         name: value.name,
                         namespace: value.namespace,
-                        alias: value.name,
+                        alias: value.namespace ? value.namespace + '-' + value.name : value.name,
                         service: $scope.service.id,
                         dataId: value.id,
                         date: null,

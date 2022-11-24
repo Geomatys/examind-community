@@ -25,7 +25,7 @@
          ng-mouseleave="$ctrl.hover = null"
          ng-class="{'selected': $ctrl.isSelectedData(data), 'hover' : $ctrl.hover === data}">
         <div class="top">
-            <span class="item-title" title="{{data.name}}" ng-bind="data.name"></span>
+            <span class="item-title" title="{{data.name}}" ng-bind="data.namespace ? (data.namespace + ':' + data.name) : data.name"></span>
             <span class="text-right item-list-style" ng-bind="data.type"></span>
             <span class="coverage-type-nd item-list-style"
                   ng-if="data.type === 'COVERAGE' && data.subtype=='multiDimensions'"

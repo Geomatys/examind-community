@@ -328,7 +328,7 @@
                                                     class="btn btn-small btn-block-assos btn-block-assos-data">
                                                 <i class="glyphicon glyphicon-pencil"></i>
                                             </button>
-                                            {{data.name}}
+                                            {{data.namespace ? (data.namespace + ':' + data.name) : data.name}}
                                         </div>
                                     </div>
                                 </div>

@@ -1,5 +1,5 @@
 <select id="{{replaceStr(parameter.id)}}" class="form-control" ng-if="!parameter.isArray" ng-required="parameter.mandatory"
-        ng-model="parameter.save[$index]" ng-options="d.name for d in ec.datas  track by d.id">
+        ng-model="parameter.save[$index]" ng-options="(d.namespace ? d.namespace + ':' + d.name : d.name) for d in ec.datas  track by d.id">
 </select>
 <picklist ng-if="parameter.isArray" label-field="name"
           left-label="'tasks.edit.picklist.selected'|translate" left-model="parameter.save[$index]"
