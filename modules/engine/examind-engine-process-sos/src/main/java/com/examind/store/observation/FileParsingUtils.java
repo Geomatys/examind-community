@@ -72,6 +72,26 @@ public class FileParsingUtils {
         return result;
     }
 
+     public static String getMultiOrFixedValue(String[] line, String fixedValue, List<Integer> columnsIndexes) {
+        String result = "";
+        if (fixedValue != null && !fixedValue.isEmpty()) {
+            // Use fixed value
+            result = fixedValue;
+        } else {
+            // Concatenate result from input code columns
+            boolean first = true;
+            for (Integer columnIndex : columnsIndexes) {
+                if (!first) {
+                    result += "-";
+                } else {
+                    first = false;
+                }
+                result += line[columnIndex];
+            }
+        }
+        return result;
+    }
+
     /**
      * Verify if the line is empty, meaning no measure field is filled.
      * 

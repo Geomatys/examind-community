@@ -367,40 +367,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     protected ObservedProperty parseObservedProperty(String[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
-        String observedProperty = "";
-        if (obsPropId != null && !obsPropId.isEmpty()) {
-            // Use fixed value
-            observedProperty = obsPropId;
-        } else {
-            // Concatenate observedProperty from input code columns
-            boolean first = true;
-            for (Integer codeColumnIndex : obsPropColumnIndexes) {
-                if (!first) {
-                    observedProperty += "-";
-                }
-                observedProperty += line[codeColumnIndex];
-                first = false;
-            }
-        }
-
-        String observedPropertyName = "";
-        if (obsPropName != null && !obsPropName.isEmpty()) {
-            // Use fixed value
-            observedProperty = obsPropName;
-        } else {
-            // Concatenate observedProperty name
-            boolean first = true;
-            for (Integer index : obsPropNameColumnIndexes) {
-                if (!first) {
-                    observedPropertyName += "-";
-                }
-                observedPropertyName += line[index];
-                first = false;
-            }
-        }
-
-        String observedPropertyUOM = getColumnValue(uomColumnIndex, line, null);
-
+        String observedProperty     = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+        String observedPropertyName = getMultiOrFixedValue(line, obsPropName, obsPropNameColumnIndexes);
+        String observedPropertyUOM  = getColumnValue(uomColumnIndex, line, null);
         return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
     }
 
@@ -466,22 +435,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     currentProc = getProcedureID();
                 }
 
-                String observedProperty = "";
-                if (obsPropId != null && !obsPropId.isEmpty()) {
-                    // Use fixed value
-                    observedProperty = obsPropId;
-                } else {
-                    // Concatenate observedProperty from input code columns
-                    boolean first = true;
-                    for (Integer codeColumnIndex : obsPropColumnIndexes) {
-                        if (!first) {
-                            observedProperty += "-";
-                        }
-                        observedProperty += line[codeColumnIndex];
-                        first = false;
-                    }
-                }
-
+                final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+                
                 // checks if row matches the observed properties wanted
                 if (!measureColumns.contains(observedProperty)) {
                     continue;

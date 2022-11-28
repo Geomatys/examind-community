@@ -24,11 +24,11 @@ package com.examind.store.observation;
  */
 public class ObservedProperty {
 
-    public String id;
+    public final String id;
 
-    public String name;
+    public final String name;
 
-    public String uom;
+    public final String uom;
 
     public ObservedProperty(String id, String name, String uom) {
         this.id = id;
