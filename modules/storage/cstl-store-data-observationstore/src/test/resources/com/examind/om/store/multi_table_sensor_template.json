@@ -1,0 +1,173 @@
+{
+    "id": "obs-multi_table_sensor",
+    "name": "urn:ogc:object:observation:template:GEOM:multi_table_sensor",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor"
+    },
+    "samplingTime": {
+        "id": "time-multi_table_sensor",
+        "beginning": {
+            "id": "95e93505-4e32-4e7e-b369-ff03171d2a89-time",
+            "date": "2000-01-01T01:00:00.0Z"
+        },
+        "ending": {
+            "id": "c7b7d7dc-d4bb-4d43-95cf-852725ef5e1d-time",
+            "date": "2000-01-01T02:00:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "mega-phen",
+        "name": "mega-phen",
+        "definition": "mega-phen",
+        "component": [{
+                "id": "f1",
+                "name": "f1",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f1"
+            }, {
+                "id": "f2",
+                "name": "f2",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f2"
+            }, {
+                "id": "f3",
+                "name": "f3",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f3"
+            }, {
+                "id": "f4",
+                "name": "f4",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f4"
+            }, {
+                "id": "f5",
+                "name": "f5",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f5"
+            }, {
+                "id": "f6",
+                "name": "f6",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f6"
+            }, {
+                "id": "f7",
+                "name": "f7",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f7"
+            }, {
+                "id": "f8",
+                "name": "f8",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f8"
+            }, {
+                "id": "f9",
+                "name": "f9",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f9"
+            }, {
+                "id": "f10",
+                "name": "f10",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f10"
+            }, {
+                "id": "f11",
+                "name": "f11",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f11"
+            }, {
+                "id": "f12",
+                "name": "f12",
+                "definition": "urn:ogc:def:phenomenon:GEOM:f12"
+            }],
+        "dimension": 12
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "f1",
+                "description": "urn:ogc:def:phenomenon:GEOM:f1",
+                "uom": "m"
+            }, {
+                "index": 3,
+                "type": "QUANTITY",
+                "name": "f2",
+                "description": "urn:ogc:def:phenomenon:GEOM:f2",
+                "uom": "m"
+            }, {
+                "index": 4,
+                "type": "QUANTITY",
+                "name": "f3",
+                "description": "urn:ogc:def:phenomenon:GEOM:f3",
+                "uom": "m"
+            }, {
+                "index": 5,
+                "type": "QUANTITY",
+                "name": "f4",
+                "description": "urn:ogc:def:phenomenon:GEOM:f4",
+                "uom": "m"
+            }, {
+                "index": 6,
+                "type": "QUANTITY",
+                "name": "f5",
+                "description": "urn:ogc:def:phenomenon:GEOM:f5",
+                "uom": "m"
+            }, {
+                "index": 7,
+                "type": "QUANTITY",
+                "name": "f6",
+                "description": "urn:ogc:def:phenomenon:GEOM:f6",
+                "uom": "m"
+            }, {
+                "index": 8,
+                "type": "QUANTITY",
+                "name": "f7",
+                "description": "urn:ogc:def:phenomenon:GEOM:f7",
+                "uom": "m"
+            }, {
+                "index": 9,
+                "type": "QUANTITY",
+                "name": "f8",
+                "description": "urn:ogc:def:phenomenon:GEOM:f8",
+                "uom": "m"
+            }, {
+                "index": 10,
+                "type": "QUANTITY",
+                "name": "f9",
+                "description": "urn:ogc:def:phenomenon:GEOM:f9",
+                "uom": "m"
+            }, {
+                "index": 11,
+                "type": "QUANTITY",
+                "name": "f10",
+                "description": "urn:ogc:def:phenomenon:GEOM:f10",
+                "uom": "m"
+            }, {
+                "index": 12,
+                "type": "QUANTITY",
+                "name": "f11",
+                "description": "urn:ogc:def:phenomenon:GEOM:f11",
+                "uom": "m"
+            }, {
+                "index": 13,
+                "type": "QUANTITY",
+                "name": "f12",
+                "description": "urn:ogc:def:phenomenon:GEOM:f12",
+                "uom": "m"
+            }],
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

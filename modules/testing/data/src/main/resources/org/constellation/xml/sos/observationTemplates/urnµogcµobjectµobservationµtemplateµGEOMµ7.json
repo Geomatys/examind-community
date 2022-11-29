@@ -1,0 +1,48 @@
+{
+    "id": "obs-7",
+    "name": "urn:ogc:object:observation:template:GEOM:7",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:7"
+    },
+    "featureOfInterest": {
+        "id": "station-002",
+        "name": "10972X0137-PLOUF",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:4326",
+            "geometry": "POINT (5 10)"
+        }
+    },
+    "observedProperty": {
+        "id": "temperature",
+        "name": "temperature",
+        "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+        "description": "the temperature in celcius degree"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "temperature",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "uom": "°C"
+            }],
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

@@ -18,59 +18,22 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.constellation.util.FilterSQLRequest;
-import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
-import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
-import org.geotoolkit.gml.JTStoGeometry;
-import org.geotoolkit.gml.xml.Envelope;
-import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingCurve;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingFeature;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingPoint;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSamplingPolygon;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
-import org.geotoolkit.swe.xml.AbstractDataComponent;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.geotoolkit.swe.xml.DataComponentProperty;
 import org.geotoolkit.swe.xml.DataRecord;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.swe.xml.SimpleDataRecord;
 import org.geotoolkit.swe.xml.TextBlock;
-import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.observation.Measure;
-import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
-import org.opengis.util.FactoryException;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -149,132 +112,9 @@ public class OM2Utils {
         return value;
     }
 
-    public static String getPhenomenonId(final PhenomenonProperty phenomenonP) {
-        if (phenomenonP.getHref() != null) {
-            return phenomenonP.getHref();
-        }
-        if (phenomenonP.getPhenomenon() != null) {
-            org.geotoolkit.swe.xml.Phenomenon phen = phenomenonP.getPhenomenon();
-            String id = phen.getId();
-            if (id != null) {
-                return id;
-            }
-            if (phen.getName() != null) {
-                return phen.getName().getCode();
-            }
-        }
-        return null;
-    }
-
-    public static byte[] getGeometryBytes(Geometry pt) throws DataStoreException {
-        try {
-            final WKBWriter writer = new WKBWriter();
-            GeometryCSTransformer ts = new GeometryCSTransformer(new AbstractGeometryTransformer() {
-                @Override
-                public CoordinateSequence transform(CoordinateSequence cs, int i) throws TransformException {
-                    for (int j = 0; j < cs.size(); j++) {
-                        double x = cs.getX(j);
-                        double y = cs.getY(j);
-                        cs.setOrdinate(j, 0, y);
-                        cs.setOrdinate(j, 1, x);
-                    }
-                    return cs;
-                }
-            });
-
-            int srid = pt.getSRID();
-            if (srid == 0) {
-                srid = 4326;
-            }
-            if (srid == 4326) {
-                pt = ts.transform(pt);
-            }
-            return writer.write(pt);
-        } catch (TransformException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    public static List<Field> getFieldList(AbstractDataRecord abstractRecord) throws SQLException {
-        final List<Field> fields = new ArrayList<>();
-        final Collection recordField;
-        if (abstractRecord instanceof DataRecord record) {
-            recordField =  record.getField();
-        } else if (abstractRecord instanceof SimpleDataRecord record) {
-            recordField =  record.getField();
-        } else {
-            throw new IllegalArgumentException("Unexpected record type: " + abstractRecord);
-        }
-
-        int i = 1;
-        for (Object field : recordField) {
-            String name;
-            AbstractDataComponent value;
-            if (field instanceof AnyScalar scal) {
-                name  = scal.getName();
-                value = scal.getValue();
-            } else if (field instanceof DataComponentProperty compo) {
-                name  = compo.getName();
-                value = compo.getValue();
-            } else if (field != null) {
-                throw new SQLException("Unexpected field type:" + field.getClass());
-            } else {
-                throw new SQLException("Unexpected null field");
-            }
-            fields.add(new Field(i, name, null, value));
-            i++;
-        }
-        return fields;
-    }
-
-    public static DataArrayProperty buildComplexResult(final String version, final Collection<AnyScalar> fields, final int nbValue,
-            final TextBlock encoding, final ResultBuilder values, final int cpt) {
-        final String arrayID     = "dataArray-" + cpt;
-        final String recordID    = "datarecord-" + cpt;
-        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, new ArrayList<>(fields));
-        String stringValues = null;
-        List<Object> dataValues = null;
-        if (values != null) {
-            stringValues = values.getStringValues();
-            dataValues   = values.getDataArray();
-        }
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, stringValues, dataValues);
-    }
-
-    public static TemporalGeometricPrimitive buildTime(String version, String timeID, Date startTime, Date endTime) {
-        if (startTime == null && endTime == null) return null;
-        else if (startTime == null)               return buildTimeInstant(version, timeID, endTime);
-        else if (endTime == null)                 return buildTimeInstant(version, timeID, startTime);
-        else if (startTime.equals(endTime))       return buildTimeInstant(version, timeID, startTime);
-        else                                      return buildTimePeriod(version, timeID, startTime, endTime);
-    }
-
-    public static SamplingFeature buildFoi(final String version, final String id, final String name, final String description, final String sampledFeature,
-            final Geometry geom, final CoordinateReferenceSystem crs) throws FactoryException {
-
-        final String gmlVersion = getGMLVersion(version);
-        // sampled feature is mandatory (even if its null, we build a property)
-        final FeatureProperty prop = buildFeatureProperty(version, sampledFeature);
-        if (geom instanceof Point pt) {
-            final org.geotoolkit.gml.xml.Point point = JTStoGeometry.toGML(gmlVersion, pt, crs);
-            // little hack fo unit test
-            //point.setSrsName(null);
-            point.setId("pt-" + id);
-            return buildSamplingPoint(version, id, name, description, prop, point);
-        } else if (geom instanceof LineString ls) {
-            final org.geotoolkit.gml.xml.LineString line = JTStoGeometry.toGML(gmlVersion, ls, crs);
-            line.emptySrsNameOnChild();
-            line.setId("line-" + id);
-            final Envelope bound = line.getBounds();
-            return buildSamplingCurve(version, id, name, description, prop, line, null, null, bound);
-        } else if (geom instanceof Polygon p) {
-            final org.geotoolkit.gml.xml.Polygon poly = JTStoGeometry.toGML(gmlVersion, p, crs);
-            poly.setId("polygon-" + id);
-            return buildSamplingPolygon(version, id, name, description, prop, poly, null, null, null);
-        } else if (geom != null) {
-            LOGGER.log(Level.WARNING, "Unexpected geometry type:{0}", geom.getClass());
-        }
-        return buildSamplingFeature(version, id, name, description, prop);
+    public static byte[] getGeometryBytes(Geometry pt) {
+        final WKBWriter writer = new WKBWriter();
+        return writer.write(pt);
     }
 
     public static List<DbField> flatFields(List<DbField> fields) {
@@ -290,17 +130,5 @@ public class OM2Utils {
             }
         }
         return results;
-    }
-
-    public static String getOmTypeFromField(FieldType fType) {
-        if (fType == FieldType.QUANTITY) {
-            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
-        } else if (fType == FieldType.BOOLEAN) {
-            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation";
-        } else if (fType == FieldType.TIME) {
-            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation";
-        } else {
-            return "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
-        }
     }
 }

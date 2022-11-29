@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<swe:Phenomenon gml:id="salinity" xmlns:swe="http://www.opengis.net/swe/1.0.1" xmlns:gml="http://www.opengis.net/gml">
-    <gml:description>the salinity in water</gml:description>
-    <gml:name>urn:ogc:def:phenomenon:GEOM:salinity</gml:name>
-</swe:Phenomenon>

@@ -37,7 +37,7 @@ import static org.constellation.store.observation.db.OM2Utils.flatFields;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.swe.xml.TextBlock;
+import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.temporal.object.ISODateParser;
 
 /**
@@ -48,7 +48,7 @@ public class OM2MeasureSQLInserter {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
-    private final TextBlock encoding;
+    private final TextEncoderProperties encoding;
     private final String baseTableName;
     private final String schemaPrefix;
     private final boolean isPostgres;
@@ -59,7 +59,7 @@ public class OM2MeasureSQLInserter {
     // calculated fields
     private final Map<Integer, String> insertRequests;
 
-    public OM2MeasureSQLInserter(final TextBlock encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<DbField> fields) throws DataStoreException {
+    public OM2MeasureSQLInserter(final TextEncoderProperties encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<DbField> fields) throws DataStoreException {
         this.encoding = encoding;
         this.baseTableName = "mesure" + pid;
         this.schemaPrefix = schemaPrefix;

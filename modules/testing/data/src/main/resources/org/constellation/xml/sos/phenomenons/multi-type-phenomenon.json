@@ -1,0 +1,17 @@
+{
+    "id": "multi-type-phenomenon",
+    "name": "urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon",
+    "component": [{
+            "id": "isHot",
+            "name": "urn:ogc:def:phenomenon:GEOM:isHot"
+        }, {
+            "id": "color",
+            "name": "urn:ogc:def:phenomenon:GEOM:color"
+        }, {
+            "id": "expiration",
+            "name": "urn:ogc:def:phenomenon:GEOM:expiration"
+        }, {
+            "id": "age",
+            "name": "urn:ogc:def:phenomenon:GEOM:age"
+        }]
+}

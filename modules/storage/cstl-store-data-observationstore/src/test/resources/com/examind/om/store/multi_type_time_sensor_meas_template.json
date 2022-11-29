@@ -1,0 +1,37 @@
+{
+    "id": "obs-multi-type-4",
+    "name": "urn:ogc:object:observation:template:GEOM:multi-type-4",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi-type",
+        "name": "Sensor multi type"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "expiration",
+        "name": "expiration",
+        "description": "Expiration date",
+        "definition": "urn:ogc:def:phenomenon:GEOM:expiration"
+    },
+    "result": {
+        "field": {
+            "index": 4,
+            "type": "TIME",
+            "name": "expiration",
+            "description": "urn:ogc:data:time:iso8601"
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

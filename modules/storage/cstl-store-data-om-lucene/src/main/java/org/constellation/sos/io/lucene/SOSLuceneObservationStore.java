@@ -34,8 +34,8 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.sos.xml.ResponseModeType;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -76,8 +76,8 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
      * {@inheritDoc }
      */
     @Override
-    public Metadata getMetadata() throws DataStoreException {
-        return buildMetadata("lucene-observation");
+    protected String getStoreIdentifier() {
+        return "lucene-observation";
     }
 
     /**
@@ -95,9 +95,9 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
      */
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
-        final ExtractionResult result = new ExtractionResult();
-        result.spatialBound.addTime(reader.getEventTime("2.0.0"));
-        return result.spatialBound.getTimeObject("2.0.0");
+        final ObservationDataset result = new ObservationDataset();
+        result.spatialBound.addTime(reader.getEventTime());
+        return result.spatialBound.getTimeObject();
     }
 
     /**
@@ -124,7 +124,7 @@ public class SOSLuceneObservationStore extends AbstractObservationStore {
         final Map<String, List<String>> results = new HashMap<>();
         results.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
         results.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value(), ResponseModeType.RESULT_TEMPLATE.value());
+        final List<ResponseMode> responseMode = Arrays.asList(ResponseMode.INLINE, ResponseMode.RESULT_TEMPLATE);
         return new ObservationStoreCapabilities(true, false, false, new ArrayList<>(), results, responseMode, true);
     }
 

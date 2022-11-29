@@ -110,6 +110,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+import org.geotoolkit.sos.xml.ObservationOffering;
 import org.geotoolkit.swe.xml.v200.QuantityType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -137,15 +138,10 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
     protected static MarshallerPool marshallerPool;
 
-    protected static Capabilities capabilities;
-
     protected static final String URL = "http://pulsar.geomatys.fr/SOServer/SOService/";
 
     protected static void init() throws JAXBException {
         marshallerPool = SOSMarshallerPool.getInstance();
-        Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
-        capabilities = (Capabilities) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/sos/SOSCapabilities1.0.0.xml"));
-        marshallerPool.recycle(unmarshaller);
     }
 
     public abstract void initWorker();
@@ -536,7 +532,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-1",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:1"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       Arrays.asList("NIMP"),
                                       "http://www.opengis.net/om/2.0");
 
@@ -568,13 +564,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-4",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation406.xml");
 
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
@@ -660,13 +656,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-4",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -697,13 +693,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-4",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -734,7 +730,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
@@ -758,7 +754,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       times,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
@@ -779,7 +775,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       times,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
@@ -804,7 +800,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       times,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
@@ -829,7 +825,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       times,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
@@ -857,7 +853,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation406.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -897,7 +893,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ507.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation507.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -944,7 +940,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ507.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation507.xml");
 
         expResult = (OMObservationType)obj.getValue();
         assertEquals(1, result.getMember().size());
@@ -995,13 +991,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-4",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       new BBOXType(null, 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
                                       "http://www.opengis.net/om/2.0");
 
         result = (GetObservationResponseType) worker.getObservation(request);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ406.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation406.xml");
 
         expResult = (OMObservationType)obj.getValue();
 
@@ -1032,7 +1028,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-4",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:4"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       new BBOXType(null, 66000.0, 1730000.0, 67000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"),
                                       "http://www.opengis.net/om/2.0");
 
@@ -1063,14 +1059,14 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-8",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:8"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
         assertEquals(1, result.getMember().size());
         OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ801.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller,"org/constellation/sos/v200/observations/observation801.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
         assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
@@ -1108,7 +1104,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       null,
                                       null,
                                       null,
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       Arrays.asList("station-006"),
                                       "http://www.opengis.net/om/2.0");
 
@@ -1117,7 +1113,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         final Iterator it = result.getMember().iterator();
         obsResult = (OMObservationType) it.next();
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ801.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation801.xml");
         expResult = (OMObservationType)obj.getValue();
 
         assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
@@ -1134,7 +1130,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertEquals(expResult, obsResult);
 
         obsResult = (OMObservationType) it.next();
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ901.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation901.xml");
         expResult = (OMObservationType)obj.getValue();
 
         expResult.getPropertyFeatureOfInterest().setToHref();
@@ -1173,13 +1169,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-2",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:2"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
         OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observation8.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation201.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
         assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
@@ -1220,7 +1216,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         final OMObservationType result = (OMObservationType) response.getMember().get(0);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ304.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation304.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
 
         assertProcedureEquals(expResult.getProcedure(), result.getProcedure());
@@ -1303,14 +1299,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         /**
          * Test 1 we register a system sensor
+         *
+         * No (pseudo) observation template is specified
          */
+        String procedure = "urn:ogc:object:sensor:GEOM:66";
         AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml");
 
-        sensorDescription.getMember().get(0).getRealProcess().setId("urn:ogc:object:sensor:GEOM:66");
-
-        /*JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/urnµogcµobjectµobservationµtemplateµGEOMµ6.xml"));
-
-        OMObservationType obsTemplate = (OMObservationType)obj.getValue();*/
+        sensorDescription.getMember().get(0).getRealProcess().setId(procedure);
 
         InsertSensorType request = new InsertSensorType("2.0.0", sensorDescription, "http://www.opengis.net/sensorML/1.0.0");
 
@@ -1318,12 +1313,12 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         assertTrue(response instanceof InsertSensorResponseType);
 
-        assertEquals("urn:ogc:object:sensor:GEOM:66", response.getAssignedProcedure());
+        assertEquals(procedure, response.getAssignedProcedure());
 
         /**
          * we verify that the sensor is well registered
          */
-        DescribeSensorType DSrequest  = new DescribeSensorType("2.0.0","SOS","urn:ogc:object:sensor:GEOM:66", "http://www.opengis.net/sensorML/1.0.0");
+        DescribeSensorType DSrequest  = new DescribeSensorType("2.0.0", "SOS", procedure, "http://www.opengis.net/sensorML/1.0.0");
         AbstractSensorML absResult = (AbstractSensorML) worker.describeSensor(DSrequest);
 
 
@@ -1334,7 +1329,58 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
         MetadataUtilities.systemSMLEquals(expResult, result);
 
+        /**
+         * Test 2 we register a system sensor with a (pseudo) observation template
+         */
+        procedure = "urn:ogc:object:sensor:GEOM:77";
+        sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml");
 
+        sensorDescription.getMember().get(0).getRealProcess().setId(procedure);
+
+        request = new InsertSensorType("2.0.0", sensorDescription, "http://www.opengis.net/sensorML/1.0.0");
+        request.setObservableProperty(Arrays.asList("depth", "temperature"));
+
+        InsertSensorType.RelatedFeature foi = new InsertSensorType.RelatedFeature("station-001");
+        request.setRelatedFeature(Arrays.asList(foi));
+
+        response = worker.registerSensor(request);
+
+        assertTrue(response instanceof InsertSensorResponseType);
+
+        assertEquals(procedure, response.getAssignedProcedure());
+
+        /**
+         * we verify that the sensor is well registered.
+         */
+        DSrequest  = new DescribeSensorType("2.0.0", "SOS", procedure, "http://www.opengis.net/sensorML/1.0.0");
+        absResult = (AbstractSensorML) worker.describeSensor(DSrequest);
+
+
+        assertTrue(absResult instanceof SensorML);
+        assertTrue(sensorDescription instanceof SensorML);
+        result = (SensorML) absResult;
+        expResult = (SensorML) sensorDescription;
+
+        MetadataUtilities.systemSMLEquals(expResult, result);
+
+        /**
+         * we verify that the template is well registered (as an offering).
+         */
+        GetCapabilitiesType requestGC = new GetCapabilitiesType("2.0.0", null);
+        Capabilities resultCapa = worker.getCapabilities(requestGC);
+
+        ObservationOffering resultOffering = null;
+        for (ObservationOffering offering : resultCapa.getContents().getOfferings()) {
+            if (offering.getProcedures().contains(procedure)) {
+                resultOffering = offering;
+            }
+        }
+        assertNotNull(resultOffering);
+
+        assertTrue(resultOffering.getObservedProperties().contains("depth"));
+        assertTrue(resultOffering.getObservedProperties().contains("temperature"));
+        assertTrue(resultOffering.getFeatureOfInterestIds().contains("station-001"));
+        
         marshallerPool.recycle(unmarshaller);
     }
 
@@ -1423,7 +1469,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         /**
          * Test 1 : getFeatureOfInterest with featureID filter
          */
-        SFSpatialSamplingFeatureType expResult = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/features/2.0.0/station-001.xml")).getValue();
+        SFSpatialSamplingFeatureType expResult = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/features/station-001.xml")).getValue();
 
         GetFeatureOfInterestType request = new GetFeatureOfInterestType("2.0.0", "SOS", "station-001");
 
@@ -1436,7 +1482,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         /**
          * Test 2 : getFeatureOfInterest with featureID filter (SamplingCurve)
          */
-        SFSpatialSamplingFeatureType expResultC = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/features/2.0.0/station-006.xml")).getValue();
+        SFSpatialSamplingFeatureType expResultC = ((JAXBElement<SFSpatialSamplingFeatureType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/features/station-006.xml")).getValue();
 
         request = new GetFeatureOfInterestType("2.0.0", "SOS", "station-006");
 
@@ -1566,7 +1612,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "depth");
         GetResultTemplateResponseType obsCollResult = (GetResultTemplateResponseType) worker.getResultTemplate(GOrequest);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ4.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/templates/template-4.xml");
 
         OMObservationType templateExpResult = (OMObservationType)obj.getValue();
 
@@ -1750,7 +1796,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertEquals(expResult.getResultValues(), result.getResultValues());
         assertEquals(expResult, result);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ3.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/templates/template-3.xml");
 
         OMObservationType template = (OMObservationType)obj.getValue();
 
@@ -1807,7 +1853,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertEquals(expResult.getResultValues(), result.getResultValues());
         assertEquals(expResult, result);
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ13.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/templates/template-13.xml");
 
         OMObservationType template = (OMObservationType)obj.getValue();
 
@@ -1934,7 +1980,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
     public void insertResultTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observationTemplates/2.0.0/urnµogcµobjectµobservationµtemplateµGEOMµ3.xml");
+        JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/templates/template-3.xml");
 
         OMObservationType template = (OMObservationType)obj.getValue();
 
@@ -1967,13 +2013,13 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       "offering-3",
                                       null,
                                       Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("urn:ogc:def:phenomenon:GEOM:ALL"),
+                                      null,
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
 
         GetObservationResponseType resultGO = (GetObservationResponseType) worker.getObservation(requestGO);
 
-        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/observations/2.0.0/urnµogcµobjectµobservationµGEOMµ307.xml");
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation307.xml");
 
         OMObservationType expResult = (OMObservationType)obj.getValue();
 

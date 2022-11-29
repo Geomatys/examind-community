@@ -166,8 +166,8 @@
       <ows:Parameter name="eventTime">
         <ows:AllowedValues>
           <ows:Range>
-            <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>1981-03-01T21:52:00.000Z</ows:MaximumValue>
+            <ows:MinimumValue>1980-03-01T20:52:00.000Z</ows:MinimumValue>
+            <ows:MaximumValue>2009-05-01T12:04:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -531,10 +531,9 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
-            <gml:beginPosition>2000-01-01</gml:beginPosition>
-            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
-          </gml:TimePeriod>
+          <gml:TimeInstant>
+            <gml:timePosition>2000-01-01</gml:timePosition>
+          </gml:TimeInstant>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:13"/>
         <sos:observedProperty>
@@ -571,7 +570,7 @@
         </gml:boundedBy>
         <sos:time>
           <gml:TimePeriod>
-            <gml:beginPosition>2001-01-01</gml:beginPosition>
+            <gml:beginPosition>2000-12-01</gml:beginPosition>
             <gml:endPosition>2000-12-24</gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
@@ -683,7 +682,7 @@
         </gml:boundedBy>
         <sos:time>
           <gml:TimePeriod>
-            <gml:beginPosition>2001-01-01</gml:beginPosition>
+            <gml:beginPosition>2000-12-01</gml:beginPosition>
             <gml:endPosition>2000-12-22</gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
@@ -810,10 +809,9 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
-            <gml:beginPosition>2007-05-01T16:59:00.000</gml:beginPosition>
-            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
-          </gml:TimePeriod>
+          <gml:TimeInstant>
+            <gml:timePosition>2007-05-01T16:59:00.000</gml:timePosition>
+          </gml:TimeInstant>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
@@ -858,10 +856,9 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
-            <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
-            <gml:endPosition indeterminatePosition="now"></gml:endPosition>
-          </gml:TimePeriod>
+          <gml:TimeInstant>
+            <gml:timePosition>2009-05-01T13:47:00.000</gml:timePosition>
+          </gml:TimeInstant>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:9"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>

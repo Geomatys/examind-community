@@ -23,35 +23,31 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
-import org.constellation.sos.ws.DatablockParser.Values;
-import static org.constellation.sos.ws.DatablockParser.getResultValues;
-import org.geotoolkit.gml.xml.Envelope;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
-import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
-import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ResponseMode;
+import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
 import org.geotoolkit.observation.xml.ObservationComparator;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
-import org.geotoolkit.swe.xml.DataArray;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.opengis.geometry.Geometry;
-import org.opengis.observation.Measure;
-import org.opengis.observation.Observation;
+import org.locationtech.jts.geom.Geometry;
+import org.opengis.geometry.Envelope;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.Period;
+import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
 
 /**
  *
@@ -72,11 +68,11 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Observation> getObservations() throws DataStoreException {
+    public List<org.opengis.observation.Observation> getObservations() throws DataStoreException {
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oids               = getIdentifiers();
+        final Set<String> oids = getIdentifiers();
         for (String oid : oids) {
-            final Observation obs = reader.getObservation(oid, resultModel, responseMode, version);
+            final Observation obs = (Observation) reader.getObservation(oid, resultModel, responseMode);
             observations.add(obs);
         }
         Collections.sort(observations, new ObservationComparator());
@@ -84,30 +80,23 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         for (Observation obs : observations) {
             if (!RESULT_TEMPLATE.equals(responseMode)) {
                 // parse result values to eliminate wrong results
-                if (obs.getSamplingTime() instanceof Period p) {
-                    final Timestamp tbegin;
-                    final Timestamp tend;
-                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                        tbegin = new Timestamp(p.getBeginning().getDate().getTime());
-                    } else {
-                        tbegin = null;
-                    }
-                    if (p.getEnding() != null && p.getEnding().getDate() != null) {
-                        tend = new Timestamp(p.getEnding().getDate().getTime());
-                    } else {
-                        tend = null;
-                    }
-                    if (obs.getResult() instanceof DataArrayProperty dap) {
-                        final DataArray array = dap.getDataArray();
-                        final Values result   = getResultValues(tbegin, tend, array, eventTimes);
-                        array.setValues(result.values.toString());
-                        array.setElementCount(result.nbBlock);
-                    }
+                applyTimeConstraint(obs, timeFilters);
+                // in measurement mode we need to split the complex observation into measurement
+                if (OMUtils.MEASUREMENT_QNAME.equals(resultModel)) {
+                    results.addAll(OMUtils.splitComplexObservationIntoMeasurement(obs, fieldFilters, measureIdFilters));
+                } else {
+                    results.add(obs);
+                }
+            } else {
+                // in measurement mode we need to split the complex observation into measurement
+                if (OMUtils.MEASUREMENT_QNAME.equals(resultModel)) {
+                    results.addAll(OMUtils.splitComplexTemplateIntoMeasurement(obs, fieldFilters));
+                } else {
+                    results.add(obs);
                 }
             }
-            results.add(obs);
         }
-        return results;
+        return new ArrayList<>(results);
     }
 
     @Override
@@ -115,7 +104,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         final List<SamplingFeature> features = new ArrayList<>();
         final Set<String> fid                = getIdentifiers();
         for (String foid : fid) {
-            final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
+            final SamplingFeature feature = reader.getFeatureOfInterest(foid);
             features.add(feature);
         }
         return features;
@@ -123,11 +112,12 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     @Override
     public List<Phenomenon> getPhenomenons() throws DataStoreException {
-        final Set<String> fid = getIdentifiers();
-        Map<String, Object> filters = new HashMap<>();
-        filters.put(SOS_VERSION, version);
-        filters.put(IDENTIFIER,  fid);
-        return new ArrayList<>(reader.getPhenomenons(filters));
+        final Set<String> fids    = getIdentifiers();
+        List<Phenomenon> results = new ArrayList<>();
+        for (String fid : fids) {
+            results.add(reader.getPhenomenon(fid));
+        }
+        return results;
     }
 
     @Override
@@ -135,7 +125,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         final List<Process> processes = new ArrayList<>();
         final Set<String> pids        = getIdentifiers();
         for (String pid : pids) {
-            final Process pr = reader.getProcess(pid, version);
+            final Process pr = reader.getProcess(pid);
             processes.add(pr);
         }
         return processes;
@@ -143,7 +133,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     @Override
     public String getResults() throws DataStoreException {
-        if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
+        if (ResponseMode.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
         final Set<ObservationResult> results = new LinkedHashSet<>(filterResult());
@@ -152,24 +142,15 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         for (ObservationResult result: results) {
             final Timestamp tBegin = result.beginTime;
             final Timestamp tEnd   = result.endTime;
-            final Object r         =  reader.getResult(result.resultID, resultModel, version);
-            if (r instanceof DataArray || r instanceof DataArrayProperty) {
-                final DataArray array;
-                if (r instanceof DataArrayProperty dap) {
-                    array = dap.getDataArray();
-                } else {
-                    array = (DataArray)r;
+            final Object r         =  reader.getResult(result.resultID, resultModel);
+            if (r instanceof ComplexResult cr) {
+                
+                applyTimeConstraint(tBegin, tEnd, cr, timeFilters);
+                if (!cr.getValues().isEmpty()) {
+                    datablock.append(cr.getValues());
                 }
-                if (array != null) {
-                    final Values resultValues = getResultValues(tBegin, tEnd, array, eventTimes);
-                    final String brutValues   = resultValues.values.toString();
-                    if (!brutValues.isEmpty()) {
-                        datablock.append(brutValues);
-                    }
-                } else {
-                    throw new IllegalArgumentException("Array is null");
-                }
-            } else if (r instanceof Measure meas) {
+                
+            } else if (r instanceof MeasureResult meas) {
                 datablock.append(tBegin).append(',').append(meas.getValue()).append("@@");
             } else {
                 throw new IllegalArgumentException("Unexpected result type:" + r);

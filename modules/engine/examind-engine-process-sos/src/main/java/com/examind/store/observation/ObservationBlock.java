@@ -20,7 +20,6 @@
 package com.examind.store.observation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,8 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.model.GeoSpatialBound;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.opengis.geometry.DirectPosition;
+import org.locationtech.jts.geom.Coordinate;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
@@ -74,15 +72,15 @@ public class ObservationBlock {
         currentSpaBound.addDate(millis);
     }
 
-    public List<DirectPosition> getPositions() {
+    public List<Coordinate> getPositions() {
         return positions.positions;
     }
 
     public TemporalGeometricPrimitive getTimeObject() {
-        return currentSpaBound.getTimeObject("2.0.0");
+        return currentSpaBound.getTimeObject();
     }
 
-    public Set<Map.Entry<Long, List<DirectPosition>>> getHistoricalPositions() {
+    public Set<Map.Entry<Long, List<Coordinate>>> getHistoricalPositions() {
         return positions.historicalPositions.entrySet();
     }
 
@@ -109,20 +107,20 @@ public class ObservationBlock {
     public static class Positions {
 
         public final Set<String> knownPositions = new HashSet<>();
-        public final List<DirectPosition> positions = new ArrayList<>();
-        public final Map<Long, List<DirectPosition>> historicalPositions = new HashMap<>();
+        public final List<Coordinate> positions = new ArrayList<>();
+        public final Map<Long, List<Coordinate>> historicalPositions = new HashMap<>();
 
         public void addPosition(Long millis, double latitude, double longitude) {
             final String posKey = latitude + "_" + longitude;
             if (!knownPositions.contains(posKey)) {
                 knownPositions.add(posKey);
-                final DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
+                final Coordinate pos = new Coordinate(latitude, longitude);
                 positions.add(pos);
                 if (millis != null) {
                     if (historicalPositions.containsKey(millis)) {
                         historicalPositions.get(millis).add(pos);
                     } else {
-                        List<DirectPosition> hpos = new ArrayList<>();
+                        List<Coordinate> hpos = new ArrayList<>();
                         hpos.add(pos);
                         historicalPositions.put(millis, hpos);
                     }

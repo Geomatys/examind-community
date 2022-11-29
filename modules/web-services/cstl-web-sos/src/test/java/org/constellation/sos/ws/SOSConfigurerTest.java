@@ -34,8 +34,10 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.test.SpringContextTest;
-import org.geotoolkit.gml.xml.v321.TimePeriodType;
+import org.geotoolkit.temporal.object.DefaultInstant;
+import org.geotoolkit.temporal.object.DefaultPeriod;
 import org.junit.Assert;
+import org.opengis.referencing.IdentifiedObject;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -444,24 +446,26 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3", true);
-        Set<String> expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:depth");
+        Set<String> expResults = Collections.singleton("depth");
         Assert.assertEquals(expResults, results);
 
         results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:test-1", false);
-        expResults = Collections.singleton("urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon");
+        expResults = Collections.singleton("aggregatePhenomenon");
         Assert.assertEquals(expResults, results);
 
         results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:test-1", true);
         expResults = new HashSet();
-        expResults.add("urn:ogc:def:phenomenon:GEOM:temperature");
-        expResults.add("urn:ogc:def:phenomenon:GEOM:depth");
+        expResults.add("temperature");
+        expResults.add("depth");
         Assert.assertEquals(expResults, results);
     }
 
     public void getTimeForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         TemporalPrimitive results = sensorServBusiness.getTimeForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
-        TemporalPrimitive expResults = new TimePeriodType(null, "2007-05-01 02:59:00.0", "2007-05-01 21:59:00.0");
+        TemporalPrimitive expResults = new DefaultPeriod(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"),
+                                                         new DefaultInstant(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"), format.parse("2007-05-01T02:59:00.0")),
+                                                         new DefaultInstant(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"), format.parse("2007-05-01T21:59:00.0")));
         Assert.assertEquals(expResults, results);
     }
 

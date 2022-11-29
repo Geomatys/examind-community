@@ -268,7 +268,7 @@ public final class SOSConstants {
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "version", Arrays.asList("1.0.0", "2.0.0")));
         goParameters.add(SERVICE_PARAMETER);
         goParameters.add(OWSXmlFactory.buildDomainAnyValue("1.1.0", "srsName"));
-        goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "offering", Arrays.asList("offering-AllSensor")));
+        goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "offering", new ArrayList<>()));
         goParameters.add(OWSXmlFactory.buildDomainRange("1.1.0", "eventTime", "now", "now"));
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "procedure", Arrays.asList("toUpdate")));
         goParameters.add(OWSXmlFactory.buildDomain("1.1.0", "observedProperty", Arrays.asList("toUpdate")));

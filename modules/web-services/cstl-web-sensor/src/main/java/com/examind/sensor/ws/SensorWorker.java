@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import org.apache.sis.storage.FeatureQuery;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
@@ -98,7 +97,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
             final List<Integer> providers = serviceBusiness.getLinkedProviders(getServiceId());
 
             // we initialize the reader/writer
-            for (Integer providerID : providers) {;
+            for (Integer providerID : providers) {
                 DataProvider p = DataProviders.getProvider(providerID);
                 if (p != null) {
                     // TODO for now we only take one provider by type
@@ -133,38 +132,38 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         return super.getTransactionalProperty();
     }
 
-    protected Phenomenon getPhenomenon(String phenName, String version) throws ConstellationStoreException {
+    protected org.geotoolkit.observation.model.Phenomenon getPhenomenon(String phenName) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY);
         final ResourceId filter = ff.resourceId(phenName);
         subquery.setSelection(filter);
-        Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery, Collections.singletonMap("version", version));
+        Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery);
         if (sps.isEmpty()) {
             return null;
         } else {
             if (sps.size() > 1) {
                 LOGGER.warning("Multiple phenomenon found for one identifier");
             }
-            return sps.iterator().next();
+            return (org.geotoolkit.observation.model.Phenomenon) sps.iterator().next();
         }
     }
 
-    protected SamplingFeature getFeatureOfInterest(String featureName, String version) throws ConstellationStoreException {
+    protected org.geotoolkit.observation.model.SamplingFeature getFeatureOfInterest(String featureName) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST);
         final ResourceId filter = ff.resourceId(featureName);
         subquery.setSelection(filter);
-        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery, Collections.singletonMap("version", version));
+        List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery);
         if (sps.isEmpty()) {
             return null;
         } else {
-            return sps.get(0);
+            return (org.geotoolkit.observation.model.SamplingFeature) sps.get(0);
         }
     }
 
-    protected Process getProcess(String procName, String version) throws ConstellationStoreException {
+    protected Process getProcess(String procName) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.PROCEDURE);
         final ResourceId filter = ff.resourceId(procName);
         subquery.setSelection(filter);
-        Collection<Process> sps = omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
+        Collection<Process> sps = omProvider.getProcedures(subquery);
         if (sps.isEmpty()) {
             return null;
         } else {
@@ -176,11 +175,11 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         return omProvider.getCapabilities();
     }
 
-    protected List<Process> getProcedureForOffering(String offname, String version) throws ConstellationStoreException {
+    protected Collection<String> getProcedureIdsForOffering(String offId, String version) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.PROCEDURE);
-        final BinaryComparisonOperator filter = ff.equal(ff.property("offering"), ff.literal(offname));
+        final BinaryComparisonOperator filter = ff.equal(ff.property("offering"), ff.literal(offId));
         subquery.setSelection(filter);
-        return omProvider.getProcedures(subquery, Collections.singletonMap("version", version));
+        return omProvider.getIdentifiers(subquery, Collections.singletonMap("version", version));
     }
 
     /**

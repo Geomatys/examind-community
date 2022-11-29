@@ -1,0 +1,20 @@
+{
+    "id": "offering-11",
+    "name": "offering-11",
+    "properties": {},
+    "time": {
+        "id": "27c98db9-8039-4844-b72d-f9a0ed46c459-time",
+        "beginning": {
+            "id": "b89f93b8-a7ad-485a-8016-49b3e925a90b-time",
+            "date": "2009-05-01T13:47:00.0Z"
+        },
+        "ending": {
+            "id": "3544b2b0-ecb0-4392-b585-c57cb92ac8b8-time",
+            "date": "2009-05-01T14:03:00.0Z"
+        }
+    },
+    "srsNames": [],
+    "procedure": "urn:ogc:object:sensor:GEOM:test-id",
+    "featureOfInterestIds": ["station-001"],
+    "observedProperties": ["depth"]
+}

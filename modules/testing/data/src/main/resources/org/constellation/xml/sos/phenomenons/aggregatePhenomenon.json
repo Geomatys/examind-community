@@ -1,0 +1,17 @@
+{
+    "id": "aggregatePhenomenon",
+    "name": "aggregatePhenomenon",
+    "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
+    "description": "the aggregation of temperature and depth phenomenons",
+    "component": [{
+            "id": "depth",
+            "name": "depth",
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+            "description": "the depth in water"
+        }, {
+            "id": "temperature",
+            "name": "temperature",
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+            "description": "the temperature in celcius degree"
+        }]
+}

@@ -1,0 +1,11 @@
+{
+    "id": "station-002",
+    "name": "10972X0137-PLOUF",
+    "description": "Point d'eau BSSS",
+    "properties": {},
+    "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+    "geometry": {
+        "crs": "urn:ogc:def:crs:EPSG:9.9.1:4326",
+        "geometry": "POINT (5 10)"
+    }
+}

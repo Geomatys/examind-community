@@ -19,23 +19,14 @@ package com.examind.store.observation.csvflat;
 
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.ObservationBlock;
-import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.feature.FeatureType;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.util.GenericName;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,8 +37,20 @@ import java.util.stream.Collectors;
 import static com.examind.store.observation.csvflat.CsvFlatUtils.*;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.RESULT_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.TYPE_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValues;
 import com.examind.store.observation.ObservedProperty;
 import org.constellation.exception.ConstellationStoreException;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.DatasetQuery;
+import org.locationtech.jts.geom.Coordinate;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  * Implementation of an observation store for csv flat observation data based on {@link CSVFeatureStore}.
@@ -64,40 +67,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     private final String typeColumn;
     private final String uomColumn;
 
-    /**
-     *
-     * @param observationFile path to the csv observation file
-     * @param separator character used as field separator
-     * @param quotechar character used for quoted values
-     * @param featureType the feature type
-     * @param mainColumn the name (header) of the main column (date or pression/depth for profiles)
-     * @param dateColumn the name (header) of the date column
-     * @param dateTimeformat the date format (see {@link SimpleDateFormat})
-     * @param longitudeColumn the name (header) of the longitude column
-     * @param latitudeColumn the name (header) of the latitude column
-     * @param obsPropFilterColumns the names (headers) of the measure columns
-     * @param foiColumn the name (header) of the feature of interest column
-     * @param valueColumn the name (header) of the measure column
-     * @param obsPropColumns the names (header) of the code measure columns
-     * 
-     * @throws DataStoreException
-     * @throws MalformedURLException
-     */
-    public CsvFlatObservationStore(final Path observationFile, final char separator, final char quotechar, final FeatureType featureType,
-                                       final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-                                       final Set<String> obsPropFilterColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn, 
-                                       final String procedureNameColumn, final String procedureDescColumn, final String procedureRegex, final String zColumn, final String uomColumn, final String uomRegex,
-                                       final String valueColumn, final Set<String> obsPropColumns, final Set<String> obsPropNameColumns, final String typeColumn,  String obsPropRegex,
-                                       final String mimeType, final String obsPropId, final String obsPropName, final boolean noHeader, final boolean directColumnIndex, final List<String> qualtityColumns,
-                                       final List<String> qualityTypes) throws DataStoreException, MalformedURLException {
-        super(observationFile, separator, quotechar, featureType, mainColumn, dateColumn, dateTimeformat, longitudeColumn, latitudeColumn, obsPropFilterColumns, observationType,
-              foiColumn, procedureId, procedureColumn, procedureNameColumn, procedureDescColumn, procedureRegex, zColumn, uomRegex, obsPropRegex, obsPropId, obsPropName, mimeType,
-              noHeader, directColumnIndex, qualtityColumns, qualityTypes);
-        this.valueColumn = valueColumn;
-        this.obsPropColumns = obsPropColumns;
-        this.obsPropNameColumns = obsPropNameColumns;
-        this.typeColumn = typeColumn;
-        this.uomColumn = uomColumn;
+
+    public CsvFlatObservationStore(final ParameterValueGroup params) throws DataStoreException, IOException {
+        super(params);
+
+        this.valueColumn = (String) params.parameter(RESULT_COLUMN.getName().toString()).getValue();
+        this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
+        this.obsPropNameColumns = getMultipleValues(params, OBS_PROP_NAME_COLUMN.getName().toString());
+        this.typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
+        this.uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
+
+        final Set<String> obsPropFilterColumns = getMultipleValues(params, OBS_PROP_FILTER_COLUMN.getName().toString());
 
         // special case for hard coded observed property
         if (obsPropId != null && !obsPropId.isEmpty()) {
@@ -106,14 +86,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         // if the store is open with missing mime type we skip this part.
         } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
             try {
-                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, separator, quotechar, noHeader, directColumnIndex);
+                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
         } else {
              this.measureColumns = obsPropFilterColumns;
         }
-
     }
 
     @Override
@@ -122,46 +101,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     @Override
-    protected Set<GenericName> extractProcedures() throws DataStoreException {
-
-        final Set<GenericName> result = new HashSet();
-        // open csv file
-        try (final DataFileReader reader = getDataFileReader()) {
-
-            String[] headers = null;
-            if (!noHeader) {
-                headers = reader.getHeaders();
-            }
-
-            // prepare procedure/type column indices
-            int procIndex       = getColumnIndex(procedureColumn, headers);
-            int typeColumnIndex = getColumnIndex(typeColumn, headers);
-
-
-            final Iterator<String[]> it = reader.iterator(!noHeader);
-
-            final List<String> obsTypeCodes = getObsTypeCodes();
-            while (it.hasNext()) {
-                final String[] line = it.next();
-                if (procIndex != -1) {
-                    // checks if row matches the observed data types
-                    if (typeColumnIndex != -1) {
-                        if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
-                    }
-                    String procId = extractWithRegex(procRegex, line[procIndex]);
-                    result.add(NamesExt.create(procedureId + procId));
-                }
-            }
-            return result;
-            
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
-            throw new DataStoreException(ex);
-        }
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
+    public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
 
         // open csv file with a delimiter set as process SosHarvester input.
         try (final DataFileReader reader = getDataFileReader()) {
@@ -207,7 +147,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             final List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
 
             // final result
-            final ExtractionResult result = new ExtractionResult();
+            final ObservationDataset result = new ObservationDataset();
 
             /*
             2- compute measures
@@ -261,7 +201,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 if (procIndex != -1) {
                     String procId = extractWithRegex(procRegex, line[procIndex]);
                     currentProc = procedureId + procId;
-                    if (sensorIDs != null && !sensorIDs.isEmpty() && !sensorIDs.contains(currentProc)) {
+                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
                         LOGGER.finer("skipping line due to none specified sensor related.");
                         continue;
                     }
@@ -356,8 +296,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             /*
             3- build results
             =============*/
-            final Set<org.opengis.observation.Phenomenon> phenomenons = new HashSet<>();
-            final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures = new HashSet<>();
+            final Set<Phenomenon> phenomenons = new HashSet<>();
+            final Set<SamplingFeature> samplingFeatures = new HashSet<>();
             int obsCpt = 0;
             final String fileName = dataFile.getFileName().toString();
             for (ObservationBlock ob : observationBlock.values()) {
@@ -380,12 +320,52 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     @Override
-    public Set<String> getPhenomenonNames() {
+    protected Set<String> extractProcedureIds() throws DataStoreException {
+        if (procedureColumn == null) return Collections.singleton(getProcedureID());
+
+        final Set<String> result = new HashSet();
+        // open csv file
+        try (final DataFileReader reader = getDataFileReader()) {
+
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
+            }
+
+            // prepare procedure/type column indices
+            int procIndex       = getColumnIndex(procedureColumn, headers);
+            int typeColumnIndex = getColumnIndex(typeColumn, headers);
+
+
+            final Iterator<String[]> it = reader.iterator(!noHeader);
+
+            final List<String> obsTypeCodes = getObsTypeCodes();
+            while (it.hasNext()) {
+                final String[] line = it.next();
+                if (procIndex != -1) {
+                    // checks if row matches the observed data types
+                    if (typeColumnIndex != -1) {
+                        if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
+                    }
+                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    result.add(procedureId + procId);
+                }
+            }
+            return result;
+
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
+            throw new DataStoreException(ex);
+        }
+    }
+    
+    @Override
+    public Set<String> extractPhenomenonIds() {
         return measureColumns;
     }
 
     @Override
-    public List<ProcedureTree> getProcedures() throws DataStoreException {
+    public List<ProcedureDataset> getProcedures() throws DataStoreException {
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -405,10 +385,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int typeColumnIndex = getColumnIndex(typeColumn, headers);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
-            Map<String, ProcedureTree> result = new HashMap<>();
+            Map<String, ProcedureDataset> result = new HashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
             String previousProc               = null;
-            ProcedureTree currentPTree        = null;
+            ProcedureDataset currentPTree        = null;
             int lineNumber                    = 1;
             
             final Iterator<String[]> it = reader.iterator(!noHeader);
@@ -421,7 +401,6 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                AbstractGeometry geom = null;
                 Date dateParse        = null;
 
                 // checks if row matches the observed data types
@@ -458,7 +437,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureTree(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, measureColumns));
+                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, measureColumns, null));
                 }
 
                 // update temporal interval
@@ -484,9 +463,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                         final String posKey = currentProc + '-' + position[0] + "_" + position[1];
                         if (!knownPositions.contains(posKey)) {
                             knownPositions.add(posKey);
-                            DirectPosition dp = new GeneralDirectPosition(position[1], position[0]);
-                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
-                            currentPTree.spatialBound.addLocation(dateParse, geom);
+                            Coordinate dp = new Coordinate(position[1], position[0]);
+                            currentPTree.spatialBound.addLocation(dateParse, GF.createPoint(dp));
                         }
                     }
                 } catch (NumberFormatException | ParseException ex) {
@@ -513,20 +491,25 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         if (observationType == null) {
             return Arrays.asList("TS", "TR", "PR");
         }
-        switch (observationType) {
-            case "Timeserie" : return Arrays.asList("TS");
-            case "Trajectory": return Arrays.asList("TR");
-            case "Profile"   : return Arrays.asList("PR");
-            default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-        }
+        return switch (observationType) {
+            case "Timeserie" ->  Arrays.asList("TS");
+            case "Trajectory"->  Arrays.asList("TR");
+            case "Profile"   ->  Arrays.asList("PR");
+            default -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+        };
     }
 
     private String getObservationTypeFromCode(String code) {
-        switch (code) {
-            case "TS" : return "Timeserie";
-            case "TR" : return "Trajectory";
-            case "PR" : return "Profile";
-            default: throw new IllegalArgumentException("Unexpected observation type code:" + code + ". Allowed values are TS, TR, PR.");
-        }
+        return switch (code) {
+            case "TS" -> "Timeserie";
+            case "TR" -> "Trajectory";
+            case "PR" -> "Profile";
+            default-> throw new IllegalArgumentException("Unexpected observation type code:" + code + ". Allowed values are TS, TR, PR.");
+        };
+    }
+
+    @Override
+    protected String getStoreIdentifier() {
+        return CsvFlatObservationStoreFactory.NAME;
     }
 }

@@ -1,0 +1,64 @@
+{
+    "id": "obs-quality_sensor",
+    "name": "urn:ogc:object:observation:template:GEOM:quality_sensor",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:quality_sensor",
+        "name": "Sensor quality"
+    },
+    "samplingTime": {
+        "id": "time-6001",
+        "beginning": {
+            "id": "e031950b-30ce-4bfe-9dc3-3cb5d08d4b3b-time",
+            "date": "1980-03-01T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "6fc4bdfe-9f1b-43ef-8831-5668ca1bb305-time",
+            "date": "1984-03-01T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "description": "the depth in water",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m",
+                "qualityFields": [{
+                        "index": 2,
+                        "type": "TEXT",
+                        "name": "qflag",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    }]
+            }],
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

@@ -1,0 +1,6 @@
+{
+    "id": "depth",
+    "name": "depth",
+    "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+    "description": "the depth in water"
+}

@@ -42,16 +42,17 @@ import com.examind.sensor.ws.SensorUtils;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.sis.util.collection.BackingStoreException;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import org.constellation.business.IDataBusiness;
 import org.constellation.dto.service.config.sos.ExtractionResult;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.SensorData;
 import org.constellation.util.NamedId;
 import org.geotoolkit.filter.FilterUtilities;
@@ -60,6 +61,8 @@ import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
+import static org.geotoolkit.observation.model.ResponseMode.INLINE;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -70,7 +73,6 @@ import org.locationtech.jts.io.WKTWriter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.Observation;
-import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.Phenomenon;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -93,6 +95,9 @@ public class SensorServiceBusiness {
 
     @Autowired
     protected IServiceBusiness serviceBusiness;
+
+    @Autowired
+    protected IDataBusiness dataBusiness;
 
     protected final FilterFactory ff = FilterUtilities.FF;
 
@@ -247,9 +252,7 @@ public class SensorServiceBusiness {
         try {
             AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.PROCEDURE);
             query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
-            Stream<String> processes = pr.getProcedures(query, Collections.emptyMap())
-                                         .stream()
-                                         .map(p -> ((org.geotoolkit.observation.xml.Process)p).getHref());
+            Stream<String> processes = pr.getIdentifiers(query, Collections.emptyMap()).stream();
 
             if (!isDirectProviderMode(id)) {
                 // filter on linked sensors
@@ -283,32 +286,69 @@ public class SensorServiceBusiness {
     public TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
-            return pr.getTimeForProcedure("2.0.0", sensorID);
+            return pr.getTimeForProcedure(sensorID);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
-    public boolean importObservations(final Integer id, final Path observationFile) throws ConfigurationException {
-        try {
-            final Object objectFile = SensorUtils.unmarshallObservationFile(observationFile);
-            if (objectFile instanceof Observation obs) {
-                importObservations(id, Arrays.asList(obs), new ArrayList<>());
-            } else if (objectFile instanceof ObservationCollection coll) {
-                importObservations(id, coll);
+    public void removeDataObservationsFromService(final Integer sid, final Integer dataID) throws ConstellationException {
+        final Integer providerId = dataBusiness.getDataProvider(dataID);
+
+        if (providerId != null) {
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            if (provider instanceof ObservationProvider omProvider) {
+                final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
+
+                // remove from O&M database
+                for (Observation obs : result.getObservations()) {
+                    if (obs.getName() != null) {
+                        removeSingleObservation(sid, obs.getName().getCode());
+                    }
+                }
             } else {
-                return false;
+                throw new ConfigurationException("provider is not an observation store.");
             }
-            return true;
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
+        } else {
+            throw new TargetNotFoundException("The specified data does not exist");
         }
     }
 
-    public void importObservations(final Integer id, final ObservationCollection collection) throws ConfigurationException {
-        importObservations(id, collection.getMember(), new ArrayList<>());
+    public void importObservationsFromData(final Integer sid, final Integer dataID) throws ConstellationException {
+        final Integer providerId = dataBusiness.getDataProvider(dataID);
+
+        if (providerId != null) {
+            final DataProvider provider = DataProviders.getProvider(providerId);
+            if (provider instanceof ObservationProvider omProvider) {
+                final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
+
+                // import in O&M database
+                importObservations(sid, result.getObservations(), result.getPhenomenons());
+
+                // SensorML generation
+                for (ProcedureTree process : result.getProcedures()) {
+                    generateSensor(process, sid, null, dataID);
+                    updateSensorLocation(sid, process);
+                }
+            } else {
+                throw new ConfigurationException("provider is not an observation store.");
+            }
+        } else {
+            throw new TargetNotFoundException("The specified data does not exist");
+        }
     }
 
+    private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
+        //record location
+        final Geometry geom = process.getGeom();
+        if (geom != null) {
+            updateSensorLocation(serviceId, process.getId(), geom);
+        }
+        for (ProcedureTree child : process.getChildren()) {
+            updateSensorLocation(serviceId, child);
+        }
+    }
+    
     public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -352,7 +392,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public boolean updateSensorLocation(final Integer id, final String sensorID, final org.opengis.geometry.Geometry location) throws ConfigurationException {
+    public boolean updateSensorLocation(final Integer id, final String sensorID, final Geometry location) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.updateProcedureLocation(sensorID, location);
@@ -395,7 +435,7 @@ public class SensorServiceBusiness {
     public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile, final boolean includeIdInDatablock) throws ConfigurationException {
         try {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
-            ResultQuery query = new ResultQuery(OBSERVATION_QNAME, "inline", sensorID, resultFormat);
+            ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, sensorID, resultFormat);
             query.setIncludeIdInDataBlock(includeIdInDatablock);
             query.setIncludeTimeForProfile(timeforProfile);
             query.setSelection(buildFilter(start, end, observedProperties, foi));
@@ -458,7 +498,7 @@ public class SensorServiceBusiness {
         for (Integer providerId : providerIDs) {
             final DataProvider provider = DataProviders.getProvider(providerId);
             if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults(sensorID, sensorIds);
+                final ExtractionResult result = omProvider.extractResults(new DatasetQuery(sensorIds));
 
                 // update sensor location
                 for (ProcedureTree process : result.getProcedures()) {

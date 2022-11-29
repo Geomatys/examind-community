@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import org.opengis.geometry.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  *

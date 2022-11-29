@@ -295,7 +295,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T00:59:00Z")
                 .phenomenonTime("2007-05-01T00:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:304-2-1)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
 
         Assert.assertEquals(expObs.getResult(), resObs.get(0).getResult());
         Assert.assertEquals(expObs, resObs.get(0));
@@ -323,7 +323,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T00:59:00Z")
                 .phenomenonTime("2007-05-01T00:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:304-2-1)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         Assert.assertEquals(expResult, result);
 
         /*
@@ -410,11 +410,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         DataArray expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         List<Object> array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-1", "2007-05-01T10:59:00Z", "2007-05-01T10:59:00Z", 6.56f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-2", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", 6.56f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-3", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", 6.56f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-4", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", 6.56f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-5", "2007-05-01T14:59:00Z", "2007-05-01T14:59:00Z", 6.56f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-1", "2007-05-01T10:59:00Z", "2007-05-01T10:59:00Z", 6.56));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-2", "2007-05-01T11:59:00Z", "2007-05-01T11:59:00Z", 6.56));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-3", "2007-05-01T12:59:00Z", "2007-05-01T12:59:00Z", 6.56));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-4", "2007-05-01T13:59:00Z", "2007-05-01T13:59:00Z", 6.56));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:507-2-5", "2007-05-01T14:59:00Z", "2007-05-01T14:59:00Z", 6.56));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -432,11 +432,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -454,7 +454,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -472,9 +472,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -492,8 +492,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 2.5));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -511,9 +511,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -531,8 +531,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", 8.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5", "2012-12-21T23:00:00Z", "2012-12-21T23:00:00Z", 9.9));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -550,8 +550,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult = new DataArray();
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         array = new ArrayList<>();
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9f));
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8f));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2", "2009-12-01T13:00:00Z", "2009-12-01T13:00:00Z", 5.9));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4", "2009-12-15T13:02:00Z", "2009-12-15T13:02:00Z", 7.8));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -1071,7 +1071,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T10:59:00Z")
                 .phenomenonTime("2007-05-01T10:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:507-2-1)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         expResult.addObservationsItem(expObs1);
 
         Observation expObs2 = new Observation()
@@ -1081,7 +1081,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T11:59:00Z")
                 .phenomenonTime("2007-05-01T11:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:507-2-2)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         expResult.addObservationsItem(expObs2);
 
         Observation expObs3 = new Observation()
@@ -1091,7 +1091,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T12:59:00Z")
                 .phenomenonTime("2007-05-01T12:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:507-2-3)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         expResult.addObservationsItem(expObs3);
 
         Observation expObs4 = new Observation()
@@ -1101,7 +1101,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T13:59:00Z")
                 .phenomenonTime("2007-05-01T13:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:507-2-4)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         expResult.addObservationsItem(expObs4);
 
         Observation expObs5 = new Observation()
@@ -1111,7 +1111,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T14:59:00Z")
                 .phenomenonTime("2007-05-01T14:59:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:507-2-5)/Datastreams")
-                .result(6.56f);
+                .result(6.56);
         expResult.addObservationsItem(expObs5);
 
 
@@ -1236,7 +1236,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T11:47:00Z")
                 .phenomenonTime("2009-05-01T11:47:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1001-2-1)/Datastreams")
-                .result(4.5f);
+                .result(4.5);
         expResult.addObservationsItem(expObs1);
         Observation expObs2 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:1001-2-2")
@@ -1245,7 +1245,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:00:00Z")
                 .phenomenonTime("2009-05-01T12:00:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1001-2-2)/Datastreams")
-                .result(5.9f);
+                .result(5.9);
         expResult.addObservationsItem(expObs2);
         Observation expObs3 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:1002-2-1")
@@ -1254,7 +1254,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:01:00Z")
                 .phenomenonTime("2009-05-01T12:01:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1002-2-1)/Datastreams")
-                .result(8.9f);
+                .result(8.9);
         expResult.addObservationsItem(expObs3);
         Observation expObs4 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:1002-2-2")
@@ -1263,7 +1263,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:02:00Z")
                 .phenomenonTime("2009-05-01T12:02:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1002-2-2)/Datastreams")
-                .result(7.8f);
+                .result(7.8);
         expResult.addObservationsItem(expObs4);
         Observation expObs5 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:1002-2-3")
@@ -1272,7 +1272,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:03:00Z")
                 .phenomenonTime("2009-05-01T12:03:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1002-2-3)/Datastreams")
-                .result(9.9f);
+                .result(9.9);
         expResult.addObservationsItem(expObs5);
         Observation expObs6 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:1003-2-1")
@@ -1281,7 +1281,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:04:00Z")
                 .phenomenonTime("2009-05-01T12:04:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:1003-2-1)/Datastreams")
-                .result(9.1f);
+                .result(9.1);
         expResult.addObservationsItem(expObs6);
 
         expResult.setObservationsIotNavigationLink(null);
@@ -1360,7 +1360,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T11:47:00Z")
                 .phenomenonTime("2009-05-01T11:47:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-1)/Datastreams")
-                .result(4.5f);
+                .result(4.5);
         expResult.addObservationsItem(expObs1);
         Observation expObs2 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:2000-2-2")
@@ -1369,7 +1369,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:00:00Z")
                 .phenomenonTime("2009-05-01T12:00:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-2)/Datastreams")
-                .result(5.9f);
+                .result(5.9);
         expResult.addObservationsItem(expObs2);
         Observation expObs3 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:2000-2-3")
@@ -1378,7 +1378,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:01:00Z")
                 .phenomenonTime("2009-05-01T12:01:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-3)/Datastreams")
-                .result(8.9f);
+                .result(8.9);
         expResult.addObservationsItem(expObs3);
         Observation expObs4 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:2000-2-4")
@@ -1387,7 +1387,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:02:00Z")
                 .phenomenonTime("2009-05-01T12:02:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-4)/Datastreams")
-                .result(7.8f);
+                .result(7.8);
         expResult.addObservationsItem(expObs4);
         Observation expObs5 = new Observation()
                 .iotId("urn:ogc:object:observation:GEOM:2000-2-5")
@@ -1396,7 +1396,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2009-05-01T12:03:00Z")
                 .phenomenonTime("2009-05-01T12:03:00Z")
                 .datastreamIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:2000-2-5)/Datastreams")
-                .result(9.9f);
+                .result(9.9);
         expResult.addObservationsItem(expObs5);
 
         expResult.setObservationsIotNavigationLink(null);

@@ -18,32 +18,48 @@
 */
 package com.examind.store.observation;
 
+import static com.examind.store.observation.FileParsingObservationStoreFactory.EMPTY_PARAMS;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.TYPE;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
-import org.geotoolkit.gml.xml.Point;
-import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.observation.OMUtils;
-import static org.geotoolkit.observation.OMUtils.TIME_FIELD;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.AnyScalar;
-import org.geotoolkit.swe.xml.Quantity;
-import org.geotoolkit.swe.xml.UomProperty;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.geometry.Geometry;
+import org.apache.sis.feature.AbstractOperation;
+import org.apache.sis.feature.DefaultAttributeType;
+import org.apache.sis.feature.builder.AttributeTypeBuilder;
+import org.apache.sis.feature.builder.FeatureTypeBuilder;
+import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.storage.DataStoreException;
+import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.util.NamesExt;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.opengis.feature.Attribute;
+import org.opengis.feature.Feature;
+import org.opengis.feature.FeatureOperationException;
+import org.opengis.feature.FeatureType;
+import org.opengis.feature.IdentifiedType;
+import org.opengis.feature.Property;
+import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  *
@@ -54,7 +70,9 @@ public class FileParsingUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
     private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
-    
+
+    private static final GeometryFactory GF = new GeometryFactory();
+     
     /**
      * Return the value int the csv line if the supplied index is different from -1.
      * Else return the default value specified.
@@ -154,79 +172,66 @@ public class FileParsingUtils {
         }
     }
 
-    public static AbstractGeometry buildGeom(final List<DirectPosition> positions) {
-        final AbstractGeometry sp;
-        if (positions.isEmpty()) {
-            return null;
-        } else if (positions.size() > 1) {
-            sp = GMLXmlFactory.buildLineString("3.2.1", null, "EPSG:4326", positions);
-        } else {
-            sp = GMLXmlFactory.buildPoint("3.2.1", null, "EPSG:4326", positions.get(0));
+    public static Geometry buildGeom(final List<Coordinate> positions) {
+        Geometry geom = null;
+        if (positions.size() > 1) {
+            geom = GF.createLineString(positions.toArray(Coordinate[]::new));
+        } else if (!positions.isEmpty()) {
+            geom = GF.createPoint(positions.get(0));
         }
-        return sp;
+        if (geom != null) {
+            JTS.setCRS(geom, CommonCRS.WGS84.geographic());
+        }
+        return geom;
     }
 
-    public static SamplingFeature buildFOIByGeom(String foiID, final List<DirectPosition> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {
-        final SamplingFeature sp;
-        if (positions.isEmpty()) {
-            sp = SOSXmlFactory.buildSamplingFeature("2.0.0", foiID, null, null, null);
-        } else if (positions.size() > 1) {
-            sp = OMUtils.buildSamplingCurve(foiID, positions);
-        } else {
-            sp = OMUtils.buildSamplingPoint(foiID, positions.get(0).getOrdinate(0),  positions.get(0).getOrdinate(1));
-        }
-        for (org.opengis.observation.sampling.SamplingFeature existingFeature : existingFeatures) {
-
-            if (existingFeature instanceof SamplingFeature) {
-                SamplingFeature ef = (SamplingFeature) existingFeature;
-                if ((ef.getGeometry() == null && sp.getGeometry() == null) ||
-                    (ef.getGeometry() != null && equalsGeom(ef.getGeometry(), positions))
-                ) {
-                    return ef;
-                }
+    public static SamplingFeature buildFOIByGeom(String foiID, final List<Coordinate> positions, final Set<SamplingFeature> existingFeatures) {
+        final Geometry geom = buildGeom(positions);
+        final SamplingFeature sp = new SamplingFeature(foiID, null, null, null, foiID, geom);
+        for (SamplingFeature ef : existingFeatures) {
+            if ((ef.getGeometry() == null && sp.getGeometry() == null) ||
+                (ef.getGeometry() != null && equalsGeom(ef.getGeometry(), positions))
+            ) {
+                return ef;
             }
         }
         return sp;
     }
 
-    private static boolean equalsGeom(Geometry existing, List<DirectPosition> positions) {
+    private static boolean equalsGeom(Geometry existing, List<Coordinate> positions) {
         // the problem here is that the axis will be flipped after save,
         // so we need to flip the axis for comparison...
         Geometry spGeometry;
          if (positions.isEmpty()) {
             return false;
         } else if (positions.size() > 1) {
-            List<DirectPosition> flipped = new ArrayList<>();
-            positions.forEach(dp -> flipped.add(SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(dp.getCoordinate()[1], dp.getCoordinate()[0]))));
-            spGeometry = (Geometry) SOSXmlFactory.buildLineString("2.0.0", null, "EPSG:4326", flipped);
+            List<Coordinate> flipped = new ArrayList<>();
+            positions.forEach(dp -> flipped.add(new Coordinate(dp.getOrdinate(1), dp.getOrdinate(0))));
+            spGeometry = GF.createLineString(flipped.toArray(Coordinate[]::new));
         } else {
-            final DirectPosition position = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(positions.get(0).getOrdinate(1), positions.get(0).getOrdinate(0)));
-            spGeometry = (Geometry) SOSXmlFactory.buildPoint("2.0.0", "SamplingPoint", position);
+            final Coordinate position = positions.get(0);
+            final Coordinate flipped  = new Coordinate(position.getOrdinate(1), position.getOrdinate(0));
+            spGeometry = GF.createPoint(flipped);
         }
         return existing.equals(spGeometry);
     }
 
+    @Deprecated
     public static boolean equalsGeom(Geometry current, Geometry existing) {
         // the problem here is that the axis will be flipped after save,
         // so we need to flip the axis for comparison... TODO
         if (current instanceof Point && existing instanceof Point exPt) {
-            org.geotoolkit.gml.xml.DirectPosition pos = exPt.getPos();
-            final DirectPosition position = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(pos.getOrdinate(1), pos.getOrdinate(0)));
-            Geometry spGeometry = (Geometry) SOSXmlFactory.buildPoint("2.0.0", "SamplingPoint", position);
-            return current.equals(spGeometry);
+            /*Coordinate position = exPt.getCoordinate();
+            final Coordinate flipped = new Coordinate(position.getOrdinate(1), position.getOrdinate(0));
+            Geometry spGeometry = GF.createPoint(flipped);*/
+            return current.equals(exPt);
         }
         return false;
     }
 
-    public static SamplingFeature buildFOIById(String foiID, final List<DirectPosition> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {
-        final SamplingFeature sp;
-        if (positions.isEmpty()) {
-            sp = SOSXmlFactory.buildSamplingFeature("2.0.0", foiID, null, null, null);
-        } else if (positions.size() > 1) {
-            sp = OMUtils.buildSamplingCurve(foiID, positions);
-        } else {
-            sp = OMUtils.buildSamplingPoint(foiID, positions.get(0).getOrdinate(0),  positions.get(0).getOrdinate(1));
-        }
+    public static SamplingFeature buildFOIById(String foiID, final List<Coordinate> positions, final Set<org.opengis.observation.sampling.SamplingFeature> existingFeatures) {
+        final Geometry geom = buildGeom(positions);
+        final SamplingFeature sp = new SamplingFeature(foiID, null, null, null, foiID, geom);
         for (org.opengis.observation.sampling.SamplingFeature existingFeature : existingFeatures) {
             if (existingFeature instanceof SamplingFeature &&
                ((SamplingFeature)existingFeature).getId().equals(sp.getId())
@@ -235,27 +240,6 @@ public class FileParsingUtils {
             }
         }
         return sp;
-    }
-
-    public static AbstractDataRecord getDataRecordProfile(final String version, final List<Field> phenomenons) {
-        final List<AnyScalar> fields = new ArrayList<>();
-        for (Field phenomenon : phenomenons) {
-            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.uom, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.name, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.name, cat));
-        }
-        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
-    }
-
-    public static AbstractDataRecord getDataRecordTrajectory(final String version, final List<Field> phenomenons) {
-        final List<AnyScalar> fields = new ArrayList<>();
-        fields.add(TIME_FIELD.get(version));
-        for (Field phenomenon : phenomenons) {
-            final UomProperty uom = SOSXmlFactory.buildUomProperty(version, phenomenon.uom, null);
-            final Quantity cat = SOSXmlFactory.buildQuantity(version, phenomenon.name, uom, null);
-            fields.add(SOSXmlFactory.buildAnyScalar(version, null, phenomenon.name, cat));
-        }
-        return SOSXmlFactory.buildSimpleDatarecord(version, null, null, null, true, fields);
     }
 
     public static DataFileReader getDataFileReader(String mimeType, Path dataFile, Character delimiter, Character quotechar) throws IOException {
@@ -272,6 +256,143 @@ public class FileParsingUtils {
             case "dbf":
             case "application/dbase; subtype=\"om\"":
             default: return new DBFDataFileReader(dataFile);
+        }
+    }
+
+    public static long parseObjectDate(Object dateObj, DateFormat sdf) throws ParseException {
+        if (dateObj instanceof Double db) {
+            return dateFromDouble(db).getTime();
+        } else if (dateObj instanceof String str) {
+            return sdf.parse(str).getTime();
+        } else if (dateObj instanceof Date d) {
+            return d.getTime();
+        } else {
+            throw new ClassCastException("Unhandled date type");
+        }
+    }
+
+    private static final long TIME_AT_2000;
+    static {
+        long candidate = 0L;
+        try {
+            candidate = new SimpleDateFormat("yyyy-MM-dd").parse("2000-01-01").getTime();
+        } catch (ParseException ex) {
+            LOGGER.log(Level.SEVERE, "Errow while caculationg time at 2000-01-01", ex);
+        }
+        TIME_AT_2000 = candidate;
+    }
+
+    /**
+     * Assume that the date is the number of second since the  first january 2000.
+     *
+     * @param myDouble
+     * @return
+     * @throws ParseException
+     */
+    private static Date dateFromDouble(double myDouble) throws ParseException {
+        long i = (long) (myDouble*1000);
+        long l = TIME_AT_2000 + i;
+        return new Date(l);
+    }
+
+    /**
+     * Build feature type from csv file headers.
+     *
+     * @param file csv file URI
+     * @param separator csv file separator
+     * @param charquote csv file quote character
+     * @param dateColumn the header of the expected date column
+     * @param longitudeColumn Name of the longitude column.
+     * @param latitudeColumn Name of the latitude column.
+     * @param measureColumns Names of the measure columns.
+     * @return
+     * @throws DataStoreException
+     * @throws java.io.IOException
+     */
+    public static FeatureType buildFeatureType(final URI file, final String mimeType, final char separator, final char charquote, final List<String> dateColumn,
+            final String longitudeColumn, final String latitudeColumn, final Set<String> measureColumns) throws DataStoreException, IOException {
+
+        // no possibility to open the file with the correct reader.
+        if (mimeType == null) {
+            return null;
+        }
+        /*
+        1- read file headers
+        ======================*/
+        try (final DataFileReader reader = FileParsingUtils.getDataFileReader(mimeType, Paths.get(file), separator, charquote)) {
+
+            final String[] fields = reader.getHeaders();
+            final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
+
+            /*
+            2- build feature type name and id fields
+            ======================================*/
+            final String path = file.toString();
+            final int slash = Math.max(0, path.lastIndexOf('/') + 1);
+            int dot = path.indexOf('.', slash);
+            if (dot < 0) {
+                dot = path.length();
+            }
+
+            ftb.setName(path.substring(slash, dot));
+            ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
+
+            /*
+            3- map fields to feature type attributes
+            ======================================*/
+            for (String field : fields) {
+                if (field.isEmpty()) continue;
+                if (charquote != 0) {
+                    if (field.charAt(0) == charquote) {
+                        field = field.substring(1);
+                    }
+                    if (field.charAt(field.length() -1) == charquote) {
+                        field = field.substring(0, field.length() -1);
+                    }
+                }
+                final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
+                atb.setName(NamesExt.create(field));
+
+                if (dateColumn.contains(field)     // i'm not sure about the list of date columns TODO
+               || (!measureColumns.contains(field)
+                && !field.equals(longitudeColumn)
+                && !field.equals(latitudeColumn))) {
+                    atb.setValueClass(String.class);
+                } else {
+                    atb.setValueClass(Double.class);
+                }
+            }
+
+            /*
+            4- build a geometry operation property from longitude/latitude fields
+            ===================================================================*/
+            if (latitudeColumn != null && longitudeColumn != null) {
+                ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
+
+                    @Override
+                    public ParameterDescriptorGroup getParameters() {
+                        return EMPTY_PARAMS;
+                    }
+
+                    @Override
+                    public IdentifiedType getResult() {
+                        return TYPE;
+                    }
+
+                    @Override
+                    public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
+
+                        final Attribute<Point> att = TYPE.newInstance();
+                        Point pt = GF.createPoint(
+                                new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
+                                        (Double) ftr.getPropertyValue(latitudeColumn)));
+                        JTS.setCRS(pt, CommonCRS.defaultGeographic());
+                        att.setValue(pt);
+                        return att;
+                    }
+                });
+            }
+            return ftb.build();
         }
     }
 }

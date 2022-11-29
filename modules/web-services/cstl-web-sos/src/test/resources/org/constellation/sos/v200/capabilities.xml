@@ -249,8 +249,8 @@
       <ows:Parameter name="eventTime">
         <ows:AllowedValues>
           <ows:Range>
-            <ows:MinimumValue>2009-05-01T11:47:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>1981-03-01T21:52:00.000Z</ows:MaximumValue>
+            <ows:MinimumValue>1980-03-01T20:52:00.000Z</ows:MinimumValue>
+            <ows:MaximumValue>2009-05-01T12:04:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -533,6 +533,7 @@
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -561,6 +562,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -584,6 +586,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -610,6 +613,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -637,6 +641,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -658,12 +663,13 @@
           </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-14">
-              <gml:beginPosition>2001-01-01</gml:beginPosition>
+              <gml:beginPosition>2000-12-01</gml:beginPosition>
               <gml:endPosition>2000-12-24</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -687,6 +693,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -714,6 +721,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -728,12 +736,13 @@
           <swes:observableProperty>temperature</swes:observableProperty>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-2">
-              <gml:beginPosition>2001-01-01</gml:beginPosition>
+              <gml:beginPosition>2000-12-01</gml:beginPosition>
               <gml:endPosition>2000-12-22</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -759,6 +768,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -784,6 +794,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -809,6 +820,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -820,6 +832,7 @@
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -838,6 +851,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -863,6 +877,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
       <swes:offering>
@@ -886,6 +901,7 @@
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
           <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
         </sos:ObservationOffering>
       </swes:offering>
     </sos:Contents>

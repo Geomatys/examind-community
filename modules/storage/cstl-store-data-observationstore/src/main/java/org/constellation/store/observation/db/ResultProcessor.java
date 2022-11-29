@@ -26,8 +26,8 @@ import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.getCsvTextEncoding;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
+import static org.geotoolkit.observation.model.TextEncoderProperties.CSV_ENCODING;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 
 /**
  *
@@ -54,13 +54,13 @@ public class ResultProcessor {
         if ("resultArray".equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
         } else if ("text/csv".equals(responseFormat)) {
-            values = new ResultBuilder(ResultMode.CSV, getCsvTextEncoding("2.0.0"), true);
+            values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
             // Add the header
             values.appendHeaders(fields);
         } else if (countRequest) {
             values = new ResultBuilder(ResultMode.COUNT, null, false);
         } else {
-            values = new ResultBuilder(ResultMode.CSV, getDefaultTextEncoding("2.0.0"), false);
+            values = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
         }
         return values;
     }

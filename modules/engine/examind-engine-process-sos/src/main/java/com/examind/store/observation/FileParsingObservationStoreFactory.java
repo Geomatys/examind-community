@@ -18,10 +18,8 @@
 */
 package com.examind.store.observation;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,36 +30,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import static org.apache.sis.feature.AbstractIdentifiedType.NAME_KEY;
-import org.apache.sis.feature.AbstractOperation;
 import org.apache.sis.feature.DefaultAttributeType;
-import org.apache.sis.feature.builder.AttributeTypeBuilder;
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.internal.storage.io.IOUtilities;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.data.csv.Bundle;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import org.geotoolkit.storage.ProviderOnFileSystem;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.StringUtilities;
-import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.Attribute;
 import org.opengis.feature.AttributeType;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureOperationException;
-import org.opengis.feature.FeatureType;
-import org.opengis.feature.IdentifiedType;
-import org.opengis.feature.Property;
 import org.opengis.metadata.Identifier;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
@@ -79,6 +65,18 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     protected static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
     protected static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
+
+    public static final ParameterDescriptor<URI> PATH = PARAM_BUILDER
+            .addName(LOCATION)
+            .setRequired(true)
+            .create(URI.class, null);
+
+    public static final ParameterDescriptor<Character> SEPARATOR = new ParameterBuilder()
+            .addName("separator")
+            .addName(Bundle.formatInternational(Bundle.Keys.paramSeparatorAlias))
+            .setRemarks(Bundle.formatInternational(Bundle.Keys.paramSeparatorRemarks))
+            .setRequired(false)
+            .create(Character.class, ';');
 
     public static final ParameterDescriptor<String> MAIN_COLUMN = PARAM_BUILDER
             .addName("main_column")
@@ -205,10 +203,10 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
-    public static final ParameterDescriptor<String> CHARQUOTE = PARAM_BUILDER
+    public static final ParameterDescriptor<Character> CHARQUOTE = PARAM_BUILDER
             .addName("char_quote")
             .setRequired(false)
-            .create(String.class, null);
+            .create(Character.class, null);
 
     public static final ParameterDescriptor<String> FILE_MIME_TYPE = PARAM_BUILDER
             .addName("file_mime_type")
@@ -267,114 +265,13 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     protected static final GeometryFactory GF = new GeometryFactory();
 
-    /**
-     * Build feature type from csv file headers.
-     *
-     * @param file csv file URI
-     * @param separator csv file separator
-     * @param charquote csv file quote character
-     * @param dateColumn the header of the expected date column
-     * @param longitudeColumn Name of the longitude column.
-     * @param latitudeColumn Name of the latitude column.
-     * @param measureColumns Names of the measure columns.
-     * @return
-     * @throws DataStoreException
-     * @throws java.io.IOException
-     */
-    protected FeatureType readType(final URI file, final String mimeType, final char separator, final char charquote, final List<String> dateColumn,
-            final String longitudeColumn, final String latitudeColumn, final Set<String> measureColumns) throws DataStoreException, IOException {
-
-        // no possibility to open the file with the correct reader.
-        if (mimeType == null) {
-            return null;
-        }
-        /*
-        1- read file headers
-        ======================*/
-        try (final DataFileReader reader = FileParsingUtils.getDataFileReader(mimeType, Paths.get(file), separator, charquote)) {
-
-            final String[] fields = reader.getHeaders();
-            final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
-
-            /*
-            2- build feature type name and id fields
-            ======================================*/
-            final String path = file.toString();
-            final int slash = Math.max(0, path.lastIndexOf('/') + 1);
-            int dot = path.indexOf('.', slash);
-            if (dot < 0) {
-                dot = path.length();
-            }
-
-            ftb.setName(path.substring(slash, dot));
-            ftb.addAttribute(Integer.class).setName(AttributeConvention.IDENTIFIER_PROPERTY);
-
-            /*
-            3- map fields to feature type attributes
-            ======================================*/
-            for (String field : fields) {
-                if (field.isEmpty()) continue;
-                if (charquote != 0) {
-                    if (field.charAt(0) == charquote) {
-                        field = field.substring(1);
-                    }
-                    if (field.charAt(field.length() -1) == charquote) {
-                        field = field.substring(0, field.length() -1);
-                    }
-                }
-                final AttributeTypeBuilder atb = ftb.addAttribute(Object.class);
-                atb.setName(NamesExt.create(field));
-
-                if (dateColumn.contains(field)     // i'm not sure about the list of date columns TODO
-               || (!measureColumns.contains(field)
-                && !field.equals(longitudeColumn)
-                && !field.equals(latitudeColumn))) {
-                    atb.setValueClass(String.class);
-                } else {
-                    atb.setValueClass(Double.class);
-                }
-            }
-
-            /*
-            4- build a geometry operation property from longitude/latitude fields
-            ===================================================================*/
-            if (latitudeColumn != null && longitudeColumn != null) {
-                ftb.addProperty(new AbstractOperation(Collections.singletonMap(DefaultAttributeType.NAME_KEY, AttributeConvention.GEOMETRY_PROPERTY)) {
-
-                    @Override
-                    public ParameterDescriptorGroup getParameters() {
-                        return EMPTY_PARAMS;
-                    }
-
-                    @Override
-                    public IdentifiedType getResult() {
-                        return TYPE;
-                    }
-
-                    @Override
-                    public Property apply(final Feature ftr, final ParameterValueGroup pvg) throws FeatureOperationException {
-
-                        final Attribute<Point> att = TYPE.newInstance();
-                        Point pt = GF.createPoint(
-                                new Coordinate((Double) ftr.getPropertyValue(longitudeColumn),
-                                        (Double) ftr.getPropertyValue(latitudeColumn)));
-                        JTS.setCRS(pt, CommonCRS.defaultGeographic());
-                        att.setValue(pt);
-                        return att;
-                    }
-                });
-            }
-            return ftb.build();
-        }
-    }
-
-    protected static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
+    public static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
         final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
         return paramValues.getValue() == null ?
                 new HashSet<>() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
     }
 
-    protected static List<String> getMultipleValuesList(final ParameterValueGroup params, final String descCode) {
+    public static List<String> getMultipleValuesList(final ParameterValueGroup params, final String descCode) {
         final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
         return paramValues.getValue() == null ?
                 new ArrayList<>() : StringUtilities.toStringList(paramValues.getValue());

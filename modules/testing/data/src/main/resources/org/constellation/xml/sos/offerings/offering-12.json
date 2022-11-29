@@ -1,0 +1,20 @@
+{
+    "id": "offering-12",
+    "name": "offering-12",
+    "properties": {},
+    "time": {
+        "id": "552eb800-7a65-425d-8582-08fdfbb43370-time",
+        "beginning": {
+            "id": "6c795467-ee62-455d-a4fe-20a594158de1-time",
+            "date": "2000-12-01T00:00:00.0Z"
+        },
+        "ending": {
+            "id": "f1f6a173-bd82-4ac4-b765-5dca8bc3f3dd-time",
+            "date": "2000-12-22T00:00:00.0Z"
+        }
+    },
+    "srsNames": [],
+    "procedure": "urn:ogc:object:sensor:GEOM:12",
+    "featureOfInterestIds": ["station-001"],
+    "observedProperties": ["aggregatePhenomenon-2", "depth", "salinity", "temperature"]
+}

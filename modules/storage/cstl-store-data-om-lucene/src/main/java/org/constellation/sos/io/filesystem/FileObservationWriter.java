@@ -19,23 +19,11 @@
 
 package org.constellation.sos.io.filesystem;
 
-// J2SE dependencies
-
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.sos.io.lucene.LuceneObservationIndexer;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.observation.model.ObservationTemplate;
-import org.opengis.observation.Observation;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -44,70 +32,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.nio.file.StandardOpenOption.*;
-import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.geotoolkit.nio.IOUtilities;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.opengis.metadata.Identifier;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.locationtech.jts.geom.Geometry;
 
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class FileObservationWriter implements ObservationWriter {
-
-    private Path offeringDirectory;
-
-    private Path phenomenonDirectory;
-
-    private Path observationDirectory;
-
-    private Path observationTemplateDirectory;
-
-    //private File sensorDirectory;
-
-    private Path foiDirectory;
-
-    //private File resultDirectory;
-
-    private static final MarshallerPool MARSHALLER_POOL;
-    static {
-        MARSHALLER_POOL = SOSMarshallerPool.getInstance();
-    }
+public class FileObservationWriter extends FileObservationHandler implements ObservationWriter {
 
     private LuceneObservationIndexer indexer;
 
     private final String observationTemplateIdBase;
 
-    private final String observationIdBase;
-
-    private static final String FILE_EXTENSION = ".xml";
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.filesystem");
-
     public FileObservationWriter(final Path dataDirectory, final Path configDirectory, final Map<String, Object> properties) throws DataStoreException {
-        super();
+        super(dataDirectory, properties);
         this.observationTemplateIdBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
-        this.observationIdBase         = (String) properties.get(OBSERVATION_ID_BASE_NAME);
-        if (Files.exists(dataDirectory)) {
-            offeringDirectory    = dataDirectory.resolve("offerings");
-            phenomenonDirectory  = dataDirectory.resolve("phenomenons");
-            observationDirectory = dataDirectory.resolve("observations");
-            //sensorDirectory      = dataDirectory.resolve("sensors");
-            foiDirectory         = dataDirectory.resolve("features");
-            //resultDirectory      = dataDirectory.resolve("results");
-            observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
-
-        }
-        if (MARSHALLER_POOL == null) {
-            throw new DataStoreException("JAXB exception while initializing the file observation reader");
-        }
+        
         try {
             indexer        = new LuceneObservationIndexer(dataDirectory, configDirectory, "", true);
         } catch (IndexingException ex) {
@@ -115,38 +65,23 @@ public class FileObservationWriter implements ObservationWriter {
         }
     }
 
-    @Override
-    public String writeObservationTemplate(final ObservationTemplate template) throws DataStoreException {
-        String version = getVersionFromObj(template.getObservation());
-        final Observation observation = template.getObservation();
-        if (observation == null) {
-            return null;
-        }
-        Path obsTDir = observationTemplateDirectory.resolve(version);
-        String fileName = observation.getName().getCode().replace(':', 'µ');
-        final Path observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
-        return writeObservationToFile(observation, observationFile);
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override
     public String writeObservation(final Observation observation) throws DataStoreException {
-        String version = getVersionFromObj(observation);
-        final Path observationFile;
-        if (observation instanceof AbstractObservation && observation.getName() == null) {
-            ((AbstractObservation)observation).setName(getNewObservationId(version));
+        if (observation.getName() == null) {
+            observation.setName(getNewObservationId());
         }
         String fileName = observation.getName().getCode().replace(':', 'µ');
+        final Path observationFile;
         if (observation.getName().getCode().startsWith(observationTemplateIdBase)) {
-            Path obsTDir = observationTemplateDirectory.resolve(version);
-            observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
+            observationFile = observationTemplateDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         } else {
-            Path obsDir = observationDirectory.resolve(version);
-            observationFile = obsDir.resolve(fileName + FILE_EXTENSION);
+            observationFile = observationDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         }
-        return writeObservationToFile(observation, observationFile);
+        writeObservationToFile(observation, observationFile);
+        return observation.getName().getCode();
     }
 
     private String writeObservationToFile(Observation observation, Path observationFile) throws DataStoreException {
@@ -161,51 +96,36 @@ public class FileObservationWriter implements ObservationWriter {
         }
 
         try (OutputStream os = Files.newOutputStream(observationFile, CREATE, WRITE, TRUNCATE_EXISTING)) {
-            final Marshaller marshaller = MARSHALLER_POOL.acquireMarshaller();
-            marshaller.marshal(observation, os);
-            MARSHALLER_POOL.recycle(marshaller);
 
-            writePhenomenon((Phenomenon) observation.getObservedProperty());
+            mapper.writeValue(os, observation);
+
+            writePhenomenon(observation.getObservedProperty());
             if (observation.getFeatureOfInterest() != null) {
-                writeFeatureOfInterest((SamplingFeature) observation.getFeatureOfInterest());
+                writeFeatureOfInterest(observation.getFeatureOfInterest());
             }
             indexer.indexDocument(observation);
             return observation.getName().getCode();
-        } catch (JAXBException | IOException ex) {
-            throw new DataStoreException("Exception while marshalling the observation file.", ex);
+        } catch (IOException ex) {
+            throw new DataStoreException("Exception while writing the observation file.", ex);
         }
     }
 
-    private Identifier getNewObservationId(String version) throws DataStoreException {
+    private String getNewObservationId() throws DataStoreException {
         String obsID = null;
         boolean exist = true;
         try {
-            Path obsDir = observationDirectory.resolve(version);
-            long i = IOUtilities.listChildren(obsDir).size();
+            long i = IOUtilities.listChildren(observationDirectory).size();
             while (exist) {
                 obsID = observationIdBase + i;
                 String fileName = obsID.replace(':', 'µ');
-                final Path newFile = obsDir.resolve(fileName);
+                final Path newFile = observationDirectory.resolve(fileName);
                 exist = Files.exists(newFile);
                 i++;
             }
-            return new DefaultIdentifier(obsID);
+            return obsID;
         } catch (IOException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
-    }
-
-    private String getVersionFromObj(Object obs) {
-        if (obs instanceof org.geotoolkit.observation.xml.v200.OMObservationType) {
-            return "2.0.0";
-        }
-        if (obs instanceof org.geotoolkit.swes.xml.v200.AbstractOfferingType) {
-            return "2.0.0";
-        }
-        if (obs instanceof org.geotoolkit.samplingspatial.xml.v200.SFSpatialSamplingFeatureType) {
-            return "2.0.0";
-        }
-        return "1.0.0";
     }
 
     /**
@@ -223,19 +143,15 @@ public class FileObservationWriter implements ObservationWriter {
 
     @Override
     public void removeObservation(final String observationID) throws DataStoreException {
-        final Path observationFileV100;
-        final Path observationFileV200;
+        final Path observationFile;
         String fileName = observationID.replace(':', 'µ');
         if (observationID.startsWith(observationTemplateIdBase)) {
-            observationFileV100 = observationTemplateDirectory.resolve("1.0.0").resolve(fileName + FILE_EXTENSION);
-            observationFileV200 = observationTemplateDirectory.resolve("2.0.0").resolve(fileName + FILE_EXTENSION);
+            observationFile = observationTemplateDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         } else {
-            observationFileV100 = observationDirectory.resolve("1.0.0").resolve(fileName + FILE_EXTENSION);
-            observationFileV200 = observationDirectory.resolve("2.0.0").resolve(fileName + FILE_EXTENSION);
+            observationFile = observationDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         }
         try {
-            Files.deleteIfExists(observationFileV100);
-            Files.deleteIfExists(observationFileV200);
+            Files.deleteIfExists(observationFile);
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "unable to find the file to delete observation: "+ observationID, e);
         }
@@ -251,20 +167,16 @@ public class FileObservationWriter implements ObservationWriter {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
-    private void writeObject(Path target, Object object, String objectType) throws DataStoreException {
-
+    private void writeJsonObject(Path target, Object object, String objectType) throws DataStoreException {
         try (OutputStream outputStream = Files.newOutputStream(target, CREATE, WRITE, TRUNCATE_EXISTING)) {
-            final Marshaller marshaller = MARSHALLER_POOL.acquireMarshaller();
-            marshaller.marshal(object, outputStream);
-            MARSHALLER_POOL.recycle(marshaller);
-        } catch (JAXBException ex) {
-            throw new DataStoreException("JAXB exception while marshalling the "+objectType+" file.", ex);
+            mapper.writeValue(outputStream, object);
         } catch (IOException ex) {
             throw new DataStoreException("IO exception while marshalling the "+objectType+" file.", ex);
         }
     }
 
     private void writePhenomenon(final Phenomenon phenomenon) throws DataStoreException {
+        if (phenomenon == null) return;
         try {
             if (!Files.exists(phenomenonDirectory)) {
                 Files.createDirectories(phenomenonDirectory);
@@ -273,13 +185,14 @@ public class FileObservationWriter implements ObservationWriter {
             throw new DataStoreException("IO exception creating phenomenon directory  "+phenomenonDirectory.toString(), ex);
         }
         String fileName = phenomenon.getId().replace(':', 'µ');
-        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
+        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         if (!Files.exists(phenomenonFile)) {
-            writeObject(phenomenonFile, phenomenon, "phenomenon");
+            writeJsonObject(phenomenonFile, phenomenon, "phenomenon");
         }
     }
 
     private void writeFeatureOfInterest(final SamplingFeature foi) throws DataStoreException {
+        if (foi == null) return;
         try {
             if (!Files.exists(foiDirectory)) {
                 Files.createDirectories(foiDirectory);
@@ -287,11 +200,9 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating foi directory  "+foiDirectory.toString(), ex);
         }
-        String version = getVersionFromObj(foi);
-        final Path foiDir = foiDirectory.resolve(version);
         String fileName = foi.getId().replace(':', 'µ');
-        final Path foiFile = foiDir.resolve(fileName + FILE_EXTENSION);
-        writeObject(foiFile, foi, "foi");
+        final Path foiFile = foiDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
+        writeJsonObject(foiFile, foi, "foi");
     }
 
 
@@ -299,7 +210,7 @@ public class FileObservationWriter implements ObservationWriter {
      * {@inheritDoc}
      */
     @Override
-    public void writePhenomenons(final List<org.opengis.observation.Phenomenon> phenomenons) throws DataStoreException {
+    public void writePhenomenons(final List<Phenomenon> phenomenons) throws DataStoreException {
         for (org.opengis.observation.Phenomenon phenomenon : phenomenons)  {
             if (phenomenon instanceof Phenomenon phen) {
                 writePhenomenon(phen);
@@ -313,7 +224,8 @@ public class FileObservationWriter implements ObservationWriter {
      * {@inheritDoc}
      */
     @Override
-    public String writeOffering(final ObservationOffering offering) throws DataStoreException {
+    public void writeOffering(final Offering offering) throws DataStoreException {
+        if (offering == null) return;
         try {
             if (!Files.exists(offeringDirectory)) {
                 Files.createDirectories(offeringDirectory);
@@ -321,40 +233,21 @@ public class FileObservationWriter implements ObservationWriter {
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating offering directory  "+offeringDirectory.toString(), ex);
         }
-        String version = getVersionFromObj(offering);
-        final Path offDir = offeringDirectory.resolve(version);
         String fileName = offering.getId().replace(':', 'µ');
-        final Path offeringFile = offDir.resolve(fileName + FILE_EXTENSION);
-        writeObject(offeringFile, offering, "foi");
-        return offering.getId();
+        final Path offeringFile = offeringDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
+        writeJsonObject(offeringFile, offering, "offering");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void updateOffering(final String offeringID, final String offProc, final List<String> offPheno, final String offSF) throws DataStoreException {
-        // TODO
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void updateOfferings() {
-        //do nothing
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void recordProcedureLocation(final String physicalID, final AbstractGeometry position) throws DataStoreException {
+    public void recordProcedureLocation(final String physicalID, final Geometry position) throws DataStoreException {
         // do nothing
     }
 
     @Override
-    public void writeProcedure(ExtractionResult.ProcedureTree procedure) throws DataStoreException {
+    public void writeProcedure(ProcedureDataset procedure) throws DataStoreException {
         // do nothing
     }
 

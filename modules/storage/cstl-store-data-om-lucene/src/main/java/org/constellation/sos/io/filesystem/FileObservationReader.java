@@ -21,23 +21,12 @@ package org.constellation.sos.io.filesystem;
 
 
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.opengis.observation.Observation;
-import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalPrimitive;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,74 +38,30 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
-import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Result;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class FileObservationReader implements ObservationReader {
-
-     /**
-     * use for debugging purpose
-     */
-    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.filesystem");
-
-    /**
-     * The base for observation id.
-     */
-    protected final String observationIdBase;
-
-    protected final String phenomenonIdBase;
-
-    private Path offeringDirectory;
-
-    private Path phenomenonDirectory;
-
-    private Path observationDirectory;
-
-    private Path observationTemplateDirectory;
-
-    private Path sensorDirectory;
-
-    private Path foiDirectory;
-
-    private static final MarshallerPool MARSHALLER_POOL;
-    static {
-        MARSHALLER_POOL = SOSMarshallerPool.getInstance();
-    }
-
-    private static final String FILE_EXTENSION = ".xml";
+public class FileObservationReader extends FileObservationHandler implements ObservationReader {
 
     public FileObservationReader(final Automatic configuration, final Map<String, Object> properties) throws DataStoreException {
         this(configuration.getDataDirectory(), properties);
     }
 
     public FileObservationReader(final Path dataDirectory, final Map<String, Object> properties) throws DataStoreException {
-        this.observationIdBase = (String) properties.get(OBSERVATION_ID_BASE_NAME);
-        this.phenomenonIdBase  = (String) properties.get(PHENOMENON_ID_BASE_NAME);
-        if (Files.isDirectory(dataDirectory)) {
-            offeringDirectory            = dataDirectory.resolve("offerings");
-            phenomenonDirectory          = dataDirectory.resolve("phenomenons");
-            observationDirectory         = dataDirectory.resolve("observations");
-            observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
-            sensorDirectory              = dataDirectory.resolve("sensors");
-            foiDirectory                 = dataDirectory.resolve("features");
-        } else {
-            throw new DataStoreException("There is no data Directory");
-        }
-        if (MARSHALLER_POOL == null) {
-            throw new DataStoreException("JAXB exception while initializing the file observation reader");
-        }
+        super(dataDirectory, properties);
 
     }
 
@@ -130,37 +75,35 @@ public class FileObservationReader implements ObservationReader {
             throw new DataStoreException("Missing entity type parameter");
         }
         String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
-            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames(version);
-            case OBSERVED_PROPERTY:   return getPhenomenonNames();
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestIds();
+            case OBSERVED_PROPERTY:   return getPhenomenonIds();
             case PROCEDURE:           return getProcedureNames(sensorType);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(version, sensorType);
+            case OFFERING:            return getOfferingNames(sensorType);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    private Collection<String> getOfferingNames(String version, String sensorType) throws DataStoreException {
-        version = version == null ? "2.0.0" : version;
+    private Collection<String> getOfferingNames(String sensorType) throws DataStoreException {
         // TODO filter on sensor type
         final List<String> offeringNames = new ArrayList<>();
         if (Files.isDirectory(offeringDirectory)) {
-            final Path offeringVersionDir = offeringDirectory.resolve(version);
-            if (Files.isDirectory(offeringVersionDir)) {
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(offeringVersionDir)) {
-                    for (Path offeringFile : stream) {
-                        String offeringName = offeringFile.getFileName().toString();
-                        offeringName = offeringName.replace('µ', ':');
-                        offeringName = offeringName.substring(0, offeringName.indexOf(FILE_EXTENSION));
-                        offeringNames.add(offeringName);
-                    }
-                } catch (IOException e) {
-                    throw new DataStoreException(e.getMessage(), e);
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(offeringDirectory)) {
+                for (Path offeringFile : stream) {
+
+                    String ext = IOUtilities.extension(offeringFile);
+                    if (!ext.equals(FILE_EXTENSION_JS)) continue;
+
+                    String offeringName = IOUtilities.filenameWithoutExtension(offeringFile);
+                    offeringName = offeringName.replace('µ', ':');
+                    offeringNames.add(offeringName);
                 }
+            } catch (IOException e) {
+                throw new DataStoreException(e.getMessage(), e);
             }
         }
         return offeringNames;
@@ -177,14 +120,13 @@ public class FileObservationReader implements ObservationReader {
         }
         String identifier   = (String) hints.get(IDENTIFIER);
         String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
         switch (entityType) {
-            case FEATURE_OF_INTEREST: return getFeatureOfInterestNames(version).contains(identifier);
+            case FEATURE_OF_INTEREST: return getFeatureOfInterestIds().contains(identifier);
             case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(version, sensorType).contains(identifier);
+            case OFFERING:            return getOfferingNames(sensorType).contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
@@ -195,9 +137,8 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationOffering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
+    public List<Offering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
         String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
         Object identifierVal = hints.get(IDENTIFIER);
         List<String> identifiers = new ArrayList<>();
         if (identifierVal instanceof Collection) {
@@ -205,11 +146,11 @@ public class FileObservationReader implements ObservationReader {
         } else if (identifierVal instanceof String) {
             identifiers.add((String) identifierVal);
         } else if (identifierVal == null) {
-            identifiers.addAll(getOfferingNames(version, sensorType));
+            identifiers.addAll(getOfferingNames(sensorType));
         }
-        final List<ObservationOffering> offerings = new ArrayList<>();
+        final List<Offering> offerings = new ArrayList<>();
         for (String offeringName : identifiers) {
-            ObservationOffering off = getObservationOffering(offeringName, version);
+            Offering off = getObservationOffering(offeringName);
             if (off != null) {
                 offerings.add(off);
             }
@@ -217,29 +158,17 @@ public class FileObservationReader implements ObservationReader {
         return offerings;
     }
 
-    private ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
-        final Path offeringVersionDir = offeringDirectory.resolve(version);
-        if (Files.isDirectory(offeringVersionDir)) {
-            String fileName = offeringName.replace(':', 'µ');
-            final Path offeringFile = offeringVersionDir.resolve(fileName + FILE_EXTENSION);
+    private Offering getObservationOffering(final String offeringId) throws DataStoreException {
+        if (Files.isDirectory(offeringDirectory)) {
+            String fileName = offeringId.replace(':', 'µ');
+            final Path offeringFile = offeringDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
             if (Files.exists(offeringFile)) {
                 try (InputStream is = Files.newInputStream(offeringFile)) {
-                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                    Object obj = unmarshaller.unmarshal(is);
-                    MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement jb) {
-                        obj = jb.getValue();
-                    }
-                    if (obj instanceof ObservationOffering off) {
-                        return off;
-                    }
-                    throw new DataStoreException("The file " + offeringFile + " does not contains an offering Object.");
-                } catch (JAXBException | IOException ex) {
-                    throw new DataStoreException("Unable to unmarshall The file " + offeringFile, ex);
+                    return mapper.readValue(is, Offering.class);
+                } catch (IOException ex) {
+                    throw new DataStoreException("Unable to read the file " + offeringFile, ex);
                 }
             }
-        } else {
-            throw new DataStoreException("Unsuported version:" + version);
         }
         return null;
     }
@@ -250,9 +179,8 @@ public class FileObservationReader implements ObservationReader {
         if (Files.isDirectory(sensorDirectory)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sensorDirectory)) {
                 for (Path sensorFile : stream) {
-                    String sensorName = sensorFile.getFileName().toString();
+                    String sensorName = IOUtilities.filenameWithoutExtension(sensorFile);
                     sensorName = sensorName.replace('µ', ':');
-                    sensorName = sensorName.substring(0, sensorName.indexOf(FILE_EXTENSION));
                     sensorNames.add(sensorName);
                 }
             } catch (IOException e) {
@@ -262,15 +190,17 @@ public class FileObservationReader implements ObservationReader {
         return sensorNames;
     }
 
-    private Collection<String> getPhenomenonNames() throws DataStoreException {
+    private Collection<String> getPhenomenonIds() throws DataStoreException {
         final List<String> phenomenonNames = new ArrayList<>();
         if (Files.isDirectory(phenomenonDirectory)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(phenomenonDirectory)) {
                 for (Path phenomenonFile : stream) {
-                    String phenomenonName = phenomenonFile.getFileName().toString();
-                    phenomenonName = phenomenonName.replace('µ', ':');
-                    phenomenonName = phenomenonName.substring(0, phenomenonName.indexOf(FILE_EXTENSION));
-                    phenomenonNames.add(phenomenonName);
+                    String ext = IOUtilities.extension(phenomenonFile);
+                    if (!ext.equals(FILE_EXTENSION_JS)) continue;
+
+                    String phenId = IOUtilities.filenameWithoutExtension(phenomenonFile);
+                    phenId = phenId.replace('µ', ':');
+                    phenomenonNames.add(phenId);
                 }
             } catch (IOException e) {
                 throw new DataStoreException("Error during phenomenon directory scanning", e);
@@ -280,34 +210,21 @@ public class FileObservationReader implements ObservationReader {
     }
 
     @Override
-    public Collection<Phenomenon> getPhenomenons(final Map<String, Object> hints) throws DataStoreException {
-        String version       = (String) hints.get(SOS_VERSION);
-        Object identifierVal = hints.get(IDENTIFIER);
-        List<String> identifiers = new ArrayList<>();
-        if (identifierVal instanceof Collection) {
-            identifiers.addAll((Collection<? extends String>) identifierVal);
-        } else if (identifierVal instanceof String) {
-            identifiers.add((String) identifierVal);
-        } 
-        final List<Phenomenon> results = new ArrayList<>();
+    public Phenomenon getPhenomenon(String identifier) throws DataStoreException {
         if (Files.isDirectory(phenomenonDirectory)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(phenomenonDirectory)) {
                 for (Path phenomenonFile : stream) {
                     String fileName = IOUtilities.filenameWithoutExtension(phenomenonFile);
                     fileName = fileName.replace('µ', ':');
-                    if (identifiers.isEmpty() || identifiers.contains(fileName)) {
+                    // we remove the phenomenon id base
+                    if (identifier.contains(phenomenonIdBase)) {
+                        identifier = identifier.replace(phenomenonIdBase, "");
+                    }
+                    if (identifier.equals(fileName)) {
                         try (InputStream is = Files.newInputStream(phenomenonFile)) {
-                            final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                            Object obj = unmarshaller.unmarshal(is);
-                            MARSHALLER_POOL.recycle(unmarshaller);
-                            if (obj instanceof JAXBElement jb) {
-                                obj = jb.getValue();
-                            }
-                            if (obj instanceof Phenomenon phen) {
-                                results.add(phen);
-                            }
-                        } catch (IOException | JAXBException e) {
-                            throw new DataStoreException("Error during phenomenon umarshalling", e);
+                            return mapper.readValue(is, Phenomenon.class);
+                        } catch (IOException e) {
+                            throw new DataStoreException("Error during phenomenon reading", e);
                         }
                     }
                 }
@@ -315,43 +232,39 @@ public class FileObservationReader implements ObservationReader {
                 throw new DataStoreException("Error during phenomenon directory scanning", e);
             }
         }
-        return results;
+        return null;
     }
 
     @Override
-    public Process getProcess(String identifier, String version) throws DataStoreException {
-        return SOSXmlFactory.buildProcess(version, identifier);
+    public Procedure getProcess(String identifier) throws DataStoreException {
+        // todo from file
+        return new Procedure(identifier);
     }
 
-    private boolean existPhenomenon(String phenomenonName) throws DataStoreException {
-        if (phenomenonName.equals(phenomenonIdBase + "ALL")) {
-            return true;
-        }
+    private boolean existPhenomenon(String phenomenoniId) throws DataStoreException {
         // we remove the phenomenon id base
-        if (phenomenonName.contains(phenomenonIdBase)) {
-            phenomenonName = phenomenonName.replace(phenomenonIdBase, "");
+        if (phenomenoniId.contains(phenomenonIdBase)) {
+            phenomenoniId = phenomenoniId.replace(phenomenonIdBase, "");
         }
-        String fileName = phenomenonName.replace(':', 'µ');
-        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + FILE_EXTENSION);
+        String fileName = phenomenoniId.replace(':', 'µ');
+        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         return Files.exists(phenomenonFile);
     }
 
-    private Collection<String> getFeatureOfInterestNames(String version) throws DataStoreException {
-        version = version == null ? "2.0.0" : version;
+    private Collection<String> getFeatureOfInterestIds() throws DataStoreException {
         final List<String> foiNames = new ArrayList<>();
         if (Files.isDirectory(foiDirectory)) {
-            Path dir = foiDirectory.resolve(version);
-            if (Files.isDirectory(dir)) {
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-                    for (Path foiFile : stream) {
-                        String foiName = foiFile.getFileName().toString();
-                        foiName = foiName.replace('µ', ':');
-                        foiName = foiName.substring(0, foiName.indexOf(FILE_EXTENSION));
-                        foiNames.add(foiName);
-                    }
-                } catch (IOException e) {
-                    throw new DataStoreException("Error during foi directory scanning", e);
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(foiDirectory)) {
+                for (Path foiFile : stream) {
+                    String ext = IOUtilities.extension(foiFile);
+                    if (!ext.equals(FILE_EXTENSION_JS)) continue;
+
+                    String foiName = IOUtilities.filenameWithoutExtension(foiFile);
+                    foiName = foiName.replace('µ', ':');
+                    foiNames.add(foiName);
                 }
+            } catch (IOException e) {
+                throw new DataStoreException("Error during foi directory scanning", e);
             }
         }
         return foiNames;
@@ -361,25 +274,13 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public SamplingFeature getFeatureOfInterest(final String samplingFeatureName, final String version) throws DataStoreException {
-        String fileName = samplingFeatureName.replace(':', 'µ');
-        Path foiVersDirectory = foiDirectory.resolve(version);
-        if (Files.isDirectory(foiVersDirectory)) {
-            final Path samplingFeatureFile = foiVersDirectory.resolve(fileName + FILE_EXTENSION);
+    public SamplingFeature getFeatureOfInterest(final String samplingFeatureId) throws DataStoreException {
+        String fileName = samplingFeatureId.replace(':', 'µ');
+        if (Files.isDirectory(foiDirectory)) {
+            final Path samplingFeatureFile = foiDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
             if (Files.exists(samplingFeatureFile)) {
                 try (InputStream is = Files.newInputStream(samplingFeatureFile)) {
-                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                    Object obj = unmarshaller.unmarshal(is);
-                    MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement jb) {
-                        obj = jb.getValue();
-                    }
-                    if (obj instanceof SamplingFeature sf) {
-                        return sf;
-                    }
-                    throw new DataStoreException("The file " + samplingFeatureFile + " does not contains an foi Object.");
-                } catch (JAXBException ex) {
-                    throw new DataStoreException("Unable to unmarshall The file " + samplingFeatureFile, ex);
+                    return mapper.readValue(is, SamplingFeature.class);
                 } catch (IOException ex) {
                     throw new DataStoreException("Unable to read The file " + samplingFeatureFile, ex);
                 }
@@ -392,70 +293,51 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public Observation getObservation(final String identifier, final QName resultModel, final ResponseModeType mode, final String version) throws DataStoreException {
-        Path obsDir  = observationDirectory.resolve(version);
-        Path obsTDir = observationTemplateDirectory.resolve(version);
-        if (Files.isDirectory(obsDir)) {
+    public Observation getObservation(final String identifier, final QName resultModel, final ResponseMode mode) throws DataStoreException {
+        Path directory;
+        if (mode == ResponseMode.INLINE) {
+            directory = observationDirectory;
+        } else if (mode == ResponseMode.RESULT_TEMPLATE) {
+            directory = observationTemplateDirectory;
+        } else {
+            throw new DataStoreException("Unsupported responde mode: " + mode);
+        }
+
+        if (Files.isDirectory(directory)) {
             String fileName = identifier.replace(':', 'µ');
-            Path observationFile = obsDir.resolve(fileName + FILE_EXTENSION);
-            if (!Files.exists(observationFile)) {
-                observationFile = obsTDir.resolve(fileName + FILE_EXTENSION);
-            }
+            Path observationFile = directory.resolve(fileName + '.' + FILE_EXTENSION_JS);
             if (Files.exists(observationFile)) {
                 try (InputStream is = Files.newInputStream(observationFile)) {
-                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                    Object obj = unmarshaller.unmarshal(is);
-                    MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement jb) {
-                        obj = jb.getValue();
-                    }
-                    if (obj instanceof Observation obs) {
-                        return obs;
-                    }
-                    throw new DataStoreException("The file " + observationFile + " does not contains an observation Object.");
-                } catch (JAXBException ex) {
-                    throw new DataStoreException("Unable to unmarshall The file " + observationFile, ex);
+                    return mapper.readValue(is, Observation.class);
                 } catch (IOException ex) {
                     throw new DataStoreException("Unable to read The file " + observationFile, ex);
                 }
             }
             throw new DataStoreException("The file " + observationFile + " does not exist");
         }
-        throw new DataStoreException("The directory " + obsDir + " does not exist");
+        throw new DataStoreException("The directory " + observationDirectory + " does not exist");
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Object getResult(final String identifier, final QName resultModel, final String version) throws DataStoreException {
-        Path obsDir = observationDirectory.resolve(version);
-        if (Files.isDirectory(obsDir)) {
+    public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
+        if (Files.isDirectory(observationDirectory)) {
             String fileName = identifier.replace(':', 'µ');
-            final Path anyResultFile = obsDir.resolve(fileName + FILE_EXTENSION);
+            final Path anyResultFile = observationDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
             if (Files.exists(anyResultFile)) {
 
                 try (InputStream is = Files.newInputStream(anyResultFile)) {
-                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                    Object obj = unmarshaller.unmarshal(is);
-                    MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement jb) {
-                        obj = jb.getValue();
-                    }
-                    if (obj instanceof Observation obs) {
-                        final DataArrayProperty arrayP = (DataArrayProperty) obs.getResult();
-                        return arrayP.getDataArray();
-                    }
-                    throw new DataStoreException("The file " + anyResultFile + " does not contains an observation Object.");
-                } catch (JAXBException ex) {
-                    throw new DataStoreException("Unable to unmarshall The file " + anyResultFile, ex);
+                    Observation obs = mapper.readValue(is, Observation.class);
+                    return  obs.getResult();
                 } catch (IOException ex) {
                     throw new DataStoreException("Unable to read The file " + anyResultFile, ex);
                 }
             }
             throw new DataStoreException("The file " + anyResultFile + " does not exist");
         }
-        throw new DataStoreException("The directory " + obsDir + " does not exist");
+        throw new DataStoreException("The directory " + observationDirectory + " does not exist");
     }
 
     /**
@@ -466,9 +348,8 @@ public class FileObservationReader implements ObservationReader {
 
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(sensorDirectory)) {
                 for (Path sensorFile : stream) {
-                    String sensorName = sensorFile.getFileName().toString();
+                    String sensorName = IOUtilities.filenameWithoutExtension(sensorFile);
                     sensorName = sensorName.replace('µ', ':');
-                    sensorName = sensorName.substring(0, sensorName.indexOf(FILE_EXTENSION));
                     if (sensorName.equals(href)) {
                         return true;
                     }
@@ -484,7 +365,7 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getEventTime(String version) throws DataStoreException {
+    public TemporalPrimitive getEventTime() throws DataStoreException {
         return null;
     }
 
@@ -492,7 +373,7 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName, final String version) throws DataStoreException {
+    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
         throw new DataStoreException("The Filesystem implementation of SOS does not support GetFeatureofInterestTime");
     }
 
@@ -508,7 +389,7 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public AbstractGeometry getSensorLocation(String sensorID, String version) throws DataStoreException {
+    public Geometry getSensorLocation(String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
@@ -516,7 +397,7 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
+    public Map<Date, Geometry> getSensorLocations(String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
@@ -524,32 +405,22 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws DataStoreException {
+    public TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
     @Override
-    public Observation getTemplateForProcedure(String procedure, String version) throws DataStoreException {
-        Path obsTDir = observationTemplateDirectory.resolve(version);
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(obsTDir)) {
+    public Observation getTemplateForProcedure(String procedure) throws DataStoreException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(observationTemplateDirectory)) {
             for (Path templateFile : stream) {
-                try (InputStream is = Files.newInputStream(templateFile)){
-                    final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
-                    Object obj = unmarshaller.unmarshal(is);
-                    MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement jb) {
-                        obj = jb.getValue();
+                String ext = IOUtilities.extension(templateFile);
+                if (!ext.equals(FILE_EXTENSION_JS)) continue;
+                try (InputStream is = Files.newInputStream(templateFile)) {
+                    Observation obs = mapper.readValue(is, Observation.class);
+                    final String processID = obs.getProcedure().getId();
+                    if (processID.equals(procedure)) {
+                        return obs;
                     }
-                    if (obj instanceof Observation obs) {
-                        if (obs.getProcedure() instanceof org.geotoolkit.observation.xml.Process proc) {
-                            final String processID = proc.getHref();
-                            if (processID.equals(procedure)) {
-                                return obs;
-                            }
-                        }
-                    }
-                } catch (JAXBException ex) {
-                    throw new DataStoreException("Unable to unmarshall The file " + templateFile, ex);
                 } catch (IOException ex) {
                     throw new DataStoreException("Unable to read The file " + templateFile, ex);
                 }

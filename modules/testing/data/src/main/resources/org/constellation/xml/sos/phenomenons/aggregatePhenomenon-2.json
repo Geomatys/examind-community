@@ -1,0 +1,22 @@
+{
+    "id": "aggregatePhenomenon-2",
+    "name": "aggregatePhenomenon-2",
+    "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
+    "description": "the aggregation of temperature depth, and salinity phenomenons",
+    "component": [{
+            "id": "depth",
+            "name": "depth",
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+            "description": "the depth in water"
+        }, {
+            "id": "temperature",
+            "name": "temperature",
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+            "description": "the temperature in celcius degree"
+        }, {
+            "id": "salinity",
+            "name": "salinity",
+            "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
+            "description": "the salinity in water"
+        }]
+}

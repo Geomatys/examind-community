@@ -25,10 +25,8 @@ import org.constellation.dto.service.config.generic.From;
 import org.constellation.dto.service.config.generic.Query;
 import org.constellation.dto.service.config.generic.Select;
 import org.constellation.dto.service.config.generic.Where;
-import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ResponseModeType;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -41,7 +39,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,31 +49,28 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
-import org.constellation.sos.ws.DatablockParser;
-import static org.constellation.sos.ws.DatablockParser.getResultValues;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationReader;
-import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
-import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import static org.geotoolkit.observation.OMUtils.*;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.ogc.xml.v200.TimeAfterType;
 import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
 import org.geotoolkit.ogc.xml.v200.TimeDuringType;
 import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
-import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
-import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
-import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
-import org.geotoolkit.swe.xml.DataArray;
-import org.geotoolkit.swe.xml.DataArrayProperty;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.Filter;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
-import org.opengis.geometry.Geometry;
+import org.opengis.geometry.Envelope;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.util.CodeList;
+import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 
 /**
  *
@@ -90,7 +84,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     protected QName resultModel;
 
-    protected ResponseModeType requestMode;
+    protected ResponseMode responseMode;
 
     protected final List<Filter> eventTimes = new ArrayList<>();
 
@@ -149,7 +143,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     private void initFilterObservation(Map<String, Object> hints) {
-        this.requestMode = (ResponseModeType) hints.get("responseMode");
+        this.responseMode = (ResponseMode) hints.get("responseMode");
         this.resultModel = (QName) hints.get("resultModel");
         this.responseFormat = (String) hints.get("responseFormat");
         currentQuery              = new Query();
@@ -162,9 +156,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         }
         final Where where         = new Where(configurationQuery.getWhere("observationType"));
 
-        if (requestMode == INLINE) {
+        if (responseMode == ResponseMode.INLINE) {
             where.replaceVariable("observationIdBase", observationIdBase, false);
-        } else if (requestMode == RESULT_TEMPLATE) {
+        } else if (responseMode == ResponseMode.RESULT_TEMPLATE) {
             where.replaceVariable("observationIdBase", observationTemplateIdBase, false);
         }
         currentQuery.addSelect(select);
@@ -265,6 +259,21 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             final Where where = new Where(configurationQuery.getWhere("oid"));
             where.replaceVariable("oid", oid, true);
             currentQuery.addWhere(where);
+        }
+    }
+
+    /**
+     * return a SQL formatted timestamp
+     *
+     * @param time a GML time position object.
+     * @return time representation.
+     * @throws org.geotoolkit.observation.ObservationStoreException If the date is {@code null}.
+     */
+    private static String getTimeValue(final Date time) throws ObservationStoreException {
+        if (time != null) {
+          return new Timestamp(time.getTime()).toString();
+        } else {
+          throw new ObservationStoreException("bad format of time, \"Timeposition\" mustn't be null", MISSING_PARAMETER_VALUE, "eventTime");
         }
     }
 
@@ -434,31 +443,11 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         final List<Observation> observations = new ArrayList<>();
         final Set<String> oid                = getIdentifiers();
         for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
+            final Observation obs = reader.getObservation(foid, resultModel, responseMode);
 
-            if (!RESULT_TEMPLATE.equals(requestMode)) {
+            if (!ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
                 // parse result values to eliminate wrong results
-                if (obs.getSamplingTime() instanceof Period) {
-                    final Timestamp tbegin;
-                    final Timestamp tend;
-                    final Period p = (Period)obs.getSamplingTime();
-                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                        tbegin = new Timestamp(p.getBeginning().getDate().getTime());
-                    } else {
-                        tbegin = null;
-                    }
-                    if (p.getEnding() != null && p.getEnding().getDate() != null) {
-                        tend = new Timestamp(p.getEnding().getDate().getTime());
-                    } else {
-                        tend = null;
-                    }
-                    if (obs.getResult() instanceof DataArrayProperty) {
-                        final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
-                        final DatablockParser.Values result   = getResultValues(tbegin, tend, array, eventTimes);
-                        array.setValues(result.values.toString());
-                        array.setElementCount(result.nbBlock);
-                    }
-                }
+                applyTimeConstraint(obs, eventTimes);
             }
             observations.add(obs);
         }
@@ -470,7 +459,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         final List<SamplingFeature> features = new ArrayList<>();
         final Set<String> fid                = getIdentifiers();
         for (String foid : fid) {
-            final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
+            final SamplingFeature feature = reader.getFeatureOfInterest(foid);
             features.add(feature);
         }
         return features;
@@ -478,11 +467,12 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     @Override
     public List<Phenomenon> getPhenomenons() throws DataStoreException {
-        final Set<String> fid       = getIdentifiers();
-        Map<String, Object> filters = new HashMap<>();
-        filters.put(SOS_VERSION, version);
-        filters.put(IDENTIFIER,  fid);
-        return new ArrayList<>(reader.getPhenomenons(filters));
+        final Set<String> fids    = getIdentifiers();
+        List<Phenomenon> results = new ArrayList<>();
+        for (String fid : fids) {
+            results.add(reader.getPhenomenon(fid));
+        }
+        return results;
     }
 
     @Override
@@ -490,7 +480,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         final List<Process> processes = new ArrayList<>();
         final Set<String> pids        = getIdentifiers();
         for (String pid : pids) {
-            final Process pr = reader.getProcess(pid, version);
+            final Process pr = reader.getProcess(pid);
             processes.add(pr);
         }
         return processes;

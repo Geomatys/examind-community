@@ -1,0 +1,42 @@
+{
+    "id": "obs-7001-3-1",
+    "name": "urn:ogc:object:observation:GEOM:7001-3-1",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi-type",
+        "name": "Sensor multi type"
+    },
+    "samplingTime": {
+        "id": "time-6001-1",
+        "date": "1980-03-01T21:52:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "color",
+        "name": "color",
+        "definition": "urn:ogc:def:phenomenon:GEOM:color",
+        "description": "the color label"
+    },
+    "result": {
+        "field": {
+            "index": 1,
+            "type": "TEXT",
+            "name": "color",
+            "description": "urn:ogc:def:phenomenon:GEOM:color"
+        },
+        "value": "blue"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CategoryObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

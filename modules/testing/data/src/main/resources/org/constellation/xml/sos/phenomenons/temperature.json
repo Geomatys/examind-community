@@ -1,0 +1,6 @@
+{
+  "id" : "temperature",
+  "name" : "temperature",
+  "definition" : "urn:ogc:def:phenomenon:GEOM:temperature",
+  "description" : "the temperature in celcius degree"
+}

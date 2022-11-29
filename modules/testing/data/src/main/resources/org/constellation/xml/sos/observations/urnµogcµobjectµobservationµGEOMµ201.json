@@ -1,0 +1,66 @@
+{
+    "id": "obs-201",
+    "name": "urn:ogc:object:observation:GEOM:201",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:2"
+    },
+    "samplingTime": {
+        "id": "time-201",
+        "date": "2000-12-01T00:00:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-002",
+        "name": "10972X0137-PLOUF",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:4326",
+            "geometry": "POINT (5 10)"
+        }
+    },
+    "observedProperty": {
+        "id": "aggregatePhenomenon",
+        "name": "aggregatePhenomenon",
+        "properties": {},
+        "definition": "aggregatePhenomenon",
+        "component": [{
+                "id": "depth",
+                "name": "depth",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+            }, {
+                "id": "temperature",
+                "name": "temperature",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "temperature",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "uom": "°C",
+                "qualityFields": []
+            }],
+        "nbValues": 9,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "12.0,18.5@@24.0,19.7@@48.0,21.2@@96.0,23.9@@192.0,26.2@@384.0,31.4@@768.0,35.1@@12.0,18.5@@12.0,18.5@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "profile"
+    },
+    "resultQuality": []
+}

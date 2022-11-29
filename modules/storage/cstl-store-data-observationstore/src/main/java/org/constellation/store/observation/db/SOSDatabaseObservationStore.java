@@ -63,7 +63,6 @@ import org.geotoolkit.data.om.OMFeatureTypes;
 import static org.geotoolkit.data.om.OMFeatureTypes.*;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.OMUtils;
@@ -71,18 +70,20 @@ import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.OMEntity;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.sos.xml.ResponseModeType;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.filter.ResourceId;
-import org.opengis.metadata.Metadata;
-import org.opengis.observation.Observation;
 import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
@@ -183,8 +184,8 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public Metadata getMetadata() throws DataStoreException {
-        return buildMetadata("om2-observation");
+    protected String getStoreIdentifier() {
+        return "om2-observation";
     }
 
     /**
@@ -221,36 +222,37 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    protected Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
-        return getReader().getSensorLocations(sensorID, "2.0.0");
+    protected Map<Date, Geometry> getSensorLocations(String sensorID) throws DataStoreException {
+        return getReader().getSensorLocations(sensorID);
     }
 
     @Override
-    public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
-        final List<ExtractionResult.ProcedureTree> results = new ArrayList<>();
+    public List<ProcedureDataset> getProcedures() throws DataStoreException {
+        final List<ProcedureDataset> results = new ArrayList<>();
 
         final ObservationFilterReader procFilter = getFilter();
         procFilter.init(OMEntity.PROCEDURE, Collections.EMPTY_MAP);
 
         for (Process p : procFilter.getProcesses()) {
             
-            final org.geotoolkit.observation.xml.Process proc  =  (org.geotoolkit.observation.xml.Process) p;
-            final ExtractionResult.ProcedureTree procedure = new ExtractionResult.ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), "Component", "timeseries");
+            final Procedure proc  =  (Procedure) p;
+            final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", "timeseries", new ArrayList<>(), null);
 
-            AbstractObservation template = (AbstractObservation) getReader().getTemplateForProcedure(proc.getHref(), "2.0.0");
+            Observation template = (Observation) getReader().getTemplateForProcedure(proc.getId());
 
             if (template != null) {
-                final PhenomenonProperty phenProp = template.getPropertyObservedProperty();
+                final Phenomenon phenProp = template.getObservedProperty();
                 if (phenProp != null) {
-                    final List<String> fields = OMUtils.getPhenomenonsFields(phenProp);
+                    final List<String> fields = OMUtils.getPhenomenonsFieldIdentifiers(phenProp);
                     for (String field : fields) {
                         if (!procedure.fields.contains(field)) {
                             procedure.fields.add(field);
                         }
                     }
                 }
-                procedure.spatialBound.appendLocation(template.getSamplingTime(), template.getFeatureOfInterest());
-                procedure.spatialBound.getHistoricalLocations().putAll(getSensorLocations(proc.getHref(), "2.0.0"));
+                SamplingFeature foim = template.getFeatureOfInterest();
+                procedure.spatialBound.appendLocation(template.getSamplingTime(), foim);
+                procedure.spatialBound.getHistoricalLocations().putAll(getSensorLocations(proc.getId()));
             }
             results.add(procedure);
         }
@@ -272,9 +274,9 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      */
     @Override
     public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
-        final ExtractionResult result = new ExtractionResult();
-        result.spatialBound.addTime(getReader().getEventTime("2.0.0"));
-        return result.spatialBound.getTimeObject("2.0.0");
+        final ObservationDataset result = new ObservationDataset();
+        result.spatialBound.addTime(getReader().getEventTime());
+        return result.spatialBound.getTimeObject();
     }
 
     /**
@@ -315,7 +317,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
     @Override
     public ObservationStoreCapabilities getCapabilities() {
-        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value(), ResponseModeType.RESULT_TEMPLATE.value());
+        final List<ResponseMode> responseMode = Arrays.asList(ResponseMode.INLINE, ResponseMode.RESULT_TEMPLATE);
         return new ObservationStoreCapabilities(true, false, false, Arrays.asList("result"), RESPONSE_FORMAT, responseMode, true);
     }
 

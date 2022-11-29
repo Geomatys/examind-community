@@ -1,0 +1,49 @@
+{
+    "id": "obs-6001-2-1",
+    "name": "urn:ogc:object:observation:GEOM:6001-2-1",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:quality_sensor",
+        "name": "Sensor quality"
+    },
+    "samplingTime": {
+        "id": "time-6001-1",
+        "date": "1980-03-01T21:52:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "description": "the depth in water",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+    },
+    "result": {
+        "field": {
+            "index": 2,
+            "type": "QUANTITY",
+            "name": "depth",
+            "description": "urn:ogc:def:phenomenon:GEOM:depth",
+            "uom": "m"
+        },
+        "value": 6.56
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": [
+        {
+            "name": "qflag",
+            "value": "ok"
+        }
+    ]
+}

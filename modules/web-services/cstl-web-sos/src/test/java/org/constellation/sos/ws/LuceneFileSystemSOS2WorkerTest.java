@@ -166,6 +166,18 @@ public class LuceneFileSystemSOS2WorkerTest extends SOS2WorkerTest {
     }
 
     /**
+     * Tests the GetObservation method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=6)
+    public void GetObservationProfileTest() throws Exception {
+        super.GetObservationProfileTest();
+    }
+
+    /**
      * Tests the GetObservationById method
      *
      * @throws java.lang.Exception

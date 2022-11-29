@@ -1,22 +1,25 @@
 /*
- *    Geotoolkit - An Open Source Java GIS Toolkit
- *    http://www.geotoolkit.org
+ *    Constellation - An open source and standard compliant SDI
+ *    https://www.examind.com/
  *
- *    (C) 2010, Geomatys
+ * Copyright 2022 Geomatys.
  *
- *    This library is free software; you can redistribute it and/or
- *    modify it under the terms of the GNU Lesser General Public
- *    License as published by the Free Software Foundation;
- *    version 2.1 of the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *    This library is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- *    Lesser General Public License for more details.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.constellation.sos;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,21 +28,18 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
-import org.apache.sis.xml.XML;
-import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsMeasObservation;
-import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsMeasurement;
-import static org.constellation.provider.observationstore.ObservationStoreProviderWriteTest.assertEqualsObservation;
+import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasObservation;
+import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasurement;
+import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsObservation;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
+import org.geotoolkit.observation.json.ObservationJsonUtils;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
@@ -50,16 +50,16 @@ import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
 import static org.geotoolkit.observation.OMUtils.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.observation.Observation;
 import org.opengis.util.GenericName;
 
 
@@ -140,6 +140,13 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         return expecteds;
     }
 
+    private ObjectMapper mapper;
+
+    @Before
+    public void before() {
+        mapper = ObservationJsonUtils.getMapper();
+    }
+    
     @Test
     public void readObservationByIdTest() throws Exception {
         Assert.assertTrue(store instanceof ObservationStore);
@@ -148,41 +155,26 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
         Assert.assertNotNull(reader);
 
-        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:2000", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-        Assert.assertTrue(obs instanceof AbstractObservation);
-        AbstractObservation result = (AbstractObservation) obs;
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:2000", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
 
-        Assert.assertTrue(result.getResult() instanceof DataArrayProperty);
-        DataArrayProperty resultDAP = (DataArrayProperty)result.getResult();
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        ComplexResult resultDAP = (ComplexResult)result.getResult();
 
         String expectedValues = "2009-05-01T13:47:00.0,4.5@@"
                               + "2009-05-01T14:00:00.0,5.9@@"
                               + "2009-05-01T14:01:00.0,8.9@@"
                               + "2009-05-01T14:02:00.0,7.8@@"
                               + "2009-05-01T14:03:00.0,9.9@@";
-        Assert.assertEquals(expectedValues, resultDAP.getDataArray().getValues());
+        Assert.assertEquals(expectedValues, resultDAP.getValues());
     }
 
     @Test
     public void readerQualityTest() throws Exception {
-        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
-        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
-
-        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/quality_sensor_observation.xml"));
-        if (o instanceof JAXBElement jb) {
-            o = jb.getValue();
-        }
-        Assert.assertTrue(o instanceof AbstractObservation);
-        AbstractObservation expected = (AbstractObservation) o;
-
-        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/quality_sensor_measurement.xml"));
-        if (o instanceof JAXBElement jb) {
-            o = jb.getValue();
-        }
-        Assert.assertTrue(o instanceof AbstractObservation);
-        AbstractObservation measExpected = (AbstractObservation) o;
-
-        SOSMarshallerPool.getInstance().recycle(u);
+        
+        Observation expected     = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/quality_sensor_observation.json"), Observation.class);
+        Observation measExpected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/quality_sensor_measurement.json"), Observation.class);
 
         Assert.assertTrue(store instanceof ObservationStore);
         ObservationStore omStore = (ObservationStore) store;
@@ -190,39 +182,24 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
         Assert.assertNotNull(reader);
 
-        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-        Assert.assertTrue(obs instanceof AbstractObservation);
-        AbstractObservation result = (AbstractObservation) obs;
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
 
         assertEqualsObservation(expected, result);
 
-        obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001-2-1", MEASUREMENT_QNAME, ResponseModeType.INLINE, "2.0.0");
-        Assert.assertTrue(obs instanceof AbstractObservation);
-        result = (AbstractObservation) obs;
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:6001-2-1", MEASUREMENT_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
 
         assertEqualsMeasurement(measExpected, result, true);
     }
 
     @Test
     public void readerMultiTypeTest() throws Exception {
-        Unmarshaller u = SOSMarshallerPool.getInstance().acquireUnmarshaller();
-        u.setProperty(XML.METADATA_VERSION, LegacyNamespaces.VERSION_2007);
-
-        Object o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_sensor_observation.xml"));
-        if (o instanceof JAXBElement jb) {
-            o = jb.getValue();
-        }
-        Assert.assertTrue(o instanceof AbstractObservation);
-        AbstractObservation expected = (AbstractObservation) o;
-
-        o =  u.unmarshal(Util.getResourceAsStream("com/examind/om/store/multi_type_time_sensor_measurement.xml"));
-        if (o instanceof JAXBElement jb) {
-            o = jb.getValue();
-        }
-        Assert.assertTrue(o instanceof AbstractObservation);
-        AbstractObservation measExpected = (AbstractObservation) o;
-
-        SOSMarshallerPool.getInstance().recycle(u);
+        
+        Observation expected     = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_type_sensor_observation.json"),   Observation.class);
+        Observation measExpected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_type_time_sensor_measurement.json"),   Observation.class);
 
         Assert.assertTrue(store instanceof ObservationStore);
         ObservationStore omStore = (ObservationStore) store;
@@ -230,15 +207,15 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
         Assert.assertNotNull(reader);
 
-        Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001", OBSERVATION_QNAME, ResponseModeType.INLINE, "2.0.0");
-        Assert.assertTrue(obs instanceof AbstractObservation);
-        AbstractObservation result = (AbstractObservation) obs;
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
 
         assertEqualsObservation(expected, result);
 
-        obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001-4-1", MEASUREMENT_QNAME, ResponseModeType.INLINE, "2.0.0");
-        Assert.assertTrue(obs instanceof AbstractObservation);
-        result = (AbstractObservation) obs;
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:7001-4-1", MEASUREMENT_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
 
         assertEqualsMeasObservation(measExpected, result, false);
     }
@@ -248,7 +225,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(store instanceof ObservationStore);
         ObservationStore omStore = (ObservationStore) store;
 
-        List<ExtractionResult.ProcedureTree> procedures = omStore.getProcedures();
+        List<ProcedureDataset> procedures = omStore.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(16, procedures.size());
     }
 }

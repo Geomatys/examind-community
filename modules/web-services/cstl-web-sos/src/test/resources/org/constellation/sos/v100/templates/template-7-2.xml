@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<om:Measurement name="obsTest1" xmlns:swe="http://www.opengis.net/swe/1.0.1" xmlns:gml="http://www.opengis.net/gml" xmlns:om="http://www.opengis.net/om/1.0" xmlns:sa="http://www.opengis.net/sampling/1.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <gml:name>urn:ogc:object:observation:template:GEOM:7-2</gml:name>
+    <om:definition>une observation test</om:definition>
+    <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
+    <om:observedProperty>
+        <swe:Phenomenon gml:id="temperature">
+            <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
+            <gml:description>the temperature in celcius degree</gml:description>
+        </swe:Phenomenon>
+    </om:observedProperty>
+    <om:featureOfInterest>
+        <sa:SamplingPoint gml:id="station-002">
+            <gml:description>Point d'eau BSSS</gml:description>
+            <gml:name>10972X0137-PLOUF</gml:name>
+            <gml:boundedBy>
+                <gml:Null>not_bounded</gml:Null>
+            </gml:boundedBy>
+            <sa:sampledFeature  xlink:href="urn:-sandre:object:bdrhf:123X"/>
+            <sa:position>
+                <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326">
+                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" srsDimension="2">5.0 10.0</gml:pos>
+                </gml:Point>
+            </sa:position>
+        </sa:SamplingPoint>
+    </om:featureOfInterest>
+    <om:result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="om:MeasureType" uom="°C">0.0</om:result>
+</om:Measurement>

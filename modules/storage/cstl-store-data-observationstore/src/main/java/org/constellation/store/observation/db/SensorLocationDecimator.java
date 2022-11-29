@@ -27,21 +27,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
-import org.geotoolkit.gml.JTStoGeometry;
-import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
-import org.opengis.geometry.Geometry;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
 
 /**
  *
@@ -49,8 +45,8 @@ import org.opengis.util.FactoryException;
  */
 public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
-    public SensorLocationDecimator(GeneralEnvelope envelopeFilter, String gmlVersion, int width, final Map<Object, long[]> times) {
-        super(envelopeFilter, gmlVersion, width, times);
+    public SensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times) {
+        super(envelopeFilter, width, times);
     }
 
     @Override
@@ -233,30 +229,22 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
                             geom = cellgeoms.get(0);
                         } else {
                             // merge geometries
-                            GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new org.locationtech.jts.geom.Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
+                            GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
                             geom = coll.getCentroid();
                         }
 
-                        try {
-                            final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, defaultCRS);
+                        JTS.setCRS(geom, defaultCRS);
 
-                            final Map<Date, Geometry> procedureLocations;
-                            if (locations.containsKey(procedure)) {
-                                procedureLocations = locations.get(procedure);
-                            } else {
-                                procedureLocations = new LinkedHashMap<>();
-                                locations.put(procedure, procedureLocations);
-                            }
-
-                            if (gmlGeom instanceof Geometry g) {
-                                procedureLocations.put(time, g);
-                                tfound = true;
-                            } else {
-                                throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                            }
-                        } catch (FactoryException ex) {
-                            throw new DataStoreException(ex);
+                        final Map<Date, Geometry> procedureLocations;
+                        if (locations.containsKey(procedure)) {
+                            procedureLocations = locations.get(procedure);
+                        } else {
+                            procedureLocations = new LinkedHashMap<>();
+                            locations.put(procedure, procedureLocations);
                         }
+
+                        procedureLocations.put(time, geom);
+                        tfound = true;
                     }
                 }
                 /*if (!tfound) {

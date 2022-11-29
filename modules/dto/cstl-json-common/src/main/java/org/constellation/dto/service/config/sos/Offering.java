@@ -21,7 +21,6 @@ package org.constellation.dto.service.config.sos;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.xml.namespace.QName;
 
 /**
  *
@@ -34,7 +33,6 @@ public class Offering {
     protected String description;
     protected List<Date> time = new ArrayList<>();
     protected List<String> availableSrs = new ArrayList<>();
-    protected List<QName> resultModels = new ArrayList<>();
     protected String procedure;
     protected List<String> featureOfInterest = new ArrayList<>();
     protected List<String> observedProperties = new ArrayList<>();
@@ -43,7 +41,7 @@ public class Offering {
 
     }
 
-    public Offering(String id, String name, String description, List<String> availableSrs, List<QName> resultModels,
+    public Offering(String id, String name, String description, List<String> availableSrs,
             String procedure, List<String> featureOfInterest, List<String> observedProperties, List<Date> time) {
         this.availableSrs = availableSrs;
         this.featureOfInterest = featureOfInterest;
@@ -52,7 +50,6 @@ public class Offering {
         this.description = description;
         this.observedProperties = observedProperties;
         this.procedure = procedure;
-        this.resultModels = resultModels;
         this.time = time;
     }
 
@@ -85,21 +82,7 @@ public class Offering {
     }
 
     /**
-     * @return the resultModels
-     */
-    public List<QName> getResultModels() {
-        return resultModels;
-    }
-
-    /**
-     * @param resultModels the resultModels to set
-     */
-    public void setResultModels(List<QName> resultModels) {
-        this.resultModels = resultModels;
-    }
-
-    /**
-     * @return the procedure
+     * @return the procedures
      */
     public String getProcedure() {
         return procedure;

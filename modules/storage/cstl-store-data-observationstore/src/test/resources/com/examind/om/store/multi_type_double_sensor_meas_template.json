@@ -1,0 +1,37 @@
+{
+    "id": "obs-multi-type-5",
+    "name": "urn:ogc:object:observation:template:GEOM:multi-type-5",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi-type",
+        "name": "Sensor multi type"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "age",
+        "name": "age",
+        "definition": "urn:ogc:def:phenomenon:GEOM:age",
+        "description": "current age"
+    },
+    "result": {
+        "field": {
+            "index": 1,
+            "type": "QUANTITY",
+            "name": "age",
+            "description": "urn:ogc:def:phenomenon:GEOM:age"
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "properties": {
+        "type": "timeseries"
+    }
+}

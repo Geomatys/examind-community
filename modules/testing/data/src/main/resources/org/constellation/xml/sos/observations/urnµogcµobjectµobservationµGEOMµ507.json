@@ -1,0 +1,77 @@
+{
+    "id": "obs-507",
+    "name": "urn:ogc:object:observation:GEOM:507",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:test-1"
+    },
+    "samplingTime": {
+        "id": "time-507",
+        "beginning": {
+            "id": "aca898ce-2461-4033-9c6e-d0acdb0b433c-time",
+            "date": "2007-05-01T12:59:00.0Z"
+        },
+        "ending": {
+            "id": "ee16df3b-69db-4658-929c-1e5481ddee3b-time",
+            "date": "2007-05-01T16:59:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-002",
+        "name": "10972X0137-PLOUF",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:4326",
+            "geometry": "POINT (5 10)"
+        }
+    },
+    "observedProperty": {
+        "id": "aggregatePhenomenon",
+        "name": "aggregatePhenomenon",
+        "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
+        "description": "the aggregation of temperature and depth phenomenons",
+        "component": [{
+                "id": "depth",
+                "name": "depth",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+                "description": "the depth in water"
+            }, {
+                "id": "temperature",
+                "name": "temperature",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "description": "the temperature in celcius degree"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m"
+            }, {
+                "index": 3,
+                "type": "QUANTITY",
+                "name": "temperature",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "uom": "°C"
+            }],
+        "nbValues": 5,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "2007-05-01T12:59:00.0,6.56,@@2007-05-01T13:59:00.0,6.56,@@2007-05-01T14:59:00.0,6.56,@@2007-05-01T15:59:00.0,6.56,@@2007-05-01T16:59:00.0,6.56,@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

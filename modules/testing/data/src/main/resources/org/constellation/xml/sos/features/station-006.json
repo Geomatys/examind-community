@@ -1,0 +1,9 @@
+{
+    "id": "station-006",
+    "name": "cycle1",
+    "description": "Geology traverse",
+    "geometry": {
+        "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+        "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+    }
+}

@@ -20,6 +20,7 @@
 
 package org.constellation.sos.io.lucene;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -31,21 +32,12 @@ import org.apache.lucene.util.BytesRef;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 
-import org.geotoolkit.gml.xml.AbstractGML;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.lucene.index.AbstractIndexer;
-import org.geotoolkit.observation.xml.v100.MeasurementType;
-import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.swe.xml.CompositePhenomenon;
-import org.opengis.observation.Observation;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
@@ -57,11 +49,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
-import org.geotoolkit.observation.xml.Process;
+import org.geotoolkit.observation.json.ObservationJsonUtils;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 
 /**
  *
@@ -69,19 +64,19 @@ import org.geotoolkit.observation.xml.Process;
  */
 public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
-    private Path offeringDirectoryv200;
-    private Path offeringDirectoryv100;
+    private static final String FILE_EXTENSION_JS = "json";
 
-    private Path observationDirectoryv200;
-    private Path observationDirectoryv100;
+    private ObjectMapper mapper;
 
-    private Path foiDirectoryV100;
-    private Path foiDirectoryV200;
+    private Path offeringDirectory;
+
+    private Path observationDirectory;
+
+    private Path foiDirectory;
 
     private Path phenDirectory;
 
-    private Path observationTemplateDirectoryv100;
-    private Path observationTemplateDirectoryv200;
+    private Path observationTemplateDirectory;
 
     private boolean template = false;
 
@@ -95,61 +90,24 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
      */
     public LuceneObservationIndexer(final Path dataDirectory, final Path configDirectory, final String serviceID, final boolean create) throws IndexingException {
         super(serviceID, configDirectory, new WhitespaceAnalyzer());
+        mapper = ObservationJsonUtils.getMapper();
+        
         if (Files.isDirectory(dataDirectory)) {
             try {
-                Path observationDirectory = dataDirectory.resolve("observations");
-                if (!Files.exists(observationDirectory)) {
-                    Files.createDirectories(observationDirectory);
-                }
-                observationDirectoryv200 = observationDirectory.resolve("2.0.0");
-                if (!Files.exists(observationDirectoryv200)) {
-                    Files.createDirectories(observationDirectoryv200);
-                }
-                observationDirectoryv100 = observationDirectory.resolve("1.0.0");
-                if (!Files.exists(observationDirectoryv100)) {
-                    Files.createDirectories(observationDirectoryv100);
-                }
-                phenDirectory = dataDirectory.resolve("phenomenons");
-                if (!Files.exists(phenDirectory)) {
-                    Files.createDirectories(phenDirectory);
-                }
+                observationDirectory = dataDirectory.resolve("observations");
+                Files.createDirectories(observationDirectory);
 
-                Path observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
-                if (!Files.exists(observationTemplateDirectory)) {
-                    Files.createDirectories(observationTemplateDirectory);
-                }
-                observationTemplateDirectoryv200 = observationTemplateDirectory.resolve("2.0.0");
-                if (!Files.exists(observationTemplateDirectoryv200)) {
-                    Files.createDirectories(observationTemplateDirectoryv200);
-                }
-                observationTemplateDirectoryv100 = observationTemplateDirectory.resolve("1.0.0");
-                if (!Files.exists(observationTemplateDirectoryv100)) {
-                    Files.createDirectories(observationTemplateDirectoryv100);
-                }
-                Path foiDirectory = dataDirectory.resolve("features");
-                if (!Files.exists(foiDirectory)) {
-                    Files.createDirectories(foiDirectory);
-                }
-                foiDirectoryV200 = foiDirectory.resolve("2.0.0");
-                if (!Files.exists(foiDirectoryV200)) {
-                    Files.createDirectories(foiDirectoryV200);
-                }
-                foiDirectoryV100 = foiDirectory.resolve("1.0.0");
-                if (!Files.exists(foiDirectoryV100)) {
-                    Files.createDirectories(foiDirectoryV100);
-                }
-                Path offeringParentDirectory = dataDirectory.resolve("offerings");
-                if (!Files.exists(offeringParentDirectory)) {
-                    Files.createDirectories(offeringParentDirectory);
-                }
-                offeringDirectoryv200 = offeringParentDirectory.resolve("2.0.0");
-                if (!Files.exists(offeringDirectoryv200)) {
-                    Files.createDirectories(offeringDirectoryv200);
-                }
-                offeringDirectoryv100 = offeringParentDirectory.resolve("1.0.0");
-                if (!Files.exists(offeringDirectoryv100)) {
-                    Files.createDirectories(offeringDirectoryv100);
-                }
+                phenDirectory = dataDirectory.resolve("phenomenons");
+                Files.createDirectories(phenDirectory);
+
+                observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
+                Files.createDirectories(observationTemplateDirectory);
+                
+                foiDirectory = dataDirectory.resolve("features");
+                Files.createDirectories(foiDirectory);
+
+                offeringDirectory = dataDirectory.resolve("offerings");
+                Files.createDirectories(offeringDirectory);
             } catch (IOException e) {
                 throw new IndexingException("Unable to create observation directories", e);
             }
@@ -204,25 +162,20 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         int nbfoi         = 0;
         int nbPhen        = 0;
         try {
-            final Unmarshaller unmarshaller = SOSMarshallerPool.getInstance().acquireUnmarshaller();
             final IndexWriterConfig conf = new IndexWriterConfig(analyzer);
             try (IndexWriter writer = new IndexWriter(new SimpleFSDirectory(getFileDirectory()), conf)) {
                 Map<String, ObjAndOffering> procs = new HashMap<>();
                 // getting the objects list and index avery item in the IndexWriter.
-                nbObservation = indexDirectory(observationDirectoryv100, nbObservation, unmarshaller, writer, "observation", procs);
-                nbObservation = indexDirectory(observationDirectoryv200, nbObservation, unmarshaller, writer, "observation", procs);
+                nbObservation = indexJsonDirectory(observationDirectory, nbObservation, writer, "observation", procs, Observation.class);
                 template = true;
-                nbTemplate = indexDirectory(observationTemplateDirectoryv100, nbTemplate, unmarshaller, writer, "template", procs);
-                nbTemplate = indexDirectory(observationTemplateDirectoryv200, nbTemplate, unmarshaller, writer, "template", procs);
+                nbTemplate = indexJsonDirectory(observationTemplateDirectory, nbTemplate, writer, "template", procs, Observation.class);
                 template = false;
-                nbfoi = indexDirectory(foiDirectoryV100, nbfoi, unmarshaller, writer, "foi", procs);
-                nbPhen = indexDirectory(phenDirectory, nbPhen, unmarshaller, writer, "phenomenon", procs);
-                indexDirectory(offeringDirectoryv200, 0, unmarshaller, writer, "offering", procs);
-                indexDirectory(offeringDirectoryv100, 0, unmarshaller, writer, "offering", procs);
+                nbfoi = indexJsonDirectory(foiDirectory, nbfoi, writer, "foi", procs, SamplingFeature.class);
+                nbPhen = indexJsonDirectory(phenDirectory, nbPhen, writer, "phenomenon", procs, Phenomenon.class);
+                indexJsonDirectory(offeringDirectory, 0, writer, "offering", procs, Offering.class);
                 for (ObjAndOffering po : procs.values()) {
                     indexDocument(writer, po);
                 }
-                SOSMarshallerPool.getInstance().recycle(unmarshaller);
             }
 
         } catch (CorruptIndexException ex) {
@@ -234,71 +187,63 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE,IO_SINGLE_MSG + "{0}", ex.getMessage());
             throw new IndexingException("IOException while indexing documents.", ex);
-        } catch (JAXBException ex) {
-            String msg = ex.getMessage();
-            if (msg == null && ex.getCause() != null) {
-                msg = ex.getCause().getMessage();
-            }
-            LOGGER.log(Level.SEVERE, "JAXB Exception while indexing: {0}", msg);
-            throw new IndexingException("JAXBException while indexing documents.", ex);
         }
         LOGGER.info("Index creation process in " + (System.currentTimeMillis() - time) + " ms\nObservations indexed: "
                 + nbObservation + ". Template indexed:" + nbTemplate + ".");
     }
 
-    private int indexDirectory(Path directory, int nbObservation, Unmarshaller unmarshaller, IndexWriter writer, String type, Map<String, ObjAndOffering> procs)
-            throws JAXBException, IOException, IndexingException {
+    private int indexJsonDirectory(Path directory, int nbObservation, IndexWriter writer, String type, Map<String, ObjAndOffering> procs, Class entityClass)
+            throws IOException, IndexingException {
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(directory)) {
-            for (Path observationFile : stream) {
-                try (InputStream inputStream = Files.newInputStream(observationFile)) {
-                    Object obj = unmarshaller.unmarshal(inputStream);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement) obj).getValue();
-                    }
-                    if (obj instanceof Observation) {
-                        Observation obs = (Observation) obj;
-                        Process procedure = (Process) obs.getProcedure();
-                        if (!procs.containsKey(procedure.getHref())) {
-                            procs.put(procedure.getHref(), new ProcAndOffering(procedure));
-                        }
+            for (Path entityFile : stream) {
+                if (!Files.isDirectory(entityFile)) {
+                    String ext = IOUtilities.extension(entityFile);
+                    if (!ext.equals(FILE_EXTENSION_JS)) continue;
 
-                        indexDocument(writer, obs);
-                        nbObservation++;
-                    } else if (obj instanceof SamplingFeature) {
-                        SamplingFeature feat = (SamplingFeature) obj;
-                        procs.put(feat.getId(), new FoiAndOffering(feat));
+                    try (InputStream inputStream = Files.newInputStream(entityFile)) {
+                        Object obj = mapper.readValue(inputStream, entityClass);
 
-                        //indexDocument(writer, (SamplingFeature) obj);
-                        //nbObservation++;
+                        if (obj instanceof Observation obs) {
+                            Procedure procedure = obs.getProcedure();
+                            if (!procs.containsKey(procedure.getId())) {
+                                procs.put(procedure.getId(), new ProcAndOffering(procedure));
+                            }
 
-                    } else if (obj instanceof ObservationOffering) {
+                            indexDocument(writer, obs);
+                            nbObservation++;
+                        } else if (obj instanceof SamplingFeature feat) {
+                            procs.put(feat.getId(), new FoiAndOffering(feat));
 
-                        ObservationOffering off = (ObservationOffering) obj;
-                        indexDocument(writer, off);
-                        for (String procedure : off.getProcedures()) {
+                            //indexDocument(writer, (SamplingFeature) obj);
+                            //nbObservation++;
+
+                        } else if (obj instanceof Offering off) {
+
+                            indexDocument(writer, off);
+                            String procedure = off.getProcedure();
                             if (procs.containsKey(procedure)) {
                                 procs.get(procedure).offering.add(off.getId());
                             }
-                        }
-                        for (String foid : off.getFeatureOfInterestIds()) {
-                            if (procs.containsKey(foid)) {
-                                procs.get(foid).offering.add(off.getId());
+                            for (String foid : off.getFeatureOfInterestIds()) {
+                                if (procs.containsKey(foid)) {
+                                    procs.get(foid).offering.add(off.getId());
+                                }
                             }
+
+                            nbObservation++;
+
+                        } else if (obj instanceof Phenomenon) {
+                            indexDocument(writer, obj);
+
+
+                        } else {
+                            LOGGER.info("The "+type+" file " + entityFile.getFileName().toString()
+                                    + " does not contains an observation:" + obj);
                         }
-
-                        nbObservation++;
-
-                    } else if (obj instanceof Phenomenon) {
-                        indexDocument(writer, obj);
-
-
-                    } else {
-                        LOGGER.info("The "+type+" file " + observationFile.getFileName().toString()
-                                + " does not contains an observation:" + obj);
+                    } catch (IOException ex) {
+                        LOGGER.log(Level.WARNING, "Unable read json file:" + entityFile.getFileName().toString(), ex);
                     }
-                } catch (JAXBException ex) {
-                    LOGGER.log(Level.WARNING, "Unable to unmarshall the file:" + observationFile.getFileName().toString(), ex);
                 }
             }
         }
@@ -323,50 +268,36 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
         sft.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
         sft.setDocValuesType(DocValuesType.SORTED);
 
-        if (obj instanceof Observation) {
-            Observation observation = (Observation) obj;
+        if (obj instanceof Observation observation) {
 
             doc.add(new Field("id", observation.getName().getCode(), ft));
-            if (observation instanceof MeasurementType) {
-                doc.add(new Field("type", "measurement" , ft));
-            } else {
-                doc.add(new Field("type", "observation" , ft));
-            }
-            doc.add(new Field("procedure", ((Process)observation.getProcedure()).getHref(), ft));
+            doc.add(new Field("type", "observation" , ft));
+            doc.add(new Field("procedure", observation.getProcedure().getId(), ft));
 
-            Phenomenon phen = (Phenomenon)observation.getObservedProperty();
-            if (phen instanceof CompositePhenomenon) {
-                CompositePhenomenon composite = (CompositePhenomenon) phen;
-                for (PhenomenonProperty component : composite.getRealComponent()) {
-                    if (component.getPhenomenon() != null && component.getPhenomenon().getId() != null) {
-                        doc.add(new Field("observed_property",   component.getPhenomenon().getId(), ft));
-                    } else if (component.getHref() != null) {
-                        doc.add(new Field("observed_property",   component.getHref(), ft));
-                    } else {
-                        LOGGER.warning("Composite phenomenon component is empty");
-                    }
+            Phenomenon phen = observation.getObservedProperty();
+            if (phen instanceof CompositePhenomenon composite) {
+                for (Phenomenon component : composite.getComponent()) {
+                    doc.add(new Field("observed_property", component.getId(), ft));
                 }
-
-                // add the composite name
+                // add the composite id
                 doc.add(new Field("observed_property",   phen.getId(), ft));
 
             } else if (phen != null) {
                 doc.add(new Field("observed_property",   phen.getId(), ft));
             }
-
-            doc.add(new Field("feature_of_interest", ((AbstractGML)observation.getFeatureOfInterest()).getId(), ft));
-
+            SamplingFeature foi = observation.getFeatureOfInterest();
+            if (foi != null) {
+                doc.add(new Field("feature_of_interest", foi.getId(), ft));
+            }
             try {
                 final TemporalObject time = observation.getSamplingTime();
-                if (time instanceof Period) {
-                    final Period period = (Period) time;
+                if (time instanceof Period period) {
                     doc.add(new Field("sampling_time_begin", getLuceneTimeValue(period.getBeginning().getDate()), ft));
                     doc.add(new Field("sampling_time_end",   getLuceneTimeValue(period.getEnding().getDate()), ft));
                     doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(period.getBeginning().getDate()).getBytes()), sft));
                     doc.add(new Field("sampling_time_end_sort",   new BytesRef(getLuceneTimeValue(period.getEnding().getDate()).getBytes()), sft));
 
-                } else if (time instanceof Instant) {
-                    final Instant instant = (Instant) time;
+                } else if (time instanceof Instant instant) {
                     doc.add(new Field("sampling_time_begin",   getLuceneTimeValue(instant.getDate()), ft));
                     doc.add(new Field("sampling_time_end",    "NULL", ft));
                     doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(instant.getDate()).getBytes()), sft));
@@ -386,16 +317,14 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
 
-        } else if (obj instanceof SamplingFeature) {
-            SamplingFeature feat = (SamplingFeature) obj;
+        } else if (obj instanceof SamplingFeature feat) {
              doc.add(new Field("id", feat.getId(), ft));
              doc.add(new Field("type", "foi" , ft));
 
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
 
-        } else if (obj instanceof FoiAndOffering) {
-            FoiAndOffering fooff = ((FoiAndOffering) obj);
+        } else if (obj instanceof FoiAndOffering fooff) {
             SamplingFeature feat = fooff.foi;
             doc.add(new Field("id", feat.getId(), ft));
             doc.add(new Field("type", "foi" , ft));
@@ -405,31 +334,28 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
 
-        } else if (obj instanceof ObservationOffering) {
+        } else if (obj instanceof Offering oof) {
 
-            ObservationOffering feat = (ObservationOffering) obj;
-            doc.add(new Field("id", feat.getId(), ft));
+            doc.add(new Field("id", oof.getId(), ft));
             doc.add(new Field("type", "offering" , ft));
 
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
 
-        } else if (obj instanceof ProcAndOffering) {
+        } else if (obj instanceof ProcAndOffering pao) {
 
-            ProcAndOffering feat = (ProcAndOffering) obj;
-            doc.add(new Field("id", feat.proc.getHref(), ft));
+            doc.add(new Field("id", pao.proc.getId(), ft));
             doc.add(new Field("type", "procedure" , ft));
-            for (String off : feat.offering) {
+            for (String off : pao.offering) {
                doc.add(new Field("offering", off , ft));
             }
 
             // add a default meta field to make searching all documents easy
             doc.add(new Field("metafile", "doc", ft));
 
-        } else if (obj instanceof Phenomenon) {
+        } else if (obj instanceof Phenomenon phen) {
 
-            Phenomenon feat = (Phenomenon) obj;
-            doc.add(new Field("id", feat.getId(), ft));
+            doc.add(new Field("id", phen.getId(), ft));
             doc.add(new Field("type", "phenomenon" , ft));
 
             // add a default meta field to make searching all documents easy
@@ -445,10 +371,10 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
      */
     @Override
     protected String getIdentifier(Object obj) {
-        if (obj instanceof Observation) {
-            return ((Observation)obj).getName().getCode();
-        } else if (obj instanceof SamplingFeature) {
-            return ((SamplingFeature)obj).getName().getCode();
+        if (obj instanceof Observation obs) {
+            return obs.getName().getCode();
+        } else if (obj instanceof SamplingFeature sp) {
+            return sp.getName();
         }
         return null;
     }
@@ -466,9 +392,9 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
     }
 
     private class ProcAndOffering extends ObjAndOffering {
-        public Process proc;
+        public Procedure proc;
 
-        public ProcAndOffering(Process proc) {
+        public ProcAndOffering(Procedure proc) {
             this.proc = proc;
         }
     }

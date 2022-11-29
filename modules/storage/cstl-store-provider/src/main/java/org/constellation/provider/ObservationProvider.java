@@ -30,8 +30,7 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationStoreException;
-import org.opengis.geometry.Envelope;
-import org.opengis.geometry.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
@@ -44,37 +43,37 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public interface ObservationProvider extends DataProvider {
 
-    Collection<String> getIdentifiers(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+    Collection<String> getIdentifiers(Query q) throws ConstellationStoreException;
 
-    List<ProcedureTree> getProcedureTrees(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<ProcedureTree> getProcedureTrees(Query query) throws ConstellationStoreException;
 
-    List<Phenomenon> getPhenomenon(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<Phenomenon> getPhenomenon(Query query) throws ConstellationStoreException;
 
-    List<SamplingFeature> getFeatureOfInterest(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<SamplingFeature> getFeatureOfInterest(Query query) throws ConstellationStoreException;
 
-    List<Observation> getObservations(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<Observation> getObservations(Query query) throws ConstellationStoreException;
 
-    List<Process> getProcedures(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<Process> getProcedures(Query query) throws ConstellationStoreException;
 
-    List<Offering> getOfferings(Query query, final Map<String, Object> hints) throws ConstellationStoreException;
+    List<Offering> getOfferings(Query query) throws ConstellationStoreException;
 
-    Object getResults(Query q, Map<String, Object> hints) throws ConstellationStoreException;
+    Object getResults(Query q) throws ConstellationStoreException;
 
     SOSProviderCapabilities getCapabilities()  throws ConstellationStoreException;
 
-    Object getSensorLocation(final String sensorID, final String gmlVersion) throws ConstellationStoreException;
+    Geometry getSensorLocation(final String sensorID) throws ConstellationStoreException;
 
     boolean existEntity(final Query q) throws ConstellationStoreException;
 
-    Offering getOffering(String name, String version) throws ConstellationStoreException;
+    Offering getOffering(String name) throws ConstellationStoreException;
 
-    Observation getTemplate(String sensorId, String version) throws ConstellationStoreException;
+    Observation getTemplate(String sensorId) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws ConstellationStoreException;
+    TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String version, final String fid) throws ConstellationStoreException;
+    TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String fid) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTime(final String version) throws ConstellationStoreException;
+    TemporalGeometricPrimitive getTime() throws ConstellationStoreException;
 
     void removeProcedure(String procedureID) throws ConstellationStoreException;
 
@@ -86,65 +85,42 @@ public interface ObservationProvider extends DataProvider {
 
     void writeProcedure(final ProcedureTree procedure) throws ConstellationStoreException;
 
-    void writeTemplate(final Observation templateV100, Process procedure, List<? extends Object> observedProperties, String featureOfInterest) throws ConstellationStoreException;
-
-    void updateProcedureLocation(final String procedureID, final Object position) throws ConstellationStoreException;
-
-    void updateOffering(Offering offering) throws ConstellationStoreException;
-
-    void writeOffering(Offering offering, List<? extends Object> observedProperties, List<String> smlFormats, String version) throws ConstellationStoreException;
+    void writeOffering(Offering offering) throws ConstellationStoreException;
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
 
-    Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+    Map<String, Map<Date, Geometry>> getHistoricalLocation(Query q) throws ConstellationStoreException;
 
-    Map<String, Geometry> getLocation(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+    Map<String, Geometry> getLocation(Query q) throws ConstellationStoreException;
 
-    Map<String, List<Date>> getHistoricalTimes(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+    Map<String, Set<Date>> getHistoricalTimes(Query q) throws ConstellationStoreException;
 
-    ExtractionResult extractResults() throws ConstellationStoreException;
-    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
-    
-   /*
-    * The following 3 method will be removed and replace by the existing getFeatureOfInterestNames / getFeatureOfInterest with query
-    */
-    List<String> getFeaturesOfInterestForBBOX(List<String> offerings, final Envelope e, String version) throws ConstellationStoreException;
-    List<String> getFeaturesOfInterestForBBOX(String offname, final Envelope e, String version) throws ConstellationStoreException;
-    List<SamplingFeature> getFullFeaturesOfInterestForBBOX(String offname, final org.opengis.geometry.Envelope e, String version) throws ConstellationStoreException;
-    
+    ExtractionResult extractResults(Query query) throws ConstellationStoreException;
+
     /**
      * Special key computed by the provider.
      * Used to detect if different provider are using the exact same datasource.
-     * 
+     *
      * @return a key identifyng the datasource.
      */
     String getDatasourceKey();
 
     /**
      * Count specific entities.
-     * the hints map contains various parameters for filtering the request.
-     * it must contains at least a parameter "objectType" which identify the entities we want to count.
-     *
-     * In the case of "observation" entity, you can specify the following hints:
-     *  - "responseMode" an SOS response mode type (INLINE, ATTACHED, OUT_OF_BAND, RESULT_TEMPLATE)
-     *  - "resultModel" a Qname determining the observation model (default to om:Observation).
-     *
-     * others hints may vary depending on the filter implementation and the entity type.
      *
      * @param q A query for filetring the result (can be {@code null}).
-     * @param hints The parameters for the count (can be empty but not {@code null}).
-     * 
+     *
      * @return A filtered count of the entities.
      * @throws ConstellationStoreException If the count can not be processed.
      */
-    long getCount(Query q, final Map<String, Object> hints) throws ConstellationStoreException;
+    long getCount(Query q) throws ConstellationStoreException;
 
     /**
      * Return JTS geometries extract from a sensor tree.
      * If the sensor is a System, all its children geometries will be included in the result.
      *
      * @param sensor A sensor with all its children.
-     * 
+     *
      * @return A list of JTS geometries for the sensor and all its children.
      * @throws ConstellationStoreException If the sensor geometr can not be retrieved, or of the transformation to JTS fail.
      */

@@ -1,0 +1,65 @@
+{
+    "id": "obs-6001",
+    "name": "urn:ogc:object:observation:GEOM:6001",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:quality_sensor"
+    },
+    "samplingTime": {
+        "id": "time-6001",
+        "beginning": {
+            "id": "55475ff4-1221-4538-b83d-8967f61c29e2-time",
+            "date": "1980-03-01T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "6a58c923-db46-4d1a-acf4-85ebb3388da5-time",
+            "date": "1984-03-01T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+        "description": "the depth in water"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m",
+                "qualityFields": [{
+                        "index": 2,
+                        "type": "TEXT",
+                        "name": "qflag",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    }]
+            }],
+        "nbValues": 5,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "1980-03-01T21:52:00.0,6.56,ok@@1981-03-01T21:52:00.0,6.56,ko@@1982-03-01T21:52:00.0,6.56,ok@@1983-03-01T21:52:00.0,6.56,ko@@1984-03-01T21:52:00.0,6.56,ok@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

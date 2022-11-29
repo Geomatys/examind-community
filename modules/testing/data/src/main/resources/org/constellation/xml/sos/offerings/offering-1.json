@@ -1,0 +1,20 @@
+{
+    "id": "offering-1",
+    "name": "offering 1",
+    "properties": {},
+    "time": {
+        "id": "ec1c4f29-abf6-4638-b7b8-299d1b07f932-time",
+        "beginning": {
+            "id": "993144bb-28c7-45e2-9214-d78d40542c63-time",
+            "date": "2008-05-14T10:40:25.236Z"
+        },
+        "ending": {
+            "id": "ffb7dd12-9375-46c4-ae4c-b37224256026-time",
+            "indeterminatePosition": "NOW"
+        }
+    },
+    "srsNames": [],
+    "procedure": "urn:ogc:object:sensor:GEOM:1",
+    "featureOfInterestIds": ["station-001", "station-002", "station-006"],
+    "observedProperties": ["aggregatePhenomenon", "depth", "temperature"]
+}

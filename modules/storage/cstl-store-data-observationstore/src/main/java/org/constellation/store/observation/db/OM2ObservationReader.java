@@ -24,24 +24,7 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.gml.JTStoGeometry;
-import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.xml.OMXmlFactory;
-import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.AnyScalar;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
-import org.geotoolkit.swe.xml.TextBlock;
-import org.geotoolkit.swe.xml.v101.PhenomenonPropertyType;
-import org.geotoolkit.util.StringUtilities;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalPrimitive;
@@ -56,52 +39,45 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
-import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V100;
-import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
-import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
-import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
-import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildSimpleDatarecord;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.getDefaultTextEncoding;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.getGMLVersion;
-import static org.constellation.store.observation.db.OM2Utils.buildComplexResult;
-import static org.constellation.store.observation.db.OM2Utils.getOmTypeFromField;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStore.RESPONSE_FORMAT;
+import org.geotoolkit.geometry.jts.JTS;
+import static org.geotoolkit.observation.OMUtils.buildTime;
+import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildMeasure;
+import org.geotoolkit.observation.model.SamplingFeature;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.geotoolkit.temporal.object.DefaultInstant;
+import org.geotoolkit.temporal.object.DefaultPeriod;
+import org.geotoolkit.temporal.object.DefaultTemporalPosition;
 import org.opengis.metadata.quality.Element;
-import org.opengis.observation.CompositePhenomenon;
-import org.opengis.observation.Process;
-
+import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
+import org.opengis.temporal.IndeterminateValue;
+import org.opengis.temporal.Instant;
 
 /**
  * Default Observation reader for Postgrid O&amp;M database.
@@ -112,8 +88,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     protected final DataSource source;
 
-    private final Map<String, List<String>> acceptedSensorMLFormats = new HashMap<>();
-
     public OM2ObservationReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
         super(properties, schemaPrefix, false, isPostgres, timescaleDB);
         this.source = source;
@@ -122,21 +96,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             try(final Connection c = this.source.getConnection()) {}
         } catch (SQLException ex) {
             throw new DataStoreException(ex);
-        }
-        final String smlFormats100 = (String) properties.get("smlFormats100");
-        if (smlFormats100 != null) {
-            acceptedSensorMLFormats.put("1.0.0", StringUtilities.toStringList(smlFormats100));
-        } else {
-            acceptedSensorMLFormats.put("1.0.0", Arrays.asList(SENSORML_100_FORMAT_V100,
-                                                               SENSORML_101_FORMAT_V100));
-        }
-
-        final String smlFormats200 = (String) properties.get("smlFormats200");
-        if (smlFormats200 != null) {
-            acceptedSensorMLFormats.put("2.0.0", StringUtilities.toStringList(smlFormats200));
-        } else {
-            acceptedSensorMLFormats.put("2.0.0", Arrays.asList(SENSORML_100_FORMAT_V200,
-                                                               SENSORML_101_FORMAT_V200));
         }
     }
 
@@ -213,7 +172,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationOffering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
+    public List<Offering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
         String sensorType   = (String) hints.get(SENSOR_TYPE);
         String version      = (String) hints.get(SOS_VERSION);
         Object identifierVal = hints.get(IDENTIFIER);
@@ -225,94 +184,18 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } else if (identifierVal == null) {
             identifiers.addAll(getOfferingNames(sensorType));
         }
-        final List<ObservationOffering> offerings = new ArrayList<>();
-        for (String offeringName : identifiers) {
-            ObservationOffering off = getObservationOffering(offeringName, version);
-            if (off != null) {
-                offerings.add(off);
+        final List<Offering> offerings = new ArrayList<>();
+        for (String id : identifiers) {
+            try (final Connection c   = source.getConnection()) {
+                Offering off = readObservationOffering(id, c);
+                if (off != null) {
+                    offerings.add(off);
+                }
+            } catch (SQLException ex) {
+                 throw new DataStoreException("Error while retrieving offering: " + id, ex);
             }
         }
         return offerings;
-    }
-
-    private ObservationOffering getObservationOffering(final String offeringName, final String version) throws DataStoreException {
-        final String id;
-        final String name;
-        final String description;
-        final TemporalGeometricPrimitive time;
-        final String procedure;
-        final List<String> phen200             = new ArrayList<>();
-        final List<PhenomenonProperty> phen100 = new ArrayList<>();
-        final List<String> foi                 = new ArrayList<>();
-
-        try(final Connection c = source.getConnection()) {
-            try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"identifier\"=?")) {//NOSONAR
-                stmt.setString(1, offeringName);
-                try(final ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        id                 = rs.getString(1);
-                        description        = rs.getString(2);
-                        name               = rs.getString(3);
-                        final Timestamp b  = rs.getTimestamp(4);
-                        final Timestamp e  = rs.getTimestamp(5);
-                        procedure          = rs.getString(6);
-                        if (b != null && e == null) {
-                            time = buildTimePeriod(version, b, (TimeIndeterminateValueType)null);
-                        } else if (b != null && e != null) {
-                            time = buildTimePeriod(version, b, e);
-                        } else {
-                            time = null;
-                        }
-                    } else {
-                        return null;
-                    }
-                }
-
-                try(final PreparedStatement stmt2 = c.prepareStatement("SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=?")) {//NOSONAR
-                    stmt2.setString(1, offeringName);
-                    try(final ResultSet rs2 = stmt2.executeQuery()) {
-                        while (rs2.next()) {
-                            final String href = rs2.getString(1);
-                            phen200.add(href);
-                            phen100.add(new PhenomenonPropertyType(href));
-                        }
-                    }
-                }
-
-                try(final PreparedStatement stmt3 = c.prepareStatement("SELECT \"foi\" FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\"=?")) {//NOSONAR
-                    stmt3.setString(1, offeringName);
-                    try(final ResultSet rs3 = stmt3.executeQuery()) {
-                        while (rs3.next()) {
-                            foi.add(rs3.getString(1));
-                        }
-                    }
-                }
-            }
-
-            final List<String> responseFormat         = RESPONSE_FORMAT.get(version);
-            final List<QName> resultModel             = Arrays.asList(OBSERVATION_QNAME, MEASUREMENT_QNAME);
-            final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL);
-            final List<ResponseModeType> responseMode = Arrays.asList(ResponseModeType.INLINE, ResponseModeType.RESULT_TEMPLATE);
-            final List<String> procedureDescription   = acceptedSensorMLFormats.get("2.0.0");
-            return buildOffering(version,
-                                 id,
-                                 name,
-                                 description,
-                                 null,
-                                 time,
-                                 procedure,
-                                 phen100,
-                                 phen200,
-                                 foi,
-                                 responseFormat,
-                                 resultModel,
-                                 resultModelV200,
-                                 responseMode,
-                                 procedureDescription);
-
-        } catch (SQLException e) {
-            throw new DataStoreException("Error while retrieving offering: " + offeringName, e);
-        }
     }
 
     private List<String> getProcedureNames(final String sensorType) throws DataStoreException {
@@ -349,27 +232,16 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     @Override
-    public Collection<Phenomenon> getPhenomenons(final Map<String, Object> hints) throws DataStoreException {
-        String version      = (String) hints.get(SOS_VERSION);
-        Object identifierVal = hints.get(IDENTIFIER);
-        String where = "";
-        if (identifierVal instanceof Collection && !((Collection)identifierVal).isEmpty()) {
-            where = "WHERE \"id\" IN (";
-            for (String id : (Collection<? extends String>) identifierVal) {
-                where = where + "'" + id + "',";
-            }
-            where = where.substring(0, where.length() - 1) + ")";
-        } else if (identifierVal instanceof String) {
-            where = "WHERE \"id\" = '" + identifierVal + "'";
-        }
+    public Phenomenon getPhenomenon(String identifier) throws DataStoreException {
+        String where = "WHERE \"id\" = '" + identifier + "'";
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement();
             final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" " + where)) {//NOSONAR
-            final List<Phenomenon> results = new ArrayList<>();
+            Phenomenon result          = null;
             while (rs.next()) {
-                results.add(getPhenomenon(version, rs.getString(1), c));
+                result = getPhenomenon(rs.getString(1), c);
             }
-            return results;
+            return result;
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }
@@ -379,9 +251,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public Process getProcess(String identifier, String version) throws DataStoreException {
+    public Procedure getProcess(String identifier) throws DataStoreException {
         try (final Connection c = source.getConnection()) {
-            return getProcess(version, identifier, c);
+            return getProcess(identifier, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon.", ex);
         }
@@ -409,16 +281,16 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public SamplingFeature getFeatureOfInterest(final String samplingFeatureName, final String version) throws DataStoreException {
+    public SamplingFeature getFeatureOfInterest(final String identifier) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            return getFeatureOfInterest(samplingFeatureName, version, c);
+            return getFeatureOfInterest(identifier, c);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public AbstractGeometry getSensorLocation(final String sensorID, final String version) throws DataStoreException {
+    public Geometry getSensorLocation(final String sensorID) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
 
             final byte[] b;
@@ -446,20 +318,19 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             if (b != null) {
                 WKBReader reader = new WKBReader();
                 geom             = reader.read(b);
+                JTS.setCRS(geom, crs);
             } else {
                 return null;
             }
-
-            final String gmlVersion = getGMLVersion(version);
-            return JTStoGeometry.toGML(gmlVersion, geom, crs);
+            return geom;
         } catch (SQLException | FactoryException  | ParseException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public Map<Date, AbstractGeometry> getSensorLocations(final String sensorID, final String version) throws DataStoreException {
-        final Map<Date, AbstractGeometry> results = new HashMap<>();
+    public Map<Date, Geometry> getSensorLocations(final String sensorID) throws DataStoreException {
+        final Map<Date, Geometry> results = new HashMap<>();
         try(final Connection c = source.getConnection()) {
 
             try(final PreparedStatement stmt = (isPostgres) ?
@@ -481,12 +352,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         if (b != null) {
                             WKBReader reader = new WKBReader();
                             geom             = reader.read(b);
+                            JTS.setCRS(geom, crs);
                         } else {
                             return null;
                         }
-
-                        final String gmlVersion = getGMLVersion(version);
-                        results.put(d, JTStoGeometry.toGML(gmlVersion, geom, crs));
+                        results.put(d, geom);
                     }
                 }
             }
@@ -501,8 +371,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getTimeForProcedure(final String version, final String sensorID) throws DataStoreException {
-        TemporalGeometricPrimitive result = null;
+    public TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws DataStoreException {
         final String query = "SELECT \"time_begin\", \"time_end\" "
                            + "FROM \"" + schemaPrefix + "om\".\"offerings\" "
                            + "WHERE \"procedure\"=?";
@@ -513,26 +382,20 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 if (rs.next()) {
                     final Timestamp begin = rs.getTimestamp(1);
                     final Timestamp end = rs.getTimestamp(2);
-                    if (begin != null && end == null) {
-                        result = SOSXmlFactory.buildTimeInstant(version, begin);
-                    } else if (begin == null && end != null) {
-                        result = SOSXmlFactory.buildTimeInstant(version, end);
-                    } else if (begin != null && end != null) {
-                        result = SOSXmlFactory.buildTimePeriod(version, begin, end);
-                    }
+                    return buildTime(sensorID, begin, end);
                 }
             }
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving procedure time.", ex);
         }
-        return result;
+        return null;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Observation getObservation(String identifier, final QName resultModel, final ResponseModeType mode, final String version) throws DataStoreException {
+    public Observation getObservation(String identifier, final QName resultModel, final ResponseMode mode) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             String observationID = null;
             Integer fieldIndex   = null;
@@ -598,7 +461,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             }
 
             final String obsID = "obs-" + observationID;
-            final String timeID = "time-" + observationID;
             final String observedProperty;
             final String procedure;
             final String foi;
@@ -608,12 +470,12 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        final String b = rs.getString(3);
-                        final String e = rs.getString(4);
+                        final Date b = rs.getTimestamp(3);
+                        final Date e = rs.getTimestamp(4);
                         if (b != null && e == null) {
-                            time = buildTimeInstant(version, timeID, b.replace(' ', 'T'));
+                            time = buildTime(observationID, b, null);
                         } else if (b != null && e != null) {
-                            time = buildTimePeriod(version, timeID, b.replace(' ', 'T'), e.replace(' ', 'T'));
+                            time = buildTime(observationID, b, e);
                         }
                         observedProperty = rs.getString(5);
                         procedure = rs.getString(6);
@@ -624,42 +486,63 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 }
             }
 
-            final SamplingFeature feature = getFeatureOfInterest(foi, version, c);
-            final FeatureProperty prop    = buildFeatureProperty(version, feature);
-            final Phenomenon phen         = getPhenomenon(version, observedProperty, c);
+            final SamplingFeature feature = getFeatureOfInterest(foi, c);
+            final Phenomenon phen         = getPhenomenon(observedProperty, c);
 
             final String name;
-            if (ResponseModeType.RESULT_TEMPLATE.equals(mode)) {
+            if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
                 final String procedureID = procedure.substring(sensorIdBase.length());
                 name = observationTemplateIdBase + procedureID;
             } else {
                 name = observationIdBase + observationID;
             }
 
-            final Process proc = getProcess(version, procedure, c);
+            final Field mainField = getMainField(procedure, c);
+            Map<String, Object> properties = new HashMap<>();
+            if (mainField.type == FieldType.TIME) {
+                properties.put("type", "timeseries");
+            } else {
+                properties.put("type", "profile");
+            }
+            final Procedure proc = getProcess(procedure, c);
+            final Phenomenon resultPhen;
+            final Result result;
+            List<Element> resultQuality;
+            final String omType;
             if (resultModel.equals(MEASUREMENT_QNAME)) {
                 if (fieldIndex == null) {
                     throw new DataStoreException("Measurement extraction need a field index specified");
                 }
                 Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
-                List<Element> resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
-                final Object result = getResult(identifier, resultModel, measureId, selectedField, version, c);
-                final String omType = getOmTypeFromField(selectedField.type);
-                final Phenomenon simplePhen;
+                resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
+                result = getResult(identifier, resultModel, measureId, selectedField, c);
+                omType = getOmTypeFromFieldType(selectedField.type);
                 if (phen instanceof CompositePhenomenon) {
-                    simplePhen = getPhenomenon(version, selectedField.name, c);
+                    resultPhen = getPhenomenon(selectedField.name, c);
                 } else {
-                    simplePhen = phen;
+                    resultPhen = phen;
                 }
-                final Field mainField = getMainField(procedure, c);
                 if (FieldType.TIME.equals(mainField.type)) {
-                    time = getMeasureTimeForProfile(timeID, identifier, mainField, c, measureId, version);
+                    time = getMeasureTimeForProfile(identifier, mainField, c, measureId);
                 }
-                return OMXmlFactory.buildMeasurement(version, obsID, name, null, prop, simplePhen, proc, result, time, null, resultQuality, omType);
             } else {
-                final Object result = getResult(identifier, resultModel, measureId, null, version, c);
-                return OMXmlFactory.buildObservation(version, obsID, name, null, prop, phen, proc, result, time, null);
+                resultQuality = new ArrayList<>();
+                resultPhen = phen;
+                result = getResult(identifier, resultModel, measureId, null, c);
+                omType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
             }
+            return new Observation(obsID,
+                                   name,
+                                   null,
+                                   null,
+                                   omType,
+                                   proc,
+                                   time,
+                                   feature,
+                                   resultPhen,
+                                   resultQuality,
+                                   result,
+                                   properties);
 
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
@@ -670,37 +553,30 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public Object getResult(final String identifier, final QName resultModel, final String version) throws DataStoreException {
+    public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            return getResult(identifier, resultModel, null, null, version, c);
+            return getResult(identifier, resultModel, null, null, c);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
-    private Object getResult(final String identifier, final QName resultModel, final Integer measureId, final Field selectedField, final String version, final Connection c) throws DataStoreException, SQLException {
+    private Result getResult(final String identifier, final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
-            return buildMeasureResult(identifier, measureId, selectedField, version, c);
+            return buildMeasureResult(identifier, measureId, selectedField, c);
         } else {
-            return buildComplexResult2(identifier, measureId, version, c);
+            return buildComplexResult2(identifier, measureId, c);
         }
     }
 
-    private DataArrayProperty buildComplexResult2(final String identifier, final Integer measureId, final String version, final Connection c) throws DataStoreException, SQLException {
+    private ComplexResult buildComplexResult2(final String identifier, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
         final String procedure     = getProcedureFromObservation(identifier, c);
         final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
         final List<Field> fields   = readFields(procedure, false, c);
-        final String arrayID       = "dataArray-0"; // TODO
-        final String recordID      = "datarecord-0"; // TODO
-        final TextBlock encoding   = getDefaultTextEncoding(version);
-        final List<AnyScalar> scal = new ArrayList<>();
-        for (Field f : fields) {
-            scal.add(f.getScalar(version));
-        }
 
         int nbValue                 = 0;
-        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, encoding, false);
+        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
         String query                = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                                     + "WHERE \"id_observation\" = o.\"id\" "
@@ -718,13 +594,10 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 }
             }
         }
-
-        final AbstractDataRecord record = buildSimpleDatarecord(version, null, recordID, null, null, scal);
-
-        return buildDataArrayProperty(version, arrayID, nbValue, arrayID, record, encoding, values.getStringValues(), null);
+        return new ComplexResult(fields, DEFAULT_ENCODING, values.getStringValues(), nbValue);
     }
 
-    private Object buildMeasureResult(final String identifier, final Integer measureId, final Field selectedField, final String version, final Connection c) throws DataStoreException, SQLException {
+    private MeasureResult buildMeasureResult(final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
@@ -743,32 +616,32 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             stmt.setString(1, identifier);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String name = "measure-00" + rs.getString("id");
+                    Object value;
                     if (fType == FieldType.QUANTITY) {
-                        Double dValue = rs.getDouble(selectedField.name);
-                        return buildMeasure(version, name, uom, dValue);
+                        value = rs.getDouble(selectedField.name);
                     } else if (fType == FieldType.BOOLEAN) {
-                        Boolean result = rs.getBoolean(selectedField.name);
-                        return result;
+                        value = rs.getBoolean(selectedField.name);
                     } else if (fType == FieldType.TIME) {
                         Timestamp ts = rs.getTimestamp(selectedField.name);
+                        /*
                         GregorianCalendar cal = new GregorianCalendar();
                         cal.setTimeInMillis(ts.getTime());
-                        XMLGregorianCalendar result = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal) ;
-                        return result;
+                        value = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal) ;*/
+                        value = new Date(ts.getTime());
                     } else {
-                        return rs.getString(selectedField.name);
+                        value = rs.getString(selectedField.name);
                     }
+                    return new MeasureResult(selectedField, value);
                 } else {
                     return null;
                 }
             }
-        } catch (NumberFormatException | DatatypeConfigurationException ex) {
+        } catch (NumberFormatException ex) {
             throw new DataStoreException("Unable ta parse the result value as a double");
         }
     }
 
-    private TemporalGeometricPrimitive getMeasureTimeForProfile(String timeID, String identifier, Field mainField, final Connection c, int measureId, String version) throws SQLException {
+    private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, Field mainField, final Connection c, int measureId) throws SQLException {
         final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
         String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
@@ -779,11 +652,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             stmt.setInt(2, measureId);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    final String t = rs.getString(mainField.name);
-                    return buildTimeInstant(version, timeID, t.replace(' ', 'T'));
+                    final Timestamp t = rs.getTimestamp(mainField.name);
+                    return buildTime(identifier, t, null);
+                    }
                 }
             }
-        }
         return null;
     }
 
@@ -833,7 +706,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public Observation getTemplateForProcedure(final String procedure, final String version) throws DataStoreException {
+    public Observation getTemplateForProcedure(final String procedure) throws DataStoreException {
         try (final Connection c = source.getConnection()) {
 
             final String procedureID;
@@ -844,29 +717,40 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             }
             final String obsID = "obs-" + procedureID;
             final String name = observationTemplateIdBase + procedureID;
-            final Phenomenon phen = getGlobalCompositePhenomenon(version, c, procedure);
+            final Phenomenon phen = getGlobalCompositePhenomenon(c, procedure);
             String featureID = null;
-            FeatureProperty foi = null;
+            SamplingFeature feature = null;
             Set<String> fois = getFoiIdsForProcedure(procedure, c);
             if (fois.size() == 1) {
                 featureID = fois.iterator().next();
-                final SamplingFeature feature = getFeatureOfInterest(featureID, version, c);
-                foi = buildFeatureProperty(version, feature);
+                feature = getFeatureOfInterest(featureID, c);
             }
-            TemporalGeometricPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID, version);
+            TemporalGeometricPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID);
             List<Field> fields = readFields(procedure, c);
+            final Field mainField = getMainField(procedure, c);
+            Map<String, Object> properties = new HashMap<>();
+            if (mainField != null && mainField.type == FieldType.TIME) {
+                properties.put("type", "timeseries");
+            } else {
+                properties.put("type", "profile");
+            }
+            final Procedure proc = (Procedure) getProcess(procedure, c);
             /*
              *  BUILD RESULT
              */
-            final List<AnyScalar> scal = new ArrayList<>();
-            for (Field f : fields) {
-                scal.add(f.getScalar(version));
-            }
-            final Process proc = getProcess(version, procedure, c);
-            final TextBlock encoding = getDefaultTextEncoding(version);
-            
-            final Object result = buildComplexResult(version, scal, 0, encoding, null, 0);
-            return OMXmlFactory.buildObservation(version, obsID, name, null, foi, phen, proc, result, tempTime, null);
+            final ComplexResult result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
+            return new Observation(obsID,
+                                    name,
+                                    null,
+                                    null,
+                                    "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                    proc,
+                                    tempTime,
+                                    feature,
+                                    phen,
+                                    null,
+                                    result,
+                                    properties);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
@@ -895,30 +779,37 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName, final String version) throws DataStoreException {
+    public TemporalPrimitive getFeatureOfInterestTime(final String identifier) throws DataStoreException {
         final String query = "SELECT min(\"time_begin\") as mib, max(\"time_begin\") as mab, max(\"time_end\") as mae "
                            + "FROM \"" + schemaPrefix + "om\".\"observations\" "
                            + "WHERE \"foi\"=?";
         try(final Connection c           = source.getConnection();
             final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
-            stmt.setString(1, samplingFeatureName);
+            stmt.setString(1, identifier);
             try (final ResultSet rs = stmt.executeQuery()) {
                 final TemporalGeometricPrimitive time;
                 if (rs.next()) {
                     final Timestamp mib = rs.getTimestamp(1);
                     final Timestamp mab = rs.getTimestamp(2);
                     final Timestamp mae = rs.getTimestamp(3);
+                    Map<String, ?> props = Collections.singletonMap(NAME_KEY, identifier + "-time");
                     if (mib != null && mae == null) {
                         if (mab != null && !mib.equals(mab)) {
-                            time = buildTimePeriod(version, mib, mab);
+                            time = new DefaultPeriod(props,
+                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
+                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mab));
                         } else {
-                            time = buildTimeInstant(version, mib);
+                            time = new DefaultInstant(props, mib);
                         }
                     } else if (mib != null && mae != null) {
                         if (mab != null && mab.after(mae)) {
-                            time = buildTimePeriod(version, mib, mab);
+                            time = new DefaultPeriod(props, 
+                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
+                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mab));
                         } else {
-                            time = buildTimePeriod(version, mib, mae);
+                            time = new DefaultPeriod(props, 
+                                                    new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
+                                                    new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mae));
                         }
                     } else {
                         time = null;
@@ -937,27 +828,23 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getEventTime(String version) throws DataStoreException {
+    public TemporalPrimitive getEventTime() throws DataStoreException {
         try(final Connection c   = source.getConnection();
             final Statement stmt = c.createStatement();
-            final ResultSet rs   = stmt.executeQuery("SELECT max(\"time_begin\"), min(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {//NOSONAR
-            String start         = "undefined";
-            String end           = "now";
+            final ResultSet rs   = stmt.executeQuery("SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {//NOSONAR
+            Instant start        = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-st"), new DefaultTemporalPosition(IndeterminateValue.UNKNOWN));
+            Instant end          = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-en"), new DefaultTemporalPosition(IndeterminateValue.NOW));
             if (rs.next()) {
-                String s = rs.getString(1);
-                if (s != null) {
-                    start = s;
+                Timestamp ts = rs.getTimestamp(1);
+                if (ts != null) {
+                    start = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-st"), ts);
                 }
-                s = rs.getString(2);
-                if (s != null) {
-                    end = s;
+                ts = rs.getTimestamp(2);
+                if (ts != null) {
+                    end = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-en"), ts);
                 }
             }
-            if ("2.0.0".equals(version)) {
-                return GMLXmlFactory.createTimePeriod("3.2.1", "evt-1", start, end);
-            } else {
-                return GMLXmlFactory.createTimePeriod("3.1.1", "evt-1", start, end);
-            }
+            return new DefaultPeriod(Collections.singletonMap(NAME_KEY, "event-time"), start, end);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }

@@ -102,6 +102,7 @@ public class CommonConstants {
     public static final QName OBSERVATION_QNAME = new QName(OM_NAMESPACE, "Observation", "om");
 
     public static final String OBSERVATION_MODEL = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
+    public static final String MEASUREMENT_MODEL = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
 
     /**
      * The base Qname for measurement observation.

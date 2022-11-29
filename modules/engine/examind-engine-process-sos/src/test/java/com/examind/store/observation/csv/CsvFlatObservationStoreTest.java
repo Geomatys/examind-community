@@ -23,7 +23,7 @@ import com.examind.store.observation.csvflat.CsvFlatObservationStoreFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,18 +31,19 @@ import java.util.logging.Logger;
 import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.util.NamesExt;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -109,52 +110,53 @@ public class CsvFlatObservationStoreTest {
 
         CsvFlatObservationStore store = factory.open(params);
 
-        Set<GenericName> procedureNames = store.getProcedureNames();
+        Set<String> procedureNames = store.getEntityNames(OMEntity.PROCEDURE);
         Assert.assertEquals(9, procedureNames.size());
 
         String sensorId = "urn:surval:25049001";
-        Assert.assertTrue(procedureNames.contains(NamesExt.create(sensorId)));
+        Assert.assertTrue(procedureNames.contains(sensorId));
 
-        Set<String> phenomenonNames = store.getPhenomenonNames();
+        Set<String> phenomenonNames = store.getEntityNames(OMEntity.OBSERVED_PROPERTY);
         Assert.assertTrue(phenomenonNames.contains("7-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-SALI"));
 
         ObservationReader reader = store.getReader();
 
-        TemporalGeometricPrimitive time = reader.getTimeForProcedure("2.0.0", sensorId);
+        TemporalGeometricPrimitive time = reader.getTimeForProcedure(sensorId);
 
-        Assert.assertTrue(time instanceof TimePeriodType);
+        Assert.assertTrue(time instanceof Period);
 
-        TimePeriodType tp = (TimePeriodType) time;
-        Assert.assertEquals("1987-06-01" , tp.getBeginPosition().getValue());
-        Assert.assertEquals("2019-12-17" , tp.getEndPosition().getValue());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Period tp = (Period) time;
+        Assert.assertEquals("1987-06-01" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2019-12-17" , sdf.format(tp.getEnding().getDate()));
 
-        ExtractionResult results = store.getResults(new ArrayList<>());
+        ObservationDataset results = store.getDataset(new DatasetQuery());
         final StringBuilder sb = new StringBuilder("result procedures:\n");
-        results.procedures.stream().forEach(p -> sb.append(p.id).append("\n"));
+        results.procedures.stream().forEach(p -> sb.append(p.getId()).append("\n"));
         LOGGER.info(sb.toString());
         Assert.assertEquals(1, results.procedures.size());
-        ExtractionResult.ProcedureTree proc = results.procedures.get(0);
-        Assert.assertEquals("urn:surval:25049001", proc.id);
+        ProcedureDataset proc = results.procedures.get(0);
+        Assert.assertEquals("urn:surval:25049001", proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        List<ExtractionResult.ProcedureTree> procedures = store.getProcedures();
+        List<ProcedureDataset> procedures = store.getProcedures();
 
         final StringBuilder sb2 = new StringBuilder("procedures:\n");
-        procedures.stream().forEach(p -> sb2.append(p.id).append("\n"));
+        procedures.stream().forEach(p -> sb2.append(p.getId()).append("\n"));
         LOGGER.info(sb2.toString());
         Assert.assertEquals(1, procedures.size());
         proc = procedures.get(0);
-        Assert.assertEquals("urn:surval:25049001", proc.id);
+        Assert.assertEquals("urn:surval:25049001", proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        time = proc.spatialBound.getTimeObject("2.0.0");
-        Assert.assertTrue(time instanceof TimePeriodType);
+        time = proc.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
 
-        tp = (TimePeriodType) time;
-        Assert.assertEquals("1987-06-01" , tp.getBeginPosition().getValue());
-        Assert.assertEquals("2019-12-17" , tp.getEndPosition().getValue());
+        tp = (Period) time;
+        Assert.assertEquals("1987-06-01" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2019-12-17" , sdf.format(tp.getEnding().getDate()));
     }
 
 

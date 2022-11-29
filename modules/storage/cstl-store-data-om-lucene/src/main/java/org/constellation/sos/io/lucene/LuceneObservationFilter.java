@@ -22,13 +22,11 @@ package org.constellation.sos.io.lucene;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.index.SearchingException;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ResponseModeType;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -40,22 +38,22 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
-import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
-import static org.geotoolkit.observation.OMUtils.getVersionFromHints;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.*;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.ogc.xml.v200.TimeAfterType;
-import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
-import org.geotoolkit.ogc.xml.v200.TimeDuringType;
-import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
+import org.geotoolkit.observation.model.ResponseMode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
+import org.opengis.geometry.Envelope;
 
 /**
  * TODO
@@ -64,19 +62,27 @@ import org.opengis.filter.TemporalOperatorName;
  */
 public abstract class LuceneObservationFilter implements ObservationFilterReader {
 
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.lucene");
+    
     private StringBuilder luceneRequest;
 
     private LuceneObservationSearcher searcher;
 
-    protected final List<Filter> eventTimes = new ArrayList<>();
+    protected final List<Filter> timeFilters = new ArrayList<>();
+
+    protected List<Integer> fieldFilters = new ArrayList<>();
+    protected List<Integer> measureIdFilters = new ArrayList<>();
 
     protected QName resultModel;
 
-    protected ResponseModeType responseMode;
+    protected ResponseMode responseMode;
 
     protected String responseFormat;
 
     protected final String phenomenonIdBase;
+    protected final String observationTemplateIdBase;
+    protected final String observationIdBase;
+    protected final String sensorIdBase;
 
     protected String version = null;
 
@@ -84,13 +90,19 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     
     private static final String OR_OPERATOR = " OR ";
 
-    public LuceneObservationFilter(final LuceneObservationFilter omFilter) throws DataStoreException {
-        this.searcher = omFilter.searcher;
-        this.phenomenonIdBase  = omFilter.phenomenonIdBase;
+    public LuceneObservationFilter(final LuceneObservationFilter that) throws DataStoreException {
+        this.searcher                  = that.searcher;
+        this.phenomenonIdBase          = that.phenomenonIdBase;
+        this.observationTemplateIdBase = that.observationTemplateIdBase;
+        this.observationIdBase         = that.observationIdBase;
+        this.sensorIdBase              = that.sensorIdBase;
     }
 
     public LuceneObservationFilter(final Path confDirectory, final Map<String, Object> properties) throws DataStoreException {
-        this.phenomenonIdBase  = (String) properties.get(PHENOMENON_ID_BASE_NAME);
+        this.phenomenonIdBase          = (String) properties.get(PHENOMENON_ID_BASE_NAME);
+        this.observationTemplateIdBase = (String) properties.getOrDefault(OBSERVATION_TEMPLATE_ID_BASE_NAME, "urn:observation:template:");
+        this.observationIdBase         = (String) properties.getOrDefault(OBSERVATION_ID_BASE_NAME, "");
+        this.sensorIdBase              = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
         try {
             this.searcher = new LuceneObservationSearcher(confDirectory, "");
         } catch (IndexingException ex) {
@@ -101,8 +113,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
         this.objectType = objectType;
-        this.version                 = getVersionFromHints(hints);
-        this.eventTimes.clear();
+        this.version    = OMUtils.getVersionFromHints(hints);
+        this.timeFilters.clear();
          
         switch (objectType) {
             case FEATURE_OF_INTEREST: luceneRequest = new StringBuilder("type:foi"); break;
@@ -118,16 +130,12 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
     
     private void initFilterObservation(final Map<String, Object> hints) {
-        this.responseMode = (ResponseModeType) hints.get("responseMode");
+        this.responseMode = (ResponseMode) hints.get("responseMode");
         this.responseFormat = (String) hints.get("responseFormat");
         this.resultModel = (QName) hints.get("resultModel");
-        if (resultModel.equals(MEASUREMENT_QNAME)) {
-            luceneRequest = new StringBuilder("type:measurement ");
-        } else {
-            luceneRequest = new StringBuilder("type:observation ");
-        }
+        luceneRequest = new StringBuilder("type:observation ");
 
-        if (ResponseModeType.RESULT_TEMPLATE.equals(responseMode)) {
+        if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             luceneRequest.append("template:TRUE ");
         } else {
             luceneRequest.append("template:FALSE ");
@@ -139,13 +147,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         String procedure = (String) hints.get("procedure");
         this.responseFormat = (String) hints.get("responseFormat");
         this.resultModel = (QName) hints.get("resultModel");
-        this.responseMode = (ResponseModeType) hints.get("responseMode");
-        if (resultModel.equals(MEASUREMENT_QNAME)) {
-            luceneRequest = new StringBuilder("type:measurement AND template:FALSE AND procedure:\"" + procedure + "\" ");
-        } else {
-            luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
-        }
-        this.resultModel = resultModel;
+        this.responseMode = (ResponseMode) hints.get("responseMode");
+        luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
         this.objectType = OMEntity.RESULT;
     }
 
@@ -218,12 +221,107 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
-            luceneRequest.append(" AND (");
-            for (String oid : ids) {
-                luceneRequest.append("id:\"").append(oid).append("\" OR ");
+            final StringBuilder procSb  = new StringBuilder();
+            /*
+            * in template mode 2 possibility :
+            *   1) look for for a template by id:
+            *       - <template base> - <proc id>
+            *       - <template base> - <proc id> - <field id>
+            *   2) look for a template for an observation id:
+            *       - <observation id>
+            *       - <observation id> - <field id>
+            *       - <observation id> - <field id> - <measure id>
+            */
+            if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
+                for (String oid : ids) {
+                    if (oid.startsWith(observationTemplateIdBase)) {
+                        String procedureID = oid.substring(observationTemplateIdBase.length());
+                        // look for a field separator
+                        int pos = procedureID.lastIndexOf("-");
+                        if (pos != -1) {
+                            try {
+                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                String tmpProcedureID = procedureID.substring(0, pos);
+                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                    existProcedure(tmpProcedureID)) {
+                                    procedureID = tmpProcedureID;
+                                    fieldFilters.add(fieldIdentifier);
+                                }
+                            } catch (NumberFormatException ex) {}
+                        }
+                        if (existProcedure(sensorIdBase + procedureID)) {
+                            procSb.append("procedure:\"").append(sensorIdBase + procedureID).append("\" OR");
+                        } else {
+                            procSb.append("procedure:\"").append(procedureID).append("\" OR");
+                        }
+                    } else if (oid.startsWith(observationIdBase)) {
+                        String[] component = oid.split("-");
+                        if (component.length == 3) {
+                            oid = component[0];
+                            int fieldId = Integer.parseInt(component[1]);
+                            fieldFilters.add(fieldId);
+                            measureIdFilters.add(Integer.parseInt(component[2]));
+                        } else if (component.length == 2) {
+                            oid = component[0];
+                            int fieldId = Integer.parseInt(component[1]);
+                            fieldFilters.add(fieldId);
+                        }
+                        procSb.append("id:\"").append(oid).append("\" OR");
+                    } else {
+                        procSb.append("id:\"").append(oid).append("\" OR");
+                    }
+                }
+           /*
+            * in observations mode 2 possibility :
+            *   1) look for for observation for a template:
+            *       - <template base> - <proc id>
+            *       - <template base> - <proc id> - <field id>
+            *   2) look for observation by id:
+            *       - <observation id>
+            *       - <observation id> - <measure id>
+            *       - <observation id> - <field id> - <measure id>
+            */
+            } else {
+                for (String oid : ids) {
+                     if (oid.contains(observationTemplateIdBase)) {
+                        String procedureID = oid.substring(observationTemplateIdBase.length());
+                        // look for a field separator
+                        int pos = procedureID.lastIndexOf("-");
+                        if (pos != -1) {
+                            try {
+                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                                String tmpProcedureID = procedureID.substring(0, pos);
+                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                                    existProcedure(tmpProcedureID)) {
+                                    procedureID = tmpProcedureID;
+                                    fieldFilters.add(fieldIdentifier);
+                                }
+                            } catch (NumberFormatException ex) {}
+                        }
+                        if (existProcedure(sensorIdBase + procedureID)) {
+                            procSb.append("procedure:\"").append(sensorIdBase + procedureID).append("\" OR");
+                        } else {
+                            procSb.append("procedure:\"").append(procedureID).append("\" OR");
+                        }
+                    } else if (oid.startsWith(observationIdBase)) {
+                        String[] component = oid.split("-");
+                        if (component.length == 3) {
+                            oid = component[0];
+                            fieldFilters.add(Integer.parseInt(component[1]));
+                            measureIdFilters.add(Integer.parseInt(component[2]));
+                        } else if (component.length == 2) {
+                            oid = component[0];
+                            measureIdFilters.add(Integer.parseInt(component[1]));
+                        }
+                        procSb.append("id:\"").append(oid).append("\" OR");
+                    } else {
+                        procSb.append("id:\"").append(oid).append("\" OR");
+                    }
+                }
             }
-            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-            luceneRequest.append(") ");
+
+            procSb.delete(procSb.length() - 3, procSb.length());
+            luceneRequest.append(" AND( ").append(procSb).append(") ");
         }
     }
 
@@ -237,8 +335,9 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         Object time = tFilter.getExpressions().get(1);
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
-            eventTimes.add(new TimeEqualsType("result_time", time));
-            if (time instanceof Period tp) {
+            timeFilters.add(tFilter);
+            if (time instanceof Period) {
+                final Period tp = (Period) time;
                 final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
                 final String end        = getLuceneTimeValue(tp.getEnding().getDate());
 
@@ -264,7 +363,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
         } else if (type == TemporalOperatorName.BEFORE) {
-            eventTimes.add(new TimeBeforeType("result_time", time));
+            timeFilters.add(tFilter);
             // for the operation before the temporal object must be an timeInstant
             if (time instanceof Instant ti) {
                 final String position    = getLuceneTimeValue(ti.getDate());
@@ -278,7 +377,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
         } else if (type == TemporalOperatorName.AFTER) {
-            eventTimes.add(new TimeAfterType("result_time", time));
+            timeFilters.add(tFilter);
             // for the operation after the temporal object must be an timeInstant
             if (time instanceof Instant ti) {
                 final String position    = getLuceneTimeValue(ti.getDate());
@@ -296,8 +395,9 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
         } else if (type == TemporalOperatorName.DURING) {
-            eventTimes.add(new TimeDuringType("result_time", time));
-            if (time instanceof Period tp) {
+            timeFilters.add(tFilter);
+            if (time instanceof Period) {
+                final Period tp = (Period) time;
                 final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
                 final String end        = getLuceneTimeValue(tp.getEnding().getDate());
                 luceneRequest.append("AND (");
@@ -370,6 +470,16 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             return new LinkedHashSet<>(tmp);
         } catch(SearchingException ex) {
             throw new DataStoreException("Search exception while filtering the observation", ex);
+        }
+    }
+
+    private boolean existProcedure(String procedureId) {
+        try {
+            Set<String> results = searcher.doSearch(new SpatialQuery("type:procedure AND procedure:\"" + procedureId + "\""));
+            return !results.isEmpty();
+        } catch(SearchingException ex) {
+            LOGGER.log(Level.WARNING, "Search exception while looking for proecdure existence", ex);
+            return false;
         }
     }
 

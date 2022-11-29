@@ -26,12 +26,13 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.ReflectionUtilities;
-import org.geotoolkit.gml.xml.AbstractFeature;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
-import org.opengis.geometry.primitive.Point;
+import org.locationtech.jts.geom.Point;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -49,22 +50,22 @@ public class ObservationProviderUtils {
      * @return True if the sampling point is strictly inside the specified envelope.
      */
     public static boolean samplingPointMatchEnvelope(final Point sp, final Envelope e) throws ConstellationStoreException {
-        if (sp.getDirectPosition() != null) {
+        if (sp.getCoordinate()!= null) {
             org.opengis.geometry.Envelope reproj;
-            final CoordinateReferenceSystem spCRS = sp.getCoordinateReferenceSystem();
-            if (Utilities.equalsIgnoreMetadata(spCRS, e.getCoordinateReferenceSystem())) {
-                reproj = e;
-            } else {
-                try {
-                    reproj = new GeneralEnvelope(e);
-                    reproj = Envelopes.transform(reproj, spCRS);
-                } catch (TransformException ex) {
-                    throw new ConstellationStoreException(ex);
+            try {
+                final CoordinateReferenceSystem spCRS = JTS.findCoordinateReferenceSystem(sp);
+                if (Utilities.equalsIgnoreMetadata(spCRS, e.getCoordinateReferenceSystem())) {
+                    reproj = e;
+                } else {
+                        reproj = new GeneralEnvelope(e);
+                        reproj = Envelopes.transform(reproj, spCRS);
                 }
+            } catch (TransformException | FactoryException ex) {
+                throw new ConstellationStoreException(ex);
             }
 
-            final double stationX = sp.getDirectPosition().getOrdinate(0);
-            final double stationY = sp.getDirectPosition().getOrdinate(1);
+            final double stationX = sp.getCoordinate().getOrdinate(0);
+            final double stationY = sp.getCoordinate().getOrdinate(1);
             final double minx     = reproj.getLowerCorner().getOrdinate(0);
             final double maxx     = reproj.getUpperCorner().getOrdinate(0);
             final double miny     = reproj.getLowerCorner().getOrdinate(1);
@@ -77,18 +78,13 @@ public class ObservationProviderUtils {
         return false;
     }
 
-    public static boolean BoundMatchEnvelope(final AbstractFeature sc, final Envelope e) {
-         if (sc.getBoundedBy() != null &&
-            sc.getBoundedBy().getEnvelope() != null &&
-            sc.getBoundedBy().getEnvelope().getLowerCorner() != null &&
-            sc.getBoundedBy().getEnvelope().getUpperCorner() != null &&
-            sc.getBoundedBy().getEnvelope().getLowerCorner().getCoordinate().length > 1 &&
-            sc.getBoundedBy().getEnvelope().getUpperCorner().getCoordinate().length > 1) {
+    public static boolean BoundMatchEnvelope(final org.locationtech.jts.geom.Envelope sc, final Envelope e) {
+         if (sc != null) {
 
-            final double stationMinX  = sc.getBoundedBy().getEnvelope().getLowerCorner().getOrdinate(0);
-            final double stationMaxX  = sc.getBoundedBy().getEnvelope().getUpperCorner().getOrdinate(0);
-            final double stationMinY  = sc.getBoundedBy().getEnvelope().getLowerCorner().getOrdinate(1);
-            final double stationMaxY  = sc.getBoundedBy().getEnvelope().getUpperCorner().getOrdinate(1);
+            final double stationMinX  = sc.getMinX();
+            final double stationMaxX  = sc.getMaxX();
+            final double stationMinY  = sc.getMinY();
+            final double stationMaxY  = sc.getMaxY();
             final double minx         = e.getLowerCorner().getOrdinate(0);
             final double maxx         = e.getUpperCorner().getOrdinate(0);
             final double miny         = e.getLowerCorner().getOrdinate(1);
@@ -99,10 +95,10 @@ public class ObservationProviderUtils {
                 stationMaxY < maxy && stationMinY > miny) {
                 return true;
             } else {
-                LOGGER.log(Level.FINER, " the feature of interest {0} is not in the BBOX", sc.getId());
+                LOGGER.log(Level.FINER, " the feature of interest is not in the BBOX");
             }
         } else {
-            LOGGER.log(Level.WARNING, " the feature of interest (samplingCurve){0} does not have proper bounds", sc.getId());
+            LOGGER.log(Level.WARNING, " the feature of interest does not have proper bounds");
         }
         return false;
     }

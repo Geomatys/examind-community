@@ -28,12 +28,10 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.gml.JTStoGeometry;
-import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
-import org.opengis.geometry.Geometry;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 
@@ -44,11 +42,9 @@ import org.opengis.util.FactoryException;
 public class SensorLocationProcessor {
 
     protected final GeneralEnvelope envelopeFilter;
-    protected final String gmlVersion;
 
-    public SensorLocationProcessor(GeneralEnvelope envelopeFilter, String gmlVersion) {
+    public SensorLocationProcessor(GeneralEnvelope envelopeFilter) {
         this.envelopeFilter = envelopeFilter;
-        this.gmlVersion = gmlVersion;
     }
 
     public Map<String, Map<Date, Geometry>> processLocations(ResultSet rs) throws SQLException, DataStoreException {
@@ -73,6 +69,7 @@ public class SensorLocationProcessor {
                 if (b != null) {
                     WKBReader reader = new WKBReader();
                     geom             = reader.read(b);
+                    JTS.setCRS(geom, crs);
                 } else {
                     continue;
                 }
@@ -80,8 +77,6 @@ public class SensorLocationProcessor {
                 if (spaFilter != null && !spaFilter.intersects(geom)) {
                     continue;
                 }
-
-                final AbstractGeometry gmlGeom = JTStoGeometry.toGML(gmlVersion, geom, crs);
 
                 final Map<Date, Geometry> procedureLocations;
                 if (locations.containsKey(procedure)) {
@@ -91,11 +86,7 @@ public class SensorLocationProcessor {
                     locations.put(procedure, procedureLocations);
 
                 }
-                if (gmlGeom instanceof Geometry) {
-                    procedureLocations.put(time, (Geometry) gmlGeom);
-                } else {
-                    throw new DataStoreException("GML geometry cannot be casted as an Opengis one");
-                }
+                procedureLocations.put(time, geom);
             } catch (FactoryException | ParseException ex) {
                 throw new DataStoreException(ex);
             }

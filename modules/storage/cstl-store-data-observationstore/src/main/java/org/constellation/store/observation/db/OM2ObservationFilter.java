@@ -21,13 +21,9 @@ package org.constellation.store.observation.db;
 
 import org.constellation.util.FilterSQLRequest;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.opengis.observation.Phenomenon;
-
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 import java.sql.Connection;
@@ -37,8 +33,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -58,13 +52,14 @@ import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.JTS;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
-import org.geotoolkit.observation.model.FieldPhenomenon;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import static org.geotoolkit.observation.OMUtils.*;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.observation.model.ResultMode;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Phenomenon;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Polygon;
@@ -76,7 +71,7 @@ import org.opengis.filter.Literal;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.filter.ValueReference;
-import org.opengis.observation.CompositePhenomenon;
+import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -121,7 +116,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected OMEntity objectType = null;
 
-    protected ResponseModeType responseMode;
+    protected ResponseMode responseMode;
     protected String currentProcedure = null;
     protected String currentOMType = null;
 
@@ -198,7 +193,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterObservation(final Map<String, Object> hints) {
         this.includeTimeInTemplate = getBooleanHint(hints, INCLUDE_TIME_IN_TEMPLATE, false);
-        this.responseMode          = (ResponseModeType) hints.get("responseMode");
+        this.responseMode          = (ResponseMode) hints.get("responseMode");
         this.resultModel           = (QName) hints.get("resultModel");
         this.includeFoiInTemplate  = getBooleanHint(hints, INCLUDE_FOI_IN_TEMPLATE, true);
         this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
@@ -209,8 +204,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.responseFormat        = (String) hints.get("responseFormat");
         this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
         
-        singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseModeType.RESULT_TEMPLATE.equals(responseMode);
-        if (ResponseModeType.RESULT_TEMPLATE.equals(responseMode)) {
+        singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
+        if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             sqlRequest = new FilterSQLRequest("SELECT distinct  o.\"procedure\"");
             if (singleObservedPropertyInTemplate) {
                 sqlRequest.append(", (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) AS \"obsprop\", pd.\"order\", pd.\"uom\"");
@@ -240,7 +235,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetResult(final Map<String, Object> hints) throws DataStoreException {
         this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
-        this.responseMode          = (ResponseModeType) hints.get("responseMode");
+        this.responseMode          = (ResponseMode) hints.get("responseMode");
         this.currentProcedure      = (String) hints.get("procedure");
         this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
         this.includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
@@ -282,7 +277,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     private void initFilterGetPhenomenon(final Map<String, Object> hints) {
-        sqlRequest = new FilterSQLRequest("SELECT op.\"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
+        sqlRequest = new FilterSQLRequest("SELECT DISTINCT(op.\"id\") FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
         if (noCompositePhenomenon) {
             sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
             firstFilter = false;
@@ -339,26 +334,67 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void setProcedure(final List<String> procedures) {
         if (procedures != null && !procedures.isEmpty()) {
-            final String tableName;
-            if (HISTORICAL_LOCATION.equals(objectType)) {
-                tableName = "hl";
-            } else {
-                tableName = "o";
-            }
-            if (firstFilter) {
-                sqlRequest.append(" ( ");
-            } else {
-                sqlRequest.append("AND ( ");
-            }
-            for (String s : procedures) {
-                if (s != null) {
-                    sqlRequest.append(" ").append(tableName).append(".\"procedure\"=").appendValue(s).append(" OR ");
+            if (OMEntity.OBSERVED_PROPERTY.equals(objectType)) {
+                final FilterSQLRequest procSb  = new FilterSQLRequest();
+                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+                for (String procedureID : procedures) {
+                    if (!noCompositePhenomenon) {
+                        Phenomenon phen;
+                        try {
+                            phen = getGlobalCompositePhenomenon(procedureID);
+                            if (phen == null) {
+                                LOGGER.warning("Global phenomenon not found for procedure :" + procedureID);
+                            } else {
+                                fieldSb.append(" (op.\"id\" = '").append(phen.getId()).append("') OR");
+                            }
+                        } catch (DataStoreException ex) {
+                            LOGGER.log(Level.SEVERE, "Error while getting global phenomenon for procedure:" + procedureID, ex);
+                        }
+                    } else {
+                        procSb.append("(pd.\"procedure\"=").appendValue(procedureID).append(") OR");
+                        procDescJoin = true;
+                    }
                 }
+                if (procSb.length() > 0) {
+                    procSb.delete(procSb.length() - 3, procSb.length());
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(procSb).append(") ");
+                    } else {
+                        sqlRequest.append(procSb);
+                        firstFilter = false;
+                    }
+                }
+                if (fieldSb.length() > 0) {
+                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(fieldSb).append(") ");
+                    } else {
+                        sqlRequest.append(fieldSb);
+                        firstFilter = false;
+                    }
+                }
+            } else {
+                final String tableName;
+                if (HISTORICAL_LOCATION.equals(objectType)) {
+                    tableName = "hl";
+                } else {
+                    tableName = "o";
+                }
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
+                } else {
+                    sqlRequest.append("AND ( ");
+                }
+                for (String s : procedures) {
+                    if (s != null) {
+                        sqlRequest.append(" ").append(tableName).append(".\"procedure\"=").appendValue(s).append(" OR ");
+                    }
+                }
+                sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
+                sqlRequest.append(") ");
+                firstFilter = false;
+                obsJoin = true;
             }
-            sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
-            sqlRequest.append(") ");
-            firstFilter = false;
-            obsJoin = true;
         }
     }
 
@@ -442,12 +478,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     private Set<String> getFieldsForPhenomenon(final String phenomenon) {
         final Set<String> results = new HashSet<>();
         try(final Connection c = source.getConnection()) {
-            final Phenomenon phen = getPhenomenon("1.0.0", phenomenon, c);
+            final Phenomenon phen = getPhenomenon(phenomenon, c);
             if (phen instanceof CompositePhenomenon) {
                 final CompositePhenomenon compo = (CompositePhenomenon) phen;
-                for (Phenomenon child : compo.getComponent()) {
-                    results.add(((org.geotoolkit.swe.xml.Phenomenon)child).getId());
-                }
+                results.addAll(compo.getComponent().stream().map(child -> ((Phenomenon)child).getId()).toList());
             } else {
                 results.add(phenomenon);
             }
@@ -525,11 +559,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             if (!noCompositePhenomenon) {
                                 Phenomenon phen;
                                 try {
-                                    phen = getGlobalCompositePhenomenon("2.0.0", procedureID);
+                                    phen = getGlobalCompositePhenomenon(procedureID);
                                     if (phen == null) {
                                         LOGGER.warning("Global phenomenon not found for procedure :" + procedureID);
                                     } else {
-                                        fieldSb.append(" (op.\"id\" = '").append(getId(phen)).append("') OR");
+                                        fieldSb.append(" (op.\"id\" = '").append(phen.getId()).append("') OR");
                                     }
                                 } catch (DataStoreException ex) {
                                     LOGGER.log(Level.SEVERE, "Error while getting global phenomenon for procedure:" + procedureID, ex);
@@ -1006,8 +1040,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     LOGGER.fine(sqlRequest.getRequest());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        final Phenomenon phen = getPhenomenon("1.0.0", observedProperty, c);
-                        List<FieldPhenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
+                        final Phenomenon phen = getPhenomenon(observedProperty, c);
+                        List<Field> fieldPhen = getFieldsForPhenomenon(phen, fields, c);
                         
                         try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
                              final ResultSet rs2 = stmt.executeQuery()) {
@@ -1015,10 +1049,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 final Integer rid = rs2.getInt("id");
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     for (int i = 0; i < fieldPhen.size(); i++) {
-                                        FieldPhenomenon field = fieldPhen.get(i);
-                                        final String value = rs2.getString(field.getField().name);
+                                        Field field = fieldPhen.get(i);
+                                        final String value = rs2.getString(field.name);
                                         if (value != null) {
-                                            results.add(name + '-' + field.getField().index + '-' + rid);
+                                            results.add(name + '-' + field.index + '-' + rid);
                                         }
                                     }
                                 }
@@ -1153,6 +1187,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             } else {
                 request = request.replaceFirst("WHERE", obsJoin + "AND ");
             }
+        }  else if (procDescJoin) {
+            final String procDescJoin = ", \"" + schemaPrefix + "om\".\"procedure_descriptions\" pd WHERE pd.\"field_name\" = op.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", procDescJoin);
+            } else {
+                request = request.replaceFirst("WHERE", procDescJoin + "AND ");
+            }
         } else {
             if (firstFilter) {
                 request = request.replaceFirst("WHERE", "");
@@ -1170,6 +1211,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 request = request.replaceFirst("WHERE", obsJoin);
             } else {
                 request = request.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else if (offJoin) {
+            final String offJoin = ", \"" + schemaPrefix + "om\".\"offerings\" off WHERE off.\"procedure\" = pr.\"id\" ";
+            if (firstFilter) {
+                request = request.replaceFirst("WHERE", offJoin);
+            } else {
+                request = request.replaceFirst("WHERE", offJoin + "AND ");
             }
         } else {
             if (firstFilter) {
@@ -1401,23 +1449,32 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return false;
     }
 
-    protected List<FieldPhenomenon> getPhenomenonFields(final Phenomenon fullPhen, List<Field> fields, Connection c) throws DataStoreException {
-        final List<FieldPhenomenon> results = new ArrayList<>();
+    protected Map<Field, Phenomenon> getPhenomenonFields(final Phenomenon fullPhen, List<Field> fields, Connection c) throws DataStoreException {
+        final Map<Field, Phenomenon> results = new LinkedHashMap<>();
         for (Field f : fields) {
             if (isIncludedField(f.name, f.description, f.index) && isFieldInPhenomenon(f.name, fullPhen)) {
-                Phenomenon phen = getPhenomenon("1.0.0", f.name, c);
-                results.add(new FieldPhenomenon(phen, f));
+                Phenomenon phen = getPhenomenon(f.name, c);
+                results.put(f, phen);
+            }
+        }
+        return results;
+    }
+
+    protected List<Field> getFieldsForPhenomenon(final Phenomenon fullPhen, List<Field> fields, Connection c) throws DataStoreException {
+        final List<Field> results = new ArrayList<>();
+        for (Field f : fields) {
+            if (isIncludedField(f.name, f.description, f.index) && isFieldInPhenomenon(f.name, fullPhen)) {
+                results.add(f);
             }
         }
         return results;
     }
 
     private boolean isFieldInPhenomenon(String phenId, Phenomenon phen) {
-        if (phen instanceof CompositePhenomenon) {
-                CompositePhenomenon composite = (CompositePhenomenon) phen;
+        if (phen instanceof CompositePhenomenon composite) {
             return hasComponent(phenId, composite);
         } else {
-            return phenId.equals(getId(phen));
+            return phenId.equals(phen.getId());
         }
     }
 
@@ -1434,9 +1491,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      *
      * @return
      */
-    protected Phenomenon getGlobalCompositePhenomenon(String version, String procedure) throws DataStoreException {
+    protected Phenomenon getGlobalCompositePhenomenon(String procedure) throws DataStoreException {
         try(final Connection c   = source.getConnection()) {
-            return getGlobalCompositePhenomenon(version, c, procedure);
+            return getGlobalCompositePhenomenon(c, procedure);
         } catch (SQLException ex) {
             throw new DataStoreException(ex);
         }

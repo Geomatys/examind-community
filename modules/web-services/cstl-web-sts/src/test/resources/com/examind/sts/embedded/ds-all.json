@@ -362,6 +362,7 @@
         }, {
             "description": "",
             "unitOfMeasurement": {},
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation",
             "observedArea": {
                 "type": "Point",
                 "coordinates": [42.38798858151254, -4.144984627896044]
@@ -377,6 +378,7 @@
         }, {
             "description": "",
             "unitOfMeasurement": {},
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CategoryObservation",
             "observedArea": {
                 "type": "Point",
                 "coordinates": [42.38798858151254, -4.144984627896044]
@@ -392,6 +394,7 @@
         }, {
             "description": "",
             "unitOfMeasurement": {},
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation",
             "observedArea": {
                 "type": "Point",
                 "coordinates": [42.38798858151254, -4.144984627896044]

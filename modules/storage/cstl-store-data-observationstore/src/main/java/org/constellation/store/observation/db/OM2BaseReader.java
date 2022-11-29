@@ -28,6 +28,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,26 +41,27 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.store.observation.db.OM2Utils.buildFoi;
-import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
 import org.geotoolkit.observation.OMUtils;
+import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
+import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 
-import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
-import org.opengis.metadata.Identifier;
 import org.opengis.metadata.quality.Element;
-import org.opengis.observation.CompositePhenomenon;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
@@ -95,14 +97,14 @@ public class OM2BaseReader {
 
     /**
      * A map of already read sampling feature.
-     * The is forged by version + feature ID.
+     *
      * This map is only populated if {@link OM2BaseReader#cacheEnabled} is set to true.
      */
     private final Map<String, SamplingFeature> cachedFoi = new HashMap<>();
 
     /**
      * A map of already read Phenomenon.
-     * The is forged by version + pehnomenon ID.
+     *
      * This map is only populated if {@link OM2BaseReader#cacheEnabled} is set to true.
      */
     private final Map<String, Phenomenon> cachedPhenomenon = new HashMap<>();
@@ -146,21 +148,11 @@ public class OM2BaseReader {
      */
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
-    protected static final CoordinateReferenceSystem defaultCRS;
-    static {
-        CoordinateReferenceSystem candidate = null;
-        try {
-            candidate = CRS.forCode("EPSG:4326");
-        } catch (FactoryException ex) {
-            LOGGER.log(Level.SEVERE, "Error while retrieving default CRS 4326", ex);
-        }
-        defaultCRS = candidate;
-    }
+    protected static final CoordinateReferenceSystem defaultCRS = CommonCRS.WGS84.geographic();
 
-    protected SamplingFeature getFeatureOfInterest(final String id, final String version, final Connection c) throws SQLException, DataStoreException {
-        final String key = version + id;
-        if (cacheEnabled && cachedFoi.containsKey(key)) {
-            return cachedFoi.get(key);
+    protected SamplingFeature getFeatureOfInterest(final String id, final Connection c) throws SQLException, DataStoreException {
+        if (cacheEnabled && cachedFoi.containsKey(id)) {
+            return cachedFoi.get(id);
         }
         try {
             final String name;
@@ -193,12 +185,13 @@ public class OM2BaseReader {
                 if (b != null) {
                     WKBReader reader = new WKBReader();
                     geom = reader.read(b);
+                    JTS.setCRS(geom, crs);
                 } else {
                     geom = null;
                 }
-                final SamplingFeature sf = buildFoi(version, id, name, description, sampledFeature, geom, crs);
+                final SamplingFeature sf = new SamplingFeature(id, name, description, null, sampledFeature, geom);
                 if (cacheEnabled) {
-                    cachedFoi.put(key, sf);
+                    cachedFoi.put(id, sf);
                 }
                 return sf;
             }
@@ -209,7 +202,7 @@ public class OM2BaseReader {
     }
 
     @SuppressWarnings("squid:S2695")
-    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi, String version) {
+    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi) {
         String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?";
         if (observedProperty != null) {
              request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
@@ -236,11 +229,11 @@ public class OM2BaseReader {
                     Date maxBegin = rs.getTimestamp(2);
                     Date maxEnd   = rs.getTimestamp(3);
                     if (minBegin != null && maxEnd != null && maxEnd.after(maxBegin)) {
-                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxEnd);
+                        return buildTime(procedure, minBegin, maxEnd);
                     } else if (minBegin != null && !minBegin.equals(maxBegin)) {
-                        return SOSXmlFactory.buildTimePeriod(version, minBegin, maxBegin);
+                        return buildTime(procedure, minBegin, maxBegin);
                     } else if (minBegin != null) {
-                        return SOSXmlFactory.buildTimeInstant(version, minBegin);
+                        return buildTime(procedure, minBegin, null);
                     }
                 }
             }
@@ -250,12 +243,12 @@ public class OM2BaseReader {
         return null;
     }
 
-    protected Set<Phenomenon> getAllPhenomenon(final String version, final Connection c) throws DataStoreException {
+    protected Set<Phenomenon> getAllPhenomenon(final Connection c) throws DataStoreException {
         try(final Statement stmt       = c.createStatement();
             final ResultSet rs         = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" ")) {//NOSONAR
             final Set<Phenomenon> results = new HashSet<>();
             while (rs.next()) {
-                results.add(getPhenomenon(version, rs.getString(1), c));
+                results.add(getPhenomenon(rs.getString(1), c));
             }
             return results;
         } catch (SQLException ex) {
@@ -263,7 +256,7 @@ public class OM2BaseReader {
         }
     }
 
-    protected Phenomenon getPhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
+    protected Phenomenon getPhenomenon(final String observedProperty, final Connection c) throws DataStoreException {
         final String id;
         // cleanup phenomenon id because of its XML ype (NCName)
         if (observedProperty.startsWith(phenomenonIdBase)) {
@@ -271,36 +264,29 @@ public class OM2BaseReader {
         } else {
             id = observedProperty.replace(':', '-');
         }
-        final String key = version + id;
-        if (cacheEnabled && cachedPhenomenon.containsKey(key)) {
-            return cachedPhenomenon.get(key);
+        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
+            return cachedPhenomenon.get(id);
         }
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
-                    final List<org.geotoolkit.swe.xml.Phenomenon> phenomenons = new ArrayList<>();
+                    final List<Phenomenon> phenomenons = new ArrayList<>();
                     while (rs.next()) {
                         final String phenID = rs.getString(1);
-                        phenomenons.add(getSinglePhenomenon(version, phenID, c));
+                        phenomenons.add(getSinglePhenomenon(phenID, c));
                     }
-                    org.geotoolkit.swe.xml.Phenomenon base = getSinglePhenomenon(version, observedProperty, c);
+                    Phenomenon base = getSinglePhenomenon(observedProperty, c);
                     Phenomenon result = null;
                     if (base != null) {
                         if (phenomenons.isEmpty()) {
                             result = base;
                         } else {
-                            Identifier identifier = base.getName();
-                            String name = identifier.getCode();
-                            String definition = identifier.getCode();
-                            if (identifier.getDescription() != null) {
-                                name = identifier.getDescription().toString();
-                            }
-                            result = buildCompositePhenomenon(version, id, name, definition, base.getDescription(), phenomenons);
+                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), null, phenomenons);
                         }
                         if (cacheEnabled) {
-                            cachedPhenomenon.put(key, result);
+                            cachedPhenomenon.put(id, result);
                         }
                     }
                     return result;
@@ -311,7 +297,7 @@ public class OM2BaseReader {
         }
     }
 
-    private org.geotoolkit.swe.xml.Phenomenon getSinglePhenomenon(final String version, final String observedProperty, final Connection c) throws DataStoreException {
+    private Phenomenon getSinglePhenomenon(final String observedProperty, final Connection c) throws DataStoreException {
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
@@ -336,7 +322,7 @@ public class OM2BaseReader {
                                 name = phenID.startsWith(phenomenonIdBase) ? phenID.substring(phenomenonIdBase.length()) : phenID;
                             }
                         }
-                        return buildPhenomenon(version, phenID, name, definition, description);
+                        return new Phenomenon(phenID, name, definition, description, null);
                     }
                 }
             }
@@ -354,8 +340,8 @@ public class OM2BaseReader {
      *
      * @return
      */
-    protected Phenomenon getGlobalCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
-       String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"components\" c "
+    protected Phenomenon getGlobalCompositePhenomenon(Connection c, String procedure) throws DataStoreException {
+       String request = "SELECT DISTINCT(\"observed_property\") FROM \"" + schemaPrefix + "om\".\"observations\" o "
                       + "WHERE \"procedure\"=? ";
        LOGGER.fine(request);
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
@@ -364,9 +350,9 @@ public class OM2BaseReader {
                 List<CompositePhenomenon> composites = new ArrayList<>();
                 List<Phenomenon> singles = new ArrayList<>();
                 while (rs.next()) {
-                    Phenomenon phen = getPhenomenon(version, rs.getString("observed_property"), c);
-                    if (phen instanceof CompositePhenomenon) {
-                        composites.add((CompositePhenomenon) phen);
+                    Phenomenon phen = getPhenomenon(rs.getString("observed_property"), c);
+                    if (phen instanceof CompositePhenomenon compo) {
+                        composites.add(compo);
                     } else {
                         singles.add(phen);
                     }
@@ -379,13 +365,13 @@ public class OM2BaseReader {
                         return singles.get(0);
                     } else  {
                         // multiple phenomenons are present, but no composite... TODO
-                        return getVirtualCompositePhenomenon(version, c, procedure);
+                        return getVirtualCompositePhenomenon(c, procedure);
                     }
                 } else if (composites.size() == 1) {
                     return composites.get(0);
                 } else  {
                     // multiple composite phenomenons are present, we must choose the global one
-                    return getOverlappingComposite(composites);
+                    return (Phenomenon) getOverlappingComposite(composites);
                 }
             }
        } catch (SQLException ex) {
@@ -394,7 +380,7 @@ public class OM2BaseReader {
        }
     }
 
-    protected Phenomenon getVirtualCompositePhenomenon(String version, Connection c, String procedure) throws DataStoreException {
+    protected Phenomenon getVirtualCompositePhenomenon(Connection c, String procedure) throws DataStoreException {
        String request = "SELECT \"field_name\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" "
                       + "WHERE \"procedure\"=? "
                       + "AND NOT (\"order\"=1 AND \"field_type\"='Time') "
@@ -404,11 +390,11 @@ public class OM2BaseReader {
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             try (final ResultSet rs   = stmt.executeQuery()) {
-                List<org.geotoolkit.swe.xml.Phenomenon> components = new ArrayList<>();
+                List<Phenomenon> components = new ArrayList<>();
                 int i = 0;
                 while (rs.next()) {
                     final String fieldName = rs.getString("field_name");
-                    org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, fieldName, c);
+                    Phenomenon phen = getPhenomenon(fieldName, c);
                     if (phen == null) {
                         throw new DataStoreException("Unable to link a procedure field to a phenomenon:" + fieldName);
                     }
@@ -418,13 +404,72 @@ public class OM2BaseReader {
                     return components.get(0);
                 } else {
                     final String name = "computed-phen-" + procedure;
-                    return buildCompositePhenomenon(version, name, name, name,(String)null, components);
+                    return new CompositePhenomenon(name, name, name, null, null, components);
                 }
             }
        } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "Error while building virtual composite phenomenon.", ex);
             throw new DataStoreException("Error while building virtual composite phenomenon.");
        }
+    }
+
+    protected Offering readObservationOffering(final String offeringId, final Connection c) throws DataStoreException {
+        final String id;
+        final String name;
+        final String description;
+        final TemporalGeometricPrimitive time;
+        final String procedure;
+        final List<String> phens = new ArrayList<>();
+        final List<String> foi       = new ArrayList<>();
+
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"identifier\"=?")) {//NOSONAR
+            stmt.setString(1, offeringId);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    id                 = rs.getString(1);
+                    description        = rs.getString(2);
+                    name               = rs.getString(3);
+                    final Timestamp b  = rs.getTimestamp(4);
+                    final Timestamp e  = rs.getTimestamp(5);
+                    procedure          = rs.getString(6);
+                    time               = OMUtils.buildTime(id, b, e);
+                } else {
+                    return null;
+                }
+            }
+
+            try(final PreparedStatement stmt2 = c.prepareStatement("SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=?")) {//NOSONAR
+                stmt2.setString(1, offeringId);
+                try(final ResultSet rs2 = stmt2.executeQuery()) {
+                    while (rs2.next()) {
+                        phens.add(rs2.getString(1));
+                    }
+                }
+            }
+
+            try(final PreparedStatement stmt3 = c.prepareStatement("SELECT \"foi\" FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\"=?")) {//NOSONAR
+                stmt3.setString(1, offeringId);
+                try(final ResultSet rs3 = stmt3.executeQuery()) {
+                    while (rs3.next()) {
+                        foi.add(rs3.getString(1));
+                    }
+                }
+            }
+
+            return new Offering( id,
+                                 name,
+                                 description,
+                                 null,
+                                 null, // bounds
+                                 new ArrayList<>(),
+                                 time,
+                                 procedure,
+                                 phens,
+                                 foi);
+
+        } catch (SQLException e) {
+            throw new DataStoreException("Error while retrieving offering: " + offeringId, e);
+        }
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {
@@ -658,21 +703,21 @@ public class OM2BaseReader {
         }
     }
 
-    public org.opengis.observation.Process getProcess(String version, String identifier, final Connection c) throws SQLException {
+    public Procedure getProcess(String identifier, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, identifier);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return SOSXmlFactory.buildProcess(version, rs.getString("id"), rs.getString("name"), rs.getString("description"));
+                    return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), new HashMap<>());
                 }
             }
         }
         return null;
     }
 
-    public org.opengis.observation.Process getProcessSafe(String version, String identifier, final Connection c) throws RuntimeException {
+    public Procedure getProcessSafe(String identifier, final Connection c) throws RuntimeException {
         try {
-            return getProcess(version, identifier, c);
+            return getProcess(identifier, c);
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }

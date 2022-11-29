@@ -21,7 +21,6 @@ package com.examind.sensor.ws;
 
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.gml.xml.BoundingShape;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.sml.xml.AbstractComponents;
 import org.geotoolkit.sml.xml.AbstractProcess;
@@ -44,15 +43,13 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.dto.Sensor;
 import org.geotoolkit.gml.xml.FeatureProperty;
@@ -64,12 +61,9 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorData;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.observation.query.AbstractObservationQuery;
-import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import static org.geotoolkit.sml.xml.SensorMLUtilities.getOMType;
 import org.opengis.filter.FilterFactory;
-import org.opengis.observation.CompositePhenomenon;
-import org.opengis.observation.Phenomenon;
 
 /**
  *
@@ -83,124 +77,6 @@ public final class SensorUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.sensor.ws");
 
     private SensorUtils() {}
-
-    /**
-     * depracted by org.geotoolkit.observation.Utils.getTimeValue
-     */
-    public static Envelope getCollectionBound(final String version, final List<AbstractObservation> observations, final String srsName) {
-        double minx = Double.MAX_VALUE;
-        double miny = Double.MAX_VALUE;
-        double maxx = -Double.MAX_VALUE;
-        double maxy = -Double.MAX_VALUE;
-
-        for (Observation observation: observations) {
-            final AbstractFeature feature = (AbstractFeature) observation.getFeatureOfInterest();
-            if (feature != null) {
-                if (feature.getBoundedBy() != null) {
-                    final BoundingShape bound = feature.getBoundedBy();
-                    if (bound.getEnvelope() != null) {
-                        if (bound.getEnvelope().getLowerCorner() != null
-                            && bound.getEnvelope().getLowerCorner().getCoordinate() != null
-                            && bound.getEnvelope().getLowerCorner().getCoordinate().length == 2 ) {
-                            final double[] lower = bound.getEnvelope().getLowerCorner().getCoordinate();
-                            if (lower[0] < minx) {
-                                minx = lower[0];
-                            }
-                            if (lower[1] < miny) {
-                                miny = lower[1];
-                            }
-                        }
-                        if (bound.getEnvelope().getUpperCorner() != null
-                            && bound.getEnvelope().getUpperCorner().getCoordinate() != null
-                            && bound.getEnvelope().getUpperCorner().getCoordinate().length == 2 ) {
-                            final double[] upper = bound.getEnvelope().getUpperCorner().getCoordinate();
-                            if (upper[0] > maxx) {
-                                maxx = upper[0];
-                            }
-                            if (upper[1] > maxy) {
-                                maxy = upper[1];
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (minx == Double.MAX_VALUE) {
-            minx = -180.0;
-        }
-        if (miny == Double.MAX_VALUE) {
-            miny = -90.0;
-        }
-        if (maxx == (-Double.MAX_VALUE)) {
-            maxx = 180.0;
-        }
-        if (maxy == (-Double.MAX_VALUE)) {
-            maxy = 90.0;
-        }
-
-        final Envelope env = SOSXmlFactory.buildEnvelope(version, null, minx, miny, maxx, maxy, srsName);
-        env.setSrsDimension(2);
-        env.setAxisLabels(Arrays.asList("Y X"));
-        return env;
-    }
-
-    /**
-     * Used for CSV encoding, while iterating on a resultSet.
-     *
-     * if the round on the current date is over, and some field data are not present,
-     * we have to add empty token before to start the next date round.
-     *
-     * example : we are iterating on some date with temperature an salinity
-     *
-     * date       |  phenomenon | value
-     * 2010-01-01    TEMP          1
-     * 2010-01-01    SAL           202
-     * 2010-01-02    TEMP          3
-     * 2010-01-02    SAL           201
-     * 2010-01-03    TEMP          4
-     * 2010-01-04    TEMP          2
-     * 2010-01-04    SAL           210
-     *
-     * CSV encoding will be : @@2010-01-01,1,202@@2010-01-02,3,201@@2010-01-03,4,@@2010-01-04,2,210
-     *
-     * @param value the datablock builder.
-     * @param currentIndex the current object index.
-     */
-    public static void fillEndingDataHoles(final Appendable value, int currentIndex, final List<String> fieldList, final TextBlock encoding, final int nbBlockByHole) throws IOException {
-        while (currentIndex < fieldList.size()) {
-            if (value != null) {
-                for (int i = 0; i < nbBlockByHole; i++) {
-                    value.append(encoding.getTokenSeparator());
-                }
-            }
-            currentIndex++;
-        }
-    }
-
-    /**
-     * Used for CSV encoding, while iterating on a resultSet.
-     *
-     * if some field data are not present in the middle of a date round,
-     * we have to add empty token until we got the next phenomenon data.
-     *
-     * @param value the datablock builder.
-     * @param currentIndex the current phenomenon index.
-     * @param searchedField the name of the current phenomenon.
-     *
-     * @return the updated phenomenon index.
-     */
-    public static int fillDataHoles(final Appendable value, int currentIndex, final String searchedField, final List<String> fieldList, final TextBlock encoding, final int nbBlockByHole) throws IOException {
-        while (currentIndex < fieldList.size() && !fieldList.get(currentIndex).equals(searchedField)) {
-            if (value != null) {
-                for (int i = 0; i < nbBlockByHole; i++) {
-                    value.append(encoding.getTokenSeparator());
-                }
-            }
-            currentIndex++;
-        }
-        return currentIndex;
-    }
 
     public static Period extractTimeBounds(final String version, final String brutValues, final AbstractEncoding abstractEncoding) {
         final String[] result = new String[2];
@@ -309,23 +185,10 @@ public final class SensorUtils {
 
     private static Set<String> getPhenomenonFromSensor(final String sensorID, final ObservationProvider provider, boolean decompose) throws ConstellationStoreException {
         final FilterFactory ff = FilterUtilities.FF;
-        final Set<String> phenomenons = new HashSet<>();
-
-        AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY);
+        ObservedPropertyQuery query = new ObservedPropertyQuery();
+        query.setNoCompositePhenomenon(decompose);
         query.setSelection(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
-        Collection<Phenomenon> phenos = provider.getPhenomenon(query, Collections.emptyMap());
-        phenos.forEach(p -> {
-            org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon)p;
-            if (decompose && phen instanceof CompositePhenomenon) {
-                CompositePhenomenon cp = (CompositePhenomenon)phen;
-                for (Phenomenon c : cp.getComponent()) {
-                    phenomenons.add(((org.geotoolkit.swe.xml.Phenomenon)c).getName().getCode());
-                }
-            } else {
-                phenomenons.add(phen.getName().getCode());
-            }
-        });
-        return phenomenons;
+        return new HashSet(provider.getIdentifiers(query, new HashMap<>()));
     }
 
     public static Object unmarshallObservationFile(final Path f) throws ConstellationStoreException {

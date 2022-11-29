@@ -1,0 +1,59 @@
+{
+    "id": "obs-304",
+    "name": "urn:ogc:object:observation:GEOM:304",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:3"
+    },
+    "samplingTime": {
+        "id": "time-304",
+        "beginning": {
+            "id": "c1725916-aed0-4aa6-8ae6-322d431a81d9-time",
+            "date": "2007-05-01T02:59:00.0Z"
+        },
+        "ending": {
+            "id": "7c4adc46-cfaa-478d-a720-0c2bde226ff6-time",
+            "date": "2007-05-01T06:59:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+        "description": "the depth in water"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m"
+            }],
+        "nbValues": 5,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "2007-05-01T02:59:00.0,6.56@@2007-05-01T03:59:00.0,6.56@@2007-05-01T04:59:00.0,6.56@@2007-05-01T05:59:00.0,6.56@@2007-05-01T06:59:00.0,6.56@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

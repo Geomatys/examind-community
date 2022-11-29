@@ -21,29 +21,7 @@ package org.constellation.store.observation.db;
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.admin.SpringHelper;
-import org.geotoolkit.gml.GeometrytoJTS;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.observation.xml.v200.OMObservationType.InternalPhenomenon;
-import org.geotoolkit.observation.xml.Process;
-import org.geotoolkit.sampling.xml.SamplingFeature;
-import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.swe.xml.AnyScalar;
-import org.geotoolkit.swe.xml.CompositePhenomenon;
-import org.geotoolkit.swe.xml.DataArray;
-import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.geotoolkit.swe.xml.DataComponentProperty;
-import org.geotoolkit.swe.xml.DataRecord;
-import org.geotoolkit.swe.xml.PhenomenonProperty;
-import org.geotoolkit.swe.xml.SimpleDataRecord;
-import org.geotoolkit.swe.xml.TextBlock;
-import org.geotoolkit.swe.xml.v101.PhenomenonType;
-import org.geotoolkit.observation.model.ObservationTemplate;
-import org.opengis.observation.Measure;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
@@ -68,13 +46,21 @@ import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
-import org.geotoolkit.observation.model.Field;
 import org.constellation.util.Util;
-import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.observation.OMUtils;
-import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
-import org.opengis.metadata.Identifier;
+import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.Result;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.model.TextEncoderProperties;
 
 
 
@@ -99,6 +85,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @param schemaPrefix Prefix for the database schemas.
      * @param properties
      * @param timescaleDB {@code True} if the database has the TimescaleDB extension available.
+     * @param maxFieldByTable Maximum number of field allowed for a measure table.
      *
      * @throws org.apache.sis.storage.DataStoreException
      */
@@ -109,30 +96,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
         this.source = source;
         this.maxFieldByTable = maxFieldByTable;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public synchronized String writeObservationTemplate(final ObservationTemplate template) throws DataStoreException {
-        if (template.getObservation() != null) {
-            return writeObservation(template.getObservation());
-        } else  {
-            try(final Connection c = source.getConnection()) {
-                final Process proc =  template.getProcedure();
-                final String procedureID = proc.getHref();
-                final String procedureName = proc.getName();
-                final String procedureDesc = proc.getDescription();
-                writeProcedure(new ProcedureTree(procedureID, procedureName, procedureDesc, null, null), null, c);
-                for (PhenomenonProperty phen : template.getObservedProperties()) {
-                    writePhenomenon(phen, c, true);
-                }
-                return null;
-            } catch (SQLException | FactoryException ex) {
-                throw new DataStoreException("Error while inserting observation template.", ex);
-            }
-        }
     }
 
     /**
@@ -297,20 +260,21 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private String writeObservation(final Observation observation, final Connection c, final int generatedID) throws DataStoreException {
         // look for an conflicted observation
-        final org.geotoolkit.observation.xml.Process procedure = (org.geotoolkit.observation.xml.Process)observation.getProcedure();
-        final String procedureID = procedure.getHref();
+        final Procedure procedure  = observation.getProcedure();
+        final String procedureID   = procedure.getId();
         final String procedureName = procedure.getName();
         final String procedureDesc = procedure.getDescription();
         
         final TemporalObject samplingTime = observation.getSamplingTime();
 
-        final org.geotoolkit.sampling.xml.SamplingFeature foi = (org.geotoolkit.sampling.xml.SamplingFeature)observation.getFeatureOfInterest();
+        final SamplingFeature foi = observation.getFeatureOfInterest();
         String foiID = null;
         if (foi != null) {
             foiID = foi.getId();
         }
 
-        final PhenomenonProperty phenomenon = ((AbstractObservation) observation).getPropertyObservedProperty();
+        final Phenomenon phenomenon = observation.getObservedProperty();
+
         ObservationRef replacingObs = isConflicted(c, procedureID, samplingTime, foiID);
         
         final String phenRef;
@@ -373,7 +337,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 insertObs.setString(5, phenRef);
 
 
-                final int pid = writeProcedure(new ProcedureTree(procedureID, procedureName, procedureDesc, null, null), null, c);
+                final int pid = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, null, new ArrayList<>(), null), null, c);
                 insertObs.setString(6, procedureID);
                 if (foiID != null) {
                     insertObs.setString(7, foiID);
@@ -395,9 +359,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 if (!replacingObs.phenomenonId.equals(newPhen)) {
                     List<Field> readFields = readFields(procedureID, true, c);
-                    Phenomenon replacingPhen = OMUtils.getPhenomenon("1.0.O", readFields, phenomenonIdBase, getAllPhenomenon("1.0.0", c));
-                    PhenomenonProperty replacingPhenP = SOSXmlFactory.buildPhenomenonProperty("1.0.0", (org.geotoolkit.swe.xml.Phenomenon) replacingPhen);
-                    phenRef = writePhenomenon(replacingPhenP, c, false);
+                   // Set<Phenomenon> temporaries = getAllPhenomenon(c).stream().map(phen -> TemporaryUtils.toXML(phen, "1.0.0")).collect(Collectors.toSet());
+                    Phenomenon replacingPhen = OMUtils.getPhenomenonModels("1.0.O", readFields, phenomenonIdBase, getAllPhenomenon(c));
+
+                    //PhenomenonProperty replacingPhenP = SOSXmlFactory.buildPhenomenonProperty("1.0.0", (org.geotoolkit.swe.xml.Phenomenon) replacingPhen);
+                    phenRef = writePhenomenon(replacingPhen, c, false);
                     updatePhen.setString(1, phenRef);
                     updatePhen.setInt(2, replacingObs.id);
                     updatePhen.executeUpdate();
@@ -429,25 +395,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void emitResultOnBus(String procedureID, Object result) {
-        if (result instanceof DataArrayProperty dap){
+        if (result instanceof ComplexResult cr){
             OM2ResultEventDTO resultEvent = new OM2ResultEventDTO();
-            final DataArray array = dap.getDataArray();
-            final TextBlock encoding = (TextBlock) array.getEncoding();
+            final TextEncoderProperties encoding = cr.getTextEncodingProperties();
             resultEvent.setBlockSeparator(encoding.getBlockSeparator());
             resultEvent.setDecimalSeparator(encoding.getDecimalSeparator());
             resultEvent.setTokenSeparator(encoding.getTokenSeparator());
-            resultEvent.setValues(array.getValues());
+            resultEvent.setValues(cr.getValues());
             List<String> headers = new ArrayList<>();
-            if (array.getPropertyElementType().getAbstractRecord() instanceof DataRecord record) {
-                for (DataComponentProperty field : record.getField()) {
-                    headers.add(field.getName());
-                }
-            } else if (array.getPropertyElementType().getAbstractRecord() instanceof SimpleDataRecord record) {
-                for (AnyScalar field : record.getField()) {
-                    headers.add(field.getName());
-                }
+            for (Field field : cr.getFields()) {
+                headers.add(field.name);
             }
-
             resultEvent.setHeaders(headers);
             resultEvent.setProcedureID(procedureID);
             SpringHelper.sendEvent(resultEvent);
@@ -461,27 +419,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     public synchronized void writePhenomenons(final List<Phenomenon> phenomenons) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             for (Phenomenon phenomenon : phenomenons) {
-                if (phenomenon instanceof InternalPhenomenon internal) {
-                    Identifier id = internal.getName();
-                    String phenId      = id.getCode();
-                    String name        = id.getCode();
-                    if (id.getDescription() != null) {
-                        name = id.getDescription().toString();
-                    }
-                    String definition  = id.getCode();
-                    String description = internal.getDescription();
-                    phenomenon = new PhenomenonType(phenId, name, definition, description);
-                }
-                final PhenomenonProperty phenomenonP = SOSXmlFactory.buildPhenomenonProperty("1.0.0", (org.geotoolkit.swe.xml.Phenomenon) phenomenon);
-                writePhenomenon(phenomenonP, c, false);
+                writePhenomenon(phenomenon, c, false);
             }
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting phenomenons.", ex);
         }
     }
 
-    private String writePhenomenon(final PhenomenonProperty phenomenonP, final Connection c, final boolean partial) throws SQLException {
-        final String phenomenonId   = getPhenomenonId(phenomenonP);
+    private String writePhenomenon(final Phenomenon phenomenon, final Connection c, final boolean partial) throws SQLException {
+        final String phenomenonId   = phenomenon != null ? phenomenon.getId() : null;
         if (phenomenonId == null) return null;
 
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\", \"partial\" FROM  \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
@@ -507,45 +453,32 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
 
-            final Phenomenon phen = phenomenonP.getPhenomenon();
             if (!exist) {
-                String name        = phenomenonId;
-                String definition  = phenomenonId;
-                String description = null;
-                if (phen instanceof org.geotoolkit.swe.xml.Phenomenon swePhen) {
-                    Identifier id = swePhen.getName();
-                    if (id.getDescription() != null) {
-                        name = id.getDescription().toString();
-                    }
-                    definition  = id.getCode();
-                    description = swePhen.getDescription();
-                }
-
                 try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observed_properties\" VALUES(?,?,?,?,?)")) {//NOSONAR
                     stmtInsert.setString(1, phenomenonId);
                     stmtInsert.setBoolean(2, partial);
-                    if (name != null) {
-                        stmtInsert.setString(3, name);
+                    if (phenomenon.getName() != null) {
+                        stmtInsert.setString(3, phenomenon.getName());
                     } else {
                         stmtInsert.setNull(3, java.sql.Types.VARCHAR);
                     }
-                    stmtInsert.setString(4, definition);
-                    if (description != null) {
-                        stmtInsert.setString(5, description);
+                    stmtInsert.setString(4, phenomenon.getDefinition());
+                    if (phenomenon.getDescription() != null) {
+                        stmtInsert.setString(5, phenomenon.getDescription());
                     } else {
                         stmtInsert.setNull(5, java.sql.Types.VARCHAR);
                     }
                     stmtInsert.executeUpdate();
                 }
-                if (phen instanceof CompositePhenomenon) {
-                    final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
+                if (phenomenon instanceof CompositePhenomenon composite) {
+                    
                     try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?,?)")) {//NOSONAR
                         int cpt = 0;
-                        for (PhenomenonProperty child : composite.getRealComponent()) {
-                            final String childID = getPhenomenonId(child);
+                        for (org.opengis.observation.Phenomenon childA : composite.getComponent()) {
+                            Phenomenon child = (Phenomenon) childA;
                             writePhenomenon(child, c, false);
                             stmtInsertCompo.setString(1, phenomenonId);
-                            stmtInsertCompo.setString(2, childID);
+                            stmtInsertCompo.setString(2, child.getId());
                             stmtInsertCompo.setInt(3, cpt++);
                             stmtInsertCompo.executeUpdate();
                         }
@@ -557,15 +490,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmtUpdate.setString(2, phenomenonId);
                     stmtUpdate.executeUpdate();
                 }
-                if (phen instanceof CompositePhenomenon) {
-                    final CompositePhenomenon composite = (CompositePhenomenon) phenomenonP.getPhenomenon();
+                if (phenomenon instanceof CompositePhenomenon composite) {
                     try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?,?)")) {//NOSONAR
                         int cpt = 0;
-                        for (PhenomenonProperty child : composite.getRealComponent()) {
-                            final String childID = getPhenomenonId(child);
+                        for (org.opengis.observation.Phenomenon childA : composite.getComponent()) {
+                            Phenomenon child = (Phenomenon) childA;
                             writePhenomenon(child, c, false);
                             stmtInsertCompo.setString(1, phenomenonId);
-                            stmtInsertCompo.setString(2, childID);
+                            stmtInsertCompo.setString(2, child.getId());
                             stmtInsertCompo.setInt(3, cpt++);
                             stmtInsertCompo.executeUpdate();
                         }
@@ -577,7 +509,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     @Override
-    public void writeProcedure(final ProcedureTree procedure) throws DataStoreException {
+    public void writeProcedure(final ProcedureDataset procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
             writeProcedure(procedure, null, c);
         } catch (SQLException | FactoryException ex) {
@@ -585,10 +517,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private int writeProcedure(final ProcedureTree procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
+    private int writeProcedure(final ProcedureDataset procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
         int pid;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
-            stmtExist.setString(1, procedure.id);
+            stmtExist.setString(1, procedure.getId());
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
                     try(final Statement stmt = c.createStatement();
@@ -606,15 +538,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
-                        stmtInsert.setString(1, procedure.id);
-                        AbstractGeometry position = procedure.spatialBound.getLastGeometry("2.0.0");
+                        stmtInsert.setString(1, procedure.getId());
+                        Geometry position = procedure.spatialBound.getLastGeometry();
                         if (position != null) {
-                            Geometry pt = GeometrytoJTS.toJTS(position, false);
-                            int srid = pt.getSRID();
+                            int srid = position.getSRID();
                             if (srid == 0) {
                                 srid = 4326;
                             }
-                            stmtInsert.setBytes(2, getGeometryBytes(pt));
+                            stmtInsert.setBytes(2, getGeometryBytes(position));
                             stmtInsert.setInt(3, srid);
                         } else {
                             stmtInsert.setNull(2, java.sql.Types.BINARY);
@@ -636,13 +567,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else {
                             stmtInsert.setNull(7, java.sql.Types.VARCHAR);
                         }
-                        if (procedure.name != null) {
-                            stmtInsert.setString(8, procedure.name);
+                        if (procedure.getName() != null) {
+                            stmtInsert.setString(8, procedure.getName());
                         } else {
                             stmtInsert.setNull(8, java.sql.Types.VARCHAR);
                         }
-                        if (procedure.description != null) {
-                            stmtInsert.setString(9, procedure.description);
+                        if (procedure.getDescription() != null) {
+                            stmtInsert.setString(9, procedure.getDescription());
                         } else {
                             stmtInsert.setNull(9, java.sql.Types.VARCHAR);
                         }
@@ -652,8 +583,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     // write locations
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
-                        for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
-                            insertHistoricalLocation(stmtInsert, procedure.id, entry);
+                        for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                            insertHistoricalLocation(stmtInsert, procedure.getId(), entry);
                         }
                     }
                 } else {
@@ -661,14 +592,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     try(final PreparedStatement stmtHlExist  = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=? AND \"time\"=?");//NOSONAR
                         final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
-                        stmtHlExist.setString(1, procedure.id);
+                        stmtHlExist.setString(1, procedure.getId());
                         // write new locations
-                        for (Entry<Date, AbstractGeometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
+                        for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
                             final Timestamp ts = new Timestamp(entry.getKey().getTime());
                             stmtHlExist.setTimestamp(2, ts);
                             try (final ResultSet rshl = stmtHlExist.executeQuery()) {
                                 if (!rshl.next()) {
-                                    insertHistoricalLocation(stmtHlInsert, procedure.id, entry);
+                                    insertHistoricalLocation(stmtHlInsert, procedure.getId(), entry);
                                 }
                             }
                         }
@@ -676,17 +607,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
         }
-        for (ProcedureTree child : procedure.children) {
-            writeProcedure(child, procedure.id, c);
+        for (ProcedureDataset child : procedure.children) {
+            writeProcedure(child, procedure.getId(), c);
         }
         return pid;
     }
 
-    private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, AbstractGeometry> entry) throws SQLException, DataStoreException, FactoryException {
+    private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException, DataStoreException, FactoryException {
         stmtInsert.setString(1, procedureId);
         stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
         if (entry.getValue() != null) {
-            Geometry pt = GeometrytoJTS.toJTS(entry.getValue(), false);
+            Geometry pt = entry.getValue();
             int srid = pt.getSRID();
             if (srid == 0) {
                 srid = 4326;
@@ -701,36 +632,25 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException, DataStoreException {
+        if (foi == null) return;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\" FROM  \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, foi.getId());
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
                     try (final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, foi.getId());
-                        stmtInsert.setString(2, (foi.getName() != null) ? foi.getName().getCode() : null);
+                        stmtInsert.setString(2, foi.getName());
                         stmtInsert.setString(3, foi.getDescription());
-                        if (!foi.getSampledFeatures().isEmpty()) {
-                            FeatureProperty foiProp = foi.getSampledFeatures().get(0);
-                            if (foiProp != null) {
-                                stmtInsert.setString(4, foiProp.getHref());
-                            } else {
-                                stmtInsert.setNull(4, java.sql.Types.VARCHAR);
-                            }
+                        if (foi.getSampledFeatureId() != null) {
+                            stmtInsert.setString(4, foi.getSampledFeatureId());
                         } else {
                             stmtInsert.setNull(4, java.sql.Types.VARCHAR);
                         }
-
                         if (foi.getGeometry() != null) {
-                            try {
-                                final Geometry geom = GeometrytoJTS.toJTS((AbstractGeometry) foi.getGeometry(), false);
-                                final int SRID = geom.getSRID();
-                                stmtInsert.setBytes(5, getGeometryBytes(geom));
-                                stmtInsert.setInt(6, SRID);
-                            } catch (FactoryException | IllegalArgumentException ex) {
-                                LOGGER.log(Level.WARNING, "unable to transform the geometry to JTS", ex);
-                                stmtInsert.setNull(5, java.sql.Types.VARBINARY);
-                                stmtInsert.setNull(6, java.sql.Types.INTEGER);
-                            }
+                            final Geometry geom = foi.getGeometry();
+                            final int SRID = geom.getSRID();
+                            stmtInsert.setBytes(5, getGeometryBytes(foi.getGeometry()));
+                            stmtInsert.setInt(6, SRID);
                         } else {
                             stmtInsert.setNull(5, java.sql.Types.VARBINARY);
                             stmtInsert.setNull(6, java.sql.Types.INTEGER);
@@ -744,13 +664,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldType.QUANTITY, "value", null, null, null, 1);
 
-    private void writeResult(final int oid, final int pid, final String procedureID, final Object result, final Connection c, boolean update) throws SQLException, DataStoreException {
-        if (result instanceof Measure || result instanceof org.apache.sis.internal.jaxb.gml.Measure) {
+    private void writeResult(final int oid, final int pid, final String procedureID, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
+        if (result instanceof MeasureResult measRes) {
             
             buildMeasureTable(procedureID, pid, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
             if (update) {
                 try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
-                    stmt.setDouble(1, getMeasureValue(result));
+                    setResultField(stmt, 1, measRes);
                     stmt.setInt(2, oid);
                     stmt.executeUpdate();
                 }
@@ -758,23 +678,32 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 try (final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" VALUES(?,?,?)")) {//NOSONAR
                     stmt.setInt(1, oid);
                     stmt.setInt(2, 1);
-                    stmt.setDouble(3, getMeasureValue(result));
+                    setResultField(stmt, 3, measRes);
                     stmt.executeUpdate();
                 }
             }
-        } else if (result instanceof DataArrayProperty arrayP) {
-            final DataArray array = arrayP.getDataArray();
-            final TextBlock encoding = verifyDataArray(array);
-            final List<Field> fields = getFieldList(array.getPropertyElementType().getAbstractRecord());
+        } else if (result instanceof ComplexResult cr) {
+            final TextEncoderProperties encoding = cr.getTextEncodingProperties();
+            final List<Field> fields = cr.getFields();
             buildMeasureTable(procedureID, pid, fields, c);
 
-            final String values          = array.getValues();
-            final List<DbField> dbFields = completeDbField(procedureID, fields.stream().map(f -> f.name).toList(), c);
-            OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, dbFields);
-            msi.fillMesureTable(c, oid, values, update);
-
+            final String values          = cr.getValues();
+            if (values != null && !values.isEmpty()) {
+                final List<DbField> dbFields = completeDbField(procedureID, fields.stream().map(f -> f.name).toList(), c);
+                OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, dbFields);
+                msi.fillMesureTable(c, oid, values, update);
+            }
         } else if (result != null) {
             throw new DataStoreException("This type of resultat is not supported :" + result.getClass().getName());
+        }
+    }
+
+    private void setResultField(PreparedStatement stmt, int index, MeasureResult result) throws SQLException {
+        switch (result.getField().type) {
+            case BOOLEAN  -> stmt.setBoolean(index,   (boolean) result.getValue());
+            case QUANTITY -> stmt.setDouble(index,    (double) result.getValue());
+            case TEXT     -> stmt.setString(index,    (String) result.getValue());
+            case TIME     -> stmt.setTimestamp(index, (Timestamp) result.getValue());
         }
     }
 
@@ -950,58 +879,88 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * {@inheritDoc}
      */
     @Override
-    public synchronized String writeOffering(final ObservationOffering offering) throws DataStoreException {
-        try(final Connection c           = source.getConnection();
-             final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offerings\" VALUES(?,?,?,?,?,?)")) {//NOSONAR
-            stmt.setString(1, offering.getId());
-            stmt.setString(2, offering.getDescription());
-            stmt.setString(3, (offering.getName() != null) ? offering.getName().getCode() : null);
-            if (offering.getTime() instanceof Period period) {
-                if (period.getBeginning() != null && period.getBeginning().getDate() != null) {
-                    stmt.setTimestamp(4, new Timestamp(period.getBeginning().getDate().getTime()));
+    public synchronized void writeOffering(final Offering offering) throws DataStoreException {
+        if (offering == null) return;
+        try (final Connection c = source.getConnection()) {
+
+            boolean exist;
+            try (final PreparedStatement stmtExist = c.prepareStatement("SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" where \"identifier\" = ?")) {//NOSONAR
+                stmtExist.setString(1, offering.getId());
+                try (final ResultSet rs = stmtExist.executeQuery()) {
+                    exist = rs.next();
+                }
+            }
+
+            String currentStmt;
+            if (exist) {
+                currentStmt = "UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET VALUES(?,?,?,?,?,?) WHERE \"identifier\"= ?";
+            } else {
+                currentStmt = "INSERT INTO \"" + schemaPrefix + "om\".\"offerings\" VALUES(?,?,?,?,?,?)";
+            }
+
+            try (final PreparedStatement stmt = c.prepareStatement(currentStmt)) {//NOSONAR
+                stmt.setString(1, offering.getId());
+                stmt.setString(2, offering.getDescription());
+                stmt.setString(3, (offering.getName() != null) ? offering.getName() : null);
+                if (offering.getTime() instanceof Period period) {
+                    if (period.getBeginning() != null && period.getBeginning().getDate() != null) {
+                        stmt.setTimestamp(4, new Timestamp(period.getBeginning().getDate().getTime()));
+                    } else {
+                        stmt.setNull(4, java.sql.Types.TIMESTAMP);
+                    }
+                    if (period.getEnding() != null && period.getEnding().getDate() != null) {
+                        stmt.setTimestamp(5, new Timestamp(period.getEnding().getDate().getTime()));
+                    } else {
+                        stmt.setNull(5, java.sql.Types.TIMESTAMP);
+                    }
+                } else if (offering.getTime() instanceof Instant instant) {
+                    if (instant != null && instant.getDate() != null) {
+                        stmt.setTimestamp(4, new Timestamp(instant.getDate().getTime()));
+                    } else {
+                        stmt.setNull(4, java.sql.Types.TIMESTAMP);
+                    }
+                    stmt.setNull(5, java.sql.Types.TIMESTAMP);
                 } else {
                     stmt.setNull(4, java.sql.Types.TIMESTAMP);
-                }
-                if (period.getEnding() != null && period.getEnding().getDate() != null) {
-                    stmt.setTimestamp(5, new Timestamp(period.getEnding().getDate().getTime()));
-                } else {
                     stmt.setNull(5, java.sql.Types.TIMESTAMP);
                 }
-            } else if (offering.getTime() instanceof Instant instant) {
-                if (instant != null && instant.getDate() != null) {
-                    stmt.setTimestamp(4, new Timestamp(instant.getDate().getTime()));
-                } else {
-                    stmt.setNull(4, java.sql.Types.TIMESTAMP);
+                stmt.setString(6, offering.getProcedure());
+                if (exist) {
+                    stmt.setString(7, offering.getId());
                 }
-                stmt.setNull(5, java.sql.Types.TIMESTAMP);
-            } else {
-                stmt.setNull(4, java.sql.Types.TIMESTAMP);
-                stmt.setNull(5, java.sql.Types.TIMESTAMP);
-            }
-            stmt.setString(6, offering.getProcedures().get(0));
-            stmt.executeUpdate();
+                stmt.executeUpdate();
 
-            try(final PreparedStatement opstmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
-                for (String op : offering.getObservedProperties()) {
-                    if (op != null) {
+                if (exist) {
+                    try (final PreparedStatement opstmt = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=?")) {//NOSONAR
                         opstmt.setString(1, offering.getId());
-                        opstmt.setString(2, op);
+                        opstmt.executeUpdate();
+                    }
+                    try (final PreparedStatement opstmt = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\"=?")) {//NOSONAR
+                        opstmt.setString(1, offering.getId());
                         opstmt.executeUpdate();
                     }
                 }
-            }
+                
+                try (final PreparedStatement opstmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
+                    for (String op : offering.getObservedProperties()) {
+                        if (op != null) {
+                            opstmt.setString(1, offering.getId());
+                            opstmt.setString(2, op);
+                            opstmt.executeUpdate();
+                        }
+                    }
+                }
 
-            try(final PreparedStatement foistmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_foi\" VALUES(?,?)")) {//NOSONAR
-                for (String foi : offering.getFeatureOfInterestIds()) {
-                    if (foi != null) {
-                        foistmt.setString(1, offering.getId());
-                        foistmt.setString(2, foi);
-                        foistmt.executeUpdate();
+                try(final PreparedStatement foistmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_foi\" VALUES(?,?)")) {//NOSONAR
+                    for (String foi : offering.getFeatureOfInterestIds()) {
+                        if (foi != null) {
+                            foistmt.setString(1, offering.getId());
+                            foistmt.setString(2, foi);
+                            foistmt.executeUpdate();
+                        }
                     }
                 }
             }
-
-            return offering.getId();
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting offering.", ex);
         }
@@ -1011,58 +970,19 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * {@inheritDoc}
      */
     @Override
-    public synchronized void updateOffering(final String offeringID, final String offProc, final List<String> offPheno, final String offSF) throws DataStoreException {
-        try(final Connection c = source.getConnection()) {
-            if (offProc != null) {
-                // single pricedure in v2.0.0
-            }
-            if (offPheno != null) {
-                try(final PreparedStatement opstmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
-                    for (String op : offPheno) {
-                        opstmt.setString(1, offeringID);
-                        opstmt.setString(2, op);
-                        opstmt.executeUpdate();
-                    }
-                }
-            }
-            if (offSF != null) {
-                try(final PreparedStatement foistmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_foi\" VALUES(?,?)")) {//NOSONAR
-                    foistmt.setString(1, offeringID);
-                    foistmt.setString(2, offSF);
-                    foistmt.executeUpdate();
-                }
-            }
-        } catch (SQLException e) {
-            throw new DataStoreException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void updateOfferings() {
-
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public synchronized void recordProcedureLocation(final String physicalID, final AbstractGeometry position) throws DataStoreException {
+    public synchronized void recordProcedureLocation(final String physicalID, final Geometry position) throws DataStoreException {
         if (position != null) {
             try(final Connection c     = source.getConnection();
                 PreparedStatement ps   = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=?, \"crs\"=? WHERE \"id\"=?")) {//NOSONAR
                 ps.setString(3, physicalID);
-                Geometry pt = GeometrytoJTS.toJTS(position, false);
-                int srid = pt.getSRID();
+                int srid = position.getSRID();
                 if (srid == 0) {
                     srid = 4326;
                 }
-                ps.setBytes(1, getGeometryBytes(pt));
+                ps.setBytes(1, getGeometryBytes(position));
                 ps.setInt(2, srid);
                 ps.execute();
-            } catch (SQLException | FactoryException e) {
+            } catch (SQLException e) {
                 throw new DataStoreException(e.getMessage(), e);
             }
         }

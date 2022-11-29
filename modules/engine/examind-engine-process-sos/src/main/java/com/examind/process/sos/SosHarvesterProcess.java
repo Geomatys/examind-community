@@ -51,7 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import com.examind.sensor.component.SensorServiceBusiness;
 import static com.examind.store.observation.FileParsingUtils.equalsGeom;
-import com.google.common.base.Objects;
+import java.util.Objects;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,11 +69,10 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
-import static org.geotoolkit.observation.OMUtils.componentsEquals;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
-import org.geotoolkit.observation.xml.AbstractObservation;
-import org.opengis.observation.CompositePhenomenon;
+import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -442,8 +441,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final DataProvider provider = DataProviders.getProvider(providerId);
         final List<String> ids = new ArrayList<>();
 
-        if (provider instanceof ObservationProvider) {
-            final List<ProcedureTree> procedures = ((ObservationProvider)provider).getProcedureTrees(null, Collections.EMPTY_MAP);
+        if (provider instanceof ObservationProvider op) {
+            final List<ProcedureTree> procedures = op.getProcedureTrees(null, Collections.EMPTY_MAP);
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {
@@ -470,7 +469,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         for (ServiceProcessReference sosRef : sosRefs) {
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
-            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery(), Collections.singletonMap("version", "1.0.0")));
+            final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery()));
             final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
 
             boolean alreadyInserted = false;
@@ -483,7 +482,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             // import observations
             if (!alreadyInserted) {
                 try {
-                    final ExtractionResult result = omProvider.extractResults();
+                    final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
                     reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
                     if (!result.getObservations().isEmpty()) {
 
@@ -493,10 +492,11 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                             Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
                             sensorBusiness.addSensorToService(sosRef.getId(), sid);
                         }
-                        result.getObservations().stream().forEach(obs -> ((AbstractObservation)obs).setName(null));
+                        result.getObservations().stream().forEach(obs -> ((org.geotoolkit.observation.model.Observation)obs).setName(null));
 
                         // import in O&M database
-                        sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), result.getPhenomenons());
+                        List<Phenomenon> modelPhens = result.getPhenomenons().stream().map(phen -> (Phenomenon) phen).toList();
+                        sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), modelPhens);
                         nbObsTotal = nbObsTotal + result.getObservations().size();
                         fireAndLog("insertion dans le service " + sosRef.getName(), byInsert);
                     }
@@ -517,18 +517,19 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return nbObsTotal;
     }
 
-    public void reuseExistingPhenomenonAndFOI(final ExtractionResult result, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingFois) {
+    private void reuseExistingPhenomenonAndFOI(final ExtractionResult result, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingFois) {
         /**
          * look for an already existing (composite) phenomenon to use instead of inserting a new one
          */
-        Map<String, Phenomenon> phenomenonToReplace = new HashMap<>();
+        Map<String, org.geotoolkit.observation.model.Phenomenon> phenomenonToReplace = new HashMap<>();
         List<Phenomenon> phenToRemove = new ArrayList<>();
         for (Phenomenon newPhen : result.getPhenomenons()) {
-            if (newPhen instanceof org.geotoolkit.swe.xml.CompositePhenomenon newCompo) {
+            if (newPhen instanceof CompositePhenomenon newCompo) {
                 for (org.opengis.observation.Phenomenon existingPhen : existingPhenomenons) {
                     if (existingPhen instanceof CompositePhenomenon existingCphen) {
-                        if (componentsEquals(existingCphen.getComponent(), newCompo.getComponent())) {
-                            phenomenonToReplace.put(newCompo.getId(), existingCphen);
+                        if (Objects.equals(existingCphen.getComponent(), newCompo.getComponent())) {
+                            String newCompoId = newCompo.getId();
+                            phenomenonToReplace.put(newCompoId, existingCphen);
                             phenToRemove.add(newPhen);
                             break;
                         }
@@ -543,12 +544,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
          * look for an already existing sampling feature to use instead of inserting a new one.
          * we look for an equal geometry (only work for point)
          */
-        Map<String, SamplingFeature> featureToReplace = new HashMap<>();
+        Map<String, org.geotoolkit.observation.model.SamplingFeature> featureToReplace = new HashMap<>();
         List<SamplingFeature> foiToRemove = new ArrayList<>();
         for (SamplingFeature newFoi : result.getFeatureOfInterest()) {
-            if (newFoi instanceof org.geotoolkit.sampling.xml.SamplingFeature newSFoi) {
+            if (newFoi instanceof org.geotoolkit.observation.model.SamplingFeature newSFoi) {
                 for (SamplingFeature existingFoi : existingFois) {
-                    if (existingFoi instanceof org.geotoolkit.sampling.xml.SamplingFeature existingSFoi) {
+                    if (existingFoi instanceof org.geotoolkit.observation.model.SamplingFeature existingSFoi) {
                         if (existingSFoi.getGeometry() != null && newSFoi.getGeometry() != null && equalsGeom(newSFoi.getGeometry(), existingSFoi.getGeometry())) {
                             featureToReplace.put(newSFoi.getId(), existingSFoi);
                             foiToRemove.add(newFoi);
@@ -564,25 +565,29 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         // replace phenomenons / feature of interests in each observation
         for (Observation obs : result.getObservations()) {
-            if (obs instanceof AbstractObservation aobs) {
-                if (obs.getObservedProperty() instanceof org.geotoolkit.swe.xml.CompositePhenomenon cphen) {
-                    Phenomenon existPhen = phenomenonToReplace.get(cphen.getId());
+            if (obs instanceof org.geotoolkit.observation.model.Observation aobs) {
+                if (obs.getObservedProperty() instanceof CompositePhenomenon cphen) {
+                    String phenId = cphen.getId();
+                    org.geotoolkit.observation.model.Phenomenon existPhen = phenomenonToReplace.get(phenId);
                     if (existPhen != null) {
-                        aobs.setFullObservedProperty(existPhen);
+                        aobs.setObservedProperty(existPhen);
                     }
                 }
-                if (obs.getFeatureOfInterest() instanceof org.geotoolkit.sampling.xml.SamplingFeature foi) {
-                    SamplingFeature existFoi = featureToReplace.get(foi.getId());
+                if (aobs.getFeatureOfInterest() != null) {
+                    String foiId = aobs.getFeatureOfInterest().getId();
+                    org.geotoolkit.observation.model.SamplingFeature existFoi = featureToReplace.get(foiId);
                     if (existFoi != null) {
-                        aobs.setFullFeatureOfInterest(existFoi);
+                        aobs.setFeatureOfInterest(existFoi);
                     }
                 }
+            } else {
+                throw new IllegalArgumentException("Unexpected observation implementation:" + obs.getClass().getName());
             }
         }
     }
 
     private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {
-        return provider.getFeatureOfInterest(new SamplingFeatureQuery(), Collections.singletonMap("version", "2.0.0"));
+        return provider.getFeatureOfInterest(new SamplingFeatureQuery());
     }
 
     protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
@@ -601,7 +606,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
      * hack method to compare two observation provider on the same datasource (should not be allowed in the future.)
      */
     private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
-        return Objects.equal(op1.getDatasourceKey(), op2.getDatasourceKey());
+        return Objects.equals(op1.getDatasourceKey(), op2.getDatasourceKey());
     }
 
     private void fireAndLog(final String msg, double progress) {

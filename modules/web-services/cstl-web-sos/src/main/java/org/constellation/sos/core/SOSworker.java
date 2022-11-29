@@ -53,7 +53,6 @@ import static org.constellation.sos.core.SOSConstants.*;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.NOT_SUPPORTED;
-import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_TEMPLATE;
 import static org.constellation.api.CommonConstants.OFFERING;
@@ -68,7 +67,6 @@ import static org.constellation.sos.core.SOSConstants.SUPPORTED_FOI_TYPES;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_OBS_TYPES;
 import static org.constellation.api.ServiceConstants.*;
 import static com.examind.sensor.ws.SensorUtils.extractTimeBounds;
-import static com.examind.sensor.ws.SensorUtils.getCollectionBound;
 import static com.examind.sensor.ws.SensorUtils.isCompleteEnvelope3D;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
@@ -76,7 +74,6 @@ import org.constellation.sos.legacy.SensorConfigurationUpgrade;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
@@ -121,34 +118,9 @@ import org.geotoolkit.sos.xml.InsertResultResponse;
 import org.geotoolkit.sos.xml.InsertResultTemplate;
 import org.geotoolkit.sos.xml.InsertResultTemplateResponse;
 import org.geotoolkit.sos.xml.ObservationOffering;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import static org.geotoolkit.sos.xml.ResponseModeType.INLINE;
-import static org.geotoolkit.sos.xml.ResponseModeType.OUT_OF_BAND;
-import static org.geotoolkit.sos.xml.ResponseModeType.RESULT_TEMPLATE;
 import org.geotoolkit.sos.xml.ResultTemplate;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildCapabilities;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildContents;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDeleteSensorResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationByIdResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetObservationResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetResultResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildGetResultTemplateResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertObservationResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertResultResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertResultTemplateResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildInsertSensorResponse;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildObservationCollection;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildRange;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeAfter;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeBefore;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeDuring;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeEquals;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimePeriod;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildTimeInstant;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildPhenomenonProperty;
+import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.constellation.dto.Sensor;
@@ -156,16 +128,33 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
+import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
+import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import org.constellation.api.WorkerState;
+import org.geotoolkit.gml.GeometrytoJTS;
+import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
+import static org.geotoolkit.observation.model.ObservationTransformUtils.toXML;
+import static org.geotoolkit.observation.model.ObservationTransformUtils.toModel;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Result;
+import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.ogc.xml.BBOX;
+import static org.geotoolkit.sos.xml.OMXMLUtils.getCollectionBound;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildOffering;
 import org.geotoolkit.swe.xml.AbstractDataComponent;
 import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
@@ -183,6 +172,7 @@ import org.geotoolkit.swes.xml.ObservationTemplate;
 import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BetweenComparisonOperator;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
@@ -195,7 +185,6 @@ import org.opengis.filter.ResourceId;
 import org.opengis.filter.SpatialOperatorName;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
-import org.opengis.geometry.Geometry;
 import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
@@ -204,8 +193,8 @@ import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
-import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.CodeList;
+import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 
@@ -254,6 +243,8 @@ public class SOSworker extends SensorWorker {
      * The supported Response Format for GetObservation request (depends on reader capabilities)
      */
     private Map<String, List<String>> acceptedResponseFormat;
+
+    private List<QName> acceptedResultModels = Arrays.asList(OMUtils.OBSERVATION_QNAME, OMUtils.MEASUREMENT_QNAME);
 
     /**
      * A debug flag.
@@ -367,11 +358,11 @@ public class SOSworker extends SensorWorker {
         try {
             Object object = serviceBusiness.getExtraConfiguration("SOS", getId(), "cached-offerings.xml", SOSMarshallerPool.getInstance());
 
-            if (object instanceof JAXBElement) {
-                object = ((JAXBElement)object).getValue();
+            if (object instanceof JAXBElement jb) {
+                object = jb.getValue();
             }
-            if (object instanceof Capabilities) {
-                loadedCapabilities = (Capabilities) object;
+            if (object instanceof Capabilities cpb) {
+                loadedCapabilities = cpb;
             } else {
                 LOGGER.severe("cached capabilities file does not contains Capablities object.");
             }
@@ -484,12 +475,12 @@ public class SOSworker extends SensorWorker {
 
                 Filter stFilter = null;
                 if (sensorTypeFilter != null) {
-                    BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
+                    stFilter = ff.equal(ff.property("sensorType") , ff.literal("component"));
                 }
 
                 final Collection<String>  procNames  = omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE, stFilter), hints);
                 final Collection<String> offNames    = omProvider.getIdentifiers(new AbstractObservationQuery(OMEntity.OFFERING, stFilter), hints);
-                TemporalGeometricPrimitive eventTime = omProvider.getTime(currentVersion);
+                TemporalGeometricPrimitive eventTime = omProvider.getTime();
 
                 queryableResultProperties.addAll(getProviderCapabilities().queryableResultProperties);
 
@@ -499,13 +490,11 @@ public class SOSworker extends SensorWorker {
                 // the event time range
                 String begin = "undefined";
                 String end   = "now";
-                if (eventTime instanceof Instant) {
-                    final Instant i = (Instant)eventTime;
+                if (eventTime instanceof Instant i) {
                     if (i.getDate() != null) {
                         begin = ISO8601_FORMAT.format(i.getDate());
                     }
-                } else if (eventTime instanceof Period) {
-                    final Period p = (Period)eventTime;
+                } else if (eventTime instanceof Period p) {
                     if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
                         begin = ISO8601_FORMAT.format(p.getBeginning().getDate());
                     }
@@ -570,7 +559,7 @@ public class SOSworker extends SensorWorker {
             if (keepCapabilities) {
                 cont = loadedCapabilities.getContents();
             } else {
-                // we add the list of observation offerings
+                // we add the list of observations offerings
                 final List<ObservationOffering> offerings = buildOfferings(omProvider.getOfferings(new FeatureQuery(), hints), currentVersion);
                 cont = buildContents(currentVersion, offerings);
             }
@@ -591,13 +580,22 @@ public class SOSworker extends SensorWorker {
         List<ObservationOffering> results = new ArrayList<>();
         for (Offering off : offerings) {
 
-            final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL);
+            final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL, MEASUREMENT_MODEL);
             final List<String> procedureDescription   = acceptedSensorMLFormats.get(version);
             TemporalGeometricPrimitive time           = null;
-            if (off.getTime().size() == 1) {
-                time = buildTimeInstant(version, off.getTime().get(0));
-            } else if (off.getTime().size() == 2) {
-                time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+            // v2.0.0 force Timeperiod
+            if ("2.0.0".equals(version)) {
+                if (off.getTime().size() == 1) {
+                    time = buildTimePeriod(version, off.getTime().get(0), TimeIndeterminateValueType.NOW);
+                } else if (off.getTime().size() == 2) {
+                    time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+                }
+            } else {
+                if (off.getTime().size() == 1) {
+                    time = buildTimeInstant(version, off.getTime().get(0));
+                } else if (off.getTime().size() == 2) {
+                    time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+                }
             }
             final List<ResponseModeType> responseModes = new ArrayList<>();
             acceptedResponseMode.stream().forEach((i) -> {
@@ -606,10 +604,11 @@ public class SOSworker extends SensorWorker {
             List<PhenomenonProperty> phen100 = new ArrayList<>();
             if ("1.0.0".equals(version)) {
                 for (String op : off.getObservedProperties()) {
-                    phen100.add(buildPhenomenonProperty(version, (Phenomenon) getPhenomenon(op, version)));
+                    Phenomenon xmlPhen =  (Phenomenon) toXML(getPhenomenon(op), version);
+                    phen100.add(buildPhenomenonProperty(version, xmlPhen));
                 }
             }
-
+            List<QName> resultModels = Arrays.asList(OMUtils.OBSERVATION_QNAME, OMUtils.MEASUREMENT_QNAME);
             results.add(buildOffering(version,
                                  off.getId(),
                                  off.getName(),
@@ -621,7 +620,7 @@ public class SOSworker extends SensorWorker {
                                  off.getObservedProperties(),
                                  off.getFeatureOfInterest(),
                                  acceptedResponseFormat.get(version),
-                                 off.getResultModels(),
+                                 resultModels,
                                  resultModelV200,
                                  responseModes,
                                  procedureDescription));
@@ -735,7 +734,7 @@ public class SOSworker extends SensorWorker {
         verifyBaseRequest(request, true, false);
 
         final String currentVersion = request.getVersion().toString();
-        final List<AbstractObservation> observation;
+        final List<AbstractObservation> observations;
         try {
             final Set<ResourceId> oids = new LinkedHashSet<>();
             for (String oid : request.getObservation()) {
@@ -750,23 +749,21 @@ public class SOSworker extends SensorWorker {
                 }
                 oids.add(ff.resourceId(oid));
             }
-            final ObservationQuery subquery = new ObservationQuery(request.getResultModel(), "inline", request.getResponseFormat());
-            Filter filter;
-            switch (oids.size()) {
-                case 0:  filter = Filter.exclude(); break;
-                case 1:  filter = oids.iterator().next(); break;
-                default: filter = ff.or(oids); break;
-            }
+            final ObservationQuery subquery = new ObservationQuery(request.getResultModel(), ResponseMode.INLINE, request.getResponseFormat());
+            Filter filter =
+                switch (oids.size()) {
+                    case 0  -> Filter.exclude();
+                    case 1  -> oids.iterator().next();
+                    default -> ff.or(oids);
+                };
             subquery.setSelection(filter);
-            observation = omProvider.getObservations(subquery, Collections.singletonMap("version", currentVersion))
-                                    .stream()
-                                    .map(obs -> (AbstractObservation)obs)
-                                    .toList();
-
+            observations = omProvider.getObservations(subquery, Collections.singletonMap("version", currentVersion))
+                                     .stream().map(obs -> toXML(obs, currentVersion))
+                                     .toList();
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
-        final ObservationCollection response = buildGetObservationByIdResponse(currentVersion, "collection-1", null, observation);
+        final ObservationCollection response = buildGetObservationByIdResponse(currentVersion, "collection-1", null, observations);
         LOGGER.log(Level.FINE, "getObservationById processed in {0}ms.\n", (System.currentTimeMillis() - start));
         return response;
     }
@@ -815,12 +812,12 @@ public class SOSworker extends SensorWorker {
         //we get the mode of result
         boolean template   = false;
         boolean outOfBand  = false;
-        ResponseModeType responseMode;
+        ResponseMode responseMode;
         if (requestObservation.getResponseMode() == null) {
-            responseMode = INLINE;
+            responseMode = ResponseMode.INLINE;
         } else {
             try {
-                responseMode = ResponseModeType.fromValue(requestObservation.getResponseMode());
+                responseMode = ResponseMode.fromValue(requestObservation.getResponseMode());
             } catch (IllegalArgumentException e) {
                 final StringBuilder arm = new StringBuilder();
                 acceptedResponseMode.stream().forEach((s) -> {
@@ -832,17 +829,16 @@ public class SOSworker extends SensorWorker {
             }
         }
 
-        if (responseMode == OUT_OF_BAND) {
+        if (responseMode == ResponseMode.OUT_OF_BAND) {
             outOfBand = true;
-        } else if (responseMode == RESULT_TEMPLATE) {
+        } else if (responseMode == ResponseMode.RESULT_TEMPLATE) {
             template = true;
         } else if (!acceptedResponseMode.contains(responseMode.value())) {
             final StringBuilder arm = new StringBuilder();
             acceptedResponseMode.stream().forEach((s) -> {
                 arm.append(s).append('\n');
             });
-            throw new CstlServiceException("This response Mode is not supported by the service" +
-                                           "Supported values are:\n" + arm.toString(),
+            throw new CstlServiceException("This response Mode is not supported by the service Supported values are:\n" + arm.toString(),
                                              OPERATION_NOT_SUPPORTED, RESPONSE_MODE);
         }
 
@@ -860,7 +856,7 @@ public class SOSworker extends SensorWorker {
                     if (offeringName.isEmpty()) {
                         throw new CstlServiceException("This offering name is empty", MISSING_PARAMETER_VALUE, OFFERING);
                     }
-                    final Offering offering = omProvider.getOffering(offeringName, currentVersion);
+                    final Offering offering = omProvider.getOffering(offeringName);
                     if (offering == null) {
                         throw new CstlServiceException("This offering is not registered in the service", INVALID_PARAMETER_VALUE, OFFERING);
                     }
@@ -886,9 +882,9 @@ public class SOSworker extends SensorWorker {
             //we verify that the resultModel (if there is one) is advertised in the offering
             if (requestObservation.getResultModel() != null) {
                 for (Offering off : offerings) {
-                    if (!off.getResultModels().contains(requestObservation.getResultModel())) {
+                    if (!acceptedResultModels.contains(requestObservation.getResultModel())) {
                         final StringBuilder availableRM = new StringBuilder();
-                        off.getResultModels().stream().forEach((s) -> {
+                        acceptedResultModels.stream().forEach((s) -> {
                             availableRM.append(s).append('\n');
                         });
                         throw new CstlServiceException("This result model is not advertised in the offering:" + requestObservation.getResultModel() + '\n' +
@@ -929,7 +925,7 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            // if no procedure specified extract the offerings procedures
+            // if no procedureProp specified extract the offerings procedures
             if (procedures.isEmpty()) {
                 for (Offering off : offerings) {
                     procedures.add(off.getProcedure());
@@ -977,7 +973,7 @@ public class SOSworker extends SensorWorker {
                         if (pc.isBoundedObservation) {
                             bboxFilter = (BinarySpatialOperator)requestObservation.getSpatialFilter();
                         } else {
-                            final List<String> matchingFeatureOfInterest = omProvider.getFeaturesOfInterestForBBOX(offerings.stream().map(off -> off.getId()).collect(Collectors.toList()), e, currentVersion);
+                            final List<String> matchingFeatureOfInterest = omProvider.getFeaturesOfInterestForBBOX(offerings.stream().map(off -> off.getId()).collect(Collectors.toList()), e);
                             if (!matchingFeatureOfInterest.isEmpty()) {
                                 featureOfInterest.addAll(matchingFeatureOfInterest);
                             // if there is no matching FOI we must return an empty result
@@ -1041,8 +1037,7 @@ public class SOSworker extends SensorWorker {
                 } else if (filter instanceof LikeOperator) {
                     throw new CstlServiceException(NOT_SUPPORTED, OPERATION_NOT_SUPPORTED, "propertyIsLike");
 
-                } else if (filter instanceof BetweenComparisonOperator) {
-                    final BetweenComparisonOperator pib = (BetweenComparisonOperator) filter;
+                } else if (filter instanceof BetweenComparisonOperator pib) {
                     if (pib.getExpression() == null) {
                         throw new CstlServiceException("To use the operation Between you must specify the propertyName and the litteral",
                                                       MISSING_PARAMETER_VALUE, "propertyIsBetween");
@@ -1065,12 +1060,12 @@ public class SOSworker extends SensorWorker {
             Filter filter = buildFilter(times, observedProperties, procedures, featureOfInterest, bboxFilter, resultFilter);
             if (!outOfBand) {
 
-                final ObservationQuery query = new ObservationQuery(filter, resultModel, responseMode.value(), responseFormat);
+                final ObservationQuery query = new ObservationQuery(filter, resultModel, responseMode, responseFormat);
 
                 /*
                  * - The filterReader execute a request and return directly the observations
                  */
-                final List<Observation> matchingResult = omProvider.getObservations(query, Collections.singletonMap("version", currentVersion));
+                final List<AbstractObservation> matchingResult = omProvider.getObservations(query, Collections.singletonMap("version", currentVersion)).stream().map(obs -> toXML(obs, currentVersion)).toList();
                 final Envelope computedBounds;
                 if (pc.computeCollectionBound) {
                     computedBounds = null; //localOmFilter.getCollectionBoundingShape(); for now no implementation perform this
@@ -1080,10 +1075,10 @@ public class SOSworker extends SensorWorker {
 
 
                 final List<AbstractObservation> observations = new ArrayList<>();
-                for (Observation o : matchingResult) {
+                for (AbstractObservation o : matchingResult) {
                     if (template) {
                         final String temporaryTemplateId = o.getName().getCode() + '-' + getTemplateSuffix(o.getName().getCode());
-                        final AbstractObservation temporaryTemplate = ((AbstractObservation) o).getTemporaryTemplate(temporaryTemplateId, templateTime);
+                        final AbstractObservation temporaryTemplate = o.getTemporaryTemplate(temporaryTemplateId, templateTime);
 
                         // Remove the default templateTime
                         if (!pc.isDefaultTemplateTime && templateTime == null) {
@@ -1122,7 +1117,7 @@ public class SOSworker extends SensorWorker {
                 ocResponse = normalizeDocument(currentVersion, ocResponse);
                 response   = ocResponse;
             } else {
-                final ResultQuery query = new ResultQuery(filter, resultModel, OUT_OF_BAND.value(), null, responseFormat);
+                final ResultQuery query = new ResultQuery(filter, resultModel, ResponseMode.OUT_OF_BAND, null, responseFormat);
                 try {
                     response = omProvider.getResults(query, Collections.singletonMap("version", currentVersion));
                 } catch(UnsupportedOperationException ex) {
@@ -1182,11 +1177,11 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("The offering parameter must be specified", MISSING_PARAMETER_VALUE, "offering");
                 } else {
 
-                    List<org.opengis.observation.Process> procedures = getProcedureForOffering(request.getOffering(), currentVersion);
+                    Collection<String> procedures = getProcedureIdsForOffering(request.getOffering(), currentVersion);
                     if (procedures.isEmpty()) {
                         throw new CstlServiceException("The offering parameter is invalid", INVALID_PARAMETER_VALUE, "offering");
                     }
-                    procedure = ((Process) procedures.get(0)).getHref();
+                    procedure = procedures.iterator().next();
                 }
                 if (request.getObservedProperty() == null || request.getObservedProperty().isEmpty()) {
                     throw new CstlServiceException("The observedProperty parameter must be specified", MISSING_PARAMETER_VALUE, "observedProperty");
@@ -1215,7 +1210,7 @@ public class SOSworker extends SensorWorker {
                         if (pc.isBoundedObservation) {
                             bboxFilter = (BinarySpatialOperator) request.getSpatialFilter();
                         } else {
-                            fois.addAll(omProvider.getFeaturesOfInterestForBBOX(offering, e, currentVersion));
+                            fois.addAll(omProvider.getFeaturesOfInterestForBBOX(offering, e));
                         }
                     } else {
                         throw new CstlServiceException("the envelope is not build correctly", INVALID_PARAMETER_VALUE);
@@ -1236,8 +1231,7 @@ public class SOSworker extends SensorWorker {
                final TemporalOperator equals  = buildTimeEquals(currentVersion, null, time);
                times.add(equals);
 
-            } else if (time instanceof Period) {
-                final Period tp = (Period) time;
+            } else if (time instanceof Period tp) {
 
                 //case TBefore
                 if (TimeIndeterminateValueType.BEFORE.equals(((GMLInstant)tp.getBeginning()).getTimePosition().getIndeterminatePosition())) {
@@ -1256,7 +1250,7 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            ResultQuery query = new ResultQuery(resultModel, INLINE.value(), procedure, null);
+            ResultQuery query = new ResultQuery(resultModel, ResponseMode.INLINE, procedure, null);
             query.setSelection(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
@@ -1296,12 +1290,12 @@ public class SOSworker extends SensorWorker {
                     if (request.getFeatureOfInterestId().get(0).isEmpty()) {
                         throw new CstlServiceException("The foi name is empty", MISSING_PARAMETER_VALUE, locatorFID);
                     }
-                    final SamplingFeature singleResult = getFeatureOfInterest(request.getFeatureOfInterestId().get(0), currentVersion);
+                    final SamplingFeature singleResult = getFeatureOfInterest(request.getFeatureOfInterestId().get(0));
                     if (singleResult == null) {
                         throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
                     } else {
                         if (!alwaysFeatureCollection) {
-                            return (AbstractFeature) singleResult;
+                            return (AbstractFeature)toXML(singleResult, currentVersion);
                         } else {
                             features.add(singleResult);
                         }
@@ -1310,7 +1304,7 @@ public class SOSworker extends SensorWorker {
                 // we return a featureCollection
                 } else if (request.getFeatureOfInterestId().size() > 1) {
                     for (String featureID : request.getFeatureOfInterestId()) {
-                        final SamplingFeature feature = getFeatureOfInterest(featureID, currentVersion);
+                        final SamplingFeature feature = getFeatureOfInterest(featureID);
                         if (feature == null) {
                             throw new CstlServiceException("There is no such Feature Of Interest", INVALID_PARAMETER_VALUE, locatorFID);
                         } else {
@@ -1335,7 +1329,7 @@ public class SOSworker extends SensorWorker {
                         throw new CstlServiceException("The spatial filter property name is empty", MISSING_PARAMETER_VALUE, locator);
                     }
 
-                    final List<SamplingFeature> results = spatialFiltering(bboxFilter, currentVersion);
+                    final List<SamplingFeature> results = spatialFiltering(bboxFilter);
 
                     // we return a single result
                     if (results.size() == 1) {
@@ -1388,14 +1382,14 @@ public class SOSworker extends SensorWorker {
 
                 AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST);
                 query.setSelection(buildFilter(request.getTemporalFilters(), request.getObservedProperty(), request.getProcedure(), null, null, null));
-                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query, Collections.singletonMap("version", currentVersion));
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(query);
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
 
             /*
              * - Request for all foi
              */
             } else {
-                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(null, Collections.singletonMap("version", currentVersion));
+                final List<SamplingFeature> features = omProvider.getFeatureOfInterest(null);
                 return buildFeatureCollection(currentVersion, "feature-collection-1", features);
             }
 
@@ -1406,7 +1400,7 @@ public class SOSworker extends SensorWorker {
         }
     }
 
-    public TemporalPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
+    public TemporalGeometricPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "GetFeatureOfInterestTime request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
@@ -1419,10 +1413,10 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("You must specify a samplingFeatureId", MISSING_PARAMETER_VALUE);
         }
 
-        final TemporalPrimitive result;
+        final TemporalGeometricPrimitive result;
         try {
             if (omProvider.existEntity(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, fid))) {
-                result = omProvider.getTimeForFeatureOfInterest(currentVersion, fid);
+                result = omProvider.getTimeForFeatureOfInterest(fid);
             } else {
                 throw new CstlServiceException("there is not such samplingFeature on the server", INVALID_PARAMETER_VALUE);
             }
@@ -1430,7 +1424,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException(ex);
         }
         LOGGER.log(Level.FINE, "GetFeatureOfInterestTime processed in {0} ms", (System.currentTimeMillis() - start));
-        return result;
+        return SOSXmlFactory.buildTimeObject(currentVersion, null, result);
     }
 
     public InsertResultTemplateResponse insertResultTemplate(final InsertResultTemplate request) throws CstlServiceException {
@@ -1490,9 +1484,8 @@ public class SOSworker extends SensorWorker {
         }
         final DataRecord structure =  (DataRecord) template.getResultStructure();
         int count = 0;
-        if (encoding instanceof TextBlock) {
+        if (encoding instanceof TextBlock textEnc) {
 
-            final TextBlock textEnc = ((TextBlock)encoding);
             final String separator  = textEnc.getBlockSeparator();
             count = values.split(separator).length;
 
@@ -1518,7 +1511,7 @@ public class SOSworker extends SensorWorker {
             obs.setName(null);
             obs.setResult(array);
             obs.setSamplingTimePeriod(extractTimeBounds(currentVersion, values, encoding));
-            omProvider.writeObservation(obs);
+            omProvider.writeObservation(toModel(obs));
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1552,14 +1545,15 @@ public class SOSworker extends SensorWorker {
             }
 
             final List<Filter> filters   = new ArrayList<>();
-            final ValueReference procedure = ff.property("procedure");
-            getProcedureForOffering(request.getOffering(), currentVersion).forEach(pr ->
-                    filters.add(ff.equal(procedure, ff.literal(((Process) pr).getHref()))));
+            final ValueReference procedureProp = ff.property("procedure");
+            getProcedureIdsForOffering(request.getOffering(), currentVersion)
+                    .forEach(prId ->
+                            filters.add(ff.equal(procedureProp, ff.literal(prId))));
 
             filters.add(ff.equal(ff.property("observedProperty"), ff.literal(request.getObservedProperty())));
 
             // we clone the filter for this request
-           final ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE.value(), request.getResponseFormat());
+           final ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, ResponseMode.RESULT_TEMPLATE, request.getResponseFormat());
             if (filters.size() == 1) {
                 query.setSelection(filters.get(0));
             } else if (filters.size() > 1) {
@@ -1572,9 +1566,9 @@ public class SOSworker extends SensorWorker {
                 if (matchingResult.size() > 1) {
                     LOGGER.warning("more than one result for resultTemplate");
                 }
-                final Object result = matchingResult.get(0).getResult();
-                if (result instanceof DataArrayProperty) {
-                    final DataArray array = ((DataArrayProperty)result).getDataArray();
+                final Object result = toXML((Result)matchingResult.get(0).getResult(), currentVersion);
+                if (result instanceof DataArrayProperty dap) {
+                    final DataArray array = dap.getDataArray();
                     structure             = array.getPropertyElementType().getAbstractRecord();
                     encoding              = array.getEncoding();
                 } else {
@@ -1589,10 +1583,10 @@ public class SOSworker extends SensorWorker {
         return result;
     }
 
-    private List<SamplingFeature> spatialFiltering(final BBOX bbox, final String currentVersion) throws ConstellationStoreException, CstlServiceException {
+    private List<SamplingFeature> spatialFiltering(final BBOX bbox) throws ConstellationStoreException, CstlServiceException {
         final Envelope e = bbox.getEnvelope();
         if (e != null && e.isCompleteEnvelope2D()) {
-            return omProvider.getFullFeaturesOfInterestForBBOX((String)null, e, currentVersion);
+            return omProvider.getFullFeaturesOfInterestForBBOX((String)null, e);
         } else {
             throw new CstlServiceException("the envelope is not build correctly", INVALID_PARAMETER_VALUE);
         }
@@ -1600,10 +1594,10 @@ public class SOSworker extends SensorWorker {
 
     /**
      * Web service operation which register a Sensor in the SensorML database,
-     * and initialize its observation by adding an observation template in the O&amp;M database.
+ and initialize its observations by adding an observations template in the O&amp;M database.
      *
      * @param request A request containing a SensorML File describing a Sensor,
-     *                         and an observation template for this sensor.
+                         and an observations template for this sensor.
      */
     public InsertSensorResponse registerSensor(final InsertSensor request) throws CstlServiceException {
         assertTransactionnal(REGISTER_SENSOR);
@@ -1624,8 +1618,7 @@ public class SOSworker extends SensorWorker {
         }
 
         // verify the sensorMetadata
-        if (request.getInsertionMetadata() instanceof SosInsertionMetadata) {
-            final SosInsertionMetadata insMetadata = (SosInsertionMetadata) request.getInsertionMetadata();
+        if (request.getInsertionMetadata() instanceof SosInsertionMetadata insMetadata) {
             for (String foiType : insMetadata.getFeatureOfInterestType()) {
                 if (foiType == null || foiType.isEmpty()) {
                     throw new CstlServiceException("The feature Of Interest type is missing.", MISSING_PARAMETER_VALUE, "featureOfInterestType");
@@ -1643,10 +1636,10 @@ public class SOSworker extends SensorWorker {
             }
         }
 
-        Process sensorId = null;
+        Procedure procedure = null;
         String assignedOffering = null;
         try {
-            //we get the observation template provided with the sensor description.
+            //we get the observations template provided with the sensor description.
             final ObservationTemplate temp = request.getObservationTemplate();
             if (temp == null || !temp.isTemplateSpecified()) {
                 throw new CstlServiceException("observation template must be specify", MISSING_PARAMETER_VALUE, OBSERVATION_TEMPLATE);
@@ -1659,8 +1652,8 @@ public class SOSworker extends SensorWorker {
             //we get the SensorML file who describe the Sensor to insert.
             final Object d = request.getSensorDescription();
             AbstractSensorML process;
-            if (d instanceof AbstractSensorML) {
-                process = (AbstractSensorML) d;
+            if (d instanceof AbstractSensorML asml) {
+                process = asml;
             } else {
                 String type = "null";
                 if (d != null) {
@@ -1672,15 +1665,15 @@ public class SOSworker extends SensorWorker {
             //we create a new Identifier from the SensorML database
             final String smlExtractedIdentifier = SensorMLUtilities.getSmlID(process);
             if (temp.getProcedure() != null) {
-                sensorId  = (Process) temp.getProcedure();
-                LOGGER.log(Level.FINE, "using specified sensor ID:{0}", new Object[]{sensorId});
+                procedure =  toModel(temp.getProcedure());
+                LOGGER.log(Level.FINE, "using specified sensor ID:{0}", new Object[]{procedure});
 
             } else if (!smlExtractedIdentifier.equals("unknow_identifier")){
-                sensorId  = (Process) SOSXmlFactory.buildProcess(currentVersion, smlExtractedIdentifier);
+                procedure  = new Procedure(smlExtractedIdentifier);
 
-                LOGGER.log(Level.FINE, "using extracted sensor ID:{0}", new Object[]{sensorId});
+                LOGGER.log(Level.FINE, "using extracted sensor ID:{0}", new Object[]{procedure});
             } else {
-                sensorId = (Process) SOSXmlFactory.buildProcess(currentVersion, sensorBusiness.getNewSensorId(smlProviderID));
+                procedure = new Procedure(sensorBusiness.getNewSensorId(smlProviderID));
             }
 
             /*
@@ -1690,41 +1683,86 @@ public class SOSworker extends SensorWorker {
              * does we have to keep the one of the metadata instead of generating one?
              */
             if (process.getMember().size() == 1) {
-                process.getMember().get(0).getRealProcess().setId(sensorId.getHref());
+                process.getMember().get(0).getRealProcess().setId(procedure.getId());
             } else {
                 LOGGER.warning("multiple SensorML member");
             }
             //and we write it in the sensorML Database
             final String smlType = SensorMLUtilities.getSensorMLType(process);
             final String omType  = SensorMLUtilities.getOMType(process).orElse(null);
-            final String name    = sensorId.getName();
-            final String desc    = sensorId.getDescription();
-            Integer sid = sensorBusiness.create(sensorId.getHref(), name, desc, smlType, omType, null, process, System.currentTimeMillis(), smlProviderID);
+            final String name    = procedure.getName();
+            final String desc    = procedure.getDescription();
+            Integer sid = sensorBusiness.create(procedure.getId(), name, desc, smlType, omType, null, process, System.currentTimeMillis(), smlProviderID);
             sensorBusiness.addSensorToService(getServiceId(), sid);
 
-            // and we record the position of the piezometer
-            final AbstractGeometry position = SensorMLUtilities.getSensorPosition(process).orElse(null);
+            // and we record the position of the sensor
+            Geometry position = null;
+            Optional<AbstractGeometry> smlPosition = SensorMLUtilities.getSensorPosition(process);
+            if (smlPosition.isPresent()) {
+                position = GeometrytoJTS.toJTS(smlPosition.get());
+            }
 
-            //we assign the new capteur id to the observation template
-            temp.setProcedure(sensorId);
+            //we assign the new capteur id to the observations template
             temp.setName(UUID.randomUUID().toString());
 
             if (omProvider != null) {
-                //we write the observation template in the O&amp;M database
-                omProvider.writeTemplate(temp.getObservation(), sensorId, temp.getFullObservedProperties(), temp.getFeatureOfInterest());
-                omProvider.writeLocation(sensorId.getHref(), (Geometry) position);
-                assignedOffering = addSensorToOffering(sensorId.getHref(), temp, currentVersion);
+                //we write the observations template in the O&M database
+                Observation template;
+                if (currentVersion.equals("1.0.0")) {
+                    template = toModel(temp.getObservation());
+                } else {
+                    List<org.geotoolkit.observation.model.Phenomenon> phens = temp.getFullObservedProperties()
+                                                                                  .stream()
+                                                                                  .map(phenProp -> toModel(phenProp.getPhenomenon()))
+                                                                                  .filter(Objects::nonNull)
+                                                                                  .toList();
+                    final org.geotoolkit.observation.model.Phenomenon phenomenon;
+                    if (phens.size() == 1) {
+                        phenomenon = phens.get(0);
+                    } else if (phens.size() > 1) {
+                        String phenId = "phen-" + UUID.randomUUID();
+                        phenomenon = new CompositePhenomenon(phenId, phenId, null, null, null, phens);
+                    } else {
+                        phenomenon = null;
+                    }
+                    org.geotoolkit.observation.model.SamplingFeature featureOfInterest = null;
+                    if (temp.getFeatureOfInterest() != null) {
+                        featureOfInterest = getFeatureOfInterest(temp.getFeatureOfInterest());
+                    }
+
+                    // we assume a time series
+                    List<Field> fields = OMUtils.getPhenomenonsFields(phenomenon);
+                    fields.add(0, OMUtils.TIME_FIELD);
+                    ComplexResult result = new ComplexResult(fields, TextEncoderProperties.CSV_ENCODING, null, null);
+                    
+                    template = new org.geotoolkit.observation.model.Observation(null, // id
+                                                                                null, // name
+                                                                                "Template for procedure " + procedure.getId(),
+                                                                                null,
+                                                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                                                procedure,
+                                                                                null, // sampling time
+                                                                                featureOfInterest,
+                                                                                phenomenon,
+                                                                                null,
+                                                                                result,
+                                                                                new HashMap<>());
+                }
+                omProvider.writeObservation(template);
+                omProvider.writeLocation(procedure.getId(), position);
+                assignedOffering = addSensorToOffering(procedure.getId(), temp);
+                clearCapabilitiesCache();
 
             } else {
                 LOGGER.warning("unable to record Sensor template and location in O&M datasource: no O&M writer");
             }
 
-        } catch(ConfigurationException | ConstellationStoreException ex) {
+        } catch (ConfigurationException | ConstellationStoreException | FactoryException ex) {
             throw new CstlServiceException(ex);
         }
 
         LOGGER.log(Level.FINE, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
-        return buildInsertSensorResponse(currentVersion, sensorId.getHref(), assignedOffering);
+        return buildInsertSensorResponse(currentVersion, procedure.getId(), assignedOffering);
     }
 
     /**
@@ -1769,7 +1807,7 @@ public class SOSworker extends SensorWorker {
                 }
             }
 
-            //we get the observation and we assign to it the sensor
+            //we get the observations and we assign to it the sensor
             final List<? extends Observation> observations = request.getObservations();
             for (Observation observation : observations) {
                 final AbstractObservation obs = (AbstractObservation) observation;
@@ -1785,8 +1823,7 @@ public class SOSworker extends SensorWorker {
 
                 // Debug part
                 if (verifySynchronization) {
-                    if (obs.getSamplingTime() instanceof Instant) {
-                       final Instant timeInstant = (Instant) obs.getSamplingTime();
+                    if (obs.getSamplingTime() instanceof Instant timeInstant) {
                         try {
                             final ISODateParser parser = new ISODateParser();
                             final Date d = parser.parseToDate(timeInstant.getDate().toString());
@@ -1798,20 +1835,20 @@ public class SOSworker extends SensorWorker {
                     }
                 }
 
-                //we record the observation in the O&M database
+                //we record the observations in the O&M database
                final String id;
                 if (currentVersion.equals("2.0.0")) {
-                    id = omProvider.writeObservation(obs);
+                    id = omProvider.writeObservation(toModel(obs));
                 } else {
                     if (obs instanceof Measurement) {
-                        id = omProvider.writeObservation(obs);
+                        id = omProvider.writeObservation(toModel(obs));
                     } else {
-                        //in first we verify that the observation is conform to the template
-                        final Observation template = omProvider.getTemplate(sensorId, currentVersion);
-                        //if the observation to insert match the template we can insert it in the OM db
-                        if (obs.matchTemplate(template)) {
+                        //in first we verify that the observations is conform to the template
+                        final Observation template = omProvider.getTemplate(sensorId);
+                        //if the observations to insert match the template we can insert it in the OM db
+                        if (obs.matchTemplate(toXML(template, currentVersion))) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
-                                id = omProvider.writeObservation(obs);
+                                id = omProvider.writeObservation(toModel(obs));
                                 LOGGER.log(Level.FINE, "new observation inserted: id = {0} for the sensor {1}", new Object[]{id, obs.getProcedure()});
                             } else {
                                 throw new CstlServiceException("The observation sampling time and the result must be specify",
@@ -1925,8 +1962,8 @@ public class SOSworker extends SensorWorker {
                 //String propertyName = time.getTEquals().getPropertyName();
                 final Object timeFilter   = filter.getExpressions().get(1);
 
-                if (timeFilter instanceof TemporalGeometricPrimitive) {
-                    templateTime = (TemporalGeometricPrimitive) timeFilter;
+                if (timeFilter instanceof TemporalGeometricPrimitive tt) {
+                    templateTime = tt;
 
                 } else {
                     throw new CstlServiceException("TM_Equals operation require timeInstant or TimePeriod!",
@@ -1941,8 +1978,7 @@ public class SOSworker extends SensorWorker {
                 // String propertyName = time.getTBefore().getPropertyName();
                 final Object timeFilter   = filter.getExpressions().get(1);
 
-                if (timeFilter instanceof Instant) {
-                    final Instant ti = (Instant)timeFilter;
+                if (timeFilter instanceof Instant ti) {
                     templateTime = buildTimePeriod(version, TimeIndeterminateValueType.BEFORE, ti.getDate());
                 } else {
                     throw new CstlServiceException("TM_Before operation require timeInstant!",
@@ -1957,8 +1993,7 @@ public class SOSworker extends SensorWorker {
                 //String propertyName = time.getTAfter().getPropertyName();
                 final Object timeFilter   = filter.getExpressions().get(1);
 
-                if (timeFilter instanceof Instant) {
-                    final Instant ti = (Instant)timeFilter;
+                if (timeFilter instanceof Instant ti) {
                     templateTime = buildTimePeriod(version, ti.getDate(), TimeIndeterminateValueType.NOW);
 
                 } else {
@@ -1973,9 +2008,8 @@ public class SOSworker extends SensorWorker {
                 // we get the property name (not used for now)
                 //String propertyName = time.getTDuring().getPropertyName();
                 final Object timeFilter   = filter.getExpressions().get(1);
-                if (timeFilter instanceof Period) {
-                    templateTime = (Period)timeFilter;
-
+                if (timeFilter instanceof Period p) {
+                    templateTime = p;
                 } else {
                     throw new CstlServiceException("TM_During operation require TimePeriod!",
                                                   INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -2066,110 +2100,65 @@ public class SOSworker extends SensorWorker {
      * if the offering doesn't yet exist in the database, it will be create.
      *
      * @param sensor A sensorML object describing the sensor.
-     * @param template The observation template for this sensor.
+     * @param template The observations template for this sensor.
      *
      * @throws CstlServiceException If an error occurs during the the storage of offering in the datasource.
      */
-    private String addSensorToOffering(final String num, final ObservationTemplate template, final String version) throws CstlServiceException, ConstellationStoreException {
+    private String addSensorToOffering(final String procedureId, final ObservationTemplate template) throws CstlServiceException, ConstellationStoreException {
 
-        final String offeringName = "offering-" + num;
-        final Offering offering   = omProvider.getOffering(offeringName, version);
+        final String offeringId = "offering-" + procedureId;
+        Offering offering = omProvider.getOffering(offeringId);
 
         if (offering != null) {
-            updateOffering(offering, template);
-        } else {
-            createOffering(version, offeringName, template);
-        }
-
-        /*
-         * then  we add the sensor to the global offering containing all the sensor (v 1.0.0)
-         * TODO remove ?
-         */
-        if (version.equals("1.0.0")) {
-            final Offering offeringAll = omProvider.getOffering("offering-allSensor", version);
-            if (offeringAll != null) {
-                updateOffering(offeringAll, template);
-            } else {
-                createOffering(version, "allSensor", template);
-            }
-        }
-        return offeringName;
-    }
-
-    /**
-     * Update an offering by adding to it the phenomenons, procedures and features of interest.
-     *
-     * @param offering The offering to update
-     * @param template An Observation template.
-     *
-     * @throws CstlServiceException If the service does not succeed to update the offering in the datasource.
-     */
-    private void updateOffering(final Offering offering, final ObservationTemplate template) throws ConstellationStoreException {
-
-        //we add the new sensor to the offering
-        final Process proc = (Process) template.getProcedure();
-
-        //we add the phenomenon to the offering
-        List<String> offPheno = new ArrayList<>();
-        if (template.getObservedProperties() != null) {
-            for (String observedProperty : template.getObservedProperties()) {
-                if (!offering.getObservedProperties().contains(observedProperty)) {
-                    offPheno.add(observedProperty);
+            //we add the phenomenon to the offering
+            if (template.getObservedProperties() != null) {
+                for (String observedProperty : template.getObservedProperties()) {
+                    if (offering.getObservedProperties().contains(observedProperty)) {
+                        offering.getObservedProperties().add(observedProperty);
+                    }
                 }
             }
-        }
 
-        // we add the feature of interest (station) to the offering
-        List<String> offSF = new ArrayList<>();
-        if (template.getFeatureOfInterest() != null) {
-            if (!offering.getFeatureOfInterest().contains(template.getFeatureOfInterest())) {
-                offSF.add(template.getFeatureOfInterest());
+            // we add the feature of interest (station) to the offering
+            if (template.getFeatureOfInterest() != null) {
+                if (!offering.getFeatureOfInterest().contains(template.getFeatureOfInterest())) {
+                    offering.getFeatureOfInterest().add(template.getFeatureOfInterest());
+                }
             }
+        } else {
+             LOGGER.log(Level.FINE, "offering {0} not present, first build", offeringId);
+
+            //we add the template phenomenon
+            final List<String> observedProperties = template.getObservedProperties();
+            final List<org.opengis.observation.Phenomenon> observedPropertiesV100 = template.getFullObservedProperties()
+                                                                                            .stream()
+                                                                                            .map(phenP -> (org.opengis.observation.Phenomenon)toModel(phenP.getPhenomenon()))
+                                                                                            .filter(Objects::nonNull)
+                                                                                            .toList();
+            omProvider.writePhenomenons(observedPropertiesV100);
+
+            //we add the template feature of interest
+            final String featureOfInterest = template.getFeatureOfInterest();
+
+            //we create a list of accepted responseMode (fixed)
+            final List<String> srsName = Arrays.asList("EPSG:4326");
+
+            String description = "";
+            if ("allSensor".equals(offeringId)) {
+                description = "Base offering containing all the sensors.";
+            }
+            // we create a the new Offering
+            offering = new Offering(offeringId, offeringId, description, srsName, procedureId, Arrays.asList(featureOfInterest), observedProperties, null);
         }
-        omProvider.updateOffering(new Offering(offering.getId(), null, null, null, null, proc.getHref(), offSF, offPheno, null));
-    }
-
-
-    /**
-     * Create a new Offering with the specified observation template
-     *
-     * @param offeringName the name of the new offering (not including offering base name).
-     * @param template An observation template used as a base for the offering.
-     *
-     * @throws CstlServiceException If the service does not succeed to store the offering in the datasource.
-     */
-    private void createOffering(final String version, final String offeringName, final ObservationTemplate template) throws ConstellationStoreException {
-       LOGGER.log(Level.FINE, "offering {0} not present, first build", offeringName);
-
-        //we add the template process
-        final Process proc = (Process) template.getProcedure();
-        final String processID = proc.getHref();
-
-        //we add the template phenomenon
-        final List<String> observedProperties = template.getObservedProperties();
-        final List<PhenomenonProperty> observedPropertiesV100 = template.getFullObservedProperties();
-
-        //we add the template feature of interest
-        final String featureOfInterest = template.getFeatureOfInterest();
-
-        //we create a list of accepted responseMode (fixed)
-        final List<QName> resultModel = Arrays.asList(OBSERVATION_QNAME, MEASUREMENT_QNAME);
-        final List<String> srsName = Arrays.asList("EPSG:4326");
-
-        String description = "";
-        if ("allSensor".equals(offeringName)) {
-            description = "Base offering containing all the sensors.";
-        }
-        // we create a the new Offering
-        Offering offering = new Offering(offeringName, offeringName, description, srsName, resultModel, processID, Arrays.asList(featureOfInterest), observedProperties, null);
-        omProvider.writeOffering(offering, observedPropertiesV100, acceptedSensorMLFormats.get(version), version);
+        omProvider.writeOffering(offering);
+        return offeringId;
     }
 
     private FeatureCollection buildFeatureCollection(String version, String name, List<SamplingFeature> features) {
         final List<FeatureProperty> featProps = new ArrayList<>();
         if (features != null) {
             features.stream().forEach((feature) -> {
-                featProps.add(buildFeatureProperty(version, feature));
+                featProps.add(buildFeatureProperty(version, toXML(feature, version)));
             });
         }
         final FeatureCollection collection = SOSXmlFactory.buildFeatureCollection(version, name, null, null, featProps);
@@ -2200,7 +2189,7 @@ public class SOSworker extends SensorWorker {
     }
 
     /**
-     * A task destroying a observation template when the template validity period pass.
+     * A task destroying a observations template when the template validity period pass.
      */
     class DestroyTemplateTask extends TimerTask {
 

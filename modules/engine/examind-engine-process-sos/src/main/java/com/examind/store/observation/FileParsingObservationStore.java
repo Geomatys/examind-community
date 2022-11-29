@@ -18,25 +18,20 @@
 */
 package com.examind.store.observation;
 
-import static com.examind.store.observation.FileParsingUtils.buildFOIByGeom;
-import static com.examind.store.observation.FileParsingUtils.buildGeom;
-import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
-import static com.examind.store.observation.FileParsingUtils.getDataRecordProfile;
-import static com.examind.store.observation.FileParsingUtils.getDataRecordTrajectory;
-import static com.examind.store.observation.FileParsingUtils.parseDouble;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.*;
+import static com.examind.store.observation.FileParsingUtils.*;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,45 +40,47 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
-import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.MeasureStringBuilder;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.delegate.StoreDelegatingObservationFilter;
 import org.geotoolkit.observation.delegate.StoreDelegatingObservationReader;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.observation.Process;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.SamplingFeature;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.geometry.DirectPosition;
+import org.opengis.geometry.Envelope;
+import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStore extends CSVStore implements ObservationStore {
-
-    protected static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
+public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, FeatureSet {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 
@@ -140,84 +137,81 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
     protected final boolean noHeader;
     protected final boolean directColumnIndex;
 
-    public FileParsingObservationStore(final Path f, final char separator, final char quotechar, FeatureType ft, 
-            final List<String> mainColumn, final List<String> dateColumn, final String dateTimeformat, final String longitudeColumn,
-            final String latitudeColumn, final Set<String> measureColumns, String observationType, String foiColumn,
-            final String procedureId, final String procedureColumn, final String procedureNameColumn, final String procedureDescColumn, final String procRegex,
-            final String zColumn, final String uomRegex, final String obsPropRegex, final String obsPropId, final String obsPropName, String mimeType, final boolean noHeader,
-            final boolean directColumnIndex, final List<String> qualityColumns, final List<String> qualityTypes) throws MalformedURLException, DataStoreException{
-        super(f, separator, ft);
-        this.dataFile = f;
-        this.delimiter = separator;
-        this.quotechar = quotechar;
-        this.mainColumns = mainColumn;
-        this.dateColumns = dateColumn;
-        this.dateFormat = dateTimeformat;
-        this.longitudeColumn = longitudeColumn;
-        this.latitudeColumn = latitudeColumn;
-        this.measureColumns = measureColumns;
-        this.observationType = observationType;
-        this.foiColumn = foiColumn;
-        this.procedureColumn = procedureColumn;
-        this.procedureNameColumn = procedureNameColumn;
-        this.procedureDescColumn = procedureDescColumn;
-        this.procRegex = procRegex;
-        this.zColumn = zColumn;
-        this.uomRegex = uomRegex;
-        this.obsPropRegex = obsPropRegex;
-        this.mimeType = mimeType;
-        this.noHeader = noHeader;
-        this.directColumnIndex = directColumnIndex;
-        this.obsPropId = obsPropId;
-        this.obsPropName = obsPropName;
-        this.qualityColumns = qualityColumns;
-        this.qualityTypes = qualityTypes;
+    protected static final GeometryFactory GF = new GeometryFactory();
 
-        if (procedureId == null && procedureColumn == null) {
+    private final FeatureType ft;
+
+    public FileParsingObservationStore(ParameterValueGroup params) throws IOException, DataStoreException{
+        super(params);
+
+        // CSV parameters
+        this.dataFile = Paths.get((URI) params.parameter(PATH.getName().toString()).getValue());
+        this.delimiter = (Character) params.parameter(SEPARATOR.getName().toString()).getValue();
+        Character qc =  (Character) params.parameter(CHARQUOTE.getName().toString()).getValue();
+        this.quotechar = qc != null ? qc : 0;
+
+        this.mainColumns = getMultipleValuesList(params, MAIN_COLUMN.getName().toString());
+        this.dateColumns = getMultipleValuesList(params, DATE_COLUMN.getName().toString());
+        
+        this.dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
+        
+        this.longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
+        this.latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
+        this.measureColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
+        this.observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
+        this.foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
+        this.procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
+        this.procedureNameColumn = (String) params.parameter(PROCEDURE_NAME_COLUMN.getName().toString()).getValue();
+        this.procedureDescColumn = (String) params.parameter(PROCEDURE_DESC_COLUMN.getName().toString()).getValue();
+        this.procRegex = (String) params.parameter(PROCEDURE_REGEX.getName().toString()).getValue();
+        this.zColumn = (String) params.parameter(Z_COLUMN.getName().toString()).getValue();
+        this.uomRegex = (String) params.parameter(UOM_REGEX.getName().toString()).getValue();
+        this.obsPropRegex = (String) params.parameter(OBS_PROP_REGEX.getName().toString()).getValue();
+        this.mimeType =  (String) params.parameter(FILE_MIME_TYPE.getName().toString()).getValue();
+        this.noHeader = (boolean) params.parameter(NO_HEADER.getName().toString()).getValue();
+        this.directColumnIndex = (boolean) params.parameter(DIRECT_COLUMN_INDEX.getName().toString()).getValue();
+        this.obsPropId = (String) params.parameter(OBS_PROP_ID.getName().toString()).getValue();
+        this.obsPropName = (String) params.parameter(OBS_PROP_NAME.getName().toString()).getValue();
+        this.qualityColumns = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
+        this.qualityTypes = getMultipleValuesList(params, QUALITY_COLUMN_TYPE.getName().getCode());
+
+        String pid = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
+        if (pid == null && procedureColumn == null) {
             this.procedureId = IOUtilities.filenameWithoutExtension(dataFile);
-        } else if (procedureId == null) {
+        } else if (pid == null) {
             this.procedureId = ""; // empty template
         } else {
-            this.procedureId = procedureId;
+            this.procedureId = pid;
         }
+        this.ft = FileParsingUtils.buildFeatureType(dataFile.toUri(), mimeType, delimiter, quotechar, dateColumns, longitudeColumn, latitudeColumn, measureColumns);
     }
 
     @Override
-    public Set<GenericName> getProcedureNames() throws DataStoreException {
-        final Set<GenericName> names = new HashSet<>();
-        if (procedureColumn == null) {
-            names.add(NamesExt.create(getProcedureID()));
-        } else {
-            names.addAll(extractProcedures());
+    public Set<String> getEntityNames(OMEntity entityType) throws DataStoreException {
+        if (entityType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
         }
-        return names;
+        switch (entityType) {
+            case OBSERVED_PROPERTY:   return extractPhenomenonIds();
+            case PROCEDURE:           return extractProcedureIds();
+            case FEATURE_OF_INTEREST:
+            case OFFERING:
+            case OBSERVATION:
+            case LOCATION:
+            case HISTORICAL_LOCATION:
+            case RESULT:
+                throw new DataStoreException("not implemented yet.");
+            default:
+                throw new DataStoreException("unexpected object type:" + entityType);
+        }
     }
 
-    protected abstract Set<GenericName> extractProcedures() throws DataStoreException;
+    protected abstract Set<String> extractProcedureIds() throws DataStoreException;
+
+    protected abstract Set<String> extractPhenomenonIds() throws DataStoreException;
 
     protected String getProcedureID() {
         return procedureId;
-    }
-
-    @Override
-    public ObservationStoreCapabilities getCapabilities() {
-        final Map<String, List<String>> responseFormats = new HashMap<>();
-        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
-        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-
-        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
-
-        return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
-    }
-
-    @Override
-    public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null, null);
-    }
-
-    @Override
-    public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
-        return getResults(null, sensorIDs);
     }
 
     /**
@@ -236,21 +230,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         return new StoreDelegatingObservationFilter(this);
     }
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationWriter getWriter() {
-        return null;
-    }
-
     @Override
     public ObservationStoreCapabilities getCapabilities() {
         final Map<String, List<String>> responseFormats = new HashMap<>();
         responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
         responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
 
-        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
+        final List<ResponseMode> responseMode = Arrays.asList(ResponseMode.INLINE);
 
         return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
     }
@@ -260,13 +246,13 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         // do nothing
     }
 
-    protected ProcedureTree getOrCreateProcedureTree(final ExtractionResult result, final String procedureId, final String procedureName, final String procedureDesc, final String type, final String omType) {
-        for (ProcedureTree tree : result.procedures) {
-            if (tree.id.equals(procedureId)) {
+    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final String procedureId, final String procedureName, final String procedureDesc, final String type, final String omType) {
+        for (ProcedureDataset tree : result.procedures) {
+            if (tree.getId().equals(procedureId)) {
                 return tree;
             }
         }
-        ProcedureTree tree = new ProcedureTree(procedureId, procedureName, procedureDesc, type, omType);
+        ProcedureDataset tree = new ProcedureDataset(procedureId, procedureName, procedureDesc, type, omType, new ArrayList<>(), null);
         result.procedures.add(tree);
         return tree;
     }
@@ -285,8 +271,8 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
     }
 
-    protected void buildObservation(ExtractionResult result, String oid, ObservationBlock ob,
-            Set<org.opengis.observation.Phenomenon> phenomenons, final Set<org.opengis.observation.sampling.SamplingFeature> samplingFeatures) {
+    protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
+            Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures) {
 
         // On extrait les types de mesure trouvées dans la donnée
         Map<String, MeasureField> filteredMeasure = ob.getUsedFields();
@@ -317,7 +303,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
         }
 
         // Get existing or create a new Phenomenon
-        Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", phenomenons);
+        Phenomenon phenomenon = OMUtils.getPhenomenonModels(null, fields, "", phenomenons);
         if (!phenomenons.contains(phenomenon)) {
             phenomenons.add(phenomenon);
         }
@@ -331,45 +317,42 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
             samplingFeatures.add(sp);
         }
 
-        final AbstractDataRecord datarecord;
         switch (ob.observationType) {
-            case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-            case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields); break;
-            case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);break;
-            default: throw new IllegalArgumentException("Unexpected observation type:" + ob.observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+            case "Timeserie"  -> fields.add(0, OMUtils.TIME_FIELD);
+            case "Trajectory" -> fields.add(0, OMUtils.TIME_FIELD);
+            case "Profile"    -> {}
+            default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
 
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
         MeasureStringBuilder msb = ob.getResults();
         final int currentCount   = ob.getResultsCount();
 
-        final Process proc = SOSXmlFactory.buildProcess("2.0.0", ob.procedureId, ob.procedureName, ob.procedureDesc);
+        final Procedure proc = new Procedure(ob.procedureId, ob.procedureName, ob.procedureDesc, null);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("type", ob.observationType);
 
-        result.observations.add(OMUtils.buildObservation(oid,                                      // id
-                                                         sp,                                       // foi
-                                                         phenomenon,                               // phenomenon
-                                                         proc,                                     // procedure
-                                                         currentCount,                             // count
-                                                         datarecord,                               // result structure
-                                                         msb,                                      // measures
-                                                         ob.getTimeObject())                       // time
-                            );
-
+        ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), currentCount);
+        result.observations.add(new Observation(oid,
+                                                oid,
+                                                null, null,
+                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                proc,
+                                                ob.getTimeObject(),
+                                                sp,
+                                                phenomenon,
+                                                null,
+                                                resultO,
+                                                properties));
         result.addFeatureOfInterest(sp);
 
         if (!result.phenomenons.contains(phenomenon)) {
             result.phenomenons.add(phenomenon);
         }
 
-        for (String mf : filteredMeasure.keySet()) {
-            if (!result.fields.contains(mf)) {
-                result.fields.add(mf);
-            }
-        }
-
         // build procedure tree
-        final ProcedureTree procedure = getOrCreateProcedureTree(result, ob.procedureId, ob.procedureName, ob.procedureDesc, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
-        for (Map.Entry<Long, List<DirectPosition>> entry : ob.getHistoricalPositions()) {
+        final ProcedureDataset procedure = getOrCreateProcedureTree(result, ob.procedureId, ob.procedureName, ob.procedureDesc, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
+        for (Map.Entry<Long, List<Coordinate>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }
         procedure.spatialBound.merge(ob.currentSpaBound);
@@ -399,7 +382,7 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
                     result.addDate(sdf.parse(value));
                 }
             }
-            return result.getTimeObject("2.0.0");
+            return result.getTimeObject();
             
         } catch (IOException | ParseException ex) {
             throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
@@ -535,5 +518,20 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected DataFileReader getDataFileReader() throws IOException {
         return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
+    }
+
+    @Override
+    public FeatureType getType() throws DataStoreException {
+        return ft;
+    }
+
+    @Override
+    public Stream<Feature> features(boolean parallel) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public Optional<Envelope> getEnvelope() throws DataStoreException {
+        return Optional.empty();
     }
 }

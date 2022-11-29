@@ -1,0 +1,42 @@
+{
+    "id": "obs-90000-13-1",
+    "name": "urn:ogc:object:observation:GEOM:90000-13-1",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor"
+    },
+    "samplingTime": {
+        "id": "time-6001-1",
+        "date": "2000-01-01T01:00:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "f12",
+        "name": "f12",
+        "definition": "urn:ogc:def:phenomenon:GEOM:f12"
+    },
+    "result": {
+        "field": {
+            "index": 1,
+            "type": "QUANTITY",
+            "name": "f12",
+            "label": "f12",
+            "description": "urn:ogc:def:phenomenon:GEOM:f12",
+            "uom": "m"
+        },
+        "value": 12.0
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+    "properties": {
+        "type": "timeseries"
+    }
+}

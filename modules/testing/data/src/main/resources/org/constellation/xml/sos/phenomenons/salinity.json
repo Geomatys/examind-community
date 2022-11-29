@@ -1,0 +1,5 @@
+{
+  "id" : "salinity",
+  "name" : "urn:ogc:def:phenomenon:GEOM:salinity",
+  "description" : "the salinity in water"
+}

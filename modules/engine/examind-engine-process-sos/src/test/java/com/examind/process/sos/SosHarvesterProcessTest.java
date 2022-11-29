@@ -65,6 +65,7 @@ import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
+import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.gml.xml.v321.PointType;
@@ -91,7 +92,6 @@ import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetThingById;
-import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.HistoricalLocationsResponse;
 import org.geotoolkit.sts.json.MultiDatastream;
@@ -111,7 +111,7 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.Period;
+import org.opengis.temporal.Instant;
 import org.opengis.util.NoSuchIdentifierException;
 
 /**
@@ -354,7 +354,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(4, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
+        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", 44.06, -6.81);
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1609, nbMeasure);
@@ -364,10 +364,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois,  "251",  -6.81,  44.06);
-        verifySamplingFeature(fois,  "252",  -6.581, 44.01);
-        verifySamplingFeature(fois,  "253",  -6.256, 43.959);
-        verifySamplingFeature(fois,  "254",  -6.035, 44.031);
+        verifySamplingFeature(fois,  "251",  44.06,  -6.81);
+        verifySamplingFeature(fois,  "252",  44.01,  -6.581);
+        verifySamplingFeature(fois,  "253", 43.959,  -6.256);
+        verifySamplingFeature(fois,  "254", 44.031,  -6.035);
 
         /*
          * add a new file to integrate and call again the process
@@ -416,13 +416,13 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(8, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
+        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", 44.06, -6.81);
 
         HistoricalLocation loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2018-11-05T22:03:31Z", -6.581, 44.01);
+        verifyHistoricalLocation(loc2, sdf, "2018-11-05T22:03:31Z", 44.01, -6.581);
 
         HistoricalLocation loc8 = response.getValue().get(7);
-        verifyHistoricalLocation(loc8, sdf, "2018-11-27T15:09:17Z", -5.04, 44.154);
+        verifyHistoricalLocation(loc8, sdf, "2018-11-27T15:09:17Z", 44.154, -5.04);
 
         nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(3209, nbMeasure);
@@ -460,7 +460,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(4, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", -6.81, 44.06);
+        verifyHistoricalLocation(loc1, sdf, "2018-11-02T07:10:52Z", 44.06, -6.81);
 
         nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1609, nbMeasure);
@@ -468,10 +468,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
 
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois,  "251",  -6.81,  44.06);
-        verifySamplingFeature(fois,  "252",  -6.581, 44.01);
-        verifySamplingFeature(fois,  "253",  -6.256, 43.959);
-        verifySamplingFeature(fois,  "254",  -6.035, 44.031);
+        verifySamplingFeature(fois,  "251",  44.06,  -6.81);
+        verifySamplingFeature(fois,  "252",  44.01,  -6.581);
+        verifySamplingFeature(fois,  "253", 43.959,  -6.256);
+        verifySamplingFeature(fois,  "254", 44.031,  -6.035);
 
         obsProp1 = getObservedPropertyById(stsWorker, "PSAL");
         Assert.assertNotNull(obsProp1);
@@ -685,6 +685,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         proc.call();
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
@@ -712,7 +714,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        verifySamplingFeature(fois, -4.9683,  48.2903);
+        verifySamplingFeature(fois,  48.2903, -4.9683);
 
         String observedProperty = offp.getObservedProperties().get(0);
         String foi = offp.getFeatureOfInterestIds().get(0);
@@ -731,6 +733,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
         Assert.assertEquals(1, response.getValue().size());
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, sdf, "2018-10-30T00:29:00Z",  48.2903, -4.9683);
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(1509, nbMeasure);
@@ -809,7 +813,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        String foi = verifySamplingFeature(fois, -4.9683,  48.2903);
+        String foi = verifySamplingFeature(fois,  48.2903, -4.9683);
 
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
@@ -1031,12 +1035,12 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         /*
         * Verify an inserted time serie
         */
-        String foi = verifySamplingFeature(fois, "8403780.0", 2.074899266154643, 45.22470466446091);
+        String foi = verifySamplingFeature(fois, "8403780.0", 45.22470466446091, 2.074899266154643);
         GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         String expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-1.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
-        foi = verifySamplingFeature(fois, "8403781.0", 2.07361239284379, 45.224199842811814);
+        foi = verifySamplingFeature(fois, "8403781.0", 45.224199842811814, 2.07361239284379);
         gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, Arrays.asList(foi)));
         expectedResult = getResourceAsString("com/examind/process/sos/rivertile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
@@ -1159,10 +1163,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(2, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2000-07-28T00:30:00Z", -6.9, 49.4);
+        verifyHistoricalLocation(loc1, sdf, "2000-07-28T00:30:00Z", 49.4, -6.9);
 
         HistoricalLocation loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2000-07-29T23:00:00Z", -6.8, 49.5);
+        verifyHistoricalLocation(loc2, sdf, "2000-07-29T23:00:00Z", 49.5, -6.8);
 
         int nbMeasure = getNbMeasure(stsWorker, "p001");
         Assert.assertEquals(95, nbMeasure);
@@ -1182,7 +1186,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
-        foi = verifySamplingFeature(fois, -6.9, 49.4);
+        foi = verifySamplingFeature(fois, 49.4, -6.9);
 
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1201,10 +1205,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(2, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2000-07-30T00:00:00Z", -6.9, 49.4);
+        verifyHistoricalLocation(loc1, sdf, "2000-07-30T00:00:00Z", 49.4, -6.9);
 
         loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2000-07-30T02:30:00Z", -6.9, 49.4);
+        verifyHistoricalLocation(loc2, sdf, "2000-07-30T02:30:00Z", 49.4, -6.9);
 
         nbMeasure = getNbMeasure(stsWorker, "p002");
         Assert.assertEquals(70, nbMeasure);
@@ -1224,7 +1228,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, -5.3, 51.2);
+        foi = verifySamplingFeature(fois, 51.2, -5.3);
 
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -1243,7 +1247,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2000-07-31T11:00:00Z", -5.3, 51.2);
+        verifyHistoricalLocation(loc1, sdf, "2000-07-31T11:00:00Z", 51.2, -5.3);
 
         nbMeasure = getNbMeasure(stsWorker, "p003");
         Assert.assertEquals(35, nbMeasure);
@@ -1338,7 +1342,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
-        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
 
         Assert.assertNotNull(foi);
         
@@ -1377,7 +1381,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(11, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -3.61021, -35.27835);
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9566, nbMeasure);
@@ -1466,17 +1470,18 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         ObservationOffering offp = getOffering(worker, "urn:template:1901290");
         Assert.assertNotNull(offp);
 
-        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
-        TimePeriodType time = (TimePeriodType) offp.getTime();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+        Assert.assertTrue(offp.getTime() instanceof GMLInstant);
+        GMLInstant time = (GMLInstant) offp.getTime();
 
         // ???
-        Assert.assertEquals("2020-03-24T05:07:54.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T05:07:54Z", sdf.format(time.getTimePosition().getDate()));
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
 
         Assert.assertNotNull(foi);
 
@@ -1495,12 +1500,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         hl.getExpand().add("Locations");
         HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
         Assert.assertEquals(1, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", 68.2395, -61.4234);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", -61.4234, 68.2395);
 
         int nbMeasure = getNbMeasure(stsWorker, "urn:template:1901290");
         Assert.assertEquals(68, nbMeasure);
@@ -1512,15 +1515,15 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         offp = getOffering(worker, "urn:template:1901689");
         Assert.assertNotNull(offp);
 
-        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
-        time = (TimePeriodType) offp.getTime();
+        Assert.assertTrue(offp.getTime() instanceof GMLInstant);
+        time = (GMLInstant) offp.getTime();
 
-        Assert.assertEquals("2020-03-24T08:48:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:48:00Z", sdf.format(time.getTimePosition().getDate()));
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
         fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, -25.92446, 5.92986);
+        foi = verifySamplingFeature(fois, 5.92986, -25.92446);
 
         Assert.assertNotNull(foi);
 
@@ -1541,7 +1544,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", -25.92446, 5.92986);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", 5.92986, -25.92446);
 
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1901689");
         Assert.assertEquals(503, nbMeasure);
@@ -1671,10 +1674,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(21, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -20.539, -29.9916);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -29.9916, -20.539);
 
         HistoricalLocation loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -20.5456, -29.995);
+        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -29.995, -20.5456);
 
         int nbMeasure = getNbMeasure(stsWorker, "urn:template:1501563");
         Assert.assertEquals(21, nbMeasure);
@@ -1715,10 +1718,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(21, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -23.209, -30.3464);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -30.3464, -23.209);
 
         loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -23.2064, -30.3484);
+        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -30.3484, -23.2064);
 
         nbMeasure = getNbMeasure(stsWorker, "urn:template:1501564");
         Assert.assertEquals(21, nbMeasure);
@@ -1767,7 +1770,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 137.91875, 16.01637);
+        foi = verifySamplingFeature(fois, 16.01637, 137.91875);
 
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
@@ -1910,10 +1913,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(21, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -20.539, -29.9916);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -29.9916, -20.539);
 
         HistoricalLocation loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -20.5456, -29.995);
+        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -29.995, -20.5456);
 
         int nbMeasure = getNbMeasure(stsWorker, "1501563");
         Assert.assertEquals(21, nbMeasure);
@@ -1954,10 +1957,10 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(21, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -23.209, -30.3464);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:00:00Z", -30.3464, -23.209);
 
         loc2 = response.getValue().get(1);
-        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -23.2064, -30.3484);
+        verifyHistoricalLocation(loc2, sdf, "2020-03-24T00:30:00Z", -30.3484, -23.2064);
 
         nbMeasure = getNbMeasure(stsWorker, "1501564");
         Assert.assertEquals(21, nbMeasure);
@@ -2006,7 +2009,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi = verifySamplingFeature(fois, 137.91875, 16.01637);
+        foi = verifySamplingFeature(fois, 16.01637, 137.91875);
 
         Assert.assertEquals(1, offp.getObservedProperties().size());
         observedProperty = offp.getObservedProperties().get(0);
@@ -2027,16 +2030,16 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         offp = getOffering(sosWorker, "1901290");
         Assert.assertNotNull(offp);
 
-        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
-        time = (TimePeriodType) offp.getTime();
+        Assert.assertTrue(offp.getTime() instanceof GMLInstant);
+        GMLInstant timeI = (GMLInstant) offp.getTime();
 
 
         // ???
-        Assert.assertEquals("2020-03-24T05:07:54.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T05:07:54Z", sdf.format(timeI.getTimePosition().getDate()));
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi  = verifySamplingFeature(fois, 68.2395, -61.4234);
+        foi  = verifySamplingFeature(fois, -61.4234, 68.2395);
 
         observedProperty = offp.getObservedProperties().get(0);
 
@@ -2057,7 +2060,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", 68.2395, -61.4234);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T05:07:54Z", -61.4234, 68.2395);
 
         nbMeasure = getNbMeasure(stsWorker, "1901290");
         Assert.assertEquals(68, nbMeasure);
@@ -2069,16 +2072,15 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         offp = getOffering(sosWorker, "1901689");
         Assert.assertNotNull(offp);
 
-        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
-        time = (TimePeriodType) offp.getTime();
-
+        Assert.assertTrue(offp.getTime() instanceof GMLInstant);
+        timeI = (GMLInstant) offp.getTime();
 
         // ???
-        Assert.assertEquals("2020-03-24T08:48:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2020-03-24T08:48:00Z", sdf.format(timeI.getTimePosition().getDate()));
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        foi  = verifySamplingFeature(fois, -25.92446, 5.92986);
+        foi  = verifySamplingFeature(fois, 5.92986, -25.92446);
 
         //-61.4234,68.2395
         observedProperty = offp.getObservedProperties().get(0);
@@ -2098,7 +2100,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", -25.92446, 5.92986);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T08:48:00Z", 5.92986, -25.92446);
 
         nbMeasure = getNbMeasure(stsWorker, "1901689");
         Assert.assertEquals(503, nbMeasure);
@@ -2227,7 +2229,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         // something is wrong here
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
-        String foi = verifySamplingFeature(fois,-3.093748, 47.534765);
+        String foi = verifySamplingFeature(fois, 47.534765,-3.093748);
 
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
@@ -2277,7 +2279,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2007-12-18T00:00:00Z", -3.093748, 47.534765);
+        verifyHistoricalLocation(loc1, sdf, "2007-12-18T00:00:00Z", 47.534765, -3.093748);
         int nbMeasure = getNbMeasure(stsWorker, "urn:surval:25049001");
         Assert.assertEquals(791, nbMeasure);
 
@@ -2584,7 +2586,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
-        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
 
         Assert.assertNotNull(foi);
 
@@ -2624,7 +2626,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(11, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -3.61021, -35.27835);
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9566, nbMeasure);
@@ -2711,7 +2713,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
-        String foi = verifySamplingFeature(fois, 68.2395, -61.4234);
+        String foi = verifySamplingFeature(fois, -61.4234, 68.2395);
 
         Assert.assertNotNull(foi);
 
@@ -2732,12 +2734,9 @@ public class SosHarvesterProcessTest extends SpringContextTest {
                 }
             }
             Assert.assertNotNull(obs.getSamplingTime());
-            Assert.assertTrue(obs.getSamplingTime() instanceof Period);
-            Period period = (Period) obs.getSamplingTime();
-            Assert.assertNotNull(period.getBeginning());
-            Assert.assertNotNull(period.getBeginning().getDate());
-            Assert.assertNotNull(period.getEnding());
-            Assert.assertNull(period.getEnding().getDate());
+            Assert.assertTrue(obs.getSamplingTime() instanceof Instant);
+            Instant instant = (Instant) obs.getSamplingTime();
+            Assert.assertNotNull(instant.getDate());
         }
         Assert.assertNotNull(observedProperty);
 
@@ -2765,7 +2764,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(11, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -35.27835, -3.61021);
+        verifyHistoricalLocation(loc1, sdf, "2020-03-24T00:25:47Z", -3.61021, -35.27835);
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9566, nbMeasure);
@@ -2873,7 +2872,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(worker, offp.getFeatureOfInterestIds());
         verifySamplingFeatureNotSame(fois);
-        String foi = verifySamplingFeature(fois, 15.3275447596057, 37.7923499263524);
+        String foi = verifySamplingFeature(fois, 37.7923499263524, 15.3275447596057);
 
         Assert.assertNotNull(foi);
 
@@ -2938,7 +2937,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         Assert.assertEquals(1, response.getValue().size());
 
         HistoricalLocation loc1 = response.getValue().get(0);
-        verifyHistoricalLocation(loc1, sdf, "2015-09-26T00:00:00Z", 15.3275447596057, 37.7923499263524);
+        verifyHistoricalLocation(loc1, sdf, "2015-09-26T00:00:00Z", 37.7923499263524, 15.3275447596057);
 
         int nbMeasure = getNbMeasure(stsWorker, "urn:sensor:surval:60007755");
         Assert.assertEquals(4, nbMeasure);
@@ -3081,18 +3080,18 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         return foi;
     }
 
-    private String verifySamplingFeature(List<SamplingFeature> fois,  double x, double y) {
-        return verifySamplingFeature(fois, null, x, y);
+    private String verifySamplingFeature(List<SamplingFeature> fois,  double lat, double lon) {
+        return verifySamplingFeature(fois, null, lat, lon);
     }
 
-    private String verifySamplingFeature(List<SamplingFeature> fois, String id, double x, double y) {
+    private String verifySamplingFeature(List<SamplingFeature> fois, String id, double lat, double lon) {
        String foi = null;
        for (SamplingFeature sp : fois) {
             if ((id != null && sp.getId().equals(id)) || id == null)
             if (sp.getGeometry() instanceof PointType) {
                 PointType pt = (PointType) sp.getGeometry();
-                if (pt.getDirectPosition().getOrdinate(0) == x &&
-                    pt.getDirectPosition().getOrdinate(1) == y) {
+                if (pt.getDirectPosition().getOrdinate(0) == lat &&
+                    pt.getDirectPosition().getOrdinate(1) == lon) {
 
                     foi = sp.getId();
                 }
@@ -3127,14 +3126,14 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         }
     }
 
-    private static void verifyHistoricalLocation(HistoricalLocation loc1, SimpleDateFormat sdf, String date, double x, double y) throws ParseException {
+    private static void verifyHistoricalLocation(HistoricalLocation loc1, SimpleDateFormat sdf, String date, double lat, double lon) throws ParseException {
         Assert.assertEquals(loc1.getTime().getTime(), sdf.parse(date).getTime());
         Assert.assertEquals(1, loc1.getLocations().size());
         Assert.assertTrue(loc1.getLocations().get(0).getLocation() instanceof GeoJSONFeature);
         GeoJSONFeature feat1 = (GeoJSONFeature) loc1.getLocations().get(0).getLocation();
         Assert.assertTrue(feat1.getGeometry() instanceof GeoJSONPoint);
         GeoJSONPoint pt1 = (GeoJSONPoint) feat1.getGeometry();
-        Assert.assertEquals(x, pt1.getCoordinates()[0], 0.001);
-        Assert.assertEquals(y, pt1.getCoordinates()[1], 0.001);
+        Assert.assertEquals(lat, pt1.getCoordinates()[0], 0.001);
+        Assert.assertEquals(lon, pt1.getCoordinates()[1], 0.001);
     }
 }

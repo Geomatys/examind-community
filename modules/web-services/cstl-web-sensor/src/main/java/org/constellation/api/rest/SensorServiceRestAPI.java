@@ -30,15 +30,9 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.SimpleValue;
-import org.constellation.dto.service.config.sos.ExtractionResult;
-import org.constellation.dto.service.config.sos.ProcedureTree;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ObservationProvider;
+import org.constellation.exception.ConstellationException;
+import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.opengis.geometry.Geometry;
-import org.opengis.observation.Observation;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
@@ -64,9 +58,6 @@ public class SensorServiceRestAPI {
 
     @Inject
     private IProviderBusiness providerBusiness;
-
-    @Inject
-    private IDataBusiness dataBusiness;
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -146,16 +137,11 @@ public class SensorServiceRestAPI {
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry gmlLocation) throws Exception {
         AcknowlegementType response;
-        if (gmlLocation instanceof Geometry location) {
-            if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
-                response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
-            } else {
-                response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
-            }
-        } else if (gmlLocation != null) {
-            response =  new AcknowlegementType("Failure", "GML Geometry can not be casted as Opengis one: " + gmlLocation);
+        org.locationtech.jts.geom.Geometry location = GeometrytoJTS.toJTS(gmlLocation);
+        if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
+            response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
         } else {
-            response =  new AcknowlegementType("Failure", "GML Geometry is null");
+            response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
         }
         return new ResponseEntity(response, OK);
     }
@@ -199,17 +185,6 @@ public class SensorServiceRestAPI {
         }
     }
 
-    @RequestMapping(value="/SensorService/{id}/observations", method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity importObservation(final @PathVariable("id") Integer serviceId, final File obs) throws Exception {
-        AcknowlegementType response;
-        if (sensorServiceBusiness.importObservations(serviceId, obs.toPath())) {
-            response = new AcknowlegementType("Success", "The specified observation have been imported in the Sensor service");
-        } else {
-            response = new AcknowlegementType("Failure", "Unexpected object type for observation file");
-        }
-        return new ResponseEntity(response, OK);
-    }
-
     @RequestMapping(value="/SensorService/{id}/observation/{observationID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeObservation(final @PathVariable("id") Integer serviceId, final @PathVariable("observationID") String observationID) throws Exception {
         AcknowlegementType response;
@@ -227,65 +202,21 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity importSensorFromData(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) throws Exception {
-        final Integer providerId = dataBusiness.getDataProvider(dataID);
-
-        if (providerId != null) {
-
-            final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults();
-
-                // import in O&M database
-                sensorServiceBusiness.importObservations(serviceId, result.getObservations(), result.getPhenomenons());
-
-                // SensorML generation
-                for (ProcedureTree process : result.getProcedures()) {
-                    sensorServiceBusiness.generateSensor(process, serviceId, null, dataID);
-                    updateSensorLocation(serviceId, process);
-                }
-            } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider for now"), OK);
-            }
-
+    public ResponseEntity importSensorFromData(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
+        try {
+            sensorServiceBusiness.importObservationsFromData(serviceId, dataID);
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the Sensor Service"), OK);
-        } else {
-            return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
-        }
-    }
-
-    private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
-        //record location
-        final Geometry geom = process.getGeom();
-        if (geom != null) {
-            sensorServiceBusiness.updateSensorLocation(serviceId, process.getId(), geom);
-        }
-        for (ProcedureTree child : process.getChildren()) {
-            updateSensorLocation(serviceId, child);
+        } catch (ConstellationException ex) {
+            return new ResponseEntity(new AcknowlegementType("Failure", ex.getMessage()), OK);
         }
     }
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeDataFromSXS(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) throws Exception {
-        final Integer providerId = dataBusiness.getDataProvider(dataID);
-
-        if (providerId != null) {
-            final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults();
-
-                // remove from O&M database
-                for (Observation obs : result.getObservations()) {
-                    if (obs.getName() != null) {
-                        sensorServiceBusiness.removeSingleObservation(serviceId, obs.getName().getCode());
-                    }
-                }
-            } else {
-                return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider for now"), OK);
-            }
-
+    public ResponseEntity removeDataFromSXS(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
+        try {
+            sensorServiceBusiness.removeDataObservationsFromService(serviceId, dataID);
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the Sensor Service"), OK);
-        } else {
+        } catch (ConstellationException ex) {
             return new ResponseEntity(new AcknowlegementType("Failure", "The specified data does not exist"), OK);
         }
     }

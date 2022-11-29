@@ -122,7 +122,7 @@
             "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/Sensors",
             "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/ObservedProperties",
             "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:multi-type)/Observations",
-            "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
+            "multiObservationDataTypes": ["http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_CategoryObservation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TemporalObservation", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"]
         }, {
             "unitOfMeasurement": [{
                     "name": "m",

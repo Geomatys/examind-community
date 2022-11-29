@@ -1,0 +1,46 @@
+{
+    "id": "obs-901",
+    "name": "urn:ogc:object:observation:GEOM:901",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:9"
+    },
+    "samplingTime": {
+        "id": "time-901",
+        "date": "2009-05-01T13:47:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-006",
+        "name": "cycle1",
+        "description": "Geology traverse",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+        "description": "the depth in water"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m"
+            }],
+        "nbValues": 7,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "15.5@@17.1@@18.4@@19.7@@21.2@@22.2@@23.9@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "profile"
+    }
+}

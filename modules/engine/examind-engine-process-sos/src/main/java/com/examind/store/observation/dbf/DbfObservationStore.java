@@ -40,7 +40,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
@@ -49,32 +48,32 @@ import org.geotoolkit.data.dbf.DbaseFileStore;
 import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
 import org.geotoolkit.data.dbf.DbaseFileReader.Row;
-import org.geotoolkit.gml.xml.AbstractGeometry;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.xml.Process;
-import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.MeasureStringBuilder;
-import org.geotoolkit.observation.model.ExtractionResult;
-import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.sos.xml.ResponseModeType;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.SamplingFeature;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.storage.DataStores;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
-import org.geotoolkit.swe.xml.Phenomenon;
-import org.geotoolkit.util.NamesExt;
-import org.opengis.geometry.DirectPosition;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
@@ -86,6 +85,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
     private static final String PROCEDURE_TREE_TYPE = "Component";
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos.dbf");
+
+    private static final GeometryFactory GF = new GeometryFactory();
 
     private final Path dataFile;
 
@@ -146,17 +147,6 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         return DataStores.getProviderById(DbfObservationStoreFactory.NAME);
     }
 
-    ////////////////////////////////////////////////////////////////////////////
-    // OBSERVATION STORE ///////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public Set<GenericName> getProcedureNames() {
-        final Set<GenericName> names = new HashSet<>();
-        names.add(NamesExt.create(getProcedureID()));
-        return names;
-    }
-
     private String getProcedureID() {
         if (procedureId == null) {
             return IOUtilities.filenameWithoutExtension(dataFile);
@@ -165,18 +155,8 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
     }
 
     @Override
-    public ExtractionResult getResults() throws DataStoreException {
-        return getResults(null, null);
-    }
-
-    @Override
-    public ExtractionResult getResults(final List<String> sensorIDs) throws DataStoreException {
-        return getResults(null, sensorIDs);
-    }
-
-    @Override
-    public ExtractionResult getResults(final String affectedSensorId, final List<String> sensorIDs) throws DataStoreException {
-        if (affectedSensorId != null) {
+    public ObservationDataset getDataset(DatasetQuery query) throws DataStoreException {
+        if (query.getAffectedSensorID() != null) {
             LOGGER.warning("DBFObservation store does not allow to override sensor ID");
         }
 
@@ -241,20 +221,19 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                     j++;
                 }
 
-                final ExtractionResult result = new ExtractionResult();
-                result.fields.addAll(measureFields);
+                final ObservationDataset result = new ObservationDataset();
 
-                final AbstractDataRecord datarecord;
-                switch (observationType) {
-                    case "Timeserie" : datarecord = OMUtils.getDataRecordTimeSeries("2.0.0", fields);break;
-                    case "Trajectory": datarecord = getDataRecordTrajectory("2.0.0", fields);break;
-                    case "Profile"   : datarecord = getDataRecordProfile("2.0.0", fields);   break;
-                    default: throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-                }
-
-                Phenomenon phenomenon = OMUtils.getPhenomenon("2.0.0", fields, "", Collections.EMPTY_SET);
+                org.geotoolkit.observation.model.Phenomenon phenomenon = OMUtils.getPhenomenonModels(null, fields, "", Collections.EMPTY_SET);
                 result.phenomenons.add(phenomenon);
 
+                switch (observationType) {
+                    case "Timeserie"  -> fields.add(0, OMUtils.TIME_FIELD);
+                    case "Trajectory" -> fields.add(0, OMUtils.TIME_FIELD);
+                    case "Profile"    -> {}
+                    default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
+                }
+                Map<String, Object> properties = new HashMap<>();
+                properties.put("type", observationType);
 
                 /*
                 3- compute measures
@@ -274,7 +253,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 // builder of measure string
                 MeasureStringBuilder msb = new MeasureStringBuilder();
                 // memorize positions to compute FOI
-                final List<DirectPosition> positions = new ArrayList<>();
+                final List<Coordinate> positions = new ArrayList<>();
 
                 // -- previous variables leading to new observations --
                 String previousFoi = null;
@@ -311,26 +290,27 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                         obsCpt++;
                         final String procedureID = getProcedureID();
-                        final Process proc = (Process) OMUtils.buildProcess(procedureID);
+                        final Procedure proc = new Procedure(procedureID);
 
                         // sampling feature of interest
-                        String foiID = "foi-" + UUID.randomUUID();
-                        if (previousFoi != null) {
-                            foiID = previousFoi;
-                        }
+                        String foiID = previousFoi;
+                        
                         final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
                         result.addFeatureOfInterest(sp);
-                        globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
+                        globalSpaBound.addGeometry(sp.getGeometry());
 
-                        result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                         sp,                            // foi
-                                                                         phenomenon,                    // phenomenon
-                                                                         proc,                          // procedure
-                                                                         currentCount,                  // count
-                                                                         datarecord,                    // result structure
-                                                                         msb,                           // measures
-                                                                         currentSpaBound.getTimeObject("2.0.0"))   // time
-                        );
+                        ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), currentCount);
+                        result.observations.add(new Observation(oid,
+                                                                oid,
+                                                                null, null,
+                                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                                proc,
+                                                                currentSpaBound.getTimeObject(),
+                                                                sp,
+                                                                phenomenon,
+                                                                null,
+                                                                resultO,
+                                                                properties));
 
                         // reset single observation related variables
                         currentCount    = 0;
@@ -350,16 +330,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                     // update temporal interval
                     if (dateIndex != -1) {
                         final Object dateObj = line.read(dateIndex);
-                        final long millis;
-                        if (dateObj instanceof Double) {
-                            millis = dateFromDouble((Double)dateObj).getTime();
-                        } else if (dateObj instanceof String) {
-                            millis = sdf.parse((String)dateObj).getTime();
-                        } else if (dateObj instanceof Date) {
-                            millis = ((Date) dateObj).getTime();
-                        } else {
-                            throw new ClassCastException("Unhandled date type");
-                        }
+                        final long millis = parseObjectDate(dateObj, sdf);
                         globalSpaBound.addDate(millis);
                         currentSpaBound.addDate(millis);
                     }
@@ -368,7 +339,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         final double longitude = ((Double)line.read(longitudeIndex));
                         final double latitude  = ((Double)line.read(latitudeIndex));
-                        DirectPosition pos = SOSXmlFactory.buildDirectPosition("2.0.0", "EPSG:4326", 2, Arrays.asList(latitude, longitude));
+                        Coordinate pos = new Coordinate(latitude, longitude);
                         if (!positions.contains(pos)) {
                             positions.add(pos);
                         }
@@ -396,16 +367,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                         } else {
                             try {
                                 final Object dateObj = line.read(mainIndex);
-                                final Date millis;
-                                if (dateObj instanceof Double) {
-                                    millis = dateFromDouble((Double)dateObj);
-                                } else if (dateObj instanceof String) {
-                                    millis = sdf.parse((String)dateObj);
-                                } else if (dateObj instanceof Date) {
-                                    millis = (Date) dateObj;
-                                } else {
-                                    throw new ClassCastException("Unhandled date type");
-                                }
+                                final long millis = parseObjectDate(dateObj, sdf);
                                 msb.appendDate(millis);
                             } catch (ClassCastException ex) {
                                 LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
@@ -438,7 +400,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
                 obsCpt++;
                 final String procedureID = getProcedureID();
-                final Process proc = (Process) OMUtils.buildProcess(procedureID);
+                final Procedure proc = new Procedure(procedureID);
 
                 // sampling feature of interest
                 String foiID = "foi-" + UUID.randomUUID();
@@ -447,24 +409,24 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 }
                 final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
                 result.addFeatureOfInterest(sp);
-                globalSpaBound.addGeometry((AbstractGeometry) sp.getGeometry());
+                globalSpaBound.addGeometry(sp.getGeometry());
 
-                result.observations.add(OMUtils.buildObservation(oid,                           // id
-                                                                 sp,                            // foi
-                                                                 phenomenon,                    // phenomenon
-                                                                 proc,                          // procedure
-                                                                 count,                         // count
-                                                                 datarecord,                    // result structure
-                                                                 msb,                           // measures
-                                                                 currentSpaBound.getTimeObject("2.0.0"))   // time
-                );
-
-
-
+                ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), count);
+                result.observations.add(new Observation(oid,
+                                                        oid,
+                                                        null, null,
+                                                        "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                        proc,
+                                                        currentSpaBound.getTimeObject(),
+                                                        sp,
+                                                        phenomenon,
+                                                        null,
+                                                        resultO,
+                                                        properties));
                 result.spatialBound.merge(globalSpaBound);
 
                 // build procedure tree
-                final ProcedureTree procedure = new ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase());
+                final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), new ArrayList<>(), null);
                 procedure.spatialBound.merge(globalSpaBound);
                 result.procedures.add(procedure);
 
@@ -477,15 +439,27 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         }
     }
 
-
-
     @Override
-    public void close() throws DataStoreException {
-        // do nothing
+    public Set<String> getEntityNames(OMEntity entityType) throws DataStoreException {
+        if (entityType == null) {
+            throw new DataStoreException("initialisation of the filter missing.");
+        }
+        switch (entityType) {
+            case OBSERVED_PROPERTY:   return Collections.singleton(getProcedureID());
+            case PROCEDURE:           return extractPhenomenonIds();
+            case FEATURE_OF_INTEREST:
+            case OFFERING:
+            case OBSERVATION:
+            case LOCATION:
+            case HISTORICAL_LOCATION:
+            case RESULT:
+                throw new DataStoreException("not implemented yet.");
+            default:
+                throw new DataStoreException("unexpected object type:" + entityType);
+        }
     }
 
-    @Override
-    public Set<String> getPhenomenonNames() throws DataStoreException {
+    private Set<String> extractPhenomenonIds() throws DataStoreException {
 
         try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
 
@@ -543,23 +517,15 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                 while (reader.hasNext()) {
                     final Row line = reader.next();
 
+                    DateFormat df = new SimpleDateFormat(this.dateFormat);
                     // update temporal information
                     if (dateIndex != -1) {
                         final Object dateObj = line.read(dateIndex);
-                        final Date dateParse;
-                        if (dateObj instanceof Double) {
-                            dateParse = dateFromDouble((Double)dateObj);
-                        } else if (dateObj instanceof String) {
-                            dateParse = new SimpleDateFormat(this.dateFormat).parse((String)dateObj);
-                        } else if (dateObj instanceof Date) {
-                            dateParse = (Date) dateObj;
-                        } else {
-                            throw new ClassCastException("Unhandled date type");
-                        }
+                        final long dateParse = parseObjectDate(dateObj, df);
                         result.addDate(dateParse);
                     }
                 }
-                return result.getTimeObject("2.0.0");
+                return result.getTimeObject();
             }
             throw new DataStoreException("dbf headers not found");
         } catch (IOException | ParseException ex) {
@@ -585,7 +551,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
     }
 
     @Override
-    public List<ExtractionResult.ProcedureTree> getProcedures() throws DataStoreException {
+    public List<ProcedureDataset> getProcedures() throws DataStoreException {
 
 
         // open dbf file
@@ -624,28 +590,22 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
 
                 // procedure tree instanciation
                 final String procedureId = getProcedureID();
-                final Process proc = (Process) OMUtils.buildProcess(procedureId);
-                final ProcedureTree procedureTree = new ProcedureTree(proc.getHref(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields);
+                final Procedure proc = new Procedure(procedureId);
+                final ProcedureDataset procedureTree = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null);
 
                 while (reader.hasNext()) {
                     final Row line = reader.next();
 
-                    Date dateParse        = null;
-                    AbstractGeometry geom = null;
+                    Date dateParse = null;
+                    Geometry geom  = null;
+
+                    DateFormat df = new SimpleDateFormat(this.dateFormat);
 
                     // update temporal interval
                     if (dateIndex != -1) {
                         try {
                             final Object dateObj = line.read(dateIndex);
-                            if (dateObj instanceof Double) {
-                                dateParse = dateFromDouble((Double)dateObj);
-                            } else if (dateObj instanceof String) {
-                                dateParse = new SimpleDateFormat(this.dateFormat).parse((String)dateObj);
-                            } else if (dateObj instanceof Date) {
-                                dateParse = (Date) dateObj;
-                            } else {
-                                throw new ClassCastException("Unhandled date type");
-                            }
+                            dateParse = new Date(parseObjectDate(dateObj, df));
                             procedureTree.spatialBound.addDate(dateParse);
                         } catch (ClassCastException ex) {
                             LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
@@ -656,8 +616,7 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
                     // update spatial information
                     if (latitudeIndex != -1 && longitudeIndex != -1) {
                         try {
-                            DirectPosition dp = new GeneralDirectPosition((Double)line.read(longitudeIndex), (Double)line.read(latitudeIndex));
-                            geom = GMLXmlFactory.buildPoint("3.2.1", null, dp);
+                            geom = GF.createPoint(new Coordinate(longitudeIndex, latitudeIndex));
                         } catch (NumberFormatException ex) {
                             LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
                         }
@@ -690,38 +649,19 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         return null;
     }
 
-    private static final long TIME_AT_2000;
-    static {
-        long candidate = 0L;
-        try {
-            candidate = new SimpleDateFormat("yyyy-MM-dd").parse("2000-01-01").getTime();
-        } catch (ParseException ex) {
-            LOGGER.log(Level.SEVERE, "Errow while caculationg time at 2000-01-01", ex);
-        }
-        TIME_AT_2000 = candidate;
-    }
-
-    /**
-     * Assume that the date is the number of second since the  first january 2000.
-     *
-     * @param myDouble
-     * @return
-     * @throws ParseException
-     */
-    private static Date dateFromDouble(double myDouble) throws ParseException {
-        long i = (long) (myDouble*1000);
-        long l = TIME_AT_2000 + i;
-        return new Date(l);
-    }
-
     @Override
     public ObservationStoreCapabilities getCapabilities() {
         final Map<String, List<String>> responseFormats = new HashMap<>();
         responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
         responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
 
-        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
+        final List<ResponseMode> responseMode = Arrays.asList(ResponseMode.INLINE);
 
         return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
+    }
+
+    @Override
+    public void close() throws DataStoreException {
+        // do nothing
     }
 }
