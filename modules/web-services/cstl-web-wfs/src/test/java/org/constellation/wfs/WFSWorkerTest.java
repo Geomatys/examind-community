@@ -143,10 +143,10 @@ public class WFSWorkerTest extends SpringContextTest {
                     if (namespace == null || namespace.isEmpty()) {
                         namespace = "http://www.opengis.net/gml";
                     }
-                    layerBusiness.add(d.id, null, namespace, d.name, sid, null);
+                    layerBusiness.add(d.id, null, namespace, d.name, null, sid, null);
                 }
                 // add aliased layer
-                layerBusiness.add(d23.id,  "JS2", "http://www.opengis.net/gml",  d23.name, sid, null);
+                layerBusiness.add(d23.id,  "JS2", "http://www.opengis.net/gml",  d23.name, null, sid, null);
 
                 pool = WFSMarshallerPool.getInstance();
 

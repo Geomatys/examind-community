@@ -100,7 +100,7 @@ public class LayerBusiness implements ILayerBusiness {
      */
     @Override
     @Transactional
-    public Integer add(int dataId, String alias, String namespace, String name,
+    public Integer add(int dataId, String alias, String namespace, String name, String title,
              int serviceId, LayerConfig config) throws ConfigurationException {
 
         final Service service = serviceBusiness.getServiceById(serviceId, null);
@@ -121,6 +121,9 @@ public class LayerBusiness implements ILayerBusiness {
             layer.setService(service.getId());
             layer.setDataId(dataId);
             layer.setDate(new Date(System.currentTimeMillis()));
+            if (title != null) {
+                layer.setTitle(title);
+            }
             Optional<CstlUser> user = userBusiness.findOne(securityManager.getCurrentUserLogin());
             if(user.isPresent()) {
                 layer.setOwnerId(user.get().getId());
@@ -535,6 +538,7 @@ public class LayerBusiness implements ILayerBusiness {
         layerConfig.setDate(layer.getDate());
         layerConfig.setOwnerId(layer.getOwnerId());
         layerConfig.setDataId(layer.getDataId());
+        layerConfig.setTitle(layer.getTitle());
 
         // TODO layerDto.setAbstrac();
         // TODO layerDto.setAttribution(null);

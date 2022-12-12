@@ -95,10 +95,10 @@ public class WMTSWorkerTest extends SpringContextTest {
             TestEnvironment.DataImport did  = testResources.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
 
             // one layer with alias
-            layerBusiness.add(did.id, "haiti", did.namespace, did.name, sid, null);
+            layerBusiness.add(did.id, "haiti", did.namespace, did.name, null, sid, null);
 
             // same data, but with namespace
-            layerBusiness.add(did.id, null, "nmsp", did.name, sid, null);
+            layerBusiness.add(did.id, null, "nmsp", did.name, null, sid, null);
 
             worker = new DefaultWMTSWorker("default");
             worker.setServiceUrl("http://localhost:9090/WS/");

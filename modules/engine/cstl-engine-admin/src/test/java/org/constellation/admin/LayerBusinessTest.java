@@ -132,7 +132,7 @@ public class LayerBusinessTest extends SpringContextTest {
         final Details frDetails = new Details("name", "identifier", Arrays.asList("keyword1", "keyword2"), "description", Arrays.asList("version1"), new Contact(), new AccessConstraint(), true, "FR");
         Integer sid = serviceBusiness.create("wms", "default", new LayerContext(), frDetails, 1);
 
-        Integer lid = layerBusiness.add(db.getId(), "SSTM", "some nmsp",  "SSTM", sid, null);
+        Integer lid = layerBusiness.add(db.getId(), "SSTM", "some nmsp",  "SSTM", null, sid, null);
 
         Assert.assertNotNull(lid);
 
@@ -143,7 +143,7 @@ public class LayerBusinessTest extends SpringContextTest {
         Assert.assertEquals(12, vectBriefs.size());
 
         for (DataBrief vdb : vectBriefs) {
-           layerBusiness.add(vdb.getId(), null, vdb.getNamespace(), vdb.getName(), sid, null);
+           layerBusiness.add(vdb.getId(), null, vdb.getNamespace(), vdb.getName(), vdb.getTitle(), sid, null);
         }
     }
 

@@ -133,9 +133,9 @@ public class WCSWorkerOutputTest extends SpringContextTest {
                 final LayerContext config = new LayerContext();
 
                 Integer sid = serviceBusiness.create("wcs", "default", config, null, null);
-                layerBusiness.add(did,       null, null, "SSTMDE200305", sid, null);
-                layerBusiness.add(did2, "aliased", null, "SSTMDE200305", sid, null);
-                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  sid, null);
+                layerBusiness.add(did,       null, null, "SSTMDE200305", null, sid, null);
+                layerBusiness.add(did2, "aliased", null, "SSTMDE200305", null, sid, null);
+                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  null, sid, null);
 
 
                 WORKER = new DefaultWCSWorker("default");

@@ -116,10 +116,10 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
                 for (DataImport d : datas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
                 }
 
-                layerBusiness.add(di.id,  COLLECTION_ALIAS, di.namespace,  di.name, defId, null);
+                layerBusiness.add(di.id,  COLLECTION_ALIAS, di.namespace,  di.name, null, defId, null);
 
                 initialized = true;
                 serviceBusiness.start(defId);

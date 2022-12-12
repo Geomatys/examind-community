@@ -87,7 +87,7 @@ public class WFSServiceTest extends SpringContextTest {
         config.getCustomParameters().put(TRANSACTIONAL, "true");
 
         Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-        layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+        layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
 
         serviceBusiness.start(defId);
 

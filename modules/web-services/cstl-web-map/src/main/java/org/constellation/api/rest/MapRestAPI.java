@@ -177,7 +177,8 @@ public class MapRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
         try {
-            Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getName().getNamespaceURI(), layer.getName().getLocalPart(), layer.getService(), null);
+            Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getName().getNamespaceURI(), layer.getName().getLocalPart(),
+                                                layer.getTitle(), layer.getService(), null);
             return new ResponseEntity(AcknowlegementType.success("Layer \"" + layerId + "\" successfully added to service \"" + layer.getService() + "\"."), OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -394,6 +395,36 @@ public class MapRestAPI extends AbstractRestAPI {
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Map.Entry<String, Object> transformFilter(Filter f, final HttpServletRequest req) {
+        Map.Entry<String, Object> result = super.transformFilter(f, req);
+        if (result != null) {
+            return result;
+        }
+        String value = f.getValue();
+        if (value == null || "_all".equals(value)) {
+            return null;
+        }
+        if ("data".equals(f.getField()) || "service".equals(f.getField())) {
+            try {
+                final int parentId = Integer.valueOf(value);
+                return new AbstractMap.SimpleEntry<>(f.getField(), parentId);
+            } catch (Exception ex) {
+                LOGGER.log(Level.WARNING, "Filter by " + f.getField() + " value should be an integer: " + ex.getLocalizedMessage(), ex);
+                return null;
+            }
+
+            // just here to list the existing filter
+        } else if ("title".equals(f.getField()) || "term".equals(f.getField()) || "alias".equals(f.getField())) {
+            return new AbstractMap.SimpleEntry<>(f.getField(), value);
+        } else {
+            return new AbstractMap.SimpleEntry<>(f.getField(), value);
         }
     }
 

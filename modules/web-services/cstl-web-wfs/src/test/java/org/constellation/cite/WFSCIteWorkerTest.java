@@ -117,7 +117,7 @@ public class WFSCIteWorkerTest extends SpringContextTest {
 
                 Integer sid = serviceBusiness.create("wfs", serviceId, config, details, null);
                 for (DataImport d : datas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, sid, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, sid, null);
                 }
 
                 worker = new DefaultWFSWorker(serviceId);

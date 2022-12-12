@@ -110,7 +110,7 @@ public class WMSServiceTest extends SpringContextTest {
                     if (!"SSTMDE200305".equals(d.name) && namespace == null) {
                         namespace = "http://www.opengis.net/gml";
                     }
-                    layerBusiness.add(d.id, null, namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, namespace, d.name, null, defId, null);
                 }
                 
                 serviceBusiness.start(defId);

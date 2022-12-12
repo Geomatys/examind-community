@@ -96,10 +96,10 @@ public class WMTSRequestsTest extends AbstractGrizzlyServer {
                 TestEnvironment.DataImport did  = testResource.createProvider(TestEnvironment.TestResource.XML_PYRAMID, providerBusiness, null).datas.get(0);
 
                 // one layer with alias
-                layerBusiness.add(did.id, "haiti", did.namespace, did.name, sid, null);
+                layerBusiness.add(did.id, "haiti", did.namespace, did.name, null, sid, null);
 
                 // same data, but with namespace
-                layerBusiness.add(did.id, null, "nmsp", did.name, sid, null);
+                layerBusiness.add(did.id, null, "nmsp", did.name, null, sid, null);
                 
                 serviceBusiness.start(sid);
                 waitForRestStart("wmts","default");

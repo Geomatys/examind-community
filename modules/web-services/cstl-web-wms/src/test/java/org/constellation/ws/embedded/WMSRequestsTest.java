@@ -36,7 +36,6 @@ import org.constellation.dto.contact.Details;
 import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.test.ImageTesting;
 import org.constellation.test.utils.Order;
-import org.geotoolkit.image.jai.Registry;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
@@ -54,9 +53,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.imageio.ImageIO;
-import javax.imageio.spi.ImageReaderSpi;
-import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -106,7 +102,6 @@ import static org.junit.Assert.assertTrue;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.geotoolkit.ogc.xml.OGCJAXBStatics.FILTER_COMPARISON_ISLESS;
-import org.opengis.geometry.Envelope;
 
 /**
  * A set of methods that request a SpringBoot server which embeds a WMS service.
@@ -126,6 +121,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String LAYER_TEST = "SSTMDE200305";
     private static final String COV_ALIAS = "SST";
     private static final String MARTINIQUE = "martinique";
+    private static final String JCOL_FILTER = "JCOLF";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -138,15 +134,15 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     /**
      * URLs which will be tested on the server.
      */
-    private static final String WMS_GETCAPABILITIES = "request=GetCapabilities&service=WMS&version=1.1.1";
+    private static final String WMS_GETCAPABILITIES_111 = "request=GetCapabilities&service=WMS&version=1.1.1";
 
     private static final String WMS_GETCAPABILITIES_WMS1_111 = "request=GetCapabilities&service=WMS&version=1.1.1";
 
-    private static final String WMS_GETCAPABILITIES_WMS1 = "request=GetCapabilities&service=WMS&version=1.3.0";
+    private static final String WMS_GETCAPABILITIES_130 = "request=GetCapabilities&service=WMS&version=1.3.0";
 
-    private static final String WMS_GETCAPABILITIES_WMS1_FRE = "request=GetCapabilities&service=WMS&version=1.3.0&language=fre";
+    private static final String WMS_GETCAPABILITIES_130_FRE = "request=GetCapabilities&service=WMS&version=1.3.0&language=fre";
 
-    private static final String WMS_GETCAPABILITIES_WMS1_ENG = "request=GetCapabilities&service=WMS&version=1.3.0&language=eng";
+    private static final String WMS_GETCAPABILITIES_130_ENG = "request=GetCapabilities&service=WMS&version=1.3.0&language=eng";
 
     private static final String WMS_FALSE_REQUEST = "request=SomethingElse";
 
@@ -531,7 +527,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETMAP_130_JCOLL_LAYER_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
-            + "layers=JCOLF&styles=";
+            + "layers=" + JCOL_FILTER + "&styles=";
 
     private static final String WMS_GETMAP_130_JCOLL_REQUEST_CQL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
@@ -552,7 +548,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETMAP_130_JCOLL_ELEVATION = "request=GetMap&service=WMS&version=1.3.0&"
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
-            + "layers=JCOLF&styles=&elevation=700";
+            + "layers=" + JCOL_FILTER + "&styles=&elevation=700";
 
     private static boolean initialized = false;
 
@@ -622,26 +618,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details.getServiceConstraints().setLayerLimit(100);
                 serviceBusiness.setInstanceDetails("wms", "default", details, "eng", true);
 
-                layerBusiness.add(did.id,       null,            null, LAYER_TEST,   defId, null);
-                layerBusiness.add(did2.id, MARTINIQUE,  did2.namespace,  did2.name,   defId, null);
-                layerBusiness.add(did3.id, COV_ALIAS,  did3.namespace,  did3.name,   defId, null);
+                layerBusiness.add(did.id,       null,            null, LAYER_TEST,   null, defId, null);
+                layerBusiness.add(did2.id, MARTINIQUE,  did2.namespace,  did2.name,   null, defId, null);
+                layerBusiness.add(did3.id, COV_ALIAS,  did3.namespace,  did3.name,   null, defId, null);
 
                 for (DataImport d : datas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
                 }
 
-                layerBusiness.add(d13.id,  "JS1", d13.namespace,  d13.name,    defId, null);
-                layerBusiness.add(d13.id,  "JS2", d13.namespace,  d13.name,    defId, null);
+                layerBusiness.add(d13.id,  "JS1", d13.namespace,  d13.name,    null, defId, null);
+                layerBusiness.add(d13.id,  "JS2", d13.namespace,  d13.name,    null, defId, null);
 
                 // add a filter on "elevation" property
                 LayerConfig lconfig = new LayerConfig();
                 lconfig.setFilter(new Filter("elevation", "1000", FILTER_COMPARISON_ISLESS));
                 DimensionDefinition dd = new DimensionDefinition("elevation", "elevation", "elevation");
                 lconfig.setDimensions(Arrays.asList(dd));
-                layerBusiness.add(d15.id, "JCOLF", d15.namespace,  d15.name,    defId, lconfig);
+                layerBusiness.add(d15.id, JCOL_FILTER, d15.namespace,  d15.name,    null, defId, lconfig);
 
                 // add basic layer for comparison
-                layerBusiness.add(d15.id, "JCOL", d15.namespace,  d15.name,    defId, null);
+                layerBusiness.add(d15.id, "JCOL", d15.namespace,  d15.name,    null, defId, null);
 
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
@@ -651,7 +647,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 // only add the 'lakes' data and add a namespace to the layer
                 for (DataImport d : shapeDatas) {
                     if ("Lakes".equals(d.name)) {
-                        layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, wm1Id, null);
+                        layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm1Id, null);
                     }
                 }
 
@@ -688,9 +684,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 details3.setVersions(Arrays.asList("1.3.0"));
 
                 Integer wm2Id = serviceBusiness.create("wms", "wms2", config3, details3, null);
-                layerBusiness.add(did.id,   null,  did.namespace,  did.name,   wm2Id, null);
+                layerBusiness.add(did.id,   null,  did.namespace,  did.name,   null, wm2Id, null);
                 for (DataImport d : shapeDatas) {
-                    layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, wm2Id, null);
+                    layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm2Id, null);
                 }
 
                 final WMSPortrayal port = new WMSPortrayal();
@@ -1053,7 +1049,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         initLayerList();
 
         // Creates a valid GetCapabilities url.
-        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
+        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_111);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1096,7 +1092,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?", currentUrl);
 
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETCAPABILITIES_111);
 
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
@@ -1115,7 +1111,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue("was :" + obj.getClass().getName(), obj instanceof WMSCapabilities);
 
         // Creates a valid GetCapabilities url.
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_WMS1);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms2?" + WMS_GETCAPABILITIES_130);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1128,7 +1124,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         pool = WMSMarshallerPool.getInstance();
 
         // Creates a valid GetMap url.
-        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1);
+        URL getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_130);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         Object obj = unmarshallResponse(getCapsUrl);
@@ -1145,7 +1141,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("this is the default english capabilities", responseCaps130.getService().getName());
 
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_ENG);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_130_ENG);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);
@@ -1158,7 +1154,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("this is the default english capabilities", responseCaps130.getService().getName());
 
-        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_WMS1_FRE);
+        getCapsUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETCAPABILITIES_130_FRE);
         // Try to marshall something from the response returned by the server.
         // The response should be a WMT_MS_Capabilities.
         obj = unmarshallResponse(getCapsUrl);

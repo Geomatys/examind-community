@@ -53,7 +53,7 @@ public interface ILayerBusiness {
      * @return The assigned layer identifier.
      * @throws ConfigurationException If the service does not exist.
      */
-    Integer add(int dataId, String alias, String namespace, String name, int serviceId, LayerConfig config) throws ConfigurationException;
+    Integer add(int dataId, String alias, String namespace, String name, String title, int serviceId, LayerConfig config) throws ConfigurationException;
 
     /**
      * Update a layer.

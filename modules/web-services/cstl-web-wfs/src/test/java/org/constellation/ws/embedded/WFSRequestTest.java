@@ -242,10 +242,10 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
 
                 for (DataImport d : dbDatas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
                 }
                 for (DataImport d : gmlDatas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
                 }
                 for (DataImport d : datas) {
                     // add gml namespace for data with no namespace
@@ -253,14 +253,14 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                     if (namespace == null || namespace.isEmpty()) {
                         namespace = "http://www.opengis.net/gml";
                     }
-                    layerBusiness.add(d.id, null, namespace, d.name, defId, null);
+                    layerBusiness.add(d.id, null, namespace, d.name, null, defId, null);
                 }
 
-                layerBusiness.add(d23.id,   "JS2", "http://www.opengis.net/gml",  d23.name, defId, null);
+                layerBusiness.add(d23.id,   "JS2", "http://www.opengis.net/gml",  d23.name, null, defId, null);
 
                 Integer testId = serviceBusiness.create("wfs", "test", config, null, null);
                 for (DataImport d : gmlDatas) {
-                    layerBusiness.add(d.id, null, d.namespace, d.name, testId, null);
+                    layerBusiness.add(d.id, null, d.namespace, d.name, null, testId, null);
                 }
                 for (DataImport d : datas) {
                     // add gml namespace for data with no namespace
@@ -268,7 +268,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                     if (namespace == null || namespace.isEmpty()) {
                         namespace = "http://www.opengis.net/gml";
                     }
-                    layerBusiness.add(d.id, null, namespace, d.name, testId, null);
+                    layerBusiness.add(d.id, null, namespace, d.name, null, testId, null);
                 }
 
                 final LayerContext config2 = new LayerContext();
@@ -282,7 +282,7 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                     if (namespace == null || namespace.isEmpty()) {
                         namespace = "http://www.opengis.net/gml";
                     }
-                    layerBusiness.add(d.id, null, namespace, d.name, test1Id, null);
+                    layerBusiness.add(d.id, null, namespace, d.name, null, test1Id, null);
                 }
 
                 EPSG_VERSION = CRS.getVersion("EPSG").toString();

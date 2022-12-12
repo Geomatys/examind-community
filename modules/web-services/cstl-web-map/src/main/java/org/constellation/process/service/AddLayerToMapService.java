@@ -169,7 +169,7 @@ public class AddLayerToMapService extends AbstractCstlProcess {
             if (sid != null) {
                 DataBrief db = dataBusiness.getDataBrief(layerQName, providerID, false, false);
                 if (db != null) {
-                    layerBusiness.add(db.getId(), layerAlias, namespace, name, sid, newLayer);
+                    layerBusiness.add(db.getId(), layerAlias, namespace, name, null, sid, newLayer);
                 }
             }
         } catch (ConstellationException ex) {

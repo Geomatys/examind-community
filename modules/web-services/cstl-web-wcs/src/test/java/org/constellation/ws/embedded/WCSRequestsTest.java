@@ -239,13 +239,13 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
                 final LayerContext config = new LayerContext();
 
                 Integer defId = serviceBusiness.create("wcs", "default", config, null, null);
-                layerBusiness.add(did,  null,      null, "SSTMDE200305",  defId, null);
-                layerBusiness.add(did2, "aliased", null, "SSTMDE200305",  defId, null);
-                layerBusiness.add(did3, null,      null, "martinique",    defId, null);
-                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  defId, null);
+                layerBusiness.add(did,  null,      null, "SSTMDE200305",  null, defId, null);
+                layerBusiness.add(did2, "aliased", null, "SSTMDE200305",  null, defId, null);
+                layerBusiness.add(did3, null,      null, "martinique",    null, defId, null);
+                layerBusiness.add(did,  null,      "SST", "SSTMDE200305",  null, defId, null);
 
                 Integer testId = serviceBusiness.create("wcs", "test", config, null, null);
-                layerBusiness.add(did,  null,      null, "SSTMDE200305",  testId, null);
+                layerBusiness.add(did,  null,      null, "SSTMDE200305",  null, testId, null);
 
 
                 pool = WCSMarshallerPool.getInstance();
