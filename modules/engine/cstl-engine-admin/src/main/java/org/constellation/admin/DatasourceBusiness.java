@@ -303,32 +303,47 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId(), create);
     }
 
+    /**
+     * Look in all the file tree (or in a zip file) if there is a file named "SERIAL.ENC".
+     * if the dependency for S63 store is not present, this will always return {@code false}.
+     *
+     * Maybe be this could should be re-located into an overriding bean in examind server,
+     * has it should not be present in Examinf community.
+     *
+     * @param path A path fle.
+     * @return {@code true} if a S63 file has been found.
+     * @throws IOException
+     */
     private boolean hasS63File(Path path) throws IOException {
-        final S63FileVisitor visitor = new S63FileVisitor();
-        String ext = "";
-        if (Files.isRegularFile(path)) {
-            ext = IOUtilities.extension(path);
-        }
-        if ("zip".equals(ext.toLowerCase())) {
-            FileSystemReference zipFS = null;
-            try {
-                zipFS = FileSystemUtilities.createZipFileSystem(path);
-                final Path root = zipFS.fs.getPath("/");
-                Files.walkFileTree(root, visitor);
-            } catch (UnsupportedOperationException ex) {
-                // Well Known issues with distant FileSystem
-                LOGGER.log(Level.FINER, "Unsupported operation while visiting ZIP file", ex);
-            } catch (Exception ex) {
-                LOGGER.log(Level.INFO, "Error while visiting ZIP file", ex);
-            } finally {
-                if (zipFS != null && zipFS.close()) {
-                   FileSystemUtilities.removeFileSystemFromCache(zipFS.uri);
-                }
+        DataStoreProvider S63provider = DataStores.getProviderById("S63");
+        if (S63provider != null) {
+            final S63FileVisitor visitor = new S63FileVisitor();
+            String ext = "";
+            if (Files.isRegularFile(path)) {
+                ext = IOUtilities.extension(path);
             }
-        } else {
-            Files.walkFileTree(path, visitor);
+            if ("zip".equals(ext.toLowerCase())) {
+                FileSystemReference zipFS = null;
+                try {
+                    zipFS = FileSystemUtilities.createZipFileSystem(path);
+                    final Path root = zipFS.fs.getPath("/");
+                    Files.walkFileTree(root, visitor);
+                } catch (UnsupportedOperationException ex) {
+                    // Well Known issues with distant FileSystem
+                    LOGGER.log(Level.FINER, "Unsupported operation while visiting ZIP file", ex);
+                } catch (Exception ex) {
+                    LOGGER.log(Level.INFO, "Error while visiting ZIP file", ex);
+                } finally {
+                    if (zipFS != null && zipFS.close()) {
+                       FileSystemUtilities.removeFileSystemFromCache(zipFS.uri);
+                    }
+                }
+            } else {
+                Files.walkFileTree(path, visitor);
+            }
+            return visitor.serialPresent;
         }
-        return visitor.serialPresent;
+        return false;
     }
 
     /**
@@ -459,6 +474,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             String encodedUrl = url.replace(" ", "%20");
             encodedUrl = encodedUrl.replace("[", "%5B");
             encodedUrl = encodedUrl.replace("]", "%5D");
+            encodedUrl = encodedUrl.replace("#", "%23");
             URI u = new URI(encodedUrl);
             try {return new File(u).toPath();} catch (IllegalArgumentException ex){}
             return IOUtilities.toPath(u);
@@ -776,6 +792,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             throw new ConstellationException("path does not exist:" + path.toString());
         }
         try {
+            // this will break any further analyze. Do we want that?
             if (root && hasS63File(path)) {
                 types.put("S63", Collections.singleton("application/x-iho-s63"));
                 dsRepository.addDataSourceStore(ds.getId(), "S63", "application/x-iho-s63");
