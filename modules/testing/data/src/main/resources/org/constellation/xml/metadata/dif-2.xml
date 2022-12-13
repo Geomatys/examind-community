@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DIF xmlns="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:dif="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/ https://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/dif_v10.2.xsd">
+    <Entry_ID>
+        <Short_Name>GCOM-C_SGLI_L2_CLPR</Short_Name>
+        <Version>LatestVersion</Version>
+    </Entry_ID>
+    <Version_Description>Version 1, 2018-01-01, Notavailable
+        Version 2, 2020-06-29, Available
+        Version 3, 2021-11-29, Available</Version_Description>
+    <Entry_Title>GCOM-C/SGLI L2 Cloud properties</Entry_Title>
+    <Dataset_Citation>
+        <Dataset_Creator>JAXA</Dataset_Creator>
+        <Dataset_Title>GCOM-C/SGLI L2 Cloud properties</Dataset_Title>
+        <Dataset_Release_Date>2018-01-01</Dataset_Release_Date>
+        <Dataset_Publisher>JAXA</Dataset_Publisher>
+        <Version>Version 3</Version>
+        <Persistent_Identifier>
+            <Type>DOI</Type>
+            <Identifier>foobar/ToBeReplacedWithActualDOI</Identifier>
+        </Persistent_Identifier>
+        <Online_Resource>https://gportal.jaxa.jp/gpr/?lang=en</Online_Resource>
+    </Dataset_Citation>
+    <Personnel>
+        <Role>METADATA AUTHOR</Role>
+        <Contact_Person>
+            <Last_Name>JAXA G-PORTAL</Last_Name>
+            <Address>
+                <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                <Street_Address>2-1-1, Sengen</Street_Address>
+                <City>Tsukuba-city</City>
+                <Postal_Code>305-8505</Postal_Code>
+                <Country>JAPAN</Country>
+            </Address>
+            <Email>z-gportal-support@ml.jaxa.jp</Email>
+        </Contact_Person>
+    </Personnel>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD MICROPHYSICS</Variable_Level_1>
+    </Science_Keywords>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD PROPERTIES</Variable_Level_1>
+    </Science_Keywords>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD PROPERTIES</Variable_Level_1>
+    </Science_Keywords>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD PROPERTIES</Variable_Level_1>
+    </Science_Keywords>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD CONDENSATION NUCLEI</Variable_Level_1>
+    </Science_Keywords>
+    <Science_Keywords>
+        <Category>EARTH SCIENCE</Category>
+        <Topic>ATMOSPHERE</Topic>
+        <Term>CLOUDS</Term>
+        <Variable_Level_1>CLOUD PROPERTIES</Variable_Level_1>
+    </Science_Keywords>
+    <ISO_Topic_Category>Imagery/Base Maps/Earth Cover</ISO_Topic_Category>
+    <ISO_Topic_Category>Climatology/Meteorology/Atmosphere</ISO_Topic_Category>
+    <Platform>
+        <Type>Earth Observation Satellites</Type>
+        <Short_Name>GCOM-C</Short_Name>
+        <Long_Name>Global Change Observation Mission - Climate</Long_Name>
+        <Instrument>
+            <Short_Name>SGLI</Short_Name>
+            <Long_Name>Second Generation Global Imager</Long_Name>
+        </Instrument>
+    </Platform>
+    <Temporal_Coverage>
+        <Range_DateTime>
+            <Beginning_Date_Time>2018-01-01T00:00:00</Beginning_Date_Time>
+        </Range_DateTime>
+    </Temporal_Coverage>
+    <Dataset_Progress>IN WORK</Dataset_Progress>
+    <Spatial_Coverage>
+        <Granule_Spatial_Representation>CARTESIAN</Granule_Spatial_Representation>
+        <Geometry>
+            <Coordinate_System>CARTESIAN</Coordinate_System>
+            <Bounding_Rectangle>
+                <Southernmost_Latitude>-90.0</Southernmost_Latitude>
+                <Northernmost_Latitude>90.0</Northernmost_Latitude>
+                <Westernmost_Longitude>-180.0</Westernmost_Longitude>
+                <Easternmost_Longitude>180.0</Easternmost_Longitude>
+            </Bounding_Rectangle>
+        </Geometry>
+    </Spatial_Coverage>
+    <Location>
+        <Location_Category>GEOGRAPHIC REGION</Location_Category>
+        <Location_Type>GLOBAL</Location_Type>
+    </Location>
+    <Data_Resolution>
+        <Latitude_Resolution>1 km</Latitude_Resolution>
+        <Longitude_Resolution>1 km</Longitude_Resolution>
+    </Data_Resolution>
+    <Project>
+        <Short_Name>GCOM-C</Short_Name>
+        <Long_Name>Global Change Observation Mission - Climate</Long_Name>
+    </Project>
+    <Access_Constraints>No constraints but users need to be registered with [the G-portal User Registration system](https://gportal.jaxa.jp/gpr/user/regist1?lang=en) to download files.</Access_Constraints>
+    <Use_Constraints>The user is entitled to use G-Portal data free of charge without any restrictions (including commercial use) except for the condition about acknowledgement of data credit as stipulated in G-portal terms of use 7.(2).Click [here](https://gportal.jaxa.jp/gpr/index/eula?lang=en) for detailed G-Portal data usage constrains.</Use_Constraints>
+    <Organization>
+        <Organization_Type>ARCHIVER</Organization_Type>
+        <Organization_Name>
+            <Short_Name>JP/JAXA/SAOC</Short_Name>
+            <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+        </Organization_Name>
+        <Organization_URL>https://www.jaxa.jp</Organization_URL>
+        <Personnel>
+            <Role>DATA CENTER CONTACT</Role>
+            <Contact_Person>
+                <Last_Name>JAXA G-PORTAL</Last_Name>
+                <Address>
+                    <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                    <Street_Address>2-1-1, Sengen</Street_Address>
+                    <City>Tsukuba-city</City>
+                    <State_Province>Ibaraki</State_Province>
+                    <Postal_Code>305-8505</Postal_Code>
+                    <Country>JAPAN</Country>
+                </Address>
+                <Email>z-gportal-support@ml.jaxa.jp</Email>
+            </Contact_Person>
+        </Personnel>
+    </Organization>
+    <Organization>
+        <Organization_Type>DISTRIBUTOR</Organization_Type>
+        <Organization_Name>
+            <Short_Name>JP/JAXA/SAOC</Short_Name>
+            <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+        </Organization_Name>
+        <Organization_URL>https://www.jaxa.jp</Organization_URL>
+        <Personnel>
+            <Role>DATA CENTER CONTACT</Role>
+            <Contact_Person>
+                <Last_Name>JAXA G-PORTAL</Last_Name>
+                <Address>
+                    <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                    <Street_Address>2-1-1, Sengen</Street_Address>
+                    <City>Tsukuba-city</City>
+                    <State_Province>Ibaraki</State_Province>
+                    <Postal_Code>305-8505</Postal_Code>
+                    <Country>JAPAN</Country>
+                </Address>
+                <Email>z-gportal-support@ml.jaxa.jp</Email>
+            </Contact_Person>
+        </Personnel>
+    </Organization>
+    <Organization>
+        <Organization_Type>PROCESSOR</Organization_Type>
+        <Organization_Name>
+            <Short_Name>JP/JAXA/SAOC</Short_Name>
+            <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+        </Organization_Name>
+        <Organization_URL>https://www.jaxa.jp</Organization_URL>
+        <Personnel>
+            <Role>DATA CENTER CONTACT</Role>
+            <Contact_Person>
+                <Last_Name>JAXA G-PORTAL</Last_Name>
+                <Address>
+                    <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                    <Street_Address>2-1-1, Sengen</Street_Address>
+                    <City>Tsukuba-city</City>
+                    <State_Province>Ibaraki</State_Province>
+                    <Postal_Code>305-8505</Postal_Code>
+                    <Country>JAPAN</Country>
+                </Address>
+                <Email>z-gportal-support@ml.jaxa.jp</Email>
+            </Contact_Person>
+        </Personnel>
+    </Organization>
+    <Organization>
+        <Organization_Type>ORIGINATOR</Organization_Type>
+        <Organization_Name>
+            <Short_Name>JP/JAXA/SAOC</Short_Name>
+            <Long_Name>Satellite Applications and Operations Center, Japan Aerospace Exploration Agency, Japan</Long_Name>
+        </Organization_Name>
+        <Organization_URL>https://www.jaxa.jp</Organization_URL>
+        <Personnel>
+            <Role>DATA CENTER CONTACT</Role>
+            <Contact_Person>
+                <Last_Name>JAXA G-PORTAL</Last_Name>
+                <Address>
+                    <Street_Address>Japan Aerospace Exploration Agency (JAXA)</Street_Address>
+                    <Street_Address>2-1-1, Sengen</Street_Address>
+                    <City>Tsukuba-city</City>
+                    <State_Province>Ibaraki</State_Province>
+                    <Postal_Code>305-8505</Postal_Code>
+                    <Country>JAPAN</Country>
+                </Address>
+                <Email>z-gportal-support@ml.jaxa.jp</Email>
+            </Contact_Person>
+        </Personnel>
+    </Organization>
+    <Distribution>
+        <Distribution_Media>FTP</Distribution_Media>
+        <Distribution_Format>HDF5</Distribution_Format>
+        <Fees>Free</Fees>
+    </Distribution>
+    <Summary>
+        <Abstract>GCOM-C/SGLI L2 Cloud properties dataset is obtained from the SGLI sensor onboard GCOM-C and produced by the Japan Aerospace Exploration Agency (JAXA). GCOM-C is a Sun-synchronous sub-recurrent orbit satellite launched on December 23, 2017. It mounts SGLI sensor to observe long-term geophysical conditions based on 28 variables, including aerosol and vegetation, out of four Earth subsystems: atmosphere, land, ocean, and cryosphere. These data are helpful to improve the global warming prediction accuracy. The SGLI has a swath of 1150 km in the visible band and 1400 km in the infrared band. Level 2 products consist of derived physical variables based on Level 1B products, such as meteorological data.
+            The contents are listed in the following:
+            CLOT_W and CLOR_W: Optical thickness (unitless) and effective radius of water cloud droplets (mm), respectively.
+            CLOT_I are CLER_I: Optical thickness (unitless) and effective radius of ice cloud droplets (mm), respectively.
+            CLTT and CLTH: Temperature and Height of the cloud top layer (kelvin and km), respectively.
+            CLTYPE: Cloud discrimination flag including the classification of cloud type and phase (unitless)
+            The cloud properties are retrieved with the Comprehensive Analysis Program for Cloud Optical Measurements (CAPCOM), initially developed for the GLI mission. The current algorithm is optimized for the SGLI characteristics and uses L2 Cloud flag classification.
+            The provided format is HDF5. The spatial resolution is 1 km. The projection method is EQA. The spatial coverage is Tile. The current version of the product is Version 3. The Version 2 is also available</Abstract>
+    </Summary>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>GET DATA</Type>
+        </URL_Content_Type>
+        <URL>https://gportal.jaxa.jp/gpr/?lang=en</URL>
+    </Related_URL>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>DATA SET LANDING PAGE</Type>
+        </URL_Content_Type>
+        <URL>https://doi.org/foobar/ToBeReplacedWithActualDOI</URL>
+    </Related_URL>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>VIEW RELATED INFORMATION</Type>
+            <Subtype>ALGORITHM THEORETICAL BASIS DOCUMENT (ATBD)</Subtype>
+        </URL_Content_Type>
+        <URL>https://suzaku.eorc.jaxa.jp/GCOM_C/data/ATBD/ver1/Nakajima_ATBD_SGLI_CAPCOM20110920.pdf</URL>
+    </Related_URL>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>VIEW RELATED INFORMATION</Type>
+            <Subtype>USER'S GUIDE</Subtype>
+        </URL_Content_Type>
+        <URL>https://gportal.jaxa.jp/gpr/assets/mng_upload/GCOM-C/SGLI_Higher_Level_Product_Format_Description_en.pdf</URL>
+    </Related_URL>
+    <Related_URL>
+        <URL_Content_Type>
+            <Type>VIEW RELATED INFORMATION</Type>
+            <Subtype>USER'S GUIDE</Subtype>
+        </URL_Content_Type>
+        <URL>https://gportal.jaxa.jp/gpr/assets/mng_upload/GCOM-C/GCOM-C_SHIKISAI_Data_Users_Handbook_en.pdf</URL>
+    </Related_URL>
+    <Metadata_Association>
+        <Entry_ID>
+            <Short_Name>SGLI_GCOM-C_JAXA</Short_Name>
+            <Version>LatestVersion</Version>
+        </Entry_ID>
+        <Type>Parent</Type>
+    </Metadata_Association>
+    <Metadata_Name>CEOS IDN DIF</Metadata_Name>
+    <Metadata_Version>VERSION 10.2</Metadata_Version>
+    <Metadata_Dates>
+        <Metadata_Creation>2018-11-18</Metadata_Creation>
+        <Metadata_Last_Revision>2022-04-11</Metadata_Last_Revision>
+        <Data_Creation>2018-01-01</Data_Creation>
+        <Data_Last_Revision>2018-01-01</Data_Last_Revision>
+    </Metadata_Dates>
+    <Product_Level_Id>2</Product_Level_Id>
+    <Collection_Data_Type>SCIENCE_QUALITY</Collection_Data_Type>
+</DIF>

@@ -95,6 +95,7 @@ public class InternalMetadataStoreTest {
                 writeMetadata("NO.009_L2-SST.xml", "L2-SST");
                 writeMetadata("NO.021_L2-LST.xml", "L2-LST");
                 writeMetadata("dif-1.xml", "dif-1");
+                writeMetadata("dif-2.xml", "dif-2");
 
                 // prepare an hidden metadata
                 writeMetadata("meta7.xml", "MDWeb_FR_SY_couche_vecteur_258");
@@ -113,7 +114,7 @@ public class InternalMetadataStoreTest {
 
     @Test
     public void getEntryCountTest() throws Exception {
-        Assert.assertEquals(15, inStore1.getEntryCount());
+        Assert.assertEquals(16, inStore1.getEntryCount());
     }
 
     @Test
@@ -202,6 +203,21 @@ public class InternalMetadataStoreTest {
         String result = NodeUtilities.getStringFromNode(results.node);
 
         DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-dif-1.xml"));
+        comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
+        comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+        comparator.ignoreComments = true;
+        comparator.compare();
+    }
+
+    @Test
+    public void getDiffToISO3Test() throws Exception {
+        RecordInfo results = inStore1.getMetadata("dif-2", MetadataType.ISO_19115);
+        Assert.assertEquals(MetadataType.ISO_19115, results.actualFormat);
+        Assert.assertEquals(MetadataType.DIF, results.originalFormat);
+
+        String result = NodeUtilities.getStringFromNode(results.node);
+
+        DocumentComparator comparator = new DocumentComparator(result, Util.getResourceAsStream("org/constellation/xml/metadata/iso-diff-dif-2.xml"));
         comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
         comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
         comparator.ignoreComments = true;

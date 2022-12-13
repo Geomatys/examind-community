@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MI_Metadata xmlns="http://www.isotc211.org/2005/gmi" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd http://www.isotc211.org/2005/gmx http://schemas.opengis.net/iso/19139/20070417/gmx/gmx.xsd">    
+    <fileIdentifier xmlns="http://www.isotc211.org/2005/gmd">        
+        <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C_SGLI_L2_CLPR</CharacterString>    
+    </fileIdentifier>    
+    <language xmlns="http://www.isotc211.org/2005/gmd">        
+        <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>    
+    </language>    
+    <hierarchyLevel xmlns="http://www.isotc211.org/2005/gmd">        
+        <MD_ScopeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ScopeCode" codeListValue="series">series</MD_ScopeCode>    
+    </hierarchyLevel>    
+    <contact xmlns="http://www.isotc211.org/2005/gmd">        
+        <CI_ResponsibleParty>            
+            <organisationName>                
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>            
+            </organisationName>            
+            <positionName>                
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">METADATA AUTHOR</CharacterString>            
+            </positionName>            
+            <contactInfo>                
+                <CI_Contact>                    
+                    <address>                        
+                        <CI_Address>                            
+                            <deliveryPoint>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>                            
+                            </deliveryPoint>                            
+                            <city>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>                            
+                            </city>                            
+                            <postalCode>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>                            
+                            </postalCode>                            
+                            <country>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>                            
+                            </country>                            
+                            <electronicMailAddress>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>                            
+                            </electronicMailAddress>                        
+                        </CI_Address>                    
+                    </address>                
+                </CI_Contact>            
+            </contactInfo>            
+            <role>                
+                <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="author">author</CI_RoleCode>            
+            </role>        
+        </CI_ResponsibleParty>    
+    </contact>    
+    <dateStamp xmlns="http://www.isotc211.org/2005/gmd">        
+        <DateTime xmlns="http://www.isotc211.org/2005/gco">2022-04-11T00:00:00</DateTime>    
+    </dateStamp>    
+    <identificationInfo xmlns="http://www.isotc211.org/2005/gmd">        
+        <MD_DataIdentification>            
+            <citation>                
+                <CI_Citation>                    
+                    <title>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C/SGLI L2 Cloud properties</CharacterString>                    
+                    </title>                    
+                    <date>                        
+                        <CI_Date>                            
+                            <date>                                
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-01-01T00:00:00</DateTime>                            
+                            </date>                            
+                            <dateType>                                
+                                <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</CI_DateTypeCode>                            
+                            </dateType>                        
+                        </CI_Date>                    
+                    </date>                    
+                    <date>                        
+                        <CI_Date>                            
+                            <date>                                
+                                <DateTime xmlns="http://www.isotc211.org/2005/gco">2018-01-01T00:00:00</DateTime>                            
+                            </date>                            
+                            <dateType>                                
+                                <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>                            
+                            </dateType>                        
+                        </CI_Date>                    
+                    </date>                    
+                    <identifier>                        
+                        <RS_Identifier>                            
+                            <code>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">foobar/ToBeReplacedWithActualDOI</CharacterString>                            
+                            </code>                            
+                            <codeSpace>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">https://doi.org</CharacterString>                            
+                            </codeSpace>                        
+                        </RS_Identifier>                    
+                    </identifier>                
+                </CI_Citation>            
+            </citation>            
+            <abstract>                
+                <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C/SGLI L2 Cloud properties dataset is obtained from the SGLI sensor onboard GCOM-C and produced by the Japan Aerospace Exploration Agency (JAXA). GCOM-C is a Sun-synchronous sub-recurrent orbit satellite launched on December 23, 2017. It mounts SGLI sensor to observe long-term geophysical conditions based on 28 variables, including aerosol and vegetation, out of four Earth subsystems: atmosphere, land, ocean, and cryosphere. These data are helpful to improve the global warming prediction accuracy. The SGLI has a swath of 1150 km in the visible band and 1400 km in the infrared band. Level 2 products consist of derived physical variables based on Level 1B products, such as meteorological data.            The contents are listed in the following:            CLOT_W and CLOR_W: Optical thickness (unitless) and effective radius of water cloud droplets (mm), respectively.            CLOT_I are CLER_I: Optical thickness (unitless) and effective radius of ice cloud droplets (mm), respectively.            CLTT and CLTH: Temperature and Height of the cloud top layer (kelvin and km), respectively.            CLTYPE: Cloud discrimination flag including the classification of cloud type and phase (unitless)            The cloud properties are retrieved with the Comprehensive Analysis Program for Cloud Optical Measurements (CAPCOM), initially developed for the GLI mission. The current algorithm is optimized for the SGLI characteristics and uses L2 Cloud flag classification.            The provided format is HDF5. The spatial resolution is 1 km. The projection method is EQA. The spatial coverage is Tile. The current version of the product is Version 3. The Version 2 is also available</CharacterString>            
+            </abstract>            
+            <status>                
+                <MD_ProgressCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_ProgressCode" codeListValue="IN WORK">IN WORK</MD_ProgressCode>            
+            </status>            
+            <pointOfContact>                
+                <CI_ResponsibleParty>                    
+                    <individualName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>                    
+                    </individualName>                    
+                    <organisationName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>                    
+                    </organisationName>                    
+                    <positionName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>                    
+                    </positionName>                    
+                    <contactInfo>                        
+                        <CI_Contact>                            
+                            <address>                                
+                                <CI_Address>                                    
+                                    <deliveryPoint>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>                                    
+                                    </deliveryPoint>                                    
+                                    <city>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>                                    
+                                    </city>                                    
+                                    <postalCode>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>                                    
+                                    </postalCode>                                    
+                                    <country>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>                                    
+                                    </country>                                    
+                                    <electronicMailAddress>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>                                    
+                                    </electronicMailAddress>                                
+                                </CI_Address>                            
+                            </address>                            
+                            <onlineResource>                                
+                                <CI_OnlineResource>                                    
+                                    <linkage>                                        
+                                        <URL>https://www.jaxa.jp</URL>                                    
+                                    </linkage>                                
+                                </CI_OnlineResource>                            
+                            </onlineResource>                        
+                        </CI_Contact>                    
+                    </contactInfo>                    
+                    <role>                        
+                        <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="ARCHIVER">ARCHIVER</CI_RoleCode>                    
+                    </role>                
+                </CI_ResponsibleParty>            
+            </pointOfContact>            
+            <pointOfContact>                
+                <CI_ResponsibleParty>                    
+                    <individualName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>                    
+                    </individualName>                    
+                    <organisationName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>                    
+                    </organisationName>                    
+                    <positionName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>                    
+                    </positionName>                    
+                    <contactInfo>                        
+                        <CI_Contact>                            
+                            <address>                                
+                                <CI_Address>                                    
+                                    <deliveryPoint>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>                                    
+                                    </deliveryPoint>                                    
+                                    <city>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>                                    
+                                    </city>                                    
+                                    <postalCode>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>                                    
+                                    </postalCode>                                    
+                                    <country>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>                                    
+                                    </country>                                    
+                                    <electronicMailAddress>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>                                    
+                                    </electronicMailAddress>                                
+                                </CI_Address>                            
+                            </address>                            
+                            <onlineResource>                                
+                                <CI_OnlineResource>                                    
+                                    <linkage>                                        
+                                        <URL>https://www.jaxa.jp</URL>                                    
+                                    </linkage>                                
+                                </CI_OnlineResource>                            
+                            </onlineResource>                        
+                        </CI_Contact>                    
+                    </contactInfo>                    
+                    <role>                        
+                        <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="PROCESSOR">PROCESSOR</CI_RoleCode>                    
+                    </role>                
+                </CI_ResponsibleParty>            
+            </pointOfContact>            
+            <pointOfContact>                
+                <CI_ResponsibleParty>                    
+                    <individualName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>                    
+                    </individualName>                    
+                    <organisationName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>                    
+                    </organisationName>                    
+                    <positionName>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>                    
+                    </positionName>                    
+                    <contactInfo>                        
+                        <CI_Contact>                            
+                            <address>                                
+                                <CI_Address>                                    
+                                    <deliveryPoint>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>                                    
+                                    </deliveryPoint>                                    
+                                    <city>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>                                    
+                                    </city>                                    
+                                    <postalCode>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>                                    
+                                    </postalCode>                                    
+                                    <country>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>                                    
+                                    </country>                                    
+                                    <electronicMailAddress>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>                                    
+                                    </electronicMailAddress>                                
+                                </CI_Address>                            
+                            </address>                            
+                            <onlineResource>                                
+                                <CI_OnlineResource>                                    
+                                    <linkage>                                        
+                                        <URL>https://www.jaxa.jp</URL>                                    
+                                    </linkage>                                
+                                </CI_OnlineResource>                            
+                            </onlineResource>                        
+                        </CI_Contact>                    
+                    </contactInfo>                    
+                    <role>                        
+                        <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="ORIGINATOR">ORIGINATOR</CI_RoleCode>                    
+                    </role>                
+                </CI_ResponsibleParty>            
+            </pointOfContact>            
+            <descriptiveKeywords>                
+                <MD_Keywords>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">EARTH SCIENCE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">ATMOSPHERE</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <keyword>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">CLOUDS</CharacterString>                    
+                    </keyword>                    
+                    <type>                        
+                        <MD_KeywordTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme">theme</MD_KeywordTypeCode>                    
+                    </type>                    
+                    <thesaurusName>                        
+                        <CI_Citation>                            
+                            <title>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">NASA/GCMD Science Keywords</CharacterString>                            
+                            </title>                            
+                            <alternateTitle>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Science Keywords</CharacterString>                            
+                            </alternateTitle>                            
+                            <date>                                
+                                <CI_Date>                                    
+                                    <date>                                        
+                                        <DateTime xmlns="http://www.isotc211.org/2005/gco">2016-08-10T00:00:00</DateTime>                                    
+                                    </date>                                    
+                                    <dateType>                                        
+                                        <CI_DateTypeCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision">revision</CI_DateTypeCode>                                    
+                                    </dateType>                                
+                                </CI_Date>                            
+                            </date>                            
+                            <collectiveTitle>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Master Directory (GCMD). 2016. GCMD Keywords, Version 8.4. Greenbelt, MD: Global Change Data Center, Science and Exploration Directorate, Goddard Space Flight Center (GSFC) National Aeronautics and Space Administration (NASA). URL (GCMD Keyword Forum Page)</CharacterString>                            
+                            </collectiveTitle>                        
+                        </CI_Citation>                    
+                    </thesaurusName>                
+                </MD_Keywords>            
+            </descriptiveKeywords>            
+            <resourceConstraints>                
+                <MD_LegalConstraints>                    
+                    <useLimitation>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">The user is entitled to use G-Portal data free of charge without any restrictions (including commercial use) except for the condition about acknowledgement of data credit as stipulated in G-portal terms of use 7.(2).Click [here](https://gportal.jaxa.jp/gpr/index/eula?lang=en) for detailed G-Portal data usage constrains.</CharacterString>                    
+                    </useLimitation>                    
+                    <otherConstraints>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">No constraints but users need to be registered with [the G-portal User Registration system](https://gportal.jaxa.jp/gpr/user/regist1?lang=en) to download files.</CharacterString>                    
+                    </otherConstraints>                
+                </MD_LegalConstraints>            
+            </resourceConstraints>            
+            <language>                
+                <LanguageCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#LanguageCode" codeListValue="eng">eng</LanguageCode>            
+            </language>            
+            <topicCategory>                
+                <MD_TopicCategoryCode>imageryBaseMapsEarthCover</MD_TopicCategoryCode>            
+            </topicCategory>            
+            <topicCategory>                
+                <MD_TopicCategoryCode>climatologyMeteorologyAtmosphere</MD_TopicCategoryCode>            
+            </topicCategory>            
+            <extent>                
+                <EX_Extent>                    
+                    <description>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">SpatialGranuleSpatialRepresentation=CARTESIAN</CharacterString>                    
+                    </description>                    
+                    <geographicElement>                        
+                        <EX_GeographicBoundingBox>                            
+                            <westBoundLongitude>                                
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">-180.0</Decimal>                            
+                            </westBoundLongitude>                            
+                            <eastBoundLongitude>                                
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">180.0</Decimal>                            
+                            </eastBoundLongitude>                            
+                            <southBoundLatitude>                                
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">-90.0</Decimal>                            
+                            </southBoundLatitude>                            
+                            <northBoundLatitude>                                
+                                <Decimal xmlns="http://www.isotc211.org/2005/gco">90.0</Decimal>                            
+                            </northBoundLatitude>                        
+                        </EX_GeographicBoundingBox>                    
+                    </geographicElement>                
+                </EX_Extent>            
+            </extent>            
+            <extent>                
+                <EX_Extent>                    
+                    <temporalElement>                        
+                        <EX_TemporalExtent>                            
+                            <extent>                                
+                                <TimePeriod xmlns:ns0="http://www.opengis.net/gml/3.2" ns0:id="timeperiod1" xmlns="http://www.opengis.net/gml/3.2">                                    
+                                    <beginPosition>2018-01-01T00:00:00</beginPosition>                                    
+                                    <endPosition/>                                
+                                </TimePeriod>                            
+                            </extent>                        
+                        </EX_TemporalExtent>                    
+                    </temporalElement>                
+                </EX_Extent>            
+            </extent>        
+        </MD_DataIdentification>    
+    </identificationInfo>    
+    <distributionInfo xmlns="http://www.isotc211.org/2005/gmd">        
+        <MD_Distribution>            
+            <distributionFormat>                
+                <MD_Format>                    
+                    <name>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">HDF5</CharacterString>                    
+                    </name>                    
+                    <version xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="inapplicable"/>                
+                </MD_Format>            
+            </distributionFormat>            
+            <distributor>                
+                <MD_Distributor>                    
+                    <distributorContact>                        
+                        <CI_ResponsibleParty>                            
+                            <individualName>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAXA G-PORTAL</CharacterString>                            
+                            </individualName>                            
+                            <organisationName>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">JP/JAXA/SAOC</CharacterString>                            
+                            </organisationName>                            
+                            <positionName>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">DATA CENTER CONTACT</CharacterString>                            
+                            </positionName>                            
+                            <contactInfo>                                
+                                <CI_Contact>                                    
+                                    <address>                                        
+                                        <CI_Address>                                            
+                                            <deliveryPoint>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Japan Aerospace Exploration Agency (JAXA)</CharacterString>                                            
+                                            </deliveryPoint>                                            
+                                            <city>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Tsukuba-city</CharacterString>                                            
+                                            </city>                                            
+                                            <postalCode>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">305-8505</CharacterString>                                            
+                                            </postalCode>                                            
+                                            <country>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">JAPAN</CharacterString>                                            
+                                            </country>                                            
+                                            <electronicMailAddress>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">z-gportal-support@ml.jaxa.jp</CharacterString>                                            
+                                            </electronicMailAddress>                                        
+                                        </CI_Address>                                    
+                                    </address>                                    
+                                    <onlineResource>                                        
+                                        <CI_OnlineResource>                                            
+                                            <linkage>                                                
+                                                <URL>https://www.jaxa.jp</URL>                                            
+                                            </linkage>                                        
+                                        </CI_OnlineResource>                                    
+                                    </onlineResource>                                
+                                </CI_Contact>                            
+                            </contactInfo>                            
+                            <role>                                
+                                <CI_RoleCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_RoleCode" codeListValue="distributor">distributor</CI_RoleCode>                            
+                            </role>                        
+                        </CI_ResponsibleParty>                    
+                    </distributorContact>                
+                </MD_Distributor>            
+            </distributor>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions>                    
+                    <onLine>                        
+                        <CI_OnlineResource>                            
+                            <linkage>                                
+                                <URL>https://gportal.jaxa.jp/gpr/?lang=en</URL>                            
+                            </linkage>                            
+                            <function>                                
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="GET DATA">GET DATA</CI_OnLineFunctionCode>                            
+                            </function>                        
+                        </CI_OnlineResource>                    
+                    </onLine>                
+                </MD_DigitalTransferOptions>            
+            </transferOptions>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions>                    
+                    <onLine>                        
+                        <CI_OnlineResource>                            
+                            <linkage>                                
+                                <URL>https://doi.org/foobar/ToBeReplacedWithActualDOI</URL>                            
+                            </linkage>                            
+                            <function>                                
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="DATA SET LANDING PAGE">DATA SET LANDING PAGE</CI_OnLineFunctionCode>                            
+                            </function>                        
+                        </CI_OnlineResource>                    
+                    </onLine>                
+                </MD_DigitalTransferOptions>            
+            </transferOptions>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions>                    
+                    <onLine>                        
+                        <CI_OnlineResource>                            
+                            <linkage>                                
+                                <URL>https://suzaku.eorc.jaxa.jp/GCOM_C/data/ATBD/ver1/Nakajima_ATBD_SGLI_CAPCOM20110920.pdf</URL>                            
+                            </linkage>                            
+                            <function>                                
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="VIEW RELATED INFORMATION">VIEW RELATED INFORMATION</CI_OnLineFunctionCode>                            
+                            </function>                        
+                        </CI_OnlineResource>                    
+                    </onLine>                
+                </MD_DigitalTransferOptions>            
+            </transferOptions>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions>                    
+                    <onLine>                        
+                        <CI_OnlineResource>                            
+                            <linkage>                                
+                                <URL>https://gportal.jaxa.jp/gpr/assets/mng_upload/GCOM-C/SGLI_Higher_Level_Product_Format_Description_en.pdf</URL>                            
+                            </linkage>                            
+                            <function>                                
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="VIEW RELATED INFORMATION">VIEW RELATED INFORMATION</CI_OnLineFunctionCode>                            
+                            </function>                        
+                        </CI_OnlineResource>                    
+                    </onLine>                
+                </MD_DigitalTransferOptions>            
+            </transferOptions>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions>                    
+                    <onLine>                        
+                        <CI_OnlineResource>                            
+                            <linkage>                                
+                                <URL>https://gportal.jaxa.jp/gpr/assets/mng_upload/GCOM-C/GCOM-C_SHIKISAI_Data_Users_Handbook_en.pdf</URL>                            
+                            </linkage>                            
+                            <function>                                
+                                <CI_OnLineFunctionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/ML_gmxCodelists.xml#CI_OnLineFunctionCode" codeListValue="VIEW RELATED INFORMATION">VIEW RELATED INFORMATION</CI_OnLineFunctionCode>                            
+                            </function>                        
+                        </CI_OnlineResource>                    
+                    </onLine>                
+                </MD_DigitalTransferOptions>            
+            </transferOptions>            
+            <transferOptions>                
+                <MD_DigitalTransferOptions/>            
+            </transferOptions>        
+        </MD_Distribution>    
+    </distributionInfo>    
+    <acquisitionInformation>        
+        <MI_AcquisitionInformation>            
+            <platform>                
+                <MI_Platform>                    
+                    <citation>                        
+                        <CI_Citation xmlns="http://www.isotc211.org/2005/gmd">                            
+                            <title>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Observation Mission - Climate</CharacterString>                            
+                            </title>                            
+                            <date xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>                        
+                        </CI_Citation>                    
+                    </citation>                    
+                    <identifier>                        
+                        <MD_Identifier xmlns="http://www.isotc211.org/2005/gmd">                            
+                            <code>                                
+                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">GCOM-C</CharacterString>                            
+                            </code>                        
+                        </MD_Identifier>                    
+                    </identifier>                    
+                    <description>                        
+                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Global Change Observation Mission - Climate</CharacterString>                    
+                    </description>                    
+                    <instrument>                        
+                        <MI_Instrument>                            
+                            <citation>                                
+                                <CI_Citation xmlns="http://www.isotc211.org/2005/gmd">                                    
+                                    <title>                                        
+                                        <CharacterString xmlns="http://www.isotc211.org/2005/gco">Second Generation Global Imager</CharacterString>                                    
+                                    </title>                                    
+                                    <date xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>                                    
+                                    <identifier>                                        
+                                        <MD_Identifier>                                            
+                                            <code>                                                
+                                                <CharacterString xmlns="http://www.isotc211.org/2005/gco">SGLI</CharacterString>                                            
+                                            </code>                                        
+                                        </MD_Identifier>                                    
+                                    </identifier>                                
+                                </CI_Citation>                            
+                            </citation>                            
+                            <type xmlns:ns0="http://www.isotc211.org/2005/gco" ns0:nilReason="unknown"/>                        
+                        </MI_Instrument>                    
+                    </instrument>                
+                </MI_Platform>            
+            </platform>        
+        </MI_AcquisitionInformation>    
+    </acquisitionInformation>
+</MI_Metadata>

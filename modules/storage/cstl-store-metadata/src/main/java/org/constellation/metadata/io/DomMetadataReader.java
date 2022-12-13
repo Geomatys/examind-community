@@ -899,6 +899,20 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                 addCodelistNode(doc, dateType, "dateType", "CI_DateTypeCode", "revision");
             }
 
+            final List<Node> persistIdNodes = NodeUtilities.getNodeFromPath(metadata, "/dif:Dataset_Citation/dif:Persistent_Identifier");
+            for (Node persistIdNode : persistIdNodes) {
+                String pidType = NodeUtilities.getFirstValueFromPath(persistIdNode, "/dif:Persistent_Identifier/dif:Type");
+                if ("DOI".equals(pidType)) {
+                    final Node citIdNode = doc.createElementNS(GMD, "identifier");
+                    citType.appendChild(citIdNode);
+                    final Node citIdTypeNode = doc.createElementNS(GMD, "RS_Identifier");
+                    citIdNode.appendChild(citIdTypeNode);
+                    String doiValue = NodeUtilities.getFirstValueFromPath(persistIdNode, "/dif:Persistent_Identifier/dif:Identifier");
+                    addCharacterStringNode(doc, citIdTypeNode, "code", doiValue);
+                    addCharacterStringNode(doc, citIdTypeNode, "codeSpace", "https://doi.org");
+                }
+            }
+
             final String abstractValue = NodeUtilities.getFirstValueFromPath(metadata, "/dif:DIF/dif:Summary/dif:Abstract");
             addCharacterStringNode(doc, dIdent, "abstract", abstractValue);
 
