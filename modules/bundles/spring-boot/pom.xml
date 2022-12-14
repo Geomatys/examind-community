@@ -27,11 +27,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.bval</groupId>
-            <artifactId>org.apache.bval.bundle</artifactId>
-        </dependency>
-
 
         <!-- Common dependency -->
         <dependency>

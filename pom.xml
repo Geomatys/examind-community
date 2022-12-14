@@ -52,7 +52,8 @@
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
         <xstream.version>1.4.18</xstream.version>
-        <antlr.version>4.10.1</antlr.version>
+        <antlr.version>4.11.1</antlr.version>
+        <poi.version>5.2.3</poi.version>
         <!-- @{argLine} necessary for jacoco generation, we must declare
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
@@ -267,12 +268,12 @@
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
-                <version>5.2.2</version>
+                <version>${poi.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
-                <version>5.2.2</version>
+                <version>${poi.version}</version>
             </dependency>
             <!-- to align with groovy dependency version -->
             <dependency>
