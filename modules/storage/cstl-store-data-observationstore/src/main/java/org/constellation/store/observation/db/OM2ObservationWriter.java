@@ -1309,7 +1309,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try (final Statement stmt = c.createStatement()) {
 
                 // build measures tables
-                boolean first = false;
+                boolean first = true;
                 for (Entry<String, StringBuilder> entry : creationTablesStmt.values()) {
                     String tableName = entry.getKey();
                     StringBuilder tableStsmt = entry.getValue();
