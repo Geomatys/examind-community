@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.examind.community</groupId>
         <artifactId>dto</artifactId>
-        <version>1.0.30</version>
+        <version>1.0.30.1</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
