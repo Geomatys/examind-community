@@ -61,8 +61,7 @@ public final class FeatureSetAsPointsCloudTest {
         final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(CommonCRS.defaultGeographic(), featureSet);
 
         Assert.assertTrue(pointCloud.points(new Envelope2D(new DirectPosition2D(3.791, 43.651), new DirectPosition2D(3.792, 43.652)), false)
-                .anyMatch(p -> Math.abs(p.getX() - 3.791) <0.001 && Math.abs(p.getY() - 43.651) <0.001 ));
-
+                .anyMatch(p -> Math.abs(p.getX() - 3.791) <0.001 && Math.abs(p.getY() - 43.651) < 0.001 ));
 
     }
 

@@ -18,8 +18,9 @@
  */
 package com.examind.process.datacombine;
 
-import static com.examind.process.datacombine.AbstractDataCombineDescriptor.DATA;
-import static com.examind.process.datacombine.AbstractDataCombineDescriptor.DATASET;
+import static com.examind.process.datacombine.AbstractDataCombineDescriptor.*;
+import static com.examind.process.datacombine.AggregatedCoverageDescriptor.RESULT_CRS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,9 +33,7 @@ import org.constellation.process.AbstractCstlProcess;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.parameter.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -56,9 +55,35 @@ public abstract class AbstractDataCombineProcess extends AbstractCstlProcess {
         super(desc, parameter);
     }
 
+
+
+    protected ParameterValueGroup initConfig(final ParameterValueGroup choice , final String providerName, final List<Integer> dataIds) throws ProcessException {
+
+        try {
+            final String resultCRS = inputParameters.getValue(RESULT_CRS);
+            final String dataName = inputParameters.getMandatoryValue(DATA_NAME);
+
+            final ParameterValueGroup config = choice.addGroup(providerName);
+
+            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor("data_ids");
+            for (Integer dataId : dataIds) {
+                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
+                p.setValue(dataId);
+                config.values().add(p);
+            }
+            config.parameter("DataName").setValue(dataName);
+            config.parameter("ResultCRS").setValue(resultCRS);
+
+            return config;
+
+        } catch (Exception ex) {
+            throw new ProcessException(ex.getMessage(), this, ex);
+        }
+    }
+
     protected List<Integer> getDataIdsToCombine() throws ProcessException {
         DatasetProcessReference dataset  = inputParameters.getValue(DATASET);
-        List<DataProcessReference> datas = getValues(inputParameters, DATA.getName().getCode());
+        List<DataProcessReference> datas = (List<DataProcessReference>) getValues(inputParameters, DATA.getName().getCode()).stream().filter(d -> d != null).toList();
 
         if (dataset != null && !datas.isEmpty()) {
             throw new ProcessException("Either a list of data, a dataset should be given, not both.", this);

@@ -25,7 +25,7 @@ import org.opengis.geometry.Envelope;
 import java.awt.geom.Point2D;
 import java.util.stream.Stream;
 
-interface PointCloudResource extends DataSet {
+public interface PointCloudResource extends DataSet {
 
     /**
      *

@@ -18,17 +18,24 @@
  */
 package com.examind.image.heatmap;
 
+import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.geometry.Envelope2D;
 import org.apache.sis.geometry.Shapes2D;
 import org.apache.sis.image.ComputedImage;
 import org.apache.sis.image.DataType;
 import org.apache.sis.internal.system.Loggers;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.Utilities;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.MathTransform2D;
+import org.opengis.referencing.operation.Matrix;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
@@ -36,6 +43,7 @@ import java.awt.image.BandedSampleModel;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -57,23 +65,30 @@ public final class HeatMapImage extends ComputedImage {
     /**
      * MathTransform2D to compute coordinate in a given CRS from pixel corner of the current {@link HeatMapImage}.
      */
-    private final MathTransform2D gridCornerToCrs;
-    /**
-     * MathTransform2D to compute coordinate in a given CRS from pixel center of the current {@link HeatMapImage}.
-     */
-    private final MathTransform2D gridCenterToCrs;
+    private final MathTransform2D gridCornerToDataCrs;
+
+    //TODO compute it and distances in HeatMapResource (more efficient)
     /**
      * MathTransform2D to compute pixel center coordinate from coordinates in the dataSource CRS.
      */
-    private final MathTransform2D crsToGridCorner;
+    private final MathTransform2D dataToGridCorner;
+    /**
+     * MathTransform2D to compute coordinate in a given CRS from pixel center of the current {@link HeatMapImage}.
+     */
+    private final MathTransform2D gridCenterToDataCrs;
 
+    private final CoordinateReferenceSystem targetCRS;
     private final CoordinateReferenceSystem dataCRS;
     private float distanceX;
     private float distXx2;
     private float distanceY;
     private float distYx2;
+    private final float distanceTargetX;
+    private final float distanceTargetY;
+    private final float distTargetXx2;
+    private final float distTargetYx2;
 
-    //todo MAX_COMPUTE: uncomment using atomic? Could be used to Colormodel definition
+    //todo MAX_COMPUTATION: uncomment using atomic? Could be used to Colormodel definition
 //    private float max = 0;
 
     /**
@@ -103,6 +118,7 @@ public final class HeatMapImage extends ComputedImage {
      *
      * @param imageDimension  : not null, dimension in pixel of the computed image
      * @param tilingDimension : not null, the dimension to be used to define the tiles of the computed image.
+     * @param targetCRS : targetCRS in which render the Heat Map.
      * @param gridCornerToCrs : MathTransform2D to compute coordinate in a given CRS from pixel corner of the current {@link HeatMapImage}.
      * @param gridCenterToCrs : MathTransform2D to compute coordinate in a given CRS from pixel center of the current {@link HeatMapImage}.
      * @param crsToGridCorner : MathTransform2D to compute pixel corner coordinate from coordinates in the dataSource CRS.
@@ -110,18 +126,64 @@ public final class HeatMapImage extends ComputedImage {
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function
      */
-    protected HeatMapImage(final Dimension imageDimension, final Dimension tilingDimension,
+    HeatMapImage(final Dimension imageDimension, final Dimension tilingDimension,
+                           final CoordinateReferenceSystem targetCRS,
                            final MathTransform2D gridCornerToCrs, final MathTransform2D gridCenterToCrs, final MathTransform2D crsToGridCorner,
                            final PointCloudResource dataSource, final float distanceX, final float distanceY) throws DataStoreException {
         super(new BandedSampleModel(DataType.FLOAT.toDataBufferType(), tilingDimension.width, tilingDimension.height, 1));
         this.tilingDimension = tilingDimension;
         this.imageDimension = imageDimension;
-        this.gridCornerToCrs = gridCornerToCrs;
-        this.gridCenterToCrs = gridCenterToCrs;
-        this.crsToGridCorner = crsToGridCorner;
+        this.gridCornerToDataCrs = gridCornerToCrs;
+//        this.gridCenterToCrs = gridCenterToCrs;
+//        this.crsToGridCorner = crsToGridCorner;
         this.dataSource = dataSource;
+        this.targetCRS = targetCRS;
         this.dataCRS = dataSource.getEnvelope().map(Envelope::getCoordinateReferenceSystem).orElseThrow(() -> new UnsupportedOperationException("The Envelope of the input datasource must carry a valid crs"));
         setDistances(distanceX, distanceY);
+
+        // set Target Transform And Distances();
+        float tempTargetX = Float.NaN;
+        float tempTargetY = Float.NaN;
+        MathTransform2D tempDataToGridCorner = null;
+        MathTransform2D tempGridCenterToData = null;
+        if ((this.dataCRS != null) && (this.targetCRS !=null) && !Utilities.equalsIgnoreMetadata(this.dataCRS, this.targetCRS)) {
+            try {
+                final MathTransform dataToRenderCrs = CRS.findOperation(dataCRS, targetCRS, null).getMathTransform();
+                tempDataToGridCorner = MathTransforms.bidimensional(MathTransforms.concatenate(dataToRenderCrs, crsToGridCorner));
+                tempGridCenterToData = MathTransforms.bidimensional(MathTransforms.concatenate(gridCenterToCrs, dataToRenderCrs.inverse()));
+                if (dataToRenderCrs != null) {
+                    final DirectPosition2D median = dataSource.getEnvelope()
+                            .or(() -> Optional.of(CRS.getDomainOfValidity(targetCRS)))
+                            .map(envelope -> new DirectPosition2D(targetCRS, envelope.getMedian(0), envelope.getMedian(1))) //TODO check 2D
+                            .orElseThrow();
+                    final Matrix derivative = dataToRenderCrs.derivative(median);
+                    if (derivative != null) {
+                        tempTargetX = (float) Math.abs(distanceX*derivative.getElement(0, 0));
+                        tempTargetY = (float) Math.abs(distanceY*derivative.getElement(1, 1));
+                    }
+                }
+            } catch (TransformException | FactoryException e) {
+                throw new DataStoreException(e);
+            }
+        }
+
+        if(!Float.isNaN(tempTargetX)) {
+            this.distanceTargetX = tempTargetX;
+            this.distanceTargetY = tempTargetY;
+        } else {
+            this.distanceTargetX = distanceX;
+            this.distanceTargetY = distanceY;
+        }
+        this.distTargetXx2 = 2 * distanceTargetX;
+        this.distTargetYx2 = 2 * distanceTargetY;
+
+        if (tempDataToGridCorner != null) {
+            dataToGridCorner = tempDataToGridCorner;
+            gridCenterToDataCrs = tempGridCenterToData;
+        } else {
+            dataToGridCorner = crsToGridCorner;
+            gridCenterToDataCrs = gridCenterToCrs;
+        }
     }
 
 
@@ -130,14 +192,15 @@ public final class HeatMapImage extends ComputedImage {
      */
     @Override
     protected Raster computeTile(int tileX, int tileY, WritableRaster previous) throws Exception {
-        final int startXPixel = tileX * tilingDimension.width;
-        final int startYPixel = tileY * tilingDimension.height;
+        final int startXPixel =  this.getMinX() + Math.multiplyExact((tileX - getMinTileX()), getTileWidth());
+        final int startYPixel =  this.getMinY() + Math.multiplyExact((tileY - getMinTileY()), getTileHeight());
 
-        final Rectangle.Double imageShape = new Rectangle.Double(startXPixel, startYPixel, tilingDimension.width, tilingDimension.height);
-        Shapes2D.transform(this.gridCornerToCrs, imageShape, imageShape);
-        imageShape.setRect(imageShape.getMinX() - distanceX, imageShape.getMinY() - distanceY, imageShape.getWidth() + distXx2, imageShape.getHeight() + distYx2);
+        final Rectangle.Double imageGrid = new Rectangle.Double(startXPixel, startYPixel, tilingDimension.width, tilingDimension.height);
+        final Rectangle.Double imageCRS = new Rectangle.Double();
+        Shapes2D.transform(this.gridCornerToDataCrs, imageGrid, imageCRS);
+        imageCRS.setRect(imageCRS.getMinX() - distanceTargetX, imageCRS.getMinY() - distanceTargetY, imageCRS.getWidth() + distTargetXx2, imageCRS.getHeight() + distTargetYx2);
 
-        final Stream<? extends Point2D> points = this.dataSource.points(new Envelope2D(dataCRS, imageShape.getX(), imageShape.getY(), imageShape.getWidth(), imageShape.getHeight()), false);
+        final Stream<? extends Point2D> points = this.dataSource.points(new Envelope2D(targetCRS, imageCRS.getX(), imageCRS.getY(), imageCRS.getWidth(), imageCRS.getHeight()), false);
 
         final WritableRaster raster;
         if (previous != null) {
@@ -158,21 +221,21 @@ public final class HeatMapImage extends ComputedImage {
         final Rectangle.Float rectangle = new Rectangle.Float(xPoint - distanceX, yPoint - distanceY, distXx2, distYx2);
         Rectangle rectangle2D = new Rectangle();
         try {
-            Shapes2D.transform(crsToGridCorner, rectangle, rectangle2D);
+            Shapes2D.transform(dataToGridCorner, rectangle, rectangle2D);
         } catch (TransformException e) {
             throw new BackingStoreException("Failed to compute pixel coordinates from input pt : " + pt, e);
         }
 
         rectangle2D = resultingRaster.getBounds().intersection(rectangle2D);
 
-//        final int minPixelX = rectangle2D.x;
-//        final int minPixelY = rectangle2D.y;
-//        final int width = rectangle2D.width;
-//        final int height = rectangle2D.height;
         final int maxPixelX = rectangle2D.x + rectangle2D.width;
 
         final int size = rectangle2D.width * rectangle2D.height;
         final int sizex2 = 2 * size;
+
+        if (size<0) {
+            Logger.getGlobal().warning("Negative size for rectangle : "+ new Rectangle.Float(xPoint - distanceX, yPoint - distanceY, distXx2, distYx2)); //Todo debug
+        }
 
         final float[] data = new float[size];
         final float[] coordinates = new float[sizex2];
@@ -189,8 +252,9 @@ public final class HeatMapImage extends ComputedImage {
             coordinates[i] = x;
             coordinates[++i] = y;
         }
+        
         try {
-            gridCenterToCrs.transform(coordinates, 0, coordinates, 0, size);
+            gridCenterToDataCrs.transform(coordinates, 0, coordinates, 0, size);
         } catch (TransformException e) {
             throw new BackingStoreException("Failed to compute pixel coordinates from input pixel", e);
         }
@@ -223,6 +287,7 @@ public final class HeatMapImage extends ComputedImage {
         final float tier = 1f / 3;
         setStandardDeviation(distanceX * tier, distanceY * tier);
     }
+
 
     private void setStandardDeviation(final float σx, final float σy) {
         if (σx == 0) throw new IllegalArgumentException(" standard deviation σx must not be 0");
@@ -261,7 +326,8 @@ public final class HeatMapImage extends ComputedImage {
      */
     @Override
     public ColorModel getColorModel() {
-        throw new UnsupportedOperationException("Not implemented");
+        //TODO?
+        return null;
     }
 
     /**

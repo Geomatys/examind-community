@@ -63,7 +63,7 @@ public final class HeatMapImageTest {
         MathTransform2D gridToCrsCenter = (MathTransform2D) gridGeom.getGridToCRS(PixelInCell.CELL_CENTER);
         MathTransform2D crsToGridCenter =  gridToCrsCorner.inverse();
 
-        final HeatMapImage heatMap = new HeatMapImage(new Dimension(256, 128), new Dimension(256, 128), gridToCrsCorner, gridToCrsCenter, crsToGridCenter, pointCloud, 0.1f, 0.1f);
+        final HeatMapImage heatMap = new HeatMapImage(new Dimension(256, 128), new Dimension(256, 128), CommonCRS.defaultGeographic(), gridToCrsCorner, gridToCrsCenter, crsToGridCenter, pointCloud, 0.1f, 0.1f);
 
         final WritableRaster raster = (WritableRaster) heatMap.computeTile(0, 0, null);
 

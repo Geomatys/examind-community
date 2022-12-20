@@ -31,10 +31,14 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+
+import java.util.List;
+import java.util.UUID;
+
+import static com.examind.process.datacombine.AbstractDataCombineDescriptor.TARGET_DATASET;
+import static com.examind.process.datacombine.AggregatedCoverageDescriptor.MODE;
 
 /**
  *
@@ -50,27 +54,16 @@ public class AggregatedCoverageProcess extends AbstractDataCombineProcess {
     protected void execute() throws ProcessException {
         try {
             super.fireProgressing(" Extracting parameter ", 0, false);
-            final String dataName            = inputParameters.getMandatoryValue(DATA_NAME);
-            final String resultCRS           = inputParameters.getValue(RESULT_CRS);
             final String mode                = inputParameters.getMandatoryValue(MODE);
             DatasetProcessReference dataset  = inputParameters.getMandatoryValue(TARGET_DATASET);
             final List<Integer> dataIds      = getDataIdsToCombine();
 
-            String providerIdentifier = "aggCovSrc" + UUID.randomUUID().toString();
+            String providerIdentifier = "aggCovSrc" + UUID.randomUUID();
             final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
             final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice =  ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("AggregatedCoverageProvider");
-
-            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor("data_ids");
-            for (Integer dataId : dataIds) {
-                ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
-                p.setValue(dataId);
-                config.values().add(p);
-            }
-            config.parameter("DataName").setValue(dataName);
-            config.parameter("ResultCRS").setValue(resultCRS);
+            final ParameterValueGroup config = initConfig(choice, "AggregatedCoverageProvider", dataIds);
             config.parameter("mode").setValue(mode);
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
@@ -83,5 +76,22 @@ public class AggregatedCoverageProcess extends AbstractDataCombineProcess {
             throw new ProcessException(ex.getMessage(), this, ex);
         }
     }
+
+    @Override
+    protected ParameterValueGroup initConfig(final ParameterValueGroup choice , final String providerName, final List<Integer> dataIds) throws ProcessException {
+
+        try {
+            final String mode = inputParameters.getMandatoryValue(MODE);
+            final ParameterValueGroup config = super.initConfig(choice, providerName, dataIds);
+            config.parameter("mode").setValue(mode);
+            return config;
+        } catch (Exception ex) {
+            throw new ProcessException(ex.getMessage(), this, ex);
+        }
+    }
+
+
+
+
 
 }
