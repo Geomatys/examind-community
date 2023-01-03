@@ -33,8 +33,7 @@ import org.opengis.parameter.ParameterValueGroup;
 import java.util.List;
 import java.util.UUID;
 
-import static com.examind.process.datacombine.AbstractDataCombineDescriptor.DATASET;
-import static com.examind.process.datacombine.AbstractDataCombineDescriptor.DATA_NAME;
+import static com.examind.process.datacombine.AbstractDataCombineDescriptor.*;
 import static com.examind.process.datacombine.FeatureToHeatMapDescriptor.*;
 
 
@@ -55,7 +54,7 @@ public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
             final Integer tilingDimY = inputParameters.getValue(TILING_DIMENSION_Y);
             final float distanceX = inputParameters.getMandatoryValue(DISTANCE_X);
             final float distanceY = inputParameters.getMandatoryValue(DISTANCE_Y);
-            DatasetProcessReference dataset = inputParameters.getValue(DATASET);
+            DatasetProcessReference dataset = inputParameters.getMandatoryValue(TARGET_DATASET);
             final List<Integer> dataIds = getDataIdsToCombine(); //Todo customize
 
             final String providerIdentifier = "heatMapSrc_" + UUID.randomUUID();

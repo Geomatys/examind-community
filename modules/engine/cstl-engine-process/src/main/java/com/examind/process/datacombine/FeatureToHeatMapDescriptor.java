@@ -69,7 +69,7 @@ public class FeatureToHeatMapDescriptor extends AbstractProcessDescriptor implem
                 .create(Float.class, null);
 
         INPUT = builder.addName("input")
-                .createGroup(DATA_NAME, DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y);
+                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y);
 
         OUTPUT = builder.addName("output")
                 .createGroup();
