@@ -65,7 +65,7 @@ public final class HeatMapImage extends ComputedImage {
     /**
      * MathTransform2D to compute coordinate in a given CRS from pixel corner of the current {@link HeatMapImage}.
      */
-    private final MathTransform2D gridCornerToDataCrs;
+    private final MathTransform2D gridCornerToRenderCrs;
 
     //TODO compute it and distances in HeatMapResource (more efficient)
     /**
@@ -133,9 +133,7 @@ public final class HeatMapImage extends ComputedImage {
         super(new BandedSampleModel(DataType.FLOAT.toDataBufferType(), tilingDimension.width, tilingDimension.height, 1));
         this.tilingDimension = tilingDimension;
         this.imageDimension = imageDimension;
-        this.gridCornerToDataCrs = gridCornerToCrs;
-//        this.gridCenterToCrs = gridCenterToCrs;
-//        this.crsToGridCorner = crsToGridCorner;
+        this.gridCornerToRenderCrs = gridCornerToCrs;
         this.dataSource = dataSource;
         this.targetCRS = targetCRS;
         this.dataCRS = dataSource.getEnvelope().map(Envelope::getCoordinateReferenceSystem).orElseThrow(() -> new UnsupportedOperationException("The Envelope of the input datasource must carry a valid crs"));
@@ -197,20 +195,19 @@ public final class HeatMapImage extends ComputedImage {
 
         final Rectangle.Double imageGrid = new Rectangle.Double(startXPixel, startYPixel, tilingDimension.width, tilingDimension.height);
         final Rectangle.Double imageCRS = new Rectangle.Double();
-        Shapes2D.transform(this.gridCornerToDataCrs, imageGrid, imageCRS);
+        Shapes2D.transform(this.gridCornerToRenderCrs, imageGrid, imageCRS);
         imageCRS.setRect(imageCRS.getMinX() - distanceTargetX, imageCRS.getMinY() - distanceTargetY, imageCRS.getWidth() + distTargetXx2, imageCRS.getHeight() + distTargetYx2);
-
-        final Stream<? extends Point2D> points = this.dataSource.points(new Envelope2D(targetCRS, imageCRS.getX(), imageCRS.getY(), imageCRS.getWidth(), imageCRS.getHeight()), false);
 
         final WritableRaster raster;
         if (previous != null) {
-            Logger.getLogger(Loggers.APPLICATION).log(Level.WARNING, "Reuse of previous raster not implemented yet in HeatMapImage.class");
+            Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Reuse of previous raster not implemented yet in HeatMapImage.class");
         }
         raster = WritableRaster.createWritableRaster(new BandedSampleModel(DataType.FLOAT.toDataBufferType(), tilingDimension.width, tilingDimension.height, 1), new Point(startXPixel, startYPixel));
 
-        points.forEach(pt -> writeFromPoint(pt, raster));
-
-        return raster;
+        try (final Stream<? extends Point2D> points = this.dataSource.points(new Envelope2D(targetCRS, imageCRS.getX(), imageCRS.getY(), imageCRS.getWidth(), imageCRS.getHeight()), false)) {
+            points.forEach(pt -> writeFromPoint(pt, raster));
+            return raster;
+        }
     }
 
     /**
@@ -232,10 +229,6 @@ public final class HeatMapImage extends ComputedImage {
 
         final int size = rectangle2D.width * rectangle2D.height;
         final int sizex2 = 2 * size;
-
-        if (size<0) {
-            Logger.getGlobal().warning("Negative size for rectangle : "+ new Rectangle.Float(xPoint - distanceX, yPoint - distanceY, distXx2, distYx2)); //Todo debug
-        }
 
         final float[] data = new float[size];
         final float[] coordinates = new float[sizex2];
