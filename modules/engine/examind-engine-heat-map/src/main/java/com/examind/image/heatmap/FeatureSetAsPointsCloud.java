@@ -66,7 +66,6 @@ public class FeatureSetAsPointsCloud implements PointCloudResource, FeatureSet {
     private Optional<GenericName> identifier;
     private final Envelope envelope;
     private final Metadata metadata;
-    private final FeatureQuery query = new FeatureQuery();
 
     private CoordinateReferenceSystem dataCRS;
 
@@ -151,7 +150,7 @@ public class FeatureSetAsPointsCloud implements PointCloudResource, FeatureSet {
 
     @Override
     public Stream<? extends Point2D> points(Envelope envelope, final boolean parallel) throws DataStoreException {
-
+        final FeatureQuery query = new FeatureQuery();
         if (envelope != null) {
 
             final CoordinateReferenceSystem envCRS = envelope.getCoordinateReferenceSystem();
@@ -167,9 +166,8 @@ public class FeatureSetAsPointsCloud implements PointCloudResource, FeatureSet {
                     });
                     envelope = Envelopes.transform(targetToData, envelope);
                 } catch (TransformException e) {
-                    throw new BackingStoreException(e);
+                    throw new DataStoreException(e);
                 }
-
             }
             final Filter<Feature> filter = FF.bbox(FF.property(geometryProperty), envelope);
             query.setSelection(filter);

@@ -20,13 +20,13 @@ package com.examind.image.heatmap;
 
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.*;
+import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class HeatMapResource implements GridCoverageResource {
-
-    static final Dimension DEFAULT_IMAGE_SIZE = new Dimension(256, 256);
 
     final PointCloudResource pointCloudSource;
     private final float distanceX;
@@ -115,19 +113,34 @@ public class HeatMapResource implements GridCoverageResource {
         try {
 
             final Dimension imageDim;
-            if (target.isDefined(GridGeometry.EXTENT)) {
-                GridExtent extent = target.getExtent();
-                imageDim = new Dimension(
-                        (int) extent.getSize(0),
-                        (int) extent.getSize(1));
-            } else {
-                imageDim = DEFAULT_IMAGE_SIZE;
+            if (!target.isDefined(GridGeometry.EXTENT)) {
+                throw new UnsupportedOperationException("HeatMapResource currently expect a non null domain's extent.");
             }
-            final MathTransform2D gridCornerToCRS;
-            final MathTransform2D gridCenterToCRS;
 
-            gridCornerToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CORNER));
-            gridCenterToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CENTER));
+            final GridExtent extent = target.getExtent();
+            int[] subspaceDimensions = extent.getSubspaceDimensions(2);
+            final int posX = subspaceDimensions[0];
+            final int posY = subspaceDimensions[1];
+            imageDim = new Dimension(
+                    Math.toIntExact(extent.getSize(posX)),
+                    Math.toIntExact(extent.getSize(posY)));
+
+            MathTransform2D gridCornerToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CORNER));
+            MathTransform2D gridCenterToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CENTER));
+
+            var xmin = extent.getLow(posX);
+            var ymin = extent.getLow(posY);
+
+            if (xmin != 0L || ymin != 0L) {
+                double[] imageToGridOffsets = new double[extent.getDimension()];
+                imageToGridOffsets[posX] = xmin;
+                imageToGridOffsets[posY] = ymin;
+
+                final LinearTransform translation = MathTransforms.translation(imageToGridOffsets);
+
+                gridCornerToCRS = MathTransforms.bidimensional(MathTransforms.concatenate(translation, gridCornerToCRS));
+                gridCenterToCRS = MathTransforms.bidimensional(MathTransforms.concatenate(translation, gridCenterToCRS));
+            }
 
             final MathTransform2D crsToGridCorner;
             crsToGridCorner = gridCornerToCRS.inverse();
@@ -138,10 +151,8 @@ public class HeatMapResource implements GridCoverageResource {
                     crsToGridCorner, pointCloudSource, distanceX, distanceY));
 
         } catch (TransformException e) {
-            throw new BackingStoreException(e);
+            throw new DataStoreException(e);
         }
-
-
     }
 
     @Override

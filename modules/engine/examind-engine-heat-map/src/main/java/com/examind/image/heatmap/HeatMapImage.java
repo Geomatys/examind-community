@@ -78,7 +78,6 @@ public final class HeatMapImage extends ComputedImage {
     private final MathTransform2D gridCenterToDataCrs;
 
     private final CoordinateReferenceSystem targetCRS;
-    private final CoordinateReferenceSystem dataCRS;
     private float distanceX;
     private float distXx2;
     private float distanceY;
@@ -136,7 +135,7 @@ public final class HeatMapImage extends ComputedImage {
         this.gridCornerToRenderCrs = gridCornerToCrs;
         this.dataSource = dataSource;
         this.targetCRS = targetCRS;
-        this.dataCRS = dataSource.getEnvelope().map(Envelope::getCoordinateReferenceSystem).orElseThrow(() -> new UnsupportedOperationException("The Envelope of the input datasource must carry a valid crs"));
+        final CoordinateReferenceSystem dataCRS = dataSource.getEnvelope().map(Envelope::getCoordinateReferenceSystem).orElseThrow(() -> new UnsupportedOperationException("The Envelope of the input datasource must carry a valid crs"));
         setDistances(distanceX, distanceY);
 
         // set Target Transform And Distances();
@@ -144,7 +143,7 @@ public final class HeatMapImage extends ComputedImage {
         float tempTargetY = Float.NaN;
         MathTransform2D tempDataToGridCorner = null;
         MathTransform2D tempGridCenterToData = null;
-        if ((this.dataCRS != null) && (this.targetCRS !=null) && !Utilities.equalsIgnoreMetadata(this.dataCRS, this.targetCRS)) {
+        if ((dataCRS != null) && (this.targetCRS !=null) && !Utilities.equalsIgnoreMetadata(dataCRS, this.targetCRS)) {
             try {
                 final MathTransform dataToRenderCrs = CRS.findOperation(dataCRS, targetCRS, null).getMathTransform();
                 tempDataToGridCorner = MathTransforms.bidimensional(MathTransforms.concatenate(dataToRenderCrs, crsToGridCorner));
@@ -225,6 +224,11 @@ public final class HeatMapImage extends ComputedImage {
 
         rectangle2D = resultingRaster.getBounds().intersection(rectangle2D);
 
+        if (rectangle2D.isEmpty()) {
+            Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Intersection empty for point : " + pt );
+            return;
+        }
+
         final int maxPixelX = rectangle2D.x + rectangle2D.width;
 
         final int size = rectangle2D.width * rectangle2D.height;
@@ -253,7 +257,7 @@ public final class HeatMapImage extends ComputedImage {
         }
 
         for (int i = 0, c = 0; i < size; i++, c += 2) {
-            float res = data[i] += applyGaussian2D(coordinates[c], coordinates[c + 1], xPoint, yPoint);
+            data[i] += applyGaussian2D(coordinates[c], coordinates[c + 1], xPoint, yPoint);
 //           todo MAX_COMPUTE : if (res > max) max = res;
         }
 
