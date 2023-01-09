@@ -62,16 +62,12 @@ public class DefaultSensorData extends AbstractData implements SensorData {
 
     @Override
     public String getSensorName() {
-        String sensorName = org.constellation.provider.sensorstore.SensorMLUtilities.getSmlName(metadata);
-        if (sensorName == null) {
-            return name.toString(); // fallback
-        }
-        return sensorName;
+        return SensorMLUtilities.getSmlName(metadata).orElse(name.toString());
     }
 
     @Override
     public String getDescription() {
-        return org.constellation.provider.sensorstore.SensorMLUtilities.getSmlDescription(metadata);
+        return SensorMLUtilities.getSmlDescription(metadata).orElse(null);
     }
 
 }
