@@ -19,7 +19,6 @@
 package com.examind.sensor.ws;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
@@ -41,6 +40,9 @@ import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.query.IdentifierQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
+import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -133,7 +135,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
     }
 
     protected org.geotoolkit.observation.model.Phenomenon getPhenomenon(String phenName) throws ConstellationStoreException {
-        final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY);
+        final AbstractObservationQuery subquery = new ObservedPropertyQuery();
         final ResourceId filter = ff.resourceId(phenName);
         subquery.setSelection(filter);
         Collection<Phenomenon> sps = omProvider.getPhenomenon(subquery);
@@ -148,7 +150,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
     }
 
     protected org.geotoolkit.observation.model.SamplingFeature getFeatureOfInterest(String featureName) throws ConstellationStoreException {
-        final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST);
+        final AbstractObservationQuery subquery = new SamplingFeatureQuery();
         final ResourceId filter = ff.resourceId(featureName);
         subquery.setSelection(filter);
         List<SamplingFeature> sps = omProvider.getFeatureOfInterest(subquery);
@@ -160,7 +162,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
     }
 
     protected Process getProcess(String procName) throws ConstellationStoreException {
-        final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.PROCEDURE);
+        final AbstractObservationQuery subquery = new ProcedureQuery();
         final ResourceId filter = ff.resourceId(procName);
         subquery.setSelection(filter);
         Collection<Process> sps = omProvider.getProcedures(subquery);
@@ -175,11 +177,11 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         return omProvider.getCapabilities();
     }
 
-    protected Collection<String> getProcedureIdsForOffering(String offId, String version) throws ConstellationStoreException {
-        final AbstractObservationQuery subquery = new AbstractObservationQuery(OMEntity.PROCEDURE);
+    protected Collection<String> getProcedureIdsForOffering(String offId) throws ConstellationStoreException {
+        final AbstractObservationQuery subquery = new ProcedureQuery();
         final BinaryComparisonOperator filter = ff.equal(ff.property("offering"), ff.literal(offId));
         subquery.setSelection(filter);
-        return omProvider.getIdentifiers(subquery, Collections.singletonMap("version", version));
+        return omProvider.getIdentifiers(subquery);
     }
 
     /**

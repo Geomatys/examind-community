@@ -80,34 +80,10 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
         } else {
             observationFile = observationDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
         }
-        writeObservationToFile(observation, observationFile);
+        writeJsonObject(observationFile, observation);
+        writePhenomenon(observation.getObservedProperty());
+        writeFeatureOfInterest(observation.getFeatureOfInterest());
         return observation.getName().getCode();
-    }
-
-    private String writeObservationToFile(Observation observation, Path observationFile) throws DataStoreException {
-        if (Files.exists(observationFile)) {
-            try {
-                Files.createFile(observationFile);
-            } catch (IOException e) {
-                throw new DataStoreException("unable to create an observation file.");
-            }
-        } else {
-            LOGGER.log(Level.WARNING, "we overwrite the file:{0}", observationFile.toString());
-        }
-
-        try (OutputStream os = Files.newOutputStream(observationFile, CREATE, WRITE, TRUNCATE_EXISTING)) {
-
-            mapper.writeValue(os, observation);
-
-            writePhenomenon(observation.getObservedProperty());
-            if (observation.getFeatureOfInterest() != null) {
-                writeFeatureOfInterest(observation.getFeatureOfInterest());
-            }
-            indexer.indexDocument(observation);
-            return observation.getName().getCode();
-        } catch (IOException ex) {
-            throw new DataStoreException("Exception while writing the observation file.", ex);
-        }
     }
 
     private String getNewObservationId() throws DataStoreException {
@@ -167,45 +143,6 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
-    private void writeJsonObject(Path target, Object object, String objectType) throws DataStoreException {
-        try (OutputStream outputStream = Files.newOutputStream(target, CREATE, WRITE, TRUNCATE_EXISTING)) {
-            mapper.writeValue(outputStream, object);
-        } catch (IOException ex) {
-            throw new DataStoreException("IO exception while marshalling the "+objectType+" file.", ex);
-        }
-    }
-
-    private void writePhenomenon(final Phenomenon phenomenon) throws DataStoreException {
-        if (phenomenon == null) return;
-        try {
-            if (!Files.exists(phenomenonDirectory)) {
-                Files.createDirectories(phenomenonDirectory);
-            }
-        } catch (IOException ex) {
-            throw new DataStoreException("IO exception creating phenomenon directory  "+phenomenonDirectory.toString(), ex);
-        }
-        String fileName = phenomenon.getId().replace(':', 'µ');
-        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
-        if (!Files.exists(phenomenonFile)) {
-            writeJsonObject(phenomenonFile, phenomenon, "phenomenon");
-        }
-    }
-
-    private void writeFeatureOfInterest(final SamplingFeature foi) throws DataStoreException {
-        if (foi == null) return;
-        try {
-            if (!Files.exists(foiDirectory)) {
-                Files.createDirectories(foiDirectory);
-            }
-        } catch (IOException ex) {
-            throw new DataStoreException("IO exception creating foi directory  "+foiDirectory.toString(), ex);
-        }
-        String fileName = foi.getId().replace(':', 'µ');
-        final Path foiFile = foiDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
-        writeJsonObject(foiFile, foi, "foi");
-    }
-
-
     /**
      * {@inheritDoc}
      */
@@ -227,15 +164,46 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
     public void writeOffering(final Offering offering) throws DataStoreException {
         if (offering == null) return;
         try {
-            if (!Files.exists(offeringDirectory)) {
-                Files.createDirectories(offeringDirectory);
-            }
+            Files.createDirectories(offeringDirectory);
         } catch (IOException ex) {
             throw new DataStoreException("IO exception creating offering directory  "+offeringDirectory.toString(), ex);
         }
         String fileName = offering.getId().replace(':', 'µ');
         final Path offeringFile = offeringDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
-        writeJsonObject(offeringFile, offering, "offering");
+        writeJsonObject(offeringFile, offering);
+    }
+
+    private void writePhenomenon(final Phenomenon phenomenon) throws DataStoreException {
+        if (phenomenon == null) return;
+        try {
+            Files.createDirectories(phenomenonDirectory);
+        } catch (IOException ex) {
+            throw new DataStoreException("IO exception creating phenomenon directory  "+phenomenonDirectory.toString(), ex);
+        }
+        String fileName = phenomenon.getId().replace(':', 'µ');
+        final Path phenomenonFile = phenomenonDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
+        writeJsonObject(phenomenonFile, phenomenon);
+    }
+
+    private void writeFeatureOfInterest(final SamplingFeature foi) throws DataStoreException {
+        if (foi == null) return;
+        try {
+            Files.createDirectories(foiDirectory);
+        } catch (IOException ex) {
+            throw new DataStoreException("IO exception creating foi directory  "+foiDirectory.toString(), ex);
+        }
+        String fileName = foi.getId().replace(':', 'µ');
+        final Path foiFile = foiDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
+        writeJsonObject(foiFile, foi);
+    }
+
+    private void writeJsonObject(Path target, Object object) throws DataStoreException {
+        try (OutputStream outputStream = Files.newOutputStream(target, CREATE, WRITE, TRUNCATE_EXISTING)) {
+            mapper.writeValue(outputStream, object);
+            indexer.indexDocument(object);
+        } catch (IOException ex) {
+            throw new DataStoreException("IO exception while marshalling the entity file.", ex);
+        }
     }
 
     /**

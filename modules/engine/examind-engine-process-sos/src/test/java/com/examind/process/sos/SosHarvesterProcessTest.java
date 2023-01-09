@@ -886,16 +886,14 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationDbfFile");
         in.parameter(SosHarvesterProcessDescriptor.FORMAT_NAME).setValue("application/dbase; subtype=\"om\"");
 
-        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time_str");
-        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time_str");
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("TIME_STR");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("TIME_STR");
 
         in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd' 'HH:mm:ss");
-        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
-        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
 
-        in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("prior_id");
+        in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("PRIOR_ID");
 
-        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("height");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("HEIGHT");
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
@@ -930,7 +928,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
-        Assert.assertEquals("height", observedProperty);
+        Assert.assertEquals("HEIGHT", observedProperty);
 
         /*
          * Verify an inserted time serie
@@ -945,8 +943,8 @@ public class SosHarvesterProcessTest extends SpringContextTest {
         expectedResult = getResourceAsString("com/examind/process/sos/LakeTile_foi-2.txt");
         Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
 
-        verifySamplingFeature(fois,        ""); // TODO verify why we have a empty id here
-        verifySamplingFeature(fois,        "54008001446;54008001453");
+        verifySamplingFeature(fois,        "54008001453");
+        verifySamplingFeature(fois,        "54008001446");
 
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(9, nbMeasure);
@@ -1355,8 +1353,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         String observedProperty = null;
         for (Observation obs : oc.getMember()) {
-            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
-                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature sf) {
                 if (sf.getId().equals(foi)) {
                     observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
                 }
@@ -2503,7 +2500,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
      */
     @Test
     @Order(order = 9)
-    public void harvesterCSVFlatProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+    public void harvesterCSVFlatProfileSingleFromYamlTest() throws Exception {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
@@ -2727,8 +2724,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         String observedProperty = null;
         for (Observation obs : oc.getMember()) {
-            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
-                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature sf) {
                 if (sf.getId().equals(foi)) {
                     observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
                 }
@@ -2775,7 +2771,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
      */
     @Test
     @Order(order = 9)
-    public void harvesterCSVSurvalProfileSingleFromYamlTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
+    public void harvesterCSVSurvalProfileSingleFromYamlTest() throws Exception {
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
         Assert.assertNotNull(sc);
 
@@ -2911,8 +2907,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
 
         String observedProperty = null;
         for (Observation obs : oc.getMember()) {
-            if (obs.getFeatureOfInterest() instanceof SamplingFeature) {
-                SamplingFeature sf = (SamplingFeature) obs.getFeatureOfInterest();
+            if (obs.getFeatureOfInterest() instanceof SamplingFeature sf) {
                 if (sf.getId().equals(foi)) {
                     observedProperty = ((Phenomenon)obs.getObservedProperty()).getName().getCode();
                 }
@@ -3054,14 +3049,14 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     private static List<SamplingFeature> getFeatureOfInterest(SOSworker worker, List<String> foids) throws CstlServiceException {
         List<SamplingFeature> results = new ArrayList<>();
         AbstractFeature o = worker.getFeatureOfInterest(new GetFeatureOfInterestType("2.0.0", "SOS", foids));
-        if (o instanceof FeatureCollection ) {
-            for (FeatureProperty fp :  ((FeatureCollection)o).getFeatureMember()) {
-                if (fp.getAbstractFeature() instanceof SamplingFeature) {
-                    results.add((SamplingFeature)fp.getAbstractFeature());
+        if (o instanceof FeatureCollection fc) {
+            for (FeatureProperty fp :  fc.getFeatureMember()) {
+                if (fp.getAbstractFeature() instanceof SamplingFeature sp) {
+                    results.add(sp);
                 }
             }
-        } else if (o instanceof SamplingFeature) {
-            results.add((SamplingFeature)o);
+        } else if (o instanceof SamplingFeature sf) {
+            results.add(sf);
         }
         return results;
     }
@@ -3069,8 +3064,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     private String verifySamplingFeatureLine(List<SamplingFeature> fois, int nbPoint) {
        String foi = null;
        for (SamplingFeature sp : fois) {
-            if (sp.getGeometry() instanceof LineString) {
-                LineString ln = (LineString) sp.getGeometry();
+            if (sp.getGeometry() instanceof LineString ln) {
                 if (ln.getPosList().getValue().size() == nbPoint*2) {
                     foi = sp.getId();
                 }
@@ -3088,8 +3082,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
        String foi = null;
        for (SamplingFeature sp : fois) {
             if ((id != null && sp.getId().equals(id)) || id == null)
-            if (sp.getGeometry() instanceof PointType) {
-                PointType pt = (PointType) sp.getGeometry();
+            if (sp.getGeometry() instanceof PointType pt) {
                 if (pt.getDirectPosition().getOrdinate(0) == lat &&
                     pt.getDirectPosition().getOrdinate(1) == lon) {
 
@@ -3115,8 +3108,7 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     private void verifySamplingFeatureNotSame(List<SamplingFeature> fois) {
        Set<String> alreadyFound = new HashSet<>();
        for (SamplingFeature sp : fois) {
-            if (sp.getGeometry() instanceof PointType) {
-                PointType pt = (PointType) sp.getGeometry();
+            if (sp.getGeometry() instanceof PointType pt) {
                 String key = pt.getDirectPosition().getOrdinate(0) + "-" + pt.getDirectPosition().getOrdinate(1);
                 if (alreadyFound.contains(key)) {
                     throw new IllegalStateException("duplicated feature of interest for coord:" + key);

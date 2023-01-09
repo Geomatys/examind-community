@@ -238,11 +238,10 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
 
                         } else {
-                            LOGGER.info("The "+type+" file " + entityFile.getFileName().toString()
-                                    + " does not contains an observation:" + obj);
+                            LOGGER.info("The " + type + " file " + entityFile.getFileName() + " does not contains an observation:" + obj);
                         }
                     } catch (IOException ex) {
-                        LOGGER.log(Level.WARNING, "Unable read json file:" + entityFile.getFileName().toString(), ex);
+                        LOGGER.log(Level.WARNING, "Unable read json file:" + entityFile.getFileName(), ex);
                     }
                 }
             }

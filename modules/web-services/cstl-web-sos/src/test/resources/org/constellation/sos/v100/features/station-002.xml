@@ -7,8 +7,8 @@
     </gml:boundedBy>
     <sa:sampledFeature xlink:href="urn:-sandre:object:bdrhf:123X"/>
     <sa:position>
-        <gml:Point gml:id="STATION-LOCALISATION">
-            <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">65400.0 1731368.0</gml:pos>
+        <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" srsDimension="2" gml:id="STATION-LOCALISATION">
+            <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" srsDimension="2">5.0 10.0</gml:pos>
         </gml:Point>
     </sa:position>
 </sa:SamplingPoint>

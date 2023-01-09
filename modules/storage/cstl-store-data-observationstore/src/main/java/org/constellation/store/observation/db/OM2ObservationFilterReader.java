@@ -56,6 +56,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
@@ -1114,18 +1115,39 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
-        final List<Process> processes = new ArrayList<>();
+        final List<Process> results = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
             final ResultSet rs            = pstmt.executeQuery()) {
             while (rs.next()) {
-                processes.add(getProcess(rs.getString(1), c));
+                results.add(getProcess(rs.getString(1), c));
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
-        return processes;
+        return results;
+    }
+
+    @Override
+    public List<Offering> getOfferings() throws DataStoreException {
+        if (firstFilter) {
+            sqlRequest.replaceFirst("WHERE", "");
+        }
+        sqlRequest = appendPaginationToRequest(sqlRequest);
+        LOGGER.fine(sqlRequest.toString());
+        final List<Offering> results = new ArrayList<>();
+        try(final Connection c            = source.getConnection();
+            final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
+            final ResultSet rs            = pstmt.executeQuery()) {
+            while (rs.next()) {
+                results.add(readObservationOffering(rs.getString(1), c));
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        }
+        return results;
     }
 
     @Override

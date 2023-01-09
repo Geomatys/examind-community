@@ -26,6 +26,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
+import org.geotoolkit.data.dbf.DbaseFileReader.Row;
 
 /**
  *
@@ -34,6 +35,7 @@ import org.geotoolkit.data.dbf.DbaseFileReader;
 public class DBFDataFileReader implements DataFileReader {
 
     private final DbaseFileReader reader;
+    private Iterator<Object[]> it = null;
 
     public DBFDataFileReader(Path dataFile) throws IOException {
         SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ);
@@ -41,8 +43,34 @@ public class DBFDataFileReader implements DataFileReader {
     }
 
     @Override
-    public Iterator<String[]> iterator(boolean skipHeaders) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Iterator<Object[]> iterator(boolean skipHeaders) {
+        return getIterator();
+    }
+
+    private Iterator<Object[]> getIterator() {
+        if (it == null) {
+            final Iterator<Row> rit = reader;
+
+            it = new Iterator<Object[]>() {
+
+
+                @Override
+                public boolean hasNext() {
+                   return rit.hasNext();
+                }
+
+                @Override
+                public Object[] next() {
+                    try {
+                        final Row row = rit.next();
+                        return row.readAll(null);
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            };
+        }
+        return it;
     }
 
     @Override

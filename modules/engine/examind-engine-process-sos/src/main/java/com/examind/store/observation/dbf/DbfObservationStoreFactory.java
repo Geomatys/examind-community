@@ -18,13 +18,10 @@ package com.examind.store.observation.dbf;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
@@ -32,7 +29,6 @@ import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
-import org.geotoolkit.data.dbf.DbaseFileProvider;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.metadata.Identifier;
@@ -58,8 +54,10 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
-            = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, DbaseFileProvider.PATH,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, FOI_COLUMN, OBSERVATION_TYPE, PROCEDURE_ID, PROCEDURE_COLUMN);
+            = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, PATH,
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, FOI_COLUMN, OBSERVATION_TYPE,
+                    PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, Z_COLUMN, UOM_REGEX, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER,
+                    DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE);
 
     private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
         final Map<String,Object> properties = new HashMap<>(4);
@@ -80,25 +78,14 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     @Override
     public DbfObservationStore open(final ParameterValueGroup params) throws DataStoreException {
-        final URI uri = (URI) params.parameter(DbaseFileProvider.PATH.getName().toString()).getValue();
-        final String mainColumn = (String) params.parameter(MAIN_COLUMN.getName().toString()).getValue();
-        final String dateColumn = (String) params.parameter(DATE_COLUMN.getName().toString()).getValue();
-        final String dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
-        final String longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
-        final String latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
-        final String foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
-        final String procedureId = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
-        final String procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
-        final String observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
-        final Set<String> obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
         try {
-            return new DbfObservationStore(Paths.get(uri),
-                    mainColumn, dateColumn, dateFormat, longitudeColumn, latitudeColumn, obsPropColumns, observationType, foiColumn, procedureId, procedureColumn);
+            return new DbfObservationStore(params);
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem opening dbf file", ex);
+            LOGGER.log(Level.WARNING, "problem opening dbf store", ex);
             throw new DataStoreException(ex);
         }
     }
+
 
     @Override
     public Collection<String> getSuffix() {

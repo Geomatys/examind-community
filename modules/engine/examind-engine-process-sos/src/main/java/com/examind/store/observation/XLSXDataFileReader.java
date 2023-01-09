@@ -43,7 +43,7 @@ public class XLSXDataFileReader implements DataFileReader {
 
     private final Workbook workbook;
     private boolean headerAlreadyRead = false;
-    private Iterator<String[]> it = null;
+    private Iterator<Object[]> it = null;
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
@@ -73,18 +73,18 @@ public class XLSXDataFileReader implements DataFileReader {
     }
 
     @Override
-    public Iterator<String[]> iterator(boolean skipHeaders) {
-        final Iterator<String[]> it = getIterator();
+    public Iterator<Object[]> iterator(boolean skipHeaders) {
+        final Iterator<Object[]> it = getIterator();
         if (skipHeaders && !headerAlreadyRead && it.hasNext()) it.next();
         return it;
     }
 
-    private Iterator<String[]> getIterator() {
+    private Iterator<Object[]> getIterator() {
         if (it == null) {
             final Sheet sheet = workbook.getSheetAt(0);
             final Iterator<Row> rit = sheet.rowIterator();
 
-            it = new Iterator<String[]>() {
+            it = new Iterator<Object[]>() {
 
 
                 @Override
@@ -93,11 +93,11 @@ public class XLSXDataFileReader implements DataFileReader {
                 }
 
                 @Override
-                public String[] next() {
+                public Object[] next() {
                     final Row row = rit.next();
                     int lastColumn = row.getLastCellNum();
                     if (lastColumn > 0) {
-                        String[] results = new String[lastColumn];
+                        Object[] results = new Object[lastColumn];
                         for (int cn = 0; cn < lastColumn; cn++) {
                             Cell cell = row.getCell(cn, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                             switch (cell.getCellType()) {
@@ -106,17 +106,12 @@ public class XLSXDataFileReader implements DataFileReader {
                                              results[cn] = value; break;
                                 case NUMERIC:
                                     if (DateUtil.isCellDateFormatted(cell)) {
-                                        results[cn] = cell.getDateCellValue() + "";
+                                        results[cn] = cell.getDateCellValue();
                                     } else {
-                                        String numVal = cell.getNumericCellValue() + "";
-                                        // special case where integer are transformed to double
-                                        if (numVal.endsWith(".0")) {
-                                            numVal = numVal.substring(0, numVal.length() -2);
-                                        }
-                                        results[cn] = numVal;
+                                        results[cn] =  cell.getNumericCellValue();
                                     } break;
-                                case BOOLEAN: results[cn] = cell.getBooleanCellValue() + ""; break;
-                                case FORMULA: results[cn] = cell.getCellFormula() + ""; break;
+                                case BOOLEAN: results[cn] = cell.getBooleanCellValue(); break;
+                                case FORMULA: results[cn] = cell.getCellFormula(); break;
                                 default: results[cn] = "";
                             }
                         }
@@ -138,13 +133,18 @@ public class XLSXDataFileReader implements DataFileReader {
 
     @Override
     public String[] getHeaders() throws IOException {
-        final Iterator<String[]> it = iterator(false);
+        final Iterator<Object[]> it = iterator(false);
         headerAlreadyRead = true;
         // at least one line is expected to contain headers information
         if (it.hasNext()) {
 
             // read headers
-            return it.next();
+            Object[] headers =  it.next();
+            String[] results = new String[headers.length];
+            for (int i = 0; i < headers.length; i++) {
+                results[i] = (String) headers[i];
+            }
+            return results;
         }
         throw new IOException("xls headers not found");
     }

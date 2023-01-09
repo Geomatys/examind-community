@@ -34,6 +34,8 @@ import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -107,13 +109,13 @@ public class CsvObservationStoreTest {
 
         CsvObservationStore store = factory.open(params);
 
-        Set<String> procedureNames = store.getEntityNames(OMEntity.PROCEDURE);
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
         Assert.assertEquals(1, procedureNames.size());
 
         String sensorId = procedureNames.iterator().next();
         Assert.assertEquals("urn:sensor:1", sensorId);
 
-        Set<String> phenomenonNames = store.getEntityNames(OMEntity.OBSERVED_PROPERTY);
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
         Assert.assertTrue(phenomenonNames.contains("TEMP (degree_Celsius)"));
         Assert.assertTrue(phenomenonNames.contains("PSAL (psu)"));
 
@@ -174,13 +176,13 @@ public class CsvObservationStoreTest {
 
         CsvObservationStore store = factory.open(params);
 
-        Set<String> procedureNames = store.getEntityNames(OMEntity.PROCEDURE);
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
         Assert.assertEquals(1, procedureNames.size());
 
         String sensorId = procedureNames.iterator().next();
         Assert.assertEquals("urn:sensor:3", sensorId);
 
-        Set<String> phenomenonNames = store.getEntityNames(OMEntity.OBSERVED_PROPERTY);
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
         Assert.assertTrue(phenomenonNames.contains("TEMP LEVEL0 (degree_Celsius)"));
         Assert.assertTrue(phenomenonNames.contains("VEPK LEVEL0 (meter2 second)"));
 

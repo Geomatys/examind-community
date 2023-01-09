@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -78,6 +77,7 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.storage.DataStores;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
@@ -231,7 +231,7 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         final List<ProcedureDataset> results = new ArrayList<>();
 
         final ObservationFilterReader procFilter = getFilter();
-        procFilter.init(OMEntity.PROCEDURE, Collections.EMPTY_MAP);
+        procFilter.init(new ProcedureQuery());
 
         for (Process p : procFilter.getProcesses()) {
             

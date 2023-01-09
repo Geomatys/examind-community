@@ -47,11 +47,9 @@ import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.JTS;
-import static org.geotoolkit.observation.ObservationFilterFlags.*;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
@@ -62,6 +60,11 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Phenomenon;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.observation.model.ResultMode;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.query.HistoricalLocationQuery;
+import org.geotoolkit.observation.query.ObservationQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ResultQuery;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -161,50 +164,38 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
-        this.objectType = objectType;
-        this.limit      = getLongHint(hints, PAGE_LIMIT);
-        this.offset     = getLongHint(hints, PAGE_OFFSET);
-        this.version    = getVersionFromHints(hints);
-        this.includeTimeInTemplate = getBooleanHint(hints, INCLUDE_TIME_IN_TEMPLATE, false);
-        this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
-        this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        this.includeQualityFields  = getBooleanHint(hints, INCLUDE_QUALITY_FIELD,  true);
-        this.separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
-        this.noCompositePhenomenon = getBooleanHint(hints, NO_COMPOSITE_PHENOMENON, false);
-        this.resultMode            = (ResultMode) hints.get(RESULT_MODE);
-        this.responseFormat        = (String) hints.get(RESPONSE_FORMAT);
-        this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
-        this.limit                 = getLongHint(hints, PAGE_LIMIT);
-        this.offset                = getLongHint(hints, PAGE_OFFSET);
+    public void init(AbstractObservationQuery query) throws DataStoreException {
+        this.objectType = query.getEntityType();
+        this.limit                 = query.getLimit().isPresent() ? query.getLimit().getAsLong() : null;
+        this.offset                = query.getOffset();
 
         switch (objectType) {
-            case FEATURE_OF_INTEREST: initFilterGetFeatureOfInterest(); break;
-            case OBSERVED_PROPERTY:   initFilterGetPhenomenon(hints); break;
-            case PROCEDURE:           initFilterGetSensor(); break;
-            case OFFERING:            initFilterOffering(); break;
-            case LOCATION:            initFilterGetLocations(); break;
-            case HISTORICAL_LOCATION: initFilterGetHistoricalLocations(); break;
-            case OBSERVATION:         initFilterObservation(hints); break;
-            case RESULT:              initFilterGetResult(hints); break;
-            default: throw new DataStoreException("unexpected object type:" + objectType);
+            case FEATURE_OF_INTEREST -> initFilterGetFeatureOfInterest();
+            case OBSERVED_PROPERTY   -> initFilterGetPhenomenon((ObservedPropertyQuery) query);
+            case PROCEDURE           -> initFilterGetSensor();
+            case OFFERING            -> initFilterOffering();
+            case LOCATION            -> initFilterGetLocations();
+            case HISTORICAL_LOCATION -> initFilterGetHistoricalLocations((HistoricalLocationQuery) query);
+            case OBSERVATION         -> initFilterObservation((ObservationQuery) query);
+            case RESULT              -> initFilterGetResult((ResultQuery) query);
+            default -> throw new DataStoreException("unexpected object type:" + objectType);
         }
     }
 
-    private void initFilterObservation(final Map<String, Object> hints) {
-        this.includeTimeInTemplate = getBooleanHint(hints, INCLUDE_TIME_IN_TEMPLATE, false);
-        this.responseMode          = (ResponseMode) hints.get("responseMode");
-        this.resultModel           = (QName) hints.get("resultModel");
-        this.includeFoiInTemplate  = getBooleanHint(hints, INCLUDE_FOI_IN_TEMPLATE, true);
-        this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
-        this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        this.includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
-        this.separatedObs          = getBooleanHint(hints, SEPARATED_OBSERVATION,  false);
-        this.resultMode            = (ResultMode) hints.getOrDefault(RESULT_MODE, ResultMode.CSV);
-        this.responseFormat        = (String) hints.get("responseFormat");
-        this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
+    private void initFilterObservation(ObservationQuery query) {
+        this.includeTimeInTemplate = query.isIncludeTimeInTemplate();
+        this.responseMode          = query.getResponseMode();
+        this.resultModel           = query.getResultModel();
+        this.includeFoiInTemplate  = query.isIncludeFoiInTemplate();
+        this.includeTimeForProfile = query.isIncludeTimeForProfile();
+        this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
+        this.includeQualityFields  = query.isIncludeQualityFields();
+        this.separatedObs          = query.isSeparatedObservation();
+        this.resultMode            = query.getResultMode();
+        this.responseFormat        = query.getResponseFormat();
+        this.decimationSize        = query.getDecimationSize();
         
-        singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
+        this.singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             sqlRequest = new FilterSQLRequest("SELECT distinct  o.\"procedure\"");
             if (singleObservedPropertyInTemplate) {
@@ -233,16 +224,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private void initFilterGetResult(final Map<String, Object> hints) throws DataStoreException {
-        this.includeTimeForProfile = getBooleanHint(hints, INCLUDE_TIME_FOR_FOR_PROFILE, false);
-        this.responseMode          = (ResponseMode) hints.get("responseMode");
-        this.currentProcedure      = (String) hints.get("procedure");
-        this.includeIDInDataBlock  = getBooleanHint(hints, INCLUDE_ID_IN_DATABLOCK,  false);
-        this.includeQualityFields  = getBooleanHint(hints, "includeQualityFields",  true);
-        this.responseFormat        = (String) hints.get("responseFormat");
-        this.decimationSize        = getIntegerHint(hints, DECIMATION_SIZE, null);
+    private void initFilterGetResult(ResultQuery query) throws DataStoreException {
+        this.includeTimeForProfile = query.isIncludeTimeForProfile();
+        this.responseMode          = query.getResponseMode();
+        this.currentProcedure      = query.getProcedure();
+        this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
+        this.includeQualityFields  = query.isIncludeQualityFields();
+        this.responseFormat        = query.getResponseFormat();
+        this.decimationSize        = query.getDecimationSize();
 
-        firstFilter = false;
+        this.firstFilter = false;
         try(final Connection c = source.getConnection()) {
             final int[] pidNumber = getPIDFromProcedure(currentProcedure, c);
             final String measureJoin = getMeasureTableJoin(pidNumber);
@@ -276,7 +267,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         obsJoin = false;
     }
 
-    private void initFilterGetPhenomenon(final Map<String, Object> hints) {
+    private void initFilterGetPhenomenon(ObservedPropertyQuery query) {
+        this.noCompositePhenomenon = query.isNoCompositePhenomenon();
         sqlRequest = new FilterSQLRequest("SELECT DISTINCT(op.\"id\") FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
         if (noCompositePhenomenon) {
             sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
@@ -310,7 +302,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         firstFilter = true;
     }
 
-    private void initFilterGetHistoricalLocations() throws DataStoreException {
+    private void initFilterGetHistoricalLocations(HistoricalLocationQuery query) throws DataStoreException {
+        this.decimationSize = query.getDecimationSize();
         String geomColum;
         if (isPostgres) {
             geomColum = "st_asBinary(\"location\") as \"location\"";
@@ -497,9 +490,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void setFeatureOfInterest(final List<String> fois) {
         if (fois != null && !fois.isEmpty()) {
+            String columnName;
+            if (OMEntity.FEATURE_OF_INTEREST.equals(objectType)) {
+                columnName = "sf.\"id\"";
+            } else {
+                columnName = "\"foi\"";
+                obsJoin = true;
+            }
             final FilterSQLRequest sb = new FilterSQLRequest();
             for (String foi : fois) {
-                sb.append("(\"foi\"=").appendValue(foi).append(") OR");
+                sb.append("(").append(columnName).append("=").appendValue(foi).append(") OR");
             }
             sb.delete(sb.length() - 3, sb.length());
 
@@ -509,7 +509,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sqlRequest.append(" (").append(sb).append(") ");
                 firstFilter = false;
             }
-            obsJoin = true;
         }
     }
 
@@ -1164,17 +1163,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private String getFeatureOfInterestRequest() {
         sqlRequest = appendPaginationToRequest(sqlRequest);
-        String request = sqlRequest.toString();
         if (obsJoin) {
             final String obsJoin = "\"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
-            request = request.replace("WHERE", obsJoin);
-        } else {
-            request = request.replace("\"foi\"='", "sf.\"id\"='");
             if (firstFilter) {
-                request = request.replace("WHERE", "");
+                sqlRequest.replaceFirst("WHERE", obsJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
+            }
+        } else if (offJoin) {
+            final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_foi\" off WHERE off.\"foi\" = sf.\"id\" ";
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", offJoin);
+            } else {
+                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
+            }
+        } else {
+            sqlRequest.replaceFirst("\"foi\"='", "sf.\"id\"='");
+            if (firstFilter) {
+                sqlRequest.replaceFirst("WHERE", "");
             }
         }
-        return request;
+        return  sqlRequest.toString();
     }
 
     private String getPhenomenonRequest() {

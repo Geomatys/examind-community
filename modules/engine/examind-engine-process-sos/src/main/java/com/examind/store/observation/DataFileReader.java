@@ -36,7 +36,7 @@ public interface DataFileReader extends Closeable {
      * @param skipHeaders if {@code true} the header will be skipped and the next line will be a data one.
      *
      */
-    Iterator<String[]> iterator(boolean skipHeaders);
+    Iterator<Object[]> iterator(boolean skipHeaders);
 
     /**
      * Return the data file headers.

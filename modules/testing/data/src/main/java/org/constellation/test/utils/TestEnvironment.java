@@ -412,7 +412,7 @@ public class TestEnvironment {
 
         public void generateSensors(ISensorBusiness sensorBusiness, int omProviderId, int smlProviderId) throws ConstellationException {
            ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(omProviderId);
-           List<ProcedureTree> procs   = omProv.getProcedureTrees(null, new HashMap<>());
+           List<ProcedureTree> procs   = omProv.getProcedureTrees(null);
 
            // default sensor initialisation from the sensor present in the OM provider
             for (ProcedureTree proc : procs) {

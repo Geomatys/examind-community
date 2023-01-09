@@ -37,6 +37,7 @@ import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.ResponseMode;
 import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
 import org.geotoolkit.observation.xml.ObservationComparator;
@@ -46,7 +47,6 @@ import org.opengis.geometry.Envelope;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.temporal.Period;
 import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
 
 /**
@@ -70,10 +70,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     @Override
     public List<org.opengis.observation.Observation> getObservations() throws DataStoreException {
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oids = getIdentifiers();
-        for (String oid : oids) {
-            final Observation obs = (Observation) reader.getObservation(oid, resultModel, responseMode);
-            observations.add(obs);
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            observations.add((Observation) reader.getObservation(id, resultModel, responseMode));
         }
         Collections.sort(observations, new ObservationComparator());
         final List<Observation> results = new ArrayList<>();
@@ -101,34 +100,42 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
 
     @Override
     public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
-        final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid                = getIdentifiers();
-        for (String foid : fid) {
-            final SamplingFeature feature = reader.getFeatureOfInterest(foid);
-            features.add(feature);
+        final List<SamplingFeature> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getFeatureOfInterest(id));
         }
-        return features;
+        return results;
     }
 
     @Override
     public List<Phenomenon> getPhenomenons() throws DataStoreException {
-        final Set<String> fids    = getIdentifiers();
         List<Phenomenon> results = new ArrayList<>();
-        for (String fid : fids) {
-            results.add(reader.getPhenomenon(fid));
+        final Set<String> ids    = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getPhenomenon(id));
         }
         return results;
     }
 
     @Override
     public List<Process> getProcesses() throws DataStoreException {
-        final List<Process> processes = new ArrayList<>();
-        final Set<String> pids        = getIdentifiers();
-        for (String pid : pids) {
-            final Process pr = reader.getProcess(pid);
-            processes.add(pr);
+        final List<Process> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getProcess(id));
         }
-        return processes;
+        return results;
+    }
+
+    @Override
+    public List<Offering> getOfferings() throws DataStoreException {
+        final List<Offering> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getObservationOffering(id));
+        }
+        return results;
     }
 
     @Override

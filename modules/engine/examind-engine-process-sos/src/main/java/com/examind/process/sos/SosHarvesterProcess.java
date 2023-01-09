@@ -73,6 +73,8 @@ import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -442,7 +444,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final List<String> ids = new ArrayList<>();
 
         if (provider instanceof ObservationProvider op) {
-            final List<ProcedureTree> procedures = op.getProcedureTrees(null, Collections.EMPTY_MAP);
+            final List<ProcedureTree> procedures = op.getProcedureTrees(null);
 
             // SensorML generation
             for (final ProcedureTree process : procedures) {

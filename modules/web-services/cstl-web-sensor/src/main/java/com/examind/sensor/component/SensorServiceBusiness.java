@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -40,7 +39,6 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import com.examind.sensor.ws.SensorUtils;
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,9 +58,10 @@ import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
-import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
@@ -225,7 +224,7 @@ public class SensorServiceBusiness {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             try {
-                return pr.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP);
+                return pr.getIdentifiers(new ProcedureQuery());
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
@@ -238,7 +237,7 @@ public class SensorServiceBusiness {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
             try {
-                return pr.getCount(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP);
+                return pr.getCount(new ProcedureQuery());
             } catch (ConstellationStoreException ex) {
                 throw new ConfigurationException(ex);
             }
@@ -250,9 +249,9 @@ public class SensorServiceBusiness {
     public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
-            AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.PROCEDURE);
+            AbstractObservationQuery query = new ProcedureQuery();
             query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
-            Stream<String> processes = pr.getIdentifiers(query, Collections.emptyMap()).stream();
+            Stream<String> processes = pr.getIdentifiers(query).stream();
 
             if (!isDirectProviderMode(id)) {
                 // filter on linked sensors
@@ -377,7 +376,7 @@ public class SensorServiceBusiness {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             // TODO this results are not filtered on linked sensors
-            return pr.getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP);
+            return pr.getIdentifiers(new ObservedPropertyQuery());
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -395,7 +394,7 @@ public class SensorServiceBusiness {
     public boolean updateSensorLocation(final Integer id, final String sensorID, final Geometry location) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
-            pr.updateProcedureLocation(sensorID, location);
+            pr.writeLocation(sensorID, location);
             return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
@@ -420,7 +419,7 @@ public class SensorServiceBusiness {
                     final WKTWriter writer = new WKTWriter();
                     return writer.write(jtsGeometries.get(0));
                 } else if (!jtsGeometries.isEmpty()) {
-                    final Geometry[] geometries   = jtsGeometries.toArray(new Geometry[jtsGeometries.size()]);
+                    final Geometry[] geometries   = jtsGeometries.toArray(Geometry[]::new);
                     final GeometryCollection coll = new GeometryCollection(geometries, new GeometryFactory());
                     final WKTWriter writer        = new WKTWriter();
                     return writer.write(coll);
@@ -442,7 +441,7 @@ public class SensorServiceBusiness {
             if (width != null) {
                 query.setDecimationSize(width);
             }
-            return pr.getResults(query, new HashMap<>());
+            return pr.getResults(query);
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

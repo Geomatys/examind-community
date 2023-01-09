@@ -41,6 +41,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+import org.apache.sis.internal.storage.ResourceOnFileSystem;
+import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
@@ -61,14 +63,15 @@ import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
-import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
@@ -80,7 +83,7 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, FeatureSet {
+public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, FeatureSet, ResourceOnFileSystem {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 
@@ -144,10 +147,10 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     public FileParsingObservationStore(ParameterValueGroup params) throws IOException, DataStoreException{
         super(params);
 
-        // CSV parameters
         this.dataFile = Paths.get((URI) params.parameter(PATH.getName().toString()).getValue());
-        this.delimiter = (Character) params.parameter(SEPARATOR.getName().toString()).getValue();
-        Character qc =  (Character) params.parameter(CHARQUOTE.getName().toString()).getValue();
+        Character sep = Parameters.castOrWrap(params).getValue(SEPARATOR);
+        this.delimiter = sep != null ? sep : 0;
+        Character qc =  Parameters.castOrWrap(params).getValue(CHARQUOTE);
         this.quotechar = qc != null ? qc : 0;
 
         this.mainColumns = getMultipleValuesList(params, MAIN_COLUMN.getName().toString());
@@ -187,11 +190,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
 
     @Override
-    public Set<String> getEntityNames(OMEntity entityType) throws DataStoreException {
-        if (entityType == null) {
+    public Set<String> getEntityNames(AbstractObservationQuery query) throws DataStoreException {
+        if (query.getEntityType() == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
-        switch (entityType) {
+        switch (query.getEntityType()) {
             case OBSERVED_PROPERTY:   return extractPhenomenonIds();
             case PROCEDURE:           return extractProcedureIds();
             case FEATURE_OF_INTEREST:
@@ -202,7 +205,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             case RESULT:
                 throw new DataStoreException("not implemented yet.");
             default:
-                throw new DataStoreException("unexpected object type:" + entityType);
+                throw new DataStoreException("unexpected object type:" + query.getEntityType());
         }
     }
 
@@ -309,10 +312,16 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // Get existing or create a new feature of interest
+        final SamplingFeature sp;
         if (ob.featureID == null) {
             ob.featureID = "foi-" + UUID.randomUUID();
+            // for unamed foi, we look for equals existing foi
+            sp = buildFOIByGeom(ob.featureID, ob.getPositions(), samplingFeatures);
+        } else {
+            final Geometry geom = buildGeom(ob.getPositions());
+            sp = new SamplingFeature(ob.featureID, null, null, null, ob.featureID, geom);
         }
-        final SamplingFeature sp = buildFOIByGeom(ob.featureID, ob.getPositions(), samplingFeatures);
+        
         if (!samplingFeatures.contains(sp)) {
             samplingFeatures.add(sp);
         }
@@ -368,23 +377,22 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
             if (dateIndexes.isEmpty()) return null;
 
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
 
             final GeoSpatialBound result = new GeoSpatialBound();
             final SimpleDateFormat sdf = new SimpleDateFormat(this.dateFormat);
+
             while (it.hasNext()) {
-                final String[] line = it.next();
-                String value = "";
-                for (Integer dateIndex : dateIndexes) {
-                    value += line[dateIndex];
-                }
-                if (!(value = value.trim()).isEmpty()) {
-                    result.addDate(sdf.parse(value));
+                final Object[] line = it.next();
+
+                Optional<Long> d = parseDate(line, null, dateIndexes, sdf, -1);
+                if (d.isPresent()) {
+                    result.addDate(d.get());
                 }
             }
             return result.getTimeObject();
             
-        } catch (IOException | ParseException ex) {
+        } catch (IOException ex) {
             throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
         }
     }
@@ -402,7 +410,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * @return A LAT / LON double array or an empty array if not found
      * @throws ParseException if the values of lat or lon column can not be parsed as a double
      */
-    protected double[] extractLinePosition(int latitudeIndex, int longitudeIndex, String procedure, String[] line) throws ParseException, NumberFormatException {
+    protected double[] extractLinePosition(int latitudeIndex, int longitudeIndex, String procedure, Object[] line) throws ParseException, NumberFormatException {
         if (latitudeIndex != -1 && longitudeIndex != -1) {
             final double latitude = parseDouble(line[latitudeIndex]);
             final double longitude = parseDouble(line[longitudeIndex]);
@@ -411,34 +419,56 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return new double[0];
     }
 
-    protected Optional<Long> parseDate(String[] line, final Long preComputeValue, List<Integer> dateIndexes, final DateFormat sdf, int lineNumber) {
+    protected Optional<Long> parseDate(Object[] line, final Long preComputeValue, List<Integer> dateIndexes, final DateFormat sdf, int lineNumber) {
         if (preComputeValue != null) return Optional.of(preComputeValue);
-        String value = "";
-        for (Integer dateIndex : dateIndexes) {
-            value += line[dateIndex];
-        }
-        try {
-            return Optional.of(sdf.parse(value).getTime());
-        } catch (ParseException ex) {
-            LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+
+        if (dateIndexes.isEmpty()) {
             return Optional.empty();
+
+        } else if (dateIndexes.size() == 1) {
+            Object value = line[dateIndexes.get(0)];
+            try {
+                return  Optional.of(parseObjectDate(value, sdf));
+            } catch (ParseException ex) {
+                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                return Optional.empty();
+            }
+
+        // composite dates are only supported for string column
+        } else {
+            String value = "";
+            for (Integer dateIndex : dateIndexes) {
+                value += line[dateIndex];
+            }
+            try {
+                return Optional.of(sdf.parse(value).getTime());
+            } catch (ParseException ex) {
+                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                return Optional.empty();
+            }
         }
     }
 
-    protected Optional<? extends Number> parseMain(String[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, String currentObsType) throws DataStoreException {
+    protected Optional<? extends Number> parseMain(Object[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, String currentObsType) throws DataStoreException {
         
         // assume that for profile main field is a double
         if ("Profile".equals(currentObsType)) {
             if (mainIndexes.size() > 1) {
                 throw new DataStoreException("Multiple main columns is not yet supported for Profile");
             }
-            String value = line[mainIndexes.get(0)];
-            try {
-                return Optional.of(parseDouble(value));
-            } catch (ParseException | NumberFormatException ex) {
-                LOGGER.fine(String.format("Problem parsing double for main field at line %d (value='%s'). skipping line...", lineNumber, value));
-                return Optional.empty();
+            Object value = line[mainIndexes.get(0)];
+            if (value instanceof String strValue) {
+                try {
+                    return Optional.of(parseDouble(strValue));
+                } catch (ParseException | NumberFormatException ex) {
+                    LOGGER.fine(String.format("Problem parsing double for main field at line %d (value='%s'). skipping line...", lineNumber, value));
+                    return Optional.empty();
+                }
+            } else if (value instanceof Number num) {
+                return Optional.of(num);
             }
+            LOGGER.fine(String.format("Unexpected type for main field at line %d (value='%s') expecting double. skipping line...", lineNumber, value));
+            return Optional.empty();
 
         // assume that is a date otherwise
         } else {
@@ -518,6 +548,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected DataFileReader getDataFileReader() throws IOException {
         return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    public Path[] getComponentFiles() throws DataStoreException {
+        return new Path[]{dataFile};
     }
 
     @Override

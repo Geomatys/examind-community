@@ -44,10 +44,12 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.*;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.query.ObservationQuery;
+import org.geotoolkit.observation.query.ResultQuery;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
@@ -111,9 +113,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
-        this.objectType = objectType;
-        this.version    = OMUtils.getVersionFromHints(hints);
+    public void init(AbstractObservationQuery query) throws DataStoreException {
+        this.objectType = query.getEntityType();
         this.timeFilters.clear();
          
         switch (objectType) {
@@ -121,35 +122,33 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             case OBSERVED_PROPERTY:   luceneRequest = new StringBuilder("type:phenomenon"); break;
             case PROCEDURE:           luceneRequest = new StringBuilder("type:procedure"); break;
             case OFFERING:            luceneRequest = new StringBuilder("type:offering"); break;
-            case OBSERVATION:         initFilterObservation(hints);break;
-            case RESULT:              initFilterGetResult(hints);break;
+            case OBSERVATION:         initFilterObservation((ObservationQuery) query);break;
+            case RESULT:              initFilterGetResult((ResultQuery) query);break;
             case LOCATION:
             case HISTORICAL_LOCATION: throw new UnsupportedOperationException("Not supported yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
     }
     
-    private void initFilterObservation(final Map<String, Object> hints) {
-        this.responseMode = (ResponseMode) hints.get("responseMode");
-        this.responseFormat = (String) hints.get("responseFormat");
-        this.resultModel = (QName) hints.get("resultModel");
-        luceneRequest = new StringBuilder("type:observation ");
+    private void initFilterObservation(ObservationQuery query) {
+        this.responseMode   = query.getResponseMode();
+        this.responseFormat = query.getResponseFormat();
+        this.resultModel    = query.getResultModel();
 
+        this.luceneRequest = new StringBuilder("type:observation ");
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             luceneRequest.append("template:TRUE ");
         } else {
             luceneRequest.append("template:FALSE ");
         }
-        this.objectType = OMEntity.OBSERVATION;
     }
 
-    private void initFilterGetResult(final Map<String, Object> hints) {
-        String procedure = (String) hints.get("procedure");
-        this.responseFormat = (String) hints.get("responseFormat");
-        this.resultModel = (QName) hints.get("resultModel");
-        this.responseMode = (ResponseMode) hints.get("responseMode");
-        luceneRequest = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
-        this.objectType = OMEntity.RESULT;
+    private void initFilterGetResult(ResultQuery query) {
+        String procedure    = query.getProcedure();
+        this.responseFormat = query.getResponseFormat();
+        this.resultModel    = query.getResultModel();
+        this.responseMode   = query.getResponseMode();
+        this.luceneRequest  = new StringBuilder("type:observation AND template:FALSE AND procedure:\"" + procedure + "\" ");
     }
 
     /**
@@ -250,7 +249,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                             } catch (NumberFormatException ex) {}
                         }
                         if (existProcedure(sensorIdBase + procedureID)) {
-                            procSb.append("procedure:\"").append(sensorIdBase + procedureID).append("\" OR");
+                            procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" OR");
                         } else {
                             procSb.append("procedure:\"").append(procedureID).append("\" OR");
                         }
@@ -299,7 +298,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                             } catch (NumberFormatException ex) {}
                         }
                         if (existProcedure(sensorIdBase + procedureID)) {
-                            procSb.append("procedure:\"").append(sensorIdBase + procedureID).append("\" OR");
+                            procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" OR");
                         } else {
                             procSb.append("procedure:\"").append(procedureID).append("\" OR");
                         }
@@ -336,8 +335,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
             timeFilters.add(tFilter);
-            if (time instanceof Period) {
-                final Period tp = (Period) time;
+            if (time instanceof Period tp) {
                 final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
                 final String end        = getLuceneTimeValue(tp.getEnding().getDate());
 
@@ -396,8 +394,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             }
         } else if (type == TemporalOperatorName.DURING) {
             timeFilters.add(tFilter);
-            if (time instanceof Period) {
-                final Period tp = (Period) time;
+            if (time instanceof Period tp) {
                 final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
                 final String end        = getLuceneTimeValue(tp.getEnding().getDate());
                 luceneRequest.append("AND (");

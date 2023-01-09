@@ -130,10 +130,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             String currentProc                    = null;
             Long currentTime                      = null;
 
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 lineNumber++;
-                final String[] line = it.next();
+                final Object[] line = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                 if (verifyEmptyLine(line, lineNumber, doubleFields)) {
@@ -143,7 +143,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
                 // look for current procedure (for observation separation)
                 if (procIndex != -1) {
-                    final String procId = extractWithRegex(procRegex, line[procIndex]);
+                    final String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
                         LOGGER.finer("skipping line due to none specified sensor related.");
@@ -154,13 +154,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // look for current procedure name
-                String currentProcName = getColumnValue(procNameIndex, line, currentProc);
+                String currentProcName = (String) getColumnValue(procNameIndex, line, currentProc);
 
                 // look for current procedure description
-                String currentProcDesc = getColumnValue(procDescIndex, line, null);
+                String currentProcDesc = (String) getColumnValue(procDescIndex, line, null);
 
                 // look for current foi (for observation separation)
-                currentFoi = getColumnValue(foiIndex, line, currentFoi);
+                currentFoi = (String) getColumnValue(foiIndex, line, currentFoi);
 
                 // look for current date (for non timeseries observation separation)
                 if (!dateIndexes.equals(mainIndexes)) {
@@ -239,7 +239,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         // TODO quality values
                         currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber, new String[0]);
                     } catch (ParseException | NumberFormatException ex) {
-                        if (!line[i].isEmpty()) {
+                        if (!(line[i] instanceof String str && str.isEmpty())) {
                             LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
                         }
                     }
@@ -282,11 +282,11 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             int procIndex = getColumnIndex(procedureColumn, headers);
 
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
-                final String[] line = it.next();
+                final Object[] line = it.next();
                 if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     result.add(procedureId + procId);
                 }
             }
@@ -354,10 +354,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final Set<String> knownPositions  = new HashSet<>();
             String previousProc               = null;
             ProcedureDataset currentPTree        = null;
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 lineNumber++;
-                final String[] line   = it.next();
+                final Object[] line   = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                 if (verifyEmptyLine(line, lineNumber, doubleFields)) {
@@ -368,14 +368,14 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 Date dateParse        = null;
                 final String currentProc;
                 if (procedureIndex != -1) {
-                    final String procId = extractWithRegex(procRegex, line[procedureIndex]);
+                    final String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
                     currentProc = procedureId + procId;
                 } else {
                     currentProc = getProcedureID();
                 }
 
                 // look for current procedure description
-                String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
+                String currentProcDesc = (String) getColumnValue(procDescIndex, line, currentProc);
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
                     currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null));

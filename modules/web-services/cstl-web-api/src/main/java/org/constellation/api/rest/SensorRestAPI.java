@@ -35,7 +35,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -85,9 +84,10 @@ import static org.springframework.http.MediaType.*;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.constellation.ws.ISensorConfigurer;
-import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.query.IdentifierQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
 
 /**
  *
@@ -292,7 +292,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         final List<ProcedureTree> procedures;
         try {
             if (provider instanceof ObservationProvider) {
-                procedures = ((ObservationProvider)provider).getProcedureTrees(null, Collections.EMPTY_MAP);
+                procedures = ((ObservationProvider)provider).getProcedureTrees(null);
             } else {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
             }
@@ -455,7 +455,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP));
+                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new ObservedPropertyQuery()));
                     } else {
                         LOGGER.warning("Searching phenomenon on a non-observation provider");
                     }
@@ -496,7 +496,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                     if (prov instanceof ObservationProvider) {
                         ObservationProvider omP = (ObservationProvider) prov;
                         if (omP.existEntity(new IdentifierQuery(OMEntity.OBSERVED_PROPERTY, observedProperty))) {
-                            sensorIDS.addAll(omP.getIdentifiers(new AbstractObservationQuery(OMEntity.PROCEDURE), Collections.EMPTY_MAP));
+                            sensorIDS.addAll(omP.getIdentifiers(new ProcedureQuery()));
                         }
                     }
                 }
@@ -532,7 +532,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                 for (Integer providerId : providerIDs) {
                     DataProvider prov = DataProviders.getProvider(providerId);
                     if (prov instanceof ObservationProvider) {
-                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new AbstractObservationQuery(OMEntity.OBSERVED_PROPERTY), Collections.EMPTY_MAP));
+                        phenomenons.addAll(((ObservationProvider)prov).getIdentifiers(new ObservedPropertyQuery()));
                     }
                 }
                 return new ResponseEntity(new StringList(phenomenons),OK);

@@ -51,9 +51,11 @@ import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationReader;
-import static org.geotoolkit.observation.OMUtils.*;
-import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.query.ObservationQuery;
+import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.ogc.xml.v200.TimeAfterType;
 import org.geotoolkit.ogc.xml.v200.TimeBeforeType;
 import org.geotoolkit.ogc.xml.v200.TimeDuringType;
@@ -105,6 +107,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      *
      * @param configuration
      * @param properties
+     * @param reader An observation reader
      *
      * @throws DataStoreException
      */
@@ -124,17 +127,14 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
-        this.objectType = objectType;
-        this.version = getVersionFromHints(hints);
-        this.responseFormat = (String) hints.get(RESPONSE_FORMAT);
-        
+    public void init(AbstractObservationQuery query) throws DataStoreException {
+        this.objectType = query.getEntityType();
         switch (objectType) {
             case FEATURE_OF_INTEREST: return; // do nothing not implemented
             case OBSERVED_PROPERTY:   initFilterGetPhenomenon(); break;
             case PROCEDURE:           initFilterGetSensor(); break;
-            case OBSERVATION:         initFilterObservation(hints);
-            case RESULT:              initFilterGetResult(hints);
+            case OBSERVATION:         initFilterObservation((ObservationQuery) query);
+            case RESULT:              initFilterGetResult((ResultQuery) query);
             case OFFERING:            
             case LOCATION:
             case HISTORICAL_LOCATION: throw new UnsupportedOperationException("Not supported yet.");
@@ -142,12 +142,12 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         }
     }
 
-    private void initFilterObservation(Map<String, Object> hints) {
-        this.responseMode = (ResponseMode) hints.get("responseMode");
-        this.resultModel = (QName) hints.get("resultModel");
-        this.responseFormat = (String) hints.get("responseFormat");
-        currentQuery              = new Query();
-        final Select select       = new Select(configurationQuery.getSelect("filterObservation"));
+    private void initFilterObservation(ObservationQuery query) {
+        this.responseMode   = query.getResponseMode();
+        this.resultModel    = query.getResultModel();
+        this.responseFormat = query.getResponseFormat();
+        currentQuery        = new Query();
+        final Select select = new Select(configurationQuery.getSelect("filterObservation"));
         final From from;
         if (resultModel.equals(OBSERVATION_QNAME)) {
             from = new From(configurationQuery.getFrom("observations"));
@@ -167,14 +167,14 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         eventTimes.clear();
     }
 
-    private void initFilterGetResult(Map<String, Object> hints) {
-        String procedure = (String) hints.get("procedure");
-        this.resultModel = (QName) hints.get("resultModel");
-        this.responseFormat = (String) hints.get("responseFormat");
-        currentQuery              = new Query();
-        final Select select       = new Select(configurationQuery.getSelect("filterResult"));
-        final From from           = new From(configurationQuery.getFrom("observations"));
-        final Where where         = new Where(configurationQuery.getWhere(PROCEDURE));
+    private void initFilterGetResult(ResultQuery query) {
+        String procedure    = query.getProcedure();
+        this.resultModel    = query.getResultModel();
+        this.responseFormat = query.getResponseFormat();
+        currentQuery        = new Query();
+        final Select select = new Select(configurationQuery.getSelect("filterResult"));
+        final From from     = new From(configurationQuery.getFrom("observations"));
+        final Where where   = new Where(configurationQuery.getWhere(PROCEDURE));
 
         where.replaceVariable(PROCEDURE, procedure, true);
         currentQuery.addSelect(select);
@@ -288,8 +288,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         CodeList<?> type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
             eventTimes.add(new TimeEqualsType("result_time", time));
-            if (time instanceof Period) {
-                final Period tp    = (Period) time;
+            if (time instanceof Period tp) {
                 final String begin = getTimeValue(tp.getBeginning().getDate());
                 final String end   = getTimeValue(tp.getEnding().getDate());
 
@@ -299,8 +298,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
                 currentQuery.addWhere(where);
 
             // if the temporal object is a timeInstant
-            } else if (time instanceof Instant) {
-                final Instant ti = (Instant) time;
+            } else if (time instanceof Instant ti) {
                 final String position = getTimeValue(ti.getDate());
 
                 final Where where = new Where(configurationQuery.getWhere("tequalsTI"));
@@ -314,8 +312,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else if (type == TemporalOperatorName.BEFORE) {
             eventTimes.add(new TimeBeforeType("result_time", time));
             // for the operation before the temporal object must be an timeInstant
-            if (time instanceof Instant) {
-                final Instant ti = (Instant) time;
+            if (time instanceof Instant ti) {
                 final String position = getTimeValue(ti.getDate());
 
                 final Where where = new Where(configurationQuery.getWhere("tbefore"));
@@ -329,8 +326,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else if (type == TemporalOperatorName.AFTER) {
             eventTimes.add(new TimeAfterType("result_time", time));
             // for the operation after the temporal object must be an timeInstant
-            if (time instanceof Instant) {
-                final Instant ti = (Instant) time;
+            if (time instanceof Instant ti) {
                 final String position    = getTimeValue(ti.getDate());
 
                 final Where where        = new Where(configurationQuery.getWhere("tafter"));
@@ -343,8 +339,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             }
         } else if (type == TemporalOperatorName.DURING) {
             eventTimes.add(new TimeDuringType("result_time", time));
-            if (time instanceof Period) {
-                final Period tp    = (Period) time;
+            if (time instanceof Period tp) {
                 final String begin = getTimeValue(tp.getBeginning().getDate());
                 final String end   = getTimeValue(tp.getEnding().getDate());
 
@@ -440,50 +435,58 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     @Override
     public List<Observation> getObservations() throws DataStoreException {
-        final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid                = getIdentifiers();
-        for (String foid : oid) {
-            final Observation obs = reader.getObservation(foid, resultModel, responseMode);
+        final List<Observation> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            final Observation obs = reader.getObservation(id, resultModel, responseMode);
 
             if (!ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
                 // parse result values to eliminate wrong results
                 applyTimeConstraint(obs, eventTimes);
             }
-            observations.add(obs);
+            results.add(obs);
         }
-        return observations;
+        return results;
     }
 
     @Override
     public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
-        final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid                = getIdentifiers();
-        for (String foid : fid) {
-            final SamplingFeature feature = reader.getFeatureOfInterest(foid);
-            features.add(feature);
+        final List<SamplingFeature> results = new ArrayList<>();
+        final Set<String> ids                = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getFeatureOfInterest(id));
         }
-        return features;
+        return results;
     }
 
     @Override
     public List<Phenomenon> getPhenomenons() throws DataStoreException {
-        final Set<String> fids    = getIdentifiers();
-        List<Phenomenon> results = new ArrayList<>();
-        for (String fid : fids) {
-            results.add(reader.getPhenomenon(fid));
+        final List<Phenomenon> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getPhenomenon(id));
         }
         return results;
     }
 
     @Override
     public List<Process> getProcesses() throws DataStoreException {
-        final List<Process> processes = new ArrayList<>();
-        final Set<String> pids        = getIdentifiers();
-        for (String pid : pids) {
-            final Process pr = reader.getProcess(pid);
-            processes.add(pr);
+        final List<Process> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getProcess(id));
         }
-        return processes;
+        return results;
+    }
+
+    @Override
+    public List<Offering> getOfferings() throws DataStoreException {
+        final List<Offering> results = new ArrayList<>();
+        final Set<String> ids = getIdentifiers();
+        for (String id : ids) {
+            results.add(reader.getObservationOffering(id));
+        }
+        return results;
     }
 
     @Override

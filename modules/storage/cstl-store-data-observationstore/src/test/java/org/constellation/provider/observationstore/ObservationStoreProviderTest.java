@@ -23,10 +23,11 @@ import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,6 +35,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreProvider;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -46,7 +50,6 @@ import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
-import static org.geotoolkit.observation.ObservationFilterFlags.*;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
@@ -57,7 +60,10 @@ import org.geotoolkit.observation.query.HistoricalLocationQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.OfferingQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.observation.query.ResultQuery;
+import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
@@ -71,6 +77,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
@@ -81,6 +88,7 @@ import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
 import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
@@ -153,7 +161,7 @@ public class ObservationStoreProviderTest {
     public void getProceduresTest() throws Exception {
         assertNotNull(omPr);
 
-        List<ProcedureTree> procs = omPr.getProcedureTrees(null, new HashMap<>());
+        List<ProcedureTree> procs = omPr.getProcedureTrees(null);
         assertEquals(TOTAL_NB_SENSOR + 1, procs.size());
 
         Set<String> resultIds = new HashSet<>();
@@ -193,8 +201,8 @@ public class ObservationStoreProviderTest {
     public void getFeatureOfInterestNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.FEATURE_OF_INTEREST);
-        Collection<String> resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        AbstractObservationQuery query = new SamplingFeatureQuery();
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(6, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -206,7 +214,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("station-006");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(query, Collections.EMPTY_MAP);
+        long result = omPr.getCount(query);
         assertEquals(result, 6L);
     }
 
@@ -220,6 +228,241 @@ public class ObservationStoreProviderTest {
         for (SamplingFeature p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.SamplingFeature);
         }
+    }
+
+    @Test
+    public void getFeatureOfInterestIdsBBOXTest() throws Exception {
+        assertNotNull(omPr);
+
+        CoordinateReferenceSystem crs27582 = CRS.forCode("EPSG:27582");
+
+        //  "offering-4", 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582" => station 1
+
+        GeneralEnvelope env = new GeneralEnvelope(crs27582);
+        env.setRange(0, 64000.0, 66000.0);
+        env.setRange(1, 1730000.0, 1740000.0);
+
+        SamplingFeatureQuery query = new SamplingFeatureQuery();
+        BinarySpatialOperator bbox = ff.bbox(ff.property("the_geom"), env);
+        BinaryComparisonOperator equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
+        Filter filter = ff.and(bbox, equal);
+        query.setSelection(filter);
+
+        Collection<String> resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  all full bbox
+
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        filter = bbox;
+        query.setSelection(filter);
+
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(6, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        expectedIds.add("station-003");
+        expectedIds.add("station-004");
+        expectedIds.add("station-005");
+        expectedIds.add("station-006");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  filter on offering full bbox
+
+        List<String> offerings = Arrays.asList("offering-4", "offering-5");
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        List<Filter> filters = new ArrayList<>();
+        for (String offering : offerings) {
+            filters.add(ff.equal(ff.property("offering"), ff.literal(offering)));
+        }
+        Filter offFilter = ff.or(filters);
+        filter = ff.and(bbox, offFilter);
+        query.setSelection(filter);
+
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  filter on offering full bbox
+
+        offerings = Arrays.asList("offering-4", "offering-5", "offering-9");
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        filters = new ArrayList<>();
+        for (String offering : offerings) {
+            filters.add(ff.equal(ff.property("offering"), ff.literal(offering)));
+        }
+        offFilter = ff.or(filters);
+        filter = ff.and(bbox, offFilter);
+        query.setSelection(filter);
+
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        expectedIds.add("station-006");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // "offering-4" 66000.0, 1730000.0, 67000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"  => no result
+
+        env = new GeneralEnvelope(crs27582);
+        env.setRange(0, 66000.0, 67000.0);
+        env.setRange(1, 1730000.0, 1740000.0);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
+        filter = ff.and(bbox, equal);
+        query.setSelection(filter);
+        
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(0, resultIds.size());
+    }
+
+    @Test
+    public void getFullFeatureOfInterestBBOXTest() throws Exception {
+        assertNotNull(omPr);
+
+        CoordinateReferenceSystem crs27582 = CRS.forCode("EPSG:27582");
+
+        //  "offering-4", 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582" => station 1
+
+        GeneralEnvelope env = new GeneralEnvelope(crs27582);
+        env.setRange(0, 64000.0, 66000.0);
+        env.setRange(1, 1730000.0, 1740000.0);
+
+        SamplingFeatureQuery query = new SamplingFeatureQuery();
+        BinarySpatialOperator bbox = ff.bbox(ff.property("the_geom"), env);
+        BinaryComparisonOperator equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
+        Filter filter = ff.and(bbox, equal);
+        query.setSelection(filter);
+
+        List<SamplingFeature> results = omPr.getFeatureOfInterest(query);
+        assertEquals(1, results.size());
+
+        Set<String> resultIds = results.stream().map(p -> ((org.geotoolkit.observation.model.SamplingFeature)p).getId()).collect(Collectors.toSet());
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  all full bbox
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        filter = bbox;
+        query.setSelection(filter);
+
+        results = omPr.getFeatureOfInterest(query);
+        assertEquals(6, results.size());
+
+        resultIds = results.stream().map(p -> ((org.geotoolkit.observation.model.SamplingFeature)p).getId()).collect(Collectors.toSet());
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        expectedIds.add("station-003");
+        expectedIds.add("station-004");
+        expectedIds.add("station-005");
+        expectedIds.add("station-006");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  filter on offering full bbox
+
+        List<String> offerings = Arrays.asList("offering-4", "offering-5");
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        List<Filter> filters = new ArrayList<>();
+        for (String offering : offerings) {
+            filters.add(ff.equal(ff.property("offering"), ff.literal(offering)));
+        }
+        Filter offFilter = ff.or(filters);
+        filter = ff.and(bbox, offFilter);
+        query.setSelection(filter);
+
+        results = omPr.getFeatureOfInterest(query);
+        assertEquals(2, results.size());
+
+        resultIds = results.stream().map(p -> ((org.geotoolkit.observation.model.SamplingFeature)p).getId()).collect(Collectors.toSet());
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //  filter on offering full bbox
+
+        offerings = Arrays.asList("offering-4", "offering-5", "offering-9");
+        env = new GeneralEnvelope(CommonCRS.defaultGeographic());
+        env.setRange(0, -180, 180);
+        env.setRange(1, -90, 90);
+
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        filters = new ArrayList<>();
+        for (String offering : offerings) {
+            filters.add(ff.equal(ff.property("offering"), ff.literal(offering)));
+        }
+        offFilter = ff.or(filters);
+        filter = ff.and(bbox, offFilter);
+        query.setSelection(filter);
+
+        results = omPr.getFeatureOfInterest(query);
+
+        assertEquals(3, results.size());
+
+        resultIds = results.stream().map(p -> ((org.geotoolkit.observation.model.SamplingFeature)p).getId()).collect(Collectors.toSet());
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        expectedIds.add("station-002");
+        expectedIds.add("station-006");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // "offering-4" 66000.0, 1730000.0, 67000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582"  => no result
+
+        env = new GeneralEnvelope(crs27582);
+        env.setRange(0, 66000.0, 67000.0);
+        env.setRange(1, 1730000.0, 1740000.0);
+        
+        query = new SamplingFeatureQuery();
+        bbox = ff.bbox(ff.property("the_geom"), env);
+        equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
+        filter = ff.and(bbox, equal);
+        query.setSelection(filter);
+
+        results = omPr.getFeatureOfInterest(query);
+        assertEquals(0, results.size());
+
     }
 
     @Test
@@ -237,7 +480,7 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         ObservedPropertyQuery query = new ObservedPropertyQuery();
-        Collection<String> resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(10, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
@@ -253,11 +496,11 @@ public class ObservationStoreProviderTest {
         expectedIds.add("multi-type-phenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(query, Collections.EMPTY_MAP);
+        long result = omPr.getCount(query);
         assertEquals(result, 10L);
 
         query.setNoCompositePhenomenon(true);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(7, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -270,7 +513,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("age");
         Assert.assertEquals(expectedIds, resultIds);
 
-        result = omPr.getCount(query, Collections.EMPTY_MAP);
+        result = omPr.getCount(query);
         assertEquals(result, 7L);
 
         /**
@@ -279,14 +522,14 @@ public class ObservationStoreProviderTest {
         query = new ObservedPropertyQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
 
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
         query.setNoCompositePhenomenon(true);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
 
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("depth");
@@ -545,7 +788,7 @@ public class ObservationStoreProviderTest {
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
 
-        Map<String, Map<Date, Geometry>> results = omPr.getHistoricalLocation(query, new HashMap<>());
+        Map<String, Map<Date, Geometry>> results = omPr.getHistoricalLocation(query);
 
         assertTrue(results.containsKey("urn:ogc:object:sensor:GEOM:2"));
         assertEquals(3, results.get("urn:ogc:object:sensor:GEOM:2").size());
@@ -564,8 +807,8 @@ public class ObservationStoreProviderTest {
     public void getProcedureNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.PROCEDURE);
-        Collection<String> resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        AbstractObservationQuery query = new ProcedureQuery();
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -587,33 +830,33 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:multi-type");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(query, Collections.EMPTY_MAP);
+        long result = omPr.getCount(query);
         assertEquals(result, TOTAL_NB_SENSOR + 1);
 
-        query = new AbstractObservationQuery(OMEntity.PROCEDURE);
+        query = new ProcedureQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(1, resultIds.size());
 
-        result = omPr.getCount(query, Collections.EMPTY_MAP);
+        result = omPr.getCount(query);
         assertEquals(result, 1L);
 
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(TOTAL_NB_SENSOR, resultIds.size());
-        result = omPr.getCount(query, Collections.EMPTY_MAP);
+        result = omPr.getCount(query);
         assertEquals(result, TOTAL_NB_SENSOR);
 
 
         /**
          * look for procedure for an offering
          */
-        query = new AbstractObservationQuery(OMEntity.PROCEDURE);
+        query = new ProcedureQuery();
         filter = ff.equal(ff.property("offering"), ff.literal("offering-1"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
 
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:1");
@@ -646,8 +889,8 @@ public class ObservationStoreProviderTest {
     public void getOfferingNamesTest() throws Exception {
         assertNotNull(omPr);
 
-        AbstractObservationQuery query = new AbstractObservationQuery(OMEntity.OFFERING);
-        Collection<String> resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        AbstractObservationQuery query = new OfferingQuery();
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -669,24 +912,24 @@ public class ObservationStoreProviderTest {
         expectedIds.add("offering-9");
         Assert.assertEquals(expectedIds, resultIds);
 
-        long result = omPr.getCount(query, Collections.EMPTY_MAP);
+        long result = omPr.getCount(query);
         assertEquals(result, TOTAL_NB_SENSOR + 1);
 
-        query = new AbstractObservationQuery(OMEntity.OFFERING);
+        query = new OfferingQuery();
         BinaryComparisonOperator filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(1, resultIds.size());
         
-        result = omPr.getCount(query, Collections.EMPTY_MAP);
+        result = omPr.getCount(query);
         assertEquals(result, 1L);
 
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(TOTAL_NB_SENSOR, resultIds.size());
 
-        result = omPr.getCount(query, Collections.EMPTY_MAP);
+        result = omPr.getCount(query);
         assertEquals(result, TOTAL_NB_SENSOR);
     }
 
@@ -701,7 +944,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
         
-        Collection<String> resultIds = omPr.getIdentifiers(query , new HashMap<>());
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(26, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
@@ -736,7 +979,7 @@ public class ObservationStoreProviderTest {
         // Count
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        long result = omPr.getCount(query, new HashMap<>());
+        long result = omPr.getCount(query);
         assertEquals(result, 26L);
 
         // Paging
@@ -745,7 +988,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(8L);
         query.setOffset(0L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -764,7 +1007,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(8L);
         query.setOffset(8L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:14-2");
@@ -782,7 +1025,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(8L);
         query.setOffset(16L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
@@ -800,7 +1043,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(8L);
         query.setOffset(24L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(2, resultIds.size());
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
@@ -813,7 +1056,7 @@ public class ObservationStoreProviderTest {
         */
         query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(14, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -835,7 +1078,7 @@ public class ObservationStoreProviderTest {
 
         query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        result = omPr.getCount(query, new HashMap<>());
+        result = omPr.getCount(query);
         assertEquals(result, 14L);
         
          // Paging
@@ -844,7 +1087,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(5L);
         query.setOffset(0L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -860,7 +1103,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(5L);
         query.setOffset(5L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -876,7 +1119,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(5L);
         query.setOffset(10L);
         
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(4, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -960,12 +1203,11 @@ public class ObservationStoreProviderTest {
     public void getObservationTemplateTest() throws Exception {
         assertNotNull(omPr);
 
-        Map<String, Object> hints = new HashMap<>();
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(true);
         query.setIncludeTimeInTemplate(false);
 
-        List<Observation> results = omPr.getObservations(query, hints);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(TOTAL_NB_SENSOR, results.size());
 
         for (Observation p : results) {
@@ -980,7 +1222,7 @@ public class ObservationStoreProviderTest {
         query.setIncludeFoiInTemplate(true);
         query.setIncludeTimeInTemplate(false);
         
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(2, results.size());
 
         Set<String> resultIds = results.stream().map(result -> getFOIId(result)).collect(Collectors.toSet());
@@ -990,7 +1232,7 @@ public class ObservationStoreProviderTest {
 
         // by ommiting FOI in template, it returns only one template
         query.setIncludeFoiInTemplate(false);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
         Observation template1 = (Observation) results.get(0);
@@ -999,12 +1241,12 @@ public class ObservationStoreProviderTest {
         assertNull(template1.getSamplingTime());
 
         query.setIncludeTimeInTemplate(true);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
         template1 = (Observation) results.get(0);
 
-        // template time is now included by adding the hints
+        // template time is now included by adding the query
         assertNotNull(template1.getSamplingTime());
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
 
@@ -1017,8 +1259,7 @@ public class ObservationStoreProviderTest {
         query.setIncludeFoiInTemplate(false);
         query.setIncludeTimeInTemplate(false);
 
-        hints = new HashMap<>();
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
         assertEquals("aggregatePhenomenon-2", getPhenomenonId(results.get(0)));
 
@@ -1031,7 +1272,7 @@ public class ObservationStoreProviderTest {
         query.setIncludeFoiInTemplate(false);
         query.setIncludeTimeInTemplate(true);
 
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(14, results.size());
 
         for (Observation p : results) {
@@ -1041,7 +1282,7 @@ public class ObservationStoreProviderTest {
         // Paging
         query.setLimit(5L);
         query.setOffset(0L);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(5, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1060,7 +1301,7 @@ public class ObservationStoreProviderTest {
 
         query.setLimit(5L);
         query.setOffset(5L);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(5, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1079,7 +1320,7 @@ public class ObservationStoreProviderTest {
 
         query.setLimit(5L);
         query.setOffset(10L);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(4, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1100,11 +1341,10 @@ public class ObservationStoreProviderTest {
     public void getMeasurementTemplateTest() throws Exception {
         assertNotNull(omPr);
 
-        Map<String, Object> hints = new HashMap<>();
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(true);
 
-        List<Observation> results = omPr.getObservations(query, hints);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(27, results.size());
 
         for (Observation p : results) {
@@ -1116,7 +1356,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:10"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(2, results.size());
 
         Set<String> resultIds = results.stream().map(result -> getFOIId(result)).collect(Collectors.toSet());
@@ -1126,7 +1366,7 @@ public class ObservationStoreProviderTest {
 
         // by ommiting FOI in template, it returns only one template
         query.setIncludeFoiInTemplate(false);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
@@ -1137,12 +1377,12 @@ public class ObservationStoreProviderTest {
 
         query.setIncludeTimeInTemplate(true);
         
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
         template1 = (Observation) results.get(0);
 
-        // template time is now included by adding the hints
+        // template time is now included by adding the query
         assertNotNull(template1.getSamplingTime());
         assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
 
@@ -1151,12 +1391,9 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setSelection(filter);
-
-        hints = new HashMap<>();
-        hints.put(VERSION, "1.0.0");
         query.setIncludeFoiInTemplate(false);
         
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(3, results.size());
 
         /**
@@ -1164,12 +1401,11 @@ public class ObservationStoreProviderTest {
          */
 
         // Count
-        hints.clear();
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
         query.setIncludeTimeInTemplate(true);
 
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(26, results.size());
 
         for (Observation p : results) {
@@ -1181,7 +1417,7 @@ public class ObservationStoreProviderTest {
         query.setLimit(8L);
         query.setOffset(0L);
         
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(8, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1201,11 +1437,10 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(8L);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(8, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1225,11 +1460,10 @@ public class ObservationStoreProviderTest {
 
         assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(16L);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(8, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1247,11 +1481,10 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
 
-        hints = new HashMap<>();
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(24L);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(2, results.size());
 
         resultIds = new LinkedHashSet<>();
@@ -1267,25 +1500,23 @@ public class ObservationStoreProviderTest {
         /*
         * filter on Observed property
         */
-        hints = new HashMap<>();
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
         
         filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(7, results.size());
 
         /*
         * filter on template id
         */
-        hints = new HashMap<>();
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
         
         ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2");
         query.setSelection(idFilter);
-        results = omPr.getObservations(query, hints);
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
     }
 
@@ -1294,19 +1525,17 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        Collection<String> resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(193, resultIds.size());
 
-        Map<String, Object> hints = new HashMap<>();
-        long result = omPr.getCount(query, hints);
+        long result = omPr.getCount(query);
         assertEquals(result, 193);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(111, resultIds.size());
 
-        hints = new HashMap<>();
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
         assertEquals(result, 111L);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
@@ -1314,8 +1543,7 @@ public class ObservationStoreProviderTest {
         query.setSelection(filter);
         query.setIncludeFoiInTemplate(false);
         
-        hints = new HashMap<>();
-        resultIds = omPr.getIdentifiers(query, hints);
+        resultIds = omPr.getIdentifiers(query);
 
         assertEquals(5, resultIds.size());
 
@@ -1327,13 +1555,12 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:507-2-5");
         Assert.assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
         assertEquals(result, 5L);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -1344,14 +1571,13 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:507-5");
         Assert.assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
         assertEquals(result, 5L);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
 
         assertEquals(23, resultIds.size());
 
@@ -1385,13 +1611,12 @@ public class ObservationStoreProviderTest {
 
         Assert.assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
         assertEquals(result, 23L);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query, new HashMap<>());
+        resultIds = omPr.getIdentifiers(query);
         assertEquals(13, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -1410,8 +1635,7 @@ public class ObservationStoreProviderTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:4003-3");
         Assert.assertEquals(expectedIds, resultIds);
 
-        hints = new HashMap<>();
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
         assertEquals(result, 13L);
 
         /**
@@ -1422,7 +1646,7 @@ public class ObservationStoreProviderTest {
         BinaryComparisonOperator eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(le, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         // 6 because it include the measure of the other phenomenon
         assertEquals(result, 6L);
@@ -1432,7 +1656,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(le, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 3L);
 
@@ -1444,7 +1668,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(le, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         // 20 because it include the measure of the other phenomenon
         assertEquals(result, 20L);
@@ -1454,7 +1678,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(le, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 8L);
 
@@ -1467,7 +1691,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 6L);
 
@@ -1476,7 +1700,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 3L);
 
@@ -1489,7 +1713,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 28L);
 
@@ -1498,7 +1722,7 @@ public class ObservationStoreProviderTest {
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
-        result = omPr.getCount(query, hints);
+        result = omPr.getCount(query);
 
         assertEquals(result, 14L);
     }
@@ -1508,7 +1732,7 @@ public class ObservationStoreProviderTest {
         assertNotNull(omPr);
 
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        List<Observation> results = omPr.getObservations(query, new HashMap<>());
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(193, results.size());
 
         for (Observation p : results) {
@@ -1521,7 +1745,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(15, results.size());
 
         /**
@@ -1533,7 +1757,7 @@ public class ObservationStoreProviderTest {
         BinaryComparisonOperator f2 = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
         filter = ff.and(f1, f2);
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(6, results.size());
 
     }
@@ -1548,7 +1772,7 @@ public class ObservationStoreProviderTest {
         * - foi
         */
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        List<Observation> results = omPr.getObservations(query, new HashMap<>());
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(TOTAL_NB_SENSOR, results.size());
 
         Set<String> resultIds = new LinkedHashSet<>();
@@ -1582,7 +1806,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:3"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         Observation result = results.get(0);
@@ -1621,7 +1845,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = results.get(0);
@@ -1637,7 +1861,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = results.get(0);
@@ -1666,7 +1890,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = results.get(0);
@@ -1698,7 +1922,7 @@ public class ObservationStoreProviderTest {
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
         query.setSelection(filter);
-        List<Observation> results = omPr.getObservations(query, new HashMap<>());
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
        String result = getResultValues(results.get(0));
@@ -1717,7 +1941,7 @@ public class ObservationStoreProviderTest {
         Filter f2 = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
         filter = ff.and(f1, f2);
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = getResultValues(results.get(0));
@@ -1730,7 +1954,7 @@ public class ObservationStoreProviderTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = getResultValues(results.get(0));
@@ -1752,7 +1976,7 @@ public class ObservationStoreProviderTest {
         f2 = ff.lessOrEqual(ff.property("result") , ff.literal(19.0));
         filter = ff.and(f1, f2);
         query.setSelection(filter);
-        results = omPr.getObservations(query, new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         result = getResultValues(results.get(0));
@@ -1772,7 +1996,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 3 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
-        Object result = omPr.getResults(query, new HashMap<>());
+        Object result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         String expectedResult =   "2007-05-01T02:59:00.0,6.56@@"
@@ -1795,7 +2019,7 @@ public class ObservationStoreProviderTest {
 
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2007-05-01T03:56:00.0,6.56@@"
@@ -1812,7 +2036,7 @@ public class ObservationStoreProviderTest {
         // sensor 3 no decimation with id
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =          "urn:ogc:object:observation:GEOM:304-1,2007-05-01T02:59:00.0,6.56@@"
@@ -1837,7 +2061,7 @@ public class ObservationStoreProviderTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:3-dec-0,2007-05-01T03:56:00.0,6.56@@"
@@ -1857,7 +2081,7 @@ public class ObservationStoreProviderTest {
     public void getResultsSingleFilterTest() throws Exception {
         // sensor 8 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
-        Object result = omPr.getResults(query, new HashMap<>());
+        Object result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         String expectedResult =
@@ -1872,7 +2096,7 @@ public class ObservationStoreProviderTest {
         // sensor 8 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -1888,7 +2112,7 @@ public class ObservationStoreProviderTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         BinaryComparisonOperator filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
@@ -1899,7 +2123,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 8 with decimation with filter on result component
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -1913,7 +2137,7 @@ public class ObservationStoreProviderTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2007-05-01T14:59:00.0,6.56,14.0@@"
@@ -1926,7 +2150,7 @@ public class ObservationStoreProviderTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -1941,7 +2165,7 @@ public class ObservationStoreProviderTest {
         query.setIncludeIdInDataBlock(true);
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:observation:GEOM:801-5,2007-05-01T14:59:00.0,6.56,14.0@@"
@@ -1955,7 +2179,7 @@ public class ObservationStoreProviderTest {
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -1970,7 +2194,7 @@ public class ObservationStoreProviderTest {
     public void getResultsMultiFilterTest() throws Exception {
         // sensor 12 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
-        Object result = omPr.getResults(query, new HashMap<>());
+        Object result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         String expectedResult =
@@ -1985,7 +2209,7 @@ public class ObservationStoreProviderTest {
         // sensor 12 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
@@ -1999,7 +2223,7 @@ public class ObservationStoreProviderTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         BinaryComparisonOperator filter = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
         query.setSelection(filter);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -2009,7 +2233,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 12 with decimation with filter on result
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -2021,7 +2245,7 @@ public class ObservationStoreProviderTest {
         // sensor quality no decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
         query.setIncludeQualityFields(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "1980-03-01T21:52:00.0,6.56,ok@@"
@@ -2034,7 +2258,7 @@ public class ObservationStoreProviderTest {
 
         // sensor quality with decimation
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -2053,7 +2277,7 @@ public class ObservationStoreProviderTest {
         filter = ff.equal(ff.property("result[1].qflag") , ff.literal("ok"));
         query.setSelection(filter);
 
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "1980-03-01T21:52:00.0,6.56,ok@@"
@@ -2064,7 +2288,7 @@ public class ObservationStoreProviderTest {
 
         // sensor quality with decimation
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         // here the decimated resuts is the same, as we ask for more values than there is
@@ -2082,7 +2306,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 2 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
-        Object result = omPr.getResults(query, new HashMap<>());
+        Object result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         String expectedResult =
@@ -2100,7 +2324,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 2 no decimation with id
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:observation:GEOM:201-1,12.0,18.5@@"
@@ -2118,7 +2342,7 @@ public class ObservationStoreProviderTest {
         // sensor 2 no decimation with time
         query.setIncludeIdInDataBlock(false);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,12.0,18.5@@"
@@ -2136,7 +2360,7 @@ public class ObservationStoreProviderTest {
         // sensor 2 no decimation with time and id
         query.setIncludeTimeForProfile(true);
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
@@ -2154,7 +2378,7 @@ public class ObservationStoreProviderTest {
         // sensor 2 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "12,18.5@@"
@@ -2170,7 +2394,7 @@ public class ObservationStoreProviderTest {
 
         // sensor 2 with decimation and id
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,12,18.5@@"
@@ -2187,7 +2411,7 @@ public class ObservationStoreProviderTest {
         // sensor 2 with decimation and time
         query.setIncludeIdInDataBlock(false);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,12,18.5@@"
@@ -2204,7 +2428,7 @@ public class ObservationStoreProviderTest {
         // sensor 2 with decimation, id and time
         query.setIncludeIdInDataBlock(true);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query, new HashMap<>());
+        result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,12,18.5@@"
@@ -2268,7 +2492,7 @@ public class ObservationStoreProviderTest {
 
         ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
 
-        Object results = omPr.getResults(query, new HashMap<>());
+        Object results = omPr.getResults(query);
 
         String expected = "2007-05-01T02:59:00.0,6.56@@"
                         + "2007-05-01T03:59:00.0,6.56@@"
@@ -2290,7 +2514,7 @@ public class ObservationStoreProviderTest {
         assertEquals(expected, (String) results);
 
         query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", "count");
-        results = omPr.getResults(query, new HashMap<>());
+        results = omPr.getResults(query);
 
         assertTrue(results instanceof Integer);
         assertEquals((Integer)15, (Integer) results);

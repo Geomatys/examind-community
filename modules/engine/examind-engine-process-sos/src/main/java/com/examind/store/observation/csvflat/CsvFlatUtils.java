@@ -58,11 +58,11 @@ public class CsvFlatUtils {
             final Set<String> storeCode = new HashSet<>();
 
             // extract all codes
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             long lineNb = 0L;
             line:while (it.hasNext()) {
                 lineNb++;
-                final String[] line = it.next();
+                final Object[] line = it.next();
                 if (line.length == 0) {
                     LOGGER.finer("skipping empty line " + lineNb);
                     continue line;
@@ -70,7 +70,7 @@ public class CsvFlatUtils {
                 String computed = "";
                 boolean first = true;
                 for(Integer i : measureCodeIndex) {
-                    final String nextCode = line[i];
+                    final String nextCode = (String) line[i];
                     if (nextCode == null || nextCode.isEmpty()) {
                         LOGGER.warning("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
                         continue line;

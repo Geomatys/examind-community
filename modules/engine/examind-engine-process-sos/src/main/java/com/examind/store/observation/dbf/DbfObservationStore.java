@@ -17,129 +17,51 @@
 
 package com.examind.store.observation.dbf;
 
+import com.examind.store.observation.DataFileReader;
+import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingUtils.*;
+import com.examind.store.observation.ObservationBlock;
+import com.examind.store.observation.ObservedProperty;
+import com.examind.store.observation.csv.CsvObservationStoreFactory;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
-import org.geotoolkit.data.dbf.DbaseFileStore;
-import org.geotoolkit.data.dbf.DbaseFileHeader;
-import org.geotoolkit.data.dbf.DbaseFileReader;
-import org.geotoolkit.data.dbf.DbaseFileReader.Row;
-import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
-import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.GeoSpatialBound;
-import org.geotoolkit.observation.OMUtils;
-import org.geotoolkit.observation.ObservationStoreCapabilities;
-import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.observation.model.OMEntity;
-import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.Procedure;
-import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.SamplingFeature;
-import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.storage.DataStores;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.parameter.ParameterValueGroup;
 
 /**
  * Implementation of an observation store for csv observation data based on {@link CSVFeatureStore}.
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class DbfObservationStore extends DbaseFileStore implements ObservationStore {
+public class DbfObservationStore extends FileParsingObservationStore implements ObservationStore {
 
-    private static final String PROCEDURE_TREE_TYPE = "Component";
 
-    private static final Logger LOGGER = Logger.getLogger("com.examind.process.sos.dbf");
-
-    private static final GeometryFactory GF = new GeometryFactory();
-
-    private final Path dataFile;
-
-    private final String mainColumn;
-
-    // date column expected header
-    private final String dateColumn;
-    // date format
-    private final String dateFormat;
-    // longitude column expected header
-    private final String longitudeColumn;
-    // latitude column expected header
-    private final String latitudeColumn;
-
-    private final String foiColumn;
-
-    private final Set<String> measureColumns;
-
-    // timeSeries / trajectory / profiles
-    private final String observationType;
-
-    private final String procedureId;
-
-    private final String procedureColumn;
-
-    /**
-     *
-     * @param observationFile path to the dbf observation file
-     * @param mainColumn the name (header) of the main column (date or pression/depth for profiles)
-     * @param dateColumn the name (header) of the date column
-     * @param dateTimeformat the date format (see {@link SimpleDateFormat})
-     * @param longitudeColumn the name (header) of the longitude column
-     * @param latitudeColumn the name (header) of the latitude column
-     * @param measureColumns the names (headers) of the measure columns
-     * @param foiColumn the name (header) of the feature of interest column
-     * @throws DataStoreException
-     * @throws MalformedURLException
-     */
-    public DbfObservationStore(final Path observationFile,
-            final String mainColumn, final String dateColumn, final String dateTimeformat, final String longitudeColumn, final String latitudeColumn,
-            final Set<String> measureColumns, String observationType, String foiColumn, final String procedureId, final String procedureColumn) throws DataStoreException, MalformedURLException {
-        super(observationFile);
-        dataFile = observationFile;
-        this.mainColumn = mainColumn;
-        this.dateColumn = dateColumn;
-        this.dateFormat = dateTimeformat;
-        this.longitudeColumn = longitudeColumn;
-        this.latitudeColumn = latitudeColumn;
-        this.measureColumns = measureColumns;
-        this.observationType = observationType;
-        this.foiColumn = foiColumn;
-        this.procedureId = procedureId;
-        this.procedureColumn = procedureColumn;
+    public DbfObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
+        super(params);
     }
 
     @Override
@@ -147,341 +69,198 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         return DataStores.getProviderById(DbfObservationStoreFactory.NAME);
     }
 
-    private String getProcedureID() {
-        if (procedureId == null) {
-            return IOUtilities.filenameWithoutExtension(dataFile);
-        }
-        return procedureId;
-    }
-
     @Override
     public ObservationDataset getDataset(DatasetQuery query) throws DataStoreException {
         if (query.getAffectedSensorID() != null) {
             LOGGER.warning("DBFObservation store does not allow to override sensor ID");
         }
+        try (final DataFileReader reader = getDataFileReader()) {
 
-        int obsCpt = 0;
-
-        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
-
-            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
-            final DbaseFileHeader headers = reader.getHeader();
+            final String[] headers = reader.getHeaders();
 
             // expected to contain headers information
-            if (headers != null) {
+            if (headers == null)  throw new DataStoreException("Missing headers");
 
-                /*
-                1- filter prepare spatial/time column indices from ordinary fields
-                ================================================================*/
-                int mainIndex = -1;
-                int dateIndex = -1;
-                int latitudeIndex = -1;
-                int longitudeIndex = -1;
-                int foiIndex = -1;
+            /*
+            1- filter prepare spatial/time column indices from ordinary fields
+            ================================================================*/
+            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers);
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
 
-                // read headers
-                final List<String> measureFields = new ArrayList<>();
-                final List<Integer> ignoredFields = new ArrayList<>();
 
-                for (int i = 0; i < headers.getNumFields(); i++) {
-                    final String header = headers.getFieldName(i);
+            int latitudeIndex  = getColumnIndex(latitudeColumn, headers);
+            int longitudeIndex = getColumnIndex(longitudeColumn, headers);
+            int foiIndex       = getColumnIndex(foiColumn, headers);
+            int procIndex      = getColumnIndex(procedureColumn, headers);
+            int procNameIndex  = getColumnIndex(procedureNameColumn, headers);
+            int procDescIndex  = getColumnIndex(procedureDescColumn, headers);
 
-                    if (header.equals(mainColumn)) {
-                        mainIndex = i;
-                        if (header.equals(dateColumn)) dateIndex = i;
-                    } else if (header.equals(foiColumn)) {
-                        foiIndex = i;
-                        ignoredFields.add(i);
-                    } else if (header.equals(dateColumn)) {
-                        dateIndex = i;
-                        if ("Profile".equals(observationType))  ignoredFields.add(dateIndex);
-                    } else if (header.equals(latitudeColumn)) {
-                        latitudeIndex = i;
-                        ignoredFields.add(latitudeIndex);
-                    } else if (header.equals(longitudeColumn)) {
-                        longitudeIndex = i;
-                         ignoredFields.add(longitudeIndex);
-                    } else if (measureColumns.contains(header)) {
-                        measureFields.add(header);
-                    } else {
-                        ignoredFields.add(i);
-                    }
+            if (mainIndexes.isEmpty()) {
+                throw new DataStoreException("Unexpected column main:" + mainColumns);
+            }
+
+            final List<String> measureFields = new ArrayList<>();
+            if ("Profile".equals(observationType))   {
+                if (mainColumns.size() > 1) {
+                    throw new DataStoreException("Multiple main columns is not yet supported for Profile");
+                }
+                measureFields.add(mainColumns.get(0));
+            }
+            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
+
+            // special case where there is no header, and a specified observation peorperty identifier
+            ObservedProperty fixedObsProp = null;
+            if (directColumnIndex && noHeader && obsPropId != null) {
+                measureFields.add(obsPropId);
+                fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
+            }
+
+             // final result
+            final ObservationDataset result = new ObservationDataset();
+
+            /*
+            2- compute measures
+            =================*/
+
+            int lineNumber = 1;
+
+            // spatial / temporal boundaries
+            final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
+
+            // -- single observation related variables --
+            String currentFoi                     = null;
+            String currentProc                    = null;
+            Long currentTime                      = null;
+
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
+
+            while (it.hasNext()) {
+                lineNumber++;
+                final Object[] line = it.next();
+
+                // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
+                    continue;
                 }
 
-                // memorize indices to skip
-                final int[] skippedIndices = ArrayUtils.toPrimitive(ignoredFields.toArray(new Integer[ignoredFields.size()]));
-
-                /*
-                2- set ordinary fields
-                =====================*/
-                final List<Field> fields = new ArrayList<>();
-                int j = 1;
-                for (final String field : measureFields) {
-                    fields.add(new Field(j, FieldType.QUANTITY, field, field, null, null));
-                    j++;
-                }
-
-                final ObservationDataset result = new ObservationDataset();
-
-                org.geotoolkit.observation.model.Phenomenon phenomenon = OMUtils.getPhenomenonModels(null, fields, "", Collections.EMPTY_SET);
-                result.phenomenons.add(phenomenon);
-
-                switch (observationType) {
-                    case "Timeserie"  -> fields.add(0, OMUtils.TIME_FIELD);
-                    case "Trajectory" -> fields.add(0, OMUtils.TIME_FIELD);
-                    case "Profile"    -> {}
-                    default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-                }
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("type", observationType);
-
-                /*
-                3- compute measures
-                =================*/
-
-                // -- global variables --
-                int count = 0;
-
-                // spatial / temporal boundaries
-                final GeoSpatialBound globalSpaBound = new GeoSpatialBound();
-                final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
-
-                // -- single observation related variables --
-                int currentCount                      = 0;
-                String currentFoi                     = null;
-                GeoSpatialBound currentSpaBound = new GeoSpatialBound();
-                // builder of measure string
-                MeasureStringBuilder msb = new MeasureStringBuilder();
-                // memorize positions to compute FOI
-                final List<Coordinate> positions = new ArrayList<>();
-
-                // -- previous variables leading to new observations --
-                String previousFoi = null;
-
-                while (reader.hasNext()) {
-                    count++;
-                    final Row line = reader.next();
-
-                    // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                    boolean empty = true;
-                    for (int i = 0; i < headers.getNumFields(); i++) {
-                        if (i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
-                            if (line.read(i) != null) {
-                                empty = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (empty) {
-                        LOGGER.info("skipping row due to none expected variable present.");
+                // look for current procedure (for observation separation)
+                if (procIndex != -1) {
+                    final String procId = extractWithRegex(procRegex, (String) line[procIndex]);
+                    currentProc = procedureId + procId;
+                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
+                        LOGGER.finer("skipping line due to none specified sensor related.");
                         continue;
                     }
-
-                    // look for current foi
-                    if (foiIndex != -1) {
-                        currentFoi = line.read(foiIndex).toString();
-                    }
-
-
-                    // closing current observation and starting new one
-                    if (previousFoi != null && !previousFoi.equals(currentFoi)) {
-
-                        final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
-                        obsCpt++;
-                        final String procedureID = getProcedureID();
-                        final Procedure proc = new Procedure(procedureID);
-
-                        // sampling feature of interest
-                        String foiID = previousFoi;
-                        
-                        final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
-                        result.addFeatureOfInterest(sp);
-                        globalSpaBound.addGeometry(sp.getGeometry());
-
-                        ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), currentCount);
-                        result.observations.add(new Observation(oid,
-                                                                oid,
-                                                                null, null,
-                                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
-                                                                proc,
-                                                                currentSpaBound.getTimeObject(),
-                                                                sp,
-                                                                phenomenon,
-                                                                null,
-                                                                resultO,
-                                                                properties));
-
-                        // reset single observation related variables
-                        currentCount    = 0;
-                        currentSpaBound = new GeoSpatialBound();
-                        positions.clear();
-                        msb = new MeasureStringBuilder();
-                    }
-
-                    previousFoi = currentFoi;
-                    currentCount++;
-
-
-                    /*
-                    a- build spatio-temporal information
-                    ==================================*/
-
-                    // update temporal interval
-                    if (dateIndex != -1) {
-                        final Object dateObj = line.read(dateIndex);
-                        final long millis = parseObjectDate(dateObj, sdf);
-                        globalSpaBound.addDate(millis);
-                        currentSpaBound.addDate(millis);
-                    }
-
-                    // update spatial information
-                    if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        final double longitude = ((Double)line.read(longitudeIndex));
-                        final double latitude  = ((Double)line.read(latitudeIndex));
-                        Coordinate pos = new Coordinate(latitude, longitude);
-                        if (!positions.contains(pos)) {
-                            positions.add(pos);
-                        }
-                        globalSpaBound.addXYCoordinate(longitude, latitude);
-                        currentSpaBound.addXYCoordinate(longitude, latitude);
-                    }
-
-
-                    /*
-                    b- build measure string
-                    =====================*/
-
-                    // add main field
-                    if (mainIndex != -1) {
-
-                        // assume that for profile main field is a double
-                        if ("Profile".equals(observationType)) {
-                            try {
-                                msb.appendValue((Double)(line.read(mainIndex)));
-                            } catch (ClassCastException ex) {
-                                LOGGER.fine(String.format("Problem parsing double for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
-                                continue;
-                            }
-                        // assume that is a date otherwise
-                        } else {
-                            try {
-                                final Object dateObj = line.read(mainIndex);
-                                final long millis = parseObjectDate(dateObj, sdf);
-                                msb.appendDate(millis);
-                            } catch (ClassCastException ex) {
-                                LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, mainIndex, line.read(mainIndex)));
-                                continue;
-                            }
-                        }
-                    }
-
-                    // loop over columns to build measure string
-                    for (int i = 0; i < headers.getNumFields(); i++) {
-                        if(i != mainIndex && Arrays.binarySearch(skippedIndices, i) < 0) {
-                            Object value = line.read(i);
-                            try {
-                                msb.appendValue((Double)value);
-                            } catch (ClassCastException ex) {
-                                LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", count, i, value));
-                                msb.appendValue(Double.NaN);
-                            }
-                        }
-                    }
-
-                    msb.closeBlock();
+                } else {
+                    currentProc = procedureId;
                 }
 
+                 // look for current procedure name
+                String currentProcName = (String) getColumnValue(procNameIndex, line, currentProc);
+
+                // look for current procedure description
+                String currentProcDesc = (String) getColumnValue(procDescIndex, line, null);
+
+                // look for current foi (for observation separation)
+                currentFoi = Objects.toString(getColumnValue(foiIndex, line, currentFoi));
+
+                // look for current date (for non timeseries observation separation)
+                if (!dateIndexes.equals(mainIndexes)) {
+                    Optional<Long> dateO = parseDate(line, null, dateIndexes, sdf, lineNumber);
+                    if (dateO.isPresent()) {
+                        currentTime = dateO.get();
+                    } else {
+                        continue;
+                    }
+                }
+
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType, qualityColumns, qualityTypes);
+
+                if (fixedObsProp != null) {
+                    currentBlock.updateObservedProperty(fixedObsProp);
+                }
 
                 /*
-                3- build result
-                =============*/
+                a- build spatio-temporal information
+                ==================================*/
 
-                final String oid = dataFile.getFileName().toString() + '-' + obsCpt;
-                obsCpt++;
-                final String procedureID = getProcedureID();
-                final Procedure proc = new Procedure(procedureID);
-
-                // sampling feature of interest
-                String foiID = "foi-" + UUID.randomUUID();
-                if (previousFoi != null) {
-                    foiID = previousFoi;
-                }
-                final SamplingFeature sp = buildFOIById(foiID, positions, Collections.EMPTY_SET);
-                result.addFeatureOfInterest(sp);
-                globalSpaBound.addGeometry(sp.getGeometry());
-
-                ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), count);
-                result.observations.add(new Observation(oid,
-                                                        oid,
-                                                        null, null,
-                                                        "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
-                                                        proc,
-                                                        currentSpaBound.getTimeObject(),
-                                                        sp,
-                                                        phenomenon,
-                                                        null,
-                                                        resultO,
-                                                        properties));
-                result.spatialBound.merge(globalSpaBound);
-
-                // build procedure tree
-                final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), new ArrayList<>(), null);
-                procedure.spatialBound.merge(globalSpaBound);
-                result.procedures.add(procedure);
-
-                return result;
-            }
-            throw new DataStoreException("dbf headers not found");
-        } catch (IOException | ParseException ex) {
-            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
-            throw new DataStoreException(ex);
-        }
-    }
-
-    @Override
-    public Set<String> getEntityNames(OMEntity entityType) throws DataStoreException {
-        if (entityType == null) {
-            throw new DataStoreException("initialisation of the filter missing.");
-        }
-        switch (entityType) {
-            case OBSERVED_PROPERTY:   return Collections.singleton(getProcedureID());
-            case PROCEDURE:           return extractPhenomenonIds();
-            case FEATURE_OF_INTEREST:
-            case OFFERING:
-            case OBSERVATION:
-            case LOCATION:
-            case HISTORICAL_LOCATION:
-            case RESULT:
-                throw new DataStoreException("not implemented yet.");
-            default:
-                throw new DataStoreException("unexpected object type:" + entityType);
-        }
-    }
-
-    private Set<String> extractPhenomenonIds() throws DataStoreException {
-
-        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
-
-            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
-            final DbaseFileHeader headers = reader.getHeader();
-
-
-            // at least one line is expected to contain headers information
-            if (headers != null) {
-
-                // read headers
-                final Set<String> measureFields = new HashSet<>();
-                for (int i = 0; i < headers.getNumFields(); i++) {
-                    final String header = headers.getFieldName(i);
-
-                    if (measureColumns.contains(header)) {
-                        measureFields.add(header);
+                // update temporal interval
+                Long millis = null;
+                if (!dateIndexes.isEmpty()) {
+                    Optional<Long> dateO = parseDate(line, millis, dateIndexes, sdf, lineNumber);
+                    if (dateO.isPresent()) {
+                        millis = dateO.get();
+                        result.spatialBound.addDate(millis);
+                        currentBlock.addDate(millis);
+                    } else {
+                        continue;
                     }
                 }
-                return measureFields;
+
+                // update spatial information
+                try {
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    if (position.length == 2) {
+                        final double latitude = position[0];
+                        final double longitude = position[1];
+                        result.spatialBound.addXYCoordinate(longitude, latitude);
+                        currentBlock.addPosition(millis, latitude, longitude);
+                    }
+                } catch (ParseException | NumberFormatException ex) {
+                    LOGGER.fine(String.format("Problem parsing lat/lon for date field at line %d (Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
+                    continue;
+                }
+                /*
+                b- build measure string
+                =====================*/
+
+                // add main field
+                Optional<? extends Number> mainO = parseMain(line, millis, mainIndexes, sdf, lineNumber, observationType);
+                Number mainValue ;
+                if (mainO.isPresent()) {
+                    mainValue = mainO.get();
+                } else {
+                    continue;
+                }
+
+                if (noHeader && obsPropId == null) {
+                    throw new DataStoreException("In noHeader mdoe, you must set a fixed observated property id");
+                } else if (noHeader && doubleFields.size() > 1) {
+                    throw new DataStoreException("Multiple observated property is not yet supported In noHeader mode");
+                }
+                // loop over columns to build measure string
+                for (int i : doubleFields) {
+                    try {
+                        double measureValue = parseDouble(line[i]);
+                        String fieldName;
+                        if (noHeader) {
+                            fieldName = obsPropId;
+                        } else {
+                            fieldName = headers[i];
+                        }
+                        // TODO quality values
+                        currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber, new String[0]);
+                    } catch (ParseException | NumberFormatException ex) {
+                        LOGGER.fine(String.format("Problem reading double value at line %d and column %d", lineNumber, i));
+                    }
+                }
             }
-            return Collections.emptySet();
+
+            /*
+            3- build result
+            =============*/
+            final Set<Phenomenon> phenomenons = new HashSet<>();
+            final Set<SamplingFeature> samplingFeatures = new HashSet<>();
+            int obsCpt = 0;
+            final String fileName = dataFile.getFileName().toString();
+            for (ObservationBlock ob : observationBlock.values()) {
+                final String oid = fileName + '-' + obsCpt;
+                obsCpt++;
+                buildObservation(result, oid, ob, phenomenons, samplingFeatures);
+            }
+            return result;
+            
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
             throw new DataStoreException(ex);
@@ -489,179 +268,167 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
     }
 
     @Override
-    public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
+    protected Set<String> extractProcedureIds() throws DataStoreException {
+        if (procedureColumn == null) return Collections.singleton(getProcedureID());
 
-        final GeoSpatialBound result = new GeoSpatialBound();
-        // open dbf file
-        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
+        final Set<String> result = new HashSet();
+        // open csv file
+        try (final DataFileReader reader = getDataFileReader()) {
 
-            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
-            final DbaseFileHeader headers = reader.getHeader();
-
-
-            // at least one line is expected to contain headers information
-            if (headers != null) {
-
-                // prepare time column indices
-                int dateIndex = -1;
-
-                // read headers
-                for (int i = 0; i < headers.getNumFields(); i++) {
-                    final String header = headers.getFieldName(i);
-
-                    if (dateColumn.equals(header)) {
-                        dateIndex = i;
-                    }
-                }
-
-                while (reader.hasNext()) {
-                    final Row line = reader.next();
-
-                    DateFormat df = new SimpleDateFormat(this.dateFormat);
-                    // update temporal information
-                    if (dateIndex != -1) {
-                        final Object dateObj = line.read(dateIndex);
-                        final long dateParse = parseObjectDate(dateObj, df);
-                        result.addDate(dateParse);
-                    }
-                }
-                return result.getTimeObject();
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
             }
-            throw new DataStoreException("dbf headers not found");
-        } catch (IOException | ParseException ex) {
-            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
+
+            int procIndex = getColumnIndex(procedureColumn, headers);
+
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
+            while (it.hasNext()) {
+                final Object[] line = it.next();
+                if (procIndex != -1) {
+                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
+                    result.add(procedureId + procId);
+                }
+            }
+            return result;
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
     }
 
-    /**
-     * {@inheritDoc }
-     */
     @Override
-    public Path[] getComponentFiles() throws DataStoreException {
-        return new Path[]{dataFile};
-    }
+    protected Set<String> extractPhenomenonIds() throws DataStoreException {
+        if (procedureColumn == null) return Collections.singleton(getProcedureID());
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationReader getReader() {
-        return null;
+        final Set<String> result = new HashSet();
+        // open csv file
+        try (final DataFileReader reader = getDataFileReader()) {
+
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
+            }
+
+            int procIndex = getColumnIndex(procedureColumn, headers);
+
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
+            while (it.hasNext()) {
+                final Object[] line = it.next();
+                if (procIndex != -1) {
+                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
+                    result.add(procedureId + procId);
+                }
+            }
+            return result;
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
+            throw new DataStoreException(ex);
+        }
     }
 
     @Override
     public List<ProcedureDataset> getProcedures() throws DataStoreException {
+        // open csv file
+        try (final DataFileReader reader = getDataFileReader()) {
 
-
-        // open dbf file
-        // open dbf file
-        try (SeekableByteChannel sbc = Files.newByteChannel(dataFile, StandardOpenOption.READ)){
-
-            final DbaseFileReader reader  = new DbaseFileReader(sbc, true, null);
-            final DbaseFileHeader headers = reader.getHeader();
-
-            int count = 0;
-
-            // at least one line is expected to contain headers information
-            if (headers != null) {
-                count++;
-
-                // prepare spatial/time column indices
-                int dateIndex = -1;
-                int latitudeIndex = -1;
-                int longitudeIndex = -1;
-
-                // read headers
-                final List<String> measureFields = new ArrayList<>();
-                for (int i = 0; i < headers.getNumFields(); i++) {
-                    final String header = headers.getFieldName(i);
-
-                    if (dateColumn.equals(header)) {
-                        dateIndex = i;
-                    } else if (latitudeColumn.equals(header)) {
-                        latitudeIndex = i;
-                    } else if (longitudeColumn.equals(header)) {
-                        longitudeIndex = i;
-                    } else if (measureColumns.contains(header)) {
-                        measureFields.add(header);
-                    }
-                }
-
-                // procedure tree instanciation
-                final String procedureId = getProcedureID();
-                final Procedure proc = new Procedure(procedureId);
-                final ProcedureDataset procedureTree = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null);
-
-                while (reader.hasNext()) {
-                    final Row line = reader.next();
-
-                    Date dateParse = null;
-                    Geometry geom  = null;
-
-                    DateFormat df = new SimpleDateFormat(this.dateFormat);
-
-                    // update temporal interval
-                    if (dateIndex != -1) {
-                        try {
-                            final Object dateObj = line.read(dateIndex);
-                            dateParse = new Date(parseObjectDate(dateObj, df));
-                            procedureTree.spatialBound.addDate(dateParse);
-                        } catch (ClassCastException ex) {
-                            LOGGER.fine(String.format("Problem parsing date for main field at line %d and column %d (value='%s'). skipping line...", count, dateIndex, line.read(dateIndex)));
-                            continue;
-                        }
-                    }
-
-                    // update spatial information
-                    if (latitudeIndex != -1 && longitudeIndex != -1) {
-                        try {
-                            geom = GF.createPoint(new Coordinate(longitudeIndex, latitudeIndex));
-                        } catch (NumberFormatException ex) {
-                            LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.", count));
-                        }
-                    }
-                    procedureTree.spatialBound.addLocation(dateParse, geom);
-                }
-
-                return Collections.singletonList(procedureTree);
+            String[] headers = null;
+            if (!noHeader) {
+                headers = reader.getHeaders();
             }
-            throw new DataStoreException("dbf headers not found");
-        } catch (IOException | ParseException ex) {
-            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
+            int lineNumber = 1;
+
+            // prepare spatial/time column indices
+            final List<String> measureFields = new ArrayList<>();
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
+            int latitudeIndex = getColumnIndex(latitudeColumn, headers);
+            int longitudeIndex = getColumnIndex(longitudeColumn, headers);
+            int procedureIndex = getColumnIndex(procedureColumn, headers);
+            int procDescIndex = getColumnIndex(procedureNameColumn, headers);
+
+            // used to fill measure Fields list
+            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
+
+            // special case where there is no header, and a specified observation peorperty identifier
+            if (directColumnIndex && noHeader && obsPropId != null) {
+                measureFields.add(obsPropId);
+            }
+
+            Map<String, ProcedureDataset> result = new HashMap<>();
+            final Set<String> knownPositions  = new HashSet<>();
+            String previousProc               = null;
+            ProcedureDataset currentPTree        = null;
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
+            while (it.hasNext()) {
+                lineNumber++;
+                final Object[] line   = it.next();
+
+                // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
+                    continue;
+                }
+
+                Date dateParse        = null;
+                final String currentProc;
+                if (procedureIndex != -1) {
+                    final String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
+                    currentProc = procedureId + procId;
+                } else {
+                    currentProc = getProcedureID();
+                }
+
+                // look for current procedure description
+                String currentProcDesc = (String) getColumnValue(procDescIndex, line, currentProc);
+
+                if (!currentProc.equals(previousProc) || currentPTree == null) {
+                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null));
+                }
+
+                // update temporal interval
+                if (!dateIndexes.isEmpty()) {
+                    String value = "";
+                    try {
+                        for (Integer dateIndex : dateIndexes) {
+                            value += line[dateIndex];
+                        }
+                        dateParse = new SimpleDateFormat(this.dateFormat).parse(value);
+                        currentPTree.spatialBound.addDate(dateParse);
+                    } catch (ParseException ex) {
+                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", lineNumber, value));
+                        continue;
+                    }
+                }
+
+                 // update spatial information
+                try {
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    if (position.length == 2) {
+                        // only record when the sensor move
+                        final String posKey = currentProc + '-' + position[0] + "_" + position[1];
+                        if (!knownPositions.contains(posKey)) {
+                            knownPositions.add(posKey);
+                            Coordinate dp = new Coordinate(position[1], position[0]);
+                            Geometry geom = GF.createPoint(dp);
+                            currentPTree.spatialBound.addLocation(dateParse, geom);
+                        }
+                    }
+                } catch (NumberFormatException | ParseException ex) {
+                    LOGGER.fine(String.format("Problem parsing lat/lon field at line %d.(Error msg='%s'). skipping line...", lineNumber, ex.getMessage()));
+                    continue;
+                }
+                previousProc = currentProc;
+            }
+
+            return new ArrayList<>(result.values());
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
     }
 
-    /**
-     * {@inheritDoc }
-     */
     @Override
-    public ObservationFilterReader getFilter() {
-        return null;
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationWriter getWriter() {
-        return null;
-    }
-
-    @Override
-    public ObservationStoreCapabilities getCapabilities() {
-        final Map<String, List<String>> responseFormats = new HashMap<>();
-        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
-        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-
-        final List<ResponseMode> responseMode = Arrays.asList(ResponseMode.INLINE);
-
-        return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
-    }
-
-    @Override
-    public void close() throws DataStoreException {
-        // do nothing
+    protected String getStoreIdentifier() {
+        return CsvObservationStoreFactory.NAME;
     }
 }

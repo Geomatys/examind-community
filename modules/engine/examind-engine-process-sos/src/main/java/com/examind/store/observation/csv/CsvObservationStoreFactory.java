@@ -18,12 +18,8 @@ package com.examind.store.observation.csv;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;

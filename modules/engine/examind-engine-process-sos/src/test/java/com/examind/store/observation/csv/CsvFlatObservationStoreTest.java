@@ -33,10 +33,11 @@ import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFi
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.ObservedPropertyQuery;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -110,13 +111,13 @@ public class CsvFlatObservationStoreTest {
 
         CsvFlatObservationStore store = factory.open(params);
 
-        Set<String> procedureNames = store.getEntityNames(OMEntity.PROCEDURE);
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
         Assert.assertEquals(9, procedureNames.size());
 
         String sensorId = "urn:surval:25049001";
         Assert.assertTrue(procedureNames.contains(sensorId));
 
-        Set<String> phenomenonNames = store.getEntityNames(OMEntity.OBSERVED_PROPERTY);
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
         Assert.assertTrue(phenomenonNames.contains("7-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-SALI"));

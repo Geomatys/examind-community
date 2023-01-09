@@ -39,8 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.geotoolkit.observation.model.OMEntity;
-import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
-import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -48,6 +46,7 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.IdentifierQuery;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -69,26 +68,24 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getEntityNames(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public Collection<String> getEntityNames(final OMEntity entityType) throws DataStoreException {
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestIds();
             case OBSERVED_PROPERTY:   return getPhenomenonIds();
-            case PROCEDURE:           return getProcedureNames(sensorType);
+            case PROCEDURE:           return getProcedureNames();
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType);
+            case OFFERING:            return getOfferingNames();
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    private Collection<String> getOfferingNames(String sensorType) throws DataStoreException {
+    private Collection<String> getOfferingNames() throws DataStoreException {
         // TODO filter on sensor type
         final List<String> offeringNames = new ArrayList<>();
         if (Files.isDirectory(offeringDirectory)) {
@@ -113,20 +110,19 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public boolean existEntity(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public boolean existEntity(final IdentifierQuery query) throws DataStoreException {
+        OMEntity entityType = query.getEntityType();
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String identifier   = (String) hints.get(IDENTIFIER);
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String identifier   = query.getIdentifier();
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestIds().contains(identifier);
             case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType).contains(identifier);
+            case OFFERING:            return getOfferingNames().contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
@@ -137,30 +133,9 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public List<Offering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
-        Object identifierVal = hints.get(IDENTIFIER);
-        List<String> identifiers = new ArrayList<>();
-        if (identifierVal instanceof Collection) {
-            identifiers.addAll((Collection<? extends String>) identifierVal);
-        } else if (identifierVal instanceof String) {
-            identifiers.add((String) identifierVal);
-        } else if (identifierVal == null) {
-            identifiers.addAll(getOfferingNames(sensorType));
-        }
-        final List<Offering> offerings = new ArrayList<>();
-        for (String offeringName : identifiers) {
-            Offering off = getObservationOffering(offeringName);
-            if (off != null) {
-                offerings.add(off);
-            }
-        }
-        return offerings;
-    }
-
-    private Offering getObservationOffering(final String offeringId) throws DataStoreException {
+    public Offering getObservationOffering(final String identifier) throws DataStoreException {
         if (Files.isDirectory(offeringDirectory)) {
-            String fileName = offeringId.replace(':', 'µ');
+            String fileName = identifier.replace(':', 'µ');
             final Path offeringFile = offeringDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
             if (Files.exists(offeringFile)) {
                 try (InputStream is = Files.newInputStream(offeringFile)) {
@@ -173,7 +148,7 @@ public class FileObservationReader extends FileObservationHandler implements Obs
         return null;
     }
 
-    private Collection<String> getProcedureNames(String sensorType) throws DataStoreException {
+    private Collection<String> getProcedureNames() throws DataStoreException {
         // TODO filter on sensor type
         final List<String> sensorNames = new ArrayList<>();
         if (Files.isDirectory(sensorDirectory)) {

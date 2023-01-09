@@ -166,10 +166,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
 
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 lineNumber++;
-                final String[] line = it.next();
+                final Object[] line = it.next();
 
                 if (line.length == 0) {
                     LOGGER.fine("skipping empty line.");
@@ -184,9 +184,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // checks if row matches the observed data types
                 if (typeColumnIndex!=-1) {
-                    if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
+                    if (!obsTypeCodes.contains((String) line[typeColumnIndex])) continue;
                     if (observationType == null) {
-                        currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
+                        currentObstType = getObservationTypeFromCode((String)line[typeColumnIndex]);
                         if (currentObstType.equals("Profile")) {
                             mainIndexes = Arrays.asList(zIndex);
                             currentMainColumns = Arrays.asList(zColumn);
@@ -199,7 +199,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // look for current procedure (for observation separation)
                 if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
                         LOGGER.finer("skipping line due to none specified sensor related.");
@@ -210,13 +210,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // look for current procedure name
-                String currentProcName = getColumnValue(procNameIndex, line, currentProc);
+                String currentProcName = (String) getColumnValue(procNameIndex, line, currentProc);
 
                 // look for current procedure description
-                String currentProcDesc = getColumnValue(procDescIndex, line, null);
+                String currentProcDesc = (String) getColumnValue(procDescIndex, line, null);
 
                 // look for current foi (for observation separation)
-                currentFoi = getColumnValue(foiIndex, line, currentFoi);
+                currentFoi = (String) getColumnValue(foiIndex, line, currentFoi);
 
                 // look for current date (for profile observation separation)
                 if (!dateIndexes.equals(mainIndexes)) {
@@ -287,7 +287,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 String[] qualityValues = new String[qualityIndexes.size()];
                 for (int i = 0; i < qualityIndexes.size(); i++) {
                     Integer qIndex = qualityIndexes.get(i);
-                    qualityValues[i] = line[qIndex];
+                    qualityValues[i] = (String) line[qIndex];
                  }
                 currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues);
             }
@@ -312,10 +312,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         }
     }
 
-    protected ObservedProperty parseObservedProperty(String[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
+    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
         String observedProperty     = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
         String observedPropertyName = getMultiOrFixedValue(line, obsPropName, obsPropNameColumnIndexes);
-        String observedPropertyUOM  = getColumnValue(uomColumnIndex, line, null);
+        String observedPropertyUOM  = (String) getColumnValue(uomColumnIndex, line, null);
         return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
     }
 
@@ -337,17 +337,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int typeColumnIndex = getColumnIndex(typeColumn, headers);
 
 
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
 
             final List<String> obsTypeCodes = getObsTypeCodes();
             while (it.hasNext()) {
-                final String[] line = it.next();
+                final Object[] line = it.next();
                 if (procIndex != -1) {
                     // checks if row matches the observed data types
                     if (typeColumnIndex != -1) {
-                        if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
+                        if (!obsTypeCodes.contains((String)line[typeColumnIndex])) continue;
                     }
-                    String procId = extractWithRegex(procRegex, line[procIndex]);
+                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     result.add(procedureId + procId);
                 }
             }
@@ -391,10 +391,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             ProcedureDataset currentPTree        = null;
             int lineNumber                    = 1;
             
-            final Iterator<String[]> it = reader.iterator(!noHeader);
+            final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
                 lineNumber++;
-                final String[] line   = it.next();
+                final Object[] line   = it.next();
 
                 if (line.length == 0) {
                     LOGGER.fine("skipping empty line.");
@@ -406,8 +406,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 // checks if row matches the observed data types
                 final String currentObstType;
                 if (typeColumnIndex != -1) {
-                    if (!obsTypeCodes.contains(line[typeColumnIndex])) continue;
-                    currentObstType = getObservationTypeFromCode(line[typeColumnIndex]);
+                    if (!obsTypeCodes.contains((String) line[typeColumnIndex])) continue;
+                    currentObstType = getObservationTypeFromCode((String) line[typeColumnIndex]);
                 } else {
                     currentObstType = observationType;
                 }
@@ -420,7 +420,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 final String currentProc;
                 if (procedureIndex != -1) {
-                    String procId = extractWithRegex(procRegex, line[procedureIndex]);
+                    String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
                     currentProc = procedureId + procId;
                 } else {
                     currentProc = getProcedureID();
@@ -434,7 +434,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // look for current procedure description
-                final String currentProcDesc = getColumnValue(procDescIndex, line, currentProc);
+                final String currentProcDesc = (String) getColumnValue(procDescIndex, line, currentProc);
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
                     currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, measureColumns, null));

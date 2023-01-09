@@ -74,24 +74,24 @@ public class FileParsingUtils {
     private static final GeometryFactory GF = new GeometryFactory();
      
     /**
-     * Return the value int the csv line if the supplied index is different from -1.
+     * Return the value in the line if the supplied index is different from -1.
      * Else return the default value specified.
      * 
      * @param index column index
-     * @param line parsed CSV line.
+     * @param line parsed object line.
      * @param defaultValue value to returne if column == -1
      * 
      * @return The value of the column or the default value.
      */
-    public static String getColumnValue(int index, String[] line, String defaultValue) {
-        String result = defaultValue;
+    public static Object getColumnValue(int index, Object[] line, Object defaultValue) {
+        Object result = defaultValue;
         if (index != -1) {
             result = line[index];
         }
         return result;
     }
 
-     public static String getMultiOrFixedValue(String[] line, String fixedValue, List<Integer> columnsIndexes) {
+     public static String getMultiOrFixedValue(Object[] line, String fixedValue, List<Integer> columnsIndexes) {
         String result = "";
         if (fixedValue != null && !fixedValue.isEmpty()) {
             // Use fixed value
@@ -120,17 +120,22 @@ public class FileParsingUtils {
      *
      * @return {@code true} if the line is considered empty.
      */
-    public static boolean verifyEmptyLine(String[] line, int lineNumber, List<Integer> doubleFields) {
+    public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<Integer> doubleFields) {
         boolean empty = true;
         for (int i : doubleFields) {
             try {
-                String value = line[i];
-                if (value == null || (value = value.trim()).isEmpty()) continue;
-                parseDouble(value);
-                empty = false;
-                break;
+                Object value = line[i];
+                if (value instanceof String strValue) {
+                    if (strValue == null || (strValue = strValue.trim()).isEmpty()) continue;
+                    parseDouble(strValue);
+                    empty = false;
+                    break;
+                } else if (value instanceof Number) {
+                    empty = false;
+                    break;
+                }
             } catch (NumberFormatException | ParseException ex) {
-                if (!line[i].isEmpty()) {
+                if (!((String)line[i]).isEmpty()) {
                     LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
                 }
             }
@@ -156,19 +161,25 @@ public class FileParsingUtils {
 
     /**
      * Parse a string double with dot or comma separator.
-     * @param s string value of a double.
+     * @param obj  A double object or a string value of a double.
      * @return : double.
      * @throws ParseException the parse method failed.
      */
-    public static double parseDouble(String s) throws ParseException, NumberFormatException {
-        s = s.trim();
-        if (s.contains(",")) {
-            synchronized(FR_FORMAT) {
-                Number number = FR_FORMAT.parse(s);
-                return number.doubleValue();
+    public static double parseDouble(Object obj) throws ParseException, NumberFormatException {
+        if (obj instanceof String s) {
+            s = s.trim();
+            if (s.contains(",")) {
+                synchronized(FR_FORMAT) {
+                    Number number = FR_FORMAT.parse(s);
+                    return number.doubleValue();
+                }
+            } else {
+                return Double.parseDouble(s);
             }
+        } else if (obj instanceof Double dValue) {
+            return dValue;
         } else {
-            return Double.parseDouble(s);
+            throw new NumberFormatException("Expecting a double but got: " + obj);
         }
     }
 

@@ -54,7 +54,8 @@ public class UtilsTest {
     }
 
     /**
-     *
+     * TODO move to geotk
+     * 
      * @throws java.lang.Exception
      */
     @Test
@@ -76,7 +77,7 @@ public class UtilsTest {
 
         EnvelopeType expResult = new EnvelopeType(new DirectPositionType(-180.0, -90.0), new DirectPositionType(180.0, 90.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
-        expResult.setAxisLabels("Y X");
+        expResult.setAxisLabels("X Y");
         assertEquals(expResult, result);
 
 
@@ -101,7 +102,7 @@ public class UtilsTest {
 
         expResult = new EnvelopeType(new DirectPositionType(-10.0, -10.0), new DirectPositionType(20.0, 15.0), "urn:ogc:def:crs:EPSG::4326");
         expResult.setSrsDimension(2);
-        expResult.setAxisLabels("Y X");
+        expResult.setAxisLabels("X Y");
 
         assertEquals(expResult, result);
 

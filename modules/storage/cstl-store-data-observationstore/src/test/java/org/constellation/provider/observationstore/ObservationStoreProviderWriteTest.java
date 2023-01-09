@@ -21,9 +21,7 @@ package org.constellation.provider.observationstore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreProvider;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -147,7 +145,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query,  new HashMap<>());
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -163,7 +161,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeFoiInTemplate(true);
         eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
         query.setSelection(eqFilter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -179,7 +177,7 @@ public class ObservationStoreProviderWriteTest {
         ResourceId filter = ff.resourceId(oid);
         query.setSelection(filter);
         query.setIncludeQualityFields(true);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -193,7 +191,7 @@ public class ObservationStoreProviderWriteTest {
         query = new ObservationQuery(MEASUREMENT_QNAME,  INLINE, null);
         filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(5, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -230,7 +228,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query,  new HashMap<>());
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -246,7 +244,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeFoiInTemplate(true);
         eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(12, results.size());
         template = results.get(11);
 
@@ -261,7 +259,7 @@ public class ObservationStoreProviderWriteTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         ResourceId filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -275,7 +273,7 @@ public class ObservationStoreProviderWriteTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(24, results.size());
 
         assertTrue(results.get(11) instanceof Observation);
@@ -323,7 +321,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi-type"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query,  new HashMap<>());
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -339,7 +337,7 @@ public class ObservationStoreProviderWriteTest {
         query.setIncludeFoiInTemplate(true);
         eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi-type"));
         query.setSelection(eqFilter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(4, results.size());
         template = results.get(0);
 
@@ -375,7 +373,7 @@ public class ObservationStoreProviderWriteTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         ResourceId filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -389,7 +387,7 @@ public class ObservationStoreProviderWriteTest {
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.resourceId(oid);
         query.setSelection(filter);
-        results = omPr.getObservations(query,  new HashMap<>());
+        results = omPr.getObservations(query);
         assertEquals(8, results.size());
 
         assertTrue(results.get(0) instanceof Observation);

@@ -54,9 +54,6 @@ import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
-import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
-import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
-import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.CompositePhenomenon;
@@ -71,6 +68,7 @@ import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.temporal.object.DefaultInstant;
 import org.geotoolkit.temporal.object.DefaultPeriod;
 import org.geotoolkit.temporal.object.DefaultTemporalPosition;
@@ -103,35 +101,28 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getEntityNames(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public Collection<String> getEntityNames(OMEntity entityType) throws DataStoreException {
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
             case OBSERVED_PROPERTY:   return getPhenomenonNames();
-            case PROCEDURE:           return getProcedureNames(sensorType);
+            case PROCEDURE:           return getProcedureNames();
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType);
+            case OFFERING:            return getOfferingNames();
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    private List<String> getOfferingNames(final String sensorType) throws DataStoreException {
+    private List<String> getOfferingNames() throws DataStoreException {
         try(final Connection c         = source.getConnection();
             final Statement stmt       = c.createStatement()) {
             final List<String> results = new ArrayList<>();
-            String query;
-            if (sensorType != null) {
-                query = "SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" o, \"" + schemaPrefix + "om\".\"procedures\" p WHERE  o.\"procedure\" = p.\"id\" AND p.\"type\" = '" + sensorType + "'";
-            } else {
-                query = "SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\"";
-            }
+            final String query = "SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\"";
 
             try (final ResultSet rs = stmt.executeQuery(query)) {
                 while (rs.next()) {
@@ -148,20 +139,19 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public boolean existEntity(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public boolean existEntity(final IdentifierQuery query) throws DataStoreException {
+        OMEntity entityType = query.getEntityType();
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String identifier   = (String) hints.get(IDENTIFIER);
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String identifier   = query.getIdentifier();
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
             case OBSERVED_PROPERTY:   return existPhenomenon(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType).contains(identifier);
+            case OFFERING:            return getOfferingNames().contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
@@ -172,40 +162,18 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public List<Offering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
-        String version      = (String) hints.get(SOS_VERSION);
-        Object identifierVal = hints.get(IDENTIFIER);
-        List<String> identifiers = new ArrayList<>();
-        if (identifierVal instanceof Collection) {
-            identifiers.addAll((Collection<? extends String>) identifierVal);
-        } else if (identifierVal instanceof String) {
-            identifiers.add((String) identifierVal);
-        } else if (identifierVal == null) {
-            identifiers.addAll(getOfferingNames(sensorType));
+    public Offering getObservationOffering(String identifier) throws DataStoreException {
+        try (final Connection c   = source.getConnection()) {
+            return readObservationOffering(identifier, c);
+        } catch (SQLException ex) {
+             throw new DataStoreException("Error while retrieving offering: " + identifier, ex);
         }
-        final List<Offering> offerings = new ArrayList<>();
-        for (String id : identifiers) {
-            try (final Connection c   = source.getConnection()) {
-                Offering off = readObservationOffering(id, c);
-                if (off != null) {
-                    offerings.add(off);
-                }
-            } catch (SQLException ex) {
-                 throw new DataStoreException("Error while retrieving offering: " + id, ex);
-            }
-        }
-        return offerings;
     }
 
-    private List<String> getProcedureNames(final String sensorType) throws DataStoreException {
-        String filter = "";
-        if (sensorType != null) {
-            filter = " WHERE \"type\"='" + sensorType + "'";
-        }
+    private List<String> getProcedureNames() throws DataStoreException {
         try(final Connection c   = source.getConnection();
             final Statement stmt = c.createStatement();
-            final ResultSet rs   = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\"" + filter)) {//NOSONAR
+            final ResultSet rs   = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\"")) {//NOSONAR
 
             final List<String> results = new ArrayList<>();
             while (rs.next()) {
@@ -764,7 +732,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @throws DataStoreException
      */
     private boolean existProcedure(final String href) throws DataStoreException {
-        return getProcedureNames(null).contains(href);
+        return getProcedureNames().contains(href);
     }
 
     /**

@@ -188,7 +188,7 @@ public final class SensorUtils {
         ObservedPropertyQuery query = new ObservedPropertyQuery();
         query.setNoCompositePhenomenon(decompose);
         query.setSelection(ff.equal(ff.property("procedure"), ff.literal(sensorID)));
-        return new HashSet(provider.getIdentifiers(query, new HashMap<>()));
+        return new HashSet(provider.getIdentifiers(query));
     }
 
     public static Object unmarshallObservationFile(final Path f) throws ConstellationStoreException {

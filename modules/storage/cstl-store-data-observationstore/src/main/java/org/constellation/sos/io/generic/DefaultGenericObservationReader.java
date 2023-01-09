@@ -65,6 +65,7 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.model.TextEncoderProperties;
+import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.temporal.object.DefaultInstant;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.locationtech.jts.geom.Coordinate;
@@ -107,26 +108,24 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getEntityNames(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public Collection<String> getEntityNames(final OMEntity entityType) throws DataStoreException {
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames();
             case OBSERVED_PROPERTY:   return getPhenomenonNames();
-            case PROCEDURE:           return getProcedureNames(sensorType);
+            case PROCEDURE:           return getProcedureNames();
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType);
+            case OFFERING:            return getOfferingNames();
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
         }
     }
 
-    private List<String> getOfferingNames(String sensorType) throws DataStoreException {
+    private List<String> getOfferingNames() throws DataStoreException {
         try  {
             final Values values = loadData("var02");
             final List<String> result = new ArrayList<>();
@@ -142,7 +141,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         }
     }
 
-    private List<String> getProcedureNames(String sensorType) throws DataStoreException {
+    private List<String> getProcedureNames() throws DataStoreException {
         try {
             final Values values = loadData(Arrays.asList("var02"));
             return values.getVariables("var02");
@@ -166,20 +165,19 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public boolean existEntity(final Map<String, Object> hints) throws DataStoreException {
-        OMEntity entityType = (OMEntity) hints.get(ENTITY_TYPE);
+    public boolean existEntity(final IdentifierQuery query) throws DataStoreException {
+        OMEntity entityType = query.getEntityType();
         if (entityType == null) {
             throw new DataStoreException("Missing entity type parameter");
         }
-        String identifier   = (String) hints.get(IDENTIFIER);
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
+        String identifier   = query.getIdentifier();
         switch (entityType) {
             case FEATURE_OF_INTEREST: return getFeatureOfInterestNames().contains(identifier);
             case OBSERVED_PROPERTY:   return getPhenomenonNames().contains(identifier);
             case PROCEDURE:           return existProcedure(identifier);
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             case HISTORICAL_LOCATION: throw new DataStoreException("not implemented yet.");
-            case OFFERING:            return getOfferingNames(sensorType).contains(identifier);
+            case OFFERING:            return getOfferingNames().contains(identifier);
             case OBSERVATION:         throw new DataStoreException("not implemented yet.");
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected entity type:" + entityType);
@@ -223,30 +221,9 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public List<Offering> getObservationOfferings(final Map<String, Object> hints) throws DataStoreException {
-        String sensorType   = (String) hints.get(SENSOR_TYPE);
-        Object identifierVal = hints.get(IDENTIFIER);
-        List<String> identifiers = new ArrayList<>();
-        if (identifierVal instanceof Collection) {
-            identifiers.addAll((Collection<? extends String>) identifierVal);
-        } else if (identifierVal instanceof String) {
-            identifiers.add((String) identifierVal);
-        } else if (identifierVal == null) {
-            identifiers.addAll(getOfferingNames(sensorType));
-        }
-        final List<Offering> offerings = new ArrayList<>();
-        for (String offeringName : identifiers) {
-            Offering off = getObservationOffering(offeringName);
-            if (off != null) {
-                offerings.add(off);
-            }
-        }
-        return offerings;
-    }
-
-    private Offering getObservationOffering(final String offeringId) throws DataStoreException {
+    public Offering getObservationOffering(String identifier) throws DataStoreException {
         try {
-            final Values values = loadData(Arrays.asList("var07", "var08", "var09", "var10", "var11", "var12", "var18", "var46"), offeringId);
+            final Values values = loadData(Arrays.asList("var07", "var08", "var09", "var10", "var11", "var12", "var18", "var46"), identifier);
 
             final boolean exist = values.getVariable("var46") != null;
             if (!exist) {
@@ -267,10 +244,10 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             if (endStr != null) {
                 end = df.parse(endStr);
             }
-            TemporalGeometricPrimitive time = OMUtils.buildTime(offeringId, begin, end);
+            TemporalGeometricPrimitive time = OMUtils.buildTime(identifier, begin, end);
 
             // procedure
-            final String procedure = sensorIdBase + offeringId.substring(9);
+            final String procedure = sensorIdBase + identifier.substring(9);
 
             // phenomenon
             final List<String> observedProperties = new ArrayList<>();
@@ -304,8 +281,8 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                 foisV200.add(foiID);
             }
 
-            return new Offering(offeringId,
-                                offeringId,
+            return new Offering(identifier,
+                                identifier,
                                 null,
                                 null,
                                 null, // bounds
