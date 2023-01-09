@@ -18,7 +18,7 @@
  */
 package org.constellation.api.rest.converter;
 
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
@@ -88,7 +88,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
             }
             outdef.setOutput(out);
 
-            BufferedImage img = r.getImage();
+            RenderedImage img = r.getImage();
             if(img != null){
                 DefaultPortrayalService.writeImage(img, outdef);
             } else {

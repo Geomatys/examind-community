@@ -19,7 +19,7 @@
 
 package org.constellation.portrayal;
 
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import javax.xml.bind.annotation.XmlRootElement;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
@@ -37,7 +37,7 @@ public final class PortrayalResponse {
     private final CanvasDef canvasDef;
     private final SceneDef sceneDef;
     private final OutputDef outputDef;
-    private BufferedImage image;
+    private RenderedImage image;
     private byte[] buffer;
 
     public PortrayalResponse(CanvasDef canvasDef, SceneDef sceneDef, OutputDef outputDef) {
@@ -47,7 +47,7 @@ public final class PortrayalResponse {
         this.image = null;
     }
 
-    public PortrayalResponse(BufferedImage image) {
+    public PortrayalResponse(RenderedImage image) {
         this.canvasDef = null;
         this.sceneDef = null;
         this.outputDef = null;
@@ -71,7 +71,7 @@ public final class PortrayalResponse {
         return sceneDef;
     }
 
-    public BufferedImage getImage() {
+    public RenderedImage getImage() {
         return image;
     }
 

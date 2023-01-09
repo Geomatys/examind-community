@@ -20,6 +20,7 @@ package org.constellation.portrayal;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display.canvas.control.CanvasMonitor;
 import org.geotoolkit.display.canvas.control.NeverFailMonitor;
@@ -66,7 +67,7 @@ public final class CstlPortrayalService {
      *           given canvas.
      * @throws PortrayalException For errors during portrayal, TODO: common examples?
      */
-    public BufferedImage portray( final SceneDef sdef,
+    public RenderedImage portray( final SceneDef sdef,
                                   final CanvasDef cdef)
     		throws PortrayalException {
 
@@ -74,7 +75,7 @@ public final class CstlPortrayalService {
         cdef.setMonitor(monitor);
 
         try {
-            final BufferedImage buffer = DefaultPortrayalService.portray(cdef,sdef);
+            final RenderedImage buffer = DefaultPortrayalService.portray(cdef,sdef);
 
             final Exception exp = monitor.getLastException();
             if(exp != null){

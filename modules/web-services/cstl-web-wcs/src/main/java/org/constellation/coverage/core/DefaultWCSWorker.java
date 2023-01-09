@@ -20,7 +20,6 @@ package org.constellation.coverage.core;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -1007,7 +1006,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             cdef.setAzimuth(azimuth);
 
             // IMAGE
-            final BufferedImage img;
+            final RenderedImage img;
             try {
                 img = CstlPortrayalService.getInstance().portray(sdef, cdef);
             } catch (PortrayalException ex) {
@@ -1257,7 +1256,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             cdef.setBackground(background);
 
             // IMAGE
-            final BufferedImage img;
+            final RenderedImage img;
             try {
                 img = CstlPortrayalService.getInstance().portray(sdef, cdef);
             } catch (PortrayalException ex) {
