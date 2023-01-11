@@ -19,6 +19,7 @@
 package org.constellation.provider.computed;
 
 import com.examind.image.heatmap.FeatureSetAsPointsCloud;
+import com.examind.image.heatmap.HeatMapImage;
 import com.examind.image.heatmap.HeatMapResource;
 import com.examind.image.heatmap.PointCloudResource;
 import org.apache.sis.parameter.Parameters;
@@ -78,7 +79,8 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
     protected synchronized Data getComputedData() {
         if (cachedData == null) {
             try {
-                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY);
+                // TODO: add algorithm as provider parameter
+                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, HeatMapImage.Algorithm.GAUSSIAN);
                 final String resultDataName = getDataName().orElse("HeatMap");
                 cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", resultDataName), res, null);
             } catch (Exception ex) {

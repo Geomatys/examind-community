@@ -24,6 +24,7 @@ import org.opengis.geometry.Envelope;
 
 import java.awt.geom.Point2D;
 import java.util.stream.Stream;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public interface PointCloudResource extends DataSet {
 
@@ -34,4 +35,5 @@ public interface PointCloudResource extends DataSet {
      */
     Stream<? extends Point2D> points(final Envelope envelope, final boolean parallel) throws DataStoreException;
 
+    CoordinateReferenceSystem getCoordinateReferenceSystem();
 }

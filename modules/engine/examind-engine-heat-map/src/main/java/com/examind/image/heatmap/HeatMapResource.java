@@ -18,8 +18,10 @@
  */
 package com.examind.image.heatmap;
 
+import com.examind.image.heatmap.HeatMapImage.Algorithm;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.*;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.storage.DataStoreException;
@@ -30,10 +32,10 @@ import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.MathTransform2D;
+import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
 import java.awt.*;
@@ -53,12 +55,16 @@ public class HeatMapResource implements GridCoverageResource {
     private final List<SampleDimension> sampleDimension;
     private final Metadata metadata;
 
+    private final Algorithm algorithm;
+
     /**
      * @param tilingDimension : the dimension to be used to define the tiles of the computed image, if null a single tile will be used.
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function
+     * @param algorithm
      */
-    public HeatMapResource(final PointCloudResource pointCloud, final Dimension tilingDimension, final float distanceX, final float distanceY) throws DataStoreException {
+    public HeatMapResource(final PointCloudResource pointCloud, final Dimension tilingDimension, final float distanceX, final float distanceY, Algorithm algorithm) throws DataStoreException {
+        this.algorithm = algorithm;
         ArgumentChecks.ensureNonNull("Point cloud source", pointCloud);
         this.pointCloudSource = pointCloud;
         this.tilingDimension = tilingDimension;
@@ -99,25 +105,13 @@ public class HeatMapResource implements GridCoverageResource {
             throw new IllegalArgumentException("Source or destination bands can not be used on HeatMap coverages.");
         }
 
-
-        //TODO following code to fix if the source featureSet has an envelope. Currently not working due to getGridGeometry resolution of getGridGeometry() used for the target resolution
-//        final GridDerivation subgrid = domain.derive()
-//                .rounding(GridRoundingMode.ENCLOSING)
-//                .subgrid(getGridGeometry());
-//        final GridGeometry target = subgrid.build();
-
-        final GridGeometry target = domain;
-
-        final CoordinateReferenceSystem expectedCrs = target.getCoordinateReferenceSystem();
-
         try {
-
             final Dimension imageDim;
-            if (!target.isDefined(GridGeometry.EXTENT)) {
+            if (!domain.isDefined(GridGeometry.EXTENT)) {
                 throw new UnsupportedOperationException("HeatMapResource currently expect a non null domain's extent.");
             }
 
-            final GridExtent extent = target.getExtent();
+            final GridExtent extent = domain.getExtent();
             int[] subspaceDimensions = extent.getSubspaceDimensions(2);
             final int posX = subspaceDimensions[0];
             final int posY = subspaceDimensions[1];
@@ -125,30 +119,25 @@ public class HeatMapResource implements GridCoverageResource {
                     Math.toIntExact(extent.getSize(posX)),
                     Math.toIntExact(extent.getSize(posY)));
 
-            MathTransform2D gridCornerToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CORNER));
-            MathTransform2D gridCenterToCRS = MathTransforms.bidimensional(target.getGridToCRS(PixelInCell.CELL_CENTER));
-
             var xmin = extent.getLow(posX);
             var ymin = extent.getLow(posY);
+            double[] imageToGridOffsets = new double[extent.getDimension()];
+            imageToGridOffsets[posX] = xmin;
+            imageToGridOffsets[posY] = ymin;
 
-            if (xmin != 0L || ymin != 0L) {
-                double[] imageToGridOffsets = new double[extent.getDimension()];
-                imageToGridOffsets[posX] = xmin;
-                imageToGridOffsets[posY] = ymin;
+            final LinearTransform imageToGridTranslation = MathTransforms.translation(imageToGridOffsets);
 
-                final LinearTransform translation = MathTransforms.translation(imageToGridOffsets);
-
-                gridCornerToCRS = MathTransforms.bidimensional(MathTransforms.concatenate(translation, gridCornerToCRS));
-                gridCenterToCRS = MathTransforms.bidimensional(MathTransforms.concatenate(translation, gridCenterToCRS));
+            CoordinateOperation coverageToPointCRS;
+            try {
+                coverageToPointCRS = CRS.findOperation(domain.getCoordinateReferenceSystem(), pointCloudSource.getCoordinateReferenceSystem(), null);
+            } catch (FactoryException e) {
+                throw new DataStoreException("Cannot find a conversion between domain space and data source space");
             }
+            var gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS.getMathTransform());
+            var pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER), coverageToPointCRS.getMathTransform()).inverse();
 
-            final MathTransform2D crsToGridCorner;
-            crsToGridCorner = gridCornerToCRS.inverse();
-
-            return new GridCoverage2D(target, getSampleDimensions(), new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension,
-                    expectedCrs,
-                    gridCornerToCRS, gridCenterToCRS,
-                    crsToGridCorner, pointCloudSource, distanceX, distanceY));
+            final HeatMapImage image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, distanceX, distanceY, algorithm);
+            return new GridCoverage2D(domain, getSampleDimensions(), image);
 
         } catch (TransformException e) {
             throw new DataStoreException(e);

@@ -40,6 +40,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- For profiling against PostGIS database -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-sqlstore</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 

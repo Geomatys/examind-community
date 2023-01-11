@@ -18,6 +18,7 @@
  */
 package com.examind.image.heatmap;
 
+import java.util.Arrays;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
@@ -28,11 +29,10 @@ import org.apache.sis.storage.FeatureSet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.MathTransform2D;
+import org.opengis.referencing.operation.MathTransform;
 
 import java.awt.*;
 import java.awt.image.*;
-import java.util.stream.IntStream;
 
 import static com.examind.image.heatmap.FeatureSetAsPointsCloudTest.createTestFeatureSet;
 
@@ -49,7 +49,7 @@ public final class HeatMapImageTest {
     @Test
     public void functionalTest() throws Exception {
         final FeatureSet featureSet = createTestFeatureSet();
-        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(CommonCRS.defaultGeographic(), featureSet);
+        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(featureSet);
 
         Envelope2D env = new Envelope2D(
                 new DirectPosition2D(CommonCRS.defaultGeographic(), 3.212619925176625, 43.2289799480256),
@@ -59,25 +59,21 @@ public final class HeatMapImageTest {
 
         GridGeometry gridGeom = new GridGeometry(new GridExtent(256, 128), env, GridOrientation.DISPLAY);
 
-        MathTransform2D gridToCrsCorner = (MathTransform2D) gridGeom.getGridToCRS(PixelInCell.CELL_CORNER);
-        MathTransform2D gridToCrsCenter = (MathTransform2D) gridGeom.getGridToCRS(PixelInCell.CELL_CENTER);
-        MathTransform2D crsToGridCenter =  gridToCrsCorner.inverse();
+        MathTransform gridToCrsCorner = gridGeom.getGridToCRS(PixelInCell.CELL_CORNER);
+        MathTransform crsToGridCenter = gridGeom.getGridToCRS(PixelInCell.CELL_CENTER).inverse();
 
-        final HeatMapImage heatMap = new HeatMapImage(new Dimension(256, 128), new Dimension(256, 128), CommonCRS.defaultGeographic(), gridToCrsCorner, gridToCrsCenter, crsToGridCenter, pointCloud, 0.1f, 0.1f);
+        final HeatMapImage heatMap = new HeatMapImage(new Dimension(256, 128), new Dimension(256, 128), pointCloud, crsToGridCenter, gridToCrsCorner, 10f, 10f, HeatMapImage.Algorithm.GAUSSIAN);
 
         final WritableRaster raster = (WritableRaster) heatMap.computeTile(0, 0, null);
 
         Assert.assertNotNull(raster);
-        float[] randomSample= new float[100];
+        double[] randomSample= new double[100];
         raster.getDataElements(80, 80, 10, 10, randomSample);
         Assert.assertNotNull(randomSample);
-        Assert.assertTrue(IntStream.range(0, randomSample.length)
-                           .mapToDouble(i -> randomSample[i])
-                        .anyMatch(d -> d>0));
+        Assert.assertTrue(Arrays.stream(randomSample).anyMatch(d -> d>0));
 
-//        BufferedImage image = new BufferedImage(ColorModelFactory.createGrayScale(DataBuffer.TYPE_FLOAT, 1, 0, 0, 5.4), raster, false, null);
-//        BufferedImage image = new BufferedImage(ColorModelFactory.createGrayScale(DataBuffer.TYPE_FLOAT, 1, 0, 0, heatMap.getMax()), raster, false, null);
-
+        // BufferedImage image = new BufferedImage(ColorModelFactory.createGrayScale(DataBuffer.TYPE_DOUBLE, 1, 0, 0, 5.4), raster, false, null);
+        // System.out.println("DONE");
     }
 
 

@@ -43,7 +43,10 @@ public final class FeatureSetAsPointsCloudTest {
         final FeatureTypeBuilder featureTypeBuilder = new FeatureTypeBuilder();
         featureTypeBuilder.setName("Test Feature Type");
         featureTypeBuilder.addAttribute(String.class).setName("id").addRole(AttributeRole.IDENTIFIER_COMPONENT);
-        featureTypeBuilder.addAttribute(Point.class).setName("position").addRole(AttributeRole.DEFAULT_GEOMETRY);
+        featureTypeBuilder.addAttribute(Point.class)
+                .setName("position")
+                .setCRS(CommonCRS.defaultGeographic())
+                .addRole(AttributeRole.DEFAULT_GEOMETRY);
         testFeatureType = featureTypeBuilder.build();
     }
 
@@ -58,7 +61,7 @@ public final class FeatureSetAsPointsCloudTest {
     @Test
     public void FeatureSetAsPointCloudTest() throws DataStoreException {
         final FeatureSet featureSet = createTestFeatureSet();
-        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(CommonCRS.defaultGeographic(), featureSet);
+        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(featureSet);
 
         Assert.assertTrue(pointCloud.points(new Envelope2D(new DirectPosition2D(3.791, 43.651), new DirectPosition2D(3.792, 43.652)), false)
                 .anyMatch(p -> Math.abs(p.getX() - 3.791) <0.001 && Math.abs(p.getY() - 43.651) < 0.001 ));
