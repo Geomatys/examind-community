@@ -74,9 +74,6 @@ public final class HeatMapImage extends ComputedImage {
      * amplitude - default value 1
      */
     final double a = 1;
-    /**
-     * Standard deviation in x-direction
-     */
 
     private final DistanceOp op;
 
@@ -108,6 +105,7 @@ public final class HeatMapImage extends ComputedImage {
         this.op = switch (algorithm) {
             case GAUSSIAN -> new Gaussian(distanceX, distanceY);
             case EUCLIDEAN -> new Euclidean(distanceX, distanceY);
+            case ONE -> new One(distanceX, distanceY);
         };
     }
 
@@ -224,7 +222,7 @@ public final class HeatMapImage extends ComputedImage {
 //    }
 
     public enum Algorithm {
-        EUCLIDEAN, GAUSSIAN
+        EUCLIDEAN, GAUSSIAN, ONE
     }
 
     @FunctionalInterface
@@ -270,6 +268,21 @@ public final class HeatMapImage extends ComputedImage {
             var squaredDistanceFromEdge = maxSquaredNorm - vectorSquaredNorm;
             if (squaredDistanceFromEdge <= 0) return 0;
             return squaredDistanceFromEdge / maxSquaredNorm;
+        }
+    }
+
+    private static final class One implements DistanceOp {
+
+        private final double distanceX, distanceY;
+
+        private One(double distanceX, double distanceY) {
+            this.distanceX = distanceX;
+            this.distanceY = distanceY;
+        }
+
+        @Override
+        public double apply(double vx, double vy) {
+            return vx < distanceX && vy < distanceY ? 1 : 0;
         }
     }
 }
