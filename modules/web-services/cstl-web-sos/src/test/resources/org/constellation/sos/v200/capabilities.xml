@@ -10,7 +10,7 @@
                   xmlns:ns31="http://www.opengis.net/swe/1.0.1" 
                   xmlns:sa="http://www.opengis.net/sampling/1.0" 
                   xmlns:gml="http://www.opengis.net/gml/3.2" 
-                  xmlns:ns39="http://www.opengis.net/gml"
+                  xmlns:ns40="http://www.opengis.net/gml"
                   xmlns:fes="http://www.opengis.net/fes/2.0" 
                   xmlns:swes="http://www.opengis.net/swes/2.0" 
                   xmlns:ns44="http://www.opengis.net/om/2.0"
@@ -494,7 +494,7 @@
       </fes:Scalar_Capabilities>
       <fes:Spatial_Capabilities>
         <fes:GeometryOperands>
-          <fes:GeometryOperand name="ns39:Envelope"/>
+          <fes:GeometryOperand name="ns40:Envelope"/>
         </fes:GeometryOperands>
         <fes:SpatialOperators>
           <fes:SpatialOperator name="BBOX"/>
@@ -502,8 +502,8 @@
       </fes:Spatial_Capabilities>
       <fes:Temporal_Capabilities>
         <fes:TemporalOperands>
-          <fes:TemporalOperand name="ns39:TimeInstant"/>
-          <fes:TemporalOperand name="ns39:TimePeriod"/>
+          <fes:TemporalOperand name="ns40:TimeInstant"/>
+          <fes:TemporalOperand name="ns40:TimePeriod"/>
         </fes:TemporalOperands>
         <fes:TemporalOperators>
           <fes:TemporalOperator name="During"/>

@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
-import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 
 /**

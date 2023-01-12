@@ -45,15 +45,11 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import org.geotoolkit.observation.model.OMEntity;
@@ -230,11 +226,11 @@ public class FileObservationReader implements ObservationReader {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                     Object obj = unmarshaller.unmarshal(is);
                     MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement)obj).getValue();
+                    if (obj instanceof JAXBElement jb) {
+                        obj = jb.getValue();
                     }
-                    if (obj instanceof ObservationOffering) {
-                        return (ObservationOffering) obj;
+                    if (obj instanceof ObservationOffering off) {
+                        return off;
                     }
                     throw new DataStoreException("The file " + offeringFile + " does not contains an offering Object.");
                 } catch (JAXBException | IOException ex) {
@@ -303,11 +299,11 @@ public class FileObservationReader implements ObservationReader {
                             final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                             Object obj = unmarshaller.unmarshal(is);
                             MARSHALLER_POOL.recycle(unmarshaller);
-                            if (obj instanceof JAXBElement) {
-                                obj = ((JAXBElement)obj).getValue();
+                            if (obj instanceof JAXBElement jb) {
+                                obj = jb.getValue();
                             }
-                            if (obj instanceof Phenomenon) {
-                                results.add((Phenomenon) obj);
+                            if (obj instanceof Phenomenon phen) {
+                                results.add(phen);
                             }
                         } catch (IOException | JAXBException e) {
                             throw new DataStoreException("Error during phenomenon umarshalling", e);
@@ -374,11 +370,11 @@ public class FileObservationReader implements ObservationReader {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                     Object obj = unmarshaller.unmarshal(is);
                     MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement)obj).getValue();
+                    if (obj instanceof JAXBElement jb) {
+                        obj = jb.getValue();
                     }
-                    if (obj instanceof SamplingFeature) {
-                        return (SamplingFeature) obj;
+                    if (obj instanceof SamplingFeature sf) {
+                        return sf;
                     }
                     throw new DataStoreException("The file " + samplingFeatureFile + " does not contains an foi Object.");
                 } catch (JAXBException ex) {
@@ -409,11 +405,11 @@ public class FileObservationReader implements ObservationReader {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                     Object obj = unmarshaller.unmarshal(is);
                     MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement)obj).getValue();
+                    if (obj instanceof JAXBElement jb) {
+                        obj = jb.getValue();
                     }
-                    if (obj instanceof Observation) {
-                        return (Observation) obj;
+                    if (obj instanceof Observation obs) {
+                        return obs;
                     }
                     throw new DataStoreException("The file " + observationFile + " does not contains an observation Object.");
                 } catch (JAXBException ex) {
@@ -442,11 +438,10 @@ public class FileObservationReader implements ObservationReader {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                     Object obj = unmarshaller.unmarshal(is);
                     MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement)obj).getValue();
+                    if (obj instanceof JAXBElement jb) {
+                        obj = jb.getValue();
                     }
-                    if (obj instanceof Observation) {
-                        final Observation obs = (Observation) obj;
+                    if (obj instanceof Observation obs) {
                         final DataArrayProperty arrayP = (DataArrayProperty) obs.getResult();
                         return arrayP.getDataArray();
                     }
@@ -488,28 +483,6 @@ public class FileObservationReader implements ObservationReader {
      * {@inheritDoc}
      */
     @Override
-    public String getNewObservationId() throws DataStoreException {
-        String obsID = null;
-        boolean exist = true;
-        try {
-            long i = IOUtilities.listChildren(observationDirectory).size();
-            while (exist) {
-                obsID = observationIdBase + i;
-                String fileName = obsID.replace(':', 'µ');
-                final Path newFile = observationDirectory.resolve(fileName);
-                exist = Files.exists(newFile);
-                i++;
-            }
-            return obsID;
-        } catch (IOException ex) {
-            throw new DataStoreException(ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public TemporalPrimitive getEventTime(String version) throws DataStoreException {
         return null;
     }
@@ -528,33 +501,6 @@ public class FileObservationReader implements ObservationReader {
     @Override
     public void destroy() {
         // nothing to destroy
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Filesystem O&M Reader 0.9";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ResponseModeType> getResponseModes() throws DataStoreException {
-        return Arrays.asList(ResponseModeType.INLINE, ResponseModeType.RESULT_TEMPLATE);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
-        final Map<String, List<String>> results = new HashMap<>();
-        results.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
-        results.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-        return results;
     }
 
     /**
@@ -590,13 +536,12 @@ public class FileObservationReader implements ObservationReader {
                     final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                     Object obj = unmarshaller.unmarshal(is);
                     MARSHALLER_POOL.recycle(unmarshaller);
-                    if (obj instanceof JAXBElement) {
-                        obj = ((JAXBElement)obj).getValue();
+                    if (obj instanceof JAXBElement jb) {
+                        obj = jb.getValue();
                     }
-                    if (obj instanceof Observation) {
-                        final Observation obs = (Observation) obj;
-                        if (obs.getProcedure() instanceof org.geotoolkit.observation.xml.Process) {
-                            final String processID = ((org.geotoolkit.observation.xml.Process)obs.getProcedure()).getHref();
+                    if (obj instanceof Observation obs) {
+                        if (obs.getProcedure() instanceof org.geotoolkit.observation.xml.Process proc) {
+                            final String processID = proc.getHref();
                             if (processID.equals(procedure)) {
                                 return obs;
                             }

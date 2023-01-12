@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.gml.GmlInstant;
+import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
@@ -114,15 +114,15 @@ public final class Normalizer {
      */
     public static ObservationCollection regroupObservation(final String version, final Envelope bounds, final ObservationCollection collection){
         final List<Observation> members = collection.getMember();
-        final Map<String, Observation> merged = new LinkedHashMap<>();
+        final Map<String, AbstractObservation> merged = new LinkedHashMap<>();
         for (Observation obs : members) {
             final Process process    = (Process) obs.getProcedure();
             final String featureID   = getFeatureID(obs);
             final String key         = process.getHref() + '-' + featureID;
 
-            if (obs instanceof MeasurementType) {
+            if (obs instanceof MeasurementType meas) {
                 // measurment are not merged
-                merged.put(UUID.randomUUID().toString(), obs);
+                merged.put(UUID.randomUUID().toString(), meas);
 
             } else if (merged.containsKey(key)) {
                 final AbstractObservation uniqueObs = (AbstractObservation) merged.get(key);
@@ -155,9 +155,9 @@ public final class Normalizer {
                     } else if (obs.getSamplingTime() instanceof Period) {
                         final Period period = (Period)obs.getSamplingTime();
                         // BEGIN
-                        if (TimeIndeterminateValueType.BEFORE.equals((((GmlInstant)totalPeriod.getBeginning()).getTimePosition()).getIndeterminatePosition()) ||
-                            TimeIndeterminateValueType.BEFORE.equals((((GmlInstant)     period.getBeginning()).getTimePosition()).getIndeterminatePosition())) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  ((GmlInstant) totalPeriod.getBeginning()).getTimePosition(), ((GmlInstant) period.getEnding()).getTimePosition());
+                        if (TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)totalPeriod.getBeginning()).getTimePosition()).getIndeterminatePosition()) ||
+                            TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)     period.getBeginning()).getTimePosition()).getIndeterminatePosition())) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  ((GMLInstant) totalPeriod.getBeginning()).getTimePosition(), ((GMLInstant) period.getEnding()).getTimePosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
 
                         } else if (totalPeriod.getBeginning().getDate().getTime() > period.getBeginning().getDate().getTime()) {
@@ -166,8 +166,8 @@ public final class Normalizer {
                         }
 
                         // END
-                        if (TimeIndeterminateValueType.NOW.equals((((GmlInstant)totalPeriod.getEnding()).getTimePosition()).getIndeterminatePosition()) ||
-                            TimeIndeterminateValueType.NOW.equals((((GmlInstant)     period.getEnding()).getTimePosition()).getIndeterminatePosition())) {
+                        if (TimeIndeterminateValueType.NOW.equals((((GMLInstant)totalPeriod.getEnding()).getTimePosition()).getIndeterminatePosition()) ||
+                            TimeIndeterminateValueType.NOW.equals((((GMLInstant)     period.getEnding()).getTimePosition()).getIndeterminatePosition())) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), period.getEnding().getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
 
@@ -182,8 +182,8 @@ public final class Normalizer {
             }
         }
 
-        final List<Observation> obervations = new ArrayList<>();
-        for (Observation entry: merged.values()) {
+        final List<AbstractObservation> obervations = new ArrayList<>();
+        for (AbstractObservation entry: merged.values()) {
             obervations.add(entry);
         }
         return SOSXmlFactory.buildGetObservationResponse(version, "collection-1", bounds, obervations);

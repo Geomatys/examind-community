@@ -314,7 +314,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
             final RequestOptions exp = new RequestOptions(req).subLevel("Things");
             final Integer reqTop = getRequestTop(req);
@@ -428,7 +428,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     hints.put(OBJECT_TYPE, OBSERVATION);
                     hints.put(RESULT_MODEL, model);
                     hints.put(RESPONSE_MODE, ResponseModeType.INLINE);
-                    count = new BigDecimal(omProvider.getCount(subquery, hints));
+                    count = new BigDecimal(omProvider.getCount(noPaging(subquery), hints));
                 }
                 String iotNextLink = computePaginationNextLink(req, values.size(), count != null ? count.intValue() : null, "/Observations");
                 return new ObservationsResponse(values).iotCount(count).iotNextLink(iotNextLink);
@@ -797,7 +797,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(OBJECT_TYPE, OBSERVATION);
                 hints.put(RESULT_MODEL, MEASUREMENT_QNAME);
                 hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
-                count = new BigDecimal(omProvider.getCount(subquery, hints));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), hints));
             }
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -944,7 +944,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 hints.put(OBJECT_TYPE, OBSERVATION);
                 hints.put(RESPONSE_MODE, ResponseModeType.RESULT_TEMPLATE);
                 hints.put(RESULT_MODEL, OBSERVATION_QNAME);
-                count = new BigDecimal(omProvider.getCount(subquery, hints));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), hints));
             }
             final Integer reqTop = getRequestTop(req);
             if (reqTop == null || reqTop > 0) {
@@ -1187,7 +1187,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             hints.put(OBJECT_TYPE, OBSERVED_PROPERTY);
             final Integer reqTop = getRequestTop(req);
             if (reqTop == null || reqTop > 0) {
-                Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, hints);
+                Collection<org.opengis.observation.Phenomenon> sps = omProvider.getPhenomenon(subquery, new HashMap<>(hints));
                 Map<String, GeoJSONGeometry> sensorArea = new HashMap<>();
                 Map<TemporalObject, String> timesCache = new HashMap<>();
                 for (org.opengis.observation.Phenomenon sp : sps) {
@@ -1196,7 +1196,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
             }
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getCount(subquery, hints));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), new HashMap<>(hints)));
             }
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
@@ -1403,7 +1403,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             } else {
                 final FeatureQuery subquery = buildExtraFilterQuery(req, true);
                 if (req.getCount()) {
-                    count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, LOCATION))));
+                    count = new BigDecimal(omProvider.getCount(noPaging(subquery), new HashMap(Collections.singletonMap(OBJECT_TYPE, LOCATION))));
                 }
                 final Integer reqTop = getRequestTop(req);
                 if (reqTop == null || reqTop > 0) {
@@ -1442,7 +1442,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         try {
             final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), new HashMap(Collections.singletonMap(OBJECT_TYPE, PROCEDURE))));
             }
             final Integer reqTop = getRequestTop(req);
             if (reqTop == null || reqTop > 0) {
@@ -1748,7 +1748,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final RequestOptions exp = new RequestOptions(req).subLevel("FeaturesOfInterest");
             final FeatureQuery subquery = buildExtraFilterQuery(req, true);
             if (req.getCount()) {
-                count = new BigDecimal(omProvider.getCount(subquery, new HashMap(Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST))));
+                count = new BigDecimal(omProvider.getCount(noPaging(subquery), new HashMap(Collections.singletonMap(OBJECT_TYPE, FEATURE_OF_INTEREST))));
             }
             final Integer reqTop = getRequestTop(req);
             if (reqTop == null || reqTop > 0) {
@@ -1928,5 +1928,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     public void destroy() {
         super.destroy();
         stopped();
+    }
+
+    // TODO remove after geotk update
+    private static FeatureQuery noPaging(FeatureQuery orig) {
+        FeatureQuery query = new FeatureQuery();
+        query.setProjection(orig.getProjection());
+        query.setLinearResolution(orig.getLinearResolution());
+        query.setSelection(orig.getSelection());
+        query.setSortBy(orig.getSortBy());
+        return query;
     }
 }

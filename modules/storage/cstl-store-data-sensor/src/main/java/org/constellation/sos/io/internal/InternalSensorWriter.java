@@ -164,12 +164,4 @@ public class InternalSensorWriter implements SensorWriter {
     public void destroy() {
         
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Internal Sensor Writer 1.2-EE";
-    }
 }

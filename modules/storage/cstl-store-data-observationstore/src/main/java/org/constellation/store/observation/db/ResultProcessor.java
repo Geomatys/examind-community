@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.getCsvTextEncoding;

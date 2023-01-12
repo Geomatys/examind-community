@@ -120,9 +120,9 @@ public class SensorServiceBusiness {
                     if (sensor instanceof AbstractSensorML sml) {
                         final String sensorID             = SensorMLUtilities.getSmlID(sml);
                         final String smlType              = SensorMLUtilities.getSensorMLType(sml);
-                        final String omType               = SensorMLUtilities.getOMType(sml);
-                        final String name                 = sensorID; // TODO extract from sml
-                        final String description          = null; // TODO extract from sml
+                        final String omType               = SensorMLUtilities.getOMType(sml).orElse(null);
+                        final String name                 = SensorMLUtilities.getSmlName(sml).orElse(sensorID);
+                        final String description          = SensorMLUtilities.getSmlDescription(sml).orElse(null);
                         final List<SensorMLTree> children = SensorUtils.getChildren(sml);
                         sensorBusiness.create(sensorID, name, description, smlType, omType, null, sensor, System.currentTimeMillis(), smlProviderId);
                         for (SensorMLTree child : children) {

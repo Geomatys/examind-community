@@ -48,6 +48,7 @@ import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import org.apache.sis.util.Utilities;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.api.CommonConstants.RESULT_MODEL;
 import org.constellation.dto.service.config.sos.Offering;
@@ -61,7 +62,6 @@ import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationTemplate;
 import org.constellation.dto.service.config.sos.ExtractionResult;
@@ -110,6 +110,7 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import static org.geotoolkit.observation.ObservationFilterFlags.*;
+import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
@@ -195,7 +196,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.HISTORICAL_LOCATION, hints);
-            return localOmFilter.getSensorHistoricalLocations(hints);
+            return localOmFilter.getSensorHistoricalLocations();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -206,7 +207,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.LOCATION, hints);
-            return localOmFilter.getSensorLocations(hints);
+            return localOmFilter.getSensorLocations();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -217,7 +218,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.HISTORICAL_LOCATION, hints);
-            return localOmFilter.getSensorTimes(hints);
+            return localOmFilter.getSensorTimes();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -233,7 +234,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.OBSERVED_PROPERTY, hints);
-            return localOmFilter.getIdentifiers(hints);
+            return localOmFilter.getIdentifiers();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -245,7 +246,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             // we clone the filter for this request
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.OBSERVED_PROPERTY, hints);
-            return localOmFilter.getPhenomenons(hints);
+            return localOmFilter.getPhenomenons();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -256,7 +257,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.PROCEDURE, hints);
-            return localOmFilter.getIdentifiers(hints);
+            return localOmFilter.getIdentifiers();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -267,7 +268,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.FEATURE_OF_INTEREST, hints);
-            return localOmFilter.getIdentifiers(hints);
+            return localOmFilter.getIdentifiers();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -338,7 +339,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.OFFERING, hints);
-            return localOmFilter.getIdentifiers(hints);
+            return localOmFilter.getIdentifiers();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -360,7 +361,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             localOmFilter.init(OMEntity.OBSERVATION, hints);
             handleQuery(q, localOmFilter, OMEntity.OBSERVATION, hints);
 
-            return localOmFilter.getIdentifiers(hints);
+            return localOmFilter.getIdentifiers();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -371,39 +372,17 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     @Override
     public SOSProviderCapabilities getCapabilities() throws ConstellationStoreException {
         if (capabilities == null) {
-            try {
-                ObservationReader reader = ((ObservationStore)getMainStore()).getReader();
-                Map<String, List<String>> responseFormats = new HashMap<>();
-                List<String> responseModes= new ArrayList<>();
-                if (reader != null) {
-                    responseFormats = reader.getResponseFormats();
-                    reader.getResponseModes().stream().forEach(rm -> responseModes.add(rm.value()));
-                }
-                List<String> queryableResultProperties = new ArrayList<>();
-                boolean isBoundedObservation = false;
-                boolean computeCollectionBound = false;
-                boolean isDefaultTemplateTime = false;
-                boolean hasFilter = false;
-                ObservationFilterReader filter = ((ObservationStore)getMainStore()).getFilter();
-                if (filter != null) {
-                    queryableResultProperties = filter.supportedQueryableResultProperties();
-                    isBoundedObservation      = filter.isBoundedObservation();
-                    computeCollectionBound    = filter.computeCollectionBound();
-                    isDefaultTemplateTime     = filter.isDefaultTemplateTime();
-                    hasFilter                 = true;
-                }
-                capabilities = new SOSProviderCapabilities(responseFormats,
-                                                           responseModes,
-                                                           queryableResultProperties,
-                                                           isBoundedObservation,
-                                                           computeCollectionBound,
-                                                           isDefaultTemplateTime,
-                                                           hasFilter);
-            } catch (DataStoreException ex) {
-                throw new ConstellationStoreException(ex);
-            }
+            ObservationStoreCapabilities capa = ((ObservationStore)getMainStore()).getCapabilities();
+            capabilities = new SOSProviderCapabilities(capa.responseFormats,
+                                                       capa.responseModes,
+                                                       capa.queryableResultProperties,
+                                                       capa.isBoundedObservation,
+                                                       capa.computeCollectionBound,
+                                                       capa.isDefaultTemplateTime,
+                                                       capa.hasFilter);
         }
         return capabilities;
+
     }
 
     @Override
@@ -461,12 +440,16 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             Instant p = (Instant) off.getTime();
             times.add(p.getDate());
         }
+        String procedure = null;
+        if (off.getProcedures() != null && !off.getProcedures().isEmpty()) {
+            procedure = off.getProcedures().get(0);
+        }
         return new Offering(off.getId(),
                             off.getName().getCode(),
                             off.getDescription(),
                             off.getSrsName(),
                             off.getResultModel(),
-                            off.getProcedures(),
+                            procedure,
                             off.getFeatureOfInterestIds(),
                             off.getObservedProperties(),
                             times);
@@ -477,16 +460,12 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public void updateOffering(Offering offering) throws ConstellationStoreException {
         try {
             if (offering != null) {
-                String procedure = null;
-                if (offering.getProcedures() != null && !offering.getProcedures().isEmpty()) {
-                    procedure = offering.getProcedures().get(0);
-                }
                 String foi = null;
                 if (offering.getFeatureOfInterest()!= null && !offering.getFeatureOfInterest().isEmpty()) {
                     foi = offering.getFeatureOfInterest().get(0);
                 }
                 ((ObservationStore)getMainStore()).getWriter().updateOffering(offering.getId(),
-                                                 procedure,
+                                                 offering.getProcedure(),
                                                  offering.getObservedProperties(),
                                                  foi);
             }
@@ -530,7 +509,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                                                 offering.getDescription(),
                                                 offering.getAvailableSrs(),
                                                 time,
-                                                offering.getProcedures(),
+                                                offering.getProcedure(),
                                                 obsPropsV100,
                                                 obsPropsV200,
                                                 offering.getFeatureOfInterest(),
@@ -716,7 +695,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.FEATURE_OF_INTEREST, hints);
 
-            return localOmFilter.getFeatureOfInterests(hints);
+            return localOmFilter.getFeatureOfInterests();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -743,15 +722,13 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             hints.put(RESPONSE_MODE, mode);
             hints.put(RESULT_MODEL, resultModel);
+            hints.put(RESPONSE_FORMAT, responseFormat);
 
             // we clone the filter for this request
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.OBSERVATION, hints);
 
-            if (responseFormat != null) {
-                localOmFilter.setResponseFormat(responseFormat);
-            }
-            return localOmFilter.getObservations(hints);
+            return localOmFilter.getObservations();
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
@@ -762,7 +739,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             final ObservationFilterReader localOmFilter = ((ObservationStore)getMainStore()).getFilter();
             handleQuery(q, localOmFilter, OMEntity.PROCEDURE, hints);
-            return localOmFilter.getProcesses(hints);
+            return localOmFilter.getProcesses();
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -785,9 +762,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 mode = ResponseModeType.INLINE;
             }
             hints.put(RESPONSE_MODE, mode);
+            hints.put(RESPONSE_FORMAT, responseFormat);
             handleQuery(q, localOmFilter, OMEntity.RESULT, hints);
-            localOmFilter.setResponseFormat(responseFormat);
-            return localOmFilter.getResults(hints);
+            return localOmFilter.getResults();
 
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -851,16 +828,6 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public ExtractionResult extractResults(String affectedSensorID, List<String> sensorIds) throws ConstellationStoreException {
         try {
             ExtractionResult results = toDto(((ObservationStore)getMainStore()).getResults(affectedSensorID, sensorIds));
-            return results;
-        } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
-        }
-    }
-
-    @Override
-    public ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException {
-        try {
-            ExtractionResult results = toDto(((ObservationStore)getMainStore()).getResults(affectedSensorID, sensorIds, existingPhenomenons, existingSamplingFeatures));
             return results;
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -1091,7 +1058,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 if (pNameStr.contains("[")) {
                     cleanPname = pNameStr.substring(0, pNameStr.indexOf('['));
                 }
-                if (localOmFilter.supportedQueryableResultProperties().contains(cleanPname)) {
+                if (getCapabilities().queryableResultProperties.contains(cleanPname)) {
                     localOmFilter.setResultFilter((BinaryComparisonOperator) filter);
                 } else {
                     throw new ConstellationStoreException("Unsuported property for filtering:" + pNameStr);
@@ -1105,7 +1072,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             if (pNameStr.contains("[")) {
                 cleanPname = pNameStr.substring(0, pNameStr.indexOf('['));
             }
-            if (localOmFilter.supportedQueryableResultProperties().contains(cleanPname)) {
+            if (getCapabilities().queryableResultProperties.contains(cleanPname)) {
                 localOmFilter.setResultFilter((BinaryComparisonOperator) filter);
             } else {
                 throw new ConstellationStoreException("Unsuported property for filtering:" + pNameStr);

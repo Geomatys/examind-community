@@ -27,9 +27,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
-import javax.measure.format.ParserException;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeAttributeAccuracy;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
@@ -37,8 +35,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.iso.DefaultRecord;
 import org.apache.sis.util.iso.DefaultRecordSchema;
-import org.apache.sis.util.iso.Names;
-import org.apache.sis.xml.IdentifierSpace;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.transform.AbstractGeometryTransformer;
@@ -46,7 +42,7 @@ import org.geotoolkit.geometry.jts.transform.GeometryCSTransformer;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
-import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildDataArrayProperty;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
@@ -85,7 +81,6 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
 import org.opengis.util.RecordType;
-import org.opengis.util.TypeName;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -321,11 +316,7 @@ public class OM2Utils {
             r.set(rt.getMembers().iterator().next(), value);
             res.setValues(Arrays.asList(r));
             if (field.uom != null) {
-                try {
-                    res.setValueUnit(Units.valueOf(field.uom));
-                } catch (ParserException ex) {
-                    LOGGER.warning("Error while parsing uom : " + field.uom);
-                }
+                res.setValueUnit(Units.valueOf(field.uom));
             }
             element.setResults(Arrays.asList(res));
         }

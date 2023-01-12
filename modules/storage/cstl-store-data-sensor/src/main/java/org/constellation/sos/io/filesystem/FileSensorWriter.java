@@ -194,12 +194,4 @@ public class FileSensorWriter implements SensorWriter {
     public void destroy() {
         //do nothing
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Filesystem Sensor Writer 1.2-EE";
-    }
 }

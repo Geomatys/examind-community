@@ -90,7 +90,7 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.ObservationReader.ENTITY_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SENSOR_TYPE;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
-import org.geotoolkit.observation.ResultBuilder;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.ResultMode;
 import static org.geotoolkit.sos.xml.SOSXmlFactory.buildFeatureProperty;
 import org.opengis.metadata.quality.Element;
@@ -302,7 +302,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                                  description,
                                  null,
                                  time,
-                                 Arrays.asList(procedure),
+                                 procedure,
                                  phen100,
                                  phen200,
                                  foi,
@@ -746,7 +746,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } catch (NumberFormatException ex) {
             throw new DataStoreException("Unable ta parse the result value as a double");
         }
-        return buildMeasure(version, name, uom, value);
+        return buildMeasure(version, uom, value);
     }
 
     /*
@@ -857,26 +857,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public String getNewObservationId() throws DataStoreException {
-        try(final Connection c         = source.getConnection();
-            final Statement stmt       = c.createStatement();
-            final ResultSet rs         = stmt.executeQuery("SELECT max(\"id\") FROM \"" + schemaPrefix + "om\".\"observations\"")) {//NOSONAR
-            int resultNum;
-            if (rs.next()) {
-                resultNum = rs.getInt(1) + 1;
-            } else {
-                resultNum = 1;
-            }
-            return observationIdBase + resultNum;
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while looking for available observation id.", ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName, final String version) throws DataStoreException {
         final String query = "SELECT min(\"time_begin\") as mib, max(\"time_begin\") as mab, max(\"time_end\") as mae "
                            + "FROM \"" + schemaPrefix + "om\".\"observations\" "
@@ -943,29 +923,5 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation O&M 2 Reader 1.2-EE";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ResponseModeType> getResponseModes() throws DataStoreException {
-        return Arrays.asList(ResponseModeType.INLINE, ResponseModeType.RESULT_TEMPLATE);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
-        return RESPONSE_FORMAT;
     }
 }

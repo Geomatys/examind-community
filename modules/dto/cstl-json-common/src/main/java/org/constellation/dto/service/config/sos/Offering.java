@@ -35,7 +35,7 @@ public class Offering {
     protected List<Date> time = new ArrayList<>();
     protected List<String> availableSrs = new ArrayList<>();
     protected List<QName> resultModels = new ArrayList<>();
-    protected List<String> procedures = new ArrayList<>();
+    protected String procedure;
     protected List<String> featureOfInterest = new ArrayList<>();
     protected List<String> observedProperties = new ArrayList<>();
 
@@ -44,14 +44,14 @@ public class Offering {
     }
 
     public Offering(String id, String name, String description, List<String> availableSrs, List<QName> resultModels,
-            List<String> procedures, List<String> featureOfInterest, List<String> observedProperties, List<Date> time) {
+            String procedure, List<String> featureOfInterest, List<String> observedProperties, List<Date> time) {
         this.availableSrs = availableSrs;
         this.featureOfInterest = featureOfInterest;
         this.id = id;
         this.name = name;
         this.description = description;
         this.observedProperties = observedProperties;
-        this.procedures = procedures;
+        this.procedure = procedure;
         this.resultModels = resultModels;
         this.time = time;
     }
@@ -99,17 +99,17 @@ public class Offering {
     }
 
     /**
-     * @return the procedures
+     * @return the procedure
      */
-    public List<String> getProcedures() {
-        return procedures;
+    public String getProcedure() {
+        return procedure;
     }
 
     /**
-     * @param procedures the procedures to set
+     * @param procedure the procedure to set
      */
-    public void setProcedures(List<String> procedures) {
-        this.procedures = procedures;
+    public void setProcedure(String procedure) {
+        this.procedure = procedure;
     }
 
     /**

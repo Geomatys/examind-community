@@ -1457,14 +1457,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * {@inheritDoc}
      */
     @Override
-    public String getInfos() {
-        return "Constellation O&M 2 Writer 1.2-EE";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void destroy() {
 
     }

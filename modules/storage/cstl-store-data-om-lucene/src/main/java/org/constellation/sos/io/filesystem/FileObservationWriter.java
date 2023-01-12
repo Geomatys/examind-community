@@ -301,8 +301,8 @@ public class FileObservationWriter implements ObservationWriter {
     @Override
     public void writePhenomenons(final List<org.opengis.observation.Phenomenon> phenomenons) throws DataStoreException {
         for (org.opengis.observation.Phenomenon phenomenon : phenomenons)  {
-            if (phenomenon instanceof Phenomenon) {
-                writePhenomenon((Phenomenon)phenomenon);
+            if (phenomenon instanceof Phenomenon phen) {
+                writePhenomenon(phen);
             } else if (phenomenon != null) {
                 LOGGER.log(Level.WARNING, "Bad implementation of phenomenon:{0}", phenomenon.getClass().getName());
             }
@@ -356,14 +356,6 @@ public class FileObservationWriter implements ObservationWriter {
     @Override
     public void writeProcedure(ExtractionResult.ProcedureTree procedure) throws DataStoreException {
         // do nothing
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Filesystem O&M Writer 0.9";
     }
 
     /**

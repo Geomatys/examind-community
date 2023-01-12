@@ -387,7 +387,7 @@ public class SensorRestAPI extends AbstractRestAPI {
                         if (objsml instanceof AbstractSensorML) {
                             final AbstractSensorML sml = (AbstractSensorML) objsml;
                             final String type = SensorMLUtilities.getSensorMLType(sml);
-                            final String omType = SensorMLUtilities.getOMType(sml);
+                            final String omType = SensorMLUtilities.getOMType(sml).orElse(null);
                             final String sensorID = SensorMLUtilities.getSmlID(sml);
                             final String name = sensorID; // TODO extract from sml
                             final String description = null; // TODO extract from sml
@@ -419,7 +419,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             if (objsml instanceof AbstractSensorML) {
                 final AbstractSensorML sml = (AbstractSensorML) objsml;
                 final String type          = SensorMLUtilities.getSensorMLType(sml);
-                final String omType        = SensorMLUtilities.getOMType(sml);
+                final String omType        = SensorMLUtilities.getOMType(sml).orElse(null);
                 final String sensorID      = SensorMLUtilities.getSmlID(sml);
                 final String name          = sensorID; // TODO extract from sml
                 final String description   = null; // TODO extract from sml

@@ -24,8 +24,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,6 +55,8 @@ import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.event.StoreListeners;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -64,8 +68,10 @@ import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.feature.Feature;
@@ -84,6 +90,12 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
     private final String SQL_WRITE_SAMPLING_POINT;
     private final String SQL_GET_LAST_ID;
+
+    static final Map<String, List<String>> RESPONSE_FORMAT = new HashMap<>();
+    static {
+        RESPONSE_FORMAT.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        RESPONSE_FORMAT.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+    }
 
     protected ObservationReader reader;
     protected ObservationWriter writer;
@@ -270,6 +282,12 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
         }
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
+    }
+
+    @Override
+    public ObservationStoreCapabilities getCapabilities() {
+        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value(), ResponseModeType.RESULT_TEMPLATE.value());
+        return new ObservationStoreCapabilities(true, false, false, Arrays.asList("result"), RESPONSE_FORMAT, responseMode, true);
     }
 
     private boolean buildDatasource() throws DataStoreException {

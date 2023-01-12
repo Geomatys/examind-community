@@ -18,11 +18,9 @@
  */
 package com.examind.store.observation;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -109,23 +107,8 @@ public class StoreDelegatingObservationReader implements ObservationReader {
     }
 
     @Override
-    public String getNewObservationId() throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
     public TemporalPrimitive getEventTime(String version) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public List<ResponseModeType> getResponseModes() throws DataStoreException {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
-        return new HashMap<>();
     }
 
     @Override
@@ -135,11 +118,6 @@ public class StoreDelegatingObservationReader implements ObservationReader {
 
     @Override
     public Map<Date, AbstractGeometry> getSensorLocations(String sensorID, String version) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public String getInfos() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

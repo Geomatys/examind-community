@@ -279,7 +279,7 @@ public class OM2BaseReader {
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
                 stmt.setString(1, observedProperty);
                 try(final ResultSet rs = stmt.executeQuery()) {
-                    final List<Phenomenon> phenomenons = new ArrayList<>();
+                    final List<org.geotoolkit.swe.xml.Phenomenon> phenomenons = new ArrayList<>();
                     while (rs.next()) {
                         final String phenID = rs.getString(1);
                         phenomenons.add(getSinglePhenomenon(version, phenID, c));
@@ -403,11 +403,11 @@ public class OM2BaseReader {
        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             try (final ResultSet rs   = stmt.executeQuery()) {
-                List<Phenomenon> components = new ArrayList<>();
+                List<org.geotoolkit.swe.xml.Phenomenon> components = new ArrayList<>();
                 int i = 0;
                 while (rs.next()) {
                     final String fieldName = rs.getString("field_name");
-                    Phenomenon phen = getPhenomenon(version, fieldName, c);
+                    org.geotoolkit.swe.xml.Phenomenon phen = (org.geotoolkit.swe.xml.Phenomenon) getPhenomenon(version, fieldName, c);
                     if (phen == null) {
                         throw new DataStoreException("Unable to link a procedure field to a phenomenon:" + fieldName);
                     }
@@ -558,7 +558,7 @@ public class OM2BaseReader {
                          rs.getInt("order"),
                          FieldType.fromLabel(rs.getString("field_type")),
                          fieldName,
-                         null,
+                         fieldName,
                          rs.getString("field_definition"),
                          rs.getString("uom"),
                          rs.getInt("table_number"));

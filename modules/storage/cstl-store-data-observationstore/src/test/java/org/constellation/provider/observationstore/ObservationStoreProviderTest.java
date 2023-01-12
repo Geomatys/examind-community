@@ -48,7 +48,7 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.gml.GmlInstant;
+import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.v311.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
@@ -58,7 +58,6 @@ import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.DataArrayProperty;
-import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -2187,7 +2186,7 @@ public class ObservationStoreProviderTest {
     }
 
     private void assertInstantEquals(String position, TemporalGeometricPrimitive result) throws ParseException {
-        if (result instanceof GmlInstant tResult) {
+        if (result instanceof GMLInstant tResult) {
             assertEquals(FORMAT.parse(position), tResult.getTimePosition().getDate());
         } else {
             throw new AssertionError("Not a time instant");

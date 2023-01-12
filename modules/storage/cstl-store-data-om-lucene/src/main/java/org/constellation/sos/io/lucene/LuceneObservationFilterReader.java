@@ -39,7 +39,6 @@ import static org.geotoolkit.observation.ObservationReader.IDENTIFIER;
 import static org.geotoolkit.observation.ObservationReader.SOS_VERSION;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import static org.geotoolkit.observation.OMUtils.getVersionFromHints;
 import org.geotoolkit.observation.xml.ObservationComparator;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.sos.xml.ResponseModeType;
@@ -75,10 +74,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
+    public List<Observation> getObservations() throws DataStoreException {
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oids               = getIdentifiers(hints);
+        final Set<String> oids               = getIdentifiers();
         for (String oid : oids) {
             final Observation obs = reader.getObservation(oid, resultModel, responseMode, version);
             observations.add(obs);
@@ -88,10 +86,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         for (Observation obs : observations) {
             if (!RESULT_TEMPLATE.equals(responseMode)) {
                 // parse result values to eliminate wrong results
-                if (obs.getSamplingTime() instanceof Period) {
+                if (obs.getSamplingTime() instanceof Period p) {
                     final Timestamp tbegin;
                     final Timestamp tend;
-                    final Period p = (Period)obs.getSamplingTime();
                     if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
                         tbegin = new Timestamp(p.getBeginning().getDate().getTime());
                     } else {
@@ -102,8 +99,8 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
                     } else {
                         tend = null;
                     }
-                    if (obs.getResult() instanceof DataArrayProperty) {
-                        final DataArray array = ((DataArrayProperty)obs.getResult()).getDataArray();
+                    if (obs.getResult() instanceof DataArrayProperty dap) {
+                        final DataArray array = dap.getDataArray();
                         final Values result   = getResultValues(tbegin, tend, array, eventTimes);
                         array.setValues(result.values.toString());
                         array.setElementCount(result.nbBlock);
@@ -116,10 +113,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(Map<String, Object> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
+    public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid                = getIdentifiers(hints);
+        final Set<String> fid                = getIdentifiers();
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -128,9 +124,8 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(Map<String, Object> hints) throws DataStoreException {
-        final String version  = getVersionFromHints(hints);
-        final Set<String> fid = getIdentifiers(hints);
+    public List<Phenomenon> getPhenomenons() throws DataStoreException {
+        final Set<String> fid = getIdentifiers();
         Map<String, Object> filters = new HashMap<>();
         filters.put(SOS_VERSION, version);
         filters.put(IDENTIFIER,  fid);
@@ -138,10 +133,9 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Process> getProcesses(Map<String, Object> hints) throws DataStoreException {
-        final String version          = getVersionFromHints(hints);
+    public List<Process> getProcesses() throws DataStoreException {
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids        = getIdentifiers(hints);
+        final Set<String> pids        = getIdentifiers();
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -150,12 +144,11 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public String getResults(Map<String, Object> hints) throws DataStoreException {
+    public String getResults() throws DataStoreException {
         if (ResponseModeType.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
-        final String version                 = getVersionFromHints(hints);
-        final Set<ObservationResult> results = new LinkedHashSet<>(filterResult(hints));
+        final Set<ObservationResult> results = new LinkedHashSet<>(filterResult());
         final StringBuilder datablock        = new StringBuilder();
 
         for (ObservationResult result: results) {
@@ -164,8 +157,8 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
             final Object r         =  reader.getResult(result.resultID, resultModel, version);
             if (r instanceof DataArray || r instanceof DataArrayProperty) {
                 final DataArray array;
-                if (r instanceof DataArrayProperty) {
-                    array = ((DataArrayProperty)r).getDataArray();
+                if (r instanceof DataArrayProperty dap) {
+                    array = dap.getDataArray();
                 } else {
                     array = (DataArray)r;
                 }
@@ -178,8 +171,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
                 } else {
                     throw new IllegalArgumentException("Array is null");
                 }
-            } else if (r instanceof Measure) {
-                final Measure meas = (Measure) r;
+            } else if (r instanceof Measure meas) {
                 datablock.append(tBegin).append(',').append(meas.getValue()).append("@@");
             } else {
                 throw new IllegalArgumentException("Unexpected result type:" + r);
@@ -189,32 +181,22 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public void setResponseFormat(String responseFormat) {
-        this.responseFormat = responseFormat;
-    }
-
-    @Override
-    public boolean computeCollectionBound() {
-        return false;
-    }
-
-    @Override
     public Envelope getCollectionBoundingShape() {
         throw new UnsupportedOperationException("Not supported.");
     }
 
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

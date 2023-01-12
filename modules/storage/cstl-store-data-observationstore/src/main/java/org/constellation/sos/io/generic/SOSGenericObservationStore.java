@@ -16,16 +16,24 @@
  */
 package org.constellation.sos.io.generic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConstellationMetadataException;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.model.ExtractionResult;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -115,5 +123,16 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
     @Override
     public ObservationFilterReader getFilter() {
         return new GenericObservationFilter((GenericObservationFilter) filter);
+    }
+
+    @Override
+    public ObservationStoreCapabilities getCapabilities() {
+        final Map<String, List<String>> responseFormats = new HashMap<>();
+        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+
+        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value(), ResponseModeType.RESULT_TEMPLATE.value());
+
+        return new ObservationStoreCapabilities(true, false, false, new ArrayList<>(), responseFormats, responseMode, true);
     }
 }

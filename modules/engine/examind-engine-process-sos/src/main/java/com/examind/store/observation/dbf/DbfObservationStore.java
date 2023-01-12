@@ -31,8 +31,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -41,6 +43,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.data.dbf.DbaseFileStore;
 import org.geotoolkit.data.dbf.DbaseFileHeader;
 import org.geotoolkit.data.dbf.DbaseFileReader;
@@ -60,7 +64,9 @@ import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
@@ -712,5 +718,16 @@ public class DbfObservationStore extends DbaseFileStore implements ObservationSt
         long i = (long) (myDouble*1000);
         long l = TIME_AT_2000 + i;
         return new Date(l);
+    }
+
+    @Override
+    public ObservationStoreCapabilities getCapabilities() {
+        final Map<String, List<String>> responseFormats = new HashMap<>();
+        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+
+        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
+
+        return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
     }
 }

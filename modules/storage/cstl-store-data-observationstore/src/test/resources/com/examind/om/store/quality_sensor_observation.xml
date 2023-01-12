@@ -42,9 +42,7 @@
             <swe:elementType name="dataArray-0">
                 <swe:DataRecord id="datarecord-0">
                     <swe:field name="Time">
-                        <swe:Time definition="urn:ogc:data:time:iso8601">
-                            <swe:uom/>
-                        </swe:Time>
+                        <swe:Time definition="urn:ogc:data:time:iso8601"/>
                     </swe:field>
                     <swe:field name="depth">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:depth">

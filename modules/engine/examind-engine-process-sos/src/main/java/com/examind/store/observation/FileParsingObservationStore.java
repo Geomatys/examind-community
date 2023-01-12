@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,6 +46,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.data.csv.CSVStore;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -57,8 +60,10 @@ import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.model.ExtractionResult;
 import org.geotoolkit.observation.model.ExtractionResult.ProcedureTree;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
+import org.geotoolkit.sos.xml.ResponseModeType;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.Phenomenon;
@@ -189,6 +194,17 @@ public abstract class FileParsingObservationStore extends CSVStore implements Ob
 
     protected String getProcedureID() {
         return procedureId;
+    }
+
+    @Override
+    public ObservationStoreCapabilities getCapabilities() {
+        final Map<String, List<String>> responseFormats = new HashMap<>();
+        responseFormats.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
+        responseFormats.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
+
+        final List<String> responseMode = Arrays.asList(ResponseModeType.INLINE.value());
+
+        return new ObservationStoreCapabilities(false, false, false, new ArrayList<>(), responseFormats, responseMode, false);
     }
 
     @Override

@@ -11,7 +11,7 @@
                   xmlns:ns31="http://www.opengis.net/swe/1.0.1"
                   xmlns:sa="http://www.opengis.net/sampling/1.0" 
                   xmlns:gml="http://www.opengis.net/gml"
-                  xmlns:ns39="http://www.opengis.net/gml"
+                  xmlns:ns40="http://www.opengis.net/gml"
                   version="1.0.0" updateSequence="1580811556088" 
                   xsi:schemaLocation="http://www.opengis.net/sos/1.0 http://schemas.opengis.net/sos/1.0.0/sosAll.xsd http://www.opengis.net/sampling/1.0 http://schemas.opengis.net/sampling/1.0.0/sampling.xsd">
   <ows:ServiceIdentification>
@@ -380,7 +380,7 @@
   <sos:Filter_Capabilities>
     <ogc:Spatial_Capabilities>
       <ogc:GeometryOperands>
-        <ogc:GeometryOperand>ns39:Envelope</ogc:GeometryOperand>
+        <ogc:GeometryOperand>ns40:Envelope</ogc:GeometryOperand>
       </ogc:GeometryOperands>
       <ogc:SpatialOperators>
         <ogc:SpatialOperator name="BBOX"/>
@@ -388,8 +388,8 @@
     </ogc:Spatial_Capabilities>
     <ogc:Temporal_Capabilities>
       <ogc:TemporalOperands>
-        <ogc:TemporalOperand>ns39:TimeInstant</ogc:TemporalOperand>
-        <ogc:TemporalOperand>ns39:TimePeriod</ogc:TemporalOperand>
+        <ogc:TemporalOperand>ns40:TimeInstant</ogc:TemporalOperand>
+        <ogc:TemporalOperand>ns40:TimePeriod</ogc:TemporalOperand>
       </ogc:TemporalOperands>
       <ogc:TemporalOperators>
         <ogc:TemporalOperator name="TM_During"/>

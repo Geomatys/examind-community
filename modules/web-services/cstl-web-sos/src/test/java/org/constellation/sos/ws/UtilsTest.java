@@ -44,6 +44,7 @@ import javax.xml.bind.Unmarshaller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.geotoolkit.observation.xml.AbstractObservation;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
@@ -108,14 +109,14 @@ public class UtilsTest {
     public void getSensorPositionTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
         AbstractSensorML sensor = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml"));
-        AbstractGeometry result = SensorMLUtilities.getSensorPosition(sensor);
+        AbstractGeometry result = SensorMLUtilities.getSensorPosition(sensor).orElse(null);
         DirectPositionType posExpResult = new DirectPositionType("urn:ogc:crs:EPSG:27582", 2, Arrays.asList(65400.0,1731368.0));
         PointType expResult = new PointType(posExpResult);
 
         assertEquals(expResult, result);
 
         sensor    = (AbstractSensorML) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ2.xml"));
-        result    = SensorMLUtilities.getSensorPosition(sensor);
+        result    = SensorMLUtilities.getSensorPosition(sensor).orElse(null);
         expResult = null;
 
         assertEquals(expResult, result);
@@ -184,7 +185,7 @@ public class UtilsTest {
 
         PhenomenonType pheno = new PhenomenonType("test", "test");
 
-        List<Observation> observations = new ArrayList<>();
+        List<AbstractObservation> observations = new ArrayList<>();
 
         ObservationType obs1 = new ObservationType();
         ObservationType obs2 = new ObservationType();

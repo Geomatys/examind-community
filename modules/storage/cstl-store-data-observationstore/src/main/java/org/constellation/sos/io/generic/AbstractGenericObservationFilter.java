@@ -32,7 +32,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,14 +184,6 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
      * {@inheritDoc}
      */
     @Override
-    public List<String> supportedQueryableResultProperties() {
-        return new ArrayList<>();
-    }
-
-     /**
-     * {@inheritDoc}
-     */
-    @Override
     public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
@@ -218,10 +209,5 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
         c.setReadOnly(true);
         c.setAutoCommit(false);
         return c;
-    }
-
-    @Override
-    public boolean isDefaultTemplateTime() {
-        return true;
     }
 }

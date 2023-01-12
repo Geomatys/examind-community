@@ -103,17 +103,12 @@ public class StoreDelegatingObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public List<String> supportedQueryableResultProperties() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
+    public List<ObservationResult> filterResult() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Set<String> getIdentifiers(Map<String, Object> hints) throws DataStoreException {
+    public Set<String> getIdentifiers() throws DataStoreException {
         if (objectType == null) {
             throw new DataStoreException("initialisation of the filter missing.");
         }
@@ -139,23 +134,8 @@ public class StoreDelegatingObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public String getInfos() {
-        return "Store delegating observation filter.";
-    }
-
-    @Override
     public void refresh() throws DataStoreException {
         //do nothing
-    }
-
-    @Override
-    public boolean isBoundedObservation() {
-        return false;
-    }
-
-    @Override
-    public boolean isDefaultTemplateTime() {
-        return false;
     }
 
     @Override
@@ -164,53 +144,43 @@ public class StoreDelegatingObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
+    public List<Observation> getObservations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(Map<String, Object> hints) throws DataStoreException {
+    public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(Map<String, Object> hints) throws DataStoreException {
+    public List<Phenomenon> getPhenomenons() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public List<Process> getProcesses(Map<String, Object> hints) throws DataStoreException {
+    public List<Process> getProcesses() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Object getResults(Map<String, Object> hints) throws DataStoreException {
+    public Object getResults() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void setResponseFormat(String responseFormat) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean computeCollectionBound() {
-        return false;
     }
 
     @Override

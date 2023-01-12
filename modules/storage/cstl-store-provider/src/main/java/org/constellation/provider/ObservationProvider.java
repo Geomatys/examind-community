@@ -119,7 +119,6 @@ public interface ObservationProvider extends DataProvider {
 
     ExtractionResult extractResults() throws ConstellationStoreException;
     ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds) throws ConstellationStoreException;
-    ExtractionResult extractResults(final String affectedSensorID, final List<String> sensorIds, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingSamplingFeatures) throws ConstellationStoreException;
     
    /*
     * The following 3 method will be removed and replace by the existing getFeatureOfInterestNames / getFeatureOfInterest with query

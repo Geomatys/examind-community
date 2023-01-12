@@ -57,11 +57,7 @@ public class DefaultSensorData extends AbstractData implements SensorData {
 
     @Override
     public String getOMType() {
-        String omType =  SensorMLUtilities.getOMType(metadata);
-        if (omType == null) {
-            omType = "timeseries";
-        }
-        return omType;
+        return SensorMLUtilities.getOMType(metadata).orElse("timeseries");
     }
 
     @Override

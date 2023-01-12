@@ -1242,6 +1242,8 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
 
         assertEquals(expResult.getResult(), result.getResult());
+        assertEquals(expResult.getQuality(), result.getQuality());
+        assertEquals(expResult.getResultQuality(), result.getResultQuality());
         assertEquals(expResult, result);
         marshallerPool.recycle(unmarshaller);
     }

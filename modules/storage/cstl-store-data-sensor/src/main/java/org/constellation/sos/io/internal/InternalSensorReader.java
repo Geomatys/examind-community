@@ -100,11 +100,11 @@ public class InternalSensorReader implements SensorReader {
                 final Unmarshaller unmarshaller = MARSHALLER_POOL.acquireUnmarshaller();
                 Object unmarshalled = unmarshaller.unmarshal(new StringReader(xml));
                 MARSHALLER_POOL.recycle(unmarshaller);
-                if (unmarshalled instanceof JAXBElement) {
-                    unmarshalled = ((JAXBElement) unmarshalled).getValue();
+                if (unmarshalled instanceof JAXBElement jb) {
+                    unmarshalled = jb.getValue();
                 }
-                if (unmarshalled instanceof AbstractSensorML) {
-                    return (AbstractSensorML) unmarshalled;
+                if (unmarshalled instanceof AbstractSensorML asml) {
+                    return asml;
                 } else {
                     throw new DataStoreException("The form unmarshalled is not a sensor");
                 }
@@ -123,14 +123,6 @@ public class InternalSensorReader implements SensorReader {
     @Override
     public void destroy() {
         // do nothing
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Internal Sensor Reader 1.2-EE";
     }
 
     /**

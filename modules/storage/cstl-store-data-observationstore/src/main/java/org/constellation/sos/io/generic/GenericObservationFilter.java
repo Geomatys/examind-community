@@ -51,6 +51,7 @@ import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import org.constellation.sos.ws.DatablockParser;
 import static org.constellation.sos.ws.DatablockParser.getResultValues;
 import org.geotoolkit.observation.model.OMEntity;
@@ -86,6 +87,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     private ObservationReader reader;
 
     private String responseFormat;
+
+    private String version;
 
     protected QName resultModel;
 
@@ -130,6 +133,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public void init(OMEntity objectType, Map<String, Object> hints) throws DataStoreException {
         this.objectType = objectType;
+        this.version = getVersionFromHints(hints);
+        this.responseFormat = (String) hints.get(RESPONSE_FORMAT);
+        
         switch (objectType) {
             case FEATURE_OF_INTEREST: return; // do nothing not implemented
             case OBSERVED_PROPERTY:   initFilterGetPhenomenon(); break;
@@ -358,7 +364,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public List<ObservationResult> filterResult(Map<String, Object> hints) throws DataStoreException {
+    public List<ObservationResult> filterResult() throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
@@ -385,7 +391,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public Set<String> getIdentifiers(Map<String, Object> hints) throws DataStoreException {
+    public Set<String> getIdentifiers() throws DataStoreException {
         final String request = currentQuery.buildSQLQuery();
         LOGGER.log(Level.INFO, "request:{0}", request);
         try {
@@ -408,22 +414,6 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public String getInfos() {
-        return "Constellation Generic O&M Filter 1.2-EE";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isBoundedObservation() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void setBoundingBox(final Envelope e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
     }
@@ -439,10 +429,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Observation> getObservations(Map<String, Object> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
+    public List<Observation> getObservations() throws DataStoreException {
         final List<Observation> observations = new ArrayList<>();
-        final Set<String> oid                = getIdentifiers(hints);
+        final Set<String> oid                = getIdentifiers();
         for (String foid : oid) {
             final Observation obs = reader.getObservation(foid, resultModel, requestMode, version);
 
@@ -476,10 +465,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<SamplingFeature> getFeatureOfInterests(Map<String, Object> hints) throws DataStoreException {
-        final String version                 = getVersionFromHints(hints);
+    public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
         final List<SamplingFeature> features = new ArrayList<>();
-        final Set<String> fid                = getIdentifiers(hints);
+        final Set<String> fid                = getIdentifiers();
         for (String foid : fid) {
             final SamplingFeature feature = reader.getFeatureOfInterest(foid, version);
             features.add(feature);
@@ -488,9 +476,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Phenomenon> getPhenomenons(Map<String, Object> hints) throws DataStoreException {
-        final String version               = getVersionFromHints(hints);
-        final Set<String> fid              = getIdentifiers(hints);
+    public List<Phenomenon> getPhenomenons() throws DataStoreException {
+        final Set<String> fid              = getIdentifiers();
         Map<String, Object> filters = new HashMap<>();
         filters.put(SOS_VERSION, version);
         filters.put(IDENTIFIER,  fid);
@@ -498,10 +485,9 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Process> getProcesses(Map<String, Object> hints) throws DataStoreException {
-        final String version          = getVersionFromHints(hints);
+    public List<Process> getProcesses() throws DataStoreException {
         final List<Process> processes = new ArrayList<>();
-        final Set<String> pids        = getIdentifiers(hints);
+        final Set<String> pids        = getIdentifiers();
         for (String pid : pids) {
             final Process pr = reader.getProcess(pid, version);
             processes.add(pr);
@@ -521,8 +507,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             case OBSERVED_PROPERTY:
             case OFFERING:
             case OBSERVATION:         
-            case PROCEDURE:           return getIdentifiers(hints).size();
-            case RESULT:              return filterResult(hints).size();
+            case PROCEDURE:           return getIdentifiers().size();
+            case RESULT:              return filterResult().size();
             case HISTORICAL_LOCATION:
             case LOCATION:            throw new DataStoreException("not implemented yet.");
             
@@ -531,18 +517,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public String getResults(Map<String, Object> hints) throws DataStoreException {
+    public String getResults() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void setResponseFormat(String responseFormat) {
-        this.responseFormat = responseFormat;
-    }
-
-    @Override
-    public boolean computeCollectionBound() {
-        return false;
     }
 
     @Override
@@ -551,17 +527,17 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public Map<String, Geometry> getSensorLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Geometry> getSensorLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, Map<Date, Geometry>> getSensorHistoricalLocations() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes(Map<String, Object> hints) throws DataStoreException {
+    public Map<String, List<Date>> getSensorTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

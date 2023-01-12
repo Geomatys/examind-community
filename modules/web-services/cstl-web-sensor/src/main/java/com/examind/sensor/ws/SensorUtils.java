@@ -85,7 +85,7 @@ public final class SensorUtils {
     /**
      * depracted by org.geotoolkit.observation.Utils.getTimeValue
      */
-    public static Envelope getCollectionBound(final String version, final List<Observation> observations, final String srsName) {
+    public static Envelope getCollectionBound(final String version, final List<AbstractObservation> observations, final String srsName) {
         double minx = Double.MAX_VALUE;
         double miny = Double.MAX_VALUE;
         double maxx = -Double.MAX_VALUE;
@@ -267,7 +267,8 @@ public final class SensorUtils {
                     } else if (cp.getAbstractProcess()!= null) {
                         AbstractProcess ap = cp.getAbstractProcess();
                         String sensorId = getSmlID(ap);
-                        results.add(new SensorMLTree(null, sensorId, sensorId, null, getSensorMLType(ap), getOMType(ap), null, ap));
+                        String omType =  getOMType(ap).orElse(null);
+                        results.add(new SensorMLTree(null, sensorId, sensorId, null, getSensorMLType(ap), omType, null, ap));
                     } else {
                         LOGGER.warning("SML system component has no href or embedded object");
                     }
@@ -283,7 +284,8 @@ public final class SensorUtils {
                     } else if (cp.getAbstractProcess()!= null) {
                         AbstractProcess ap = cp.getAbstractProcess();
                         String sensorId = getSmlID(ap);
-                        results.add(new SensorMLTree(null, sensorId, sensorId, null, getSensorMLType(ap), getOMType(ap), null, ap));
+                        String omType =  getOMType(ap).orElse(null);
+                        results.add(new SensorMLTree(null, sensorId, sensorId, null, getSensorMLType(ap), omType, null, ap));
                     } else {
                         LOGGER.warning("SML system component has no href or embedded object");
                     }

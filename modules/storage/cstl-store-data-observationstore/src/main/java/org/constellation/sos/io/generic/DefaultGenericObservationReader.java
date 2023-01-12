@@ -248,28 +248,6 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public String getNewObservationId() throws DataStoreException {
-        try {
-            Values values = loadData(Arrays.asList("var05"));
-            int id = Integer.parseInt(values.getVariable("var05"));
-
-            values = loadData(Arrays.asList("var44"), observationIdBase + id);
-            String continues;
-            do {
-                id++;
-                continues = values.getVariable("var44");
-
-            } while (continues != null);
-            return observationIdBase + id;
-        } catch (ConstellationMetadataException ex) {
-            throw new DataStoreException(ex);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public TemporalPrimitive getEventTime(String version) throws DataStoreException {
          try {
             final Values values = loadData(Arrays.asList("var06"));
@@ -344,11 +322,14 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             time  = GMLXmlFactory.createTimePeriod(gmlVersion, null, offeringBegin, offeringEnd);
 
             // procedure
-            final List<String> procedures;
+            String procedure = null;
             if (version.equals("2.0.0")) {
-                procedures = Arrays.asList(sensorIdBase + offeringName.substring(9));
+                procedure = sensorIdBase + offeringName.substring(9);
             } else {
-                procedures = values.getVariables("var10");
+                List<String> procedures = values.getVariables("var10");
+                if (!procedures.isEmpty()) {
+                    procedure = procedures.get(0);
+                }
             }
 
             // phenomenon
@@ -398,7 +379,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                  null,
                                  srsName,
                                  time,
-                                 procedures,
+                                 procedure,
                                  observedProperties,
                                  observedPropertiesv200,
                                  foisV200,
@@ -807,33 +788,6 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             return SOSXmlFactory.buildProcess(version, identifier);
         }
         return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getInfos() {
-        return "Constellation Postgrid Generic O&M Reader 1.2-EE";
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public List<ResponseModeType> getResponseModes() throws DataStoreException {
-        return Arrays.asList(ResponseModeType.INLINE, ResponseModeType.RESULT_TEMPLATE);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Map<String, List<String>> getResponseFormats() throws DataStoreException {
-        final Map<String, List<String>> results = new HashMap<>();
-        results.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
-        results.put("2.0.0", Arrays.asList(RESPONSE_FORMAT_V200_XML));
-        return results;
     }
 
     /**

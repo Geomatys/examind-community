@@ -385,7 +385,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(conec);
 
         String expResult = """
-                           time,urn:ogc:def:phenomenon:GEOM:depth
+                           time,depth
                            2007-05-01T03:56:00,6.56
                            2007-05-01T05:50:00,6.56
                            2007-05-01T07:44:00,6.56
