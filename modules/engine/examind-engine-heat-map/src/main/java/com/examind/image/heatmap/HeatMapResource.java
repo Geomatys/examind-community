@@ -21,6 +21,8 @@ package com.examind.image.heatmap;
 import com.examind.image.heatmap.HeatMapImage.Algorithm;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.*;
+import org.apache.sis.geometry.DirectPosition2D;
+import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
@@ -29,11 +31,15 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.Utilities;
+import org.apache.sis.util.collection.Cache;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.datum.PixelInCell;
-import org.opengis.referencing.operation.CoordinateOperation;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.Matrix;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
@@ -57,11 +63,13 @@ public class HeatMapResource implements GridCoverageResource {
 
     private final Algorithm algorithm;
 
+    private final Cache<CRSWrapper, ComputationParameters> parameterCache = new Cache<>(2,5, true);
+
     /**
      * @param tilingDimension : the dimension to be used to define the tiles of the computed image, if null a single tile will be used.
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function
-     * @param algorithm
+     * @param algorithm       : algorithm to use in order to define the influence of each data point in the heatMap
      */
     public HeatMapResource(final PointCloudResource pointCloud, final Dimension tilingDimension, final float distanceX, final float distanceY, Algorithm algorithm) throws DataStoreException {
         this.algorithm = algorithm;
@@ -126,17 +134,70 @@ public class HeatMapResource implements GridCoverageResource {
             imageToGridOffsets[posY] = ymin;
 
             final LinearTransform imageToGridTranslation = MathTransforms.translation(imageToGridOffsets);
+            var pointsCRS = pointCloudSource.getCoordinateReferenceSystem();
 
-            CoordinateOperation coverageToPointCRS;
-            try {
-                coverageToPointCRS = CRS.findOperation(domain.getCoordinateReferenceSystem(), pointCloudSource.getCoordinateReferenceSystem(), null);
-            } catch (FactoryException e) {
-                throw new DataStoreException("Cannot find a conversion between domain space and data source space");
+            var domainCRS = new CRSWrapper(domain.getCoordinateReferenceSystem());
+
+            var cachedParameters = parameterCache.get(domainCRS);
+
+            final MathTransform coverageToPointCRS;
+
+            if (cachedParameters == null) {
+                try {
+                    var coverageToPointOperation = CRS.findOperation(domainCRS.crs, pointsCRS, null);
+                    coverageToPointCRS = coverageToPointOperation.getMathTransform();
+                } catch (FactoryException e) {
+                    throw new DataStoreException("Cannot find a conversion between domain space and data source space");
+                }
+            } else {
+                coverageToPointCRS = cachedParameters.coverageToPoints;
             }
-            var gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS.getMathTransform());
-            var pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER), coverageToPointCRS.getMathTransform()).inverse();
 
-            final HeatMapImage image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, distanceX, distanceY, algorithm);
+            final MathTransform gridCornerToPointCRS, pointCrsToGridCenter;
+
+            if(!coverageToPointCRS.isIdentity()) {
+                gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS);
+                pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER),coverageToPointCRS).inverse();
+            } else {
+                gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER));
+                pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER)).inverse();
+            }
+
+
+            //TODO IMPORTANT cache record by renderCRS
+            final double distancePixelX, distancePixelY;
+            {
+
+                 final Envelope env = domain.getEnvelope();
+                    if (env == null) throw new UnsupportedOperationException("Unable to estimate the influence of points in pixels form domain without envelope.");
+                if (cachedParameters == null) {
+                    final DirectPosition2D median = Optional.ofNullable((Envelope) Envelopes.transform(coverageToPointCRS,env))
+                            .or(() -> Optional.ofNullable( CRS.getDomainOfValidity(pointsCRS)))
+                            .map(envelope -> new DirectPosition2D(pointsCRS, envelope.getMedian(posX), envelope.getMedian(posY))) //TODO check 2D
+                            .orElse(new DirectPosition2D(pointsCRS,0,0));
+                    final Matrix derivative = pointCrsToGridCenter.derivative(median);
+                    if (derivative != null) {
+                        distancePixelX = Math.abs(distanceX * derivative.getElement(posX, posX));
+                        distancePixelY = Math.abs(distanceY * derivative.getElement(posY, posY));
+                    } else {
+                        throw new UnsupportedOperationException("Unable to estimate the number of pixels for heatmap computation on in the given grid : "+domain);
+                    }
+                    final double spanX = env.getSpan(posX), spanY=env.getSpan(posY), gridSpanX = extent.getSize(posX), gridSpanY = extent.getSize(posY),
+                            ratioX = distancePixelX *  spanX / gridSpanX,
+                            ratioY = distancePixelY *  spanY / gridSpanY;
+                    cachedParameters = new ComputationParameters(coverageToPointCRS, new DistancesForExtent(distancePixelX, distancePixelY, spanX, spanY,gridSpanX, gridSpanY, ratioX, ratioY));
+                    parameterCache.putIfAbsent(domainCRS, cachedParameters);
+                } else {
+                    var record = cachedParameters.distancesForExtent;
+                    final double spanX = env.getSpan(posX) , spanY = env.getSpan(posY), gridSpanX =  extent.getSize(posX), gridSpanY = extent.getSize(posY);
+                    distancePixelX = spanX == record.spanX && gridSpanX == record.gridSpanX? record.distX : Math.abs(record.ratioX * gridSpanX  / spanX);
+                    distancePixelY = spanY == record.spanY && gridSpanY == record.gridSpanY? record.distY : Math.abs(record.ratioY * gridSpanY /  spanY);
+
+                    //TODO replace with less precision losses?
+                }
+            }
+
+            final HeatMapImage image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, Math.max(distancePixelX, 1), Math.max(distancePixelY, 1), algorithm);
             return new GridCoverage2D(domain, getSampleDimensions(), image);
 
         } catch (TransformException e) {
@@ -167,5 +228,16 @@ public class HeatMapResource implements GridCoverageResource {
     @Override
     public <T extends StoreEvent> void removeListener(Class<T> eventType, StoreListener<? super T> listener) {
 
+    }
+
+    private record ComputationParameters(MathTransform coverageToPoints, DistancesForExtent distancesForExtent){}
+
+    private record DistancesForExtent(double distX, double distY, double spanX, double spanY, double gridSpanX, double gridSpanY, double ratioX, double ratioY){}
+
+    private record CRSWrapper(CoordinateReferenceSystem crs) {
+        @Override
+        public boolean equals(Object obj) {
+            return (obj instanceof CRSWrapper other) && Utilities.equalsIgnoreMetadata(crs, other.crs); //Voir approximately
+        }
     }
 }
