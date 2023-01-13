@@ -65,7 +65,9 @@ public final class HeatMapImage extends ComputedImage {
     private final MathTransform dataCRSToGridCenter;
 
     private final double distanceX;
+    private final double distanceXx2;
     private final double distanceY;
+    private final double distanceYx2;
 
     //todo MAX_COMPUTATION: uncomment using atomic? Could be used to Colormodel definition
 //    private float max = 0;
@@ -85,7 +87,7 @@ public final class HeatMapImage extends ComputedImage {
      * @param dataSource      : points source to be used to compute the heatMap.
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function. THe distance is in **pixels**
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function The distance is in **pixels**
-     * @param algorithm
+     * @param algorithm       : algorithm to use in order to define the influence of each data point in the heatMap
      */
     HeatMapImage(final Dimension imageDimension, final Dimension tilingDimension, final PointCloudResource dataSource,
                  final MathTransform dataCrsToGridCenter, final MathTransform gridCornerToDataCrs,
@@ -100,7 +102,9 @@ public final class HeatMapImage extends ComputedImage {
         this.dataCRSToGridCenter = dataCrsToGridCenter;
 
         this.distanceX = distanceX;
+        this.distanceXx2 = this.distanceX*2;
         this.distanceY = distanceY;
+        this.distanceYx2 = this.distanceY*2;
 
         this.op = switch (algorithm) {
             case GAUSSIAN -> new Gaussian(distanceX, distanceY);
@@ -124,7 +128,6 @@ public final class HeatMapImage extends ComputedImage {
             Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Reuse of previous raster not implemented yet in HeatMapImage.class");
         }
 
-        final Rectangle tileBoundary = new Rectangle(startXPixel, startYPixel, tilingDimension.width, tilingDimension.height);
         try (final Stream<? extends Point2D> points = this.dataSource.points(roi, false)) {
             var samples = points.collect(CollectorsExt.buffering(1000, CollectorsExt.sink(new double[getTileWidth() * getTileHeight()], (s, p) -> {
                 final int nPoints = p.size();
@@ -146,7 +149,7 @@ public final class HeatMapImage extends ComputedImage {
                 }
 
                 for (int i = 0 ; i < packedPts.length ; i += 2) {
-                    writeGridPoint(packedPts[i], packedPts[i+1], s, tileBoundary);
+                    writeGridPoint(packedPts[i], packedPts[i+1], s, startXPixel, startYPixel);
                 }
             })));
 
@@ -177,13 +180,21 @@ public final class HeatMapImage extends ComputedImage {
         return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
     }
 
-    private void writeGridPoint(double x, double y, double[] tileData, Rectangle tileBoundary) {
-        final Rectangle2D ptInfluence = new Rectangle2D.Double(x - distanceX, y - distanceY, distanceX * 2, distanceY * 2);
-        final Rectangle pixels = tileBoundary.createIntersection(ptInfluence).getBounds();
-        if (pixels.isEmpty()) return;
-        for (int j = pixels.y; j < pixels.y + pixels.height ; j++) {
-            for (int i = pixels.x; i < pixels.x + pixels.width; i++) {
-                tileData[(j - tileBoundary.y) * tileBoundary.width + (i - tileBoundary.x)] += a * op.apply(i - x, j - y); // applyGaussian2D(i, j, x, y);
+    private void writeGridPoint(double x, double y, double[] tileData, final double tileMinX, final double tileMinY) {
+
+        final double minXInfluence = x - distanceX, minYInfluence = y - distanceY;
+
+        // Compute intersection
+        double x1 = Math.max(minXInfluence, tileMinX); // todo (int) Math.floor
+        double y1 = Math.max(minYInfluence, tileMinY);
+        double x2 = Math.min(minXInfluence + distanceXx2, tileMinX+tilingDimension.width); // todo (int) Math.ceil
+        double y2 = Math.min(minYInfluence + distanceYx2, tileMinY+tilingDimension.height);
+
+
+        if ( (x2-x1) <= 0 || (y2-y1) <= 0) return;
+        for (int j = (int) y1 ; j < (int) y2 ; j++) {
+            for (int i = (int) x1; i < (int) x2; i++) {
+                tileData[(int) ((j - tileMinY) * tilingDimension.width + (i - tileMinX))] += a * op.apply(i - x, j - y); // applyGaussian2D(i, j, x, y);
             }
         }
     }
