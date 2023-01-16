@@ -47,6 +47,9 @@ public class ProfileHeatMap {
 
     public static final GeographicCRS CRS_84 = CommonCRS.defaultGeographic();
 
+    private static final String START_DATE = "2019-03-01T00:00:00Z";
+    private static final String END_DATE = "2019-03-02T00:00:00Z";
+
     private static Runnable uncheck(AutoCloseable resource) {
         return () -> {
             try {
@@ -119,12 +122,11 @@ public class ProfileHeatMap {
                             try {
                                 c = sqlSource.getConnection();
                                 if (env == null) {
-                                    s = c.prepareStatement("SELECT longitude, latitude FROM \""+table+"\" WHERE \"timestamp\" between '2019-03-01T00:00:00Z' and '2019-03-02T00:00:00Z'");
+                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between '"+START_DATE+"' and '"+END_DATE+"'");
                                     s.setTimestamp(1, Timestamp.from(start));
                                     s.setTimestamp(2, Timestamp.from(end));
-                                }
-                                else {
-                                    s = c.prepareStatement("SELECT longitude, latitude FROM \""+table+"\" WHERE \"timestamp\" between ? and ? AND longitude between ? and ? and latitude between ? and ?");
+                                } else {
+                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between ? and ? AND longitude between ? and ? and latitude between ? and ?");
                                     s.setTimestamp(1, Timestamp.from(start));
                                     s.setTimestamp(2, Timestamp.from(end));
                                     s.setDouble(3, env.getMinimum(0));
@@ -228,6 +230,162 @@ public class ProfileHeatMap {
             public CoordinateReferenceSystem getCoordinateReferenceSystem() {
                 return CRS_84;
             }
+
+            @Override
+            public Stream<double[]> batch(Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
+
+                final Envelope env = envelope == null ? null : uncheck(() -> Envelopes.transform(envelope, CRS_84));
+                return Stream.of(env)
+                        .flatMap(bbox -> {
+                            Connection c = null;
+                            PreparedStatement s = null;
+                            ResultSet r = null;
+                            try {
+                                c = sqlSource.getConnection();
+                                if (env == null) {
+                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between '"+START_DATE+"' and '"+END_DATE+"'");
+                                    s.setTimestamp(1, Timestamp.from(start));
+                                    s.setTimestamp(2, Timestamp.from(end));
+                                } else {
+                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between ? and ? AND longitude between ? and ? and latitude between ? and ?");
+                                    s.setTimestamp(1, Timestamp.from(start));
+                                    s.setTimestamp(2, Timestamp.from(end));
+                                    s.setDouble(3, env.getMinimum(0));
+                                    s.setDouble(4, env.getMaximum(0));
+                                    s.setDouble(5, env.getMinimum(1));
+                                    s.setDouble(6, env.getMaximum(1));
+                                }
+
+                                // System.out.println("QUERY: "+s);
+                                // WARNING: this is VITAL. Otherwise, all results are buffered in memory, causing high latency and memory footprint...
+                                s.setFetchSize(1_000_000);
+                                r = s.executeQuery();
+                                final ResultSet rs = r;
+                                final Connection finalC = c;
+                                final PreparedStatement finalS = s;
+                                Spliterator<double[]> ptsSplit = new Spliterator<>() {
+
+                                    private boolean close() {
+                                        try (AutoCloseable cc = finalC::close; AutoCloseable sc = finalS::close; AutoCloseable rsc = rs::close) {
+                                            // Nothing, we just want to safely close all resources
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        return false;
+                                    }
+
+                                    @Override
+                                    public boolean tryAdvance(Consumer<? super double[]> action) {
+                                        if (uncheck(rs::isClosed) || !uncheck(rs::next)) return close();
+
+                                        while (uncheck(rs::next)) {
+                                            try {
+                                                var lon = rs.getDouble(1);
+                                                if (rs.wasNull()) continue;
+                                                var lat = rs.getDouble(2);
+                                                if (rs.wasNull()) continue;
+                                                action.accept(new double[]{lon, lat});
+                                                return true;
+                                            } catch (SQLException e) {
+                                                try {
+                                                    close();
+                                                } catch (RuntimeException bis) {
+                                                    e.addSuppressed(bis);
+                                                }
+                                                throw new BackingStoreException(e);
+                                            }
+                                        }
+                                        return close();
+                                    }
+
+                                    @Override
+                                    public Spliterator<double[]> trySplit() {
+                                        return null;
+                                    }
+
+                                    @Override
+                                    public long estimateSize() {
+                                        return Long.MAX_VALUE;
+                                    }
+
+                                    @Override
+                                    public int characteristics() {
+                                        return Spliterator.NONNULL;
+                                    }
+                                };
+
+                                final Stream<double[]> pointStream = StreamSupport.stream(ptsSplit, false)
+                                        .onClose(uncheck(r))
+                                        .onClose(uncheck(s))
+                                        .onClose(uncheck(c));
+                                var iterator = pointStream.iterator();
+                                final Spliterator<double[]> chunkSpliterator = new Spliterator<>() {
+
+                                    @Override
+                                    public boolean tryAdvance(Consumer<? super double[]> sink) {
+                                        if (!iterator.hasNext()) return false;
+
+                                        double[] chunk = new double[batchSize * 2];
+                                        for (int i = 0, j = 0; i < batchSize; i++) {
+                                            if (!iterator.hasNext()) {
+                                                chunk = Arrays.copyOfRange(chunk, 0, j);
+                                                break;
+                                            }
+                                            var pos = iterator.next();
+                                            chunk[j++] = pos[0];
+                                            chunk[j++] = pos[1];
+                                        }
+                                        sink.accept(chunk);
+                                        return true;
+                                    }
+
+                                    @Override
+                                    public Spliterator<double[]> trySplit() {
+                                        return null;
+                                    }
+
+                                    @Override
+                                    public long estimateSize() {
+                                        return Long.MAX_VALUE;
+                                    }
+
+                                    @Override
+                                    public int characteristics() {
+                                        return NONNULL;
+                                    }
+
+                                };
+
+                                return StreamSupport.stream(chunkSpliterator, false)
+                                        .onClose(() -> pointStream.close());
+
+                            } catch (Exception e) {
+                                if (r != null) {
+                                    try {
+                                        r.close();
+                                    } catch (SQLException ex) {
+                                        e.addSuppressed(ex);
+                                    }
+                                }
+                                if (s != null) {
+                                    try {
+                                        s.close();
+                                    } catch (SQLException ex) {
+                                        e.addSuppressed(ex);
+                                    }
+                                }
+                                if (c != null) {
+                                    try {
+                                        c.close();
+                                    } catch (SQLException ex) {
+                                        e.addSuppressed(ex);
+                                    }
+                                }
+                                throw e instanceof RuntimeException re ? re : new RuntimeException(e);
+                            }
+                        });
+
+            }
         };
     }
 
@@ -246,16 +404,27 @@ public class ProfileHeatMap {
 
     public static void main(String[] args) throws Exception {
         final PointCloudResource points = loadAIS(args[0], args[1], Instant.parse(args[2]), Instant.parse(args[3]));
-        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), new Envelope2D(CRS_84, -90, -30, 220, 110), GridOrientation.DISPLAY);
+
+
+        final var envelope = new Envelope2D(CRS_84, -180, -80, 360, 160);
+        final var algo = HeatMapImage.Algorithm.GAUSSIAN;
+        final float distanceX = 0.25f, distanceY = 0.25f;
+
+        System.out.println("Statement : SELECT longitude, latitude FROM \"" + args[1] + "\"\nWHERE \"timestamp\" between '"+args[2]+"' and '"+args[3]+"'");
+        System.out.println("Envelope :"+envelope);
+        System.out.println("Algo :"+algo);
+        System.out.println("Distances :"+distanceX);
+
+        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);
         // WARNING: Tiled images fail with AIS database, I do not know why...
-        var heat = new HeatMapResource(points, new Dimension(2048, 1024), 5, 5, HeatMapImage.Algorithm.ONE);
+        var heat = new HeatMapResource(points, new Dimension(2048, 1024), distanceX, distanceY, algo);
 
         // final PointCloudResource points = loadElephants();
         // var targetGrid = new GridGeometry(new GridExtent(4096, 2048), new Envelope2D(CommonCRS.defaultGeographic(), -180, -90, 360, 180), GridOrientation.DISPLAY);
         // var targetGrid = new GridGeometry(new GridExtent(2048, 1024), new Envelope2D(CommonCRS.defaultGeographic(), -160, 30, 60, 30), GridOrientation.DISPLAY);
         // var heat = new HeatMapResource(points, new Dimension(256, 256), 5, 5, HeatMapImage.Algorithm.GAUSSIAN);
 
-        var colorRatio = 100d;
+        var colorRatio = 10000d;
         for (int i = 0 ; i < 5 ; i++) {
             var start = System.nanoTime();
             var data = heat.read(targetGrid);
@@ -275,7 +444,8 @@ public class ProfileHeatMap {
                 }
             }
 
-            System.out.println("Rendered in " + (System.nanoTime() - start) / 1e6 + " ms");
+            System.out.println("Rendered in " + (System.nanoTime() - start) / 1e9 + " s");
+            System.out.println("Count : " + points.points(envelope, false).count());
             System.out.printf("Statistics per tile:%n->%s%n->%s%n", stats, valueStats);
         }
     }

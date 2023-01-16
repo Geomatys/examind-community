@@ -36,4 +36,10 @@ public interface PointCloudResource extends DataSet {
     Stream<? extends Point2D> points(final Envelope envelope, final boolean parallel) throws DataStoreException;
 
     CoordinateReferenceSystem getCoordinateReferenceSystem();
+
+    /**
+     * @return a sequence of point batches. Each batch is a densely packed point array, i.e. a double array with interleaved coordinates ([x1, y1, x2, y2, ...xn, yn])
+     */
+    Stream<double[]> batch(final Envelope envelope, final boolean parallel, int batchSize) throws DataStoreException;
+
 }

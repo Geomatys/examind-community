@@ -18,24 +18,16 @@
  */
 package com.examind.image.heatmap;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferDouble;
 import org.apache.sis.geometry.Envelope2D;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.ComputedImage;
 import org.apache.sis.internal.system.Loggers;
 import org.apache.sis.util.collection.BackingStoreException;
-import org.geotoolkit.util.CollectorsExt;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
 import java.awt.*;
-import java.awt.geom.Point2D;
-import java.awt.image.BandedSampleModel;
-import java.awt.image.ColorModel;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
+import java.awt.image.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -48,6 +40,8 @@ import java.util.stream.Stream;
  */
 public final class HeatMapImage extends ComputedImage {
 
+    //TODO make it configurable
+    private static int BATCH_SIZE = 1000;
     /**
      * Points source to be used to compute the heatMap
      */
@@ -128,33 +122,27 @@ public final class HeatMapImage extends ComputedImage {
             Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Reuse of previous raster not implemented yet in HeatMapImage.class");
         }
 
-        try (final Stream<? extends Point2D> points = this.dataSource.points(roi, false)) {
-            var samples = points.collect(CollectorsExt.buffering(1000, CollectorsExt.sink(new double[getTileWidth() * getTileHeight()], (s, p) -> {
-                final int nPoints = p.size();
-                if (nPoints < 1) return;
 
-                var geoPts = new double[nPoints * 2];
-                {
-                    int i = 0;
-                    for (Point2D pt : p) {
-                        geoPts[i++] = pt.getX();
-                        geoPts[i++] = pt.getY();
-                    }
-                }
-                var packedPts = new double[nPoints * 2];
+        try (final Stream<double[]> points = this.dataSource.batch(roi, false, BATCH_SIZE)) {
+            var data = new double[getTileWidth() * getTileHeight()];
+            points.forEach(geoPts -> {
+                final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk
+                if (nbValues < 2) return;
+
+                var packedPts = new double[nbValues];
                 try {
-                    dataCRSToGridCenter.transform(geoPts, 0, packedPts, 0, nPoints);
+                    dataCRSToGridCenter.transform(geoPts, 0, packedPts, 0, nbValues / 2);
                 } catch (TransformException e) {
                     throw new BackingStoreException("Cannot project data points in image space", e);
                 }
 
-                for (int i = 0 ; i < packedPts.length ; i += 2) {
-                    writeGridPoint(packedPts[i], packedPts[i+1], s, startXPixel, startYPixel);
+                for (int i = 0; i < packedPts.length; i += 2) {
+                    writeGridPoint(packedPts[i], packedPts[i + 1], data, startXPixel, startYPixel);
                 }
-            })));
+            });
 
-            final DataBufferDouble db = new DataBufferDouble(samples, samples.length);
-            return  WritableRaster.createWritableRaster(getSampleModel(), db, new Point(startXPixel, startYPixel));
+            final DataBufferDouble db = new DataBufferDouble(data, data.length);
+            return WritableRaster.createWritableRaster(getSampleModel(), db, new Point(startXPixel, startYPixel));
         }
     }
 
@@ -180,28 +168,29 @@ public final class HeatMapImage extends ComputedImage {
         return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
     }
 
-    private void writeGridPoint(double x, double y, double[] tileData, final double tileMinX, final double tileMinY) {
+    private void writeGridPoint(double x, double y, double[] tileData, final int tileMinX, final int tileMinY) {
 
         final double minXInfluence = x - distanceX, minYInfluence = y - distanceY;
 
         // Compute intersection
-        double x1 = Math.max(minXInfluence, tileMinX); // todo (int) Math.floor
-        double y1 = Math.max(minYInfluence, tileMinY);
-        double x2 = Math.min(minXInfluence + distanceXx2, tileMinX+tilingDimension.width); // todo (int) Math.ceil
-        double y2 = Math.min(minYInfluence + distanceYx2, tileMinY+tilingDimension.height);
+        final int inclusiveStartX = Math.max((int) Math.floor(minXInfluence), tileMinX);
+        final int inclusiveStartY = Math.max((int) Math.floor(minYInfluence), tileMinY);
+        final int exclusiveEndX = Math.min((int) Math.ceil(minXInfluence + distanceXx2), tileMinX + tilingDimension.width);
+        final int exclusiveEndY = Math.min((int) Math.ceil(minYInfluence + distanceYx2), tileMinY + tilingDimension.height);
 
 
-        if ( (x2-x1) <= 0 || (y2-y1) <= 0) return;
-        for (int j = (int) y1 ; j < (int) y2 ; j++) {
-            for (int i = (int) x1; i < (int) x2; i++) {
-                tileData[(int) ((j - tileMinY) * tilingDimension.width + (i - tileMinX))] += a * op.apply(i - x, j - y); // applyGaussian2D(i, j, x, y);
+        if (exclusiveEndX - inclusiveStartX <= 0 || exclusiveEndY - inclusiveStartY <= 0) return;
+
+        for (int j = inclusiveStartY; j < exclusiveEndY; j++) {
+            for (int i = inclusiveStartX; i < exclusiveEndX; i++) {
+                tileData[(j - tileMinY) * tilingDimension.width + (i - tileMinX)] += a * op.apply(i - x, j - y);
             }
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+        /**
+         * {@inheritDoc}
+         */
     @Override
     public ColorModel getColorModel() {
         //TODO?

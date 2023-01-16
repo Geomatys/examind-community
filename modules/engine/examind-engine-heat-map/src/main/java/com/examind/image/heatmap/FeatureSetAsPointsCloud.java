@@ -18,7 +18,6 @@
  */
 package com.examind.image.heatmap;
 
-import java.util.Objects;
 import org.apache.sis.feature.Features;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.DirectPosition2D;
@@ -45,8 +44,10 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 import java.awt.geom.Point2D;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Wrapping class to expose a {@link FeatureSet} as a {@link PointCloudResource}.
@@ -122,7 +123,12 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
     }
 
     @Override
-    public Stream<? extends Point2D> points(Envelope envelope, final boolean parallel) throws DataStoreException {
+    public Stream<? extends Point2D> points(final Envelope envelope, final boolean parallel) throws DataStoreException {
+        return subSet(envelope, parallel)//TODO? convert in expected CRS if needed
+                .map(p -> new DirectPosition2D(p.getX(), p.getY()));
+    }
+
+    private Stream<? extends Point> subSet(final Envelope envelope, final boolean parallel) throws DataStoreException {
         final FeatureQuery query = new FeatureQuery();
         if (envelope != null) {
             final Filter<Feature> filter = FF.bbox(FF.property(geometryProperty), envelope);
@@ -133,14 +139,67 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
         // query.setProjection(geometryProperty);
         query.setProjection(new FeatureQuery.NamedExpression(FF.function(SQLMM.ST_Transform.name(), FF.property(geometryProperty), FF.literal(dataCRS)), geometryProperty));
 
-        return source.subset(query).features(parallel)
-                .map(f -> (Point) f.getPropertyValue(geometryProperty))//TODO? convert in expected CRS if needed
-                .map(p -> new DirectPosition2D(p.getX(), p.getY()));
+        return source.subset(query)
+                .features(parallel)
+                .map(f -> (Point) f.getPropertyValue(geometryProperty));
     }
+
 
     @Override
     public CoordinateReferenceSystem getCoordinateReferenceSystem() {
         return dataCRS;
+    }
+
+    /**
+     * {@inheritDoc}
+     * WARNING, currently only support sequential execution.
+     */
+    @Override
+    public Stream<double[]> batch(final Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
+        if (parallel) throw new UnsupportedOperationException("Current implementation ex");
+
+        final var sourceStream = this.subSet(envelope, false);
+        final Iterator<? extends Point> iterator = sourceStream.iterator();
+        final Spliterator<double[]> chunkIterator = new Spliterator<>() {
+
+            @Override
+            public boolean tryAdvance(Consumer<? super double[]> sink) {
+                if (!iterator.hasNext()) return false;
+
+                double[] chunk = new double[batchSize * 2];
+                for (int i = 0, j = 0; i < batchSize; i++) {
+                    if (!iterator.hasNext()) {
+                        chunk = Arrays.copyOfRange(chunk, 0, j);
+                        break;
+                    }
+                    var pos = iterator.next();
+                    final double c1 = pos.getX(), c2 = pos.getY();
+                    chunk[j++] = c1;
+                    chunk[j++] = c2;
+                }
+                sink.accept(chunk);
+                return true;
+            }
+
+            @Override
+            public Spliterator<double[]> trySplit() {
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return Long.MAX_VALUE;
+            }
+
+            @Override
+            public int characteristics() {
+                return NONNULL;
+            }
+
+        };
+
+        return  StreamSupport.stream(chunkIterator, false)
+                .onClose(sourceStream::close);
     }
 
     @Override
