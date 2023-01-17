@@ -27,6 +27,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.iso.Names;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConfigurationException;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DefaultCoverageData;
@@ -90,14 +91,15 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
         return cachedData;
     }
 
-    private PointCloudResource dataToPointCloud() throws ConfigurationException, DataStoreException {
+    private PointCloudResource dataToPointCloud() throws ConstellationException, DataStoreException {
 
         if (dataIds.length == 0) {
             throw new IllegalArgumentException("No data given for HeatMapComputation. At least 1 resource required.");
         } else if (dataIds.length > 1) {
             throw new UnsupportedOperationException("Not supported yet. Currently only features from a single FeatureSet can be used to compute an HeatMap.");
         } else {
-            final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+            final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                    .orElseThrow(() -> new ConstellationException("No spring context available"));
             final Data<?> data = getData(repo, dataIds[0]);
             if (data instanceof FeatureData featureData) {
                 return new FeatureSetAsPointsCloud(featureData.getOrigin());

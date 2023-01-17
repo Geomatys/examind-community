@@ -2,23 +2,6 @@ package com.examind.image.heatmap;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.awt.Dimension;
-import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Spliterator;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-import javax.sql.DataSource;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
@@ -42,6 +25,21 @@ import org.opengis.metadata.Metadata;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.util.GenericName;
+
+import javax.sql.DataSource;
+import java.awt.*;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.sql.*;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class ProfileHeatMap {
 
@@ -78,7 +76,7 @@ public class ProfileHeatMap {
         dbConf.setUsername("geouser");
         dbConf.setPassword(password);
         // WARNING: AUTO-COMMIT MUST BE DEACTIVATED TO ALLOW RESULT STREAMING !!!
-        dbConf.setAutoCommit(true);
+        dbConf.setAutoCommit(false);
         dbConf.setReadOnly(true);
         dbConf.setConnectionTimeout(2000);
         dbConf.setRegisterMbeans(false);
@@ -155,7 +153,7 @@ public class ProfileHeatMap {
 
                                     @Override
                                     public boolean tryAdvance(Consumer<? super DirectPosition2D> action) {
-                                        if (!uncheck(rs::next)) return close();
+                                        if (uncheck(rs::isClosed)) return false;
 
                                         while (uncheck(rs::next)) {
                                             try {
@@ -276,7 +274,7 @@ public class ProfileHeatMap {
 
                                     @Override
                                     public boolean tryAdvance(Consumer<? super double[]> action) {
-                                        if (uncheck(rs::isClosed) || !uncheck(rs::next)) return close();
+                                        if (uncheck(rs::isClosed)) return false;
 
                                         while (uncheck(rs::next)) {
                                             try {
@@ -403,50 +401,78 @@ public class ProfileHeatMap {
     }
 
     public static void main(String[] args) throws Exception {
-        final PointCloudResource points = loadAIS(args[0], args[1], Instant.parse(args[2]), Instant.parse(args[3]));
-
 
         final var envelope = new Envelope2D(CRS_84, -180, -80, 360, 160);
-        final var algo = HeatMapImage.Algorithm.GAUSSIAN;
+        System.out.println("Envelope :" + envelope);
         final float distanceX = 0.25f, distanceY = 0.25f;
+        System.out.println("Distances :" + distanceX);
+        final Dimension tileSize = new Dimension(2048, 1024);
+        final double[] line = IntStream.range(0, tileSize.width).mapToDouble(it -> 32767).toArray();
+        final double[] column = IntStream.range(0, tileSize.height).mapToDouble(it -> 32767).toArray();
 
-        System.out.println("Statement : SELECT longitude, latitude FROM \"" + args[1] + "\"\nWHERE \"timestamp\" between '"+args[2]+"' and '"+args[3]+"'");
-        System.out.println("Envelope :"+envelope);
-        System.out.println("Algo :"+algo);
-        System.out.println("Distances :"+distanceX);
+//        //-------------------------
+//        // For batching comparison; imply to make HeatMapImage.BATCH_SIZE accessible and modifiable
+//        for (int batchSize : List.of(100, 1_000, 10_000, 100_000, 1_000_000)) {
+//            System.out.println("==========================\n==========================\n Test with batchSize : " + batchSize + "\n-------------\n-------------");
+//            HeatMapImage.BATCH_SIZE = batchSize;
 
-        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);
+
+//        //-------------------------
+//        // For algo comparison :
+//            for (HeatMapImage.Algorithm algo : HeatMapImage.Algorithm.values()) {
+
+        final var algo = HeatMapImage.Algorithm.GAUSSIAN_MASK;
+                System.out.println("\n------------- Test with Algo : " + algo + "\n-------------");
+
+
+        final PointCloudResource points = loadAIS(args[0], args[1], Instant.parse(args[2]), Instant.parse(args[3]));
+        System.out.println("Statement : SELECT longitude, latitude FROM \"" + args[1] + "\"\nWHERE \"timestamp\" between '" + args[2] + "' and '" + args[3] + "'");
+//        final PointCloudResource points = loadElephants();
+//        System.out.println("Données éléphants de mer: ");
+
+        {
+            var startCount = System.nanoTime();
+            System.out.println("Nombre de données : " + points.points(envelope, false).count());
+            System.out.println("Count in " + (System.nanoTime() - startCount) / 1e9 + " s");
+        }
+//        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);
+        var targetGrid = new GridGeometry(new GridExtent(tileSize.width*4, tileSize.height*4), envelope, GridOrientation.DISPLAY);
+        //TODO debug following commented code with wraparound problem with elephantdemer data
+//        var targetGrid = new GridGeometry(new GridExtent(tileSize.width, tileSize.height), envelope, GridOrientation.DISPLAY);
+
+        var colorRatio = 10_000d;
+
         // WARNING: Tiled images fail with AIS database, I do not know why...
-        var heat = new HeatMapResource(points, new Dimension(2048, 1024), distanceX, distanceY, algo);
+        var heat = new HeatMapResource(points, tileSize, distanceX, distanceY, algo);
 
-        // final PointCloudResource points = loadElephants();
-        // var targetGrid = new GridGeometry(new GridExtent(4096, 2048), new Envelope2D(CommonCRS.defaultGeographic(), -180, -90, 360, 180), GridOrientation.DISPLAY);
-        // var targetGrid = new GridGeometry(new GridExtent(2048, 1024), new Envelope2D(CommonCRS.defaultGeographic(), -160, 30, 60, 30), GridOrientation.DISPLAY);
-        // var heat = new HeatMapResource(points, new Dimension(256, 256), 5, 5, HeatMapImage.Algorithm.GAUSSIAN);
-
-        var colorRatio = 10000d;
-        for (int i = 0 ; i < 5 ; i++) {
+        for (int i = 0; i < 5; i++) {
             var start = System.nanoTime();
             var data = heat.read(targetGrid);
             var rendering = data.render(null);
             var buffer = new BufferedImage(rendering.getWidth(), rendering.getHeight(), BufferedImage.TYPE_USHORT_GRAY);
             var stats = new Statistics("tile-compute-time");
             var valueStats = new Statistics("tile-non-zero-values");
-            for (int x = rendering.getMinTileX() ; x < rendering.getNumXTiles() + rendering.getMinTileX() ; x++) {
-                for (int y = rendering.getMinTileY() ; y < rendering.getNumYTiles() + rendering.getMinTileY() ; y++) {
+            for (int x = rendering.getMinTileX(); x < rendering.getNumXTiles() + rendering.getMinTileX(); x++) {
+                for (int y = rendering.getMinTileY(); y < rendering.getNumYTiles() + rendering.getMinTileY(); y++) {
                     var tileStart = System.nanoTime();
                     var tile = rendering.getTile(x, y);
                     var samples = tile.getPixels(tile.getMinX(), tile.getMinY(), tile.getWidth(), tile.getHeight(), (double[]) null);
                     for (var sample : samples) if (Math.abs(sample) > 1e-9) valueStats.accept(sample);
                     final int[] integerSamples = Arrays.stream(samples).mapToInt(value -> (int) XMath.clamp(value * colorRatio, 0, 65535)).toArray();
                     buffer.getRaster().setPixels(tile.getMinX(), tile.getMinY(), tile.getWidth(), tile.getHeight(), integerSamples);
+
+                    // draw tile border
+                    buffer.getRaster().setSamples(tile.getMinX(), tile.getMinY() + tile.getHeight() - 1, tile.getWidth(), 1, 0, line);
+                    buffer.getRaster().setSamples(tile.getMinX() + tile.getWidth() - 1, tile.getMinY(), 1, tile.getHeight(), 0, column);
+
                     stats.accept(System.nanoTime() - tileStart);
                 }
             }
 
             System.out.println("Rendered in " + (System.nanoTime() - start) / 1e9 + " s");
-            System.out.println("Count : " + points.points(envelope, false).count());
             System.out.printf("Statistics per tile:%n->%s%n->%s%n", stats, valueStats);
         }
+//            }
+//        }
     }
 }

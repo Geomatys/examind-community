@@ -31,7 +31,6 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.Utilities;
 import org.apache.sis.util.collection.Cache;
 import org.apache.sis.util.iso.DefaultNameFactory;
 import org.opengis.geometry.Envelope;
@@ -61,9 +60,13 @@ public class HeatMapResource implements GridCoverageResource {
     private final List<SampleDimension> sampleDimension;
     private final Metadata metadata;
 
+    /**
+     * Position where pixel distances are computed
+     */
+    private final DirectPosition2D median;
     private final Algorithm algorithm;
 
-    private final Cache<CRSWrapper, ComputationParameters> parameterCache = new Cache<>(2,5, true);
+    private final Cache<CoordinateReferenceSystem, ComputationParameters> parameterCache = new Cache<>(2,5, true);
 
     /**
      * @param tilingDimension : the dimension to be used to define the tiles of the computed image, if null a single tile will be used.
@@ -89,6 +92,10 @@ public class HeatMapResource implements GridCoverageResource {
         sampleDimension = List.of(new SampleDimension.Builder().setName(0).setBackground(Float.NaN).build());
         this.identifier = pointCloud.getIdentifier().map(n -> new DefaultNameFactory().createGenericName(null, "HeatMap from ", n.head().toString()));
         this.metadata = pointCloudSource.getMetadata();
+        final CoordinateReferenceSystem pointsCRS = pointCloud.getCoordinateReferenceSystem();
+        median = envelope
+                .map(envelope -> new DirectPosition2D(pointsCRS, envelope.getMedian(0), envelope.getMedian(1))) //TODO check 2D
+                .orElse(new DirectPosition2D(pointsCRS));
 
     }
 
@@ -136,7 +143,7 @@ public class HeatMapResource implements GridCoverageResource {
             final LinearTransform imageToGridTranslation = MathTransforms.translation(imageToGridOffsets);
             var pointsCRS = pointCloudSource.getCoordinateReferenceSystem();
 
-            var domainCRS = new CRSWrapper(domain.getCoordinateReferenceSystem());
+            var domainCRS = domain.getCoordinateReferenceSystem();
 
             var cachedParameters = parameterCache.get(domainCRS);
 
@@ -144,7 +151,7 @@ public class HeatMapResource implements GridCoverageResource {
 
             if (cachedParameters == null) {
                 try {
-                    var coverageToPointOperation = CRS.findOperation(domainCRS.crs, pointsCRS, null);
+                    var coverageToPointOperation = CRS.findOperation(domainCRS, pointsCRS, null);
                     coverageToPointCRS = coverageToPointOperation.getMathTransform();
                 } catch (FactoryException e) {
                     throw new DataStoreException("Cannot find a conversion between domain space and data source space");
@@ -153,16 +160,8 @@ public class HeatMapResource implements GridCoverageResource {
                 coverageToPointCRS = cachedParameters.coverageToPoints;
             }
 
-            final MathTransform gridCornerToPointCRS, pointCrsToGridCenter;
-
-            if(!coverageToPointCRS.isIdentity()) {
-                gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS);
-                pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER),coverageToPointCRS).inverse();
-            } else {
-                gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER));
-                pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER)).inverse();
-            }
-
+            final MathTransform gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS);
+            final MathTransform pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER),coverageToPointCRS).inverse();
 
             //TODO IMPORTANT cache record by renderCRS
             final double distancePixelX, distancePixelY;
@@ -171,10 +170,6 @@ public class HeatMapResource implements GridCoverageResource {
                  final Envelope env = domain.getEnvelope();
                     if (env == null) throw new UnsupportedOperationException("Unable to estimate the influence of points in pixels form domain without envelope.");
                 if (cachedParameters == null) {
-                    final DirectPosition2D median = Optional.ofNullable((Envelope) Envelopes.transform(coverageToPointCRS,env))
-                            .or(() -> Optional.ofNullable( CRS.getDomainOfValidity(pointsCRS)))
-                            .map(envelope -> new DirectPosition2D(pointsCRS, envelope.getMedian(posX), envelope.getMedian(posY))) //TODO check 2D
-                            .orElse(new DirectPosition2D(pointsCRS,0,0));
                     final Matrix derivative = pointCrsToGridCenter.derivative(median);
                     if (derivative != null) {
                         distancePixelX = Math.abs(distanceX * derivative.getElement(posX, posX));
@@ -234,10 +229,4 @@ public class HeatMapResource implements GridCoverageResource {
 
     private record DistancesForExtent(double distX, double distY, double spanX, double spanY, double gridSpanX, double gridSpanY, double ratioX, double ratioY){}
 
-    private record CRSWrapper(CoordinateReferenceSystem crs) {
-        @Override
-        public boolean equals(Object obj) {
-            return (obj instanceof CRSWrapper other) && Utilities.equalsIgnoreMetadata(crs, other.crs); //Voir approximately
-        }
-    }
 }

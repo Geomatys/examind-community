@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public final class HeatMapImage extends ComputedImage {
 
     //TODO make it configurable
-    private static final int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = 100_000;
     /**
      * Points source to be used to compute the heatMap
      */
@@ -66,10 +66,7 @@ public final class HeatMapImage extends ComputedImage {
     //todo MAX_COMPUTATION: uncomment using atomic? Could be used to Colormodel definition
 //    private float max = 0;
 
-    /**
-     * amplitude - default value 1
-     */
-    private static final double A = 1;
+    private final double a = 1;
 
     private final DistanceOp op;
 
@@ -122,6 +119,7 @@ public final class HeatMapImage extends ComputedImage {
 
         final Envelope2D imageGrid = new Envelope2D(null, startXPixel - distanceX, startYPixel - distanceY, tilingDimension.width + distanceX * 2, tilingDimension.height + distanceY * 2);
         var roi = Envelopes.transform(this.gridCornerToDataCRS, imageGrid);
+        roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
         if (previous != null) {
             Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Reuse of previous raster not implemented yet in HeatMapImage.class");
         }
@@ -166,7 +164,7 @@ public final class HeatMapImage extends ComputedImage {
 
         for (int j = inclusiveStartY; j < exclusiveEndY; j++) {
             for (int i = inclusiveStartX; i < exclusiveEndX; i++) {
-                tileData[(j - tileMinY) * tilingDimension.width + (i - tileMinX)] += op.apply(i - x, j - y);
+                tileData[(j - tileMinY) * tilingDimension.width + (i - tileMinX)] += a * op.apply(i - x, j - y);
             }
         }
     }
@@ -233,21 +231,13 @@ public final class HeatMapImage extends ComputedImage {
 
         @Override
         public double apply(double vx, double vy) {
-            return A * Math.exp(vx * vx * invσx2 + vy * vy * invσy2);
+            return Math.exp(vx * vx * invσx2 + vy * vy * invσy2);
         }
     }
 
     private static final class GaussianMask implements DistanceOp {
 
         final int maxX, maxY;
-        /**
-         * - 1 / (2 . σx²)
-         */
-        final double invσx2;
-        /**
-         * - 1 / (2 . σy²)
-         */
-        final double invσy2;
 
         final double[] mask;
 
@@ -257,16 +247,17 @@ public final class HeatMapImage extends ComputedImage {
         GaussianMask(final double distanceX, final double distanceY) {
             var σx = distanceX / 3d;
             var σy = distanceY / 3d;
-            this.invσx2 = -1 / (2 * σx * σx); // -1 to prepare the exponential exponent.
-            this.invσy2 = -1 / (2 * σy * σy); // -1 to prepare the exponential exponent.
+            final double invσx2 = -1 / (2 * σx * σx); // -1 to prepare the exponential exponent.
+            final double invσy2 = -1 / (2 * σy * σy); // -1 to prepare the exponential exponent.
 
             maxX = Math.max(1, (int) Math.ceil(distanceX));
             maxY = Math.max(1, (int)  Math.ceil(distanceY));
 
             mask = new double[maxX*maxY];
             for(int j=0, k = 0; j < maxY; j++) {
+                final double yComponent = j * j * invσy2;
                 for (int i = 0 ; i < maxX; i++) {
-                    mask[k++] = A * Math.exp(i * i * invσx2 + j * j * invσy2);
+                    mask[k++] = Math.exp(i * i * invσx2 + yComponent);
                 }
             }
         }
@@ -276,9 +267,9 @@ public final class HeatMapImage extends ComputedImage {
          */
         @Override
         public double apply(double vx, double vy) {
-            final int xInd = Math.toIntExact(Math.round(Math.abs(vx)));
+            final int xInd = (int) (Math.abs(vx) + 0.5); // avoid the use of Math.round
             if (xInd >= maxX) return 0;
-            final int yInd = Math.toIntExact(Math.round(Math.abs(vy)));
+            final int yInd = (int) (Math.abs(vy) + 0.5);
             if (yInd >= maxY) return 0;
             return mask[xInd+(maxX)*yInd];
         }
@@ -315,7 +306,7 @@ public final class HeatMapImage extends ComputedImage {
 
         @Override
         public double apply(double vx, double vy) {
-            return A * (vx < distanceX && vy < distanceY ? 1 : 0);
+            return (vx < distanceX && vy < distanceY ? 1 : 0);
         }
     }
 }
