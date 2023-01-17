@@ -71,7 +71,7 @@ public class HeatMapResource implements GridCoverageResource {
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function
      * @param algorithm       : algorithm to use in order to define the influence of each data point in the heatMap
      */
-    public HeatMapResource(final PointCloudResource pointCloud, final Dimension tilingDimension, final float distanceX, final float distanceY, Algorithm algorithm) throws DataStoreException {
+    public HeatMapResource(final PointCloudResource pointCloud, final Dimension tilingDimension, final float distanceX, final float distanceY, final Algorithm algorithm) throws DataStoreException {
         this.algorithm = algorithm;
         ArgumentChecks.ensureNonNull("Point cloud source", pointCloud);
         this.pointCloudSource = pointCloud;

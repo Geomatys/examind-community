@@ -80,7 +80,7 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
         if (cachedData == null) {
             try {
                 // TODO: add algorithm as provider parameter
-                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, HeatMapImage.Algorithm.GAUSSIAN);
+                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, HeatMapImage.Algorithm.GAUSSIAN_MASK);
                 final String resultDataName = getDataName().orElse("HeatMap");
                 cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", resultDataName), res, null);
             } catch (Exception ex) {

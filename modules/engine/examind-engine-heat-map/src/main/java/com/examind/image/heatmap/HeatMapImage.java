@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 public final class HeatMapImage extends ComputedImage {
 
     //TODO make it configurable
-    private static int BATCH_SIZE = 1000;
+    private static final int BATCH_SIZE = 1000;
     /**
      * Points source to be used to compute the heatMap
      */
@@ -69,7 +69,7 @@ public final class HeatMapImage extends ComputedImage {
     /**
      * amplitude - default value 1
      */
-    final double a = 1;
+    private static final double A = 1;
 
     private final DistanceOp op;
 
@@ -100,7 +100,11 @@ public final class HeatMapImage extends ComputedImage {
         this.distanceY = distanceY;
         this.distanceYx2 = this.distanceY*2;
 
+        /*
+         * Result of following algo's application is multiplied by the default amplitude HeatMapImage#A.
+         */
         this.op = switch (algorithm) {
+            case GAUSSIAN_MASK -> new GaussianMask(distanceX, distanceY);
             case GAUSSIAN -> new Gaussian(distanceX, distanceY);
             case EUCLIDEAN -> new Euclidean(distanceX, distanceY);
             case ONE -> new One(distanceX, distanceY);
@@ -146,27 +150,6 @@ public final class HeatMapImage extends ComputedImage {
         }
     }
 
-    /**
-     * Helper method for debug. Remove once not needed anymore.
-     */
-    private static Rectangle2D getBounds(double[] values) {
-        if (values.length < 2) return new Rectangle2D.Double();
-        else if (values.length < 4) return new Rectangle2D.Double(values[0], values[1], 0, 0);
-
-        double minX, maxX, minY, maxY;
-        minX = maxX = values[0];
-        minY = maxY = values[1];
-
-        for (int i = 2 ; i < values.length ; i+=2) {
-            minX = Math.min(minX, values[i]);
-            maxX = Math.max(maxX, values[i]);
-
-            minY = Math.min(minY, values[i+1]);
-            maxY = Math.max(maxY, values[i+1]);
-        }
-
-        return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
-    }
 
     private void writeGridPoint(double x, double y, double[] tileData, final int tileMinX, final int tileMinY) {
 
@@ -183,7 +166,7 @@ public final class HeatMapImage extends ComputedImage {
 
         for (int j = inclusiveStartY; j < exclusiveEndY; j++) {
             for (int i = inclusiveStartX; i < exclusiveEndX; i++) {
-                tileData[(j - tileMinY) * tilingDimension.width + (i - tileMinX)] += a * op.apply(i - x, j - y);
+                tileData[(j - tileMinY) * tilingDimension.width + (i - tileMinX)] += op.apply(i - x, j - y);
             }
         }
     }
@@ -222,7 +205,7 @@ public final class HeatMapImage extends ComputedImage {
 //    }
 
     public enum Algorithm {
-        EUCLIDEAN, GAUSSIAN, ONE
+        EUCLIDEAN, GAUSSIAN, GAUSSIAN_MASK, ONE
     }
 
     @FunctionalInterface
@@ -250,16 +233,66 @@ public final class HeatMapImage extends ComputedImage {
 
         @Override
         public double apply(double vx, double vy) {
-            return Math.exp(vx * vx * invσx2 + vy * vy * invσy2);
+            return A * Math.exp(vx * vx * invσx2 + vy * vy * invσy2);
         }
     }
 
+    private static final class GaussianMask implements DistanceOp {
+
+        final int maxX, maxY;
+        /**
+         * - 1 / (2 . σx²)
+         */
+        final double invσx2;
+        /**
+         * - 1 / (2 . σy²)
+         */
+        final double invσy2;
+
+        final double[] mask;
+
+        /**
+         * Distances in pixel to compute the gaussian mask
+         */
+        GaussianMask(final double distanceX, final double distanceY) {
+            var σx = distanceX / 3d;
+            var σy = distanceY / 3d;
+            this.invσx2 = -1 / (2 * σx * σx); // -1 to prepare the exponential exponent.
+            this.invσy2 = -1 / (2 * σy * σy); // -1 to prepare the exponential exponent.
+
+            maxX = Math.max(1, (int) Math.ceil(distanceX));
+            maxY = Math.max(1, (int)  Math.ceil(distanceY));
+
+            mask = new double[maxX*maxY];
+            for(int j=0, k = 0; j < maxY; j++) {
+                for (int i = 0 ; i < maxX; i++) {
+                    mask[k++] = A * Math.exp(i * i * invσx2 + j * j * invσy2);
+                }
+            }
+        }
+
+        /**
+         * @param vx,vy : absolute distances in pixel
+         */
+        @Override
+        public double apply(double vx, double vy) {
+            final int xInd = Math.toIntExact(Math.round(Math.abs(vx)));
+            if (xInd >= maxX) return 0;
+            final int yInd = Math.toIntExact(Math.round(Math.abs(vy)));
+            if (yInd >= maxY) return 0;
+            return mask[xInd+(maxX)*yInd];
+        }
+    }
+
+
+
     private static final class Euclidean implements DistanceOp {
 
-        private final double maxSquaredNorm;
+        private final double maxSquaredNorm, opposite;
 
         Euclidean(double distanceX, double distanceY) {
             this.maxSquaredNorm = distanceX * distanceX + distanceY * distanceY;
+            this.opposite = 1/maxSquaredNorm;
         }
 
         @Override
@@ -267,7 +300,7 @@ public final class HeatMapImage extends ComputedImage {
             var vectorSquaredNorm = vx * vx + vy * vy;
             var squaredDistanceFromEdge = maxSquaredNorm - vectorSquaredNorm;
             if (squaredDistanceFromEdge <= 0) return 0;
-            return squaredDistanceFromEdge / maxSquaredNorm;
+            return squaredDistanceFromEdge * opposite;
         }
     }
 
@@ -282,7 +315,7 @@ public final class HeatMapImage extends ComputedImage {
 
         @Override
         public double apply(double vx, double vy) {
-            return vx < distanceX && vy < distanceY ? 1 : 0;
+            return A * (vx < distanceX && vy < distanceY ? 1 : 0);
         }
     }
 }
