@@ -112,6 +112,16 @@ public final class SpringHelper {
         return null;
     }
 
+    public static <T> T getBean(String id, Class<T> clazz) {
+        SpringHelper helper = get();
+        if (helper!=null && helper.context != null) {
+             return helper.context.getBean(id, clazz);
+        } else {
+            LOGGER.warning("No spring application context available");
+        }
+        return null;
+    }
+
     public static void sendEvent(Object event) {
         SpringHelper helper = get();
         if (helper!=null && helper.eventBus != null) {

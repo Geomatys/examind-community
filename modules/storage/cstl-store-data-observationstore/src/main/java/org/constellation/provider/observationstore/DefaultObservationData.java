@@ -18,6 +18,10 @@
  */
 package org.constellation.provider.observationstore;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.portrayal.MapLayer;
 import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
@@ -32,9 +36,11 @@ import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.constellation.api.DataType;
 import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.DataProviders;
+import org.opengis.style.Style;
 
 /**
  *
@@ -85,6 +91,29 @@ public class DefaultObservationData extends AbstractData implements ObservationD
             return source.findResource(searchedOne.toString());
         } catch (Exception ex) {
             throw new IllegalArgumentException("Unable to find a resource:" + searchedOne, ex);
+        }
+    }
+
+    @Override
+    public MapItem getMapLayer(Style styleI) throws ConstellationStoreException {
+        if (origin instanceof FeatureSet fs) {
+            final MapLayer maplayer = new MapLayer();
+            String name = getName().tip().toString();
+            maplayer.setIdentifier(name);
+            maplayer.setTitle(name);
+            maplayer.setOpacity(1.0);
+            if (styleI == null) {
+                try {
+                    styleI = DataProviders.getStyle("default-point-sensor");
+                } catch (ConstellationException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
+            }
+            maplayer.setData(fs);
+            maplayer.setStyle(styleI);
+            return maplayer;
+        } else {
+            return super.getMapLayer(styleI);
         }
     }
 }

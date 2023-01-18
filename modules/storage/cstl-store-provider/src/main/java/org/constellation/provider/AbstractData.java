@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
@@ -42,6 +43,7 @@ import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DimensionRange;
 import org.constellation.dto.SimpleDataDescription;
 import org.constellation.dto.StatInfo;
+import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -268,7 +270,11 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
             feats.add(f1);
         }
         if (styleI == null) {
-            styleI = DataProviders.createEnvelopeStyle(type);
+            try {
+                styleI = DataProviders.getStyle("default-line");
+            } catch (ConstellationException ex) {
+                throw new ConstellationStoreException(ex);
+            }
         }
         final MapLayer maplayer = new MapLayer();
         maplayer.setData(new InMemoryFeatureSet(type, feats));
