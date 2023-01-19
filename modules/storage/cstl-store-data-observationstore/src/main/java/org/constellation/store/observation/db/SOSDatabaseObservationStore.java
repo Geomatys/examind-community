@@ -52,23 +52,22 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
-import org.apache.sis.storage.event.StoreListeners;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
-import org.geotoolkit.data.om.OMFeatureTypes;
-import static org.geotoolkit.data.om.OMFeatureTypes.*;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.storage.feature.GenericNameIndex;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
+import org.geotoolkit.observation.feature.OMFeatureTypes;
+import static org.geotoolkit.observation.feature.OMFeatureTypes.*;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -86,7 +85,6 @@ import org.opengis.filter.ResourceId;
 import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -112,7 +110,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
     protected final int maxFieldByTable;
 
     protected final boolean isPostgres;
-    protected final GenericNameIndex<FeatureType> types;
     private final List<Resource> components = new ArrayList<>();
 
 
@@ -135,7 +132,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
             source =  SQLUtilities.getDataSource(driver, jdbcUrl, user, passwd);
 
             isPostgres = driver.startsWith("org.postgresql");
-            types = OMFeatureTypes.getFeatureTypes("SamplingPoint");
             timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();
@@ -164,11 +160,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
         SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
         SQL_GET_LAST_ID = "SELECT COUNT(*) FROM \"" + schemaPrefix + "om\".\"sampling_features\"";
-
-        for (GenericName name : types.getNames()) {
-            components.add(new FeatureView(name));
-        }
-
     }
 
     /**
@@ -191,8 +182,12 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
      * {@inheritDoc }
      */
     @Override
-    public Collection<? extends Resource> components() throws DataStoreException {
-        return components;
+    public synchronized Collection<? extends Resource> components() throws DataStoreException {
+        if (featureSets == null) {
+            featureSets = new ArrayList<>();
+            featureSets.add(new FeatureView(this, OMFeatureTypes.buildSamplingFeatureFeatureType()));
+        }
+        return featureSets;
     }
 
     private Connection getConnection() throws SQLException{
@@ -350,37 +345,34 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
     private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
 
-        private final StoreListeners listeners;
-        private final GenericName name;
+        private FeatureType type;
+        private final ObservationStore store;
 
-        FeatureView(GenericName name) {
+        FeatureView(ObservationStore originator, FeatureType type) {
             super(null, false);
-            listeners = new StoreListeners(null, this);
-            this.name = name;
+            this.type = type;
+            this.store = originator;
         }
 
         @Override
         public synchronized FeatureType getType() throws DataStoreException {
-            FeatureType type = types.get(name.toString());
             if (FeatureExt.getCRS(type) == null) {
                 //read a first feature to find the crs
                 try (final SOSDatabaseFeatureReader r = new SOSDatabaseFeatureReader(getConnection(), isPostgres, type, schemaPrefix)){
                     if (r.hasNext()) {
                         type = r.next().getType();
-                        types.remove(type.getName());
-                        types.add(type.getName(), type);
                     }
                 } catch (SQLException ex) {
                     throw new DataStoreException("Error while building feature type from first record", ex);
                 }
             }
 
-            return types.get(name.toString());
+            return type;
         }
 
         @Override
         public DataStore getOriginator() {
-            return SOSDatabaseObservationStore.this;
+            return (DataStore) store;
         }
 
         @Override
@@ -411,10 +403,10 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
                     }
 
                     stmtWrite.setString(1, identifier.getIdentifier());
-                    Collection<String> names = ((Collection)feature.getPropertyValue(ATT_NAME.toString()));
-                    Collection<String> sampleds = ((Collection)feature.getPropertyValue(ATT_SAMPLED.toString()));
+                    Collection<String> names = ((Collection)feature.getPropertyValue(SF_ATT_NAME.toString()));
+                    Collection<String> sampleds = ((Collection)feature.getPropertyValue(SF_ATT_SAMPLED.toString()));
                     stmtWrite.setString(2, (String) names.iterator().next());
-                    stmtWrite.setString(3, (String)feature.getPropertyValue(ATT_DESC.toString()));
+                    stmtWrite.setString(3, (String)feature.getPropertyValue(SF_ATT_DESC.toString()));
                     stmtWrite.setString(4, sampleds.isEmpty() ? null : sampleds.iterator().next());
                     final Optional<org.locationtech.jts.geom.Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
                             .filter(org.locationtech.jts.geom.Geometry.class::isInstance)

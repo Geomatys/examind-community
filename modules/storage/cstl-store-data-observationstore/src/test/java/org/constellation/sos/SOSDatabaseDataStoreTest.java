@@ -28,8 +28,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
-import org.apache.sis.feature.builder.AttributeRole;
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
@@ -43,13 +41,13 @@ import org.geotoolkit.observation.json.ObservationJsonUtils;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
-import org.geotoolkit.feature.xml.GMLConvention;
 import org.geotoolkit.internal.sql.ScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
 import static org.geotoolkit.observation.OMUtils.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -59,7 +57,8 @@ import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.locationtech.jts.geom.Geometry;
+import org.opengis.feature.FeatureType;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
 
@@ -98,26 +97,17 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             store = new SOSDatabaseObservationStore(parameters);
 
             final String nsOM = "http://www.opengis.net/sampling/1.0";
-            final String nsGML = "http://www.opengis.net/gml";
             final GenericName name = NamesExt.create(nsOM, "SamplingPoint");
             names.add(name);
-
-            final FeatureTypeBuilder featureTypeBuilder = new FeatureTypeBuilder();
-            featureTypeBuilder.setName(name);
-            featureTypeBuilder.setSuperTypes(GMLConvention.ABSTRACTFEATURETYPE_31);
-            featureTypeBuilder.addAttribute(String.class).setName(nsGML, "description").setMinimumOccurs(0).setMaximumOccurs(1);
-            featureTypeBuilder.addAttribute(String.class).setName(nsGML, "name").setMinimumOccurs(1).setMaximumOccurs(Integer.MAX_VALUE);
-            featureTypeBuilder.addAttribute(String.class).setName(nsOM, "sampledFeature")
-                    .setMinimumOccurs(0).setMaximumOccurs(Integer.MAX_VALUE).addCharacteristic(GMLConvention.NILLABLE_CHARACTERISTIC);
-            featureTypeBuilder.addAttribute(Geometry.class).setName(nsOM, "position").setCRS(CRS.forCode("EPSG:27582")).addRole(AttributeRole.DEFAULT_GEOMETRY);
 
             int size = 6;
             GeneralEnvelope env = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
             env.setRange(0, -30.711, 70800);
             env.setRange(1,    10.0, 2567987);
 
-            final ExpectedResult res = new ExpectedResult(name,
-                    featureTypeBuilder.build(), size, env);
+            CoordinateReferenceSystem crs = CRS.forCode("EPSG:27582");
+            FeatureType type = OMFeatureTypes.buildSamplingFeatureFeatureType(name, crs);
+            final ExpectedResult res = new ExpectedResult(name, type, size, env);
             expecteds.add(res);
 
         } catch(Exception ex) {

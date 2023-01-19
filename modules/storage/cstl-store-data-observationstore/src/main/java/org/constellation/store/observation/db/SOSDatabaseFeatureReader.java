@@ -16,8 +16,8 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
-import org.geotoolkit.data.om.OMFeatureTypes;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.util.collection.CloseableIterator;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
@@ -122,10 +122,10 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
         } else {
             geom = null;
         }
-        current.setPropertyValue(OMFeatureTypes.ATT_DESC.toString(),result.getString("description"));
-        current.setPropertyValue(OMFeatureTypes.ATT_NAME.toString(),result.getString("name"));
-        current.setPropertyValue(OMFeatureTypes.ATT_SAMPLED.toString(),result.getString("sampledfeature"));
-        current.setPropertyValue(OMFeatureTypes.ATT_POSITION.toString(),geom);
+        current.setPropertyValue(OMFeatureTypes.SF_ATT_DESC.toString(),result.getString("description"));
+        current.setPropertyValue(OMFeatureTypes.SF_ATT_NAME.toString(),result.getString("name"));
+        current.setPropertyValue(OMFeatureTypes.SF_ATT_SAMPLED.toString(),result.getString("sampledfeature"));
+        current.setPropertyValue(OMFeatureTypes.SF_ATT_POSITION.toString(),geom);
     }
 
     @Override

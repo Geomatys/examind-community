@@ -72,14 +72,12 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
-import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.feature.FeatureType;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.util.GenericName;
 
 /**
  *
@@ -215,8 +213,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     public synchronized Collection<? extends Resource> components() throws DataStoreException {
         if (featureSets == null) {
             featureSets = new ArrayList<>();
-            GenericName name = NamesExt.create(dataFile.getFileName().toString());
-            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(name)));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(dataFile.getFileName().toString())));
         }
         return featureSets;
     }
