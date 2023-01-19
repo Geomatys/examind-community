@@ -29,6 +29,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -72,7 +73,77 @@ public class FileParsingUtils {
     private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
 
     private static final GeometryFactory GF = new GeometryFactory();
-     
+
+    public static int getColumnIndex(String columnName, DataFileReader reader, boolean directColumnIndex) throws IOException {
+        if (columnName == null) return -1;
+        if (directColumnIndex) {
+            return Integer.parseInt(columnName);
+        }
+        final String[] headers = reader.getHeaders();
+        return getColumnIndex(columnName, headers, directColumnIndex);
+    }
+
+    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex) throws IOException {
+        return getColumnIndex(columnName, headers, null, directColumnIndex);
+    }
+
+    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex) throws IOException {
+        if (columnName == null) return -1;
+        if (directColumnIndex) {
+            return Integer.parseInt(columnName);
+        }
+        for (int i = 0; i < headers.length; i++) {
+            final String header = headers[i];
+            if (header.equals(columnName)) {
+                if (appendIndex != null) {
+                    appendIndex.add(i);
+                }
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex) throws IOException {
+        if (directColumnIndex) {
+            List<Integer> results = new ArrayList<>();
+            for (String columnName : columnNames) {
+                results.add(Integer.valueOf(columnName));
+            }
+            return results;
+        }
+        final String[] headers = reader.getHeaders();
+        return getColumnIndexes(columnNames, headers, directColumnIndex);
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex) throws IOException {
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex);
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex) throws IOException {
+        List<Integer> results = new ArrayList<>();
+        if (directColumnIndex) {
+            for (String columnName : columnNames) {
+                int index = Integer.parseInt(columnName);
+                results.add(index);
+                if (headers != null) {
+                    appendName.add(headers[index]);
+                }
+            }
+            return results;
+        }
+        for (int i = 0; i < headers.length; i++) {
+            final String header = headers[i];
+            if (columnNames.contains(header)) {
+                results.add(i);
+            }
+            if (appendName != null) {
+                appendName.add(header);
+            }
+        }
+        return results;
+    }
+
     /**
      * Return the value in the line if the supplied index is different from -1.
      * Else return the default value specified.

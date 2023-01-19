@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.logging.Logger;
 import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
@@ -52,7 +51,6 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public class CsvFlatObservationStoreTest {
 
-    private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csv");
     private static Path DATA_DIRECTORY;
     
     private static Path survalFile;
@@ -112,7 +110,7 @@ public class CsvFlatObservationStoreTest {
         CsvFlatObservationStore store = factory.open(params);
 
         Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
-        Assert.assertEquals(9, procedureNames.size());
+        Assert.assertEquals(1, procedureNames.size());
 
         String sensorId = "urn:surval:25049001";
         Assert.assertTrue(procedureNames.contains(sensorId));
@@ -134,9 +132,6 @@ public class CsvFlatObservationStoreTest {
         Assert.assertEquals("2019-12-17" , sdf.format(tp.getEnding().getDate()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
-        final StringBuilder sb = new StringBuilder("result procedures:\n");
-        results.procedures.stream().forEach(p -> sb.append(p.getId()).append("\n"));
-        LOGGER.info(sb.toString());
         Assert.assertEquals(1, results.procedures.size());
         ProcedureDataset proc = results.procedures.get(0);
         Assert.assertEquals("urn:surval:25049001", proc.getId());
@@ -144,9 +139,6 @@ public class CsvFlatObservationStoreTest {
 
         List<ProcedureDataset> procedures = store.getProcedures();
 
-        final StringBuilder sb2 = new StringBuilder("procedures:\n");
-        procedures.stream().forEach(p -> sb2.append(p.getId()).append("\n"));
-        LOGGER.info(sb2.toString());
         Assert.assertEquals(1, procedures.size());
         proc = procedures.get(0);
         Assert.assertEquals("urn:surval:25049001", proc.getId());

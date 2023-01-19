@@ -114,7 +114,7 @@ public class ObservationBlock {
             final String posKey = latitude + "_" + longitude;
             if (!knownPositions.contains(posKey)) {
                 knownPositions.add(posKey);
-                final Coordinate pos = new Coordinate(latitude, longitude);
+                final Coordinate pos = new Coordinate(longitude, latitude);
                 positions.add(pos);
                 if (millis != null) {
                     if (historicalPositions.containsKey(millis)) {

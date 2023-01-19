@@ -84,16 +84,16 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers);
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
+            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers, directColumnIndex);
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex);
 
 
-            int latitudeIndex  = getColumnIndex(latitudeColumn, headers);
-            int longitudeIndex = getColumnIndex(longitudeColumn, headers);
-            int foiIndex       = getColumnIndex(foiColumn, headers);
-            int procIndex      = getColumnIndex(procedureColumn, headers);
-            int procNameIndex  = getColumnIndex(procedureNameColumn, headers);
-            int procDescIndex  = getColumnIndex(procedureDescColumn, headers);
+            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex);
+            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex);
+            int foiIndex       = getColumnIndex(foiColumn,           headers, directColumnIndex);
+            int procIndex      = getColumnIndex(procedureColumn,     headers, directColumnIndex);
+            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex);
+            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex);
 
             if (mainIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected column main:" + mainColumns);
@@ -106,7 +106,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
+            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
 
             // special case where there is no header, and a specified observation peorperty identifier
             ObservedProperty fixedObsProp = null;
@@ -280,7 +280,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 headers = reader.getHeaders();
             }
 
-            int procIndex = getColumnIndex(procedureColumn, headers);
+            int procIndex = getColumnIndex(procedureColumn, headers, directColumnIndex);
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -310,7 +310,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 headers = reader.getHeaders();
             }
 
-            int procIndex = getColumnIndex(procedureColumn, headers);
+            int procIndex = getColumnIndex(procedureColumn, headers, directColumnIndex);
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -340,14 +340,14 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
             // prepare spatial/time column indices
             final List<String> measureFields = new ArrayList<>();
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers);
-            int latitudeIndex = getColumnIndex(latitudeColumn, headers);
-            int longitudeIndex = getColumnIndex(longitudeColumn, headers);
-            int procedureIndex = getColumnIndex(procedureColumn, headers);
-            int procDescIndex = getColumnIndex(procedureNameColumn, headers);
+            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex);
+            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex);
+            int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex);
+            int procDescIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex);
 
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex);
             // used to fill measure Fields list
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields);
+            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && obsPropId != null) {

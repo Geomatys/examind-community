@@ -28,8 +28,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,11 +40,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.Resource;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
@@ -57,12 +56,15 @@ import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.delegate.StoreDelegatingObservationFilter;
 import org.geotoolkit.observation.delegate.StoreDelegatingObservationReader;
+import org.geotoolkit.observation.feature.OMFeatureTypes;
+import org.geotoolkit.observation.feature.SensorFeatureSet;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
+import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -70,20 +72,20 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.util.GenericName;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, FeatureSet, ResourceOnFileSystem {
+public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, ResourceOnFileSystem {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 
@@ -196,17 +198,27 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
         switch (query.getEntityType()) {
             case OBSERVED_PROPERTY:   return extractPhenomenonIds();
+            case LOCATION:
             case PROCEDURE:           return extractProcedureIds();
             case FEATURE_OF_INTEREST:
             case OFFERING:
             case OBSERVATION:
-            case LOCATION:
             case HISTORICAL_LOCATION:
             case RESULT:
-                throw new DataStoreException("not implemented yet.");
+                throw new DataStoreException("entity name listing not implemented yet: " + query.getEntityType());
             default:
                 throw new DataStoreException("unexpected object type:" + query.getEntityType());
         }
+    }
+
+    @Override
+    public synchronized Collection<? extends Resource> components() throws DataStoreException {
+        if (featureSets == null) {
+            featureSets = new ArrayList<>();
+            GenericName name = NamesExt.create(dataFile.getFileName().toString());
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(name)));
+        }
+        return featureSets;
     }
 
     protected abstract Set<String> extractProcedureIds() throws DataStoreException;
@@ -373,7 +385,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         try (final DataFileReader reader = getDataFileReader()) {
 
             // prepare time column indices
-            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader);
+            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader, directColumnIndex);
 
             if (dateIndexes.isEmpty()) return null;
 
@@ -476,76 +488,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
     
-    protected int getColumnIndex(String columnName, DataFileReader reader) throws IOException {
-        if (columnName == null) return -1;
-        if (directColumnIndex) {
-            return Integer.parseInt(columnName);
-        }
-        final String[] headers = reader.getHeaders();
-        return getColumnIndex(columnName, headers);
-    }
-
-    protected int getColumnIndex(String columnName, String[] headers) throws IOException {
-        return getColumnIndex(columnName, headers, null);
-    }
-
-    protected int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex) throws IOException {
-        if (columnName == null) return -1;
-        if (directColumnIndex) {
-            return Integer.parseInt(columnName);
-        }
-        for (int i = 0; i < headers.length; i++) {
-            final String header = headers[i];
-            if (header.equals(columnName)) {
-                if (appendIndex != null) {
-                    appendIndex.add(i);
-                }
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    protected List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader) throws IOException {
-        if (directColumnIndex) {
-            List<Integer> results = new ArrayList<>();
-            for (String columnName : columnNames) {
-                results.add(Integer.parseInt(columnName));
-            }
-            return results;
-        }
-        final String[] headers = reader.getHeaders();
-        return getColumnIndexes(columnNames, headers);
-    }
-
-    protected List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers) throws IOException {
-        return getColumnIndexes(columnNames, headers, null);
-    }
-
-    protected List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName) throws IOException {
-        List<Integer> results = new ArrayList<>();
-        if (directColumnIndex) {
-            for (String columnName : columnNames) {
-                int index = Integer.parseInt(columnName);
-                results.add(index);
-                if (headers != null) {
-                    appendName.add(headers[index]);
-                }
-            }
-            return results;
-        }
-        for (int i = 0; i < headers.length; i++) {
-            final String header = headers[i];
-            if (columnNames.contains(header)) {
-                results.add(i);
-            }
-            if (appendName != null) {
-                appendName.add(header);
-            }
-        }
-        return results;
-    }
-
     protected DataFileReader getDataFileReader() throws IOException {
         return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
     }
@@ -558,7 +500,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return new Path[]{dataFile};
     }
 
-    @Override
+    /*@Override
     public FeatureType getType() throws DataStoreException {
         return ft;
     }
@@ -571,5 +513,5 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     @Override
     public Optional<Envelope> getEnvelope() throws DataStoreException {
         return Optional.empty();
-    }
+    }*/
 }

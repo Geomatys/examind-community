@@ -53,7 +53,6 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import static com.examind.store.observation.FileParsingUtils.equalsGeom;
 import java.util.Objects;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;

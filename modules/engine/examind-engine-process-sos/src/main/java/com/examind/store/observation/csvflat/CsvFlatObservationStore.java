@@ -116,22 +116,22 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             ================================================================*/
             final List<Integer> doubleFields = new ArrayList<>();
             
-            int latitudeIndex    = getColumnIndex(latitudeColumn, headers, doubleFields);
-            int longitudeIndex   = getColumnIndex(longitudeColumn, headers, doubleFields);
-            int foiIndex         = getColumnIndex(foiColumn, headers);
-            int zIndex           = getColumnIndex(zColumn, headers);
-            int procIndex        = getColumnIndex(procedureColumn, headers);
-            int procNameIndex    = getColumnIndex(procedureNameColumn, headers);
-            int procDescIndex    = getColumnIndex(procedureDescColumn, headers);
-            int valueColumnIndex = getColumnIndex(valueColumn, headers, doubleFields);
-            int uomColumnIndex   = getColumnIndex(uomColumn, headers);
-            int typeColumnIndex  = getColumnIndex(typeColumn, headers);
+            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex);
+            int foiIndex         = getColumnIndex(foiColumn,           headers,               directColumnIndex);
+            int zIndex           = getColumnIndex(zColumn,             headers,               directColumnIndex);
+            int procIndex        = getColumnIndex(procedureColumn,     headers,               directColumnIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn, headers,               directColumnIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn, headers,               directColumnIndex);
+            int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex);
+            int uomColumnIndex   = getColumnIndex(uomColumn,           headers,               directColumnIndex);
+            int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex);
 
-            List<Integer> dateIndexes              = getColumnIndexes(dateColumns, headers);
-            List<Integer> mainIndexes              = getColumnIndexes(mainColumns, headers);
-            List<Integer> obsPropColumnIndexes     = getColumnIndexes(obsPropColumns, headers);
-            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns, headers);
-            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns, headers);
+            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,        headers, directColumnIndex);
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,        headers, directColumnIndex);
+            List<Integer> obsPropColumnIndexes     = getColumnIndexes(obsPropColumns,     headers, directColumnIndex);
+            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns, headers, directColumnIndex);
+            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,     headers, directColumnIndex);
 
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(obsPropColumns.toArray()));
@@ -333,8 +333,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             // prepare procedure/type column indices
-            int procIndex       = getColumnIndex(procedureColumn, headers);
-            int typeColumnIndex = getColumnIndex(typeColumn, headers);
+            int procIndex       = getColumnIndex(procedureColumn, headers, directColumnIndex);
+            int typeColumnIndex = getColumnIndex(typeColumn,      headers, directColumnIndex);
+
+            List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers, directColumnIndex);
 
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
@@ -347,6 +349,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     if (typeColumnIndex != -1) {
                         if (!obsTypeCodes.contains((String)line[typeColumnIndex])) continue;
                     }
+
+                    // checks if row matches the observed properties filter
+                    String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+                    if (!measureColumns.contains(observedProperty)) {
+                        continue;
+                    }
+
                     String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     result.add(procedureId + procId);
                 }
@@ -375,14 +384,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             final List<Integer> doubleFields         = new ArrayList<>();
-            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns, headers);
-            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers);
-            int latitudeIndex   = getColumnIndex(latitudeColumn, headers, doubleFields);
-            int longitudeIndex  = getColumnIndex(longitudeColumn, headers, doubleFields);
-            int valueColumnIndex = getColumnIndex(valueColumn, headers, doubleFields);
-            int procedureIndex  = getColumnIndex(procedureColumn, headers);
-            int procDescIndex   = getColumnIndex(procedureNameColumn, headers);
-            int typeColumnIndex = getColumnIndex(typeColumn, headers);
+            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,    headers, directColumnIndex);
+            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers, directColumnIndex);
+
+            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex);
+            int procedureIndex   = getColumnIndex(procedureColumn,     headers,               directColumnIndex);
+            int procDescIndex    = getColumnIndex(procedureNameColumn, headers,               directColumnIndex);
+            int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
             Map<String, ProcedureDataset> result = new HashMap<>();
