@@ -54,6 +54,7 @@ public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
             final Integer tilingDimY = inputParameters.getValue(TILING_DIMENSION_Y);
             final float distanceX = inputParameters.getMandatoryValue(DISTANCE_X);
             final float distanceY = inputParameters.getMandatoryValue(DISTANCE_Y);
+            final String algo = inputParameters.getMandatoryValue(ALGORITHM);
             DatasetProcessReference dataset = inputParameters.getMandatoryValue(TARGET_DATASET);
             final List<Integer> dataIds = getDataIdsToCombine(); //Todo customize
 
@@ -81,6 +82,7 @@ public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
             config.parameter("tiling.y").setValue(tilingDimY);
             config.parameter("distance.x").setValue(distanceX);
             config.parameter("distance.y").setValue(distanceY);
+            config.parameter("algorithm").setValue(algo);
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             providerBusiness.createOrUpdateData(pid, dataset.getId(), true, false, null);

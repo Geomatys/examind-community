@@ -42,6 +42,8 @@ public class FeatureToHeatMapDescriptor extends AbstractProcessDescriptor implem
     public static final ParameterDescriptor<Float> DISTANCE_X;
     public static final ParameterDescriptor<Float> DISTANCE_Y;
 
+    public static final ParameterDescriptor<String> ALGORITHM;
+
     public static final ParameterDescriptorGroup INPUT;
 
     public static final ParameterDescriptorGroup OUTPUT;
@@ -68,8 +70,12 @@ public class FeatureToHeatMapDescriptor extends AbstractProcessDescriptor implem
                 .setDescription("Distance along the second CRS dimension to take into account for the HeatMap computation")
                 .create(Float.class, null);
 
+        ALGORITHM = builder.addName("algorithm")
+                .setDescription("Algorithm to use to compute the represent the influence of each data points in the heat map.")
+                .createEnumerated(String.class, new String[]{Algorithm.GAUSSIAN_MASK.name(), Algorithm.GAUSSIAN.name(), Algorithm.EUCLIDEAN.name(), Algorithm.ONE.name() }, Algorithm.GAUSSIAN_MASK.name());
+
         INPUT = builder.addName("input")
-                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y);
+                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM);
 
         OUTPUT = builder.addName("output")
                 .createGroup();
@@ -85,5 +91,6 @@ public class FeatureToHeatMapDescriptor extends AbstractProcessDescriptor implem
         return new FeaturesToHeatMapProcess(this, input);
     }
 
+    private enum Algorithm { EUCLIDEAN, GAUSSIAN, GAUSSIAN_MASK, ONE}
 
 }

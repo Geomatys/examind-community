@@ -18,6 +18,7 @@
  */
 package org.constellation.provider.computed;
 
+import com.examind.image.heatmap.HeatMapImage;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.collection.BackingStoreException;
@@ -45,6 +46,8 @@ public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderD
 
     public static final ParameterDescriptor<Float> DISTANCE_X;
     public static final ParameterDescriptor<Float> DISTANCE_Y;
+
+    public static final ParameterDescriptor<String> ALGORITHM;
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR;
 
@@ -82,8 +85,12 @@ public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderD
                 .setDescription("Distance along the second CRS dimension to take into account for the HeatMap computation")
                 .create(Float.class, null);
 
+        ALGORITHM = builder.addName("algorithm")
+                .setDescription("Algorithm to use to compute the represent the influence of each data points in the heat map.")
+                .createEnumerated(String.class, new String[]{HeatMapImage.Algorithm.GAUSSIAN_MASK.name(), HeatMapImage.Algorithm.GAUSSIAN.name(), HeatMapImage.Algorithm.EUCLIDEAN.name(), HeatMapImage.Algorithm.ONE.name() }, HeatMapImage.Algorithm.GAUSSIAN_MASK.name());
+
         PARAMETERS_DESCRIPTOR = builder.addName(NAME)
-                .createGroup(IDENTIFIER, DATA_NAME, DATA_IDS, TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y);
+                .createGroup(IDENTIFIER, DATA_NAME, DATA_IDS, TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM);
     }
 
     @Override

@@ -51,6 +51,7 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
     private final int[] dataIds;
     private final Dimension tilingDimension;
     private final float distanceX, distanceY;
+    private final HeatMapImage.Algorithm algorithm;
 
     public HeatMapCoverageProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws FactoryException {
         super(providerId, service, param);
@@ -73,6 +74,8 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
         distanceX = input.getValue(DISTANCE_X);
         distanceY = input.getValue(DISTANCE_Y);
 
+        algorithm = HeatMapImage.Algorithm.valueOf(input.getValue(ALGORITHM));
+
 
     }
 
@@ -81,7 +84,7 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
         if (cachedData == null) {
             try {
                 // TODO: add algorithm as provider parameter
-                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, HeatMapImage.Algorithm.GAUSSIAN_MASK);
+                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, algorithm);
                 final String resultDataName = getDataName().orElse("HeatMap");
                 cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", resultDataName), res, null);
             } catch (Exception ex) {
