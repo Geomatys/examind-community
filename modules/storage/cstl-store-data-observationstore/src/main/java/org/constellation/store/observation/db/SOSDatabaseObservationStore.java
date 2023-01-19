@@ -16,8 +16,6 @@
  */
 package org.constellation.store.observation.db;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -57,6 +55,7 @@ import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.event.StoreListeners;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.data.om.OMFeatureTypes;
@@ -112,35 +111,26 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
 
     public SOSDatabaseObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(Parameters.castOrWrap(params));
-
         try {
-            //create a datasource
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
-
 
             // driver
             final String driver = SOSDatabaseParamsUtils.getDriverClassName(params);
-            config.setDriverClassName(driver);
+
+            // url
+            final String jdbcUrl = SOSDatabaseParamsUtils.getJDBCUrl(params);
+
+            // username
+            final String user = (String) params.parameter(SOSDatabaseObservationStoreFactory.USER.getName().toString()).getValue();
+
+            // password
+            final String passwd = (String) params.parameter(SOSDatabaseObservationStoreFactory.PASSWD.getName().toString()).getValue();
+
+            source =  SQLUtilities.getDataSource(driver, jdbcUrl, user, passwd);
+
             isPostgres = driver.startsWith("org.postgresql");
             types = OMFeatureTypes.getFeatureTypes("SamplingPoint");
             timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
-            // url
-            config.setJdbcUrl(SOSDatabaseParamsUtils.getJDBCUrl(params));
-
-            // username
-            final String user = (String) params.parameter(SOSDatabaseObservationStoreFactory.USER.getName().toString()).getValue();
-            config.setUsername(user);
-
-            // password
-            final String passwd = (String) params.parameter(SOSDatabaseObservationStoreFactory.PASSWD.getName().toString()).getValue();
-            if (passwd != null) {
-                config.setPassword(passwd);
-            }
-
-            source =  new HikariDataSource(config);
-            
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();
             if (sp == null) {
                 this.schemaPrefix = "";

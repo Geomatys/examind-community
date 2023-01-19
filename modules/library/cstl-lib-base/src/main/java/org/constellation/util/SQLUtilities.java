@@ -57,7 +57,7 @@ public class SQLUtilities {
     public static DataSource getDataSource(String className, String connectURL, String user, String password) {
         HikariConfig config = new HikariConfig();
         if (className != null) {
-            config.setDataSourceClassName(className);
+            config.setDriverClassName(className);
         }
         config.setJdbcUrl(connectURL);
         config.setUsername(user);
