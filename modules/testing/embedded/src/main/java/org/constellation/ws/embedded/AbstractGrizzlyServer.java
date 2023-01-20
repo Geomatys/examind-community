@@ -179,16 +179,16 @@ public abstract class AbstractGrizzlyServer {
         sa.setAllowBeanDefinitionOverriding(true);
         ctx = sa.run(new String[0]);
 
-        serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
-        layerBusiness = SpringHelper.getBean(ILayerBusiness.class);
-        providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
-        datasetBusiness = SpringHelper.getBean(IDatasetBusiness.class);
-        dataBusiness = SpringHelper.getBean(IDataBusiness.class);
-        metadataBusiness = SpringHelper.getBean(IMetadataBusiness.class);
-        sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
-        userBusiness = SpringHelper.getBean(IUserBusiness.class);
-        pyramidBusiness = SpringHelper.getBean(IPyramidBusiness.class);
-        dataCoverageJob = SpringHelper.getBean(IDataCoverageJob.class);
+        serviceBusiness  = SpringHelper.getBean(IServiceBusiness.class).orElseThrow(IllegalStateException::new);
+        layerBusiness    = SpringHelper.getBean(ILayerBusiness.class).orElseThrow(IllegalStateException::new);
+        providerBusiness = SpringHelper.getBean(IProviderBusiness.class).orElseThrow(IllegalStateException::new);
+        datasetBusiness  = SpringHelper.getBean(IDatasetBusiness.class).orElseThrow(IllegalStateException::new);
+        dataBusiness     = SpringHelper.getBean(IDataBusiness.class).orElseThrow(IllegalStateException::new);
+        metadataBusiness = SpringHelper.getBean(IMetadataBusiness.class).orElseThrow(IllegalStateException::new);
+        sensorBusiness   = SpringHelper.getBean(ISensorBusiness.class).orElseThrow(IllegalStateException::new);
+        userBusiness     = SpringHelper.getBean(IUserBusiness.class).orElseThrow(IllegalStateException::new);
+        pyramidBusiness  = SpringHelper.getBean(IPyramidBusiness.class).orElseThrow(IllegalStateException::new);
+        dataCoverageJob  = SpringHelper.getBean(IDataCoverageJob.class).orElseThrow(IllegalStateException::new);
     }
 
     /**
@@ -277,7 +277,7 @@ public abstract class AbstractGrizzlyServer {
     public ServletRegistrationBean ogcServiceServlet() {
         DispatcherServlet dispatcherServlet = new DispatcherServlet();
         AnnotationConfigWebApplicationContext applicationContext = new AnnotationConfigWebApplicationContext();
-        applicationContext.scan(CSTL_SPRING_PACKAGE.toArray(new String[CSTL_SPRING_PACKAGE.size()]));
+        applicationContext.scan(CSTL_SPRING_PACKAGE.toArray(String[]::new));
         if (controllerConfiguration != null) {
             applicationContext.register(controllerConfiguration);
         }
@@ -860,7 +860,7 @@ public abstract class AbstractGrizzlyServer {
      */
     protected IProviderBusiness getProviderBusiness() {
         if (providerBusiness == null) {
-            providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
+            providerBusiness = SpringHelper.getBean(IProviderBusiness.class).orElseThrow(IllegalStateException::new);
         }
         return providerBusiness;
     }
@@ -871,7 +871,7 @@ public abstract class AbstractGrizzlyServer {
      */
     protected IDataBusiness getDataBusiness() {
         if (dataBusiness == null) {
-            dataBusiness = SpringHelper.getBean(IDataBusiness.class);
+            dataBusiness = SpringHelper.getBean(IDataBusiness.class).orElseThrow(IllegalStateException::new);
         }
         return dataBusiness;
     }
@@ -882,9 +882,31 @@ public abstract class AbstractGrizzlyServer {
      */
     protected ISensorBusiness getSensorBusiness() {
         if (sensorBusiness == null) {
-            sensorBusiness = SpringHelper.getBean(ISensorBusiness.class);
+            sensorBusiness = SpringHelper.getBean(ISensorBusiness.class).orElseThrow(IllegalStateException::new);
         }
         return sensorBusiness;
+    }
+
+    /**
+     * I don't know why but the bean seems to be emptyed between 2 tests
+     * @return
+     */
+    protected IServiceBusiness getServiceBusiness() {
+        if (serviceBusiness == null) {
+            serviceBusiness = SpringHelper.getBean(IServiceBusiness.class).orElseThrow(IllegalStateException::new);
+        }
+        return serviceBusiness;
+    }
+
+    /**
+     * I don't know why but the bean seems to be emptyed between 2 tests
+     * @return
+     */
+    protected IUserBusiness getUserBusiness() {
+        if (userBusiness == null) {
+            userBusiness = SpringHelper.getBean(IUserBusiness.class).orElseThrow(IllegalStateException::new);
+        }
+        return userBusiness;
     }
 
 }

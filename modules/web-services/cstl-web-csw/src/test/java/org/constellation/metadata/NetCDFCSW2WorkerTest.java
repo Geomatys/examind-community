@@ -74,7 +74,7 @@ import org.junit.Ignore;
  *  @author Guilhem Legal (Geomatys)
  */
 @RunWith(SpringTestRunner.class)
-public class NetCDFCSWWorkerTest extends CSWworkerTest {
+public class NetCDFCSW2WorkerTest extends CSW2workerTest {
 
     @Inject
     private IServiceBusiness serviceBusiness;
@@ -133,31 +133,6 @@ public class NetCDFCSWWorkerTest extends CSWworkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        try {
-            if (worker != null) {
-                worker.destroy();
-            }
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-        }
         IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 

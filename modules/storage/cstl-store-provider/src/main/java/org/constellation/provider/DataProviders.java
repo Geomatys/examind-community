@@ -131,7 +131,8 @@ public final class DataProviders extends Static{
      */
     @Deprecated
     public static DataProvider getProvider(String providerStrId) throws ConfigurationException{
-        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class);
+        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class)
+                                                    .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
         final Integer id = repo.findIdForIdentifier(providerStrId);
         if(id==null) throw new ConfigurationException("No provider configuration for id "+providerStrId);
         return getProvider(id);
@@ -148,7 +149,8 @@ public final class DataProviders extends Static{
         if(provider!=null) return provider;
 
         //load provider from configuration
-        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class);
+        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class)
+                                                    .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
         final ProviderBrief config = repo.findOne(providerId);
         if(config==null) throw new TargetNotFoundException("No provider configuration for id "+providerId);
 
@@ -205,7 +207,8 @@ public final class DataProviders extends Static{
      * @throws ConfigurationException If an error occur during the provider or data instanciation.
      */
     public synchronized static Data getProviderData(final int dataId) throws ConfigurationException {
-        final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+        final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                                               .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
         final org.constellation.dto.Data d = repo.findById(dataId);
         if (d == null) throw new TargetNotFoundException("No Data for id " + dataId);
 
@@ -224,7 +227,8 @@ public final class DataProviders extends Static{
      * @throws ConfigurationException
      */
     public static Collection<DataProvider> getProviders() throws ConfigurationException {
-        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class);
+        final ProviderRepository repo = SpringHelper.getBean(ProviderRepository.class)
+                                                    .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
         final List<DataProvider> providers = new ArrayList<>();
         for (int id : repo.getAllIds()) {
             providers.add(getProvider(id));
@@ -468,7 +472,7 @@ public final class DataProviders extends Static{
                         dirPaths.add(candidate);
                     }
                 }
-                dataFiles = dirPaths.toArray(new Path[dirPaths.size()]);
+                dataFiles = dirPaths.toArray(Path[]::new);
             }
             if (dataFiles.length == 0) {
                 return false;
@@ -614,15 +618,13 @@ public final class DataProviders extends Static{
         if(desc.getDescription()!=null) prop.setDescription(String.valueOf(desc.getDescription()));
         prop.setOptional(desc.getMinimumOccurs()==0);
 
-        if(desc instanceof ParameterDescriptorGroup){
-            final ParameterDescriptorGroup d = (ParameterDescriptorGroup)desc;
+        if (desc instanceof ParameterDescriptorGroup d){
             for(GeneralParameterDescriptor child : d.descriptors()){
                 prop.getProperties().add(toDataStorePojo(child));
             }
-        }else if(desc instanceof ParameterDescriptor){
-            final ParameterDescriptor d = (ParameterDescriptor)desc;
+        } else if(desc instanceof ParameterDescriptor d){
             final Object defaut = d.getDefaultValue();
-            if(defaut!=null && MARSHALLABLE.contains(defaut.getClass())){
+            if (defaut != null && MARSHALLABLE.contains(defaut.getClass())) {
                 prop.setValue(defaut);
             }
             prop.setType(d.getValueClass().getSimpleName());
@@ -632,7 +634,8 @@ public final class DataProviders extends Static{
     }
 
     public  static Style getStyle(String name) throws ConstellationException {
-        IStyleBusiness stBusiness = SpringHelper.getBean("exaStyleBusiness", IStyleBusiness.class);
+        IStyleBusiness stBusiness = SpringHelper.getBean("exaStyleBusiness", IStyleBusiness.class)
+                                                .orElseThrow(() -> new ConstellationException("No spring context available"));
         return stBusiness.getStyle("sld", name);
     }
 

@@ -67,7 +67,7 @@ public class HarvestTaskScheduler {
      * Mail service bean. Inject via SpringHelper because HarvestTaskScheduler is not
      * in Spring context.
      */
-    private final IMailBusiness mailService = SpringHelper.getBean(IMailBusiness.class);
+    private final IMailBusiness mailService = SpringHelper.getBean(IMailBusiness.class).orElse(null);
 
     /**
      * A unMarshaller to get object from harvested resource.
@@ -79,7 +79,7 @@ public class HarvestTaskScheduler {
     /**
      * A list of scheduled Task (used in close method).
      */
-    private final List<Timer> schreduledTask = new ArrayList<Timer>();
+    private final List<Timer> schreduledTask = new ArrayList<>();
 
     private final CatalogueHarvester catalogueHarvester;
 

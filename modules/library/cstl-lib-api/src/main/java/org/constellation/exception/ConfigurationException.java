@@ -29,6 +29,11 @@ public class ConfigurationException extends ConstellationException {
 
     private final String cause;
 
+    public ConfigurationException() {
+        super();
+        this.cause   = "";
+    }
+
     public ConfigurationException(final String message) {
         super(message);
         this.cause   = "";

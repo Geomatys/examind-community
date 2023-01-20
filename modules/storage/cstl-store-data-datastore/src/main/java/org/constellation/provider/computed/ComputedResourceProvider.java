@@ -188,7 +188,8 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
 
     protected List<Data> getResourceList() throws ConfigurationException {
         final List<Data> results = new ArrayList<>();
-        final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+        final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                                                .orElseThrow(() -> new ConfigurationException("No spring context available"));
         for (Integer dataId : dataIds) {
             results.add(getData(repo, dataId));
         }

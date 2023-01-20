@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2019 Geomatys.
  *
@@ -23,35 +23,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
-import org.constellation.business.IProcessBusiness;
 import org.constellation.dto.process.Task;
 import org.constellation.dto.process.TaskParameter;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
-public class ProcessBusinessTest extends org.constellation.test.SpringContextTest {
+public class ProcessBusinessTest extends AbstractBusinessTest {
 
     private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-
-    @Autowired
-    private IProcessBusiness processBusiness;
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        final IProcessBusiness dbus = SpringHelper.getBean(IProcessBusiness.class);
-        if (dbus != null) {
-            dbus.deleteAllTaskParameter();
-        }
-    }
 
     @Test
     public void taskParameterExecutionTest() throws Exception {

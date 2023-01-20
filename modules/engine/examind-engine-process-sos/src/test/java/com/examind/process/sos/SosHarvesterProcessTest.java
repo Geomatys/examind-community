@@ -234,15 +234,15 @@ public class SosHarvesterProcessTest extends SpringContextTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
         try {
-            IServiceBusiness sb = SpringHelper.getBean(IServiceBusiness.class);
+            IServiceBusiness sb = SpringHelper.getBean(IServiceBusiness.class).orElse(null);
             if (sb != null) {
                 sb.deleteAll();
             }
-            IProviderBusiness pb = SpringHelper.getBean(IProviderBusiness.class);
+            IProviderBusiness pb = SpringHelper.getBean(IProviderBusiness.class).orElse(null);
             if (pb != null) {
                 pb.removeAll();
             }
-            IDatasourceBusiness dsb = SpringHelper.getBean(IDatasourceBusiness.class);
+            IDatasourceBusiness dsb = SpringHelper.getBean(IDatasourceBusiness.class).orElse(null);
             if (dsb != null) {
                 dsb.deleteAll();
             }

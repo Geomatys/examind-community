@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -21,7 +21,6 @@ package org.constellation.metadata;
 import org.constellation.metadata.core.CSWworker;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.util.ComparisonMode;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
@@ -39,7 +38,6 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,14 +47,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.apache.sis.test.xml.DocumentComparator;
 
-import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -69,16 +63,11 @@ import org.junit.Ignore;
 
 
 /**
+ * Test of the NetCDF Metadata provider
  *
  *  @author Guilhem Legal (Geomatys)
  */
-public class NetCDFCSWWorker3Test extends CSWWorker3Test {
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-
-    @Inject
-    private IProviderBusiness providerBusiness;
+public class NetCDFCSW3WorkerTest extends CSW3WorkerTest {
 
     private static Path DATA_DIRECTORY;
 
@@ -137,31 +126,6 @@ public class NetCDFCSWWorker3Test extends CSWWorker3Test {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        try {
-            if (worker != null) {
-                worker.destroy();
-            }
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-        }
         IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 

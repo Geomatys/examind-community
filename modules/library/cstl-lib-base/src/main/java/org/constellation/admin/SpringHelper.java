@@ -19,6 +19,7 @@
 package org.constellation.admin;
 
 import com.google.common.eventbus.EventBus;
+import java.util.Optional;
 import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionCallback;
@@ -28,6 +29,7 @@ import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import static org.constellation.admin.SpringHelper.get;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
@@ -102,24 +104,44 @@ public final class SpringHelper {
         }
     }
 
-    public static <T> T getBean(Class<T> clazz) {
+    /**
+     * Workaround to try and get Spring Bean outside from Spring context.
+     *
+     * WARNING: please use proper Spring injection when possible.
+     * This method is a runtime HACK that should be avoided when possible.
+     *
+     * @param  clazz type of the bean to find.
+     * @return An empty value if we cannot find the Spring application context.
+     * @throws BeansException If Spring context is available, but cannot provide a bean for queried type.
+     */
+    public static <T> Optional<T> getBean(Class<T> clazz) throws BeansException {
         SpringHelper helper = get();
         if (helper!=null && helper.context != null) {
-             return helper.context.getBean(clazz);
+             return Optional.of(helper.context.getBean(clazz));
         } else {
             LOGGER.warning("No spring application context available");
         }
-        return null;
+        return Optional.empty();
     }
 
-    public static <T> T getBean(String id, Class<T> clazz) {
+    /**
+     * Workaround to try and get Spring Bean outside from Spring context.
+     *
+     * WARNING: please use proper Spring injection when possible.
+     * This method is a runtime HACK that should be avoided when possible.
+     *
+     * @param  id Name (qualifier) of the bean to retrieve.
+     * @param  clazz type of the bean to find.
+     * @return An empty value if we cannot find the Spring application context.
+     * @throws BeansException If Spring context is available, but cannot provide a bean for queried qualifier/type.
+     */
+    public static <T> Optional<T> getBean(String id, Class<T> clazz) throws BeansException {
         SpringHelper helper = get();
-        if (helper!=null && helper.context != null) {
-             return helper.context.getBean(id, clazz);
-        } else {
-            LOGGER.warning("No spring application context available");
+        if (helper != null && helper.context != null) {
+             return Optional.of(helper.context.getBean(id, clazz));
         }
-        return null;
+        LOGGER.warning("No spring application context available");
+        return Optional.empty();
     }
 
     public static void sendEvent(Object event) {

@@ -109,7 +109,7 @@ public class WMTSWorkerTest extends SpringContextTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElse(null);;
         if (service != null) {
             service.deleteAll();
         }

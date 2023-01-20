@@ -25,6 +25,10 @@ package org.constellation.exception;
  */
 public class ConstellationException extends Exception {
 
+    public ConstellationException() {
+        super();
+    }
+
     public ConstellationException(Throwable e) {
         super(e);
     }

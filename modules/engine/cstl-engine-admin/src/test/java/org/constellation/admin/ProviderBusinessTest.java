@@ -1,6 +1,6 @@
 /*
- * Geotoolkit.org - An Open Source Java GIS Toolkit
- * http://www.geotoolkit.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * (C) 2014, Geomatys
  *
@@ -22,7 +22,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.annotation.PostConstruct;
 import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.storage.DataStoreProvider;
@@ -30,15 +29,12 @@ import org.apache.sis.util.ComparisonMode;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Date: 18/09/14
@@ -46,24 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Alexis Manin (Geomatys)
  */
-public class ProviderBusinessTest extends org.constellation.test.SpringContextTest {
-
-    @Autowired
-    private IProviderBusiness pBusiness;
-
-    @PostConstruct
-    public void init() throws Exception {
-        clean();
-    }
-
-    @AfterClass
-    public static void destroy() throws Exception {
-        clean();
-    }
-
-    private static void clean() throws ConstellationException {
-        SpringHelper.getBean(IProviderBusiness.class).removeAll();
-    }
+public class ProviderBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void createFromDataStoreProvider() throws ConfigurationException, IOException, URISyntaxException {
@@ -73,7 +52,7 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
         Path path = Files.createTempDirectory("ProviderBusinessTest");
         final URI dataPath = path.toUri();
         config.parameter(WorldFileStoreProvider.LOCATION).setValue(dataPath);
-        Integer p = pBusiness.create(id, IProviderBusiness.SPI_NAMES.DATA_SPI_NAME, config);
+        Integer p = providerBusiness.create(id, IProviderBusiness.SPI_NAMES.DATA_SPI_NAME, config);
         // TODO : Re-activate when auto-generated equals will be done.
         //Assert.assertEquals("Created provider must be equal to read one.", p, pBusiness.getProvider(id));
 
@@ -110,7 +89,7 @@ public class ProviderBusinessTest extends org.constellation.test.SpringContextTe
                 providerConf.groups("choice").get(0).addGroup(config.getDescriptor().getName().getCode());
         org.apache.sis.parameter.Parameters.copy(config, choice);
 
-        Integer read = pBusiness.storeProvider(id, ProviderType.LAYER, factory.getName(), providerConf);
+        Integer read = providerBusiness.storeProvider(id, ProviderType.LAYER, factory.getName(), providerConf);
         // TODO : Re-activate when auto-generated equals will be done.
         //Assert.assertEquals("Created provider must be equal to read one.", p, read);
 

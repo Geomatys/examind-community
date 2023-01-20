@@ -28,7 +28,6 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
@@ -267,7 +266,7 @@ public class InternalMetadataStoreTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        final IInternalMetadataBusiness mdService = SpringHelper.getBean(IInternalMetadataBusiness.class);
+        final IInternalMetadataBusiness mdService = SpringHelper.getBean(IInternalMetadataBusiness.class).orElse(null);
         if (mdService != null) {
             mdService.deleteAllMetadata();
         }

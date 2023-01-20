@@ -39,6 +39,7 @@ import org.constellation.dto.Layer;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.map.MapBuilder;
@@ -57,7 +58,7 @@ public class MapContextUtils {
     
     private static final Logger LOGGER = Logger.getLogger("org.constellation.provider.mapcontext");
 
-    public static MapLayers getMapLayers(MapContextLayersDTO mc) throws FactoryException {
+    public static MapLayers getMapLayers(MapContextLayersDTO mc) throws FactoryException, ConstellationException {
         CoordinateReferenceSystem crs = CRS.forCode(mc.getCrs());
         final MapLayers ctx = MapBuilder.createContext(crs);
         GeneralEnvelope envelope = new GeneralEnvelope(crs);
@@ -66,9 +67,9 @@ public class MapContextUtils {
         ctx.setAreaOfInterest(envelope);
         ctx.setIdentifier(mc.getName());
 
-        final IDataBusiness dataBusiness = SpringHelper.getBean(IDataBusiness.class);
-        final IStyleBusiness styleBusiness = SpringHelper.getBean(IStyleBusiness.class);
-        final ILayerBusiness layerBusiness = SpringHelper.getBean(ILayerBusiness.class);
+        final IDataBusiness dataBusiness   = SpringHelper.getBean(IDataBusiness.class).orElseThrow(()  -> new ConstellationException("No spring context available"));
+        final IStyleBusiness styleBusiness = SpringHelper.getBean(IStyleBusiness.class).orElseThrow(() -> new ConstellationException("No spring context available"));
+        final ILayerBusiness layerBusiness = SpringHelper.getBean(ILayerBusiness.class).orElseThrow(() -> new ConstellationException("No spring context available"));
         final List<MapItem> ctxItems = ctx.getComponents();
         for (final AbstractMCLayerDTO dto : mc.getLayers()) {
             try {

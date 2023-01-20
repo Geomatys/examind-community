@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,29 +19,19 @@
 
 package org.constellation.wfs;
 
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.SpringContextTest;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.wfs.ws.rs.WFSService;
 import org.constellation.ws.rs.AbstractWebService;
 import org.geotoolkit.nio.IOUtilities;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-import javax.inject.Inject;
-import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.sis.storage.FeatureSet;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
@@ -58,20 +48,9 @@ import org.springframework.http.ResponseEntity;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class WFSServiceTest extends SpringContextTest {
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-    @Inject
-    protected ILayerBusiness layerBusiness;
-    @Inject
-    protected IProviderBusiness providerBusiness;
-    @Inject
-    protected IDataBusiness dataBusiness;
+public class WFSServiceTest extends AbstractWFSWorkerTest {
 
     private static WFSService service;
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
 
     @Before
     public void setUpClass() throws Exception {
@@ -108,18 +87,6 @@ public class WFSServiceTest extends SpringContextTest {
     @After
     public void disposeService() {
         service.destroy();
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-        try {
-            File derbyLog = new File("derby.log");
-            if (derbyLog.exists()) {
-                derbyLog.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
     }
 
     @Test

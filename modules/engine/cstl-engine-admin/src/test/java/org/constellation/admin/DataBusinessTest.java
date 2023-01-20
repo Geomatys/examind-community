@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import org.apache.sis.metadata.MetadataCopier;
@@ -32,77 +31,36 @@ import org.apache.sis.metadata.iso.citation.DefaultOrganisation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibility;
 import org.apache.sis.storage.Resource;
 import org.constellation.api.StatisticState;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.IDatasetBusiness;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.CoverageDataDescription;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.PropertyDescription;
-import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.citation.Party;
 import org.opengis.metadata.citation.Role;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class DataBusinessTest extends org.constellation.test.SpringContextTest {
+public class DataBusinessTest extends AbstractBusinessTest {
 
     public static final String GEOMATYS = "Geomatys";
 
-    @Autowired
-    private IDatasetBusiness datasetBusiness;
-
-    @Autowired
-    private IDataBusiness dataBusiness;
-
-    @Autowired
-    private IMetadataBusiness metadataBusiness;
-
-    @Autowired
-    protected IProviderBusiness providerBusiness;
-
     private static boolean initialized = false;
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
     private static int coverage1DID;
     private static int coverage2DID;
     private static int vectorDID;
     private static int aggregatedDID;
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final IDataBusiness dbus = SpringHelper.getBean(IDataBusiness.class);
-            if (dbus != null) {
-                dbus.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IDatasetBusiness dsBus = SpringHelper.getBean(IDatasetBusiness.class);
-            if (dsBus != null) {
-                dsBus.removeAllDatasets();
-            }
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-    }
 
     @PostConstruct
     public void init() {

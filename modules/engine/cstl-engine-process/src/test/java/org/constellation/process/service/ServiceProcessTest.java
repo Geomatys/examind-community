@@ -62,8 +62,10 @@ public abstract class ServiceProcessTest extends AbstractProcessTest {
 
     @AfterClass
     public static void destroyFolder() {
-        final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
-        engine.destroyInstances(serviceName);
+        final IWSEngine engine = SpringHelper.getBean(IWSEngine.class).orElse(null);
+        if (engine != null) {
+            engine.destroyInstances(serviceName);
+        }
     }
 
     /**

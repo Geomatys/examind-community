@@ -20,7 +20,6 @@ package org.constellation.process.metadata;
 
 import org.apache.sis.parameter.Parameters;
 import org.constellation.api.ServiceDef;
-import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConstellationException;
 import static org.constellation.process.metadata.GetMetadataProcessDescriptor.INSTANCE;
@@ -32,6 +31,7 @@ import org.constellation.ws.ICSWConfigurer;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 
 /**
@@ -40,6 +40,9 @@ import org.w3c.dom.Node;
  */
 public class GetMetadataProcess extends AbstractCstlProcess {
 
+    @Autowired
+    private IWSEngine engine;
+    
     public GetMetadataProcess(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
     }
@@ -61,7 +64,6 @@ public class GetMetadataProcess extends AbstractCstlProcess {
         final String metadataID = inputParameters.getValue(METADATA_ID);
 
         try {
-            final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
             final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             final Node n = configurer.getMetadata(serviceID, metadataID);
             outputParameters.getOrCreate(METADATA).setValue(n);

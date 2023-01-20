@@ -136,7 +136,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     @AfterClass
     public static void shutDown() {
         try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElseThrow(null);
             if (service != null) {
                 service.deleteAll();
             }
@@ -367,7 +367,7 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
     public void testSOSAPIGetObservation() throws Exception {
         initPool();
         // Creates a valid GetObservation url.
-        final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+        final IServiceBusiness service = getServiceBusiness();
         Integer defId = service.getServiceIdByIdentifierAndType("sos", "default");
         final URL getCapsUrl = new URL("http://localhost:" +  getCurrentPort() + "/API/SensorService/" + defId + "/observations?");
 
@@ -384,15 +384,17 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
         postJsonRequestObject(conec, request);
         String result = getStringResponse(conec);
 
-        String expResult = "time,urn:ogc:def:phenomenon:GEOM:depth\n" +
-                                "2007-05-01T03:56:00,6.56\n" +
-                                "2007-05-01T05:50:00,6.56\n" +
-                                "2007-05-01T07:44:00,6.56\n" +
-                                "2007-05-01T09:38:00,6.56\n" +
-                                "2007-05-01T11:32:00,6.56\n" +
-                                "2007-05-01T17:59:00,6.56\n" +
-                                "2007-05-01T19:08:00,6.55\n" +
-                                "2007-05-01T21:02:00,6.55\n";
+        String expResult = """
+                           time,urn:ogc:def:phenomenon:GEOM:depth
+                           2007-05-01T03:56:00,6.56
+                           2007-05-01T05:50:00,6.56
+                           2007-05-01T07:44:00,6.56
+                           2007-05-01T09:38:00,6.56
+                           2007-05-01T11:32:00,6.56
+                           2007-05-01T17:59:00,6.56
+                           2007-05-01T19:08:00,6.55
+                           2007-05-01T21:02:00,6.55
+                           """;
         result = result.replace("\\n", "\n").replace("\"", "");
         assertEquals(expResult, result);
     }

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2020 Geomatys.
  *
@@ -27,20 +27,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.DataImport;
@@ -64,9 +57,7 @@ import org.junit.runner.RunWith;
 import org.xml.sax.SAXException;
 import org.geotoolkit.feature.xml.Collections;
 import org.geotoolkit.wfs.xml.WFSMarshallerPool;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 
 /**
  * @author Hilmi BOUALLAGUE (Geomatys)
@@ -74,7 +65,7 @@ import org.junit.BeforeClass;
  */
 
 @RunWith(TestRunner.class)
-public class FeatureApiTest extends AbstractGrizzlyServer {
+public class FeatureApiTest extends AbstractWFSRequestTest {
 
     /**
      * Main collection used for tests.
@@ -83,12 +74,6 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
     private static final String COLLECTION_ALIAS = "JS2";
 
     private static boolean initialized = false;
-
-    @BeforeClass
-    public static void initTestDir() throws Exception {
-        controllerConfiguration = WFSControllerConfig.class;
-        ConfigDirectory.setupTestEnvironement("FAPIRequestsTest" + UUID.randomUUID());
-    }
 
     @Before
     public void init() {
@@ -131,40 +116,6 @@ public class FeatureApiTest extends AbstractGrizzlyServer {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
-            if (layerBean != null) {
-                layerBean.removeAll();
-            }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
-            if (dataBean != null) {
-                dataBean.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        try {
-            File f = new File("derby.log");
-            if (f.exists()) {
-                f.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        ConfigDirectory.shutdownTestEnvironement();
-        stopServer();
     }
 
     @Test

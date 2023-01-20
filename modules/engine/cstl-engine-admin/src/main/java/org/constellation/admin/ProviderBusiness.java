@@ -544,7 +544,8 @@ public class ProviderBusiness implements IProviderBusiness {
        /*
         * WARNING : do not auto inject dataset business as a class member of this class. it will cause this bean to be instanciated BEFORE the database init.
         */
-        final IDatasetBusiness datasetBusiness = SpringHelper.getBean(IDatasetBusiness.class);
+        final IDatasetBusiness datasetBusiness = SpringHelper.getBean(IDatasetBusiness.class)
+                                                             .orElseThrow(() -> new ConstellationException("No spring context available"));
         if (datasetId == null) {
             datasetId = datasetBusiness.getDatasetId(pr.getIdentifier());
             if (datasetId == null && createDatasetIfNull)  {

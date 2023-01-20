@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,20 +18,11 @@
  */
 package org.constellation.wfs;
 
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.admin.SpringHelper;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
-import org.constellation.wfs.core.WFSWorker;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
@@ -40,7 +31,6 @@ import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v110.*;
 import org.geotoolkit.ows.xml.v100.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v100.SectionsType;
-import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.wfs.xml.*;
 import org.geotoolkit.wfs.xml.v110.*;
 import org.geotoolkit.wfs.xml.v200.ParameterExpressionType;
@@ -50,17 +40,14 @@ import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import java.io.File;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
@@ -74,30 +61,11 @@ import static org.junit.Assert.*;
 
 import org.geotoolkit.wfs.xml.v200.ObjectFactory;
 
-
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class WFSWorkerTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-    @Inject
-    protected ILayerBusiness layerBusiness;
-    @Inject
-    protected IProviderBusiness providerBusiness;
-    @Inject
-    protected IDataBusiness dataBusiness;
-
-    private static MarshallerPool pool;
-    private static WFSWorker worker ;
-
-    private XmlFeatureWriter featureWriter;
-
-    private static String EPSG_VERSION;
+public class WFSWorkerTest extends AbstractWFSWorkerTest {
 
     private static boolean initialized = false;
 
@@ -164,49 +132,12 @@ public class WFSWorkerTest extends SpringContextTest {
                 final StoredQueries queries = new StoredQueries(descriptions);
                 serviceBusiness.setExtraConfiguration("wfs", "default", "StoredQueries.xml", queries, pool);
 
-                EPSG_VERSION = CRS.getVersion("EPSG").toString();
                 worker = new DefaultWFSWorker("default");
                 worker.setServiceUrl("http://geomatys.com/constellation/WS/");
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, "error while initializing test", ex);
             }
-        }
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
-            if (layerBean != null) {
-                layerBean.removeAll();
-            }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
-            if (dataBean != null) {
-                dataBean.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        try {
-            if (worker != null) {
-                worker.destroy();
-            }
-
-            File derbyLog = new File("derby.log");
-            if (derbyLog.exists()) {
-                derbyLog.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
         }
     }
 
@@ -217,6 +148,9 @@ public class WFSWorkerTest extends SpringContextTest {
 
     @After
     public void tearDown() throws Exception {
+        if (featureWriter != null) {
+            featureWriter.dispose();
+        }
     }
 
     /**

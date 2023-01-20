@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2020 Geomatys.
  *
@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import org.apache.sis.coverage.grid.GridCoverage;
@@ -33,18 +32,12 @@ import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.tiling.TileMatrixSet;
 import org.constellation.api.TaskState;
 import org.constellation.api.TilingMode;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.IMapContextBusiness;
-import org.constellation.business.IProcessBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IPyramidBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.TilingResult;
 import org.constellation.dto.process.Task;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import org.geotoolkit.storage.multires.TiledResource;
@@ -53,30 +46,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.util.GenericName;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class PyramidBusinessTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-
-    @Autowired
-    private IPyramidBusiness pyramidBusiness;
-
-    @Autowired
-    protected IProviderBusiness providerBusiness;
-
-    @Autowired
-    private IDataBusiness dataBusiness;
-
-    @Autowired
-    private IProcessBusiness processBusiness;
-
-    @Autowired
-    private IMapContextBusiness mpBusiness;
+public class PyramidBusinessTest extends AbstractBusinessTest {
 
     private static int coverage1PID;
     private static int coverage2PID;

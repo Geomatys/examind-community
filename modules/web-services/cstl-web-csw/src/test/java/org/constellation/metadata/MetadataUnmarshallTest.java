@@ -134,7 +134,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
     @BeforeClass
     public static void setUp() throws JAXBException, URISyntaxException {
         testPool = CSWMarshallerPool.getInstance();
-        CSWworkerTest.fillPoolAnchor((AnchoredMarshallerPool) testPool);
+        CSW2workerTest.fillPoolAnchor((AnchoredMarshallerPool) testPool);
         localTimezone = TimeZone.getDefault();
         TimeZone.setDefault(TimeZone.getTimeZone("CET"));
     }

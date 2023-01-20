@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2019 Geomatys.
  *
@@ -24,52 +24,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.IDatasetBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerContext;
-import org.constellation.exception.ConstellationException;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class LayerBusinessTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-
-    @Autowired
-    private IDatasetBusiness datasetBusiness;
-
-    @Autowired
-    private IDataBusiness dataBusiness;
-
-    @Autowired
-    private ILayerBusiness layerBusiness;
-
-    @Inject
-    protected IProviderBusiness providerBusiness;
-
-    @Autowired
-    private IServiceBusiness serviceBusiness;
+public class LayerBusinessTest extends AbstractBusinessTest {
 
     private static boolean initialized = false;
 
@@ -103,18 +75,6 @@ public class LayerBusinessTest extends SpringContextTest {
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-        }
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final ILayerBusiness dbus = SpringHelper.getBean(ILayerBusiness.class);
-            if (dbus != null) {
-                dbus.removeAll();
-            }
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 

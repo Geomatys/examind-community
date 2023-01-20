@@ -65,8 +65,8 @@ public class DataProcessReferenceToResourceConverter extends SimpleConverter<Dat
     }
 
     private static Resource getByDataId(final DataProcessReference ref) throws ConstellationException {
-        final IDataBusiness dataBiz = SpringHelper.getBean(IDataBusiness.class);
-        if (dataBiz == null) throw new UnconvertibleObjectException("Application context unavailable");
+        final IDataBusiness dataBiz = SpringHelper.getBean(IDataBusiness.class)
+                                                  .orElseThrow(() ->  new UnconvertibleObjectException("Application context unavailable"));
         final org.constellation.dto.Data data = dataBiz.getData(ref.getId());
         return findData(data.getProviderId(), data.getNamespace(), data.getName());
     }

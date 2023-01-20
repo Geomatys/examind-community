@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,39 +18,18 @@
  */
 package org.constellation.admin;
 
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.AccessConstraint;
 import org.constellation.dto.contact.Contact;
 import org.constellation.dto.contact.Details;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.constellation.dto.service.ServiceComplete;
-import org.constellation.exception.ConstellationException;
 
-public class ServiceBusinessTest extends org.constellation.test.SpringContextTest {
-
-    @Autowired
-    private IServiceBusiness serviceBusiness;
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-        } catch (ConstellationException ex) {
-            Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
-        }
-    }
+public class ServiceBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void createService() throws Exception {

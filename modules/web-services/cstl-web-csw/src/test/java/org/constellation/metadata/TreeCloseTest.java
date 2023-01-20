@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -20,9 +20,7 @@
 package org.constellation.metadata;
 
 import org.constellation.metadata.core.CSWworker;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.test.SpringContextTest;
 import org.constellation.util.NodeUtilities;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.csw.xml.ElementSetType;
@@ -40,7 +38,6 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.nio.file.Files;
@@ -50,13 +47,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
-import static org.constellation.metadata.CSWworkerTest.LOGGER;
+import static org.constellation.metadata.CSW2workerTest.LOGGER;
 
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -71,15 +64,7 @@ import org.geotoolkit.nio.IOUtilities;
  * Cause a crash with no closing management of the R-Tree
  * @author Guilhem Legal (Geomatys)
  */
-public class TreeCloseTest extends SpringContextTest {
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-
-    @Inject
-    private IProviderBusiness providerBusiness;
-
-    private static CSWworker worker;
+public class TreeCloseTest extends AbstractCSWworkerTest {
 
     private static Path DATA_DIRECTORY;
 
@@ -132,31 +117,6 @@ public class TreeCloseTest extends SpringContextTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
-        }
-        try {
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
         try {
             fsStore1.destroyFileIndex();
         } catch (Exception ex) {
@@ -194,12 +154,11 @@ public class TreeCloseTest extends SpringContextTest {
         assertEquals(0, result.getSearchResults().getNextRecord());
 
         Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             assertEquals(recordResult.getIdentifier().getContent().get(0), "42292_9s_19900610041000");
         } else {
             Node recordResult = (Node) obj;

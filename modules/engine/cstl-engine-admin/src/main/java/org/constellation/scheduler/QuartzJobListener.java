@@ -80,7 +80,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
     @Override
     public synchronized void jobToBeExecuted(JobExecutionContext jec) {
         if (processBusiness == null) {
-            this.processBusiness = SpringHelper.getBean(IProcessBusiness.class);
+            this.processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElseThrow(IllegalStateException::new);
         }
 
         final Job job = jec.getJobInstance();
@@ -187,7 +187,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
         public StateListener(String taskId, String title) {
             if (processBusiness == null) {
-                this.processBusiness = SpringHelper.getBean(IProcessBusiness.class);
+                this.processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElseThrow(IllegalStateException::new);
             }
             this.taskEntity = processBusiness.getTask(taskId);
             this.title = title;
@@ -319,7 +319,7 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
         private void updateTask(Task taskEntity) {
             if (processBusiness == null) {
-                this.processBusiness = SpringHelper.getBean(IProcessBusiness.class);
+                this.processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElseThrow(IllegalStateException::new);
             }
             try {
                 //update in database

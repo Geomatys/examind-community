@@ -27,14 +27,10 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.admin.SpringHelper;
 import org.constellation.test.utils.Order;
-import org.geotoolkit.image.jai.Registry;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.imageio.ImageIO;
-import javax.imageio.spi.ImageReaderSpi;
-import javax.imageio.spi.ImageWriterSpi;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.net.URL;
@@ -53,7 +49,6 @@ import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
 import org.constellation.dto.SensorReference;
 import org.constellation.dto.StatInfo;
-import org.constellation.provider.DefaultCoverageData;
 import org.constellation.provider.util.StatsUtilities;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -87,8 +82,6 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
     public void init() {
-
-        userBusiness = SpringHelper.getBean(IUserBusiness.class);
 
         if (!initialized) {
             try {
@@ -135,23 +128,23 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     @AfterClass
     public static void shutDown() throws JAXBException {
         try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
+            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class).orElse(null);
             if (layerBean != null) {
                 layerBean.removeAll();
             }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElse(null);
             if (service != null) {
                 service.deleteAll();
             }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
+            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class).orElse(null);
             if (dataBean != null) {
                 dataBean.deleteAll();
             }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class).orElse(null);
             if (provider != null) {
                 provider.removeAll();
             }
-            final IUserBusiness user = SpringHelper.getBean(IUserBusiness.class);
+            final IUserBusiness user = SpringHelper.getBean(IUserBusiness.class).orElse(null);
             if (user != null) {
                 for (CstlUser u : user.findAll()) {
                     if (!u.getLogin().equals("admin")) {
@@ -214,7 +207,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     public void getUsersRequest() throws Exception {
         init();
 
-        long nbUsers = userBusiness.countUser();
+        long nbUsers = getUserBusiness().countUser();
 
         URL request = new URL("http://localhost:" + getCurrentPort() + "/API/users");
         Object o = unmarshallJsonResponse(request, Page.class);

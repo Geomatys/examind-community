@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,17 +19,14 @@
 
 package org.constellation.metadata;
 
-import org.constellation.metadata.core.CSWworker;
 import org.apache.sis.metadata.iso.DefaultExtendedElementInformation;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.SimpleInternationalString;
-import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.internal.xml.LegacyNamespaces;
 import org.apache.sis.xml.XML;
-import org.constellation.test.SpringContextTest;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -79,7 +76,6 @@ import org.geotoolkit.ows.xml.v100.AcceptFormatsType;
 import org.geotoolkit.ows.xml.v100.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v100.SectionsType;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.opengis.metadata.Datatype;
 import org.opengis.metadata.ExtendedElementInformation;
 import org.opengis.metadata.citation.Role;
@@ -98,15 +94,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.constellation.metadata.core.CSWConstants.OUTPUT_SCHEMA;
 import static org.constellation.metadata.core.CSWConstants.PARAMETERNAME;
@@ -135,50 +127,12 @@ import static org.constellation.test.utils.MetadataUtilities.metadataEquals;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 
 /**
- * Test the different methods of CSWWorker with a FileSystem reader/writer.
+ * Test the different methods of CSWWorker in version 2.0.2.
  *
  * @author Guilhem Legal (geomatys)
  */
-public abstract class CSWworkerTest extends SpringContextTest {
+public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
-    protected static CSWworker worker;
-
-    protected static MarshallerPool pool;
-
-    protected static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
-
-    protected boolean typeCheckUpdate = true;
-
-    protected static boolean onlyIso = false;
-
-    public static void fillPoolAnchor(AnchoredMarshallerPool pool) {
-        try {
-            pool.addAnchor("Common Data Index record", new URI("SDN:L231:3:CDI"));
-            pool.addAnchor("France", new URI("SDN:C320:2:FR"));
-            pool.addAnchor("EPSG:4326", new URI("SDN:L101:2:4326"));
-            pool.addAnchor("2", new URI("SDN:C371:1:2"));
-            pool.addAnchor("35", new URI("SDN:C371:1:35"));
-            pool.addAnchor("Transmittance and attenuance of the water column", new URI("SDN:P021:35:ATTN"));
-            pool.addAnchor("Electrical conductivity of the water column", new URI("SDN:P021:35:CNDC"));
-            pool.addAnchor("Dissolved oxygen parameters in the water column", new URI("SDN:P021:35:DOXY"));
-            pool.addAnchor("Light extinction and diffusion coefficients", new URI("SDN:P021:35:EXCO"));
-            pool.addAnchor("Dissolved noble gas concentration parameters in the water column", new URI("SDN:P021:35:HEXC"));
-            pool.addAnchor("Optical backscatter", new URI("SDN:P021:35:OPBS"));
-            pool.addAnchor("Salinity of the water column", new URI("SDN:P021:35:PSAL"));
-            pool.addAnchor("Dissolved concentration parameters for 'other' gases in the water column", new URI("SDN:P021:35:SCOX"));
-            pool.addAnchor("Temperature of the water column", new URI("SDN:P021:35:TEMP"));
-            pool.addAnchor("Visible waveband radiance and irradiance measurements in the atmosphere", new URI("SDN:P021:35:VSRA"));
-            pool.addAnchor("Visible waveband radiance and irradiance measurements in the water column", new URI("SDN:P021:35:VSRW"));
-            pool.addAnchor("MEDATLAS ASCII", new URI("SDN:L241:1:MEDATLAS"));
-        } catch (URISyntaxException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        } catch (IllegalStateException ex) {
-            // this exception happen when we try to put 2 twice the same anchor.
-            // for this test we call many times this method in a static instance (MarshallerPool)
-            // so for now we do bnothing here
-            // TODO find a way to call this only one time in the CSW test
-        }
-    }
     /**
      * Tests the getcapabilities method
      */
@@ -302,12 +256,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result != null);
         assertTrue(result.getAny().size() == 1);
         Object obj = result.getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata isoResult) {
             DefaultMetadata ExpResult1 = (DefaultMetadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1.xml"));
             metadataEquals(ExpResult1, isoResult, ComparisonMode.BY_CONTRACT);
-        } else if (obj instanceof Node) {
-            Node resultNode = (Node) obj;
+        } else if (obj instanceof Node resultNode) {
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -328,8 +280,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getAny().size() == 1);
 
         obj = result.getAny().get(0);
-        if (obj instanceof BriefRecordType) {
-            BriefRecordType briefResult =  (BriefRecordType) obj;
+        if (obj instanceof BriefRecordType briefResult) {
             BriefRecordType expBriefResult1 =  (BriefRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1BDC.xml"));
 
             assertEquals(expBriefResult1, briefResult);
@@ -354,8 +305,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-        if (obj instanceof SummaryRecordType) {
-           SummaryRecordType sumResult =  (SummaryRecordType) obj;
+        if (obj instanceof SummaryRecordType sumResult) {
            SummaryRecordType expSumResult1 =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
 
            assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
@@ -381,8 +331,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             RecordType expRecordResult1 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1FDC.xml"));
 
             assertEquals(expRecordResult1.getFormat(), recordResult.getFormat());
@@ -408,8 +357,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             RecordType expRecordResult3 =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta3FDC.xml"));
 
             assertEquals(expRecordResult3.getFormat(), recordResult.getFormat());
@@ -435,9 +383,8 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-        if (obj instanceof RecordType) {
+        if (obj instanceof RecordType recordResult1) {
 
-            RecordType recordResult1 = (RecordType) obj;
             RecordType expRecordResult1 = (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1FDC.xml"));
             assertEquals(expRecordResult1, recordResult1);
 
@@ -474,8 +421,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-        if (obj instanceof SummaryRecordType) {
-            SummaryRecordType sumResult = (SummaryRecordType) obj;
+        if (obj instanceof SummaryRecordType sumResult) {
             SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
 
             assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
@@ -501,8 +447,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         obj = result.getAny().get(0);
 
-         if (obj instanceof SummaryRecordType) {
-            SummaryRecordType sumResult = (SummaryRecordType) obj;
+         if (obj instanceof SummaryRecordType sumResult) {
             SummaryRecordType expSumResult1 = (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1SDC.xml"));
 
             assertEquals(expSumResult1.getFormat(), sumResult.getFormat());
@@ -529,8 +474,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
             obj = result.getAny().get(0);
 
-            if (obj instanceof ExtrinsicObjectType) {
-                ExtrinsicObjectType eoResult =  (ExtrinsicObjectType) obj;
+            if (obj instanceof ExtrinsicObjectType eoResult) {
                 ExtrinsicObjectType expEoResult =  ((JAXBElement<ExtrinsicObjectType>) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/ebrim1.xml"))).getValue();
 
                 assertEquals(expEoResult, eoResult);
@@ -555,8 +499,7 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
             obj = result.getAny().get(0);
 
-            if (obj instanceof RegistryPackageType) {
-                RegistryPackageType rpResult =  (RegistryPackageType) obj;
+            if (obj instanceof RegistryPackageType rpResult) {
 
                 RegistryPackageType expRpResult =  ((JAXBElement<RegistryPackageType>) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/ebrim3.xml"))).getValue();
 
@@ -582,12 +525,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
             obj = result.getAny().get(0);
 
-            if (obj instanceof RecordType) {
-                RecordType dcResult =  (RecordType) obj;
+            if (obj instanceof RecordType dcResult) {
                 RecordType dcexpResult =  (RecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta13.xml"));
                 assertEquals(dcexpResult, dcResult);
-            } else if (obj instanceof Node) {
-                Node resultNode = (Node) obj;
+            } else if (obj instanceof Node resultNode) {
                 Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta13.xml");
                 DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
                 comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -609,12 +550,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
             obj = result.getAny().get(0);
 
-            if (obj instanceof SummaryRecordType) {
-                SummaryRecordType dcResult =  (SummaryRecordType) obj;
+            if (obj instanceof SummaryRecordType dcResult) {
                 SummaryRecordType dcexpResult =  (SummaryRecordType) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta13SDC.xml"));
                 assertEquals(dcexpResult, dcResult);
-            } else if (obj instanceof Node) {
-                Node resultNode = (Node) obj;
+            } else if (obj instanceof Node resultNode) {
                 Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta13SDC.xml");
                 DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
                 comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -759,16 +698,15 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult1 = (RecordType) obj;
+        if (obj instanceof RecordType recordResult1) {
 
             obj = result.getSearchResults().getAny().get(1);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            if (obj instanceof JAXBElement jb) {
+                obj = jb.getValue();
             }
             assertTrue(obj instanceof RecordType);
             RecordType recordResult2 = (RecordType) obj;
@@ -845,16 +783,15 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof BriefRecordType) {
-            BriefRecordType briefResult1 = (BriefRecordType) obj;
+        if (obj instanceof BriefRecordType briefResult1) {
 
             obj = result.getSearchResults().getAny().get(1);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            if (obj instanceof JAXBElement jb) {
+                obj = jb.getValue();
             }
             assertTrue(obj instanceof BriefRecordType);
             BriefRecordType briefResult2 = (BriefRecordType) obj;
@@ -921,16 +858,15 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType customResult1 = (RecordType) obj;
+        if (obj instanceof RecordType customResult1) {
 
             obj = result.getSearchResults().getAny().get(1);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            if (obj instanceof JAXBElement jb) {
+                obj = jb.getValue();
             }
             assertTrue(obj instanceof RecordType);
             RecordType customResult2 = (RecordType) obj;
@@ -995,16 +931,15 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType customResult1 = (RecordType) obj;
+        if (obj instanceof RecordType customResult1) {
 
             obj = result.getSearchResults().getAny().get(1);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            if (obj instanceof JAXBElement jb) {
+                obj = jb.getValue();
             }
             assertTrue(obj instanceof RecordType);
             RecordType customResult2 = (RecordType) obj;
@@ -1078,18 +1013,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
                 assertTrue(rec instanceof RecordType);
                 RecordType r = (RecordType)rec;
                 switch (r.getIdentifier().getContent().get(0)) {
-                    case "42292_9s_19900610041000":
-                        customResult2 = r;
-                        break;
-                    case "39727_22_19750113062500":
-                        customResult3 = r;
-                        break;
-                    case "11325_158_19640418141800":
-                        customResult4 = r;
-                        break;
-                    default:
-                        fail("unexpected metadata:" + r.getIdentifier().getContent().get(0));
-                        break;
+                    case "42292_9s_19900610041000"  -> customResult2 = r;
+                    case "39727_22_19750113062500"  -> customResult3 = r;
+                    case "11325_158_19640418141800" -> customResult4 = r;
+                    default                         -> fail("unexpected metadata:" + r.getIdentifier().getContent().get(0));
                 }
             }
 
@@ -1111,18 +1038,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
                 Node r = (Node)rec;
                 switch (NodeUtilities.getValuesFromPath(r, "/csw:Record/dc:identifier").get(0)) {
-                    case "42292_9s_19900610041000":
-                        customResult2 = r;
-                        break;
-                    case "39727_22_19750113062500":
-                        customResult3 = r;
-                        break;
-                    case "11325_158_19640418141800":
-                        customResult4 = r;
-                        break;
-                    default:
-                        fail("unexpected metadata:" + NodeUtilities.getValuesFromPath(r, "/csw:Record/dc:identifier").get(0));
-                        break;
+                    case "42292_9s_19900610041000"  -> customResult2 = r;
+                    case "39727_22_19750113062500"  -> customResult3 = r;
+                    case "11325_158_19640418141800" -> customResult4 = r;
+                    default                         -> fail("unexpected metadata:" + NodeUtilities.getValuesFromPath(r, "/csw:Record/dc:identifier").get(0));
                 }
             }
 
@@ -1240,12 +1159,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertEquals(0, result.getSearchResults().getNextRecord());
 
         Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             assertEquals(recordResult.getIdentifier().getContent().get(0), "42292_9s_19900610041000");
         } else {
             Node recordResult = (Node) obj;
@@ -1271,12 +1189,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
             assertEquals(0, result.getSearchResults().getNextRecord());
 
             obj = result.getSearchResults().getAny().get(0);
-            if (obj instanceof JAXBElement) {
-                obj = ((JAXBElement) obj).getValue();
+            if (obj instanceof JAXBElement jb) {
+                obj = jb.getValue();
             }
 
-            if (obj instanceof RecordType) {
-                RecordType recordResult = (RecordType) obj;
+            if (obj instanceof RecordType recordResult) {
                 assertEquals(recordResult.getIdentifier().getContent().get(0), "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo");
             } else {
                 Node recordResult = (Node) obj;
@@ -1312,12 +1229,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         Object obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             assertEquals(recordResult.getIdentifier().getContent().get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         } else {
             Node recordResult = (Node) obj;
@@ -1346,12 +1262,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             assertEquals(recordResult.getIdentifier().getContent().get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         } else {
             Node recordResult = (Node) obj;
@@ -1380,12 +1295,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(result.getSearchResults().getNextRecord() == 0);
 
         obj = result.getSearchResults().getAny().get(0);
-        if (obj instanceof JAXBElement) {
-            obj = ((JAXBElement) obj).getValue();
+        if (obj instanceof JAXBElement jb) {
+            obj = jb.getValue();
         }
 
-        if (obj instanceof RecordType) {
-            RecordType recordResult = (RecordType) obj;
+        if (obj instanceof RecordType recordResult) {
             assertEquals(recordResult.getIdentifier().getContent().get(0), "gov.noaa.nodc.ncddc. MODXXYYYYJJJ.L3_Mosaic_NOAA_GMX or MODXXYYYYJJJHHMMSS.L3_NOAA_GMX");
         } else {
             Node recordResult = (Node) obj;
@@ -1425,9 +1339,8 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         Object obj = result.getSearchResults().getAny().get(0);
 
-        if (obj instanceof Node) {
+        if (obj instanceof Node resultNode) {
              Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/ebrim2.xml");
-             Node resultNode = (Node) obj;
 
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -1884,12 +1797,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(GRresult.getAny().size() == 1);
         Object obj = GRresult.getAny().get(0);
 
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata isoResult) {
             DefaultMetadata ExpResult1 = (DefaultMetadata) unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta1.xml"));
             metadataEquals(ExpResult1, isoResult, ComparisonMode.BY_CONTRACT);
-        } else if (obj instanceof Node) {
-            Node resultNode = (Node) obj;
+        } else if (obj instanceof Node resultNode) {
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/meta1.xml");
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
@@ -1947,11 +1858,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(GRresult.getAny().size() == 1);
         obj = GRresult.getAny().get(0);
 
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata isoResult) {
             metadataEquals(ExpResult1, isoResult, ComparisonMode.BY_CONTRACT);
-        } else if (obj instanceof Node) {
-            Node resultNode = (Node) obj;
+        } else if (obj instanceof Node resultNode) {
             DocumentComparator comparator = new DocumentComparator(original, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -2045,11 +1954,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(GRresult.getAny().size() == 1);
         Object obj = GRresult.getAny().get(0);
 
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata isoResult) {
             metadataEquals(replacement, isoResult);
-        } else if (obj instanceof Node) {
-            Node resultNode = (Node) obj;
+        } else if (obj instanceof Node resultNode) {
             DocumentComparator comparator = new DocumentComparator(replacementOriginal, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
@@ -2080,11 +1987,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         List<String> results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2133,11 +2038,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2170,11 +2073,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2208,11 +2109,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2248,11 +2147,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2279,11 +2176,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2326,11 +2221,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2376,11 +2269,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2416,11 +2307,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2466,11 +2355,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2522,11 +2409,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2580,11 +2465,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2618,11 +2501,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2660,11 +2541,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
+                final Node e = (Node) objRec;
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2693,11 +2573,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2730,11 +2608,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2801,11 +2677,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
 
         results = new ArrayList<>();
         for (Object objRec : response.getSearchResults().getAny()) {
-            if (objRec instanceof DefaultMetadata) {
-                final DefaultMetadata meta = (DefaultMetadata) objRec;
+            if (objRec instanceof DefaultMetadata meta) {
                 results.add(meta.getFileIdentifier());
-            } else if (objRec instanceof Node) {
-                final Node isoNode = (Node) objRec;
+            } else if (objRec instanceof Node isoNode) {
+                final Node e = (Node) objRec;
                 final List<Node> idNodes = getNodes("fileIdentifier/CharacterString", isoNode);
                 assertEquals(1, idNodes.size());
                 Node n =  idNodes.get(0);
@@ -2899,9 +2774,8 @@ public abstract class CSWworkerTest extends SpringContextTest {
         obj = GRresult.getAny().get(0);
 
         boolean removed = true;
-        if (obj instanceof DefaultMetadata) {
+        if (obj instanceof DefaultMetadata isoResult) {
 
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
             DefaultExtendedElementInformation extResult = null;
 
             for (ExtendedElementInformation ex : isoResult.getMetadataExtensionInfo().iterator().next().getExtendedElementInformation()) {
@@ -2915,11 +2789,10 @@ public abstract class CSWworkerTest extends SpringContextTest {
                 }
             }
             assertEquals(ext, extResult);
-        } else if (obj instanceof Node) {
+        } else if (obj instanceof Node isoResult) {
 
            DefaultExtendedElementInformation extResult = null;
 
-            Node isoResult = (Node) obj;
             final List<Node> nodes = getNodes("metadataExtensionInfo/MD_MetadataExtensionInformation/extendedElementInformation/MD_ExtendedElementInformation", isoResult);
             for (Node extNode : nodes) {
                 DefaultExtendedElementInformation ex = (DefaultExtendedElementInformation) unmarshaller.unmarshal(extNode);
@@ -2964,11 +2837,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(response.getSearchResults().getAny() != null);
         assertEquals(1 , response.getSearchResults().getAny().size());
         obj = response.getSearchResults().getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata meta) {
             assertEquals("someURI", meta.getDataSetUri());
-        } else if (obj instanceof Node) {
-            Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> uriNodes = getNodes("dataSetURI/CharacterString", isoNode);
             assertEquals(1, uriNodes.size());
             Node n =  uriNodes.get(0);
@@ -2991,11 +2862,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertEquals(1 , response.getSearchResults().getAny().size());
 
         obj = response.getSearchResults().getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata meta) {
             assertEquals(TemporalUtilities.parseDateSafe("2009-01-26T13:00:00+02:00",true, true), meta.getDateStamp());
-        } else if (obj instanceof Node) {
-           Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
             Node n =  dateNodes.get(0);
@@ -3022,11 +2891,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertEquals(1 , response.getSearchResults().getAny().size());
 
         obj = response.getSearchResults().getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata meta) {
             assertEquals(TemporalUtilities.parseDateSafe("2009-01-18T14:00:00+02:00",true, true), meta.getDateStamp());
-        } else if (obj instanceof Node) {
-           Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
             Node n =  dateNodes.get(0);
@@ -3058,15 +2925,13 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(response.getSearchResults().getAny() != null);
         assertEquals(1 , response.getSearchResults().getAny().size());
         obj = response.getSearchResults().getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata meta) {
             Iterator<? extends DigitalTransferOptions> it = meta.getDistributionInfo().iterator().next().getTransferOptions().iterator();
             DigitalTransferOptions d1 = it.next();
             DigitalTransferOptions d2 = it.next();
             assertEquals("http://www.ifremer.fr/sismerData/jsp/visualisationMetadata3.jsp?langue=EN&pageOrigine=CS&amp;cle1=42292_1&amp;cle2=CTDF02", d1.getOnLines().iterator().next().getLinkage().toString());
             assertEquals("ftp://changed", d2.getOnLines().iterator().next().getLinkage().toString());
-        } else if (obj instanceof Node) {
-            Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> uriNodes = getNodes("distributionInfo/MD_Distribution/transferOptions/MD_DigitalTransferOptions/onLine/CI_OnlineResource/linkage/URL", isoNode);
             assertEquals(2, uriNodes.size());
             Node n =  uriNodes.get(0);
@@ -3101,13 +2966,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertEquals(1 , response.getSearchResults().getAny().size());
 
         obj = response.getSearchResults().getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata meta) {
             assertEquals(TemporalUtilities.parseDateSafe("2012-01-01T15:00:00+02:00",true, true), meta.getDateStamp());
             assertEquals(newMeta, meta);
 
-        } else if (obj instanceof Node) {
-           Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
             Node n =  dateNodes.get(0);
@@ -3126,13 +2989,11 @@ public abstract class CSWworkerTest extends SpringContextTest {
         final GetRecordByIdResponse resp = worker.getRecordById(grbi);
         assertEquals(1, resp.getAny().size());
         obj = resp.getAny().get(0);
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata meta = (DefaultMetadata) resp.getAny().get(0);
+        if (obj instanceof DefaultMetadata meta) {
 
             assertEquals(TemporalUtilities.parseDateSafe("2012-01-01T15:00:00+02:00",true, true), meta.getDateStamp());
             assertEquals(newMeta, meta);
-        } else if (obj instanceof Node) {
-            Node isoNode = (Node) obj;
+        } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
             Node n =  dateNodes.get(0);
@@ -3179,11 +3040,9 @@ public abstract class CSWworkerTest extends SpringContextTest {
         assertTrue(GRresult.getAny().size() == 1);
         obj = GRresult.getAny().get(0);
 
-        if (obj instanceof DefaultMetadata) {
-            DefaultMetadata isoResult = (DefaultMetadata) obj;
+        if (obj instanceof DefaultMetadata isoResult) {
             metadataEquals(replacement, isoResult);
-        } else if (obj instanceof Node) {
-            Node resultNode = (Node) obj;
+        } else if (obj instanceof Node resultNode) {
             DocumentComparator comparator = new DocumentComparator(replacementOriginal, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");

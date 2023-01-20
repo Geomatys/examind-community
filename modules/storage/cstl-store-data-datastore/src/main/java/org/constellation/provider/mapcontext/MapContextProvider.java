@@ -22,7 +22,6 @@ import com.examind.provider.component.ExaDataCreator;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -73,8 +72,9 @@ public class MapContextProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Set<GenericName> getKeys() {
-        final MapContextRepository repo = SpringHelper.getBean(MapContextRepository.class);
+    public Set<GenericName> getKeys() throws ConstellationStoreException {
+        final MapContextRepository repo = SpringHelper.getBean(MapContextRepository.class)
+                                                      .orElseThrow(() -> new ConstellationStoreException("No spring context available"));
         return repo.findAll().stream().map(mc -> NamesExt.create(mc.getName())).collect(Collectors.toSet());
     }
 
@@ -82,7 +82,7 @@ public class MapContextProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Data get(final GenericName key) {
+    public Data get(final GenericName key) throws ConstellationStoreException {
         return get(key, null);
     }
 
@@ -90,10 +90,11 @@ public class MapContextProvider extends AbstractDataProvider {
      * {@inheritDoc }
      */
     @Override
-    public Data get(GenericName key, Date version) {
+    public Data get(GenericName key, Date version) throws ConstellationStoreException {
         Data d = dataCache.get(key);
         if (d == null) {
-            final IMapContextBusiness repo = SpringHelper.getBean(IMapContextBusiness.class);
+            final IMapContextBusiness repo = SpringHelper.getBean(IMapContextBusiness.class)
+                                                         .orElseThrow(() -> new ConstellationStoreException("No spring context available"));
             try {
                 MapContextLayersDTO mc = repo.findByName(key.tip().toString());
                 if (mc != null) {

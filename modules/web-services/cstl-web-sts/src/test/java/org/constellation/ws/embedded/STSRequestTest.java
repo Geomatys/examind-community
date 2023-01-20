@@ -134,7 +134,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     @AfterClass
     public static void shutDown() {
         try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElse(null);
             if (service != null) {
                 service.deleteAll();
             }

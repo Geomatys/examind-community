@@ -109,12 +109,12 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
             if (dataIds.length < 2) {
                 throw new IllegalArgumentException("Not enough data given for aggregation. At least 2 resources required, but found only "+dataIds.length);
             }
-            final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+            final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                                                    .orElseThrow(() -> new ConstellationException("No spring context available"));
             List<VirtualBand> bands = new ArrayList<>();
             for (int dataId : dataIds) {
                 Data<?> d = getData(repo, dataId);
-                if (d instanceof CoverageData) {
-                    CoverageData cd = (CoverageData) d;
+                if (d instanceof CoverageData cd) {
                     for (int i = 0; i < cd.getSampleDimensions().size(); i++) {
                         if (bands.size() <= i) {
                             bands.add(new VirtualBand());
@@ -140,9 +140,10 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
         return Optional.of(new AggregatedCoverageResource(bands, mode, resultCrs));
     }
 
-    private List<VirtualBand> toVirtualBands(final List<ParameterValueGroup> vBands) {
+    private List<VirtualBand> toVirtualBands(final List<ParameterValueGroup> vBands) throws DataStoreException {
         final VirtualBand[] bands = new VirtualBand[vBands.size()];
-        final DataRepository repo = SpringHelper.getBean(DataRepository.class);
+        final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                                                .orElseThrow(() -> new DataStoreException("No spring context available"));
         for (ParameterValueGroup group : vBands) {
             final Parameters band = Parameters.castOrWrap(group);
             final short bandIndex = band.getMandatoryValue(BAND_INDEX);

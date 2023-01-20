@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -21,46 +21,27 @@
 package org.constellation.metadata;
 
 
-import java.util.Arrays;
 import org.constellation.metadata.core.CSWworker;
 import java.util.logging.Level;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import org.constellation.admin.SpringHelper;
+import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.constellation.util.Util;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
-import org.constellation.dto.contact.AccessConstraint;
-import org.constellation.dto.contact.Contact;
-import org.constellation.dto.contact.Details;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.util.NodeUtilities;
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.w3c.dom.Node;
 
 /**
+ * Test of the Examind internal Metadata provider.
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class InternalCSWworker3Test extends CSWWorker3Test {
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-
-    @Inject
-    private IProviderBusiness providerBusiness;
-
-    @Inject
-    private IMetadataBusiness metadataBusiness;
+public class InternalCSW2workerTest extends CSW2workerTest {
 
     private static boolean initialized = false;
 
@@ -89,22 +70,14 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
                 writeMetadata("ebrim3.xml",        "urn:motiive:csw-ebrim", internalPID);
                 writeMetadata("meta13.xml",        "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo", internalPID);
 
-                // add DIF metadata
-                writeMetadata("NO.009_L2-SST.xml", "L2-SST", internalPID);
-                writeMetadata("NO.021_L2-LST.xml", "L2-LST", internalPID);
-
                 writeMetadata("meta7.xml",         "MDWeb_FR_SY_couche_vecteur_258", internalPID, true);
 
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.putParameter(TRANSACTION_SECURIZED, "false");
+                configuration.putParameter(TRANSACTIONAL, "true");
 
-                Details d = new Details("Constellation CSW Server", "default", Arrays.asList("CS-W"),
-                                        "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",
-                                        Arrays.asList("2.0.0", "2.0.2", "3.0.0"),
-                                        new Contact(), new AccessConstraint(),
-                                        true, "eng");
-                Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
+                Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
                 serviceBusiness.linkCSWAndProvider(sid, internalPID, true);
 
                 worker = new CSWworker("default");
@@ -112,35 +85,6 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
             }
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, null, ex);
-        }
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        try {
-            if (worker != null) {
-                worker.destroy();
-            }
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
@@ -206,12 +150,6 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
         super.getRecords191152Test();
     }
 
-    @Test
-    @Override
-    @Order(order=7)
-    public void getRecordsDIFTest() throws Exception {
-        super.getRecordsDIFTest();
-    }
 
     /**
      * Tests the getRecords method
@@ -220,7 +158,7 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=8)
+    @Order(order=7)
     public void getRecordsErrorTest() throws Exception {
         super.getRecordsErrorTest();
     }
@@ -232,9 +170,21 @@ public class InternalCSWworker3Test extends CSWWorker3Test {
      */
     @Test
     @Override
-    @Order(order=9)
+    @Order(order=8)
     public void getDomainTest() throws Exception {
         super.getDomainTest();
+    }
+
+    /**
+     * Tests the describeRecord method
+     *
+     * @throws java.lang.Exception
+     */
+    @Test
+    @Override
+    @Order(order=9)
+    public void DescribeRecordTest() throws Exception {
+        super.DescribeRecordTest();
     }
 
     /**

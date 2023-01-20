@@ -297,8 +297,8 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                         LOGGER.log(Level.WARNING, "error while retrieving WMS provider", ex);
                     }
 
-                    final IWSEngine wsengine = SpringHelper.getBean(IWSEngine.class);
-                    if(wsengine.serviceInstanceExist("WMS", wmsInstanceName) || provider == null) {
+                    final IWSEngine wsengine = SpringHelper.getBean(IWSEngine.class).orElse(null);
+                    if (provider == null || (wsengine != null && !wsengine.serviceInstanceExist("WMS", wmsInstanceName))) {
                         wmslinkError = "Linked WMS instance is not found or FileCoverageStore not defined.";
                     } else {
                         try {
@@ -454,7 +454,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 this.productURL = webappURL + "/"+PATH_PRODUCTS_NAME;
                 this.schemaURL = webappURL + "/"+PATH_PRODUCTS_NAME+"/"+PATH_SCHEMA_NAME;
                 for (WPSProcess p : processList.values()) {
-                    if (p instanceof GeotkProcess) ((GeotkProcess) p).setSchemaURL(schemaURL);
+                    if (p instanceof GeotkProcess gp) gp.setSchemaURL(schemaURL);
                 }
             } else {
                 LOGGER.log(Level.WARNING, "Wrong service URL.");
@@ -519,7 +519,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 .setServiceUrl(getServiceUrl())
                 .setUpdateSequence(getCurrentUpdateSequence())
                 .setDefaultLanguage(WPS_SUPPORTED_LANG.get(0))
-                .setSupportedLanguages(WPS_SUPPORTED_LANG.toArray(new String[WPS_SUPPORTED_LANG.size()]))
+                .setSupportedLanguages(WPS_SUPPORTED_LANG.toArray(String[]::new))
                 .setProcesses(processSummaries)
                 .build();
 
@@ -1069,7 +1069,6 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
                 if (bestVersion!=null) {
                     request.setVersion(bestVersion.toString());
-                    return;
                 } else {
                     final StringBuilder sb = new StringBuilder();
                     for (ServiceDef v : supportedVersions) {

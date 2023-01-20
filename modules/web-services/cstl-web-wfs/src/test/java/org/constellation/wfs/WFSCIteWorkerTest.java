@@ -16,39 +16,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.cite;
+package org.constellation.wfs;
 
-import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.FeatureSet;
-import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.dto.contact.Details;
-import org.constellation.exception.ConfigurationException;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.wfs.core.DefaultWFSWorker;
-import org.constellation.wfs.core.WFSWorker;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
-import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.gml.xml.v311.MultiPointType;
 import org.geotoolkit.gml.xml.v311.PointPropertyType;
@@ -62,7 +49,6 @@ import org.geotoolkit.wfs.xml.v110.GetCapabilitiesType;
 import org.geotoolkit.wfs.xml.v110.GetFeatureType;
 import org.geotoolkit.wfs.xml.v110.QueryType;
 import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -73,26 +59,9 @@ import org.junit.Test;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class WFSCIteWorkerTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.cite");
-
-    private static WFSWorker worker;
-
-    private XmlFeatureWriter featureWriter;
-
-    @Inject
-    protected IServiceBusiness serviceBusiness;
-    @Inject
-    protected ILayerBusiness layerBusiness;
-    @Inject
-    protected IProviderBusiness providerBusiness;
-    @Inject
-    protected IDataBusiness dataBusiness;
+public class WFSCIteWorkerTest extends AbstractWFSWorkerTest {
 
     private static boolean initialized = false;
-
-    private static String serviceId =  UUID.randomUUID().toString();
 
     @PostConstruct
     public void setUpClass() {
@@ -113,14 +82,14 @@ public class WFSCIteWorkerTest extends SpringContextTest {
                 config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
                 config.getCustomParameters().put(TRANSACTIONAL, "true");
 
-                Details details = new Details(serviceId, serviceId, null, null, Arrays.asList("1.1.0"), null, null, true, "en");
+                Details details = new Details("cite", "cite", null, null, Arrays.asList("1.1.0"), null, null, true, "en");
 
-                Integer sid = serviceBusiness.create("wfs", serviceId, config, details, null);
+                Integer sid = serviceBusiness.create("wfs", "cite", config, details, null);
                 for (DataImport d : datas) {
                     layerBusiness.add(d.id, null, d.namespace, d.name, null, sid, null);
                 }
 
-                worker = new DefaultWFSWorker(serviceId);
+                worker = new DefaultWFSWorker("cite");
                 initialized = true;
             } catch (Exception ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
@@ -128,50 +97,16 @@ public class WFSCIteWorkerTest extends SpringContextTest {
         }
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
-            if (layerBean != null) {
-                layerBean.removeAll();
-            }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
-            if (dataBean != null) {
-                dataBean.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        try {
-
-            if (worker != null) {
-                worker.destroy();
-            }
-
-            File derbyLog = new File("derby.log");
-            if (derbyLog.exists()) {
-                derbyLog.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-    }
-
     @Before
     public void setUp() throws Exception {
-        featureWriter     = new JAXPStreamFeatureWriter();
+        featureWriter = new JAXPStreamFeatureWriter();
     }
 
     @After
     public void tearDown() throws Exception {
+        if (featureWriter != null) {
+            featureWriter.dispose();
+        }
     }
 
     @Test

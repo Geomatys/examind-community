@@ -136,7 +136,8 @@ final class DataStoreHandle implements AutoCloseable {
     private Resource tryProxify(final GenericName dataName, final Resource target) {
         if (target == null) return null;
         try {
-            final IMetadataBusiness mdBiz = SpringHelper.getBean(IMetadataBusiness.class);
+            final IMetadataBusiness mdBiz = SpringHelper.getBean(IMetadataBusiness.class)
+                                                        .orElseThrow(() -> new ConstellationException("No spring context available"));
             return createProxy(() -> searchRelatedExamindDataRuntimeException(providerName, dataName), target, mdBiz);
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Cannot proxify resource", e);
@@ -176,7 +177,8 @@ final class DataStoreHandle implements AutoCloseable {
      * @throws ConstellationException If given name format is not supported, or there's a problem with database access.
      */
     private static int searchRelatedExamindData(final String providerName, final GenericName dataName) throws ConstellationException {
-        final DataRepository dataBiz = SpringHelper.getBean(DataRepository.class);
+        final DataRepository dataBiz = SpringHelper.getBean(DataRepository.class)
+                                                   .orElseThrow(() -> new ConstellationException("No spring context available"));
         String ns = NamesExt.getNamespace(dataName);
         String local = dataName.tip().toString();
         if ("".equals(ns)) ns = null;

@@ -27,13 +27,13 @@ import org.opengis.parameter.ParameterValueGroup;
 import java.io.File;
 import java.nio.file.Path;
 import org.apache.sis.parameter.Parameters;
-import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.metadata.AddMetadataDescriptor.*;
 import org.constellation.ws.ICSWConfigurer;
 import org.constellation.ws.Refreshable;
 import org.constellation.ws.IWSEngine;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -41,6 +41,9 @@ import org.constellation.ws.IWSEngine;
  * @author Quentin Boileau (Geomatys)
  */
 public class AddMetadaProcess extends AbstractCstlProcess {
+
+    @Autowired
+    private IWSEngine engine;
 
     public AddMetadaProcess(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -70,7 +73,6 @@ public class AddMetadaProcess extends AbstractCstlProcess {
         final Path metadataFile = inputParameters.getValue(METADATA_FILE);
         final Boolean refresh   = inputParameters.getValue(REFRESH);
         try {
-            final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
             final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             configurer.importRecords(serviceID, metadataFile, metadataFile.getFileName().toString());
             if (refresh) {

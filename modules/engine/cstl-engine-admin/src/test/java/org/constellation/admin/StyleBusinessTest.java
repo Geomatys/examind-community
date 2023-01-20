@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2019 Geomatys.
  *
@@ -18,36 +18,15 @@
  */
 package org.constellation.admin;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.constellation.business.IStyleBusiness;
-import org.constellation.exception.ConstellationException;
 import org.geotoolkit.style.DefaultMutableStyle;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class StyleBusinessTest extends org.constellation.test.SpringContextTest {
-
-    @Autowired
-    private IStyleBusiness styleBusiness;
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final IStyleBusiness style = SpringHelper.getBean(IStyleBusiness.class);
-            if (style != null) {
-                style.deleteAll();
-            }
-        } catch (ConstellationException ex) {
-            Logger.getLogger("org.constellation.admin").log(Level.SEVERE, null, ex);
-        }
-    }
+public class StyleBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void createStyle() throws Exception {

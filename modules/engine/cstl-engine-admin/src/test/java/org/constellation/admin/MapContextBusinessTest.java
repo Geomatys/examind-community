@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2019 Geomatys.
  *
@@ -21,13 +21,9 @@ package org.constellation.admin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.xml.namespace.QName;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.IMapContextBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AbstractMCLayerDTO;
 import org.constellation.dto.Data;
 import org.constellation.dto.DataMCLayerDTO;
@@ -36,35 +32,19 @@ import org.constellation.dto.MapContextDTO;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.ParameterValues;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import org.constellation.test.utils.TestEnvironment.DataImport;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class MapContextBusinessTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
+public class MapContextBusinessTest extends AbstractBusinessTest {
 
     private static boolean initialized = false;
-
-    @Autowired
-    private IMapContextBusiness mpBusiness;
-
-    @Autowired
-    private IDataBusiness dataBusiness;
-
-    @Autowired
-    protected IProviderBusiness providerBusiness;
 
     private static DataImport COV_DATA;
 
@@ -89,26 +69,6 @@ public class MapContextBusinessTest extends SpringContextTest {
         }
     }
 
-
-    @BeforeClass
-    public static void initTestDir() throws Exception {
-        final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
-        if (dbus != null) {
-            dbus.deleteAll();
-        }
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final IMapContextBusiness dbus = SpringHelper.getBean(IMapContextBusiness.class);
-            if (dbus != null) {
-                dbus.deleteAll();
-            }
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-    }
 
     @Test
     @Order(order = 0)

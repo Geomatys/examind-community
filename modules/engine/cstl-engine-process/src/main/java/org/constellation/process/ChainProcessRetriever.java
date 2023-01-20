@@ -53,7 +53,7 @@ public class ChainProcessRetriever {
 
     public static List<ProcessDescriptor> getChainDescriptors(String factory) throws ConstellationException {
         final List<ProcessDescriptor> results = new ArrayList<>();
-        final IProcessBusiness processBusiness = SpringHelper.getBean(IProcessBusiness.class);
+        final IProcessBusiness processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElse(null);
         if (processBusiness != null) {
             List<ChainProcess> chainModels = processBusiness.getChainModels();
             for (ChainProcess chainModel : chainModels) {
@@ -77,7 +77,7 @@ public class ChainProcessRetriever {
 
     public static List<Chain> getChainModels() throws ConstellationException {
         final List<Chain> results = new ArrayList<>();
-        final IProcessBusiness processBusiness = SpringHelper.getBean(IProcessBusiness.class);
+        final IProcessBusiness processBusiness = SpringHelper.getBean(IProcessBusiness.class).orElse(null);
         if (processBusiness != null) {
             List<ChainProcess> chains = processBusiness.getChainModels();
             for (ChainProcess chain : chains) {

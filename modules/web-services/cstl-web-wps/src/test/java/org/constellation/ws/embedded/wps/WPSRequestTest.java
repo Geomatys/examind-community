@@ -38,7 +38,6 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
@@ -135,12 +134,9 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
     @AfterClass
     public static void shutDown() throws Exception {
         try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElseThrow(null);
             if (service != null) {
-                ServiceComplete def = service.getServiceByIdentifierAndType("wps", "default");
-                service.delete(def.getId());
-                ServiceComplete test = service.getServiceByIdentifierAndType("wps", "test");
-                service.delete(test.getId());
+                service.deleteAll();
             }
             ConfigDirectory.shutdownTestEnvironement();
         } catch (Exception ex) {

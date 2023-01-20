@@ -155,8 +155,7 @@ public class WPSUtils {
 
         // If the parameter descriptor is a group
         // We don't go through the group hierarchy
-        if (gpd instanceof ParameterDescriptorGroup) {
-            ParameterDescriptorGroup pdg = ((ParameterDescriptorGroup)gpd);
+        if (gpd instanceof ParameterDescriptorGroup pdg) {
             throw new UnsupportedOperationException("Not implemented yet : the desired input/output is a group");
         }
         else {
@@ -413,11 +412,11 @@ public class WPSUtils {
             if (userMap != null) {
                 additionalParams = new ArrayList<>();
                 for (Entry<String, Object> e : userMap.entrySet()) {
-                    if (e.getValue() instanceof String) {
+                    if (e.getValue() instanceof String strValue) {
                         if ("role".equals(e.getKey())) {
-                            role = (String) e.getValue();
+                            role = strValue;
                         } else if (!"Title".equals(e.getKey())) {
-                            additionalParams.add(new AdditionalParameter(new CodeType(e.getKey()), Arrays.asList(e.getValue())));
+                            additionalParams.add(new AdditionalParameter(new CodeType(e.getKey()), Arrays.asList(strValue)));
                         }
                     }
                 }
@@ -515,8 +514,8 @@ public class WPSUtils {
      */
     public static boolean isSupportedParameter(GeneralParameterDescriptor toTest, WPSIO.IOType type) {
         boolean isClean = false;
-        if (toTest instanceof ParameterDescriptorGroup) {
-            final List<GeneralParameterDescriptor> descs = ((ParameterDescriptorGroup) toTest).descriptors();
+        if (toTest instanceof ParameterDescriptorGroup pdg) {
+            final List<GeneralParameterDescriptor> descs = pdg.descriptors();
             if (descs.isEmpty()) {
                 isClean = true;
             } else {
@@ -527,8 +526,7 @@ public class WPSUtils {
                     }
                 }
             }
-        } else if (toTest instanceof ParameterDescriptor) {
-            final ParameterDescriptor param = (ParameterDescriptor) toTest;
+        } else if (toTest instanceof ParameterDescriptor param) {
             final Class paramClass = param.getValueClass();
 
             isClean = (type.equals(WPSIO.IOType.INPUT))
@@ -945,7 +943,7 @@ public class WPSUtils {
 
         //restart WMS worker
         try {
-            IServiceBusiness serviceBusiness = SpringHelper.getBean(IServiceBusiness.class);
+            IServiceBusiness serviceBusiness = SpringHelper.getBean(IServiceBusiness.class).orElseThrow(ConfigurationException::new);
             ServiceComplete def = serviceBusiness.getServiceByIdentifierAndType("WMS", wmsInstance);
             if (def != null) {
                 serviceBusiness.restart(def.getId());

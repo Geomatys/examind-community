@@ -153,19 +153,19 @@ public class WCSWorkerOutputTest extends SpringContextTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
         try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
+            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class).orElse(null);
             if (layerBean != null) {
                 layerBean.removeAll();
             }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
+            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class).orElse(null);
             if (service != null) {
                 service.deleteAll();
             }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
+            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class).orElse(null);
             if (dataBean != null) {
                 dataBean.deleteAll();
             }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
+            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class).orElse(null);
             if (provider != null) {
                 provider.removeAll();
             }

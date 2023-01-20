@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,16 +19,9 @@
 
 package org.constellation.ws.embedded;
 
-import java.util.UUID;
 import javax.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
-import org.constellation.admin.SpringHelper;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.apache.sis.test.xml.DocumentComparator;
 import org.constellation.test.utils.Order;
@@ -54,16 +47,12 @@ import org.geotoolkit.xsd.xml.v2001.Schema;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.AfterClass;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -88,7 +77,6 @@ import org.junit.Assert;
 import static org.junit.Assume.assumeNoException;
 import static org.junit.Assume.assumeTrue;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -102,7 +90,7 @@ import static org.junit.Assert.assertTrue;
  * @author Guilhem Legal (Geomatys)
  */
 @RunWith(TestRunner.class)
-public class WFSRequestTest extends AbstractGrizzlyServer {
+public class WFSRequestTest extends AbstractWFSRequestTest {
 
 
     private static final String WFS_GETCAPABILITIES_URL_NO_SERV = "request=GetCapabilities&version=1.1.0";
@@ -190,11 +178,6 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
 
     private static boolean localdb_active = true;
 
-    @BeforeClass
-    public static void initTestDir() throws IOException, URISyntaxException {
-        controllerConfiguration = WFSControllerConfig.class;
-        ConfigDirectory.setupTestEnvironement("WFSRequestTest" + UUID.randomUUID());
-    }
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
      */
@@ -306,40 +289,6 @@ public class WFSRequestTest extends AbstractGrizzlyServer {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
-    }
-
-    @AfterClass
-    public static void shutDown() {
-        try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
-            if (layerBean != null) {
-                layerBean.removeAll();
-            }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
-            if (dataBean != null) {
-                dataBean.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        try {
-            ConfigDirectory.shutdownTestEnvironement();
-            File f = new File("derby.log");
-            if (f.exists()) {
-                f.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        stopServer();
     }
 
     @Test

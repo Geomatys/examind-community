@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2019 Geomatys.
  *
@@ -20,44 +20,20 @@ package org.constellation.admin;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
-import org.constellation.exception.ConstellationException;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.geotoolkit.sml.xml.v101.ComponentType;
 import org.geotoolkit.sml.xml.v101.SensorML;
 import org.geotoolkit.sml.xml.v101.SensorML.Member;
 import org.geotoolkit.sml.xml.v101.SystemType;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SensorBusinessTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
-
-    @Autowired
-    private ISensorBusiness sensorBusiness;
-
-    @AfterClass
-    public static void tearDown() {
-        try {
-            final ISensorBusiness dbus = SpringHelper.getBean(ISensorBusiness.class);
-            if (dbus != null) {
-                dbus.deleteAll();
-            }
-        } catch (ConstellationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-    }
+public class SensorBusinessTest extends AbstractBusinessTest {
 
     @Test
     @Order(order=1)

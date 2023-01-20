@@ -21,7 +21,6 @@ package org.constellation.process.metadata;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.parameter.Parameters;
 import org.constellation.api.ServiceDef;
-import org.constellation.admin.SpringHelper;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
@@ -31,6 +30,7 @@ import org.opengis.parameter.ParameterValueGroup;
 
 import static org.constellation.process.metadata.RemoveMetadataDescriptor.*;
 import org.constellation.ws.ICSWConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -38,6 +38,9 @@ import org.constellation.ws.ICSWConfigurer;
  * @author Quentin Boileau (Geomatys)
  */
 public class RemoveMetadaProcess extends AbstractCstlProcess {
+
+    @Autowired
+    private IWSEngine engine;
 
     public RemoveMetadaProcess(final ProcessDescriptor desc, final ParameterValueGroup parameter) {
         super(desc, parameter);
@@ -60,7 +63,6 @@ public class RemoveMetadaProcess extends AbstractCstlProcess {
         final String metadataID = inputParameters.getValue(METADATA_ID);
 
         try {
-            final IWSEngine engine = SpringHelper.getBean(IWSEngine.class);
             final ICSWConfigurer configurer = (ICSWConfigurer) engine.newInstance(ServiceDef.Specification.CSW);
             if (configurer.metadataExist(serviceID, metadataID)) {
                 configurer.removeRecord(serviceID, metadataID);

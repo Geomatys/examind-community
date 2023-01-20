@@ -117,7 +117,7 @@ public class DataBusiness implements IDataBusiness {
      */
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    private static List<MetadataFeeding> METADATA_FILL_STRATEGIES = Collections.unmodifiableList(Arrays.asList(
+    private static final List<MetadataFeeding> METADATA_FILL_STRATEGIES = Collections.unmodifiableList(Arrays.asList(
             (datasource, feeder) -> feeder.setExtent(datasource, MetadataFeeder.WriteOption.CREATE_NEW),
             (datasource, feeder) -> feeder.setSpatialRepresentation(datasource, MetadataFeeder.WriteOption.CREATE_NEW)
     ));
@@ -730,7 +730,8 @@ public class DataBusiness implements IDataBusiness {
 
                     final ProviderBrief p = providerRepository.findOne(providerID);
                     final String providerIdentifier = p.getIdentifier();
-                    final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class);
+                    final IProviderBusiness providerBusiness = SpringHelper.getBean(IProviderBusiness.class)
+                                                                          .orElseThrow(() -> new ConstellationException("No spring context available"));
                     providerBusiness.removeProvider(providerID);
 
                     //notify post delete

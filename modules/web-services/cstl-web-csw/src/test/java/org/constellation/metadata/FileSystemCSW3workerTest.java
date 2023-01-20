@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -21,8 +21,6 @@
 package org.constellation.metadata;
 
 import org.constellation.metadata.core.CSWworker;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
@@ -32,20 +30,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.constellation.admin.SpringHelper;
-import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
+import org.constellation.dto.contact.AccessConstraint;
+import org.constellation.dto.contact.Contact;
+import org.constellation.dto.contact.Details;
 import org.constellation.dto.metadata.MetadataLightBrief;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -55,19 +51,11 @@ import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFi
 import org.geotoolkit.nio.IOUtilities;
 
 /**
+ * Test of the Filesystem Metadata provider
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class FileSystemCSWworkerTest extends CSWworkerTest {
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-
-    @Inject
-    protected IProviderBusiness providerBusiness;
-
-    @Inject
-    protected IMetadataBusiness metadataBusiness;
+public class FileSystemCSW3workerTest extends CSW3WorkerTest {
 
     private static boolean initialized = false;
 
@@ -78,7 +66,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
     @BeforeClass
     public static void setUpClass() throws Exception {
         final Path configDir = Paths.get("target");
-        DATA_DIRECTORY = configDir.resolve("FSCSWWorkerTest" + UUID.randomUUID());
+        DATA_DIRECTORY = configDir.resolve("FSCSWWorkerTest3" + UUID.randomUUID());
         Files.createDirectories(DATA_DIRECTORY);
 
         //we write the data files
@@ -94,6 +82,10 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
         writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/ebrim3.xml", "urn:motiive:csw-ebrim.xml");
         //writeResourceDataFile(dataDirectory, "org/constellation/xml/metadata/error-meta.xml", "urn:error:file.xml");
         writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta13.xml", "urn:uuid:1ef30a8b-876d-4828-9246-dcbbyyiioo.xml");
+
+        // add DIF metadata
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/NO.009_L2-SST.xml", "L2-SST.xml");
+        writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/NO.021_L2-LST.xml", "L2-LST.xml");
 
         // prepare an hidden metadata
         writeResourceDataFile(DATA_DIRECTORY, "org/constellation/xml/metadata/meta7.xml",  "MDWeb_FR_SY_couche_vecteur_258.xml");
@@ -122,9 +114,13 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
                 //we write the configuration file
                 Automatic configuration = new Automatic();
                 configuration.putParameter(TRANSACTION_SECURIZED, "false");
-                configuration.putParameter(TRANSACTIONAL, "true");
 
-                Integer sid = serviceBusiness.create("csw", "default", configuration, null, null);
+                Details d = new Details("Constellation CSW Server", "default", Arrays.asList("CS-W"),
+                                        "CS-W 2.0.2/AP ISO19115/19139 for service, datasets and applications",
+                                        Arrays.asList("2.0.0", "2.0.2", "3.0.0"),
+                                        new Contact(), new AccessConstraint(),
+                                        true, "eng");
+                Integer sid = serviceBusiness.create("csw", "default", configuration, d, null);
                 serviceBusiness.linkCSWAndProvider(sid, pr, true);
 
                 fillPoolAnchor((AnchoredMarshallerPool) pool);
@@ -144,31 +140,6 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
 
     @AfterClass
     public static void tearDownClass() throws Exception {
-        if (worker != null) {
-            worker.destroy();
-        }
-        try {
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
         try {
             fsStore1.destroyFileIndex();
         } catch (Exception ex) {
@@ -239,6 +210,12 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
         super.getRecords191152Test();
     }
 
+    @Test
+    @Override
+    @Order(order=7)
+    public void getRecordsDIFTest() throws Exception {
+        super.getRecordsDIFTest();
+    }
 
     /**
      * Tests the getRecords method
@@ -247,7 +224,7 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
      */
     @Test
     @Override
-    @Order(order=7)
+    @Order(order=8)
     public void getRecordsErrorTest() throws Exception {
         super.getRecordsErrorTest();
     }
@@ -259,21 +236,9 @@ public class FileSystemCSWworkerTest extends CSWworkerTest {
      */
     @Test
     @Override
-    @Order(order=8)
+    @Order(order=9)
     public void getDomainTest() throws Exception {
         super.getDomainTest();
-    }
-
-    /**
-     * Tests the describeRecord method
-     *
-     * @throws java.lang.Exception
-     */
-    @Test
-    @Override
-    @Order(order=9)
-    public void DescribeRecordTest() throws Exception {
-        super.DescribeRecordTest();
     }
 
     /**

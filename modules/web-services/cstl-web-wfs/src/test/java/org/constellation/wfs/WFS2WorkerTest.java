@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,10 +18,7 @@
  */
 package org.constellation.wfs;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.StringWriter;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,28 +26,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import org.apache.sis.xml.MarshallerPool;
-import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
-import org.constellation.business.IDataBusiness;
-import org.constellation.business.ILayerBusiness;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.FeatureData;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.CstlDOMComparator;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.DataImport;
@@ -60,7 +47,6 @@ import org.constellation.test.utils.TestEnvironment.TestResources;
 import org.constellation.util.QNameComparator;
 import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
-import org.constellation.wfs.core.WFSWorker;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.opengis.feature.Feature;
@@ -73,7 +59,6 @@ import org.geotoolkit.gml.xml.v321.DirectPositionType;
 import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v200.*;
-import org.geotoolkit.referencing.CRS;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.wfs.xml.*;
 import org.geotoolkit.wfs.xml.v200.*;
@@ -94,30 +79,14 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
  * @author Guilhem Legal (Geomatys)
  */
 
-public class WFS2WorkerTest extends SpringContextTest {
-
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs");
+public class WFS2WorkerTest extends AbstractWFSWorkerTest {
 
     private static final ObjectFactory wfsFactory = new ObjectFactory();
     private static final org.geotoolkit.ogc.xml.v200.ObjectFactory ogcFactory = new org.geotoolkit.ogc.xml.v200.ObjectFactory();
-    private static final String EPSG_VERSION = CRS.getVersion("EPSG").toString();
 
     private static final List<QName> ALL_TYPES = new ArrayList<>();
     private static boolean initialized = false;
-    private static MarshallerPool pool;
-    private static WFSWorker worker ;
     private static Integer NamedPlaceDataId;
-
-    @Inject
-    private IServiceBusiness serviceBusiness;
-    @Inject
-    protected ILayerBusiness layerBusiness;
-    @Inject
-    protected IProviderBusiness providerBusiness;
-    @Inject
-    protected IDataBusiness dataBusiness;
-
-    private XmlFeatureWriter featureWriter;
 
     @PostConstruct
     public void setUpClass() {
@@ -206,46 +175,17 @@ public class WFS2WorkerTest extends SpringContextTest {
         }
     }
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        try {
-            final ILayerBusiness layerBean = SpringHelper.getBean(ILayerBusiness.class);
-            if (layerBean != null) {
-                layerBean.removeAll();
-            }
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IDataBusiness dataBean = SpringHelper.getBean(IDataBusiness.class);
-            if (dataBean != null) {
-                dataBean.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-        try {
-            if (worker != null) {
-                worker.destroy();
-            }
-            File derbyLog = new File("derby.log");
-            if (derbyLog.exists()) {
-                derbyLog.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage());
-        }
-    }
-
     @Before
     public void setUp() throws Exception {
         featureWriter = new JAXPStreamFeatureWriter("3.2.1", "2.0.0", new HashMap<>());
     }
 
+    @After
+    public void tearDown() throws Exception {
+        if (featureWriter != null) {
+            featureWriter.dispose();
+        }
+    }
 
     /**
      * test the feature marshall

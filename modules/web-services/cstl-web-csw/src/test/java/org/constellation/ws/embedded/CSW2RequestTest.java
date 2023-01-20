@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,9 +19,6 @@
 
 package org.constellation.ws.embedded;
 
-import org.constellation.business.IServiceBusiness;
-import org.constellation.configuration.ConfigDirectory;
-import org.constellation.admin.SpringHelper;
 import org.constellation.dto.StringList;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;
@@ -49,12 +46,10 @@ import org.geotoolkit.csw.xml.v202.QueryType;
 import org.geotoolkit.ebrim.xml.EBRIMMarshallerPool;
 import org.geotoolkit.ows.xml.v100.ExceptionReport;
 import org.geotoolkit.ows.xml.v100.Operation;
-import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.xml.namespace.QName;
-import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -66,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import javax.xml.bind.JAXBContext;
@@ -75,15 +69,12 @@ import javax.xml.bind.Unmarshaller;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
-import org.constellation.business.IMetadataBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.ServiceStatus;
-import org.constellation.metadata.configuration.CSWConfigurer;
 import org.constellation.provider.DataProviders;
 import org.constellation.store.metadata.filesystem.FileSystemMetadataStore;
 import org.constellation.test.utils.TestRunner;
@@ -95,11 +86,11 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.getCurrentPort;
 
-import org.junit.BeforeClass;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.postRequestObject;
 import static org.constellation.ws.embedded.AbstractGrizzlyServer.unmarshallJsonResponse;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -108,20 +99,9 @@ import static org.junit.Assert.assertTrue;
  * @author Guilhem Legal (Geomatys)
  */
 @RunWith(TestRunner.class)
-public class CSWRequestTest extends AbstractGrizzlyServer {
+public class CSW2RequestTest extends AbstractCSWRequestTest {
 
     private static boolean initialized = false;
-
-    private static Path configDirectory;
-
-    private static FileSystemMetadataStore fsStore1;
-    private static FileSystemMetadataStore fsStore2;
-
-    @BeforeClass
-    public static void initTestDir() {
-        configDirectory = ConfigDirectory.setupTestEnvironement("CSWRequestTest" + UUID.randomUUID().toString());
-        controllerConfiguration = CSWControllerConfig.class;
-    }
 
     /**
      * Initialize the list of layers from the defined providers in Constellation's configuration.
@@ -203,54 +183,6 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         }
     }
 
-    @AfterClass
-    public static void shutDown() {
-        try {
-            CSWConfigurer configurer = SpringHelper.getBean(CSWConfigurer.class);
-            configurer.removeIndex("default");
-            configurer.removeIndex("csw2");
-         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            final IServiceBusiness service = SpringHelper.getBean(IServiceBusiness.class);
-            if (service != null) {
-                service.deleteAll();
-            }
-            final IProviderBusiness provider = SpringHelper.getBean(IProviderBusiness.class);
-            if (provider != null) {
-                provider.removeAll();
-            }
-            final IMetadataBusiness mdService = SpringHelper.getBean(IMetadataBusiness.class);
-            if (mdService != null) {
-                mdService.deleteAllMetadata();
-            }
-            fsStore1.destroyFileIndex();
-            fsStore2.destroyFileIndex();
-        } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
-        }
-        try {
-            ConfigDirectory.shutdownTestEnvironement();
-
-            File f = new File("derby.log");
-            if (f.exists()) {
-                f.delete();
-            }
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-        }
-        stopServer();
-    }
-
-    private static String getCswURL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/csw/default?";
-    }
-
-    private static String getCsw2URL() {
-        return "http://localhost:" +  getCurrentPort() + "/WS/csw/csw2?";
-    }
-
     @Test
     @Order(order=1)
     public void testCSWGetCapabilities() throws Exception {
@@ -286,7 +218,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         Operation op = c.getOperationsMetadata().getOperation("GetRecords");
 
         assertTrue(op != null);
-        assertTrue(op.getDCP().size() > 0);
+        assertFalse(op.getDCP().isEmpty());
 
         assertEquals(op.getDCP().get(0).getHTTP().getGetOrPost().get(0).getHref(), getCswURL());
 
@@ -742,7 +674,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
         conec = niUrl.openConnection();
-        obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+        unmarshallJsonResponse(conec, AcknowlegementType.class);
 
 
         /**
@@ -858,7 +790,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
         conec = niUrl.openConnection();
-        obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+        unmarshallJsonResponse(conec, AcknowlegementType.class);
 
 
          // verify that the number of record have increased
@@ -934,7 +866,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
         conec = niUrl.openConnection();
-        obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+        unmarshallJsonResponse(conec, AcknowlegementType.class);
 
 
          // verify that the number of record have increased
@@ -1042,7 +974,7 @@ public class CSWRequestTest extends AbstractGrizzlyServer {
         //clear the csw cache
         niUrl = new URL("http://localhost:" + getCurrentPort() + "/API/CSW/default/clearCache");
         conec = niUrl.openConnection();
-        obj = unmarshallJsonResponse(conec, AcknowlegementType.class);
+        unmarshallJsonResponse(conec, AcknowlegementType.class);
 
 
          // verify that the number of record have decreased
