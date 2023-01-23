@@ -56,6 +56,9 @@
   min-width: 750px;
 }
 
+.selector {
+  width: 140px;
+}
 
 // Task Status style
 // ----------
@@ -144,5 +147,30 @@
 
   &:last-child {
     margin-bottom: 0;
+  }
+}
+
+// Special params
+// ----------
+#select_file-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+
+  i {
+    color: #ddd;
+  }
+
+  #spinner-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .btn-primary {
+    border-radius: 4px;
+    height: 100%;
+    display: block;
   }
 }

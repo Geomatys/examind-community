@@ -196,7 +196,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @return
      */
     @RequestMapping(value = "/datasources/{id}/upload", method = POST, consumes = MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity uploadDatasourceFile(@PathVariable("id") int id, @RequestParam("file") MultipartFile uploadedFile) {
+    public ResponseEntity<String> uploadDatasourceFile(@PathVariable("id") int id, @RequestParam("file") MultipartFile uploadedFile) {
         try {
             // 1. retrieve the upload directory
             final DataSource ds = datasourceBusiness.getDatasource(id);
@@ -204,6 +204,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
 
             // 2. save file to upload directory
             final Path newFile = dsDirectory.resolve(uploadedFile.getOriginalFilename());
+            String url;
             try (InputStream in = uploadedFile.getInputStream()) {
                 Files.copy(in, newFile, StandardCopyOption.REPLACE_EXISTING);
                 // 2.1 unzip if needed
@@ -211,13 +212,16 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                 if ("zip".equals(ext.toLowerCase())) {
                     ZipUtilities.unzip(newFile, dsDirectory, new CRC32());
                     Files.deleteIfExists(newFile);
+                    url = dsDirectory.toUri().toString();
+                } else {
+                    url = newFile.toUri().toString();
                 }
             }
 
             // 3. reset the analyse state
             datasourceBusiness.updateDatasourceAnalysisState(id, IDatasourceBusiness.AnalysisState.NOT_STARTED.name());
 
-            return new ResponseEntity(OK);
+            return new ResponseEntity(url, OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

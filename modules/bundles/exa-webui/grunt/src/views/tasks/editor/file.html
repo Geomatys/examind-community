@@ -1,3 +1,19 @@
 <!-- We need one File parameter with no restriction -->
-<input id="{{replaceStr(parameter.id)}}" ng-required="parameter.mandatory" class="form-control" type="text"
-       value="{{parameter.default}}" name="{{parameter.name}}" ng-model="parameter.save[$index]" />
+<div id="select_file-wrapper">
+    <select class="form-control selector" ng-model="fc.uploadSelection"
+            ng-disabled="fc.isUploading"
+            ng-options="option.title|translate for option in fc.uploadOptions">
+    </select>
+    <input id="{{replaceStr(parameter.id)}}" ng-required="parameter.mandatory" class="form-control" type="text" ng-class="{'uploading': fc.isUploading}"
+           value="{{parameter.default}}" name="{{parameter.name}}" ng-model="parameter.save[$index]" ng-hide="fc.uploadSelection.value==='local'"/>
+    <label id="upload-button" class="btn btn-primary" for="fileInput-{{fc.id}}" ng-hide="fc.uploadSelection.value!=='local'" ng-disabled="fc.isUploading">
+        <i class="fa fa-file-o fa-fw"></i>
+    </label>
+    <input id="fileInput-{{fc.id}}" type="file"
+           style="width: 0px"
+           onchange="angular.element(this).scope().uploadFiles(this)"/>
+    <div id="spinner-wrapper" ng-if="fc.isUploading">
+        <i class="fa fa-cog fa-spin fa-2x fa-fw" style="height: 1em"></i>
+    </div>
+    <label ng-hide="fc.isUploading || fc.uploadSelection.value!=='local'">file: {{fc.fileName}}</label>
+</div>

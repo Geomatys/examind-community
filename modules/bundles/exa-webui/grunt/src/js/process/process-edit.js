@@ -66,10 +66,14 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                 templateUrl: 'views/tasks/editor/url.html'
             })
             .put('java.io.File', {
-                templateUrl: 'views/tasks/editor/file.html'
+                templateUrl: 'views/tasks/editor/file.html',
+                controller: 'TaskFileUploadController',
+                controllerAs: 'fc'
             })
             .put('java.nio.file.Path', {
-                templateUrl: 'views/tasks/editor/file.html'
+                templateUrl: 'views/tasks/editor/file.html',
+                controller: 'TaskFileUploadController',
+                controllerAs: 'fc'
             })
             .put('org.constellation.dto.process.StyleProcessReference', {
                 templateUrl: 'views/tasks/editor/style.html',
@@ -164,42 +168,22 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             .put('org.apache.sis.portrayal.MapLayers', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
-                controllerAs: 'ec',
-                resolve : {
-                    'mapcontexts': ['DataService', function(DataService) {
-                        return DataService.getAllMapContexts();
-                    }]
-                }
+                controllerAs: 'ec'
             })
             .put('org.constellation.dto.MapContextLayersDTO', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
-                controllerAs: 'ec',
-                resolve : {
-                    'mapcontexts': ['Examind', function(Examind) {
-                        return Examind.mapcontexts.getMapLayers();
-                    }]
-                }
+                controllerAs: 'ec'
             })
             .put('org.constellation.dto.process.MapContextProcessReference', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
-                controllerAs: 'ec',
-                resolve : {
-                    'mapcontexts': ['DataService', function(DataService) {
-                        return DataService.getAllMapContexts();
-                    }]
-                }
+                controllerAs: 'ec'
             })
             .put('org.constellation.dto.process.DatasetProcessReference', {
                 templateUrl: 'views/tasks/editor/dataset.html',
                 controller:'ProcessDatasetEditorController',
-                controllerAs: 'ec',
-                resolve : {
-                    'datasets': ['DataService', function(DataService) {
-                        return DataService.getAllDatasets();
-                    }]
-                }
+                controllerAs: 'ec'
             });
     })
 
@@ -349,6 +333,9 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         self.wps = null;
     })
 
+    // -------------------------------------------------------------------------
+    //  Controllers
+    // -------------------------------------------------------------------------
     .controller('ProcessStyleEditorController', function(parameter, valueIndex, styles, $filter) {
 
         var self = this;
@@ -440,23 +427,25 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         }
     })
 
-    .controller('ProcessMapContextEditorController',function(parameter, valueIndex, mapcontexts){
+    .controller('ProcessMapContextEditorController',function(parameter, valueIndex, DataService){
         var self = this;
-        self.mapcontexts = (parameter.mandatory ? [] : [undefined]).concat(mapcontexts.data);
 
-        if (parameter.save[valueIndex] === undefined) {
-            parameter.save[valueIndex] = parameter.mandatory ? self.mapcontexts[0] : undefined;
-        }
+        DataService.getAllMapContexts().then(function (response) {
+            self.mapcontexts = response.data;
+            if (parameter.save[valueIndex] === undefined) {
+                parameter.save[valueIndex] = parameter.mandatory ? self.mapcontexts[0] : undefined;
+            }
+        });
     })
 
-    .controller('ProcessDatasetEditorController', function(parameter, valueIndex, datasets) {
-
+    .controller('ProcessDatasetEditorController', function(parameter, valueIndex, DataService) {
         var self = this;
-        self.datasets = (parameter.mandatory ? [] : [undefined]).concat(datasets.data);
-
-        if (parameter.save[valueIndex] === undefined) {
-            parameter.save[valueIndex] = parameter.mandatory ? self.datasets[0] : undefined;
-        }
+        DataService.getAllDatasets().then(function (response) {
+            self.datasets = response.data;
+            if (parameter.save[valueIndex] === undefined) {
+                parameter.save[valueIndex] = parameter.mandatory ? self.datasets[0] : undefined;
+            }
+        });
     })
 
     .controller('ProcessDataEditorController', function(parameter, valueIndex, datas, $filter) {
@@ -616,7 +605,14 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         $scope.processes = createProcesses(processes.data.list);
 
         // scope functions
-        $scope.close = $scope.cancel = $modalInstance.close;
+        $scope.close = function(){
+            $scope.$broadcast('close');
+            $modalInstance.close();
+        };
+        $scope.cancel = function(){
+            $scope.$broadcast('cancel');
+            $modalInstance.close();
+        };
 
         $scope.onSelectProcess = function() {
             Examind.tasks.getProcessDescriptor({values:{'authority': $scope.selectionWPS.wps.serviceUrl, 'code': $scope.option.selectedProcess}})
@@ -665,7 +661,10 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                 }
             }
             $scope.task.inputs = {};
-            fillInputsValues($scope.task.inputs, $scope.parameters);
+            var isValid = fillInputsValues($scope.task.inputs, $scope.parameters);
+            if (!isValid) {
+                return;
+            }
             //convert to JSON
             $scope.task.inputs = angular.toJson($scope.task.inputs);
             if ($scope.task.id != null){
@@ -822,7 +821,8 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
             for (var i = 0; i < nbParam; i++) {
                 var param = parameters[i];
                 if (param.type === 'simple') {
-                    valid = isValid(param);
+                    var currentIsValid = isValid(param);
+                    valid = valid ? currentIsValid : valid;
                     if (param.isArray) {
                         inputs[param.name] = [param.save];
                     } else {
@@ -834,7 +834,8 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
 
                     for (var j = 0; j < nbOccurs; j++) {
                         var supInputs = {};
-                        fillInputsValues(supInputs, param.inputs[j]);
+                        var recursiveIsValid =fillInputsValues(supInputs, param.inputs[j]);
+                        valid = valid ? recursiveIsValid : valid;
                         inputs[param.name].push(supInputs);
                     }
                 }
@@ -862,6 +863,14 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                         case "java.lang.Double" :
                             if (!angular.isNumber(parameter.save[i])) {
                                 Growl('error', 'Error', 'Parameter ' + parameter.name + ' is not a Number');
+                                return false;
+                            }
+                            break;
+                        case "java.io.FIle" :
+                        case "java.nio.file.Path" :
+                            var isUploading = jQuery("#"+$scope.replaceStr(parameter.name)).hasClass("uploading");
+                            if (isUploading) {
+                                Growl('error', 'Error', 'Parameter ' + parameter.name + ' is still uploading');
                                 return false;
                             }
                             break;
@@ -1033,5 +1042,118 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
         };
 
         self.initWpsSourceTask();
+
+    })
+
+    .controller('TaskFileUploadController', function ($q, $scope, parameter, valueIndex, FileItem, Examind, Growl){
+        var self = this;
+
+        function create_UUID(){
+            function s4(){
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                s4() + '-' + s4() + s4() + s4();
+        }
+
+        self.id = create_UUID();
+
+        self.uploadOptions = [
+            {
+                value: 'local',
+                title: 'wiz.data.import.step1.label.files'
+            },
+            {
+                value: 'server',
+                title: 'data.modal.server.title'
+            }
+        ];
+
+        self.uploadSelection = self.uploadOptions[0];
+
+        self.isUploading = false;
+
+        self.oldPath = parameter.save[valueIndex];
+
+        self.getFileName = function(path) {
+            if (path) {
+                var lastSeparator = path.lastIndexOf('/');
+                var lastPoint = path.lastIndexOf('.');
+                if (lastPoint > lastSeparator) {
+                    path = path.replace(/^.*[\\\/]/, '');
+                } else {
+                    if (lastSeparator === path.length - 1) {
+                        path = path.slice(0, path.length - 1);
+                        lastSeparator = path.lastIndexOf('/');
+                    }
+                    path = path.slice(lastSeparator + 1) + '/';
+                }
+                return decodeURIComponent(path);
+            }
+        };
+
+        self.fileName = parameter.save[valueIndex] ? self.getFileName(parameter.save[valueIndex]) : '';
+
+        self.selectedFile = undefined;
+
+        self.uploadFile = function (fileItem) {
+            var formData = new FormData();
+            formData.append("file", fileItem.file);
+            fileItem.canceller = $q.defer();
+            fileItem.isCanceled = false;
+            fileItem.isError = false;
+            self.isUploading = true;
+            self.oldPath = parameter.save[valueIndex];
+            parameter.save[valueIndex] = undefined;
+
+            var ds = {
+                type: 'local_files',
+                permanent: true
+            };
+            var dsId;
+            Examind.dataSources.create(ds)
+                .then(function(res){
+                    dsId = res.data;
+                    return Examind.dataSources.uploadFileToDataSource(dsId, formData, fileItem.canceller.promise);
+                })
+                .then(function(res){
+                    parameter.save[valueIndex] = res.data.replace(/"/g, '');
+                    self.fileName = self.getFileName(parameter.save[valueIndex]);
+                })
+                .catch(function(err){
+                    if (!self.selectedFile.isCanceled) {
+                        var message = err;
+                        if (err.data && err.data.message) {
+                            message = err.data.message;
+                        }
+                        Growl('error', 'Error', 'Unable to upload data, cause: ' + message);
+                    }
+                    parameter.save[valueIndex] = self.oldPath;
+                })
+                .finally(function(){
+                    self.isUploading = false;
+                });
+        };
+
+        $scope.uploadFiles = function(element) {
+            var files = element.files;
+            var file = files.item(0);
+            var fileItem = new FileItem(file);
+            self.selectedFile = fileItem;
+            self.uploadFile(fileItem);
+        };
+
+        self.cancelUpload = function() {
+            if (self.isUploading && self.selectedFile) {
+                self.selectedFile.isCanceled = true;
+                self.selectedFile.canceller.resolve('cancelled');
+            }
+        };
+
+        $scope.$on('close', self.cancelUpload);
+
+        $scope.$on('cancel', self.cancelUpload);
 
     });
