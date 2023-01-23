@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import javax.sql.DataSource;
-import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -46,6 +45,7 @@ import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
+import org.constellation.util.FilterSQLRequest.TableJoin;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
@@ -63,7 +63,6 @@ import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENC
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.ResultMode;
-import static org.geotoolkit.sos.xml.SOSXmlFactory.buildMeasure;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.metadata.quality.Element;
@@ -980,26 +979,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<org.opengis.observation.sampling.SamplingFeature> getFeatureOfInterests() throws DataStoreException {
+        List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"foi\" = sf.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else if (offJoin) {
-            final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_foi\" off WHERE off.\"foi\" = sf.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", offJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
-            }
-        } else {
-            sqlRequest.replaceFirst("\"foi\"='", "sf.\"id\"='");
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"foi\" = sf.\"id\""));
         }
+        if (offJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" off", "off.\"foi\" = sf.\"id\""));
+        }
+        if (foiPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sf.\"id\" = sfp.\"id_sampling_feature\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<org.opengis.observation.sampling.SamplingFeature> features = new ArrayList<>();
@@ -1027,7 +1017,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 } else {
                     geom = null;
                 }
-                features.add(new SamplingFeature(id, name, desc, null, sf, geom));
+                final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
+                features.add(new SamplingFeature(id, name, desc, properties, sf, geom));
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", sqlRequest.toString());
@@ -1044,33 +1035,22 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<org.opengis.observation.Phenomenon> getPhenomenons() throws DataStoreException {
+        List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"observed_property\" = op.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else if (procDescJoin) {
-            final String procDescJoin = ", \"" + schemaPrefix + "om\".\"procedure_descriptions\" pd WHERE pd.\"field_name\" = op.\"id\" ";
-            sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", procDescJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", procDescJoin + "AND ");
-            }
-        } else if (offJoin) {
-            final String offJoin = ", \"" + schemaPrefix + "om\".\"offering_observed_properties\" off WHERE off.\"phenomenon\" = op.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", offJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
-            }
-        } else {
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"observed_property\" = op.\"id\""));
         }
+        if (offJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" off", "off.\"phenomenon\" = op.\"id\""));
+        }
+        if (procDescJoin) {
+            sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
+        }
+        if (phenPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = op.\"id\""));
+        }
+        sqlRequest.join(joins, firstFilter);
+        
         if (procDescJoin) {
             sqlRequest.append(" ORDER BY \"order\"");
         } else {
@@ -1094,25 +1074,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<Process> getProcesses() throws DataStoreException {
+        List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else if (offJoin) {
-            final String offJoin = ", \"" + schemaPrefix + "om\".\"offerings\" off WHERE off.\"procedure\" = pr.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", offJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", offJoin + "AND ");
-            }
-        } else {
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
         }
+        if (offJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offerings\" off", "off.\"procedure\" = pr.\"id\""));
+        }
+        if (procPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = pr.\"id\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Process> results = new ArrayList<>();
@@ -1131,9 +1103,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<Offering> getOfferings() throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
+        List<TableJoin> joins = new ArrayList<>();
+        if (obsJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = off.\"procedure\""));
         }
+        if (procJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"procedures\" pr", "off.\"procedure\" = pr.\"id\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Offering> results = new ArrayList<>();
@@ -1152,18 +1129,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Map<String, Geometry> getSensorLocations() throws DataStoreException {
+        List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            final String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = pr.\"id\" ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else {
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
         }
+        sqlRequest.join(joins, firstFilter);
+        
          // will be removed when postgis filter will be set in request
         Polygon spaFilter = null;
         if (envelopeFilter != null) {
@@ -1226,25 +1197,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (decimationSize != null) {
             return getDecimatedSensorLocationsV2(decimationSize);
         }
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = hl.\"procedure\" AND (";
+
+            // basic join statement
+            String obsStmt = "o.\"procedure\" = hl.\"procedure\"";
+            
+            // TODO, i can't remember what is the purpose of this piece of sql request
+            obsStmt = obsStmt + "AND (";
             // profile / single date ts
-            obsJoin = obsJoin + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
+            obsStmt = obsStmt + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
             // period observation
-             obsJoin = obsJoin + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")) ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else {
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
+            obsStmt = obsStmt + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")";
+            obsStmt = obsStmt + ")";
+
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
         }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
@@ -1287,13 +1256,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         int nbCell = decimationSize;
 
-        GeneralEnvelope env;
-        if (envelopeFilter != null) {
-            env = envelopeFilter;
-        } else {
-            env = new GeneralEnvelope(CRS.getDomainOfValidity(defaultCRS));
-        }
-
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
@@ -1331,14 +1293,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
-        // will be removed when postgis filter will be set in request
-        Polygon spaFilter = null;
-        if (envelopeFilter != null) {
-            spaFilter = JTS.toGeometry(envelopeFilter);
-        }
-
         int nbCell = decimationSize;
-
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
@@ -1357,26 +1312,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public Map<String, Set<Date>> getSensorHistoricalTimes() throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
-            String obsJoin = ", \"" + schemaPrefix + "om\".\"observations\" o WHERE o.\"procedure\" = hl.\"procedure\" AND (";
-            // profile / single date ts
-            obsJoin = obsJoin + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
-            // period observation
-             obsJoin = obsJoin + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")) ";
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", obsJoin);
-            } else {
-                sqlRequest.replaceFirst("WHERE", obsJoin + "AND ");
-            }
-        } else {
-            if (firstFilter) {
-                sqlRequest.replaceFirst("WHERE", "");
-            }
-        }
 
+            // basic join statement
+            String obsStmt = "o.\"procedure\" = hl.\"procedure\"";
+
+            // TODO, i can't remember what is the purpose of this piece of sql request
+            obsStmt = obsStmt + "AND (";
+            // profile / single date ts
+            obsStmt = obsStmt + "(hl.\"time\" = o.\"time_begin\" AND o.\"time_end\" IS NULL)  OR ";
+            // period observation
+            obsStmt = obsStmt + "( o.\"time_end\" IS NOT NULL AND hl.\"time\" >= o.\"time_begin\" AND hl.\"time\" <= o.\"time_end\")";
+            obsStmt = obsStmt + ")";
+
+            joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());

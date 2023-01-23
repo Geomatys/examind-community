@@ -264,6 +264,20 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order=2)
+    public void getFeaturesOfInterestFilterTest() throws Exception {
+        initPool();
+
+        String filter = "properties/prop1 eq 'value1')".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/foi-property.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
     @Order(order=3)
     public void getObservationByIdTest() throws Exception {
         initPool();
@@ -557,6 +571,20 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
         expResult = expResult.replace("\"{count}\"", "7");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    @Order(order=8)
+    public void getObservedPropertiesFilter() throws Exception {
+        initPool();
+
+        String filter = "properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property.json");
         compareJSON(expResult, result);
     }
 
@@ -1025,6 +1053,20 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
         expResult = expResult.replace("\"{count}\"", "16");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    @Order(order=13)
+    public void getThingsFilterTest() throws Exception {
+        initPool();
+
+        String filter = "properties/prop1 eq 'value1')".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/th-property.json");
         compareJSON(expResult, result);
     }
 

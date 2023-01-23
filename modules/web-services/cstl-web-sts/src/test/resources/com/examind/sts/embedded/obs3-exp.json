@@ -17,6 +17,7 @@
       },
       "properties" : { }
     },
+    "properties" : { },
     "@iot.id" : "station-006",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)",
     "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)/Observations"

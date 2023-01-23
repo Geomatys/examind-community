@@ -160,6 +160,7 @@ public class OM2BaseReader {
             final String sampledFeature;
             final byte[] b;
             final int srid;
+            final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
             try (final PreparedStatement stmt = (isPostgres) ?
                 c.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?") ://NOSONAR
                 c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
@@ -189,7 +190,7 @@ public class OM2BaseReader {
                 } else {
                     geom = null;
                 }
-                final SamplingFeature sf = new SamplingFeature(id, name, description, null, sampledFeature, geom);
+                final SamplingFeature sf = new SamplingFeature(id, name, description, properties, sampledFeature, geom);
                 if (cacheEnabled) {
                     cachedFoi.put(id, sf);
                 }
@@ -199,6 +200,23 @@ public class OM2BaseReader {
         } catch (ParseException | FactoryException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
+    }
+
+    protected Map<String, Object> readProperties(String tableName, String columnName, String id, Connection c) throws SQLException {
+        String request = "SELECT \"property_name\", \"value\" FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\"=?";
+        LOGGER.fine(request);
+        Map<String, Object> results = new HashMap<>();
+        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, id);
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String pName = rs.getString("property_name");
+                    String pValue = rs.getString("value");
+                    results.put(pName, pValue);
+                }
+            }
+        }
+        return results;
     }
 
     @SuppressWarnings("squid:S2695")
@@ -283,7 +301,7 @@ public class OM2BaseReader {
                         if (phenomenons.isEmpty()) {
                             result = base;
                         } else {
-                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), null, phenomenons);
+                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), phenomenons);
                         }
                         if (cacheEnabled) {
                             cachedPhenomenon.put(id, result);
@@ -297,11 +315,11 @@ public class OM2BaseReader {
         }
     }
 
-    private Phenomenon getSinglePhenomenon(final String observedProperty, final Connection c) throws DataStoreException {
+    private Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
         try {
-            // look for composite phenomenon
+            final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", id, c);
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
-                stmt.setString(1, observedProperty);
+                stmt.setString(1, id);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
                         String phenID = rs.getString(1);
@@ -322,7 +340,7 @@ public class OM2BaseReader {
                                 name = phenID.startsWith(phenomenonIdBase) ? phenID.substring(phenomenonIdBase.length()) : phenID;
                             }
                         }
-                        return new Phenomenon(phenID, name, definition, description, null);
+                        return new Phenomenon(phenID, name, definition, description, properties);
                     }
                 }
             }
@@ -703,12 +721,13 @@ public class OM2BaseReader {
         }
     }
 
-    public Procedure getProcess(String identifier, final Connection c) throws SQLException {
+    public Procedure getProcess(String id, final Connection c) throws SQLException {
+        final Map<String, Object> properties = readProperties("procedures_properties", "id_procedure", id, c);
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
-            stmt.setString(1, identifier);
+            stmt.setString(1, id);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), new HashMap<>());
+                    return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), properties);
                 }
             }
         }

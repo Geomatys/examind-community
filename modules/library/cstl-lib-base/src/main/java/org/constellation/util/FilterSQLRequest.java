@@ -298,6 +298,44 @@ public class FilterSQLRequest {
         return stmt;
     }
 
+    public static class TableJoin {
+        public final String tablename;
+        public final String joinStmt;
+
+        public TableJoin(String tablename, String joinStmt) {
+            this.tablename = tablename;
+            this.joinStmt = joinStmt;
+        }
+    }
+
+    public void join(List<TableJoin> joins, boolean firstFilter) {
+        StringBuilder tables = new StringBuilder();
+        StringBuilder stmts  = new StringBuilder();
+
+        if (!joins.isEmpty()) {
+            boolean first = true;
+            for (TableJoin join : joins) {
+                tables.append(", ").append(join.tablename);
+                if (first) {
+                    stmts.append(" ");
+                    first = false;
+                } else {
+                    stmts.append(" AND ");
+                }
+                stmts.append(join.joinStmt);
+            }
+
+            String sql = tables.toString() + " WHERE " + stmts.toString();
+
+            if (!firstFilter) {
+                sql = sql + " AND ";
+            }
+            this.replaceFirst("WHERE", sql);
+        } else if (firstFilter) {
+            this.replaceFirst("WHERE", "");
+        }
+    }
+
     @Override
     public String toString() {
         String s = sqlRequest.toString();

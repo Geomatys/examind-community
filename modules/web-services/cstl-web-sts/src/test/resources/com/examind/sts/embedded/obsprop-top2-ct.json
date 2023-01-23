@@ -3,6 +3,7 @@
             "name": "color",
             "definition": "urn:ogc:def:phenomenon:GEOM:color",
             "description": "the color label",
+            "properties": { },
             "@iot.id": "color",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)",
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)/Datastreams",

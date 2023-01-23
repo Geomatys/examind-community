@@ -380,11 +380,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 String[] component = observationID.split("-");
                 if (component.length == 3) {
                     identifier    = observationIdBase + component[0];
-                    fieldIndex    = Integer.parseInt(component[1]);
-                    measureId     = Integer.parseInt(component[2]);
+                    fieldIndex    = Integer.valueOf(component[1]);
+                    measureId     = Integer.valueOf(component[2]);
                 } else if (component.length == 2) {
                     identifier    = observationIdBase + component[0];
-                    measureId     = Integer.parseInt(component[1]);
+                    measureId     = Integer.valueOf(component[1]);
                 } else if (component.length != 1) {
                     LOGGER.fine("Malformed ID received: " + observationID + ". We expected between 1 and 3 parts, but got " + component.length + ". It might lead to unspecified behaviour");
                 }

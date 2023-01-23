@@ -519,6 +519,14 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
+    public void setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+        throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void refresh() throws DataStoreException {
         try {
             searcher.refresh();

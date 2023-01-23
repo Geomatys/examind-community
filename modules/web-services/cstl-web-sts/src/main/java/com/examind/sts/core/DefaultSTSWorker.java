@@ -1228,7 +1228,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (exp.isSelected("definition")) obsProp = obsProp.definition(definition);
         if (exp.isSelected("description")) obsProp = obsProp.description(description);
         if (exp.isSelected("selfLink")) obsProp = obsProp.iotSelfLink(selfLink.replace("$", phenId));
-
+        if (exp.isSelected("properties")) obsProp = obsProp.properties(s.getProperties());
+        
         if (exp.datastreams.expanded) {
             List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForPhenomenon(s.getId());
             RequestOptions dsExp = exp.subLevel("Datastreams");
@@ -1867,6 +1868,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (exp.isSelected("id")) result.setIotId(sp.getId());
         if (exp.isSelected("Description")) result.setDescription(sp.getDescription());
         if (exp.isSelected("EncodingType")) result.setEncodingType("application/vnd.geo+json");
+        if (exp.isSelected("properties")) result.setProperties(sp.getProperties());
         if (exp.isSelected("name") && sp.getName() != null) {
             result.setName(sp.getName());
         }

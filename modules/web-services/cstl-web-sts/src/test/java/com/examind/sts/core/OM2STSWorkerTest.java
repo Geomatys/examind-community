@@ -22,8 +22,11 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
@@ -180,6 +183,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
         point.setCoordinates(new double[]{42.38798858151254, -4.144984627896042});
         feature.setGeometry(point);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("prop2", "value2");
+        properties.put("prop1", "value1");
         FeatureOfInterest expResult = new FeatureOfInterest()
                 .description("Point d'eau BSSS")
                 .name("10972X0137-PONT")
@@ -187,7 +193,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .encodingType("application/vnd.geo+json")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest(station-001)")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations")
-                .feature(feature);
+                .feature(feature)
+                .properties(properties);
         Assert.assertTrue(DeltaComparable.equals(expResult.getFeature(), result.getFeature(), 0.0001f));
         Assert.assertTrue(DeltaComparable.equals(expResult, result, 0.0001f));
 
@@ -337,6 +344,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
         point.setCoordinates(new double[]{42.38798858151254, -4.144984627896042});
         feature.setGeometry(point);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("prop2", "value2");
+        properties.put("prop1", "value1");
         FeatureOfInterest expFoi = new FeatureOfInterest()
                 .description("Point d'eau BSSS")
                 .name("10972X0137-PONT")
@@ -344,7 +354,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .encodingType("application/vnd.geo+json")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest(station-001)")
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations")
-                .feature(feature);
+                .feature(feature)
+                .properties(properties);
+
         expResult.setFeatureOfInterest(expFoi);
         expResult.setFeatureOfInterestIotNavigationLink(null);
 
@@ -897,7 +909,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .description("the temperature in celcius degree")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)")
-                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams");
+                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams")
+                .properties(Collections.EMPTY_MAP);
         expResult.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/MultiDatastreams");
 
         Assert.assertEquals(expResult, result);
@@ -1041,11 +1054,14 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
+                .properties(obsPropProperties)
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams");
         expObsProp.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams");
@@ -1206,11 +1222,14 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
+                .properties(obsPropProperties)
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams");
         expObsProp.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams");
@@ -1330,12 +1349,16 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
+
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
+                .properties(obsPropProperties)
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams");
         expObsProp.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams");
         expResult.setObservedProperty(expObsProp);
@@ -1510,10 +1533,13 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getMultiDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
+                .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams")
@@ -1523,6 +1549,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .name("temperature")
                 .description("the temperature in celcius degree")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
+                .properties(Collections.EMPTY_MAP)
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams")
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/MultiDatastreams");
@@ -1689,10 +1716,13 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getMultiDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
+                .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams")
@@ -1826,10 +1856,13 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getMultiDatastreamById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("depth")
                 .description("the depth in water")
+                .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams")

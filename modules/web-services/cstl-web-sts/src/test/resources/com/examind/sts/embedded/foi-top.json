@@ -7,10 +7,13 @@
       "type" : "Feature",
       "geometry" : {
         "type" : "Point",
-        "type" : "Point",
         "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
       },
       "properties" : { }
+    },
+    "properties": {
+        "prop2": "value2",
+        "prop1": "value1"
     },
     "@iot.id" : "station-001",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
@@ -23,10 +26,12 @@
       "type" : "Feature",
       "geometry" : {
         "type" : "Point",
-        "type" : "Point",
         "coordinates" : [ 5.0, 10.0 ]
       },
       "properties" : { }
+    },
+    "properties": {
+        "prop1": "value3"
     },
     "@iot.id" : "station-002",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)",

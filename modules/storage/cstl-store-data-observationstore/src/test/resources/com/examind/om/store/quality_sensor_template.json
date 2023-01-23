@@ -24,13 +24,20 @@
         "geometry": {
             "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
             "geometry": "POINT (65400 1731368)"
+        },
+        "properties": {
+            "prop2": "value2",
+            "prop1": "value1"
         }
     },
     "observedProperty": {
         "id": "depth",
         "name": "depth",
         "description": "the depth in water",
-        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+        "properties": {
+            "prop1": "value4"
+        }
     },
     "result": {
         "fields": [{

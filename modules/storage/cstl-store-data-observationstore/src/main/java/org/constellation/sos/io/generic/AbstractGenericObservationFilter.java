@@ -188,6 +188,11 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
+    @Override
+    public void setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+        throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
+    }
+
     /**
      * Try to reconnect to the database if the connection have been lost.
      *

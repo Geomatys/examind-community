@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
+import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.Util;
@@ -412,6 +413,29 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
+    private void deleteProperties(String tableName, String columnName, String id, Connection c) throws SQLException {
+        String request = "DELETE FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\"=?";
+        LOGGER.fine(request);
+        try (final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+        }
+    }
+
+    private void writeProperties(String tableName, String id,  Map<String, Object> properties, Connection c) throws SQLException {
+        if (properties == null || properties.isEmpty()) return;
+        final String request = "INSERT into \"" + schemaPrefix + "om\".\"" + tableName + "\" VALUES (?,?,?)";
+        LOGGER.fine(request);
+        try (final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            for (Entry<String, Object> entry : properties.entrySet()) {
+                stmt.setString(1, id);
+                stmt.setString(2, entry.getKey());
+                stmt.setString(3, entry.getValue().toString());
+                stmt.executeUpdate();
+            }
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -469,6 +493,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         stmtInsert.setNull(5, java.sql.Types.VARCHAR);
                     }
                     stmtInsert.executeUpdate();
+                    writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
                 }
                 if (phenomenon instanceof CompositePhenomenon composite) {
                     
@@ -504,6 +529,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 }
             }
+            // no real update of a phenomenon is available for now
         }
         return phenomenonId;
     }
@@ -581,6 +607,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         stmtInsert.executeUpdate();
                     }
 
+                    // write properties
+                    writeProperties("procedures_properties", procedure.getId(), procedure.getProperties(), c);
+
                     // write locations
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
                         for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
@@ -635,7 +664,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         if (foi == null) return;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\" FROM  \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, foi.getId());
-            try(final ResultSet rs = stmtExist.executeQuery()) {
+            try (final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
                     try (final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, foi.getId());
@@ -657,6 +686,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                         stmtInsert.executeUpdate();
                     }
+                    // write properties
+                    writeProperties("sampling_features_properties", foi.getId(), foi.getProperties(), c);
                 }
             }
         }
@@ -1012,40 +1043,44 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     @Override
     public synchronized void removeObservationForProcedure(final String procedureID) throws DataStoreException {
         try (final Connection c = source.getConnection()) {
-            final int[] pidNumber = getPIDFromProcedure(procedureID, c);
-
-            // remove from measures tables
-            for (int i = 0; i < pidNumber[1]; i++) {
-                String suffix = pidNumber[0] + "";
-                if (i > 0) {
-                    suffix = suffix + "_" + (i + 1);
-                }
-
-                boolean mesureTableExist = true;
-                try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"")) {//NOSONAR
-                    stmtExist.executeQuery();
-                } catch (SQLException ex) {
-                    LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", suffix);
-                    mesureTableExist = false;
-                }
-
-                if (mesureTableExist) {
-                    try (final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)")) {//NOSONAR
-
-                        stmtMes.setString(1, procedureID);
-                        stmtMes.executeUpdate();
-                    }
-                }
-            }
-
-            // remove from observation table
-            try(final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
-
-                stmtObs.setString(1, procedureID);
-                stmtObs.executeUpdate();
-            }
+            removeObservationForProcedure(procedureID, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while removing observation for procedure.", ex);
+        }
+    }
+
+    private synchronized void removeObservationForProcedure(final String procedureID, Connection c) throws DataStoreException, SQLException {
+        final int[] pidNumber = getPIDFromProcedure(procedureID, c);
+
+        // remove from measures tables
+        for (int i = 0; i < pidNumber[1]; i++) {
+            String suffix = pidNumber[0] + "";
+            if (i > 0) {
+                suffix = suffix + "_" + (i + 1);
+            }
+
+            boolean mesureTableExist = true;
+            try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"")) {//NOSONAR
+                stmtExist.executeQuery();
+            } catch (SQLException ex) {
+                LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", suffix);
+                mesureTableExist = false;
+            }
+
+            if (mesureTableExist) {
+                try (final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)")) {//NOSONAR
+
+                    stmtMes.setString(1, procedureID);
+                    stmtMes.executeUpdate();
+                }
+            }
+        }
+
+        // remove from observation table
+        try(final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
+
+            stmtObs.setString(1, procedureID);
+            stmtObs.executeUpdate();
         }
     }
 
@@ -1055,9 +1090,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     @Override
     public synchronized void removeProcedure(final String procedureID) throws DataStoreException {
         try {
-            removeObservationForProcedure(procedureID);
             try (final Connection c = source.getConnection()) {
 
+                deleteProperties("procedures_properties", "id_procedure", procedureID, c);
+                removeObservationForProcedure(procedureID, c);
+                
                 // remove measure tables
                 try (final Statement stmtDrop = c.createStatement()) {
                     final int[] pidNumber = getPIDFromProcedure(procedureID, c);
@@ -1117,10 +1154,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             try (final PreparedStatement stmtdeleteCompo = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?");//NOSONAR
                                  final PreparedStatement stmtdeleteobsPr = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
                                 while (rs.next()) {
-                                    final String key = rs.getString(1);
-                                    stmtdeleteCompo.setString(1, key);
+                                    final String phenId = rs.getString(1);
+                                    deleteProperties("observed_properties_properties", "id_phenomenon", phenId, c);
+                                    stmtdeleteCompo.setString(1, phenId);
                                     stmtdeleteCompo.execute();
-                                    stmtdeleteobsPr.setString(1, key);
+                                    stmtdeleteobsPr.setString(1, phenId);
                                     stmtdeleteobsPr.execute();
                                 }
                             }
@@ -1132,7 +1170,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                          final ResultSet rs2 = stmtFOI.executeQuery(cleanFOIQUery)) {//NOSONAR
                         try (final PreparedStatement stmtdeletefoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
                             while (rs2.next()) {
-                                stmtdeletefoi.setString(1, rs2.getString(1));
+                                String foiId = rs2.getString(1);
+                                deleteProperties("sampling_features_properties", "id_sampling_feature", foiId, c);
+                                stmtdeletefoi.setString(1, foiId);
                                 stmtdeletefoi.execute();
                             }
                         }
@@ -1279,7 +1319,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         mainFieldPk = ", \"" + mainField.name + "\"";
                         first = false;
                     }
-                    // main field should not be in the primary key (timescaledb compatibility)
+                    // main field should not be in the primary phenId (timescaledb compatibility)
                     stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")");//NOSONAR
                     stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
 

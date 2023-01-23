@@ -2,6 +2,7 @@
     "name": "temperature",
     "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
     "description": "the temperature in celcius degree",
+    "properties": { },
     "@iot.id": "temperature",
     "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(temperature)",
     "Datastreams": [{

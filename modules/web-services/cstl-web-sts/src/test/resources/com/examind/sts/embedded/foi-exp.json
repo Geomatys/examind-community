@@ -12,6 +12,10 @@
     },
     "@iot.id": "station-001",
     "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
+    "properties": {
+        "prop2": "value2",
+        "prop1": "value1"
+    },
     "Observations": [{
             "phenomenonTime": "2007-05-01T00:59:00Z",
             "result": 6.56,

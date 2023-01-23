@@ -6,5 +6,9 @@
     "geometry": {
         "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
         "geometry": "POINT (65400 1731368)"
+    },
+    "properties": {
+        "prop2": "value2",
+        "prop1": "value1"
     }
 }

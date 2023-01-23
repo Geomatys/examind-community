@@ -3,6 +3,7 @@
             "name": "age",
             "definition": "urn:ogc:def:phenomenon:GEOM:age",
             "description": "current age",
+            "properties": { },
             "@iot.id": "age",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)",
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/Datastreams",

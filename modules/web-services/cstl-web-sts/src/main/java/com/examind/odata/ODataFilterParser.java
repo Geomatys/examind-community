@@ -41,7 +41,7 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.observation.OMUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -65,6 +65,7 @@ public final class ODataFilterParser {
 
     private static final String RESULT_TIME = "resulttime";
     private static final String PHENOMENON_TIME = "phenomenontime";
+    private static final String PROPERTIES = "properties";
 
     private ODataFilterParser() {
     }
@@ -430,10 +431,10 @@ public final class ODataFilterParser {
         if (index != -1) {
             Date begin = parseDate(to.substring(0, index));
             Date end   = parseDate(to.substring(index + 1));
-            return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
+            return OMUtils.buildTime("t", begin, end);
         } else {
             Date d = parseDate(to);
-            return GMLXmlFactory.createTimeInstant("3.2.1", d);
+            return OMUtils.buildTime("t", d, null);
         }
     }
     
@@ -452,11 +453,14 @@ public final class ODataFilterParser {
         String[] properties = xPath.split("/");
         String property;
         if (properties.length >= 2) {
+            String previous = properties[properties.length - 2];
             String last = properties[properties.length - 1].toLowerCase();
             if (last.equals("id")) {
-                property = properties[properties.length - 2];
+                property = previous;
             } else if (last.equals(RESULT_TIME) || last.equals(PHENOMENON_TIME)) {
                 property = last;
+            } else if (previous.equals(PROPERTIES)) {
+                return previous + '/' + last;
             } else {
                 throw new ODataParseException("malformed or unknow filter propertyName. was expecting something/id ");
             }
@@ -465,7 +469,7 @@ public final class ODataFilterParser {
         } else {
             throw new ODataParseException("malformed filter propertyName. was expecting something/id or something/result");
         }
-        if (property.startsWith("result") && !property.equalsIgnoreCase(RESULT_TIME)) {
+        if ((property.startsWith("result") || property.startsWith(PROPERTIES)) && !property.equalsIgnoreCase(RESULT_TIME)) {
             return property;
         }
         switch(property.toLowerCase()) {

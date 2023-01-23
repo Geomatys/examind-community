@@ -28,7 +28,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.gml.xml.GMLXmlFactory;
+import org.geotoolkit.observation.OMUtils;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
@@ -78,15 +78,15 @@ public class STSUtils {
         if (index != -1) {
             Date begin = new Date(Long.parseLong(to.substring(0, index)));
             Date end   = new Date(Long.parseLong(to.substring(index + 1)));
-            return GMLXmlFactory.createTimePeriod("3.2.1", begin, end);
+            return OMUtils.buildTime("t", begin, end);
         } else {
             Date d = new Date(Long.parseLong(to));
-            return GMLXmlFactory.createTimeInstant("3.2.1", d);
+            return OMUtils.buildTime("t", d, null);
         }
     }
 
     public static TemporalObject buildTemporalObj(Date to) {
-        return GMLXmlFactory.createTimeInstant("3.2.1", to);
+        return OMUtils.buildTime("t", to, null);
     }
 
     

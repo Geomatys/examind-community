@@ -321,6 +321,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -354,6 +356,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -387,6 +391,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -420,6 +426,7 @@
                 "name": "Sensor 3",
                 "description": "",
                 "properties": {
+                    "prop1": "value3",
                     "type": "timeseries"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:3",

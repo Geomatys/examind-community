@@ -734,6 +734,11 @@
           <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
           <swes:observableProperty>depth</swes:observableProperty>
           <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-2">
               <gml:beginPosition>2000-12-01</gml:beginPosition>

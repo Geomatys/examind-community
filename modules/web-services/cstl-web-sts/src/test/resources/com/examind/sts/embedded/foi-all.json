@@ -1,99 +1,104 @@
 {
-  "value" : [ {
-    "name" : "10972X0137-PONT",
-    "description" : "Point d'eau BSSS",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-001",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations"
-  }, {
-    "name" : "10972X0137-PLOUF",
-    "description" : "Point d'eau BSSS",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 5.0, 10.0 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-002",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)/Observations"
-  }, {
-    "name" : "66685X4587-WARP",
-    "description" : "Station Thermale",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 43.827087592705915, -4.242120212728376 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-003",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-003)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-003)/Observations"
-  }, {
-    "name" : "99917X9856-FRAG",
-    "description" : "Puits",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 49.86005904027723, -5.426922013973884 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-004",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-004)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-004)/Observations"
-  }, {
-    "name" : "44499X4517-TRUC",
-    "description" : "bouee ds le rhone",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "Point",
-        "type" : "Point",
-        "coordinates" : [ 41.436795053599575, -4.075243797560135 ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-005",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-005)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-005)/Observations"
-  }, {
-    "name" : "cycle1",
-    "description" : "Geology traverse",
-    "encodingType" : "application/vnd.geo+json",
-    "feature" : {
-      "type" : "Feature",
-      "geometry" : {
-        "type" : "LineString",
-        "type" : "LineString",
-        "coordinates" : [ [ 27.142099023169745, -3.404947100307331 ], [ 27.142099015263835, -3.4049470900746304 ], [ 27.142099007357945, -3.404947079841931 ], [ 27.142098990921856, -3.404947068911427 ], [ 27.142098949519518, -3.40494704635262 ], [ 27.14209895992251, -3.404947018445727 ], [ 27.14209897760713, -3.4049470103064325 ] ]
-      },
-      "properties" : { }
-    },
-    "@iot.id" : "station-006",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)",
-    "Observations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)/Observations"
-  } ]
+    "value": [{
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [42.38798858151254, -4.144984627896044]
+                },
+                "properties": {}
+            },
+            "properties": {
+                "prop2": "value2",
+                "prop1": "value1"
+            },
+            "@iot.id": "station-001",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations"
+        }, {
+            "name": "10972X0137-PLOUF",
+            "description": "Point d'eau BSSS",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.0, 10.0]
+                },
+                "properties": {}
+            },
+            "properties": {
+                "prop1": "value3"
+            },
+            "@iot.id": "station-002",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)/Observations"
+        }, {
+            "name": "66685X4587-WARP",
+            "description": "Station Thermale",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [43.827087592705915, -4.242120212728377]
+                },
+                "properties": {}
+            },
+            "properties": {},
+            "@iot.id": "station-003",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-003)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-003)/Observations"
+        }, {
+            "name": "99917X9856-FRAG",
+            "description": "Puits",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [49.86005904027725, -5.4269220139738845]
+                },
+                "properties": {}
+            },
+            "properties": {},
+            "@iot.id": "station-004",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-004)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-004)/Observations"
+        }, {
+            "name": "44499X4517-TRUC",
+            "description": "bouee ds le rhone",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [41.436795053599575, -4.075243797560136]
+                },
+                "properties": {}
+            },
+            "properties": {},
+            "@iot.id": "station-005",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-005)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-005)/Observations"
+        }, {
+            "name": "cycle1",
+            "description": "Geology traverse",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [[27.142099023169745, -3.404947100307332], [27.142099015263835, -3.4049470900746317], [27.142099007357945, -3.4049470798419317], [27.142098990921856, -3.404947068911427], [27.142098949519518, -3.404947046352621], [27.14209895992251, -3.404947018445728], [27.14209897760713, -3.404947010306434]]
+                },
+                "properties": {}
+            },
+            "properties": {},
+            "@iot.id": "station-006",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)/Observations"
+        }]
 }
