@@ -202,4 +202,14 @@ public interface ILayerBusiness {
      */
     boolean isAvailableAlias(Integer serviceId, String alias);
 
+    /**
+     * Return {code true} if the specified name/namespace is available in the service.
+     *
+     * @param serviceId The service identifier.
+     * @param name The candidate name.
+     * @param namespace The candidate namsepace.
+     *
+     */
+    boolean isAvailableName(Integer serviceId, String name, String namespace);
+
 }

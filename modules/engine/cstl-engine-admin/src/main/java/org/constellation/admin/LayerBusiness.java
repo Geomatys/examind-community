@@ -395,50 +395,54 @@ public class LayerBusiness implements ILayerBusiness {
     @Override
     public NameInProvider getFullLayerName(final Integer serviceId, final String nameOrAlias,
                                                           final String namespace, final String login) throws ConfigurationException {
-        Layer layer;
-        if (namespace != null && !namespace.isEmpty()) {
-            //1. search by name and namespace
-            layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
-        } else {
-            //2. search by alias
-            layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
+        try {
+            Layer layer;
+            if (namespace != null && !namespace.isEmpty()) {
+                //1. search by name and namespace
+                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, namespace);
+            } else {
+                //2. search by alias
+                layer = layerRepository.findByServiceIdAndAlias(serviceId, nameOrAlias);
 
-            //3. search by single name with no namespace
-            if  (layer == null) {
-                layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, true);
-                
-                //4. search by single name (with ommited namespace)
+                //3. search by single name with no namespace
                 if  (layer == null) {
-                    layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, false);
+                    layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, true);
+
+                    //4. search by single name (with ommited namespace)
+                    if  (layer == null) {
+                        layer = layerRepository.findByServiceIdAndLayerName(serviceId, nameOrAlias, false);
+                    }
                 }
             }
-        }
 
-        if (layer != null) {
-            final GenericName layerName = NamesExt.create(layer.getName());
-            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
-            if (securityFilter.allowed(login, layer.getId())) {
-                Date version = null;
-                /* TODO how to get version?
-                  if (layer.getVersion() != null) {
-                    version = new Date(layer.getVersion());
-                }*/
-                final Data db = dataRepository.findById(layer.getDataId());
-                if (db != null) {
-                    final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
-                    return new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName, layer.getDataId());
+            if (layer != null) {
+                final GenericName layerName = NamesExt.create(layer.getName());
+                final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+                if (securityFilter.allowed(login, layer.getId())) {
+                    Date version = null;
+                    /* TODO how to get version?
+                      if (layer.getVersion() != null) {
+                        version = new Date(layer.getVersion());
+                    }*/
+                    final Data db = dataRepository.findById(layer.getDataId());
+                    if (db != null) {
+                        final GenericName dataName = NamesExt.create(db.getNamespace(), db.getName());
+                        return new NameInProvider(layer.getId(), layerName, db.getProviderId(), version, layer.getAlias(), dataName, layer.getDataId());
+                    } else {
+                        throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
+                    }
                 } else {
-                    throw new ConfigurationException("Unable to find a data (id = " + layer.getDataId() + ") for the layer:" + layerName);
+                    throw new ConfigurationException("Not allowed to see this layer.");
                 }
             } else {
-                throw new ConfigurationException("Not allowed to see this layer.");
+                // if layer is null, maybe the service does not exist.
+                serviceBusiness.ensureExistingInstance(serviceId);
+                throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
             }
-        } else {
-            // if layer is null, maybe the service does not exist.
-            serviceBusiness.ensureExistingInstance(serviceId);
-            throw new TargetNotFoundException("Unable to find a layer:" + nameOrAlias);
+        // jooq send runtime exception when it find multiple layer
+        } catch (Exception ex) {
+            throw new ConfigurationException(ex.getMessage(), ex);
         }
-
     }
 
     /**
@@ -500,6 +504,17 @@ public class LayerBusiness implements ILayerBusiness {
             return id == null;
         }
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isAvailableName(Integer serviceId, String name, String namespace) {
+        // namespace seems to be always empty instead of null in data, but in layer namespace are never empty.
+        String nsmp = (namespace != null && !namespace.isEmpty()) ? namespace : null;
+        Integer id = layerRepository.findIdByServiceIdAndLayerName(serviceId, name, nsmp);
+        return id == null;
     }
 
 

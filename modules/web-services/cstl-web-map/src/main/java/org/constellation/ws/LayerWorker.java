@@ -189,16 +189,11 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
      *
      * @return a complete Name indentifier of the layer or {@code null}
      */
-    private NameInProvider getFullLayerName(final String login, final GenericName name) {
+    private NameInProvider getFullLayerName(final String login, final GenericName name) throws ConfigurationException {
         if (name == null) {
             return null;
         }
-        try {
-            return layerBusiness.getFullLayerName(getServiceId(), name.tip().toString(), NamesExt.getNamespace(name), login);
-        } catch (ConfigurationException ex) {
-            LOGGER.log(Level.INFO, "Error while getting layer name:{0}", ex.getMessage());
-        }
-        return null;
+        return layerBusiness.getFullLayerName(getServiceId(), name.tip().toString(), NamesExt.getNamespace(name), login);
     }
 
     protected Style getStyle(final StyleReference styleReference) throws CstlServiceException {
@@ -299,11 +294,15 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
     }
 
     protected LayerCache getLayerCache(final String login, GenericName name) throws CstlServiceException {
-        NameInProvider nip = getFullLayerName(login, name);
-        if (nip != null) {
-            return getLayerCache(nip, login);
-        } else {
-            throw new CstlServiceException("Unknown Layer name:" + name, LAYER_NOT_DEFINED);
+        try {
+            NameInProvider nip = getFullLayerName(login, name);
+            if (nip != null) {
+                return getLayerCache(nip, login);
+            } else {
+                throw new CstlServiceException("Unknown Layer name:" + name, LAYER_NOT_DEFINED);
+            }
+        } catch (ConfigurationException ex) {
+            throw new CstlServiceException("Error while retrieving layer :" + name + ". " + ex.getMessage(), LAYER_NOT_DEFINED);
         }
     }
 

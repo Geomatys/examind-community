@@ -39,6 +39,8 @@ public class CstlExceptionTranslator  extends DefaultExecuteListener {
                 ? new SQLErrorCodeSQLExceptionTranslator(dialect.name())
                 : new SQLStateSQLExceptionTranslator();
 
-        ctx.exception(translator.translate("jOOQ", ctx.sql(), ctx.sqlException()));
+        if (ctx.sqlException() != null) {
+            ctx.exception(translator.translate("jOOQ", ctx.sql(), ctx.sqlException()));
+        }
     }
 }
