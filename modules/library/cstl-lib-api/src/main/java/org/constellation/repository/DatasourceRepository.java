@@ -79,4 +79,6 @@ public interface DatasourceRepository extends AbstractRepository {
     void updatePathStatus(int id, String path, String newStatus);
 
     void updatePathProvider(int id, String path, int providerId);
+
+    List<DataSourceSelectedPath> getSelectedPathForProvider(int providerId);
 }

@@ -384,6 +384,14 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
         return convertListToDto(dsl.select().from(DATASOURCE).fetchInto(Datasource.class));
     }
 
+    @Override
+    public List<DataSourceSelectedPath> getSelectedPathForProvider(int providerId) {
+        SelectConditionStep query = dsl.select()
+                  .from(DATASOURCE_SELECTED_PATH)
+                  .where(DATASOURCE_SELECTED_PATH.PROVIDER_ID.eq(providerId));
+            return convertListToDtoPath(query.fetchInto(DatasourceSelectedPath.class));
+    }
+
     private DataSource convertToDto(Datasource ds) {
         if (ds != null) {
             DataSource dto = new DataSource();
