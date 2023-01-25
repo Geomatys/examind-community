@@ -107,7 +107,7 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
     private static final String DCE = "http://purl.org/dc/elements/1.1/";
     private static final String DCT = "http://purl.org/dc/terms/";
 
-    private static enum DateLabel {
+    protected static enum DateLabel {
         UNKNOW("unknown"),
         PRESENT("present"),
         UNBOUNDED("unbounded"),
@@ -137,8 +137,8 @@ public abstract class DomMetadataReader extends AbstractMetadataReader implement
                                         synchronized (FORMATTER) {
                                             dateValue = FORMATTER.format(new Date(System.currentTimeMillis()));
                                         }
-                                        dateValue = dateValue.substring(0, dateValue.length() - 2);
-                                        dateValue = dateValue + ":00";
+                                        int pos = dateValue.lastIndexOf(':');
+                                        dateValue = dateValue.substring(0, pos) + ":00";
                                         return dateValue;
                 case "unbounded"    : 
                 case "future"       : 

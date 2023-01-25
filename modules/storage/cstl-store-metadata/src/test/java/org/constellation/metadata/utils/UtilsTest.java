@@ -18,8 +18,6 @@
  */
 package org.constellation.metadata.utils;
 
-// J2SE dependencies
-
 import org.apache.sis.internal.jaxb.gmi.MI_Metadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
@@ -39,10 +37,6 @@ import org.geotoolkit.sml.xml.v100.ComponentType;
 import org.geotoolkit.sml.xml.v100.Member;
 import org.geotoolkit.sml.xml.v100.SensorML;
 import org.geotoolkit.sml.xml.v100.SystemType;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -55,9 +49,6 @@ import org.apache.sis.xml.IdentifierSpace;
 
 import static org.junit.Assert.assertEquals;
 
-// geotoolkit dependencies
-// JUnit dependencies
-
 /**
  * Test the utilities class org.constellation.metadata.utils.utils from the storage-metadata.
  *
@@ -66,27 +57,6 @@ import static org.junit.Assert.assertEquals;
  * @author Guilhem Legal (Geomatys)
  */
 public class UtilsTest {
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-
-
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-
-    }
-
-    @Before
-    public void setUp() throws Exception {
-
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-    }
 
     @Test
     public void findIdentifierDCTest() throws Exception {
