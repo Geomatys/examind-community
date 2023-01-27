@@ -928,7 +928,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
 
         // TODO this values is not used
-        final Double elevation = (envelope.getDimension() > 2) ? envelope.getMedian(2) : null;
+        //final Double elevation = (envelope.getDimension() > 2) ? envelope.getMedian(2) : null;
+        Double[] elevations = new Double[] {null, null};
 
         /*
          * Generating the response.
@@ -941,7 +942,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             final RenderedImage image;
             try {
                 if (dates != null) {
-                    refEnvel = combine(refEnvel, dates, null, null);
+                    refEnvel = combine(refEnvel, dates, elevations, null);
                 }
                 final GridCoverage gridCov = data.getCoverage(refEnvel, size);
                 image = gridCov.render(null);
@@ -960,7 +961,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         } else if (format.equalsIgnoreCase(GEOTIFF) || format.equalsIgnoreCase(TIFF) || format.equalsIgnoreCase(TIF)) {
             try {
                 if (dates != null) {
-                    refEnvel = combine(refEnvel, dates, null, null);
+                    refEnvel = combine(refEnvel, dates, elevations, null);
                 }
                 GeotiffResponse response = new GeotiffResponse();
                 response.metadata = data.getSpatialMetadata();
