@@ -48,14 +48,10 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.AbstractObservationStore;
-import org.geotoolkit.observation.ObservationFilterReader;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
-import org.geotoolkit.observation.delegate.StoreDelegatingObservationFilter;
-import org.geotoolkit.observation.delegate.StoreDelegatingObservationReader;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.feature.SensorFeatureSet;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -226,22 +222,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return procedureId;
     }
 
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationReader getReader() {
-        return new StoreDelegatingObservationReader(this);
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public ObservationFilterReader getFilter() {
-        return new StoreDelegatingObservationFilter(this);
-    }
-
     @Override
     public ObservationStoreCapabilities getCapabilities() {
         final Map<String, List<String>> responseFormats = new HashMap<>();
@@ -362,7 +342,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                                                 null,
                                                 resultO,
                                                 properties));
-        result.addFeatureOfInterest(sp);
+        result.featureOfInterest.add(sp);
 
         if (!result.phenomenons.contains(phenomenon)) {
             result.phenomenons.add(phenomenon);

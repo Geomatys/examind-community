@@ -31,10 +31,11 @@ import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationReader;
+import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
@@ -120,9 +121,8 @@ public class CsvFlatObservationStoreTest {
         Assert.assertTrue(phenomenonNames.contains("18-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-SALI"));
 
-        ObservationReader reader = store.getReader();
-
-        TemporalGeometricPrimitive time = reader.getTimeForProcedure(sensorId);
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
@@ -137,7 +137,7 @@ public class CsvFlatObservationStoreTest {
         Assert.assertEquals("urn:surval:25049001", proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
 
-        List<ProcedureDataset> procedures = store.getProcedures();
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
 
         Assert.assertEquals(1, procedures.size());
         proc = procedures.get(0);

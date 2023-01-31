@@ -1354,7 +1354,7 @@ public class ObservationStoreProviderTest {
          * find all
          */
         HistoricalLocationQuery query = new HistoricalLocationQuery();
-        Map<String, List<Date>> results = omPr.getHistoricalTimes(query);
+        Map<String, Set<Date>> results = omPr.getHistoricalTimes(query);
 
         assertEquals(14, results.size());
         assertEquals(21, countElementInMapList(results));
@@ -3566,9 +3566,9 @@ public class ObservationStoreProviderTest {
         return i;
     }
 
-    private static int countElementInMapList(Map<String, List<Date>> map) {
+    private static int countElementInMapList(Map<String, Set<Date>> map) {
         int i = 0;
-        for (List sub : map.values()) {
+        for (Set sub : map.values()) {
             i = i + sub.size();
         }
         return i;
@@ -3585,9 +3585,9 @@ public class ObservationStoreProviderTest {
         return results;
     }
 
-    private static Set<Long> getHistoricalTimeDate(Map<String, List<Date>> map) {
+    private static Set<Long> getHistoricalTimeDate(Map<String, Set<Date>> map) {
         Set<Long> results = new HashSet<>();
-        for (Entry<String, List<Date>> entry : map.entrySet()) {
+        for (Entry<String, Set<Date>> entry : map.entrySet()) {
             for (Date d : entry.getValue()) {
                 results.add(d.getTime());
             }

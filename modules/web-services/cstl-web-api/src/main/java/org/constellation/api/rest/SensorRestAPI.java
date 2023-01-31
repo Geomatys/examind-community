@@ -297,8 +297,8 @@ public class SensorRestAPI extends AbstractRestAPI {
                 return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"),OK);
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error while reading netCDF", ex);
-            return new ResponseEntity(new AcknowlegementType("Failure", "Error while reading netCDF"),OK);
+            LOGGER.log(Level.WARNING, "Error while extracting procedures", ex);
+            return new ResponseEntity(new AcknowlegementType("Failure", "Error while extracting procedures"),OK);
         }
 
         // Sensor generation

@@ -202,11 +202,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
-                        LOGGER.finer("skipping line due to none specified sensor related.");
+                        LOGGER.finer("skipping line due to sensor filter.");
                         continue;
                     }
                 } else {
-                    currentProc = procedureId;
+                    currentProc = getProcedureID();
                 }
 
                 // look for current procedure name
@@ -374,7 +374,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     @Override
-    public List<ProcedureDataset> getProcedures() throws DataStoreException {
+    public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -431,6 +431,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 if (procedureIndex != -1) {
                     String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
                     currentProc = procedureId + procId;
+                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
+                        LOGGER.finer("skipping line due to sensor filter.");
+                        continue;
+                    }
                 } else {
                     currentProc = getProcedureID();
                 }

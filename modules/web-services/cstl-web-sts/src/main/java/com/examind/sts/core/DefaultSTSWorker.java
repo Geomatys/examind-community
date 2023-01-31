@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
@@ -46,8 +47,6 @@ import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.storage.Query;
 import org.apache.sis.util.Utilities;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -1646,7 +1645,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (req.getCount()) {
                 // could be optimized
                 final AbstractObservationQuery subquery = buildExtraFilterQuery(OMEntity.HISTORICAL_LOCATION, req, false, filters);
-                Map<String, List<Date>> times = omProvider.getHistoricalTimes(subquery);
+                Map<String, Set<Date>> times = omProvider.getHistoricalTimes(subquery);
                 final AtomicInteger c = new AtomicInteger();
                 times.forEach((procedure, dates) -> c.addAndGet(dates.size()));
                 count = new BigDecimal(c.get());

@@ -377,7 +377,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                    // obsJoin = true;  TODO verify
                 } else if (OFFERING.equals(objectType)) {
                     columnName = "off.\"procedure\"";
-                } else if (PROCEDURE.equals(objectType)) {
+                } else if (PROCEDURE.equals(objectType) || LOCATION.equals(objectType)) {
                     columnName = "pr.\"id\"";
                 } else {
                     columnName = "o.\"procedure\"";

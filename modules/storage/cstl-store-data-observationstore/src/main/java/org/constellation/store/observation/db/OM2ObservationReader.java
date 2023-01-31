@@ -27,7 +27,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 import javax.sql.DataSource;
@@ -339,7 +338,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws DataStoreException {
+    public TemporalGeometricPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
         final String query = "SELECT \"time_begin\", \"time_end\" "
                            + "FROM \"" + schemaPrefix + "om\".\"offerings\" "
                            + "WHERE \"procedure\"=?";
@@ -747,7 +746,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getFeatureOfInterestTime(final String identifier) throws DataStoreException {
+    public TemporalGeometricPrimitive getFeatureOfInterestTime(final String identifier) throws DataStoreException {
         final String query = "SELECT min(\"time_begin\") as mib, max(\"time_begin\") as mab, max(\"time_end\") as mae "
                            + "FROM \"" + schemaPrefix + "om\".\"observations\" "
                            + "WHERE \"foi\"=?";
@@ -796,7 +795,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getEventTime() throws DataStoreException {
+    public TemporalGeometricPrimitive getEventTime() throws DataStoreException {
         try(final Connection c   = source.getConnection();
             final Statement stmt = c.createStatement();
             final ResultSet rs   = stmt.executeQuery("SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {//NOSONAR

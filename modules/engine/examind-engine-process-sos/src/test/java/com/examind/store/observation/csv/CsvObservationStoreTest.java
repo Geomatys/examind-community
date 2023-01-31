@@ -29,11 +29,11 @@ import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
@@ -119,9 +119,8 @@ public class CsvObservationStoreTest {
         Assert.assertTrue(phenomenonNames.contains("TEMP (degree_Celsius)"));
         Assert.assertTrue(phenomenonNames.contains("PSAL (psu)"));
 
-        ObservationReader reader = store.getReader();
-
-        TemporalGeometricPrimitive time = reader.getTimeForProcedure(sensorId);
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
@@ -135,7 +134,7 @@ public class CsvObservationStoreTest {
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(4, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
 
-        List<ProcedureDataset> procedures = store.getProcedures();
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
 
         ProcedureDataset pt = procedures.get(0);
@@ -186,9 +185,8 @@ public class CsvObservationStoreTest {
         Assert.assertTrue(phenomenonNames.contains("TEMP LEVEL0 (degree_Celsius)"));
         Assert.assertTrue(phenomenonNames.contains("VEPK LEVEL0 (meter2 second)"));
 
-        ObservationReader reader = store.getReader();
-
-        TemporalGeometricPrimitive time = reader.getTimeForProcedure(sensorId);
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
@@ -202,7 +200,7 @@ public class CsvObservationStoreTest {
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
 
-        List<ProcedureDataset> procedures = store.getProcedures();
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
 
         ProcedureDataset pt = procedures.get(0);

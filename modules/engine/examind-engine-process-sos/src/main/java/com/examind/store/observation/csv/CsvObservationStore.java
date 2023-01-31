@@ -127,7 +127,6 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             // -- single observation related variables --
             String currentFoi                     = null;
-            String currentProc                    = null;
             Long currentTime                      = null;
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
@@ -142,15 +141,16 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // look for current procedure (for observation separation)
+                String currentProc;
                 if (procIndex != -1) {
                     final String procId = extractWithRegex(procRegex, (String) line[procIndex]);
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
-                        LOGGER.finer("skipping line due to none specified sensor related.");
+                        LOGGER.finer("skipping line due to sensor filter.");
                         continue;
                     }
                 } else {
-                    currentProc = procedureId;
+                    currentProc = getProcedureID();
                 }
 
                 // look for current procedure name
@@ -324,7 +324,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
     }
 
     @Override
-    public List<ProcedureDataset> getProcedures() throws DataStoreException {
+    public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -371,6 +371,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 if (procedureIndex != -1) {
                     final String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
                     currentProc = procedureId + procId;
+                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
+                        LOGGER.finer("skipping line due to sensor filter.");
+                        continue;
+                    }
                 } else {
                     currentProc = getProcedureID();
                 }

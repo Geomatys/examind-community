@@ -28,7 +28,6 @@ import org.constellation.generic.Values;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.observation.ObservationReader;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalPrimitive;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -202,7 +201,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getEventTime() throws DataStoreException {
+    public TemporalGeometricPrimitive getEventTime() throws DataStoreException {
          try {
             final Values values = loadData(Arrays.asList("var06"));
             String v = values.getVariable("var06");
@@ -635,7 +634,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
+    public TemporalGeometricPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
         throw new DataStoreException("The Default generic implementation of SOS does not support GetFeatureofInterestTime");
     }
 
@@ -680,7 +679,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws DataStoreException {
+    public TemporalGeometricPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 

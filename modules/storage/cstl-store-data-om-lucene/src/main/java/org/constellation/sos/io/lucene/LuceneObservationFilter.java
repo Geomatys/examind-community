@@ -430,9 +430,15 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public void setOfferings(final List<String> offerings) throws DataStoreException {
         if (offerings != null && !offerings.isEmpty()) {
+            String fieldName;
+            if (objectType == OMEntity.OFFERING) {
+                fieldName = "id";
+            } else {
+                fieldName = "offering";
+            }
             luceneRequest.append(" ( ");
             for (String s : offerings) {
-                luceneRequest.append(" offering:\"").append(s).append("\" OR ");
+                luceneRequest.append(fieldName).append(":\"").append(s).append("\" OR ");
             }
             luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
             luceneRequest.append(") ");

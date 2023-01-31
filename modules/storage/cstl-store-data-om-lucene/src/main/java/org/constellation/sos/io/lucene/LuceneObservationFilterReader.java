@@ -182,7 +182,7 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public Map<String, List<Date>> getSensorTimes() throws DataStoreException {
+    public Map<String, Set<Date>> getSensorHistoricalTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

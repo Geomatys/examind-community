@@ -27,23 +27,20 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConstellationMetadataException;
-import org.geotoolkit.observation.AbstractObservationStore;
+import org.geotoolkit.observation.AbstractFilteredObservationStore;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
-import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.storage.DataStores;
-import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SOSGenericObservationStore extends AbstractObservationStore {
+public class SOSGenericObservationStore extends AbstractFilteredObservationStore {
 
     private ObservationReader reader;
     private ObservationWriter writer;
@@ -88,17 +85,6 @@ public class SOSGenericObservationStore extends AbstractObservationStore {
         if (reader != null) reader.destroy();
         if (writer != null) writer.destroy();
         if (filter != null) filter.destroy();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
-        final ObservationDataset result = new ObservationDataset();
-        result.spatialBound.initBoundary();
-        result.spatialBound.addTime(reader.getEventTime());
-        return result.spatialBound.getTimeObject();
     }
 
     /**

@@ -59,7 +59,7 @@ import org.constellation.util.Util;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.observation.AbstractObservationStore;
+import org.geotoolkit.observation.AbstractFilteredObservationStore;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
@@ -75,6 +75,7 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.storage.DataStores;
 import org.locationtech.jts.geom.Geometry;
@@ -90,7 +91,7 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SOSDatabaseObservationStore extends AbstractObservationStore implements Aggregate {
+public class SOSDatabaseObservationStore extends AbstractFilteredObservationStore implements Aggregate {
 
     private final String SQL_WRITE_SAMPLING_POINT;
     private final String SQL_GET_LAST_ID;
@@ -194,65 +195,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         return source.getConnection();
     }
 
-    public ResourceId getNewFeatureId() {
-        try (final Connection cnx = getConnection();
-             final PreparedStatement stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
-             final ResultSet result = stmtLastId.executeQuery()){
-            if (result.next()) {
-                final int nb = result.getInt(1) + 1;
-                return FilterUtilities.FF.resourceId("sampling-point-" + nb);
-            }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, null, ex);
-        }
-        return null;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // OBSERVATION STORE ///////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    protected Map<Date, Geometry> getSensorLocations(String sensorID) throws DataStoreException {
-        return getReader().getSensorLocations(sensorID);
-    }
-
-    @Override
-    public List<ProcedureDataset> getProcedures() throws DataStoreException {
-        final List<ProcedureDataset> results = new ArrayList<>();
-
-        final ObservationFilterReader procFilter = getFilter();
-        procFilter.init(new ProcedureQuery());
-
-        for (Process p : procFilter.getProcesses()) {
-            
-            final Procedure proc  =  (Procedure) p;
-            final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", "timeseries", new ArrayList<>(), null);
-
-            Observation template = (Observation) getReader().getTemplateForProcedure(proc.getId());
-
-            if (template != null) {
-                final Phenomenon phenProp = template.getObservedProperty();
-                if (phenProp != null) {
-                    final List<String> fields = OMUtils.getPhenomenonsFieldIdentifiers(phenProp);
-                    for (String field : fields) {
-                        if (!procedure.fields.contains(field)) {
-                            procedure.fields.add(field);
-                        }
-                    }
-                }
-                SamplingFeature foim = template.getFeatureOfInterest();
-                procedure.spatialBound.appendLocation(template.getSamplingTime(), foim);
-                procedure.spatialBound.getHistoricalLocations().putAll(getSensorLocations(proc.getId()));
-            }
-            results.add(procedure);
-        }
-        return results;
-    }
-
     /**
      * {@inheritDoc }
      */
@@ -261,16 +203,6 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         if (reader != null) reader.destroy();
         if (writer != null) writer.destroy();
         if (filter != null) filter.destroy();
-    }
-
-    /**
-     * {@inheritDoc }
-     */
-    @Override
-    public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
-        final ObservationDataset result = new ObservationDataset();
-        result.spatialBound.addTime(getReader().getEventTime());
-        return result.spatialBound.getTimeObject();
     }
 
     /**
@@ -374,6 +306,20 @@ public class SOSDatabaseObservationStore extends AbstractObservationStore implem
         public DataStore getOriginator() {
             return (DataStore) store;
         }
+
+        public ResourceId getNewFeatureId() {
+        try (final Connection cnx = getConnection();
+             final PreparedStatement stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
+             final ResultSet result = stmtLastId.executeQuery()){
+            if (result.next()) {
+                final int nb = result.getInt(1) + 1;
+                return FilterUtilities.FF.resourceId("sampling-point-" + nb);
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
+        }
+        return null;
+    }
 
         @Override
         public Stream<Feature> features(boolean parallel) throws DataStoreException {
