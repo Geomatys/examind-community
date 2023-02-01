@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.Field;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
@@ -156,5 +157,28 @@ public class STSUtils {
             }
             return null;
         });
+    }
+
+    public static class ExtField extends Field {
+        public final boolean isQuality;
+
+        public ExtField(final Field field, boolean isQuality) {
+            super(null, field.type, field.name, field.label, field.description, field.uom);
+            this.isQuality = isQuality;
+        }
+    }
+
+    public static List<ExtField> flatFields(List<Field> fields) {
+        final List<ExtField> results = new ArrayList<>();
+        for (Field field : fields) {
+            results.add(new ExtField(field, false));
+            if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
+                for (Field qField : field.qualityFields) {
+                    String name = field.name + "_quality_" + qField.name;
+                    results.add(new ExtField(qField, true));
+                }
+            }
+        }
+        return results;
     }
 }

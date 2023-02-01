@@ -375,13 +375,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             final RequestOptions exp = new RequestOptions(req);
             final boolean includeFoi = exp.featureOfInterest.expanded;
             ResultMode resMode = null;
-            boolean includeQUalityFields;
+            boolean includeQUalityFields= true;
             if (forMds) {
-                includeQUalityFields = false;
                 resMode = ResultMode.DATA_ARRAY;
                 model = OBSERVATION_QNAME;
             } else {
-                includeQUalityFields = true;
                 model = MEASUREMENT_QNAME;
             }
 
@@ -624,23 +622,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         // quality
         if (exp.isSelected("resultQuality") && !obs.getResultQuality().isEmpty()) {
-            List<Map> resultQuality = new ArrayList<>();
-            for (Element elem : obs.getResultQuality()) {
-                Map quality = new LinkedHashMap<>();
-                if (!elem.getNamesOfMeasure().isEmpty()) {
-                    quality.put("nameOfMeasure", elem.getNamesOfMeasure().iterator().next().toString());
-                }
-                for (Result r : elem.getResults()) {
-                    if (r instanceof DefaultQuantitativeResult dr) {
-                        for (org.opengis.util.Record rc : dr.getValues()) {
-                            var fieldValues = rc.getFields().values();
-                            var iter = fieldValues.iterator();
-                            if (iter.hasNext()) quality.put("DQ_Result", Collections.singletonMap("code", iter.next()));
-                        }
-                    }
-                }
-                resultQuality.add(quality);
-            }
+            List<Map> resultQuality = buildResultQuality(obs);
             observation.setResultQuality(resultQuality);
         }
         // TODO parameters
@@ -688,6 +670,34 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return observation;
     }
 
+    private List<Map> buildResultQuality(org.geotoolkit.observation.model.Observation obs) {
+        List<Map> resultQuality = new ArrayList<>();
+        for (Element elem : obs.getResultQuality()) {
+            Map quality = new LinkedHashMap<>();
+            if (!elem.getNamesOfMeasure().isEmpty()) {
+                quality.put("nameOfMeasure", elem.getNamesOfMeasure().iterator().next().toString());
+            }
+            for (Result r : elem.getResults()) {
+                if (r instanceof DefaultQuantitativeResult dr) {
+                    for (org.opengis.util.Record rc : dr.getValues()) {
+                        var fieldValues = rc.getFields().values();
+                        var iter = fieldValues.iterator();
+                        if (iter.hasNext()) quality.put("DQ_Result", Collections.singletonMap("code", iter.next()));
+                    }
+                }
+            }
+            resultQuality.add(quality);
+        }
+        return resultQuality;
+    }
+
+    private Map buildResultQuality(Field f, Object value) {
+        Map quality = new LinkedHashMap<>();
+        quality.put("nameOfMeasure",  f.name);
+        quality.put("DQ_Result", Collections.singletonMap("code", value));
+        return quality;
+    }
+
     private DataArrayResponseExt buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
         DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
@@ -695,7 +705,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             String sensorId = entry.getKey() + "-dec";
             List resultArray = entry.getValue();
             boolean single = MEASUREMENT_QNAME.equals(resultModel);
-            List<Object> results = formatSTSArray(sensorId, resultArray, single, true);
+            List<Object> results = formatSTSArray(sensorId, null, resultArray, single, true);
             result.getDataArray().addAll(results);
         }
         return new DataArrayResponseExt(Arrays.asList(result), count, nextLink);
@@ -704,7 +714,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     private DataArrayResponse buildDataArrayFromObservations(AbstractSTSRequest req, List<org.opengis.observation.Observation> obs, BigDecimal count) throws ConstellationStoreException {
         final DataArray result = new DataArray();
         final RequestOptions exp = new RequestOptions(req);
-        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
+        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality"));
         for (org.opengis.observation.Observation ob : obs) {
             org.geotoolkit.observation.model.Observation aob = (org.geotoolkit.observation.model.Observation)ob;
             final String observationId = aob.getName().getCode();
@@ -712,8 +722,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (aob.getResult() instanceof ComplexResult cr) {
                 if (cr.getDataArray() != null) {
 
-                    List<Object> resultArray = cr.getDataArray();
-                    List<Object> results = formatSTSArray(observationId, resultArray, false, true);
+                    List<Object> results = formatSTSArray(observationId, cr, false, true);
                     result.getDataArray().addAll(results);
 
                 } else {
@@ -729,6 +738,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 line.add(tempObj);
                 line.add(tempObj);
                 line.add(mr.getValue());
+                line.add(buildResultQuality(aob));
                 result.getDataArray().add(line);
             } else {
                 throw new ConstellationStoreException("unexpected result type:" + aob.getResult());
@@ -742,7 +752,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return new DataArrayResponseExt(Arrays.asList(result), count, iotNextLink);
     }
 
-    private List<Object> formatSTSArray(final String oid, List<Object> resultArray, boolean single, boolean idIncluded) {
+    private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean single, boolean idIncluded) {
+        return formatSTSArray(oid, flatFields(cr.getFields()), cr.getDataArray(), single, idIncluded);
+    }
+
+    private List<Object> formatSTSArray(final String oid, List<ExtField> fields, List<Object> resultArray, boolean single, boolean idIncluded) {
         List<Object> results = new ArrayList<>();
         // reformat the results
         int j = 0;
@@ -772,11 +786,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 newLine.add(arrayLine.get(col));
             } else {
+                List<Map> quality = new ArrayList<>();
                 List measures = new ArrayList<>();
-                for (int i = col; i < arrayLine.size(); i++) {
-                    measures.add(arrayLine.get(i));
+                for (int i = col, fi = 0; i < arrayLine.size(); i++, fi++) {
+                    ExtField f = fields != null ? fields.get(i) : null;
+                    if (f != null && f.isQuality) {
+                        quality.add(buildResultQuality(f, arrayLine.get(i)));
+                    } else {
+                        measures.add(arrayLine.get(i));
+                    }
                 }
                 newLine.add(measures);
+                if (fields != null) {
+                    newLine.add(quality);
+                }
             }
             results.add(newLine);
             j++;
