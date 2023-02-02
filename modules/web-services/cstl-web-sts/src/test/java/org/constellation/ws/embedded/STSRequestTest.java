@@ -579,12 +579,28 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getObservedPropertiesFilter() throws Exception {
         initPool();
 
-        String filter = "properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+        String filter = "properties/prop1 eq 'value4'".replace("'", "%27").replace(" ", "%20");
 
         URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property.json");
+        compareJSON(expResult, result);
+
+        filter = "phenomenonTime eq 2000-11-30T23:00:00.000Z".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-1.json");
+        compareJSON(expResult, result);
+
+        filter = "phenomenonTime eq 1999-12-31T23:00:00.000Z".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-2.json");
         compareJSON(expResult, result);
     }
 

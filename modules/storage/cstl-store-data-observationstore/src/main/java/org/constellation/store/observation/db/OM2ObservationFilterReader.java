@@ -1044,14 +1044,37 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" off", "off.\"phenomenon\" = op.\"id\""));
         }
         if (procDescJoin) {
+            // in this case no composite will appears in the results. so no need for an SQL union later
+            noCompositePhenomenon = false;
             sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = op.\"id\""));
         }
-        sqlRequest.join(joins, firstFilter);
         
+        /*
+         * build UNION request
+         *
+         * simple phenomenon directly in observation table
+         * +
+         * decomposed composite phenomenon
+         */
+        if (noCompositePhenomenon) {
+            FilterSQLRequest secondRequest = sqlRequest.clone();
+            secondRequest.replaceFirst("op.\"id\"", "c.\"component\"");
+            List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
+            joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
+            secondRequest.join(joins2, firstFilter);
+            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+
+            sqlRequest.join(joins, firstFilter);
+
+            sqlRequest.append(" UNION ").append(secondRequest);
+        } else {
+            sqlRequest.join(joins, firstFilter);
+        }
+
         if (procDescJoin) {
             sqlRequest.append(" ORDER BY \"order\"");
         } else {

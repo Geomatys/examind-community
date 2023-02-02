@@ -47,6 +47,7 @@ import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
+import static org.constellation.provider.observationstore.ObservationTestUtils.buildInstant;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
@@ -874,6 +875,37 @@ public class ObservationStoreProviderTest {
         result = omPr.getCount(query);
         assertEquals(result, 1L);
 
+        /**
+         * time filter
+         */
+        query = new ObservedPropertyQuery();
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2012-12-21T23:00:00Z")));
+        query.setSelection(filter);
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("aggregatePhenomenon-2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        result = omPr.getCount(query);
+        assertEquals(result, 1L);
+
+        // no composite
+        query.setNoCompositePhenomenon(true);
+        resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
+        expectedIds.add("salinity");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        result = omPr.getCount(query);
+        assertEquals(result, 3L);
+
     }
 
     @Test
@@ -1124,6 +1156,35 @@ public class ObservationStoreProviderTest {
         expectedIds = new HashSet<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+
+        /**
+         * time filter
+         */
+        query = new ObservedPropertyQuery();
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2012-12-21T23:00:00Z")));
+        query.setSelection(filter);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("aggregatePhenomenon-2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // no composite
+        query.setNoCompositePhenomenon(true);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
+        expectedIds.add("salinity");
+        Assert.assertEquals(expectedIds, resultIds);
+
 
     }
 

@@ -18,8 +18,13 @@
  */
 package org.constellation.provider.observationstore;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TimeZone;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
@@ -29,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 import org.opengis.metadata.quality.Element;
 import org.opengis.metadata.quality.QuantitativeResult;
 import org.opengis.metadata.quality.Result;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.MemberName;
 import org.opengis.util.RecordType;
 import org.opengis.util.Type;
@@ -39,6 +45,16 @@ import org.opengis.util.Type;
  */
 public class ObservationTestUtils {
 
+    private static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static {
+        ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    public static TemporalGeometricPrimitive buildInstant(String date) throws ParseException {
+        Date d = ISO_8601_FORMATTER.parse(date);
+        return OMUtils.buildTime("ft", d, null);
+    }
+    
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */

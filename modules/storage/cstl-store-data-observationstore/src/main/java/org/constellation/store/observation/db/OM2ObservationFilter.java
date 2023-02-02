@@ -273,7 +273,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetPhenomenon(ObservedPropertyQuery query) {
         this.noCompositePhenomenon = query.isNoCompositePhenomenon();
-        sqlRequest = new FilterSQLRequest("SELECT DISTINCT(op.\"id\") FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
+        sqlRequest = new FilterSQLRequest("SELECT DISTINCT(op.\"id\") as \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
         if (noCompositePhenomenon) {
             sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
             firstFilter = false;
@@ -772,21 +772,24 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             // if the temporal object is a timeInstant
             } else if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
-                if (getLoc) {
-                    if (firstFilter) {
-                        sqlRequest.append(" ( ");
-                    } else {
-                        sqlRequest.append("AND ( ");
-                    }
-                    sqlRequest.append(" \"time\"=").appendValue(position).append(") ");
-                    firstFilter = false;
+                if (firstFilter) {
+                    sqlRequest.append(" ( ");
                 } else {
+                    sqlRequest.append("AND ( ");
+                }
+                if (getLoc) {
+                    sqlRequest.append(" \"time\"=").appendValue(position).append(") ");
+                } else {
+                    OM2Utils.addtimeDuringSQLFilter(sqlRequest, ti);
+                    sqlRequest.append(" ) ");
+                    
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\"=", conditional).appendValue(position, conditional).append(") ", conditional);
                     }
                     obsJoin = true;
                 }
+                firstFilter = false;
             } else {
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -1344,12 +1347,35 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" off", "off.\"phenomenon\" = op.\"id\""));
         }
         if (procDescJoin) {
+            // in this case no composite will appears in the results. so no need for an SQL union later
+            noCompositePhenomenon = false;
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "op.\"id\" = opp.\"id_phenomenon\""));
         }
-        sqlRequest.join(joins, firstFilter);
+
+        /*
+         * build UNION request
+         *
+         * simple phenomenon directly in observation table
+         * +
+         * decomposed composite phenomenon
+         */
+        if (noCompositePhenomenon) {
+            FilterSQLRequest secondRequest = sqlRequest.clone();
+            secondRequest.replaceFirst("op.\"id\"", "c.\"component\"");
+            List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
+            joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
+            secondRequest.join(joins2, firstFilter);
+            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+
+            sqlRequest.join(joins, firstFilter);
+
+            sqlRequest.append(" UNION ").append(secondRequest);
+        } else {
+            sqlRequest.join(joins, firstFilter);
+        }
         return sqlRequest.toString();
     }
 
