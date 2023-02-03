@@ -460,7 +460,13 @@ public final class ODataFilterParser {
             } else if (last.equals(RESULT_TIME) || last.equals(PHENOMENON_TIME)) {
                 property = last;
             } else if (previous.equals(PROPERTIES)) {
-                return previous + '/' + last;
+                // max 3 level
+                if (properties.length > 2) {
+                    String entity =staToInternalName(properties[properties.length - 3]);
+                    return entity + '/' + previous + '/' + last;
+                } else {
+                    return previous + '/' + last;
+                }
             } else {
                 throw new ODataParseException("malformed or unknow filter propertyName. was expecting something/id ");
             }
@@ -472,20 +478,24 @@ public final class ODataFilterParser {
         if ((property.startsWith("result") || property.startsWith(PROPERTIES)) && !property.equalsIgnoreCase(RESULT_TIME)) {
             return property;
         }
-        switch(property.toLowerCase()) {
-            case "thing"             : return "procedure";
-            case "sensor"            : return "procedure";
-            case "location"          : return "procedure";
-            case "observedproperty"  : return "observedProperty";
-            case "datastream"        : return "observationId";
-            case "multidatastream"   : return "observationId";
-            case "observation"       : return "observationId";
-            case "featureofinterest" : return "featureOfInterest";
-            case RESULT_TIME         : return "time";
-            case PHENOMENON_TIME     : return "time";
-            case "time"              : return "time";
-        }
-        throw new ODataParseException("Unexpected property name:" + property);
+        return staToInternalName(property);
+    }
+
+    private static String staToInternalName(String property) throws ODataParseException {
+         return switch(property.toLowerCase()) {
+            case "thing"             -> "procedure";
+            case "sensor"            -> "procedure";
+            case "location"          -> "procedure";
+            case "observedproperty"  -> "observedProperty";
+            case "datastream"        -> "observationId";
+            case "multidatastream"   -> "observationId";
+            case "observation"       -> "observationId";
+            case "featureofinterest" -> "featureOfInterest";
+            case RESULT_TIME         -> "time";
+            case PHENOMENON_TIME     -> "time";
+            case "time"              -> "time";
+            default -> throw new ODataParseException("Unexpected property name:" + property);
+        };
     }
 
 }

@@ -54,32 +54,32 @@ public class OM2Utils {
         return null;
     }
 
-    public static void addtimeDuringSQLFilter(FilterSQLRequest sqlRequest, TemporalObject time) {
+    public static void addtimeDuringSQLFilter(FilterSQLRequest sqlRequest, TemporalObject time, String tableAlias) {
         if (time instanceof Period tp) {
             final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
             final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
 
             // 1.1 the multiple observations included in the period
-            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(")");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\">=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\"<=").appendValue(end).append(")");
             sqlRequest.append("OR");
             // 1.2 the single observations included in the period
-            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_begin\"<=").appendValue(end).append(" AND \"time_end\" IS NULL)");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\">=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_begin\"<=").appendValue(end).append(" AND ").append(tableAlias).append(".\"time_end\" IS NULL)");
             sqlRequest.append("OR");
             // 2. the multiple observations which overlaps the first bound
-            sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\"<=").appendValue(end).append(" AND \"time_end\">=").appendValue(begin).append(")");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"<=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\"<=").appendValue(end).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(begin).append(")");
             sqlRequest.append("OR");
             // 3. the multiple observations which overlaps the second bound
-            sqlRequest.append(" (\"time_begin\">=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(" AND \"time_begin\"<=").appendValue(end).append(")");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\">=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(end).append(" AND ").append(tableAlias).append(".\"time_begin\"<=").appendValue(end).append(")");
             sqlRequest.append("OR");
             // 4. the multiple observations which overlaps the whole period
-            sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"<=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(end).append(")");
         
         } else if (time instanceof Instant inst) {
             final Timestamp instTime = new Timestamp(inst.getDate().getTime());
 
-            sqlRequest.append(" (\"time_begin\"<=").appendValue(instTime).append(" AND \"time_end\">=").appendValue(instTime).append(")");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"<=").appendValue(instTime).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(instTime).append(")");
             sqlRequest.append("OR");
-            sqlRequest.append(" (\"time_begin\"=").appendValue(instTime).append(" AND \"time_end\" IS NULL)");
+            sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"=").appendValue(instTime).append(" AND ").append(tableAlias).append(".\"time_end\" IS NULL)");
         }
     }
 

@@ -275,6 +275,22 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/foi-property.json");
         compareJSON(expResult, result);
+
+        filter = "Observation/Datastream/Thing/properties/prop1 eq 'value3')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-property-2.json");
+        compareJSON(expResult, result);
+
+        filter = "Observation/Datastream/ObservedProperty/properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/FeaturesOfInterest?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/foi-property-3.json");
+        compareJSON(expResult, result);
     }
 
     @Test
@@ -601,6 +617,22 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-2.json");
+        compareJSON(expResult, result);
+
+        filter = "Datastream/Thing/properties/prop1 eq 'value1'".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-3.json");
+        compareJSON(expResult, result);
+
+        filter = "Datastream/Observation/FeatureOfInterest/properties/prop1 eq 'value3'".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-4.json");
         compareJSON(expResult, result);
     }
 
@@ -1084,6 +1116,24 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/th-property.json");
         compareJSON(expResult, result);
+
+        filter = "Datastream/ObservedProperty/properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-2.json");
+        compareJSON(expResult, result);
+
+        filter = "Datastream/Observation/FeatureOfInterest/properties/prop1 eq 'value3')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-property-3.json");
+        compareJSON(expResult, result);
+
+
     }
 
     @Test

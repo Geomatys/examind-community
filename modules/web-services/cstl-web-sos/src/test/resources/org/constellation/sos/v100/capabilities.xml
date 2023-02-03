@@ -167,7 +167,7 @@
         <ows:AllowedValues>
           <ows:Range>
             <ows:MinimumValue>1980-03-01T20:52:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>2009-05-01T12:04:00.000Z</ows:MaximumValue>
+            <ows:MaximumValue>2012-12-21T23:00:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -492,7 +492,7 @@
         <sos:time>
           <gml:TimePeriod>
             <gml:beginPosition>2000-12-01</gml:beginPosition>
-            <gml:endPosition>2000-12-22</gml:endPosition>
+            <gml:endPosition>2012-12-22</gml:endPosition>
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:12"/>
@@ -816,6 +816,7 @@
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:7"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+        <sos:featureOfInterest xlink:href="station-002"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>
         <sos:resultModel>om:Measurement</sos:resultModel>

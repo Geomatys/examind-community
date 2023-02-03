@@ -94,7 +94,7 @@ INSERT INTO "om"."offerings" VALUES ('offering-8',  NULL, 'offering-8',  '2007-0
 INSERT INTO "om"."offerings" VALUES ('offering-9',  NULL, 'offering-9',  '2009-05-01 13:47:00.0', NULL,                    'urn:ogc:object:sensor:GEOM:9');
 INSERT INTO "om"."offerings" VALUES ('offering-10', NULL, 'offering-10', '2009-05-01 13:47:00.0', '2009-05-01 14:04:00.0', 'urn:ogc:object:sensor:GEOM:10');
 INSERT INTO "om"."offerings" VALUES ('offering-11', NULL, 'offering-11', '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'urn:ogc:object:sensor:GEOM:test-id');
-INSERT INTO "om"."offerings" VALUES ('offering-12', NULL, 'offering-12', '2000-12-01 00:00:00.0', '2000-12-22 00:00:00.0', 'urn:ogc:object:sensor:GEOM:12');
+INSERT INTO "om"."offerings" VALUES ('offering-12', NULL, 'offering-12', '2000-12-01 00:00:00.0', '2012-12-22 00:00:00.0', 'urn:ogc:object:sensor:GEOM:12');
 INSERT INTO "om"."offerings" VALUES ('offering-13', NULL, 'offering-13', '2000-01-01 00:00:00.0', NULL,                    'urn:ogc:object:sensor:GEOM:13');
 INSERT INTO "om"."offerings" VALUES ('offering-14', NULL, 'offering-14', '2000-12-01 00:00:00.0', '2000-12-24 00:00:00.0', 'urn:ogc:object:sensor:GEOM:14');
 INSERT INTO "om"."offerings" VALUES ('offering-15', NULL, 'offering-15', '1980-03-01 21:52:00.0', '1984-03-01 21:52:00.0', 'urn:ogc:object:sensor:GEOM:quality_sensor');
@@ -104,6 +104,7 @@ INSERT INTO "om"."offering_foi" VALUES ('offering-2', 'station-002');
 INSERT INTO "om"."offering_foi" VALUES ('offering-3', 'station-001');
 INSERT INTO "om"."offering_foi" VALUES ('offering-4', 'station-001');
 INSERT INTO "om"."offering_foi" VALUES ('offering-5', 'station-002');
+INSERT INTO "om"."offering_foi" VALUES ('offering-7', 'station-002');
 INSERT INTO "om"."offering_foi" VALUES ('offering-8', 'station-006');
 INSERT INTO "om"."offering_foi" VALUES ('offering-9', 'station-006');
 INSERT INTO "om"."offering_foi" VALUES ('offering-10','station-001');

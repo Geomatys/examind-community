@@ -150,7 +150,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private ObservationRef isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
         if (samplingTime != null) {
-            FilterSQLRequest sqlRequest = new FilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE ");
+            FilterSQLRequest sqlRequest = new FilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
             sqlRequest.append(" \"procedure\"=").appendValue(procedureID);
             if (foiID != null) {
                 sqlRequest.append(" AND \"foi\"=").appendValue(foiID);
@@ -158,7 +158,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
             FilterSQLRequest sqlConflictRequest = sqlRequest.clone();
             sqlConflictRequest.append(" AND ( ");
-            addtimeDuringSQLFilter(sqlConflictRequest, samplingTime);
+            addtimeDuringSQLFilter(sqlConflictRequest, samplingTime, "o");
             sqlConflictRequest.append(" ) ");
             
             List<ObservationRef> obs = new ArrayList<>();

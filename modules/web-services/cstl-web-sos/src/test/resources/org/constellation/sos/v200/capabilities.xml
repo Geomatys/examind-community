@@ -250,7 +250,7 @@
         <ows:AllowedValues>
           <ows:Range>
             <ows:MinimumValue>1980-03-01T20:52:00.000Z</ows:MinimumValue>
-            <ows:MaximumValue>2009-05-01T12:04:00.000Z</ows:MaximumValue>
+            <ows:MaximumValue>2012-12-21T23:00:00.000Z</ows:MaximumValue>
           </ows:Range>
         </ows:AllowedValues>
       </ows:Parameter>
@@ -608,7 +608,7 @@
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-12">
               <gml:beginPosition>2000-12-01</gml:beginPosition>
-              <gml:endPosition>2000-12-22</gml:endPosition>
+              <gml:endPosition>2012-12-22</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
@@ -848,6 +848,11 @@
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
           <swes:observableProperty>temperature</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-002"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
           <sos:phenomenonTime>
             <gml:TimePeriod gml:id="time-offering-7">
               <gml:beginPosition>2007-05-01T16:59:00.000</gml:beginPosition>

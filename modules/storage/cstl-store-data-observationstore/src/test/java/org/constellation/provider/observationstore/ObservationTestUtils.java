@@ -54,6 +54,12 @@ public class ObservationTestUtils {
         Date d = ISO_8601_FORMATTER.parse(date);
         return OMUtils.buildTime("ft", d, null);
     }
+
+    public static TemporalGeometricPrimitive buildPeriod(String begin, String end) throws ParseException {
+        Date b = ISO_8601_FORMATTER.parse(begin);
+        Date e = ISO_8601_FORMATTER.parse(end);
+        return OMUtils.buildTime("ft", b, e);
+    }
     
     /**
      * The point of this test is to look for quality fields insertion / extraction.
