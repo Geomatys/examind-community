@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:14.6-alpine
+          image: postgis/postgis:14-3.3-alpine
           restartPolicy: Always
           ports:
             - containerPort: 5432
