@@ -143,6 +143,7 @@ public class Scene implements Serializable {
     /**
      * Getter for <code>admin.scene.name</code>.
      */
+    @NotNull
     @Size(max = 10000)
     public String getName() {
         return this.name;

@@ -81,6 +81,7 @@ public class Theater implements Serializable {
     /**
      * Getter for <code>admin.theater.name</code>.
      */
+    @NotNull
     @Size(max = 10000)
     public String getName() {
         return this.name;

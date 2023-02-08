@@ -65,6 +65,7 @@ public class TheaterRecord extends UpdatableRecordImpl<TheaterRecord> implements
     /**
      * Getter for <code>admin.theater.name</code>.
      */
+    @NotNull
     @Size(max = 10000)
     public String getName() {
         return (String) get(1);

@@ -66,6 +66,7 @@ public class SceneRecord extends UpdatableRecordImpl<SceneRecord> implements Rec
     /**
      * Getter for <code>admin.scene.name</code>.
      */
+    @NotNull
     @Size(max = 10000)
     public String getName() {
         return (String) get(1);

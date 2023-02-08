@@ -71,7 +71,7 @@ public class Theater extends TableImpl<TheaterRecord> {
     /**
      * The column <code>admin.theater.name</code>.
      */
-    public final TableField<TheaterRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(10000), this, "");
+    public final TableField<TheaterRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(10000).nullable(false), this, "");
 
     /**
      * The column <code>admin.theater.data_id</code>.

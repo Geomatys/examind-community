@@ -70,7 +70,7 @@ public class Scene extends TableImpl<SceneRecord> {
     /**
      * The column <code>admin.scene.name</code>.
      */
-    public final TableField<SceneRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(10000), this, "");
+    public final TableField<SceneRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(10000).nullable(false), this, "");
 
     /**
      * The column <code>admin.scene.map_context_id</code>.
@@ -215,21 +215,21 @@ public class Scene extends TableImpl<SceneRecord> {
         return Arrays.<ForeignKey<SceneRecord, ?>>asList(Keys.SCENE__SCENE_LAYER_FK, Keys.SCENE__SCENE_DATA_FK);
     }
 
-    private transient Data _data;
     private transient Layer _layer;
-
-    public Data data() {
-        if (_data == null)
-            _data = new Data(this, Keys.SCENE__SCENE_LAYER_FK);
-
-        return _data;
-    }
+    private transient Data _data;
 
     public Layer layer() {
         if (_layer == null)
-            _layer = new Layer(this, Keys.SCENE__SCENE_DATA_FK);
+            _layer = new Layer(this, Keys.SCENE__SCENE_LAYER_FK);
 
         return _layer;
+    }
+
+    public Data data() {
+        if (_data == null)
+            _data = new Data(this, Keys.SCENE__SCENE_DATA_FK);
+
+        return _data;
     }
 
     @Override
