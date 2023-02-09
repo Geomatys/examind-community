@@ -1,0 +1,1333 @@
+{
+	"info": {
+		"_postman_id": "d1c56742-db11-46a1-a611-5de5220d7c25",
+		"name": "Examind-community",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "464125"
+	},
+	"item": [
+		{
+			"name": "Authentification (récupérer l'access token d'examind)",
+			"item": [
+				{
+					"name": "Get access_tocken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const words = responseHeaders[\"Set-Cookie\"].split(\";\");",
+									"const token = words[0].replace(\"access_token=\",\"\");",
+									"postman.setEnvironmentVariable(\"access_token\", token);",
+									"",
+									"pm.test(\"Status test\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\":\"{{USER_NAME}}\",\n    \"password\":\"{{PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{SERVER}}/API/auth/login",
+							"host": [
+								"{{SERVER}}"
+							],
+							"path": [
+								"API",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API MapContext",
+			"item": [
+				{
+					"name": "MapContextAPITest-listMapContexts",
+					"item": [
+						{
+							"name": "Lister les cartes",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-createMapContext",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Création de la carte",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-createMapContext-{{$isoTimestamp}}\",\n    \"layers\": [\n        {\n            \"layerType\": \"internal-data\",\n            \"dataId\": {{$dataId}}\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-createMapContextInvalidDataId",
+					"item": [
+						{
+							"name": "Ajouter une carte Invalide",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-createMapContextInvalidDataId-{{$isoTimestamp}}\",\n    \"layers\":\n    [\n      {\n        \"layerType\": \"internal-data\",\n        \"dataId\" : -1\n      }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-createMapContextInvalidStyleId",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ajouter une carte Invalide",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-createMapContextInvalidStyleId-{{$isoTimestamp}}\",\n    \"layers\":\n    [\n      {\n        \"layerType\": \"internal-data\",\n        \"dataId\" : {{$dataId}},\n        \"styleId\":-1\n      }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-getMapContext",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Création de la carte",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-getMapContext-{{$isoTimestamp}}\",\n    \"layers\": [\n        {\n            \"layerType\": \"internal-data\",\n            \"dataId\": {{$dataId}}\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-getMapContextInvalid",
+					"item": [
+						{
+							"name": "Get carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/-1",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"-1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-updateMapContext",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Création de la carte",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"carte MapContextAPITest-updateMapContext-{{$isoTimestamp}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-updateMapContext-{{$isoTimestamp}}\",\n    \"layers\":\n    [\n      {\n        \"layerType\": \"internal-data\",\n        \"dataId\" : {{$dataId}}\n      }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}?includeLayers=true",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									],
+									"query": [
+										{
+											"key": "includeLayers",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-updateMapContextInvalidMapId",
+					"item": [
+						{
+							"name": "Update Carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n \"title\": \"carte MapContextAPITest-updateMapContextInvalidMapId-{{$isoTimestamp}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/-1",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"-1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-updateMapContextInvalidDataId",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Création de la carte",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-updateMapContextInvalidDataId-{{$isoTimestamp}}\",\n    \"layers\": [\n        {\n            \"layerType\": \"internal-data\",\n            \"dataId\": {{$dataId}}\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-updateMapContextInvalidDataId-{{$isoTimestamp}}\",\n    \"layers\":\n    [\n      {\n        \"layerType\": \"internal-data\",\n        \"dataId\" : -1\n      }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-updateMapContextInvalidStyleId",
+					"item": [
+						{
+							"name": "Get first data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"var findDataId = jsonData.at(0).id;",
+											"postman.setEnvironmentVariable(\"$dataId\", findDataId);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Cookie",
+										"value": "access_token={{access_token}}",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/datas?fetchDataDescription=false&fetchDataAssociation=false&type=COVERAGE",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"datas"
+									],
+									"query": [
+										{
+											"key": "fetchDataDescription",
+											"value": "false"
+										},
+										{
+											"key": "fetchDataAssociation",
+											"value": "false"
+										},
+										{
+											"key": "type",
+											"value": "COVERAGE"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Création de la carte",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"carte MapContextAPITest-updateMapContextInvalidStyleId-{{$isoTimestamp}}\",\n  \"layers\": [\n    {\n      \"layerType\": \"internal-data\",\n      \"dataId\" : {{$dataId}}\n    }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"carte MapContextAPITest-updateMapContextInvalidStyleId-{{$isoTimestamp}}\",\n    \"layers\": [\n        {\n            \"layerType\": \"internal-data\",\n            \"dataId\": {{$dataId}},\n            \"styleId\": -1\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-deleteMapContext",
+					"item": [
+						{
+							"name": "Ajouter une carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"$mapId\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"carte MapContextAPITest-deleteMapContext-{{$isoTimestamp}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Supprimer une carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/{{$mapId}}",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"{{$mapId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "MapContextAPITest-deleteMapContextInvalid",
+					"item": [
+						{
+							"name": "Supprimer une carte",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status test\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Cookie",
+										"type": "text",
+										"value": "access_token={{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{SERVER}}/API/mapcontexts/-1",
+									"host": [
+										"{{SERVER}}"
+									],
+									"path": [
+										"API",
+										"mapcontexts",
+										"-1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
