@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
-import javax.xml.bind.JAXBException;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 
@@ -47,7 +46,6 @@ import org.apache.sis.portrayal.MapLayers;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
-import org.geotoolkit.style.MutableStyle;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -135,11 +133,11 @@ public class MapBusiness implements IMapBusiness {
     public PortrayalResponse portraySLD(final Integer dataId, final String crsCode,
                                       final String bbox, final int width, final int height, final String sldBody,
                                       final String sldVersion, final String filter) throws ConstellationException {
-        final MutableStyle style;
+        final Style style;
         try {
             // Style.
             if (sldBody != null) {
-                style = (MutableStyle) styleBusiness.readStyle(sldBody, sldVersion);
+                style = styleBusiness.readStyle(sldBody, sldVersion);
             } else {
                 //let portrayal process to apply its own style
                 style= null;
@@ -254,7 +252,7 @@ public class MapBusiness implements IMapBusiness {
     }
 
     @Override
-    public MapLayers createContext(LayerCache layerRef, MutableStyle styleRef) throws ConstellationStoreException {
+    public MapLayers createContext(LayerCache layerRef, Style styleRef) throws ConstellationStoreException {
         return createContext(
                  Collections.singletonList(layerRef),
                  Collections.singletonList(styleRef),
@@ -266,14 +264,14 @@ public class MapBusiness implements IMapBusiness {
     }
 
     @Override
-    public MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, List<Filter> extraFilters, Envelope env, Map<String, Object> extraParams) throws ConstellationStoreException {
+    public MapLayers createContext(List<LayerCache> layers, List<Style> styles, List<List<String>> propertiess, List<Filter> extraFilters, Envelope env, Map<String, Object> extraParams) throws ConstellationStoreException {
         final MapLayers context = MapBuilder.createContext();
 
         for (int i = 0; i < layers.size(); i++) {
             final LayerCache layer = layers.get(i);
             if (layer.getData() != null) {
                 final Data data = layer.getData();
-                MutableStyle style = null;
+                Style style = null;
                 if (i < styles.size()) {
                     style = styles.get(i);
                 }

@@ -31,7 +31,6 @@ import org.constellation.map.featureinfo.FeatureInfoUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.security.SimplePDP;
-import org.geotoolkit.style.MutableStyle;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -60,6 +59,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
+import org.opengis.style.Style;
 import org.springframework.lang.NonNull;
 
 /**
@@ -201,11 +201,11 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         return null;
     }
 
-    protected MutableStyle getStyle(final StyleReference styleReference) throws CstlServiceException {
-        MutableStyle style;
+    protected Style getStyle(final StyleReference styleReference) throws CstlServiceException {
+        Style style;
         if (styleReference != null) {
             try {
-                style = (MutableStyle) styleBusiness.getStyle(styleReference.getId());
+                style = styleBusiness.getStyle(styleReference.getId());
             } catch (TargetNotFoundException e) {
                 throw new CstlServiceException("Style provided: " + styleReference.getName()+ " not found.", STYLE_NOT_DEFINED);
             }

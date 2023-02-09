@@ -48,7 +48,6 @@ import org.apache.sis.storage.FeatureSet;
 
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
-import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.RandomStyleBuilder;
 import org.geotoolkit.util.NamesExt;
 
@@ -60,6 +59,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.locationtech.jts.geom.Geometry;
 
 import org.geotoolkit.filter.FilterUtilities;
+import org.opengis.style.Style;
 
 /**
  * Default layer details for a datastore type.
@@ -122,7 +122,7 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
      * {@inheritDoc}
      */
     @Override
-    protected MutableStyle getDefaultStyle() throws ConstellationStoreException {
+    protected Style getDefaultStyle() throws ConstellationStoreException {
         return RandomStyleBuilder.createDefaultVectorStyle(getType());
     }
 

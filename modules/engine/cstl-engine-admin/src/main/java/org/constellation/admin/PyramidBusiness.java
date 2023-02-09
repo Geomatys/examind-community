@@ -19,7 +19,6 @@
 package org.constellation.admin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.awt.Dimension;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -79,12 +78,12 @@ import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileMatrixSetBuilder;
 import org.geotoolkit.storage.multires.WritableTiledResource;
-import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.stereotype.Component;
@@ -196,11 +195,11 @@ public class PyramidBusiness implements IPyramidBusiness {
 
             if (RENDERED.equals(tilingMode)) {
                 //if style is null, a default style will be used in maplayer.
-                MutableStyle style = null;
+                Style style = null;
                 try {
                     final StyleBrief styleB = db.getFirstStyle();
                     if (styleB != null && styleB.getId() != null) {
-                        style = (MutableStyle) styleBusiness.getStyle(styleB.getId());
+                        style = styleBusiness.getStyle(styleB.getId());
                     }
                 } catch (Exception ex) {
                     LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

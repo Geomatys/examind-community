@@ -72,7 +72,6 @@ import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.geotoolkit.style.DefaultStyleFactory;
-import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.StyleConstants;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -98,8 +97,7 @@ import org.opengis.util.GenericName;
  */
 public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> implements CoverageData {
 
-    private static final MutableStyle DEFAULT =
-            new DefaultStyleFactory().style(StyleConstants.DEFAULT_RASTER_SYMBOLIZER);
+    private static final Style DEFAULT = new DefaultStyleFactory().style(StyleConstants.DEFAULT_RASTER_SYMBOLIZER);
 
     /**
      * AxisDirection name for Lat/Long, Elevation, temporal dimensions.
@@ -236,7 +234,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
      * {@inheritDoc}
      */
     @Override
-    protected MutableStyle getDefaultStyle() {
+    protected Style getDefaultStyle() {
         return DEFAULT;
     }
 

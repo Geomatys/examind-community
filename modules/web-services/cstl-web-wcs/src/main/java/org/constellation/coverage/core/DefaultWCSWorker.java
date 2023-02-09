@@ -186,6 +186,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -975,10 +976,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE: ADRIAN HACKED HERE
             final SceneDef sdef = new SceneDef();
 
-            final MutableStyle style;
+            final Style style;
             if (!layer.getStyles().isEmpty()) {
                 final StyleReference styleName = layer.getStyles().get(0);
-                final MutableStyle incomingStyle = getStyle(styleName);
+                final MutableStyle incomingStyle = (MutableStyle) getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {
                 style = null;
@@ -1232,10 +1233,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // SCENE
             final SceneDef sdef = new SceneDef();
 
-            final MutableStyle style;
+            final Style style;
             if (!layer.getStyles().isEmpty()) {
                 final StyleReference styleName = layer.getStyles().get(0);
-                final MutableStyle incomingStyle = getStyle(styleName);
+                final MutableStyle incomingStyle = (MutableStyle) getStyle(styleName);
                 style = WCSUtils.filterStyle(incomingStyle, request.getRangeSubset());
             } else {
                 style = null;

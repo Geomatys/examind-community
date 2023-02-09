@@ -25,9 +25,9 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.ws.LayerCache;
-import org.geotoolkit.style.MutableStyle;
 import org.opengis.filter.Filter;
 import org.opengis.geometry.Envelope;
+import org.opengis.style.Style;
 
 /**
  *
@@ -104,8 +104,8 @@ public interface IMapBusiness {
                                      final String bbox, final int width, final int height,
                                      final String filter) throws ConstellationException;
 
-    public MapLayers createContext(LayerCache layerRef, MutableStyle styleRef) throws ConstellationStoreException;
+    public MapLayers createContext(LayerCache layerRef, Style styleRef) throws ConstellationStoreException;
 
-    public MapLayers createContext(List<LayerCache> layers, List<MutableStyle> styles, List<List<String>> propertiess, 
+    public MapLayers createContext(List<LayerCache> layers, List<Style> styles, List<List<String>> propertiess, 
             List<Filter> extraFilters, Envelope env, Map<String, Object> extraParams) throws ConstellationStoreException;
 }

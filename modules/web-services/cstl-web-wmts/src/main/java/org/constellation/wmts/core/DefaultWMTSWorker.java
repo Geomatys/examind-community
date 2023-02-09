@@ -83,7 +83,6 @@ import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
 import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.storage.multires.TileFormat;
 import org.geotoolkit.storage.multires.TileMatrices;
-import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
 import org.geotoolkit.wmts.xml.v100.Capabilities;
@@ -108,6 +107,7 @@ import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
+import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -581,7 +581,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         // build an equivalent style List
         final String styleName        = getTile.getStyle();
         final StyleReference styleRef = Util.findStyleReference(styleName, layer.getStyles());
-        final MutableStyle style      = getStyle(styleRef);
+        final Style style      = getStyle(styleRef);
 
 
         GridCoverage c = null;
@@ -675,7 +675,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         // 2. STYLE NOT USED FOR NOW
 //        final String styleName    = request.getStyle();
 //        final DataReference styleRef = configLayer.getStyle(styleName);
-//        final MutableStyle style  = getStyle(styleRef);
+//        final Style style  = getStyle(styleRef);
 
         // 3. Get and check parameters
         final int columnIndex         = request.getTileCol();
