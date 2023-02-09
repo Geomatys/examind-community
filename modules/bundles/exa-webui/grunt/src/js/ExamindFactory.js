@@ -2910,7 +2910,7 @@ function Examind($http, url) {
          */
         updateMapContext : function(context) {
             return self.request({
-                method: 'POST',
+                method: 'PUT',
                 url: 'mapcontexts/'+context.id,
                 headers: {'Accept': 'application/json'},
                 data : context
