@@ -51,8 +51,7 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
 
     @Override
     public Style getJsonStyle(org.opengis.style.Style style) throws ConfigurationException {
-        if (style instanceof MutableStyle) {
-            MutableStyle mStyle = (MutableStyle) style;
+        if (style instanceof MutableStyle mStyle) {
             final Style result = new Style();
             final List<MutableRule> mutableRules = new ArrayList<>(0);
             Boolean multiStyle = false;
@@ -82,8 +81,7 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
 
     @Override
     public Rule getJsonRule(org.opengis.style.Rule orule) throws ConfigurationException {
-        if (orule instanceof MutableRule) {
-            final MutableRule rule = (MutableRule) orule;
+        if (orule instanceof MutableRule rule) {
             Rule result = new Rule();
             result.setName(rule.getName());
             if (rule.getDescription() != null) {
@@ -97,24 +95,24 @@ public class StyleConverterBusiness implements IStyleConverterBusiness {
             result.setMinScale(rule.getMinScaleDenominator());
             result.setMaxScale(rule.getMaxScaleDenominator());
             for (final org.opengis.style.Symbolizer symbolizer : rule.symbolizers()) {
-                if (symbolizer instanceof org.opengis.style.PointSymbolizer) {
-                    result.getSymbolizers().add(new PointSymbolizer((org.opengis.style.PointSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.opengis.style.LineSymbolizer) {
-                    result.getSymbolizers().add(new LineSymbolizer((org.opengis.style.LineSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.opengis.style.PolygonSymbolizer) {
-                    result.getSymbolizers().add(new PolygonSymbolizer((org.opengis.style.PolygonSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.opengis.style.TextSymbolizer) {
-                    result.getSymbolizers().add(new TextSymbolizer((org.opengis.style.TextSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.opengis.style.RasterSymbolizer) {
-                    result.getSymbolizers().add(new RasterSymbolizer((org.opengis.style.RasterSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.cellular.CellSymbolizer) {
-                    result.getSymbolizers().add(getCellSymbolizer((org.geotoolkit.display2d.ext.cellular.CellSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.pie.PieSymbolizer) {
-                    result.getSymbolizers().add(new PieSymbolizer((org.geotoolkit.display2d.ext.pie.PieSymbolizer)symbolizer));
-                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer){
-                    result.getSymbolizers().add(new DynamicRangeSymbolizer((org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer) symbolizer));
-                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer){
-                    result.getSymbolizers().add(new IsolineSymbolizer((org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer) symbolizer));
+                if (symbolizer instanceof org.opengis.style.PointSymbolizer ps) {
+                    result.getSymbolizers().add(new PointSymbolizer(ps));
+                } else if (symbolizer instanceof org.opengis.style.LineSymbolizer ls) {
+                    result.getSymbolizers().add(new LineSymbolizer(ls));
+                } else if (symbolizer instanceof org.opengis.style.PolygonSymbolizer ps) {
+                    result.getSymbolizers().add(new PolygonSymbolizer(ps));
+                } else if (symbolizer instanceof org.opengis.style.TextSymbolizer ts) {
+                    result.getSymbolizers().add(new TextSymbolizer(ts));
+                } else if (symbolizer instanceof org.opengis.style.RasterSymbolizer rs) {
+                    result.getSymbolizers().add(new RasterSymbolizer(rs));
+                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.cellular.CellSymbolizer cs) {
+                    result.getSymbolizers().add(getCellSymbolizer(cs));
+                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.pie.PieSymbolizer ps) {
+                    result.getSymbolizers().add(new PieSymbolizer(ps));
+                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.dynamicrange.DynamicRangeSymbolizer ds){
+                    result.getSymbolizers().add(new DynamicRangeSymbolizer(ds));
+                } else if (symbolizer instanceof org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer is){
+                    result.getSymbolizers().add(new IsolineSymbolizer(is));
                 }
             }
             if (rule.getFilter() != null) {

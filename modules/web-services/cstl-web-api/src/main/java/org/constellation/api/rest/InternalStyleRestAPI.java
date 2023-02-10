@@ -18,24 +18,10 @@
  */
 package org.constellation.api.rest;
 
-import java.awt.Color;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 import javax.inject.Inject;
-import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.storage.FeatureQuery;
-import org.apache.sis.internal.system.DefaultFactories;
-
-import org.apache.sis.util.DefaultInternationalString;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.TargetNotFoundException;
@@ -48,9 +34,7 @@ import org.constellation.json.binding.Repartition;
 import org.constellation.json.binding.Style;
 import org.constellation.json.binding.WrapperInterval;
 import org.constellation.provider.DataProviders;
-import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.storage.coverage.ImageStatistics;
-import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.storage.Resource;
 import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.dto.StatInfo;
@@ -58,32 +42,9 @@ import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.util.StatsUtilities;
 import org.constellation.ws.WebServiceUtilities;
-import org.geotoolkit.display2d.ext.isoline.symbolizer.IsolineSymbolizer;
-import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.internal.InternalUtilities;
-import org.geotoolkit.style.DefaultDescription;
-import org.geotoolkit.style.DefaultLineSymbolizer;
-import org.geotoolkit.style.DefaultPointSymbolizer;
-import org.geotoolkit.style.DefaultPolygonSymbolizer;
-import org.geotoolkit.style.MutableRule;
 import org.geotoolkit.style.MutableStyle;
-import org.geotoolkit.style.MutableStyleFactory;
 import org.geotoolkit.style.function.Categorize;
 import org.geotoolkit.style.function.Interpolate;
-import org.geotoolkit.style.interval.DefaultIntervalPalette;
-import org.geotoolkit.style.interval.IntervalPalette;
-import org.opengis.feature.Feature;
-import org.opengis.filter.Filter;
-import org.opengis.style.Fill;
-import org.opengis.style.Graphic;
-import org.opengis.style.GraphicalSymbol;
-import org.opengis.style.LineSymbolizer;
-import org.opengis.style.Mark;
-import org.opengis.style.PointSymbolizer;
-import org.opengis.style.PolygonSymbolizer;
-import org.opengis.style.RasterSymbolizer;
-import org.opengis.style.Stroke;
-import org.opengis.style.Symbolizer;
 import org.springframework.http.HttpStatus;
 
 import static org.springframework.http.HttpStatus.*;
@@ -96,12 +57,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RestController;
-import static org.geotoolkit.style.StyleConstants.*;
-import org.opengis.feature.AttributeType;
-import org.opengis.feature.PropertyType;
 import org.opengis.filter.Expression;
-import org.opengis.filter.ValueReference;
-import org.opengis.style.StyleFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -135,50 +91,27 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         try {
 
             final MutableStyle style = (MutableStyle) styleBusiness.getStyle(styleId);
-            final List<MutableRule> mutableRules = new ArrayList<>();
-            if (!style.featureTypeStyles().isEmpty()) {
-                mutableRules.addAll(style.featureTypeStyles().get(0).rules());
-            }
-            // search related rule
-            Expression function = null;
-            boolean ruleFound = false;
-            search:
-            for (final MutableRule mutableRule : mutableRules) {
-                if (mutableRule.getName().equalsIgnoreCase(ruleName)) {
-                    ruleFound = true;
-                    for (final Symbolizer symbolizer : mutableRule.symbolizers()) {
-                        // search raster symbolizer and return function
-                        if (symbolizer instanceof RasterSymbolizer rasterSymbolizer) {
-                            if (rasterSymbolizer.getColorMap() != null){
-                                function = rasterSymbolizer.getColorMap().getFunction();
-                                break search;
-                            }
-                        } else if (symbolizer instanceof IsolineSymbolizer isolineSymbolizer) {
-                            if (isolineSymbolizer.getLineSymbolizer() != null &&
-                                isolineSymbolizer.getLineSymbolizer().getStroke() != null &&
-                                isolineSymbolizer.getLineSymbolizer().getStroke().getColor() instanceof Expression) {
-                                function = (Expression) isolineSymbolizer.getLineSymbolizer().getStroke().getColor();
-                                break search;
-                            }
-                        }
-                    }
-                    break search;
-                }
-            }
-            if (!ruleFound) {
+
+            // search related rule and function
+            Expression function;
+            try {
+                function = StyleUtilities.getPaletteFunction(style, ruleName);
+            } catch (TargetNotFoundException ex) {
                 return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.RULE_NOT_FOUND).build();
             }
 
+            final List<InterpolationPoint> points;
             if (function instanceof Categorize categ) {
                 final org.constellation.json.binding.Categorize categorize = new org.constellation.json.binding.Categorize(categ);
-                final List<InterpolationPoint> points = categorize.reComputePoints(interval);
-                return new ResponseEntity(new Repartition(points),OK);
+                points = categorize.reComputePoints(interval);
             } else if(function instanceof Interpolate interpolateFunc) {
-                final org.constellation.json.binding.Interpolate interpolate =new org.constellation.json.binding.Interpolate(interpolateFunc);
-                final List<InterpolationPoint> points = interpolate.reComputePoints(interval);
-                return new ResponseEntity(new Repartition(points),OK);
+                final org.constellation.json.binding.Interpolate interpolate = new org.constellation.json.binding.Interpolate(interpolateFunc);
+                points = interpolate.reComputePoints(interval);
+            } else {
+                return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_COLORMAP).build();
             }
-            return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_COLORMAP).build();
+            return new ResponseEntity(new Repartition(points),OK);
+            
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).i18N(I18nCodes.Style.NOT_FOUND).build();
         } catch(Exception ex) {
@@ -202,143 +135,23 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             //get style and interval params
             final AutoIntervalValues intervalValues = wrapper.getIntervalValues();
 
-            final int dataId = wrapper.getDataId();
-
             final String attribute = intervalValues.getAttr();
-            if (attribute ==null || attribute.trim().isEmpty()){
+            if (attribute ==null || attribute.trim().isEmpty()) {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY)
                         .message("Attribute field should not be empty!")
                         .i18N(I18nCodes.Style.INVALID_ARGUMENT).build();
             }
 
-            final String method = intervalValues.getMethod();
-            final int intervals = intervalValues.getNbIntervals();
-
-            final String symbolizerType = intervalValues.getSymbol();
-            final List<String> colorsList = intervalValues.getColors();
-
-            //rules that will be added to the style
-            final List<MutableRule> newRules = new ArrayList<>();
-
             /*
              * I - Get feature type and feature data.
              */
+            final int dataId                       = wrapper.getDataId();
             final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
-            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            final Resource rs     = dataP.getOrigin();
+            final Data dataP                       = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+            final Resource rs                      = dataP.getOrigin();
+            final Style originalStyle              = wrapper.getStyle();
 
-            if (rs instanceof FeatureSet fs) {
-
-               /*
-                * II - Search extreme values.
-                */
-                final Set<Double> values = new HashSet<>();
-                double minimum = Double.POSITIVE_INFINITY;
-                double maximum = Double.NEGATIVE_INFINITY;
-
-                final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final DefaultFilterFactory FF = FilterUtilities.FF;
-
-                final ValueReference property = FF.property(attribute);
-
-                final FeatureQuery query = new FeatureQuery();
-                query.setProjection(attribute);
-
-                try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
-                    Iterator<Feature> it = featureSet.iterator();
-                    while(it.hasNext()){
-                        final Feature feature = it.next();
-                        final Number number = (Number) property.apply(feature);
-                        final Double value = number.doubleValue();
-                        values.add(value);
-                        if (value < minimum) {
-                            minimum = value;
-                        }
-                        if (value > maximum) {
-                            maximum = value;
-                        }
-                    }
-                }
-
-                /*
-                * III - Analyze values.
-                */
-                final Double[] allValues = values.toArray(Double[]::new);
-                double[] interValues = new double[0];
-                if ("equidistant".equals(method)) {
-                    interValues = new double[intervals + 1];
-                    for (int i = 0; i < interValues.length; i++) {
-                        interValues[i] = minimum + (float) i / (interValues.length - 1) * (maximum - minimum);
-                    }
-                } else if ("mediane".equals(method)) {
-                    interValues = new double[intervals + 1];
-                    for (int i = 0; i < interValues.length; i++) {
-                        interValues[i] = allValues[i * (allValues.length - 1) / (interValues.length - 1)];
-                    }
-                } else {
-                    if (interValues.length != intervals + 1) {
-                        interValues = Arrays.copyOf(interValues, intervals + 1);
-                    }
-                }
-
-                /*
-                * IV - Generate rules deriving symbolizer with given colors.
-                */
-                final Symbolizer symbolizer = createSymbolizer(symbolizerType);
-                final Color[] colors = new Color[colorsList.size()];
-                int loop = 0;
-                for(final String c : colorsList){
-                    colors[loop] = new Color(InternalUtilities.parseColor(c));
-                    loop++;
-                }
-                final IntervalPalette palette = new DefaultIntervalPalette(colors);
-                int count = 0;
-
-                /*
-                 * Create one rule for each interval.
-                 */
-                for (int i = 1; i < interValues.length; i++) {
-                    final double step = (double) (i - 1) / (interValues.length - 2); // derivation step
-                    double start = interValues[i - 1];
-                    double end = interValues[i];
-                    /*
-                    * Create the interval filter.
-                    */
-                    final Filter above = FF.greaterOrEqual(property, FF.literal(start));
-                    final Filter under;
-                    if (i == interValues.length - 1) {
-                        under = FF.lessOrEqual(property, FF.literal(end));
-                    } else {
-                        under = FF.less(property, FF.literal(end));
-                    }
-                    final Filter interval = FF.and(above, under);
-                    /*
-                    * Create new rule deriving the base symbolizer.
-                    */
-                    final MutableRule rule = SF.rule();
-                    rule.setName((count++)+" - AutoInterval - " + property.getXPath());
-                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getXPath()+" "+start+" - "+end),null));
-                    rule.setFilter(interval);
-                    rule.symbolizers().add(derivateSymbolizer(symbolizer, palette.interpolate(step)));
-                    newRules.add(rule);
-                }
-            }
-
-            //add rules to the style
-            final Style originalStyle = wrapper.getStyle();
-            final MutableStyle mutableStyle = StyleUtilities.type(originalStyle);
-            //remove all auto intervals rules if exists before adding the new list.
-            final List<MutableRule> backupRules = new ArrayList<>(mutableStyle.featureTypeStyles().get(0).rules());
-            final List<MutableRule> rulesToRemove = new ArrayList<>();
-            for(final MutableRule r : backupRules){
-                if(r.getName().contains("AutoInterval")){
-                    rulesToRemove.add(r);
-                }
-            }
-            backupRules.removeAll(rulesToRemove);
-            mutableStyle.featureTypeStyles().get(0).rules().clear();
-            mutableStyle.featureTypeStyles().get(0).rules().addAll(backupRules);
-            mutableStyle.featureTypeStyles().get(0).rules().addAll(newRules);
+            final org.opengis.style.Style mutableStyle = StyleUtilities.generateAutoIntervalStyle(intervalValues, originalStyle, rs);
 
             //create the style in server
             styleBusiness.updateStyle(id, mutableStyle);
@@ -348,74 +161,6 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
-        }
-    }
-
-    private Symbolizer createSymbolizer(final String symbolizerType) {
-        final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
-        final DefaultFilterFactory FF = GO2Utilities.FILTER_FACTORY;
-        final Symbolizer symbolizer;
-        if ("polygon".equals(symbolizerType)) {
-            final Stroke stroke = SF.stroke(Color.BLACK, 1);
-            final Fill fill = SF.fill(Color.BLUE);
-            symbolizer = new DefaultPolygonSymbolizer(
-                    stroke,
-                    fill,
-                    DEFAULT_DISPLACEMENT,
-                    FF.literal(0),
-                    DEFAULT_UOM,
-                    null,
-                    "polygon",
-                    DEFAULT_DESCRIPTION);
-        } else if ("line".equals(symbolizerType)) {
-            final Stroke stroke = SF.stroke(Color.BLUE, 2);
-            symbolizer = new DefaultLineSymbolizer(
-                    stroke,
-                    FF.literal(0),
-                    DEFAULT_UOM,
-                    null,
-                    "line",
-                    DEFAULT_DESCRIPTION);
-        } else {
-            final Stroke stroke = SF.stroke(Color.BLACK, 1);
-            final Fill fill = SF.fill(Color.BLUE);
-            final List<GraphicalSymbol> symbols = new ArrayList<>();
-            symbols.add(SF.mark(MARK_CIRCLE, fill, stroke));
-            final Graphic gra = SF.graphic(symbols, FF.literal(1), FF.literal(12), FF.literal(0), SF.anchorPoint(), SF.displacement());
-            symbolizer = new DefaultPointSymbolizer(
-                    gra,
-                    DEFAULT_UOM,
-                    null,
-                    "point",
-                    DEFAULT_DESCRIPTION);
-        }
-        return symbolizer;
-    }
-
-    private Symbolizer derivateSymbolizer(final Symbolizer symbol, final Color color) {
-        final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
-        if (symbol instanceof PolygonSymbolizer ps) {
-            final Fill fill = SF.fill(SF.literal(color), ps.getFill().getOpacity());
-            return SF.polygonSymbolizer(ps.getName(), ps.getGeometryPropertyName(),
-                    ps.getDescription(), ps.getUnitOfMeasure(), ps.getStroke(),
-                    fill, ps.getDisplacement(), ps.getPerpendicularOffset());
-        } else if (symbol instanceof LineSymbolizer ls) {
-            final Stroke oldStroke = ls.getStroke();
-            final Stroke stroke = SF.stroke(SF.literal(color), oldStroke.getOpacity(), oldStroke.getWidth(),
-                    oldStroke.getLineJoin(), oldStroke.getLineCap(), oldStroke.getDashArray(), oldStroke.getDashOffset());
-            return SF.lineSymbolizer(ls.getName(), ls.getGeometryPropertyName(),
-                    ls.getDescription(), ls.getUnitOfMeasure(), stroke, ls.getPerpendicularOffset());
-        } else if (symbol instanceof PointSymbolizer ps) {
-            final Graphic oldGraphic = ps.getGraphic();
-            final Mark oldMark = (Mark) oldGraphic.graphicalSymbols().get(0);
-            final Fill fill = SF.fill(SF.literal(color), oldMark.getFill().getOpacity());
-            final List<GraphicalSymbol> symbols = new ArrayList<>();
-            symbols.add(SF.mark(oldMark.getWellKnownName(), fill, oldMark.getStroke()));
-            final Graphic graphic = SF.graphic(symbols, oldGraphic.getOpacity(), oldGraphic.getSize(),
-                    oldGraphic.getRotation(), oldGraphic.getAnchorPoint(), oldGraphic.getDisplacement());
-            return SF.pointSymbolizer(graphic, ps.getGeometryPropertyName());
-        } else {
-            throw new IllegalArgumentException("Unexpected symbolizer type: " + symbol);
         }
     }
 
@@ -433,8 +178,6 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             //get style and interval params
             final AutoUniqueValues autoUniqueValues = wrapper.getUniqueValues();
 
-            final org.constellation.dto.Data data = dataBusiness.getData(wrapper.getDataId());
-
             final String attribute = autoUniqueValues.getAttr();
             if(attribute ==null || attribute.trim().isEmpty()){
                 return new ErrorMessage(UNPROCESSABLE_ENTITY)
@@ -442,97 +185,13 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                         .i18N(I18nCodes.Style.INVALID_ARGUMENT).build();
             }
 
-            final String symbolizerType = autoUniqueValues.getSymbol();
-            final List<String> colorsList = autoUniqueValues.getColors();
-
-            //rules that will be added to the style
-            final List<MutableRule> newRules = new ArrayList<>();
-
-            /*
-             * I - Get feature type and feature data.
-             */
-            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            final Resource rs     = dataP.getOrigin();
-
-            if (rs instanceof FeatureSet fs) {
-
-                /*
-                * II - Extract all different values.
-                */
-                final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-                final DefaultFilterFactory FF = FilterUtilities.FF;
-                final ValueReference property = FF.property(attribute);
-                final List<Object> differentValues = new ArrayList<>();
-
-                final FeatureQuery query = new FeatureQuery();
-                query.setProjection(attribute);
-
-                try (final Stream<Feature> featureSet = fs.subset(query).features(false)) {
-                    Iterator<Feature> it = featureSet.iterator();
-                    while(it.hasNext()){
-                        final Feature feature = it.next();
-                        final Object value = property.apply(feature);
-                        if (!differentValues.contains(value)) {
-                            differentValues.add(value);
-                        }
-                    }
-                }
-                /*
-                * III - Generate rules deriving symbolizer with colors array.
-                */
-                final Symbolizer symbolizer = createSymbolizer(symbolizerType);
-                final Color[] colors = new Color[colorsList.size()];
-                int loop = 0;
-                for(final String c : colorsList){
-                    colors[loop] = new Color(InternalUtilities.parseColor(c));
-                    loop++;
-                }
-                final IntervalPalette palette = new DefaultIntervalPalette(colors);
-                int count = 0;
-                /*
-                * Create one rule for each different value.
-                */
-                for (int i = 0; i < differentValues.size(); i++) {
-                    final double step = ((double) i) / (differentValues.size() - 1); // derivation step
-                    final Object value = differentValues.get(i);
-                    /*
-                     * Create the unique value filter.
-                     */
-                    final Filter filter;
-                    if(value instanceof String && !value.toString().isEmpty() && value.toString().contains("'")){
-                        final String val = ((String) value).replaceAll("'","\\"+"'");
-                        filter = FF.like(property, FF.literal(val).toString(), '*', '?', '\\', true);
-                    }else {
-                        filter = FF.equal(property, FF.literal(value));
-                    }
-
-                    /*
-                     * Create new rule derivating the base symbolizer.
-                     */
-                    final MutableRule rule = SF.rule(derivateSymbolizer(symbolizer, palette.interpolate(step)));
-                    rule.setName((count++)+" - AutoUnique - " + property.getXPath());
-                    final Object valStr = value instanceof String && ((String) value).isEmpty() ? "''":value;
-                    rule.setDescription(new DefaultDescription(new DefaultInternationalString(property.getXPath()+" = "+valStr),null));
-                    rule.setFilter(filter);
-                    newRules.add(rule);
-                }
-            }
-
-            //add rules to the style
-            final Style originalStyle = wrapper.getStyle();
-            final MutableStyle mutableStyle = StyleUtilities.type(originalStyle);
-            //remove all auto unique values rules if exists before adding the new list.
-            final List<MutableRule> backupRules = new ArrayList<>(mutableStyle.featureTypeStyles().get(0).rules());
-            final List<MutableRule> rulesToRemove = new ArrayList<>();
-            for(final MutableRule r : backupRules){
-                if(r.getName().contains("AutoUnique")){
-                    rulesToRemove.add(r);
-                }
-            }
-            backupRules.removeAll(rulesToRemove);
-            mutableStyle.featureTypeStyles().get(0).rules().clear();
-            mutableStyle.featureTypeStyles().get(0).rules().addAll(backupRules);
-            mutableStyle.featureTypeStyles().get(0).rules().addAll(newRules);
+            final int dataId                       = wrapper.getDataId();
+            final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
+            final Data dataP                       = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+            final Resource rs                      = dataP.getOrigin();
+            final Style originalStyle              = wrapper.getStyle();
+            
+            final org.opengis.style.Style mutableStyle = StyleUtilities.generateAutoUniqueStyle(autoUniqueValues, originalStyle, rs);
 
             //create the style in server
             styleBusiness.updateStyle(id, mutableStyle);
@@ -548,129 +207,21 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/internal/styles/getChartDataJson", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getChartDataJson(@RequestBody ParameterValues params) {
         try {
-            final int dataId = Integer.parseInt(params.get("dataId"));
+            final int dataId       = Integer.parseInt(params.get("dataId"));
             final String attribute = params.get("attribute");
-            final int intervals = params.get("intervals") != null ? Integer.valueOf(params.get("intervals")):10;
+            final int intervals    = params.get("intervals") != null ? Integer.parseInt(params.get("intervals")):10;
 
-            if(attribute ==null || attribute.trim().isEmpty()){
+            if (attribute == null || attribute.trim().isEmpty()){
                 return new ErrorMessage(UNPROCESSABLE_ENTITY)
                         .message("Attribute field should not be empty!")
                         .i18N(I18nCodes.Style.INVALID_ARGUMENT).build();
             }
 
-            final ChartDataModel result = new ChartDataModel();
-
-            final org.constellation.dto.Data data  = dataBusiness.getData(dataId);
-            final Data dataP      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
-            final Resource rs     = dataP.getOrigin();
-
-            if (rs instanceof FeatureSet fs) {
-
-                final Map<Object,Long> mapping = new LinkedHashMap<>();
-                final DefaultFilterFactory FF = FilterUtilities.FF;
-                final ValueReference property = FF.property(attribute);
-
-                final FeatureQuery query = new FeatureQuery();
-                query.setProjection(attribute);
-                fs = fs.subset(query);
-
-                //check if property is numeric
-                // if it is numeric then proceed to create intervals as the keys and get for each interval the feature count.
-                // otherwise put each (string value, count) into the map
-
-                final PropertyType p = fs.getType().getProperty(attribute);
-                if (p instanceof AttributeType at) {
-                    final Class cl = at.getValueClass();
-                    result.setNumberField(Number.class.isAssignableFrom(cl));
-                }
-
-                try (final Stream<Feature> featureSet = fs.features(false)) {
-
-                    if (result.isNumberField()) {
-                        final Set<Double> values = new HashSet<>();
-                        Iterator<Feature> it = featureSet.iterator();
-                        while (it.hasNext()) {
-                            final Feature feature = it.next();
-                            final Number number = (Number) property.apply(feature);
-                            if (number != null) {
-                                final Double value = number.doubleValue();
-                                values.add(value);
-                            }
-                        }
-
-                        final Double[] allValues = values.toArray(Double[]::new);
-                        double maximum = 0, minimum = 0;
-                        if (allValues.length > 0) {
-                            Arrays.sort(allValues);
-                            minimum = allValues[0];
-                            maximum = allValues[allValues.length-1];
-                        }
-
-                        result.setMinimum(minimum);
-                        result.setMaximum(maximum);
-
-                        double[] interValues = new double[intervals + 1];
-                        for (int i = 0; i < interValues.length; i++) {
-                            interValues[i] = minimum + ((maximum - minimum) * i / (interValues.length - 1))  ;
-                        }
-
-                        for (int i = 1; i < interValues.length; i++) {
-                            double start = interValues[i - 1];
-                            double end = interValues[i];
-                            FeatureQuery qb = new FeatureQuery();
-                            final Filter above = FF.greaterOrEqual(property, FF.literal(start));
-                            final Filter under;
-                            if (i == interValues.length - 1) {
-                                under = FF.lessOrEqual(property, FF.literal(end));
-                            } else {
-                                under = FF.less(property, FF.literal(end));
-                            }
-                            final Filter interval = FF.and(above, under);
-                            qb.setSelection(interval);
-                            try (final Stream<Feature> subCol = fs.subset(qb).features(false)) {
-                                mapping.put((long) start + " - " + (long) end, subCol.count());
-                            }
-                        }
-                    } else {
-                        Iterator<Feature> it = featureSet.iterator();
-                        while(it.hasNext()){
-                            final Feature feature = it.next();
-                            Object value = property.apply(feature);
-                            if(value == null){
-                                value = "null";
-                            }
-                            Long count = mapping.get(value);
-                            if(mapping.get(value)!=null){
-                                count++;
-                                mapping.put(value,count);
-                            }else {
-                                mapping.put(value,1L);
-                            }
-                        }
-
-                        //adjust mapping size for performance in client side issue.
-                        final Set<Object> keys = mapping.keySet();
-                        final Map<Object,Long> newmap = new LinkedHashMap<>();
-                        int limit = 100;
-                        if(keys.size()>limit){
-                            int gap = keys.size()/limit;
-                            int i=1;
-                            for(final Object key : keys){
-                                if(i== gap){
-                                    newmap.put(key,mapping.get(key));
-                                    i=1;//reset i
-                                }else {
-                                    i++;//skip the key and increase i
-                                }
-                            }
-                            mapping.clear();
-                            mapping.putAll(newmap);
-                        }
-                    }
-
-                }
-                result.setMapping(mapping);
-            }
+            final org.constellation.dto.Data data = dataBusiness.getData(dataId);
+            final Data dataP                      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
+            final Resource rs                     = dataP.getOrigin();
+            final ChartDataModel result           = StyleUtilities.generateChartData(attribute, intervals, rs);
+            
             return new ResponseEntity(result,OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
