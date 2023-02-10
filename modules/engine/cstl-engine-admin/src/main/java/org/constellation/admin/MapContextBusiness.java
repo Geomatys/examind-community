@@ -174,7 +174,7 @@ public class MapContextBusiness implements IMapContextBusiness {
      */
     @Override
     public MapContextLayersDTO findMapContextLayers(int contextId, boolean full) throws ConstellationException {
-        final MapContextDTO ctxt = mapContextRepository.findById(contextId, true);
+        final MapContextDTO ctxt = mapContextRepository.findById(contextId, full);
         if (ctxt != null) {
             return convertToMapContextLayer(ctxt, full);
         }
