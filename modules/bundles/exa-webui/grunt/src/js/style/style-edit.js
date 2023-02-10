@@ -388,7 +388,7 @@ angular.module('cstl-style-edit', [
                                     $scope.defaultData.default_line = data.id;
                                 } else if ('CNTR_RG_60M_2006' === data.name) {
                                     $scope.defaultData.default_polygon = data.id;
-                                } else if ('cloudsgrey' === data.name) {
+                                } else if ('cloudsgrey' === data.namespace) {
                                     $scope.defaultData.default_raster = data.id;
                                 }
                             });
