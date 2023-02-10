@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns6:UserStyle xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.opengis.net/gml" xmlns:ns4="http://www.opengis.net/se" xmlns:ns5="http://www.w3.org/1999/xlink" xmlns:ns6="http://www.opengis.net/sld" xmlns:ns7="http://www.opengis.net/ogc" xmlns:ns8="http://geotoolkit.org" xmlns:ns10="https://www.geomatys.com/products/examind-sdk">
+  <ns4:Name>Raster-Style-3DDefault</ns4:Name>
+  <ns4:Description>
+    <ns4:Title></ns4:Title>
+    <ns4:Abstract></ns4:Abstract>
+  </ns4:Description>
+  <ns6:IsDefault>false</ns6:IsDefault>
+  <ns4:CoverageStyle>
+    <ns4:Description>
+      <ns4:Title></ns4:Title>
+      <ns4:Abstract></ns4:Abstract>
+    </ns4:Description>
+    <ns4:Rule>
+      <ns4:Description>
+        <ns4:Title></ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>1.7976931348623157E308</ns4:MaxScaleDenominator>
+      <ns10:ExtrusionSymbolizer>
+        <ns8:Low>
+                    
+          <ns7:Literal>0</ns7:Literal>
+                </ns8:Low>
+        <ns8:High>
+                    
+          <ns7:Literal>0</ns7:Literal>
+                </ns8:High>
+        <ns8:LowReference>
+                    
+          <ns7:Literal>GROUND</ns7:Literal>
+                </ns8:LowReference>
+        <ns8:HighReference>
+                    
+          <ns7:Literal>GROUND</ns7:Literal>
+                </ns8:HighReference>
+        <ns8:LowClosed>
+                    
+          <ns7:Literal>false</ns7:Literal>
+                </ns8:LowClosed>
+        <ns8:HighClosed>
+                    
+          <ns7:Literal>true</ns7:Literal>
+                </ns8:HighClosed>
+        <ns4:RasterSymbolizer uom="http://www.opengeospatial.org/se/units/pixel"/>
+      </ns10:ExtrusionSymbolizer>
+    </ns4:Rule>
+  </ns4:CoverageStyle>
+</ns6:UserStyle>

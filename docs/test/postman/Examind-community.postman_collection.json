@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "d1c56742-db11-46a1-a611-5de5220d7c25",
+		"_postman_id": "f3c75086-6615-4519-9130-f29743b3a2d6",
 		"name": "Examind-community",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "464125"
@@ -1304,6 +1304,1935 @@
 								}
 							},
 							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "API Style",
+			"item": [
+				{
+					"name": "OGC-StyleAPI",
+					"item": [
+						{
+							"name": "StyleAPITest-conformance",
+							"item": [
+								{
+									"name": "Conformance",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/conformance",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"conformance"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-listStyles",
+							"item": [
+								{
+									"name": "Liste des styles",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Liste des styles brief",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles?mode=brief",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											],
+											"query": [
+												{
+													"key": "mode",
+													"value": "brief"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-createStyle",
+							"item": [
+								{
+									"name": "Créer un style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"var sldId = jsonData.styleId;",
+													"postman.setEnvironmentVariable(\"$sldId\", sldId);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DDefault.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-createStyleInvalid",
+							"item": [
+								{
+									"name": "Create style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/empty_file"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-getStyle",
+							"item": [
+								{
+									"name": "Créer un style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"var sldId = jsonData.styleId;",
+													"postman.setEnvironmentVariable(\"$sldId\", sldId);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DDefault.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD JSON",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD XML",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}?f=xml",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											],
+											"query": [
+												{
+													"key": "f",
+													"value": "xml"
+												}
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD XML Download",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}?f=file",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											],
+											"query": [
+												{
+													"key": "f",
+													"value": "file"
+												}
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-getStyleInvalidId",
+							"item": [
+								{
+									"name": "Get SLD info",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/-1",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"-1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-updateStyle",
+							"item": [
+								{
+									"name": "Créer un style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"var sldId = jsonData.styleId;",
+													"postman.setEnvironmentVariable(\"$sldId\", sldId);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DDefault.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD info",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DSpecific.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD info",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-updateStyleInvalid",
+							"item": [
+								{
+									"name": "Créer un style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"var sldId = jsonData.styleId;",
+													"postman.setEnvironmentVariable(\"$sldId\", sldId);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DDefault.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-Invalid.xml"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-deleteStyle",
+							"item": [
+								{
+									"name": "Créer un style",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});",
+													"",
+													"var jsonData = JSON.parse(responseBody);",
+													"var sldId = jsonData.styleId;",
+													"postman.setEnvironmentVariable(\"$sldId\", sldId);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/styles/Raster-Style-3DDefault.xml"
+												},
+												{
+													"key": "name",
+													"value": "{{$guid}}",
+													"type": "text"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(204);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": []
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get SLD infos",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/{{$sldId}}",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"{{$sldId}}"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-deleteStyleInvalid",
+							"item": [
+								{
+									"name": "Delete",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": []
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/-1",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"-1"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-getResources",
+							"item": [
+								{
+									"name": "Get resources",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-createResourceImage",
+							"item": [
+								{
+									"name": "Delete resource if exist",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/rock-test.jpg",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"rock-test.jpg"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/resources/rock.jpg"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/rock-test.jpg",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"rock-test.jpg"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/rock-test.jpg",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"rock-test.jpg"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-createResourceGlb",
+							"item": [
+								{
+									"name": "Delete resource if exist",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/arbreper-test.glb",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"arbreper-test.glb"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/resources/Arbreper.glb"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/arbreper-test.glb",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"arbreper-test.glb"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/arbreper-test.glb",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"arbreper-test.glb"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-createResourceInvalid",
+							"item": [
+								{
+									"name": "Create",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/empty_file"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/invalidres",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"invalidres"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-updateResource",
+							"item": [
+								{
+									"name": "Delete resource if exist",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/resources/grass.png"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": []
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Update Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(204);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/resources/grass2.png"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get resource updated",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": []
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-updateResourceInvalid",
+							"item": [
+								{
+									"name": "Update resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(400);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/empty_file"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/missingResource",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"missingResource"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-deleteResource",
+							"item": [
+								{
+									"name": "Delete resource if exist",
+									"request": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Create",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(201);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/resources/grass.png"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Delete Resource",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(204);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": []
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Get Resource after delete",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/grass-test.png",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"grass-test.png"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "StyleAPITest-deleteResourceInvalid",
+							"item": [
+								{
+									"name": "Delete",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(404);",
+													"});"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "DELETE",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "formdata",
+											"formdata": [
+												{
+													"key": "data",
+													"type": "file",
+													"src": "{{DATA_PATH}}/empty_file"
+												}
+											]
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/styles/resources/missingResource",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"styles",
+												"resources",
+												"missingResource"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "Internal-StyleAPI",
+					"item": [
+						{
+							"name": "InternalStyleAPITest-createStyle",
+							"item": [
+								{
+									"name": "Créer un style JSON",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"postman.setEnvironmentVariable(\"$sldId\", responseBody);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"name\": \"{{$guid}}\",\n    \"rules\": [\n        {\n            \"name\": \"default\",\n            \"title\": \"\",\n            \"description\": \"\",\n            \"maxScale\": 5000000000,\n            \"symbolizers\": [\n                {\n                    \"@symbol\": \"point\",\n                    \"name\": \"symbol point\",\n                    \"graphic\": {\n                        \"size\": 15,\n                        \"rotation\": 0,\n                        \"opacity\": 1,\n                        \"mark\": {\n                            \"geometry\": \"circle\",\n                            \"stroke\": {\n                                \"color\": \"#000000\",\n                                \"opacity\": 1\n                            },\n                            \"fill\": {\n                                \"color\": \"#808080\",\n                                \"opacity\": 0.7\n                            }\n                        }\n                    }\n                }\n            ],\n            \"filter\": null\n        }\n    ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/internal/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"internal",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Créer un style XML",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status test\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"postman.setEnvironmentVariable(\"$sldId\", responseBody);"
+												],
+												"type": "text/javascript"
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Cookie",
+												"type": "text",
+												"value": "access_token={{access_token}}"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<ns6:UserStyle xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:gml=\"http://www.opengis.net/gml/3.2\" xmlns:ns3=\"http://www.opengis.net/gml\" xmlns:ns4=\"http://www.opengis.net/se\" xmlns:ns5=\"http://www.w3.org/1999/xlink\" xmlns:ns6=\"http://www.opengis.net/sld\" xmlns:ns7=\"http://www.opengis.net/ogc\" xmlns:ns8=\"http://geotoolkit.org\">\n  <ns4:Name>{{$guid}}</ns4:Name>\n  <ns4:Description>\n    <ns4:Title></ns4:Title>\n    <ns4:Abstract></ns4:Abstract>\n  </ns4:Description>\n  <ns6:IsDefault>false</ns6:IsDefault>\n  <ns4:FeatureTypeStyle>\n    <ns4:Description>\n      <ns4:Title></ns4:Title>\n      <ns4:Abstract></ns4:Abstract>\n    </ns4:Description>\n    <ns4:Rule>\n      <ns4:Name>default</ns4:Name>\n      <ns4:Description>\n        <ns4:Title></ns4:Title>\n        <ns4:Abstract></ns4:Abstract>\n      </ns4:Description>\n      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>\n      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>\n      <ns4:PointSymbolizer uom=\"http://www.opengeospatial.org/se/units/pixel\">\n        <ns4:Name>symbol point</ns4:Name>\n        <ns4:Description>\n          <ns4:Title></ns4:Title>\n          <ns4:Abstract></ns4:Abstract>\n        </ns4:Description>\n        <ns4:Graphic>\n          <ns4:Mark>\n            <ns4:WellKnownName>ttf:FontAwesome?char=0xf101</ns4:WellKnownName>\n            <ns4:Fill>\n              <ns4:SvgParameter name=\"fill\">\n<ns7:Literal>#808080</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"fill-opacity\">\n<ns7:Literal>0.7</ns7:Literal>\n              </ns4:SvgParameter>\n            </ns4:Fill>\n            <ns4:Stroke>\n              <ns4:SvgParameter name=\"stroke\">\n<ns7:Literal>#000000</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"stroke-dashoffset\">\n<ns7:Literal>0.0</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"stroke-linecap\">\n<ns7:Literal>round</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"stroke-linejoin\">\n<ns7:Literal>round</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"stroke-opacity\">\n<ns7:Literal>1</ns7:Literal>\n              </ns4:SvgParameter>\n              <ns4:SvgParameter name=\"stroke-width\">\n<ns7:Literal>1.0</ns7:Literal>\n              </ns4:SvgParameter>\n            </ns4:Stroke>\n          </ns4:Mark>\n          <ns4:Opacity>\n            <ns7:Literal>1</ns7:Literal>\n          </ns4:Opacity>\n          <ns4:Size>\n            <ns7:Literal>15</ns7:Literal>\n          </ns4:Size>\n          <ns4:Rotation>\n            <ns7:Literal>0</ns7:Literal>\n          </ns4:Rotation>\n          <ns4:AnchorPoint>\n            <ns4:AnchorPointX>\n              <ns7:Literal>0.5</ns7:Literal>\n            </ns4:AnchorPointX>\n            <ns4:AnchorPointY>\n              <ns7:Literal>0.5</ns7:Literal>\n            </ns4:AnchorPointY>\n          </ns4:AnchorPoint>\n          <ns4:Displacement>\n            <ns4:DisplacementX>\n              <ns7:Literal>0</ns7:Literal>\n            </ns4:DisplacementX>\n            <ns4:DisplacementY>\n              <ns7:Literal>0</ns7:Literal>\n            </ns4:DisplacementY>\n          </ns4:Displacement>\n        </ns4:Graphic>\n      </ns4:PointSymbolizer>\n    </ns4:Rule>\n  </ns4:FeatureTypeStyle>\n</ns6:UserStyle>",
+											"options": {
+												"raw": {
+													"language": "xml"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{SERVER}}/API/internal/styles",
+											"host": [
+												"{{SERVER}}"
+											],
+											"path": [
+												"API",
+												"internal",
+												"styles"
+											]
+										}
+									},
+									"response": []
+								}
+							]
 						}
 					]
 				}
