@@ -527,8 +527,13 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/task/list/styles",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getStyleProcessReferenceList() {
-        final List<StyleProcessReference> servicePRef = styleBusiness.getAllStyleReferences();
-        return new ResponseEntity(servicePRef, OK);
+        try {
+            final List<StyleProcessReference> servicePRef = styleBusiness.getAllStyleReferences("sld");
+            return new ResponseEntity(servicePRef, OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
     }
 
     /**

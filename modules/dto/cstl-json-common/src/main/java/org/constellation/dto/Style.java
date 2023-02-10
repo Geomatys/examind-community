@@ -18,6 +18,7 @@
  */
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
 import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -27,6 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author Guilhem Legal (Geomatys)
  */
 @XmlRootElement
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Style extends Identifiable implements Serializable {
 
     private String name;

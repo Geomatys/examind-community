@@ -31,14 +31,39 @@ import org.opengis.style.Style;
 
 /**
  * @author Cédric Briançon (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 public interface IStyleBusiness {
 
-    List<StyleProcessReference> getAllStyleReferences();
+    /**
+     * Return all the styles references.
+     *
+     * @param providerID Optional parameter to filter on provider (sld or sld_temp).
+     * @return a list of styles references.
+     */
+    List<StyleProcessReference> getAllStyleReferences(String providerID) throws ConfigurationException;
 
-    void deleteStyle(int id) throws ConfigurationException;
+    /**
+     * Delete the stye with the specified identifier.
+     * if the style does not exist return 0.
+     *
+     * @param id Style identifier
+     *
+     * @return 1 if the deletetion succeed, 0 if the style can not be found.
+     *
+     * @throws ConfigurationException If an error occurs during the removal.
+     */
+    int deleteStyle(int id) throws ConfigurationException;
 
-    void deleteAll() throws ConfigurationException;
+    /**
+     * Delete all the styles registered in the datasource.
+     * Mostly used in test, be cautious when calling this method.
+     *
+     * @return Te number of styles deleted.
+     *
+     * @throws ConfigurationException If an error occurs during the removal.
+     */
+    int deleteAll() throws ConfigurationException;
 
     /**
      * Gets and returns the {@link org.opengis.style.Style} that matches with the specified

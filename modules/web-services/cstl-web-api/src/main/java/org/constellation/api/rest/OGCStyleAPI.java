@@ -37,7 +37,6 @@ import org.constellation.api.rest.dto.Resources;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.business.IStyleConverterBusiness;
-import org.constellation.dto.process.StyleProcessReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.ws.WebServiceUtilities;
 import org.geotoolkit.atom.xml.Link;
@@ -64,9 +63,10 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author Hilmi BOUALLAGUE (Geomatys)
  * @author Johann Sorel (Geomatys)
+ * @author Guilhem Legal (Geomatys)
  */
 @RestController
-@RequestMapping("mcm")
+@RequestMapping
 public class OGCStyleAPI {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
     private static final String[] CONFORMS = {
@@ -117,9 +117,20 @@ public class OGCStyleAPI {
      *           over the HTTP Accept header. The default format is JSON.
      */
     @RequestMapping(value = "/styles", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity listStyles(@RequestParam(value = "f", required = false, defaultValue = "json") String f) {
-        final List<StyleProcessReference> allStyles = styleBusiness.getAllStyleReferences();
-        return new ResponseEntity<>(allStyles, HttpStatus.OK);
+    public ResponseEntity listStyles(@RequestParam(value = "f", required = false, defaultValue = "json") String f,
+                                     @RequestParam(value = "mode", required = false, defaultValue = "ref") String mode) {
+        try {
+            List response;
+            if ("brief".equals(mode)) {
+                response = styleBusiness.getAvailableStyles("sld",null);
+            } else {
+                response = styleBusiness.getAllStyleReferences("sld");
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
     }
 
     /**
@@ -143,7 +154,7 @@ public class OGCStyleAPI {
                                                 @RequestParam(value = "type", required = false, defaultValue = "sld") String type,
                                                 @RequestParam("data") MultipartFile file) {
         if (file.isEmpty()) {
-            return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, "SLD file to import is empty!"), HttpStatus.BAD_REQUEST);
+            return new ErrorMessage().message("SLD file to import is empty!").build();
         }
 
         String styleName = name.isEmpty() ? FilenameUtils.removeExtension(file.getOriginalFilename()) : name;
@@ -175,13 +186,12 @@ public class OGCStyleAPI {
                 response.put("message", String.format("Style with name %s successfully created", styleName));
                 return new ResponseEntity<>(response, HttpStatus.CREATED);
             } else {
-                return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, "Style with the same name and type exists"), HttpStatus.BAD_REQUEST);
+                return new ErrorMessage(HttpStatus.BAD_REQUEST).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
-        } catch (Throwable ex) {
+        } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-
     }
 
     /**
@@ -191,7 +201,7 @@ public class OGCStyleAPI {
      * reference : https://docs.opengeospatial.org/DRAFTS/20-009.html#get_style
      *
      * @param styleId
-     * @param f,      "mapbox" "sld10" "sld11"
+     * @param f,      "mapbox" "sld10" "sld11", file
      *                The content type of the response.
      *                If no value is provided, the standard http rules apply, i.e.,
      *                the accept header will be used to determine the format.
@@ -200,6 +210,7 @@ public class OGCStyleAPI {
     @RequestMapping(value = "/styles/{styleId}", method = GET)
     public ResponseEntity getStyle(@PathVariable(value = "styleId") int styleId, @RequestParam(value = "f", required = false, defaultValue = "json") String f) {
         try {
+            final HttpHeaders headers = new HttpHeaders();
             final Object result;
             final HttpStatus status;
             final MediaType mType;
@@ -208,21 +219,23 @@ public class OGCStyleAPI {
                 status = HttpStatus.NOT_FOUND;
                 result = new ErrorMessage(status, "Cannot find style with this id : " + styleId);
             } else {
-                final boolean asJson = f.toLowerCase().contains("json");
                 Style style = styleBusiness.getStyle(styleId);
-                if (asJson) {
+                if (f.toLowerCase().contains("json")) {
                     org.constellation.json.binding.Style jstyle = styleConverterBusiness.getJsonStyle(style);
                     jstyle.setId(styleId);
                     mType = MediaType.APPLICATION_JSON;
                     result = jstyle;
                     status = HttpStatus.OK;
                 } else {
+                    if (f.toLowerCase().equals("file")) {
+                        final String name = style.getName();
+                        headers.set("Content-Disposition", "attachment; filename=" + name + ".xml");
+                    }
                     mType = MediaType.APPLICATION_XML;
                     result = style;
                     status = HttpStatus.OK;
                 }
             }
-            final HttpHeaders headers = new HttpHeaders();
             headers.setContentType(mType);
             return new ResponseEntity<>(result, headers, status);
         } catch (Exception ex) {
@@ -306,14 +319,13 @@ public class OGCStyleAPI {
     @RequestMapping(value = "/styles/{styleId}", method = DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteStyle(@PathVariable(value = "styleId") int styleId) {
         try {
-            if (styleBusiness.existsStyle(styleId)) {
-                styleBusiness.deleteStyle(styleId);
-                return new ResponseEntity<>(String.format("Style with id %d has been deleted successfully", styleId), HttpStatus.NO_CONTENT);
-            } else {
+            int result = styleBusiness.deleteStyle(styleId);
+            if (result == 0) {
                 String errMsg = "Cannot find a style with id : " + styleId;
                 LOGGER.info(errMsg);
                 return new ResponseEntity<>(new ErrorMessage(HttpStatus.NOT_FOUND, errMsg), HttpStatus.NOT_FOUND);
             }
+            return new ResponseEntity<>(String.format("Style with id %d has been deleted successfully", styleId), HttpStatus.NO_CONTENT);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

@@ -18,10 +18,13 @@
  */
 package org.constellation.api.rest;
 
-import java.io.IOException;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.TargetNotFoundException;
@@ -36,12 +39,17 @@ import org.constellation.json.binding.WrapperInterval;
 import org.constellation.provider.DataProviders;
 import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.apache.sis.storage.Resource;
+import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IStyleConverterBusiness;
+import org.constellation.dto.Filter;
+import org.constellation.dto.Page;
+import org.constellation.dto.PagedSearch;
+import org.constellation.dto.Sort;
 import org.constellation.dto.StatInfo;
+import org.constellation.dto.StyleBrief;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.util.StatsUtilities;
-import org.constellation.ws.WebServiceUtilities;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.function.Categorize;
 import org.geotoolkit.style.function.Interpolate;
@@ -53,14 +61,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RestController;
 import org.opengis.filter.Expression;
 import org.springframework.http.MediaType;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -77,6 +85,151 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
 
     @Inject
     private IDataBusiness dataBusiness;
+
+    /**
+     * Create a new style with internal JSON representation.
+     *
+     * @param type where to store the style ("sld" or "sld_temp");
+     * @param styleJson the style definition as json.
+     * @return ResponseEntity never null, contains the created style id
+     */
+    @RequestMapping(value="/internal/styles",method = POST,consumes = MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity createStyleJson(@RequestParam(value="type",required=false,defaultValue = "sld") String type, @RequestBody(required = true) Style styleJson){
+        try {
+            final MutableStyle style = StyleUtilities.type(styleJson);
+            boolean exists = styleBusiness.existsStyle(type, style.getName());
+
+            //in case of temp sld provider we always create it, the style will be recreated.
+            if ((!"sld".equals(type) && exists) || !exists) {
+                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
+            } else {
+                return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
+            }
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Create a new style with internal XML representation.
+     *
+     * @param type where to store the style ("sld" or "sld_temp");
+     * @param styleXml the style definition as xml.
+     * @return ResponseEntity never null, contains the created style id
+     */
+    @RequestMapping(value="/internal/styles",method = POST,consumes = MediaType.APPLICATION_XML_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity createStyleXML(@RequestParam(value="type",required=false,defaultValue = "sld") String type, @RequestBody(required = true) MutableStyle styleXml){
+        try {
+            boolean exists = styleBusiness.existsStyle(type, styleXml.getName());
+
+            //in case of temp sld provider we always create it, the style will be recreated.
+            if ((!"sld".equals(type) && exists) || !exists) {
+                return new ResponseEntity(styleBusiness.createStyle(type, styleXml), OK);
+            } else {
+                return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
+            }
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Advanced search query.
+     *
+     * @param pagedSearch the text is interpreted as the style category
+     * @return ResponseEntity never null
+     */
+    @RequestMapping(value="/internal/styles/search", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public Page<StyleBrief> searchStyles(@RequestBody(required=true) PagedSearch pagedSearch,
+            final HttpServletRequest req){
+
+        //filters
+        final Map<String,Object> filterMap = prepareFilters(pagedSearch,req);
+
+        // force filter with provider=1 ie: only provider=sld and not sld_temp (see CSTL-2163)
+        filterMap.put("provider",1);
+
+        //sorting
+        final Sort sort = pagedSearch.getSort();
+        Map.Entry<String,String> sortEntry = null;
+        if (sort != null) {
+            sortEntry = new AbstractMap.SimpleEntry<>(sort.getField(),sort.getOrder().toString());
+        }
+
+        //pagination
+        final int pageNumber = pagedSearch.getPage();
+        final int rowsPerPage = pagedSearch.getSize();
+
+        final Map.Entry<Integer,List<StyleBrief>> entry = styleBusiness.filterAndGetBrief(filterMap,sortEntry,pageNumber,rowsPerPage);
+        final int total = entry.getKey();
+        final List<StyleBrief> results = entry.getValue();
+
+        // Build and return the content list of page.
+        return new Page<StyleBrief>()
+                .setNumber(pageNumber)
+                .setSize(rowsPerPage)
+                .setContent(results)
+                .setTotal(total);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Map.Entry<String, Object> transformFilter(Filter f, final HttpServletRequest req) {
+        Map.Entry<String, Object> result = super.transformFilter(f, req);
+        if (result != null) {
+            return result;
+        }
+        String value = f.getValue();
+        if (value == null || "_all".equals(value)) {
+            return null;
+        }
+        if ("isShared".equals(f.getField())) {
+            return new AbstractMap.SimpleEntry<>(f.getField(), Boolean.parseBoolean(value));
+        } else {
+            return new AbstractMap.SimpleEntry<>(f.getField(), value);
+        }
+    }
+
+    /**
+     * Update an existing style.
+     *
+     * @param id style identifier
+     * @param stylejson updated style
+     * @return ResponseEntity with updated style
+     */
+    @RequestMapping(value="/internal/styles/{id}", method=POST,produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity updateStyle(@PathVariable(value="id") int id, @RequestBody Style stylejson){
+        try {
+            final MutableStyle style = StyleUtilities.type(stylejson);
+            styleBusiness.updateStyle(id, style);
+            stylejson.setId(id);
+            return new ResponseEntity(id,OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Check if the style with a passed name already exists.
+     *
+     * @param name style name
+     * @return ResponseEntity never null, and a new style with the passed name
+     */
+
+    @RequestMapping(value="/internal/styles/name/{name}/exist", method=GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity existStyleName(@PathVariable(value="name") String name){
+        try {
+            return new ResponseEntity(styleBusiness.existsStyle("sld", name),OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
 
     /**
      * @param styleId
@@ -119,7 +272,6 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-
 
     /**
      * Creates a style and calculate the rules as palette defined as interval set.
@@ -256,46 +408,79 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     }
 
     /**
-     * Import style from an SLD or palette file CPT,CLR,PAL.
+     * Link the chosen style to a dataset.
+     *
+     * @param styleId style id
+     * @param dataId data id
+     * @return ResponseEntity never null
      */
-    @RequestMapping(value="/internal/styles/import",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity importStyle(
-            @RequestParam(value="type",required=false,defaultValue = "sld") String type,
-            @RequestParam(name = "sName", required = false) String styleName,
-            @RequestParam("data") MultipartFile file){
-        if (file.isEmpty()) {
-            return new ErrorMessage().message("SLD file to import is empty!").build();
-        }
-        final byte[] buffer;
+    @RequestMapping(value="/internal/styles/{styleId}/data/{dataId}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity linkToData(@PathVariable("styleId") int styleId, @PathVariable("dataId") int dataId) {
         try {
-           buffer = WebServiceUtilities.getBufferFromFile(file);
-        } catch(IOException ex) {
-            LOGGER.log(Level.WARNING, "Error while retrieving SLD input", ex);
-            return new ErrorMessage(ex).build();
-        }
-
-        //try to extract a style from various form and version
-        org.opengis.style.Style style = styleBusiness.parseStyle(styleName, buffer, file.getOriginalFilename());
-
-        if (style == null) {
-            final String message = "Failed to import style from XML, no UserStyle element defined";
-            LOGGER.log(Level.WARNING, message);
-            return new ErrorMessage().message(message).build();
-        }
-
-        try {
-            final boolean exists = styleBusiness.existsStyle(type,style.getName());
-            if (!exists) {
-                return new ResponseEntity(styleBusiness.createStyle(type, style),OK);
-            } else {
-                return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
-            }
+            styleBusiness.linkToData(styleId,dataId);
+            return new ResponseEntity(OK);
+        } catch(TargetNotFoundException ex) {
+            return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
-
     }
 
+    /**
+     * Unlink the chosen style from the dataset.
+     *
+     * @param styleId style id
+     * @param dataId data id
+     * @return ResponseEntity never null
+     */
+    @RequestMapping(value="/internal/styles/{styleId}/data/{dataId}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity unlinkFromData(@PathVariable("styleId") int styleId, @PathVariable("dataId") int dataId) {
+        try {
+            styleBusiness.unlinkFromData(styleId,dataId);
+            return new ResponseEntity(OK);
+        } catch(TargetNotFoundException ex) {
+            return new ErrorMessage(ex).status(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_FOUND).build();
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Change the shared property for a given styles list.
+     *
+     * @param shared new shared value
+     * @param ids the styles' id list to apply changes to
+     * @return ResponseEntity never null
+     */
+    @RequestMapping(value="/internal/styles/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity changeSharedProperty(@PathVariable("shared") final boolean shared, @RequestBody final List<Integer> ids) {
+        try {
+            styleBusiness.updateSharedProperty(ids, shared);
+            return new ResponseEntity("shared value applied with success.",OK);
+        }catch(Exception ex) {
+            LOGGER.log(Level.WARNING,"Cannot change the shared property for the style list due to exception error : "+ ex.getLocalizedMessage());
+            return new ErrorMessage(ex).status(FORBIDDEN).build();
+        }
+    }
+
+    /**
+     * Change the shared property for a given style.
+     *
+     * @param shared new shared value
+     * @param styleId the style identifier to apply changes to
+     * @return ResponseEntity never null
+     */
+    @RequestMapping(value="/internal/styles/{styleId}/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity changeSharedProperty(@PathVariable("styleId") int styleId, @PathVariable("shared") final boolean shared) {
+        try {
+            styleBusiness.updateSharedProperty(Arrays.asList(styleId), shared);
+            return new ResponseEntity("shared value applied with success.",OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING,"Cannot change the shared property for the style due to exception error : "+ ex.getLocalizedMessage());
+            return new ErrorMessage(ex).status(FORBIDDEN).build();
+        }
+    }
 
 }

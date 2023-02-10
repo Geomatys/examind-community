@@ -19,6 +19,7 @@
 
 package org.constellation.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -33,6 +34,7 @@ import java.util.List;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class StyleBrief extends Style implements Serializable {
 
     private String provider;

@@ -127,26 +127,31 @@ public class StyleBusiness implements IStyleBusiness {
      * sld and sld_temp.
      */
     private static String idToName(final int id) {
-        switch(id){
-            case 1 : return "sld";
-            case 2 : return "sld_temp";
-            default : throw new IllegalArgumentException("Style provider with identifier \"" + id + "\" does not exist.");
-        }
+        return switch (id) {
+            case 1  -> "sld";
+            case 2  -> "sld_temp";
+            default -> throw new IllegalArgumentException("Style provider with identifier \"" + id + "\" does not exist.");
+        };
     }
 
     @Override
-    public List<StyleProcessReference> getAllStyleReferences() {
-        final List<StyleProcessReference> servicePRef = new ArrayList<>();
-        final List<Style> styles = styleRepository.findAll();
+    public List<StyleProcessReference> getAllStyleReferences(String providerId) throws TargetNotFoundException {
+        final List<StyleProcessReference> results = new ArrayList<>();
+        final List<Style> styles;
+        if (providerId != null) {
+            styles = styleRepository.findByProvider(nameToId(providerId));
+        } else {
+            styles = styleRepository.findAll();
+        }
         for(final Style style : styles){
             final StyleProcessReference ref = new StyleProcessReference();
             ref.setId(style.getId());
             ref.setType(style.getType());
             ref.setName(style.getName());
             ref.setProvider(style.getProviderId());
-            servicePRef.add(ref);
+            results.add(ref);
         }
-        return servicePRef;
+        return results;
     }
 
     /**
@@ -173,8 +178,7 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public Integer createStyle(final String providerId, final org.opengis.style.Style styleI) throws ConfigurationException {
-        if (styleI instanceof MutableStyle) {
-            MutableStyle style = (MutableStyle) styleI;
+        if (styleI instanceof MutableStyle style) {
             String styleName = style.getName();
 
             // Proceed style name.
@@ -376,16 +380,22 @@ public class StyleBusiness implements IStyleBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void deleteStyle(final int id) throws ConfigurationException {
-        styleRepository.delete(id);
+    public int deleteStyle(final int id) throws ConfigurationException {
+        return styleRepository.delete(id);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
-    public void deleteAll() throws ConfigurationException {
-        styleRepository.deleteAll();
+    public int deleteAll() throws ConfigurationException {
+        return styleRepository.deleteAll();
     }
 
     /**
