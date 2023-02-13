@@ -330,7 +330,7 @@ function Examind($http, url) {
             if (angular.isUndefined(type)) {type = 'sld';}
             return self.request({
                 method: 'POST',
-                url: 'styles/?type='+type,
+                url: 'internal/styles/?type='+type,
                 headers: {'Accept': 'application/json'},
                 data: style
                 });
@@ -373,7 +373,7 @@ function Examind($http, url) {
         searchStyles : function(pagedSearch) {
             return self.request({
                 method: 'POST',
-                url: 'styles/search',
+                url: 'internal/styles/search',
                 headers: {'Accept': 'application/json'},
                 data : pagedSearch
                 });
@@ -387,7 +387,7 @@ function Examind($http, url) {
         getStyles : function() {
             return self.request({
                 method: 'GET',
-                url: 'styles?q=sld',
+                url: 'styles?mode=brief',
                 headers: {'Accept': 'application/json'}
             });
         },
@@ -402,7 +402,7 @@ function Examind($http, url) {
         updateStyle : function(id, style) {
             return self.request({
                 method: 'POST',
-                url: 'styles/'+id,
+                url: 'internal/styles/'+id,
                 headers: {'Accept': 'application/json'},
                 data: style
                 });
@@ -418,7 +418,7 @@ function Examind($http, url) {
         link : function(styleId, dataId) {
             return self.request({
                 method: 'POST',
-                url: 'styles/'+styleId+'/linkData/'+dataId,
+                url: 'internal/styles/'+styleId+'/data/'+dataId,
                 headers: {'Accept': 'application/json'}
                 });
         },
@@ -432,8 +432,8 @@ function Examind($http, url) {
          */
         unlink : function(styleId, dataId) {
             return self.request({
-                method: 'POST',
-                url: 'styles/'+styleId+'/unlinkData/'+dataId,
+                method: 'DELETE',
+                url: 'internal/styles/'+styleId+'/data/'+dataId,
                 headers: {'Accept': 'application/json'}
                 });
         },
@@ -447,7 +447,7 @@ function Examind($http, url) {
             return self.request({
                 headers: {'Content-Type': undefined},
                 method: 'POST',
-                url: 'internal/styles/import',
+                url: 'styles',
                 transformRequest: angular.identity,
                 data: formData,
                 cache: false
@@ -461,7 +461,7 @@ function Examind($http, url) {
          * @returns {String} url
          */
         getExportStyleURL : function(id) {
-            return self.baseUrl+'styles/export/'+id;
+            return self.baseUrl+'styles/'+id+'?f=file';
         },
 
         // INTERNAL ///////////
@@ -545,7 +545,7 @@ function Examind($http, url) {
         changeSharedPropertyMulti : function (shared, idList) {
             return self.request({
                 method: 'POST',
-                url: 'styles/shared/'+shared,
+                url: 'internal/styles/shared/'+shared,
                 headers: {'Accept': 'application/json'},
                 data: idList
             });
@@ -553,7 +553,7 @@ function Examind($http, url) {
         changeSharedProperty : function (shared,id) {
             return self.request({
                 method: 'POST',
-                url: 'styles/' + id + '/shared/' + shared,
+                url: 'internal/styles/' + id + '/shared/' + shared,
                 headers: {'Accept': 'application/json'}
             });
         },
@@ -561,7 +561,7 @@ function Examind($http, url) {
         existStyleName : function(name) {
             return self.request({
                 method: 'GET',
-                url: 'styles/name/' + name + '/exist',
+                url: 'internal/styles/name/' + name + '/exist',
                 headers: {'Accept': 'application/json'}
             });
         },

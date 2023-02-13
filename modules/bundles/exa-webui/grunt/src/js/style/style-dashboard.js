@@ -388,7 +388,7 @@ angular.module('cstl-style-dashboard', [
             var $form = $('#uploadSLDform');
             var formData = new FormData($form[0]);
             $.ajax({
-                url: window.localStorage.getItem('cstlUrl') + "API/internal/styles/import",
+                url: window.localStorage.getItem('cstlUrl') + "API/styles",
                 type: 'POST',
                 data: formData,
                 async: false,

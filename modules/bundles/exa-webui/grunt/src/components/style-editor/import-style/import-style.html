@@ -2,15 +2,15 @@
     <h4>{{'style.editor.import.sld.file' | translate}}</h4>
     <form id="uploadSLDform" name="uploadSLDform" class="form-horizontal" role="form">
         <div class="form-group col-xs-12"
-             ng-class="{'has-error':!importStyleCtrl.isValidField(uploadSLDform.sName) || importStyleCtrl.errors.nameErr}">
+             ng-class="{'has-error':!importStyleCtrl.isValidField(uploadSLDform.name) || importStyleCtrl.errors.nameErr}">
             <label class="col-xs-3 col-sm-3 col-md-2 col-lg-2 control-label">{{'style.editor.import.style.name' | translate}} (*)</label>
             <div class="col-xs-9 col-sm-9 col-md-6 col-lg-5 input-group">
-                <input type="text" name="sName"
+                <input type="text" name="name"
                        ng-model="importStyleCtrl.helper.styleName"
                        debounce="500"
                        ng-change="importStyleCtrl.checkStyleName()"
                        class="form-control form-control-fix"
-                       ng-class="{'highlight-invalid':!importStyleCtrl.isValidField(uploadSLDform.sName)}" required/>
+                       ng-class="{'highlight-invalid':!importStyleCtrl.isValidField(uploadSLDform.name)}" required/>
                 <span class="input-group-btn">
                     <button type="button"
                             class="btn btn-info"
@@ -20,7 +20,7 @@
                     </button>
                 </span>
                 <span id="helpBlock2"
-                      ng-if="!importStyleCtrl.isValidField(uploadSLDform.sName)"
+                      ng-if="!importStyleCtrl.isValidField(uploadSLDform.name)"
                       class="help-block alert alert-danger">{{'style.editor.import.field.required' | translate}}</span>
                 <span id="helpBlock2" ng-if="importStyleCtrl.errors.nameErr"
                       class="help-block alert alert-danger">

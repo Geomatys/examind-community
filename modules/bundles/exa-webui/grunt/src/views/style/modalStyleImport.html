@@ -14,16 +14,16 @@
                 <label>{{'sldeditor.name' | translate}} (*)</label>
                 <div style="width: 400px;">
                     <input type="text"
-                           name="sName"
+                           name="name"
                            ng-model="import.styleName"
                            style="margin-bottom: 5pt;"
                            class="form-control form-control-fix"
-                           ng-class="{'highlight-invalid':!isValidField(uploadSLDform.sName)}" required/>
+                           ng-class="{'highlight-invalid':!isValidField(uploadSLDform.name)}" required/>
                 </div>
-                <div ng-if="!isValidField(uploadSLDform.sName)"
+                <div ng-if="!isValidField(uploadSLDform.name)"
                      style="color: #d2322d;">
                     <i class="fa fa-caret-up"></i>
-                    <span ng-if="!isValidRequired(uploadSLDform.sName)"
+                    <span ng-if="!isValidRequired(uploadSLDform.name)"
                           translate="metadata.edition.validation.required">This field is required</span>
                 </div>
                 <div ng-if="import.alreadyExistsName && import.alreadyExistsName == import.styleName"
