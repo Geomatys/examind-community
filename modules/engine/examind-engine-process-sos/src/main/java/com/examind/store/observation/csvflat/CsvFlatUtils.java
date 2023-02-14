@@ -63,6 +63,10 @@ public class CsvFlatUtils {
             line:while (it.hasNext()) {
                 lineNb++;
                 final String[] line = it.next();
+                if (line.length == 0) {
+                    LOGGER.finer("skipping empty line " + lineNb);
+                    continue line;
+                }
                 String computed = "";
                 boolean first = true;
                 for(Integer i : measureCodeIndex) {

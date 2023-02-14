@@ -231,6 +231,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 lineNumber++;
                 final String[] line = it.next();
 
+                if (line.length == 0) {
+                    LOGGER.fine("skipping empty line.");
+                    continue;
+                }
+
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                 if (verifyEmptyLine(line, lineNumber, doubleFields)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
@@ -410,6 +415,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             while (it.hasNext()) {
                 lineNumber++;
                 final String[] line   = it.next();
+
+                if (line.length == 0) {
+                    LOGGER.fine("skipping empty line.");
+                    continue;
+                }
+
                 AbstractGeometry geom = null;
                 Date dateParse        = null;
 
