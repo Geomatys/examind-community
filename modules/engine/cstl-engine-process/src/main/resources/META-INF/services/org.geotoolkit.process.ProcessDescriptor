@@ -27,3 +27,4 @@ com.examind.process.test.MapContextInputDescriptor
 com.examind.process.test.PathHandlingDescriptor
 org.constellation.process.data.DataInfoCacheProcessDescriptor
 org.constellation.process.sensor.DeleteSensorDescriptor
+org.constellation.process.datasource.DeleteDatasourceDescriptor
