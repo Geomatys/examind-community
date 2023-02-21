@@ -212,24 +212,24 @@ public class Scene extends TableImpl<SceneRecord> {
 
     @Override
     public List<ForeignKey<SceneRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<SceneRecord, ?>>asList(Keys.SCENE__SCENE_LAYER_FK, Keys.SCENE__SCENE_DATA_FK);
+        return Arrays.<ForeignKey<SceneRecord, ?>>asList(Keys.SCENE__SCENE_DATA_FK, Keys.SCENE__SCENE_LAYER_FK);
     }
 
-    private transient Layer _layer;
     private transient Data _data;
-
-    public Layer layer() {
-        if (_layer == null)
-            _layer = new Layer(this, Keys.SCENE__SCENE_LAYER_FK);
-
-        return _layer;
-    }
+    private transient Layer _layer;
 
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.SCENE__SCENE_DATA_FK);
 
         return _data;
+    }
+
+    public Layer layer() {
+        if (_layer == null)
+            _layer = new Layer(this, Keys.SCENE__SCENE_LAYER_FK);
+
+        return _layer;
     }
 
     @Override

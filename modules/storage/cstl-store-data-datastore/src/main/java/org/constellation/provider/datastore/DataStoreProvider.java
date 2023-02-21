@@ -101,7 +101,7 @@ public class DataStoreProvider extends AbstractDataProvider {
     public DataStore getMainStore() throws ConstellationStoreException {
         try (Session session = storage.read()) {
             return session.handle().store;
-        } catch (DataStoreException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException("Cannot read information from provider", e);
         }
     }
@@ -113,7 +113,7 @@ public class DataStoreProvider extends AbstractDataProvider {
     public Set<GenericName> getKeys() throws ConstellationStoreException {
         try (Session session = storage.read()) {
             return session.handle().getNames();
-        } catch (DataStoreException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException("Cannot read information from provider", e);
         }
     }
@@ -136,7 +136,7 @@ public class DataStoreProvider extends AbstractDataProvider {
         } catch (IllegalNameException e) {
             LOGGER.log(Level.FINE, "Queried an unknown name: "+key, e);
             return null;
-        } catch (DataStoreException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException(e);
         }
     }
@@ -147,7 +147,7 @@ public class DataStoreProvider extends AbstractDataProvider {
             return session.handle().remove(key);
         } catch (IllegalNameException e) {
             LOGGER.log(Level.FINE, "User asked for removal of an unknown data: " + key, e);
-        } catch (DataStoreException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.WARNING, "An error occurred while removing data from provider.", e);
         }
         return false;
@@ -161,7 +161,7 @@ public class DataStoreProvider extends AbstractDataProvider {
         try (Session session = storage.write()) {
             storage.disposeDataStore(session);
             session.handle(); // Force recreating data
-        } catch (DataStoreException e) {
+        } catch (Exception e) {
             throw new ConstellationStoreException("Reloading of data provider failed", e);
         }
     }
@@ -174,7 +174,7 @@ public class DataStoreProvider extends AbstractDataProvider {
         // Do not use utility method writeOnHandle, because it forces creation of handle, which we want to avoid.
         try (Session session = storage.write()) {
             storage.disposeDataStore(session);
-        }  catch (DataStoreException ex) {
+        }  catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Cannot properly dispose DataStore provider " + getId(), ex);
         }
     }
@@ -217,7 +217,7 @@ public class DataStoreProvider extends AbstractDataProvider {
 
             final ResourceOnFileSystem fileStore = (ResourceOnFileSystem) currentStore;
             return fileStore.getComponentFiles();
-        } catch (DataStoreException ex) {
+        } catch (Exception ex) {
             throw new ConstellationException(ex);
         }
     }
