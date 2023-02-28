@@ -46,6 +46,7 @@ import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
+import static org.constellation.provider.computed.AggregateUtils.getData;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_IDS;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME;
 import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME_ID;
@@ -196,11 +197,4 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         return results;
     }
 
-    protected Data<?> getData(DataRepository repo, int dataId) throws ConfigurationException {
-        final org.constellation.dto.Data d = repo.findById(dataId);
-        if (d == null) throw new TargetNotFoundException("No data found with id:" + dataId);
-        final Data<?> dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
-        if (dp == null) throw new TargetNotFoundException("No data found in provider named: {" + d.getNamespace() + "} " + d.getName());
-        return dp;
-    }
 }

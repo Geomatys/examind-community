@@ -18,7 +18,6 @@
  */
 package org.constellation.provider.computed;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -34,11 +33,10 @@ import org.apache.sis.util.collection.BackingStoreException;
 import org.apache.sis.util.iso.Names;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConfigurationException;
-import org.constellation.exception.ConstellationException;
-import org.constellation.provider.CoverageData;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DefaultCoverageData;
+import static org.constellation.provider.computed.AggregateUtils.getData;
 
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -105,33 +103,7 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
     }
 
     private AggregatedCoverageResource createFromDataIds() {
-        try {
-            if (dataIds.length < 2) {
-                throw new IllegalArgumentException("Not enough data given for aggregation. At least 2 resources required, but found only "+dataIds.length);
-            }
-            final DataRepository repo = SpringHelper.getBean(DataRepository.class)
-                                                    .orElseThrow(() -> new ConstellationException("No spring context available"));
-            List<VirtualBand> bands = new ArrayList<>();
-            for (int dataId : dataIds) {
-                Data<?> d = getData(repo, dataId);
-                if (d instanceof CoverageData cd) {
-                    for (int i = 0; i < cd.getSampleDimensions().size(); i++) {
-                        if (bands.size() <= i) {
-                            bands.add(new VirtualBand());
-                        }
-                        VirtualBand vb = bands.get(i);
-                        List<Source> sources = new ArrayList<>(vb.getSources());
-                        sources.add(new Source(cd.getOrigin(), i));
-                        vb.setSources(sources);
-                    }
-                } else {
-                    throw new ConfigurationException("An coverage data was expected for aggregated coverage");
-                }
-            }
-            return new AggregatedCoverageResource(bands, mode, resultCrs);
-        } catch (ConstellationException | DataStoreException | TransformException e) {
-            throw new RuntimeException(e);
-        }
+        return AggregateUtils.createFromDataIds(dataIds, mode, resultCrs);
     }
 
     private Optional<AggregatedCoverageResource> createFromVirtualBands() throws DataStoreException, TransformException {

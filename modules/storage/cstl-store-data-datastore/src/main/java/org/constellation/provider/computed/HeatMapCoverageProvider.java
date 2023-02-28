@@ -39,6 +39,7 @@ import org.opengis.util.FactoryException;
 
 import java.awt.*;
 import java.util.logging.Level;
+import static org.constellation.provider.computed.AggregateUtils.getData;
 
 import static org.constellation.provider.computed.HeatMapCoverageProviderDescriptor.*;
 
