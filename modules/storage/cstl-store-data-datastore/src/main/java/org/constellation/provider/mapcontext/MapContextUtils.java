@@ -86,7 +86,7 @@ public class MapContextUtils {
     }
 
     /**
-    * Build a Geotoolkit map item from an Examind Map context layer.
+    * Build a SIS map item from an Examind Map context layer.
     *
     * @param layer The Map context layer to transform (Must be not {@code null}).
     * @return A map item ready-to-be rendered by Geotoolkit.
@@ -182,5 +182,48 @@ public class MapContextUtils {
         } else {
             throw new ConstellationException("Not enough information in map context layer named " + layer.getName() + ". We cannot load back related data.");
         }
+    }
+
+   /**
+    * Return a {@link Resource} from an Examind Map context layer.
+    *
+    * @param layer The Map context layer to transform (Must be not {@code null}).
+    */
+   public static Resource getResource(final AbstractMCLayerDTO layer, ILayerBusiness layerBusiness) throws ConstellationException {
+        if (layer == null) throw new ConstellationException("layer must not be null");
+        if (layerBusiness == null) throw new ConstellationException("layerBusiness must not be null");
+        Resource rs = null;
+        if (layer instanceof InternalServiceMCLayerDTO isLayer) {
+            final Integer layerId = isLayer.getLayerId();
+            final Layer layerConf = layerBusiness.getLayer(layerId, null);
+            final Data realData   = DataProviders.getProviderData(layerConf.getDataId());
+            rs = realData.getOrigin();
+
+        } else if (layer instanceof DataMCLayerDTO dtLayer) {
+            final Integer dataId = dtLayer.getDataId();
+            final Data realData   = DataProviders.getProviderData(dataId);
+            rs = realData.getOrigin();
+
+        } else if (layer instanceof ExternalServiceMCLayerDTO extLayer) {
+            String serviceUrl = extLayer.getExternalServiceUrl();
+            if (serviceUrl != null) {
+                try {
+                    // TODO : Could it be something else than a WMS ?
+                    URL verifiedUrl = new URL(serviceUrl);
+                    final WMSVersion wmsVersion;
+                    if (extLayer.getExternalServiceVersion() == null) {
+                        wmsVersion = WMSVersion.auto;
+                    } else {
+                        wmsVersion = WMSVersion.getVersion(extLayer.getExternalServiceVersion());
+                    }
+
+                    WebMapClient wmsClient = new WebMapClient(verifiedUrl, wmsVersion);
+                    rs = new WMSResource(wmsClient, extLayer.getExternalLayer().getLocalPart());
+                } catch (MalformedURLException ex) {
+                    throw new ConstellationException(ex);
+                }
+            }
+        }
+        return rs;
     }
 }

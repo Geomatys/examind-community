@@ -35,6 +35,7 @@ import org.opengis.util.GenericName;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
@@ -186,6 +187,13 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
 
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
+        if (origin instanceof DataSet ds) {
+            try {
+                return ds.getEnvelope().orElse(null);
+            } catch (DataStoreException ex) {
+                throw new ConstellationStoreException(ex);
+            }
+        }
         return null;
     }
 
