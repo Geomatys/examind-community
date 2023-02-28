@@ -226,7 +226,9 @@ public enum AppProperty {
 
     EXA_WMS_BACKGROUND_URL("examind.wms.background", false, String.class),
 
-    EXA_ENABLE_INTERNAL_SIS_STORE("examind.enable.internal.sis.store", false, Boolean.class);
+    EXA_ENABLE_INTERNAL_SIS_STORE("examind.enable.internal.sis.store", false, Boolean.class),
+
+    EXA_DISABLE_WMS_130_ROTATION("examind.disable.wms.130.rotation", false, Boolean.class);
 
     private final String key;
     private final boolean secure;

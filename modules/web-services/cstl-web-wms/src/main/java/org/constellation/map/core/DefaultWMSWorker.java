@@ -1103,9 +1103,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * In 1.3.0, the standard clearly states that the service must interpret CRS codes according to their definition,
      * i.e. it must respect axis order.
      * However, on older WMS versions, (1.1.0), the standard document enforce east/north order on read systems.
-     */
+          */
     private CanvasDef adaptToVersion(@NonNull CanvasDef canvas, @NonNull WMSVersion version) throws CstlServiceException {
-        if (version.compareTo(WMSVersion.v130) >= 0) return canvas;
+        if (version.compareTo(WMSVersion.v130) >= 0 && !Application.getBooleanProperty(AppProperty.EXA_DISABLE_WMS_130_ROTATION, false)) return canvas;
 
         try {
             //force longitude first
