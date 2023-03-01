@@ -533,6 +533,86 @@ public class CSW3RequestTest extends AbstractCSWRequestTest {
         expResultID.add("urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4");
         expResultID.add("urn:uuid:94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
         assertEquals(expResultID, resultID);
+
+        /*
+         * KVP search csw output 3: term filters
+         */
+        query = "q=Lorem%2BVegetation%2Belementum";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(5, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 5; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        expResultID.add("urn:uuid:6a3de50b-fa66-4b58-a0e6-ca146fdd18d4");
+        expResultID.add("urn:uuid:94bc9c83-97f6-4b40-9eb8-a8e8787a5c63");
+        expResultID.add("urn:uuid:9a669547-b69b-469f-a11f-2d875366bbdc");
+        assertEquals(expResultID, resultID);
+
+        /*
+         * KVP search csw output 4: exact term filters
+         */
+        query = "q=%22Lorem%20ipsum%22";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(2, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 2; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        expResultID.add("urn:uuid:19887a8a-f6b0-4a63-ae56-7fba0e17801f");
+        assertEquals(expResultID, resultID);
+
+        /*
+         * KVP search csw output 5: exact term filters
+         */
+        query = "q=%22Lorem%20ipsum%20dolor%22";
+        kvpsUrl = new URL(getOpenSearchURL() + "request=GetRecords&service=CSW&version=3.0.0&" + query + "&outputSchema=http://www.opengis.net/cat/csw/3.0&outputFormat=application/xml");
+        conec = kvpsUrl.openConnection();
+
+        result = unmarshallResponse(conec);
+
+        assertTrue(result instanceof GetRecordsResponseType);
+
+        grResult = (GetRecordsResponseType) result;
+
+        assertEquals(1, grResult.getSearchResults().getAny().size());
+        resultID = new HashSet<>();
+        for (int i = 0; i < 1; i++) {
+            assertTrue(grResult.getSearchResults().getAny().get(i) instanceof RecordType);
+            RecordType r = (RecordType) grResult.getSearchResults().getAny().get(i);
+            resultID.add(r.getIdentifier().getFirstValue());
+        }
+
+        expResultID = new HashSet<>();
+        expResultID.add("urn:uuid:a06af396-3105-442d-8b40-22b57a90d2f2");
+        assertEquals(expResultID, resultID);
     }
 
     @Test

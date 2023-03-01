@@ -226,6 +226,7 @@ public class CSWUtils {
         Filter previous = null;
         List<Filter> orFilters = new ArrayList<>();
         boolean orFilter = false;
+        boolean exactFilter = false;
 
         while (!searchTerms.isEmpty()) {
             if (searchTerms.startsWith("+")) {
@@ -245,17 +246,30 @@ public class CSWUtils {
                     filters.add(previous);
                 }
                 searchTerms = searchTerms.substring(1);
+
+            } else if (searchTerms.startsWith("\"")) {
+                int endPos = searchTerms.indexOf('"', 1);
+                if (endPos == -1) {
+                    throw new CstlServiceException("Invalid search terms, missing ending double quote.", INVALID_PARAMETER_VALUE, "q");
+                }
+                exactFilter = true;
+                searchTerms =  searchTerms.substring(1, endPos);
             }
 
             String term = getTerm(searchTerms);
 
             // filter for the term
             final List<Filter> termFilters = new ArrayList<>();
-            termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:title",       "*" + term + "*", "*", "?", "\\"));
-            termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:description", "*" + term + "*", "*", "?", "\\"));
-            termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:subject",     "*" + term + "*", "*", "?", "\\"));
+            if (exactFilter) {
+                termFilters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "dc:title",       FilterXmlFactory.buildLiteral(filterVersion, term), true));
+                termFilters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "dc:description", FilterXmlFactory.buildLiteral(filterVersion, term), true));
+                termFilters.add(FilterXmlFactory.buildPropertyIsEquals(filterVersion, "dc:subject",     FilterXmlFactory.buildLiteral(filterVersion, term), true));
+            } else {
+                termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:title",       "*" + term + "*", "*", "?", "\\"));
+                termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:description", "*" + term + "*", "*", "?", "\\"));
+                termFilters.add(FilterXmlFactory.buildPropertyIsLike(filterVersion, "dc:subject",     "*" + term + "*", "*", "?", "\\"));
+            }
             previous = FilterXmlFactory.buildOr(filterVersion, termFilters.toArray(new Object[termFilters.size()]));
-
             searchTerms = searchTerms.substring(term.length());
         }
 
@@ -276,28 +290,20 @@ public class CSWUtils {
     }
 
     private static String getTerm(String searchTerms) throws CstlServiceException {
-        if (searchTerms.startsWith("\"")) {
-            int endPos = searchTerms.indexOf('"', 1);
-            if (endPos == -1) {
-                throw new CstlServiceException("Invalid search terms, missing ending double quote.", INVALID_PARAMETER_VALUE, "q");
-            }
-            return searchTerms.substring(0, endPos);
-        } else {
-            // determine the next separator
-            int spacePos = searchTerms.indexOf(' ');
-            int plusPos  = searchTerms.indexOf('+');
+        // determine the next separator
+        int spacePos = searchTerms.indexOf(' ');
+        int plusPos  = searchTerms.indexOf('+');
 
-            // no more terms
-            if (spacePos == -1 && plusPos == -1) {
-                return searchTerms;
-            } else if (spacePos == -1 && plusPos != -1) {
-                return searchTerms.substring(0, plusPos);
-            }  else if (spacePos != -1 && plusPos == -1) {
-                return searchTerms.substring(0, spacePos);
-            } else {
-                int pos = Math.min(plusPos, spacePos);
-                return searchTerms.substring(0, pos);
-            }
+        // no more terms
+        if (spacePos == -1 && plusPos == -1) {
+            return searchTerms;
+        } else if (spacePos == -1 && plusPos != -1) {
+            return searchTerms.substring(0, plusPos);
+        }  else if (spacePos != -1 && plusPos == -1) {
+            return searchTerms.substring(0, spacePos);
+        } else {
+            int pos = Math.min(plusPos, spacePos);
+            return searchTerms.substring(0, pos);
         }
     }
 
