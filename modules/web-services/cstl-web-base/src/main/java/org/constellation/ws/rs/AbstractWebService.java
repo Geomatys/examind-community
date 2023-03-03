@@ -564,9 +564,34 @@ public abstract class AbstractWebService implements WebService{
      * @throws CstlServiceException if the parameter is mandotory and missing.
      */
     protected String getParameter(final String parameterName, final boolean mandatory) throws CstlServiceException {
+        return getParameter(parameterName, Collections.EMPTY_LIST, mandatory);
+    }
 
-        final List<String> values = getParameter(parameterName);
-        if (values == null) {
+    /**
+     * Extracts the value, for a parameter specified, from a query.
+     * If it is a mandatory one, and if it is {@code null}, it throws an exception.
+     * Otherwise returns {@code null} in the case of an optional parameter not found.
+     *
+     * @param parameterName The name of the parameter.
+     * @param alternatives Alternative parameter names.
+     * @param mandatory true if this parameter is mandatory, false if its optional.
+      *
+     * @return the parameter, or {@code null} if not specified and not mandatory.
+     * @throws CstlServiceException if the parameter is mandotory and missing.
+     */
+    protected String getParameter(final String parameterName, List<String> alternatives, final boolean mandatory) throws CstlServiceException {
+
+        List<String> values = getParameter(parameterName);
+        if (values == null || values.isEmpty()) {
+            if (alternatives != null && !alternatives.isEmpty()) {
+                for (String alternative : alternatives) {
+                    values = getParameter(alternative);
+                    if (values != null && !values.isEmpty()) break;
+                }
+            }
+        }
+
+        if (values == null || values.isEmpty()) {
             if (mandatory) {
                 throw new CstlServiceException("The parameter " + parameterName + " must be specified",
                         MISSING_PARAMETER_VALUE, parameterName.toLowerCase());

@@ -187,6 +187,15 @@ public final class WMSConstant {
                                                                                                          MimeType.IMAGE_BMP,
                                                                                                          MimeType.IMAGE_PPM));
 
+    public static final List<String> CRS_KEYS = Collections.unmodifiableList(Arrays.asList(KEY_CRS_V111,
+                                                                                           KEY_CRS_V130));
+
+    public static final List<String> X_KEYS = Collections.unmodifiableList(Arrays.asList(KEY_I_V111,
+                                                                                         KEY_I_V130));
+
+    public static final List<String> Y_KEYS = Collections.unmodifiableList(Arrays.asList(KEY_J_V111,
+                                                                                         KEY_J_V130));
+
     private WMSConstant() {}
 
     public static Request createRequest130(final List<String> gfi_mimetypes){

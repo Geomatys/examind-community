@@ -79,6 +79,8 @@ import static org.constellation.api.QueryConstants.UPDATESEQUENCE_PARAMETER;
 import static org.constellation.api.QueryConstants.VERSION_PARAMETER;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.business.IStyleBusiness;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationException;
 import static org.constellation.map.core.WMSConstant.*;
 import static org.constellation.util.Util.parseLayerNameList;
@@ -363,8 +365,17 @@ public class WMSService extends GridWebService<WMSWorker> {
             throw new CstlServiceException("The parameter version must be specified",
                 MISSING_PARAMETER_VALUE, "version");
         }
-        final String strX    = getParameter(version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_I_V111 : KEY_I_V130, true);
-        final String strY    = getParameter(version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_J_V111 : KEY_J_V130, true);
+
+        final boolean strict = Application.getBooleanProperty(AppProperty.EXA_WMS_NO_MS, true);
+
+        final String xKey = version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_I_V111 : KEY_I_V130;
+        final List<String> xKeys = strict ? Collections.EMPTY_LIST : X_KEYS;
+
+        final String yKey = version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_J_V111 : KEY_J_V130;
+        final List<String> yKeys = strict ? Collections.EMPTY_LIST : Y_KEYS;
+
+        final String strX    = getParameter(xKey, xKeys, true);
+        final String strY    = getParameter(yKey, yKeys, true);
         final String strQueryLayers = getParameter(KEY_QUERY_LAYERS, true);
               String infoFormat  = getParameter(KEY_INFO_FORMAT, false);
         final String strFeatureCount = getParameter(KEY_FEATURE_COUNT, false);
@@ -380,14 +391,12 @@ public class WMSService extends GridWebService<WMSWorker> {
         try {
             x = RequestsUtilities.toInt(strX);
         } catch (NumberFormatException ex) {
-            throw new CstlServiceException("Integer value waited. " + ex.getMessage(), ex, INVALID_POINT,
-                    version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_I_V111 : KEY_I_V130);
+            throw new CstlServiceException("Integer value waited. " + ex.getMessage(), ex, INVALID_POINT, xKey);
         }
         try {
             y = RequestsUtilities.toInt(strY);
         } catch (NumberFormatException ex) {
-            throw new CstlServiceException("Integer value waited. " + ex.getMessage(), ex, INVALID_POINT,
-                    version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_J_V111 : KEY_J_V130);
+            throw new CstlServiceException("Integer value waited. " + ex.getMessage(), ex, INVALID_POINT, yKey);
         }
         final Integer featureCount;
         if (strFeatureCount == null || strFeatureCount.isEmpty()) {
@@ -509,8 +518,12 @@ public class WMSService extends GridWebService<WMSWorker> {
             }
         }
 
-        final String strCRS          = getParameter((version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
-                                            KEY_CRS_V111 : KEY_CRS_V130, true);
+        final boolean strict = Application.getBooleanProperty(AppProperty.EXA_WMS_STRICT, true);
+
+        final String crsKey = version.equals(ServiceDef.WMS_1_1_1_SLD.version.toString()) ? KEY_CRS_V111 : KEY_CRS_V130;
+        final List<String> altCrsKeys = strict ? Collections.EMPTY_LIST : CRS_KEYS;
+        
+        final String strCRS          = getParameter(crsKey, altCrsKeys,  true);
         final String strBBox         = getParameter(KEY_BBOX,            true);
         final String strLayers       = getParameter(KEY_LAYERS,          true);
         final String strWidth        = getParameter(KEY_WIDTH,           true);

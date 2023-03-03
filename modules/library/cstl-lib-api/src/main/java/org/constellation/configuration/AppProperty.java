@@ -274,9 +274,14 @@ public enum AppProperty {
     EXA_ADD_DATA_BBOX_ANALISIS("examind.add.data.bbox.analisis", false, Boolean.class),
 
     /**
-     * If set to true, WMS capabilities will not display millisecond (for external tools compatibility)
+     * If set to true, WMS capabilities will not display millisecond (for external tools compatibility).
      */
     EXA_WMS_NO_MS("examind.wms.no.ms", false, Boolean.class),
+
+    /**
+     * If set to false, WMS will accept bad wms protocol parameters (like SRS instead of CRS, for external tools compatibility).
+     */
+    EXA_WMS_STRICT("examind.wms.strict", true, Boolean.class),
 
     EXA_WMS_BACKGROUND_URL("examind.wms.background", false, String.class),
 
