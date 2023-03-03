@@ -1134,6 +1134,7 @@
   "service.config.source.collection": "The service will add granule search link on each record (OpenSearch)",
   "service.config.source.defaultBehaviourInternal": "In the case of no checkbox has been checked, all the metadata in the database will be automatically exposed in this CSW",
   "service.config.source.postgisInfo": "For PostgresSQL database you need Postgis extension already installed on your server.",
+  "service.config.source.printLogLabel": "Log incomming request",
   "service.create.end.addlayers.label": "Add layers on service",
   "service.create.end.addmetadata.label": "View metadata on service",
   "service.create.end.description.label": "Service description",

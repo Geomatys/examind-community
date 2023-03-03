@@ -1242,6 +1242,7 @@
   "service.config.source.collection": "Le service ajoute des liens de recherche de granule pour chaque métadonnée (OpenSearch)",
   "service.config.source.defaultBehaviourInternal": "Dans le cas où aucune case n'a été cochée, toutes les métadonnées présentes dans la base seront automatiquement exposées dans ce CSW.",
   "service.config.source.postgisInfo": "Pour une base données PostgresSQL il vous faudra l'extension Postgis déjà installé sur votre serveur.",
+  "service.config.source.printLogLabel": "Logger les requetes entrantes.",
   "service.create.end.addlayers.label": "Ajouter des couches au service",
   "service.create.end.addmetadata.label": "Voir les métadonnées",
   "service.create.end.description.label": "Description du service",
