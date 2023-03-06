@@ -850,8 +850,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         if (y < 0 || y > canvasDimension.height) {
             throw new CstlServiceException("The requested point has an invalid Y coordinate.", INVALID_POINT);
         }
-        final Rectangle selectionArea = new Rectangle( getFI.getX()-pixelTolerance,
-                                               getFI.getY()-pixelTolerance,
+        final Rectangle selectionArea = new Rectangle( x-pixelTolerance,
+                                               y-pixelTolerance,
                                                pixelTolerance*2,
                                                pixelTolerance*2);
 
