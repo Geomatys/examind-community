@@ -71,7 +71,6 @@ import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.feature.FeatureType;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -138,8 +137,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected static final GeometryFactory GF = new GeometryFactory();
 
-    private final FeatureType ft;
-
     public FileParsingObservationStore(ParameterValueGroup params) throws IOException, DataStoreException{
         super(params);
 
@@ -182,7 +179,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         } else {
             this.procedureId = pid;
         }
-        this.ft = FileParsingUtils.buildFeatureType(dataFile.toUri(), mimeType, delimiter, quotechar, dateColumns, longitudeColumn, latitudeColumn, measureColumns);
     }
 
     @Override
@@ -476,19 +472,4 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     public Path[] getComponentFiles() throws DataStoreException {
         return new Path[]{dataFile};
     }
-
-    /*@Override
-    public FeatureType getType() throws DataStoreException {
-        return ft;
-    }
-
-    @Override
-    public Stream<Feature> features(boolean parallel) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public Optional<Envelope> getEnvelope() throws DataStoreException {
-        return Optional.empty();
-    }*/
 }

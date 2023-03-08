@@ -62,7 +62,7 @@ public class DefaultSensorData extends AbstractData implements SensorData {
 
     @Override
     public String getSensorName() {
-        return SensorMLUtilities.getSmlName(metadata).orElse(name.toString());
+        return SensorMLUtilities.getSmlName(metadata).orElseGet(name::toString);
     }
 
     @Override

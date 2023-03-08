@@ -979,7 +979,7 @@ public class SOSworker extends SensorWorker {
                             if (offeringNames.isEmpty()) {
                                 filter = bbox;
                             } else if (offeringNames.size() == 1) {
-                                filter = ff.or(bbox, ff.equal(ff.property("offering"), ff.literal(offeringNames.get(0))));
+                                filter = ff.and(bbox, ff.equal(ff.property("offering"), ff.literal(offeringNames.get(0))));
                             } else {
                                 List<Filter> filters = new ArrayList<>();
                                 for (String offering : offeringNames) {
@@ -1234,7 +1234,7 @@ public class SOSworker extends SensorWorker {
                             if (offering == null) {
                                 filter = bbox;
                             } else {
-                                filter = ff.or(bbox, ff.equal(ff.property("offering"), ff.literal(offering)));
+                                filter = ff.and(bbox, ff.equal(ff.property("offering"), ff.literal(offering)));
                             }
                             query.setSelection(filter);
 

@@ -423,8 +423,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             return new ArrayList<>(result.values());
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading csv file", ex);
-            throw new DataStoreException(ex);
+            throw new DataStoreException("Problem reading csv file", ex);
         }
     }
 

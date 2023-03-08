@@ -22,7 +22,6 @@ package com.examind.sts.core;
 import com.examind.odata.ODataFilterParser;
 import com.examind.odata.ODataParseException;
 import com.examind.sensor.ws.SensorWorker;
-import static org.geotoolkit.observation.model.ObservationTransformUtils.toModel;
 import static com.examind.sts.core.STSConstants.STS_DEC_EXT;
 import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.*;
@@ -788,7 +787,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             } else {
                 List<Map> quality = new ArrayList<>();
                 List measures = new ArrayList<>();
-                for (int i = col, fi = 0; i < arrayLine.size(); i++, fi++) {
+                for (int i = col; i < arrayLine.size(); i++) {
                     ExtField f = fields != null ? fields.get(i) : null;
                     if (f != null && f.isQuality) {
                         quality.add(buildResultQuality(f, arrayLine.get(i)));

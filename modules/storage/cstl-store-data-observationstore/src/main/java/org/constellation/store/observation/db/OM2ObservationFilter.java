@@ -47,6 +47,7 @@ import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.constellation.util.FilterSQLRequest.TableJoin;
@@ -329,7 +330,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures) {
+    public void setProcedure(final List<String> procedures) throws DataStoreException {
         if (procedures != null && !procedures.isEmpty()) {
             if (OMEntity.OBSERVED_PROPERTY.equals(objectType)) {
                 final FilterSQLRequest procSb  = new FilterSQLRequest();
@@ -345,7 +346,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 fieldSb.append(" (op.\"id\" = '").append(phen.getId()).append("') OR");
                             }
                         } catch (DataStoreException ex) {
-                            LOGGER.log(Level.SEVERE, "Error while getting global phenomenon for procedure:" + procedureID, ex);
+                            throw new DataStoreException("Error while getting global phenomenon for procedure:" + procedureID, ex);
                         }
                     } else {
                         procSb.append("(pd.\"procedure\"=").appendValue(procedureID).append(") OR");

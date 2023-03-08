@@ -420,12 +420,9 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
         final List<Object> zValues     = values.getTypedVariables("var66");
         final Coordinate[] pos         = new Coordinate[xValues.size()];
         for (int i = 0; i < xValues.size(); i++) {
-            final List<Double> coord = new ArrayList<>();
             final Double x = (Double) xValues.get(i);
             final Double y = (Double) yValues.get(i);
-            coord.add(x);
-            coord.add(y);
-            if (zValues.size() < i) {
+            if (zValues.size() > i) {
                 final Double z = (Double) zValues.get(i);
                 pos[i] = new Coordinate(x, y, z);
             } else {

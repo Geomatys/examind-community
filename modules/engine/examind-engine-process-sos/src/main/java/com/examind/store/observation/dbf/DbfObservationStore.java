@@ -225,9 +225,9 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
 
                 if (noHeader && obsPropId == null) {
-                    throw new DataStoreException("In noHeader mdoe, you must set a fixed observated property id");
+                    throw new DataStoreException("In 'noHeader' mode, you must set a fixed observated property id");
                 } else if (noHeader && doubleFields.size() > 1) {
-                    throw new DataStoreException("Multiple observated property is not yet supported In noHeader mode");
+                    throw new DataStoreException("Multiple observed properties are not yet supported In 'noHeader' mode");
                 }
                 // loop over columns to build measure string
                 for (int i : doubleFields) {
@@ -262,8 +262,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             return result;
             
         } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
-            throw new DataStoreException(ex);
+            throw new DataStoreException("problem reading dbf file", ex);
         }
     }
 
