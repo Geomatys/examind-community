@@ -1,0 +1,63 @@
+{
+    "id": "obs-0003",
+    "name": "urn:ogc:object:observation:GEOM:0003",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:disjoint_sensor",
+        "name": "Sensor quality"
+    },
+    "samplingTime": {
+        "id": "time-0003",
+        "beginning": {
+            "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
+            "date": "1980-03-05T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
+            "date": "1980-03-06T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        },
+        "properties": {
+            "prop2": "value2",
+            "prop1": "value1"
+        }
+    },
+    "observedProperty": {
+        "id": "hotness-DIS",
+        "name": "hotness",
+        "definition": "urn:ogc:def:phenomenon:GEOM:hotness-DIS"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "TEXT",
+                "name": "hotness-DIS",
+                "description": "urn:ogc:def:phenomenon:GEOM:hotness-DIS"
+            }],
+        "nbValues": 2,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "1980-03-05T21:52:00.0,cold@@1980-03-06T21:52:00.0,hot@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

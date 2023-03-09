@@ -160,24 +160,24 @@ public class ObservationTestUtils {
      * The point of this test is to look for quality fields insertion / extraction.
      */
     public static void assertEqualsObservation(Observation expected, Observation result) {
-        assertEquals(result.getId(), expected.getId());
-        assertEquals(result.getName().getCode(), expected.getName().getCode());
-        assertEquals(result.getObservedProperty(), expected.getObservedProperty());
-        assertEquals(result.getProcedure().getId(), expected.getProcedure().getId());
+        assertEquals(expected.getId(), result.getId());
+        assertEquals(expected.getName().getCode(), result.getName().getCode());
+        assertEquals(expected.getObservedProperty(), result.getObservedProperty());
+        assertEquals(expected.getProcedure().getId(), result.getProcedure().getId());
 
-        assertEquals(result.getProcedure(), expected.getProcedure());
-        assertEquals(result.getSamplingTime(), expected.getSamplingTime());
-        assertEquals(result.getFeatureOfInterest(), expected.getFeatureOfInterest());
-        assertEquals(result.getResultQuality(), expected.getResultQuality());
+        assertEquals(expected.getProcedure(), result.getProcedure());
+        assertEquals(expected.getSamplingTime(), result.getSamplingTime());
+        assertEquals(expected.getFeatureOfInterest(), result.getFeatureOfInterest());
+        assertEquals(expected.getResultQuality(), result.getResultQuality());
 
-        assertEquals(result.getProperties(), expected.getProperties());
-        assertEquals(result.getType(), expected.getType());
+        assertEquals(expected.getProperties(), result.getProperties());
+        assertEquals(expected.getType(), result.getType());
 
-        assertTrue(result.getResult()   instanceof ComplexResult);
-        assertTrue(expected.getResult() instanceof ComplexResult);
+        assertTrue(expected.getResult()   instanceof ComplexResult);
+        assertTrue(result.getResult() instanceof ComplexResult);
 
-        ComplexResult resResult = (ComplexResult) result.getResult();
-        ComplexResult expResult = (ComplexResult) expected.getResult();
+        ComplexResult resResult = (ComplexResult) expected.getResult();
+        ComplexResult expResult = (ComplexResult) result.getResult();
 
         assertEquals(expResult.getDataArray(), resResult.getDataArray());
         assertEquals(expResult.getFields(),    resResult.getFields());
@@ -185,8 +185,8 @@ public class ObservationTestUtils {
         assertEquals(expResult.getValues(),    resResult.getValues());
         assertEquals(expResult.getTextEncodingProperties(),  resResult.getTextEncodingProperties());
         
-        assertEquals(expected.getResult(), result.getResult());
+        assertEquals(result.getResult(), expected.getResult());
 
-        assertEquals(expected, result);
+        assertEquals(result, expected);
     }
 }

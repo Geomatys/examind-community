@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.parameter.ParameterValueGroup;
@@ -409,5 +410,66 @@ public class ObservationStoreProviderWriteTest {
         result   = (Observation) results.get(3);
 
         assertEqualsMeasurement(expectedDoubleMeas, result, false);
+    }
+
+    @Test
+    public void writeDisjointObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/disjoint_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/disjoint_sensor_observation2.json"),   Observation.class);
+        Observation third = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/disjoint_sensor_observation3.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_disjoint_sensor_observation.json"),   Observation.class);
+        Observation expected2 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_disjoint_sensor_observation2.json"),   Observation.class);
+
+        String oid1 = omPr.writeObservation(first);
+
+        /*
+        * get the written first observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:disjoint_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        // fix changed id
+        first.setId("obs-1");
+        assertEqualsObservation(first, result);
+
+
+        String oid2 = omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:disjoint_sensor"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+        String oid3 = omPr.writeObservation(third);
+
+        /*
+        * get the full merged observation
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:disjoint_sensor"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected2, result);
     }
 }

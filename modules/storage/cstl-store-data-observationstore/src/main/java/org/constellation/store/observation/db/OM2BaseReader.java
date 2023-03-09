@@ -388,8 +388,14 @@ public class OM2BaseReader {
                 } else if (composites.size() == 1) {
                     return composites.get(0);
                 } else  {
-                    // multiple composite phenomenons are present, we must choose the global one
-                    return (Phenomenon) getOverlappingComposite(composites);
+                    // multiple composite phenomenons are present, we must choose the global one or create a virtual
+                    try {
+                        return (Phenomenon) getOverlappingComposite(composites);
+
+                    // TODO replace tha catch when the method will return an optional
+                    } catch (DataStoreException ex) {
+                        return getVirtualCompositePhenomenon(c, procedure);
+                    }
                 }
             }
        } catch (SQLException ex) {
