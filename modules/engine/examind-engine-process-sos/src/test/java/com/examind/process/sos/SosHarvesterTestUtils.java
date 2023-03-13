@@ -172,7 +172,7 @@ public class SosHarvesterTestUtils {
                 List values = (List) l.get(3);
                 for (Object value : values) {
                     sb.append(",");
-                    if (!value.equals(Double.NaN)) {
+                    if (value != null && !value.equals(Double.NaN)) {
                         sb.append(value);
                     }
                 }

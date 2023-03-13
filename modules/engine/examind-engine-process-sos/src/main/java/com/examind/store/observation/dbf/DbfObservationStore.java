@@ -106,7 +106,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
+            final List<Integer> doubleFields = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex);
 
             // special case where there is no header, and a specified observation peorperty identifier
             ObservedProperty fixedObsProp = null;
@@ -175,7 +175,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);
@@ -346,7 +346,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
             final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex);
             // used to fill measure Fields list
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
+            final List<Integer> doubleFields = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex);
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && obsPropId != null) {

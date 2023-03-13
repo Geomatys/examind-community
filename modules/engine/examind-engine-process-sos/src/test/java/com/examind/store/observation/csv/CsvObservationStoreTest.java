@@ -41,6 +41,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -54,6 +55,7 @@ public class CsvObservationStoreTest {
     private static Path argoFile;
     private static Path fmlwFile;
     private static Path mooFile;
+    private static Path boolProfFile;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -66,6 +68,8 @@ public class CsvObservationStoreTest {
         Files.createDirectories(fmlwDirectory);
         Path mooDirectory       = DATA_DIRECTORY.resolve("moo-ts");
         Files.createDirectories(mooDirectory);
+        Path bopDirectory       = DATA_DIRECTORY.resolve("bool-prof");
+        Files.createDirectories(bopDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
         argoFile = argoDirectory.resolve("argo-profiles-2902402-1.csv");
@@ -75,6 +79,9 @@ public class CsvObservationStoreTest {
 
         writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
         mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
+
+        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/boolean-profile.csv", "boolean-profile.csv");
+        boolProfFile = mooDirectory.resolve("boolean-profile.csv");
     }
 
 
@@ -212,5 +219,67 @@ public class CsvObservationStoreTest {
         tp = (Period) time;
         Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
         Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+    }
+
+    @Test
+    @Order(order = 1)
+    public void csvStoreBooleanProfileTest() throws Exception {
+
+        CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvObservationStoreFactory.LOCATION).setValue(boolProfFile.toUri().toString());
+
+        params.parameter(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("TIME");
+        params.parameter(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("DEPTH");
+
+        params.parameter(CsvObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+        params.parameter(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LAT");
+        params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LON");
+
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("STATUS");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN_TYPE.getName().getCode()).setValue("BOOLEAN");
+
+        params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Profile");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:bp");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+
+        CsvObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = procedureNames.iterator().next();
+        Assert.assertEquals("urn:sensor:bp", sensorId);
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("STATUS"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Instant);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+        Instant tp = (Instant) time;
+        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+        Assert.assertEquals(1, procedures.size());
+
+        ProcedureDataset pt = procedures.get(0);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Instant);
+
+        tp = (Instant) time;
+        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getDate()));
     }
 }

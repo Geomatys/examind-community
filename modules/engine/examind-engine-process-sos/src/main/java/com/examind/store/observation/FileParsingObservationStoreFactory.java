@@ -158,6 +158,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMN_TYPE = PARAM_BUILDER
+            .addName("observed_properties_columns_types")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> OBS_PROP_ID = PARAM_BUILDER
             .addName("observed_properties_id")
             .setRequired(false)

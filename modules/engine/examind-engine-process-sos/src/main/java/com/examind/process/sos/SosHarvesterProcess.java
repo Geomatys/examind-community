@@ -170,7 +170,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
         final String obsPropId   = inputParameters.getValue(OBS_PROP_ID);
-        final List<String> obsPropColumns = getMultipleValues(OBS_PROP_COLUMN);
+        final List<String> obsPropColumns     = getMultipleValues(OBS_PROP_COLUMN);
+        final List<String> obsPropColumnTypes = getMultipleValues(OBS_PROP_COLUMN_TYPE);
         final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
         final String obsPropName  = inputParameters.getValue(OBS_PROP_NAME);
         final List<String> ObsPropNameColumns = getMultipleValues(OBS_PROP_NAME_COLUMN);
@@ -317,6 +318,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), obsPropId);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumnTypes));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME.getName().toString(), obsPropName);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_REGEX.getName().toString(), obsPropRegex);

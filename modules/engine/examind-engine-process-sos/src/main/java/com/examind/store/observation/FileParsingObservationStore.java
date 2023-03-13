@@ -106,7 +106,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     // Feature Of interest Column (Optionnal)
     protected final String foiColumn;
 
-    protected Set<String> measureColumns;
+    protected Set<String> obsPropColumns;
 
     protected final String obsPropId;
     protected final String obsPropName;
@@ -153,7 +153,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         
         this.longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         this.latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
-        this.measureColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
+        this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
         this.observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         this.foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
         this.procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
@@ -247,12 +247,12 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
+    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
         String key = procedureId + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, mainColumns, qualtityColumns, qualityTypes);
+            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, measureTypes, mainColumns, qualtityColumns, qualityTypes);
             ObservationBlock ob = new ObservationBlock(procedureId, procedureName, procedureDesc, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
@@ -274,19 +274,19 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         final List<Field> fields = new ArrayList<>();
         int i = 1;
         for (final Entry<String, MeasureField> field : filteredMeasure.entrySet()) {
-            String name  = field.getKey();
-            String uom   = field.getValue().uom;
+            MeasureField mf = field.getValue();
+            String name     = field.getKey();
+            String uom      = mf.uom;
             
             uom  = extractWithRegex(uomRegex, name, uom);
             name = extractWithRegex(obsPropRegex, name);
 
-            String label = field.getValue().label != null ? field.getValue().label : name;
+            String label = mf.label != null ? mf.label : name;
             final List<Field> qualityFields = new ArrayList<>();
-            for (MeasureField qmField : field.getValue().qualityFields) {
-                FieldType fType = FieldType.fromLabel(qmField.type);
-                qualityFields.add(new Field(-1, fType, qmField.name, qmField.label, null, qmField.uom));
+            for (MeasureField qmField : mf.qualityFields) {
+                qualityFields.add(new Field(-1, qmField.type, qmField.name, qmField.label, null, qmField.uom));
             }
-            fields.add(new Field(i, FieldType.QUANTITY, name, label, null, uom, qualityFields));
+            fields.add(new Field(i, mf.type, name, label, null, uom, qualityFields));
             i++;
         }
 

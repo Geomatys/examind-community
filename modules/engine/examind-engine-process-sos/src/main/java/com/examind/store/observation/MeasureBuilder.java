@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,6 +32,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.sos.MeasureStringBuilder;
 
 /**
@@ -50,41 +52,54 @@ public class MeasureBuilder {
     private final List<String> mainColumns;
 
     private static class Measure {
-        public final double value;
+        public final Object value;
         public final String[] qualityValues;
 
         public Measure(int qualitySize) {
-            this.value = Double.NaN;
+            this.value = null;
             this.qualityValues = new String[qualitySize];
             Arrays.fill(qualityValues, "");
 
         }
-        public Measure(double value, String[] qualityValues) {
+        public Measure(Object value, String[] qualityValues) {
             this.value = value;
             this.qualityValues = qualityValues;
         }
 
         public boolean isNaN() {
-            return Double.isNaN(value);
+            if (value instanceof Double d) {
+                return Double.isNaN(d);
+            } else if (value instanceof String s ) {
+                return s.isBlank();
+            } else {
+                return value == null;
+            }
         }
     }
 
-    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> mainColumns, List<String> qualityColumns, List<String> qualityTypes) {
+    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, List<String> qualityColumns, List<String> qualityTypes) {
         if (mainColumns == null    || mainColumns.isEmpty())    throw new IllegalArgumentException("mains columns should not be null or empty");
         if (measureColumns == null || measureColumns.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
         this.isProfile = isProfile;
+        int offset = isProfile ? 1 : 0;
         // initialize description
-        for (String mc : measureColumns) {
+        for (int j = 0, k = offset; j < measureColumns.size(); j++, k++) {
+            String mc = measureColumns.get(j);
+            FieldType type = FieldType.QUANTITY;
+            if ((!isProfile && j ==0) && k < measureTypes.size()) {
+                type = FieldType.valueOf(measureTypes.get(k));
+            }
+
             List<MeasureField> qualityFields = new ArrayList<>();
             for (int i = 0; i < qualityColumns.size(); i++) {
                 String qc = qualityColumns.get(i);
-                String type = "Text";
+                FieldType qtype = FieldType.TEXT;
                 if (i < qualityTypes.size()) {
-                    type = qualityTypes.get(i);
+                    qtype = FieldType.valueOf(qualityTypes.get(i));
                 }
-                qualityFields.add(new MeasureField(qc, type, new ArrayList<>()));
+                qualityFields.add(new MeasureField(qc, qtype, new ArrayList<>()));
             }
-            this.measureColumns.put(mc, new MeasureField(mc, "Quantity", qualityFields));
+            this.measureColumns.put(mc, new MeasureField(mc, type, qualityFields));
         }
         this.mainColumns = mainColumns;
     }
@@ -95,7 +110,7 @@ public class MeasureBuilder {
         this.mainColumns =  new ArrayList<>(cmb.mainColumns);
     }
      
-     public void appendValue(Number mainValue, String measureCode, double measureValue, int lineNumber, String[] qualityValues) {
+     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues) {
          if (!mmb.containsKey(mainValue)) {
             LinkedHashMap<String, Measure> row = new LinkedHashMap<>();
             for (Entry<String, MeasureField>  measure: measureColumns.entrySet()) {
@@ -136,7 +151,7 @@ public class MeasureBuilder {
             if (mainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0), "Quantity", new ArrayList<>()));
+            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0), FieldType.QUANTITY, new ArrayList<>()));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
@@ -185,7 +200,7 @@ public class MeasureBuilder {
                 final String measureName = entry2.getKey();
                 if (measureColumnFound.contains(measureName)) {
                     final Measure measure = entry2.getValue();
-                    result.appendValue(measure.value);
+                    appendValue(result, measure.value);
                     for (String qValue : measure.qualityValues) {
                         result.appendValue(qValue);
                     }
@@ -200,6 +215,25 @@ public class MeasureBuilder {
             return result;
         }
     }
+
+     /**
+      * TODO create a method appendValue(Object) in MeasureStringBuilder.
+      */
+     private static void appendValue(MeasureStringBuilder result, Object value) {
+         if (value instanceof Double d) {
+            result.appendValue(d);
+         } else if (value instanceof String s) {
+            result.appendValue(s);
+         } else if (value instanceof Date d) {
+            result.appendDate(d);
+         } else if (value instanceof Boolean b) {
+            result.appendValue(b);
+         } else if (value == null) {
+             result.appendValue((String) null);
+         } else {
+             throw new IllegalArgumentException("Unssuported value type:" + value);
+         }
+     }
 
     public int getMeasureCount() {
         return mmb.size();

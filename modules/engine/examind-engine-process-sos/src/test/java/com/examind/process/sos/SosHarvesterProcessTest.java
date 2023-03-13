@@ -2274,4 +2274,199 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbMeasure = getNbMeasure(stsWorker, sensorID);
         Assert.assertEquals(3, nbMeasure);
     }
+
+    @Test
+    @Order(order = 8)
+    public void harvesterCSVDisjointTSTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String datasetId = "SOS_DATA_6";
+        String sensorID = "urn:ogc:object:sensor:GEOM:disjoint_sensor";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup baseParam = desc.getInputDescriptor().createValue();
+        baseParam.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        baseParam.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(disjointDirectory.toUri().toString());
+
+        baseParam.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFile");
+        baseParam.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(",");
+        baseParam.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time");
+        baseParam.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time");
+        baseParam.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+        baseParam.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        baseParam.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("lat");
+        baseParam.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("lon");
+        baseParam.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorID);
+        baseParam.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+
+        ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s1.setValue(new ServiceProcessReference(sc));
+        baseParam.values().add(s1);
+        ParameterValue s2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s2.setValue(new ServiceProcessReference(sc2));
+        baseParam.values().add(s2);
+
+        /*
+        * first insertion
+        */
+        ParameterValueGroup in = baseParam.clone();
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("salinity-DIS");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val2.setValue("temperature-DIS");
+        in.values().add(val2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Sensor sensor = sensorBusiness.getSensor(sensorID);
+        Assert.assertNotNull(sensor);
+
+        Thing t = getThing(stsWorker, sensorID);
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        /*
+        * first extraction
+        */
+        ObservationOffering offp = getOffering(sosWorker, sensorID);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        // composite
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        /*
+        * Verify an inserted data
+        */
+        String expectedResult = getResourceAsString("com/examind/process/sos/disjoint-1.txt");
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, null);
+        Assert.assertEquals(expectedResult, result);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorID);
+        Assert.assertEquals(2, nbMeasure);
+
+        /*
+        * second insertion
+        */
+        writeResourceDataFile(disjointDirectory, "com/examind/process/sos/disjoint-2.csv", "disjoint-2.csv");
+
+        in = baseParam.clone();
+        val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("depth-DIS");
+        in.values().add(val1);
+        val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val2.setValue("pressure-DIS");
+        in.values().add(val2);
+
+        proc = desc.createProcess(in);
+        proc.call();
+
+        t = getThing(stsWorker, sensorID);
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        /*
+        * second extraction
+        */
+        offp = getOffering(sosWorker, sensorID);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-04T21:52:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+
+        /*
+        * Verify an inserted data
+        */
+        result = getMeasure(stsWorker, sensorID);
+        expectedResult = getResourceAsString("com/examind/process/sos/disjoint-2.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        nbMeasure = getNbMeasure(stsWorker, sensorID);
+        Assert.assertEquals(4, nbMeasure);
+
+        /*
+        * third insertion
+        */
+        writeResourceDataFile(disjointDirectory, "com/examind/process/sos/disjoint-3.csv", "disjoint-3.csv");
+
+        in = baseParam.clone();
+        val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("hotness-DIS");
+        in.values().add(val1);
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_TYPE_NAME).setValue("TEXT");
+
+        proc = desc.createProcess(in);
+        proc.call();
+
+        t = getThing(stsWorker, sensorID);
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        /*
+        * third extraction
+        */
+        offp = getOffering(sosWorker, sensorID);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-06T21:52:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+
+        /*
+        * Verify an inserted data
+        */
+        result = getMeasure(stsWorker, sensorID);
+        expectedResult = getResourceAsString("com/examind/process/sos/disjoint-3.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        nbMeasure = getNbMeasure(stsWorker, sensorID);
+        Assert.assertEquals(6, nbMeasure);
+
+    }
 }

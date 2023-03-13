@@ -29,6 +29,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -116,10 +119,11 @@ public class FileParsingUtils {
             final String header = headers[i];
             if (columnNames.contains(header)) {
                 results.add(i);
+                if (appendName != null) {
+                    appendName.add(header);
+                }
             }
-            if (appendName != null) {
-                appendName.add(header);
-            }
+            
         }
         return results;
     }
@@ -194,6 +198,63 @@ public class FileParsingUtils {
         return empty;
     }
 
+    /**
+     * Verify if the line is empty, meaning no measure field is filled.
+     *
+     * @param line parsed CSV line.
+     * @param lineNumber line number in the file (for logging purpose).
+     * @param typedFields List of column index where to look for Double value.
+     *
+     * @return {@code true} if the line is considered empty.
+     */
+    public static boolean verifyEmptyLine(Object[] line, int lineNumber, Map<Integer, FieldType> typedFields, DateFormat sdf) {
+        for (Entry<Integer, FieldType> field : typedFields.entrySet()) {
+            int i = field.getKey();
+            try {
+                Object value = line[i];
+                if (value == null) continue;
+                switch(field.getValue()) {
+                    case QUANTITY -> {
+                         if (value instanceof String strValue) {
+                            if ((strValue = strValue.trim()).isEmpty()) continue;
+                            parseDouble(strValue);
+                            return false;
+                        } else if (value instanceof Number) {
+                            return false;
+                        }
+                    }
+                    case BOOLEAN -> {
+                        if (value instanceof String strValue) {
+                            if ((strValue = strValue.trim()).isEmpty()) continue;
+                            return false;
+                        } else if (value instanceof Boolean) {
+                            return false;
+                        }
+                    }
+                    case TEXT -> {
+                        if (value instanceof String strValue) {
+                            if ((strValue = strValue.trim()).isEmpty()) continue;
+                            return false;
+                        // a toString will be applied
+                        } else if (value != null) {
+                            return false;
+                        }
+                    }
+                    case TIME -> {
+                        parseObjectDate(value, sdf);
+                        return false;
+                    }
+                }
+               
+            } catch (NumberFormatException | ParseException | ClassCastException ex) {
+                if (!((String)line[i]).isEmpty()) {
+                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.getValue(), lineNumber, i, line[i]));
+                }
+            }
+        }
+        return true;
+    }
+
     public static String extractWithRegex(String regex, String value) {
         return extractWithRegex(regex, value, value);
     }
@@ -231,6 +292,16 @@ public class FileParsingUtils {
             return dValue;
         } else {
             throw new NumberFormatException("Expecting a double but got: " + obj);
+        }
+    }
+
+    public static boolean parseBoolean(Object obj) throws ParseException {
+        if (obj instanceof String s) {
+            return Boolean.parseBoolean(s);
+        } else if (obj instanceof Boolean dValue) {
+            return dValue;
+        } else {
+            throw new ParseException("Expecting a boolean but got: " + obj, 0);
         }
     }
 

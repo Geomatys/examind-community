@@ -41,6 +41,12 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
+    /**
+     * Limit number of properties to a few dozens, to limit system overhead.
+     * TODO: better describe this choice, or relax this limitation.
+     */
+    private static final int MAX_CARDINALITY = 92;
+
     /**Process name : addition */
     public static final String NAME = "sosHarvester";
 
@@ -101,7 +107,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final String SERVICE_ID_DESC = "Sensor service where to publish the sensors.";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
     new ExtendedParameterDescriptor<>(
-                SERVICE_ID_NAME, SERVICE_ID_DESC, 1, 92, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
+                SERVICE_ID_NAME, SERVICE_ID_DESC, 1, MAX_CARDINALITY, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
 
     public static final String DATASET_IDENTIFIER_NAME = "dataset_identifier";
     public static final String DATASET_IDENTIFIER_DESC = "Dataset identifier where to add the data.";
@@ -172,7 +178,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> MAIN_COLUMN = new ExtendedParameterDescriptor<>(
             MAIN_COLUMN_NAME,
             MAIN_COLUMN_DESC,
-            1, 92,
+            1, MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -190,7 +196,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> DATE_COLUMN = new ExtendedParameterDescriptor<>(
             DATE_COLUMN_NAME,
             DATE_COLUMN_DESC,
-            1, 92,
+            1, MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -290,11 +296,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
     public static final String OBS_PROP_COLUMN_NAME = "observed_properties_columns";
-    public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed property (used with csv-flat)";
+    public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed properties";
     public static final ParameterDescriptor<String> OBS_PROP_COLUMN = new ExtendedParameterDescriptor<>(
             OBS_PROP_COLUMN_NAME,
             OBS_PROP_COLUMN_DESC,
-            0, 92,
+            0, MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -312,7 +318,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = new ExtendedParameterDescriptor<>(
             OBS_PROP_NAME_COLUMN_NAME,
             OBS_PROP_NAME_COLUMN_DESC,
-            0, 92,
+            0, MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -322,7 +328,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_COLUMNS_FILTER  = new ExtendedParameterDescriptor<>(
                 OBS_PROP_COLUMNS_FILTER_NAME,
                 OBS_PROP_COLUMNS_FILTER_DESC,
-                0, 92,
+                0, MAX_CARDINALITY,
                 String.class,
                 null, null, null
                 );
@@ -335,12 +341,22 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String OBS_PROP_COLUMN_TYPE_NAME = "observed_properties_columns_type";
+    public static final String OBS_PROP_COLUMN_TYPE_DESC = "Field type of the columns containing the observed property (used with csv)";
+    public static final ParameterDescriptor<String> OBS_PROP_COLUMN_TYPE = new ExtendedParameterDescriptor<>(
+            OBS_PROP_COLUMN_TYPE_NAME,
+            OBS_PROP_COLUMN_TYPE_DESC,
+            0, MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+
     public static final String QUALITY_COLUMN_NAME = "quality_columns";
     public static final String QUALITY_COLUMN_DESC = "Columns containing the quality (linked to an observed property)";
     public static final ParameterDescriptor<String> QUALITY_COLUMN = new ExtendedParameterDescriptor<>(
             QUALITY_COLUMN_NAME,
             QUALITY_COLUMN_DESC,
-            0, 92,
+            0, MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -350,7 +366,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> QUALITY_COLUMN_TYPE = new ExtendedParameterDescriptor<>(
             QUALITY_COLUMN_TYPE_NAME,
             QUALITY_COLUMN_TYPE_DESC,
-            0, 92,
+            0, MAX_CARDINALITY,
             String.class,
             "Quantity",
             new String[]{"Quantity", "Text", "Boolean", "Time"},
@@ -384,7 +400,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, REMOVE_PREVIOUS,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
+                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
@@ -409,7 +425,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<Integer> GENERATE_DATA_IDS = new ExtendedParameterDescriptor<>(
             GENERATE_DATA_IDS_NAME,
             GENERATE_DATA_IDS_DESC,
-            0, 92,
+            0, MAX_CARDINALITY,
             Integer.class,
             null, null, null
     );

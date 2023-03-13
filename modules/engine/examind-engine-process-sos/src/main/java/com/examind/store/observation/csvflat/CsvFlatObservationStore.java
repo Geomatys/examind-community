@@ -62,7 +62,7 @@ import org.opengis.parameter.ParameterValueGroup;
 public class CsvFlatObservationStore extends FileParsingObservationStore implements ObservationStore {
 
     private final String valueColumn;
-    private final Set<String> obsPropColumns;
+    private final Set<String> csvFlatobsPropColumns;
     private final Set<String> obsPropNameColumns;
     private final String typeColumn;
     private final String uomColumn;
@@ -72,7 +72,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         super(params);
 
         this.valueColumn = (String) params.parameter(RESULT_COLUMN.getName().toString()).getValue();
-        this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
+        this.csvFlatobsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
         this.obsPropNameColumns = getMultipleValues(params, OBS_PROP_NAME_COLUMN.getName().toString());
         this.typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         this.uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
@@ -81,17 +81,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
         // special case for hard coded observed property
         if (obsPropId != null && !obsPropId.isEmpty()) {
-            this.measureColumns = Collections.singleton(obsPropId);
+            this.obsPropColumns = Collections.singleton(obsPropId);
         // special case for * measure columns
         // if the store is open with missing mime type we skip this part.
         } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
             try {
-                this.measureColumns = extractCodes(mimeType, dataFile, obsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
+                this.obsPropColumns = extractCodes(mimeType, dataFile, csvFlatobsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
             } catch (ConstellationStoreException ex) {
                 throw new DataStoreException(ex);
             }
         } else {
-             this.measureColumns = obsPropFilterColumns;
+             this.obsPropColumns = obsPropFilterColumns;
         }
     }
 
@@ -127,14 +127,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int uomColumnIndex   = getColumnIndex(uomColumn,           headers,               directColumnIndex);
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex);
 
-            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,        headers, directColumnIndex);
-            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,        headers, directColumnIndex);
-            List<Integer> obsPropColumnIndexes     = getColumnIndexes(obsPropColumns,     headers, directColumnIndex);
-            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns, headers, directColumnIndex);
-            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,     headers, directColumnIndex);
+            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex);
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex);
+            List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex);
+            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex);
+            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex);
 
             if (obsPropColumnIndexes.isEmpty()) {
-                throw new DataStoreException("Unexpected columns code:" + Arrays.toString(obsPropColumns.toArray()));
+                throw new DataStoreException("Unexpected columns code:" + Arrays.toString(csvFlatobsPropColumns.toArray()));
             }
             if (valueColumnIndex == -1) {
                 throw new DataStoreException("Unexpected column value:" + valueColumn);
@@ -144,7 +144,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             // add measure column
-            final List<String> sortedMeasureColumns = measureColumns.stream().sorted().collect(Collectors.toList());
+            final List<String> sortedMeasureColumns = obsPropColumns.stream().sorted().collect(Collectors.toList());
 
             // final result
             final ObservationDataset result = new ObservationDataset();
@@ -235,7 +235,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, currentMainColumns, currentObstType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
 
                 currentBlock.updateObservedProperty(observedProperty);
 
@@ -336,7 +336,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int procIndex       = getColumnIndex(procedureColumn, headers, directColumnIndex);
             int typeColumnIndex = getColumnIndex(typeColumn,      headers, directColumnIndex);
 
-            List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers, directColumnIndex);
+            List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex);
 
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
@@ -352,7 +352,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     // checks if row matches the observed properties filter
                     String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
-                    if (!measureColumns.contains(observedProperty)) {
+                    if (!obsPropColumns.contains(observedProperty)) {
                         continue;
                     }
 
@@ -370,7 +370,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     
     @Override
     public Set<String> extractPhenomenonIds() {
-        return measureColumns;
+        return obsPropColumns;
     }
 
     @Override
@@ -384,8 +384,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             final List<Integer> doubleFields         = new ArrayList<>();
-            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,    headers, directColumnIndex);
-            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(obsPropColumns, headers, directColumnIndex);
+            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex);
+            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex);
 
             int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex);
             int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex);
@@ -442,7 +442,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
                 
                 // checks if row matches the observed properties wanted
-                if (!measureColumns.contains(observedProperty)) {
+                if (!obsPropColumns.contains(observedProperty)) {
                     continue;
                 }
 
@@ -450,7 +450,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String currentProcDesc = (String) getColumnValue(procDescIndex, line, currentProc);
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, measureColumns, null));
+                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, obsPropColumns, null));
                 }
 
                 // update temporal interval

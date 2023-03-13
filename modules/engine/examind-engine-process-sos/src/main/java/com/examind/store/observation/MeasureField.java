@@ -19,6 +19,7 @@
 package com.examind.store.observation;
 
 import java.util.List;
+import org.geotoolkit.observation.model.FieldType;
 
 /**
  *
@@ -29,11 +30,11 @@ public class MeasureField {
     public final String name;
     public String label;
     public String uom;
-    public final String type;
+    public final FieldType type;
 
     public final List<MeasureField> qualityFields;
 
-    public MeasureField(String name, String type, List<MeasureField> qualityFields) {
+    public MeasureField(String name, FieldType type, List<MeasureField> qualityFields) {
         this.name = name;
         this.type = type;
         this.qualityFields = qualityFields;

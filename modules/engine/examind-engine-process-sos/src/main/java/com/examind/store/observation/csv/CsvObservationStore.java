@@ -38,12 +38,16 @@ import org.geotoolkit.storage.DataStores;
 
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -60,8 +64,11 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class CsvObservationStore extends FileParsingObservationStore implements ObservationStore {
 
+    protected List<String> obsPropColumnsTypes;
+
     public CsvObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
+        this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
     }
 
     @Override
@@ -104,7 +111,18 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex);
+            if (obsPropIndexes.isEmpty()) {
+                throw new DataStoreException("No observed properties columns have been found in the headers: "+ obsPropColumns.stream().collect(Collectors.joining(", ", "[ ", " ]")));
+            }
+            final Map<Integer, FieldType> obsPropFields = new HashMap<>();
+            for (int i = 0; i < obsPropIndexes.size(); i++) {
+                FieldType ft = FieldType.QUANTITY;
+                if (i < obsPropColumnsTypes.size()) {
+                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                }
+                obsPropFields.put(obsPropIndexes.get(i), ft);
+            }
 
             // special case where there is no header, and a specified observation peorperty identifier
             ObservedProperty fixedObsProp = null;
@@ -135,7 +153,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 final Object[] line = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
@@ -172,7 +190,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityTypes);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);
@@ -222,14 +240,29 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 if (noHeader && obsPropId == null) {
-                    throw new DataStoreException("In noHeader mdoe, you must set a fixed observated property id");
-                } else if (noHeader && doubleFields.size() > 1) {
-                    throw new DataStoreException("Multiple observated property is not yet supported In noHeader mode");
+                    throw new DataStoreException("In noHeader mode, you must set a fixed observated property id");
+                } else if (noHeader && obsPropFields.size() > 1) {
+                    throw new DataStoreException("Multiple observed property is not yet supported In noHeader mode");
                 }
                 // loop over columns to build measure string
-                for (int i : doubleFields) {
+                for (Map.Entry<Integer, FieldType> field : obsPropFields.entrySet()) {
+                    int i = field.getKey();
+                    FieldType ft = field.getValue();
+                    if (ft == null) throw new IllegalStateException("FIeld type sould never be null");
+
                     try {
-                        double measureValue = parseDouble(line[i]);
+                        final Object measureValue;
+                        if (line[i] == null) {
+                            measureValue = null;
+                        } else {
+                            measureValue = switch (ft) {
+                                case BOOLEAN  -> parseBoolean(line[i]);
+                                case QUANTITY -> parseDouble(line[i]);
+                                case TEXT     -> line[i] instanceof String ? line[i] : line[i].toString();
+                                case TIME     -> parseObjectDate(line[i], sdf);
+                            };
+                        }
+
                         String fieldName;
                         if (noHeader) {
                             fieldName = obsPropId;
@@ -240,7 +273,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                         currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber, new String[0]);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!(line[i] instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing double value at line %d and column %d (value='%s')", lineNumber, i, line[i]));
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.getValue().toString(), lineNumber, i, line[i]));
                         }
                     }
                 }
@@ -310,7 +343,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final Set<String> measureFields = new HashSet<>();
 
             // used to fill measure Fields list
-            getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
+            getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex);
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && obsPropId != null) {
@@ -335,6 +368,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             int lineNumber = 1;
 
             // prepare spatial/time column indices
+            final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
             final List<String> measureFields = new ArrayList<>();
             
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex);
@@ -344,7 +378,15 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex);
             // used to fill measure Fields list
-            final List<Integer> doubleFields = getColumnIndexes(measureColumns, headers, measureFields, directColumnIndex);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex);
+            final Map<Integer, FieldType> obsPropFields = new HashMap<>();
+            for (int i = 0; i < obsPropIndexes.size(); i++) {
+                FieldType ft = FieldType.QUANTITY;
+                if (i < obsPropColumnsTypes.size()) {
+                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                }
+                obsPropFields.put(obsPropIndexes.get(i), ft);
+            }
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && obsPropId != null) {
@@ -361,7 +403,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 final Object[] line   = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
