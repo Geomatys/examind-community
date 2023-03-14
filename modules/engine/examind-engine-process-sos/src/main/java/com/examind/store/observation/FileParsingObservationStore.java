@@ -135,6 +135,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final boolean noHeader;
     protected final boolean directColumnIndex;
 
+    protected final boolean laxHeader;
+
     protected static final GeometryFactory GF = new GeometryFactory();
 
     public FileParsingObservationStore(ParameterValueGroup params) throws IOException, DataStoreException{
@@ -166,6 +168,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.mimeType =  (String) params.parameter(FILE_MIME_TYPE.getName().toString()).getValue();
         this.noHeader = (boolean) params.parameter(NO_HEADER.getName().toString()).getValue();
         this.directColumnIndex = (boolean) params.parameter(DIRECT_COLUMN_INDEX.getName().toString()).getValue();
+        this.laxHeader = (boolean) params.parameter(LAX_HEADER.getName().toString()).getValue();
         this.obsPropId = (String) params.parameter(OBS_PROP_ID.getName().toString()).getValue();
         this.obsPropName = (String) params.parameter(OBS_PROP_NAME.getName().toString()).getValue();
         this.qualityColumns = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
@@ -358,7 +361,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         try (final DataFileReader reader = getDataFileReader()) {
 
             // prepare time column indices
-            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader, directColumnIndex);
+            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader, directColumnIndex, laxHeader);
 
             if (dateIndexes.isEmpty()) return null;
 

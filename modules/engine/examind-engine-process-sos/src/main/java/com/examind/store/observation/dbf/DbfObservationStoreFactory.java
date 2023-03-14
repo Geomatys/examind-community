@@ -57,14 +57,7 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, PATH,
                     MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, FOI_COLUMN, OBSERVATION_TYPE,
                     PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, Z_COLUMN, UOM_REGEX, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER,
-                    DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE);
-
-    private static ParameterDescriptorGroup parameters(final String name, final int minimumOccurs) {
-        final Map<String,Object> properties = new HashMap<>(4);
-        properties.put(ParameterDescriptorGroup.NAME_KEY, name);
-        properties.put(Identifier.AUTHORITY_KEY, Citations.SIS);
-        return new DefaultParameterDescriptorGroup(properties, minimumOccurs, 1);
-    }
+                    DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE, LAX_HEADER);
 
     @Override
     public String getShortName() {
@@ -85,7 +78,6 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
             throw new DataStoreException(ex);
         }
     }
-
 
     @Override
     public Collection<String> getSuffix() {

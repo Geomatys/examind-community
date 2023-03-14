@@ -58,27 +58,27 @@ public class FileParsingUtils {
 
     private static final GeometryFactory GF = new GeometryFactory();
 
-    public static int getColumnIndex(String columnName, DataFileReader reader, boolean directColumnIndex) throws IOException {
+    public static int getColumnIndex(String columnName, DataFileReader reader, boolean directColumnIndex, boolean ignoreCase) throws IOException {
         if (columnName == null) return -1;
         if (directColumnIndex) {
             return Integer.parseInt(columnName);
         }
         final String[] headers = reader.getHeaders();
-        return getColumnIndex(columnName, headers, directColumnIndex);
+        return getColumnIndex(columnName, headers, directColumnIndex, ignoreCase);
     }
 
-    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex) throws IOException {
-        return getColumnIndex(columnName, headers, null, directColumnIndex);
+    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+        return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase);
     }
 
-    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex) throws IOException {
+    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase) throws IOException {
         if (columnName == null) return -1;
         if (directColumnIndex) {
             return Integer.parseInt(columnName);
         }
         for (int i = 0; i < headers.length; i++) {
             final String header = headers[i];
-            if (header.equals(columnName)) {
+            if (header.equals(columnName) || (ignoreCase && header.equalsIgnoreCase(columnName))) {
                 if (appendIndex != null) {
                     appendIndex.add(i);
                 }
@@ -88,7 +88,7 @@ public class FileParsingUtils {
         return -1;
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex, boolean ignoreCase) throws IOException {
         if (directColumnIndex) {
             List<Integer> results = new ArrayList<>();
             for (String columnName : columnNames) {
@@ -97,14 +97,14 @@ public class FileParsingUtils {
             return results;
         }
         final String[] headers = reader.getHeaders();
-        return getColumnIndexes(columnNames, headers, directColumnIndex);
+        return getColumnIndexes(columnNames, headers, directColumnIndex, ignoreCase);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex) throws IOException {
-        return getColumnIndexes(columnNames, headers, null, directColumnIndex);
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) throws IOException {
         List<Integer> results = new ArrayList<>();
         if (directColumnIndex) {
             for (String columnName : columnNames) {

@@ -68,8 +68,6 @@ import org.constellation.dto.service.config.sos.ProcedureTree;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
-import org.geotoolkit.observation.query.ObservedPropertyQuery;
-import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
@@ -152,6 +150,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
         final boolean directColumnIndex = inputParameters.getValue(DIRECT_COLUMN_INDEX);
         final boolean noHeader = inputParameters.getValue(NO_HEADER);
+        final boolean laxHeader = inputParameters.getValue(LAX_HEADER);
 
         final String separator = inputParameters.getValue(SEPARATOR);
         final String charQuote = inputParameters.getValue(CHARQUOTE);
@@ -330,6 +329,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), format);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DIRECT_COLUMN_INDEX.getName().toString(), Boolean.toString(directColumnIndex));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.NO_HEADER.getName().toString(), Boolean.toString(noHeader));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.LAX_HEADER.getName().toString(), Boolean.toString(laxHeader));
             
             final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
             if (extraStoreParams != null) {
