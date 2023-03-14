@@ -348,7 +348,9 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             OBS_PROP_COLUMN_TYPE_DESC,
             0, MAX_CARDINALITY,
             String.class,
-            null, null, null
+            "QUANTITY",
+            new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
+            null
     );
 
     public static final String QUALITY_COLUMN_NAME = "quality_columns";
@@ -368,8 +370,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             QUALITY_COLUMN_TYPE_DESC,
             0, MAX_CARDINALITY,
             String.class,
-            "Quantity",
-            new String[]{"Quantity", "Text", "Boolean", "Time"},
+            "QUANTITY",
+            new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
             null
     );
     
