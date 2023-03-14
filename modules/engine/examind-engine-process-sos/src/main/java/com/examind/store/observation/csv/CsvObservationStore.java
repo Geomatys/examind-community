@@ -161,7 +161,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 // look for current procedure (for observation separation)
                 String currentProc;
                 if (procIndex != -1) {
-                    final String procId = extractWithRegex(procRegex, (String) line[procIndex]);
+                    final String procId = extractWithRegex(procRegex, asString(line[procIndex]));
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
                         LOGGER.finer("skipping line due to sensor filter.");
@@ -172,13 +172,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // look for current procedure name
-                String currentProcName = (String) getColumnValue(procNameIndex, line, currentProc);
+                String currentProcName = asString(getColumnValue(procNameIndex, line, currentProc));
 
                 // look for current procedure description
-                String currentProcDesc = (String) getColumnValue(procDescIndex, line, null);
+                String currentProcDesc = asString(getColumnValue(procDescIndex, line, null));
 
                 // look for current foi (for observation separation)
-                currentFoi = (String) getColumnValue(foiIndex, line, currentFoi);
+                currentFoi = asString(getColumnValue(foiIndex, line, currentFoi));
 
                 // look for current date (for non timeseries observation separation)
                 if (!dateIndexes.equals(mainIndexes)) {
@@ -319,7 +319,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             while (it.hasNext()) {
                 final Object[] line = it.next();
                 if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, (String) line[procIndex]);
+                    String procId = extractWithRegex(procRegex, asString(line[procIndex]));
                     result.add(procedureId + procId);
                 }
             }
@@ -411,7 +411,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 Date dateParse        = null;
                 final String currentProc;
                 if (procedureIndex != -1) {
-                    final String procId = extractWithRegex(procRegex, (String) line[procedureIndex]);
+                    final String procId = extractWithRegex(procRegex, asString(line[procedureIndex]));
                     currentProc = procedureId + procId;
                     if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
                         LOGGER.finer("skipping line due to sensor filter.");
@@ -422,7 +422,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // look for current procedure description
-                String currentProcDesc = (String) getColumnValue(procDescIndex, line, currentProc);
+                String currentProcDesc = asString(getColumnValue(procDescIndex, line, currentProc));
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
                     currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null));
@@ -430,17 +430,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
                 // update temporal interval
                 if (!dateIndexes.isEmpty()) {
-                    String value = "";
-                    try {
-                        for (Integer dateIndex : dateIndexes) {
-                            value += line[dateIndex];
-                        }
-                        dateParse = new SimpleDateFormat(this.dateFormat).parse(value);
-                        currentPTree.spatialBound.addDate(dateParse);
-                    } catch (ParseException ex) {
-                        LOGGER.fine(String.format("Problem parsing date for main field at line %d (value='%s'). skipping line...", lineNumber, value));
+                    Optional<Long> d = parseDate(line, null, dateIndexes, new SimpleDateFormat(this.dateFormat), lineNumber);
+                    if (d.isEmpty()) {
                         continue;
+                    } else {
+                        dateParse = new Date(d.get());
                     }
+                    currentPTree.spatialBound.addDate(dateParse);
                 }
 
                  // update spatial information

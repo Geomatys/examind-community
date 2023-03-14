@@ -18,6 +18,7 @@ package com.examind.store.observation.csvflat;
 
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FileParsingUtils;
+import static com.examind.store.observation.FileParsingUtils.asString;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -70,7 +71,7 @@ public class CsvFlatUtils {
                 String computed = "";
                 boolean first = true;
                 for(Integer i : measureCodeIndex) {
-                    final String nextCode = (String) line[i];
+                    final String nextCode = asString(line[i]);
                     if (nextCode == null || nextCode.isEmpty()) {
                         LOGGER.warning("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
                         continue line;

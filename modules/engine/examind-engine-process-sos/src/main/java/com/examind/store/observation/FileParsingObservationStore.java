@@ -404,36 +404,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return new double[0];
     }
 
-    protected Optional<Long> parseDate(Object[] line, final Long preComputeValue, List<Integer> dateIndexes, final DateFormat sdf, int lineNumber) {
-        if (preComputeValue != null) return Optional.of(preComputeValue);
-
-        if (dateIndexes.isEmpty()) {
-            return Optional.empty();
-
-        } else if (dateIndexes.size() == 1) {
-            Object value = line[dateIndexes.get(0)];
-            try {
-                return  Optional.of(parseObjectDate(value, sdf));
-            } catch (ParseException ex) {
-                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
-                return Optional.empty();
-            }
-
-        // composite dates are only supported for string column
-        } else {
-            String value = "";
-            for (Integer dateIndex : dateIndexes) {
-                value += line[dateIndex];
-            }
-            try {
-                return Optional.of(sdf.parse(value).getTime());
-            } catch (ParseException ex) {
-                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
-                return Optional.empty();
-            }
-        }
-    }
-
     protected Optional<? extends Number> parseMain(Object[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, String currentObsType) throws DataStoreException {
         
         // assume that for profile main field is a double

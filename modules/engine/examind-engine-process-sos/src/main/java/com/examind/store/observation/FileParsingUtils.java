@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -160,7 +161,7 @@ public class FileParsingUtils {
                 } else {
                     first = false;
                 }
-                result += line[columnIndex];
+                result += asString(line[columnIndex]);
             }
         }
         return result;
@@ -428,5 +429,53 @@ public class FileParsingUtils {
         long i = (long) (myDouble*1000);
         long l = TIME_AT_2000 + i;
         return new Date(l);
+    }
+
+    public static String asString(Object value) {
+        return asString(value, null);
+    }
+
+    public static String asString(Object value, DateFormat df) {
+        if (value == null) return null;
+        if (value instanceof String s) {
+            return s;
+        } else if (value instanceof Number) {
+            return value.toString().replace("\\.0*$", "");
+        } else if (value instanceof Date d) {
+            if (df == null) throw new IllegalArgumentException("asString for a date must provide a DateFormat");
+            return df.format(d);
+        } else {
+            return value.toString();
+        }
+    }
+
+    public static Optional<Long> parseDate(Object[] line, final Long preComputeValue, List<Integer> dateIndexes, final DateFormat sdf, int lineNumber) {
+        if (preComputeValue != null) return Optional.of(preComputeValue);
+
+        if (dateIndexes.isEmpty()) {
+            return Optional.empty();
+
+        } else if (dateIndexes.size() == 1) {
+            Object value = line[dateIndexes.get(0)];
+            try {
+                return  Optional.of(parseObjectDate(value, sdf));
+            } catch (ParseException ex) {
+                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                return Optional.empty();
+            }
+
+        // composite dates are only supported for string column
+        } else {
+            String value = "";
+            for (Integer dateIndex : dateIndexes) {
+                value += asString(line[dateIndex]);
+            }
+            try {
+                return Optional.of(sdf.parse(value).getTime());
+            } catch (ParseException ex) {
+                LOGGER.fine(String.format("Problem parsing date for date field at line %d (value='%s'). skipping line...", lineNumber, value));
+                return Optional.empty();
+            }
+        }
     }
 }
