@@ -1360,7 +1360,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try (Statement addColumnStmt = c.createStatement()) {
                 String tableName = baseTableName;
                 if (nbTable > 1) {
-                    tableName = "_" + nbTable;
+                    tableName = baseTableName + "_" + nbTable;
                 }
                 for (Field newField : newfields) {
                     StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.name + "\" ");
