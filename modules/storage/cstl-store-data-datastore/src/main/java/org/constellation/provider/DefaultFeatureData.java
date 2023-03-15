@@ -143,10 +143,15 @@ public class DefaultFeatureData extends DefaultGeoData<FeatureSet> implements Fe
     @Override
     public Envelope getEnvelope() throws ConstellationStoreException {
         try {
-            final Query query = new Query();
-            query.setVersionDate(versionDate);
-            query.setTypeName(name);
-            FeatureSet subfs = origin.subset(query);
+            FeatureSet subfs;
+            if (versionDate != null) {
+                final Query query = new Query();
+                query.setVersionDate(versionDate);
+                query.setTypeName(name);
+                subfs = origin.subset(query);
+            } else {
+                subfs = origin;
+            }
             return FeatureStoreUtilities.getEnvelope(subfs);
         } catch (Exception ex) {
             throw new ConstellationStoreException(ex);
