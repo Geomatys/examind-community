@@ -3391,18 +3391,18 @@ public class ObservationStoreProviderTest {
         assertEquals(23, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-4");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-4");
-
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-2-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-3-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-3-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-3-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-3-4");
+
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-3");
 
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2-2");
@@ -3429,13 +3429,13 @@ public class ObservationStoreProviderTest {
         assertEquals(13, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-4");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4001-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001-4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:4002-3");
@@ -3572,6 +3572,49 @@ public class ObservationStoreProviderTest {
     }
 
     @Test
+    public void getObservationsTimeDisorderTest() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
+        query.setSelection(filter);
+
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
+        }
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:4001", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("aggregatePhenomenon-2", getPhenomenonId(result));
+
+        assertTrue(result.getResult() instanceof ComplexResult);
+
+        ComplexResult cr = (ComplexResult) result.getResult();
+
+        String expectedValues = "2000-01-01T00:00:00.0,4.5,98.5,@@" +
+                                "2000-02-01T00:00:00.0,4.6,97.5,@@" +
+                                "2000-03-01T00:00:00.0,4.7,97.5,@@" +
+                                "2000-04-01T00:00:00.0,4.8,96.5,@@" +
+                                "2000-05-01T00:00:00.0,4.9,,@@" +
+                                "2000-06-01T00:00:00.0,5.0,,@@" +
+                                "2000-07-01T00:00:00.0,5.1,,@@" +
+                                "2000-08-01T00:00:00.0,5.2,98.5,1.1@@" +
+                                "2000-09-01T00:00:00.0,5.3,87.5,1.1@@" +
+                                "2000-10-01T00:00:00.0,5.4,77.5,1.3@@" +
+                                "2000-11-01T00:00:00.0,,96.5,@@" +
+                                "2000-12-01T00:00:00.0,,99.5,@@" +
+                                "2001-01-01T00:00:00.0,,96.5,@@";
+
+        assertEquals(expectedValues, cr.getValues());
+
+    }
+
+    @Test
     public void getObservationsTest() throws Exception {
         assertNotNull(omPr);
 
@@ -3592,7 +3635,7 @@ public class ObservationStoreProviderTest {
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:GEOM:201");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4001");
         expectedIds.add("urn:ogc:object:observation:GEOM:3000");
         expectedIds.add("urn:ogc:object:observation:GEOM:2000");
         expectedIds.add("urn:ogc:object:observation:GEOM:801");

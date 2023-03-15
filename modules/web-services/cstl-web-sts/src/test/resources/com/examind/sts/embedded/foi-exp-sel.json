@@ -1,59 +1,31 @@
 {
     "@iot.id": "station-001",
     "Observations": [{
-            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-2-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-3-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-3"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-4-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-4"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-5-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-5"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-2-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-3-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-4-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-3"
+            "@iot.id": "urn:ogc:object:observation:GEOM:7001-5-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-4"
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-5"
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-3"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-3"
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-4"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-4"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-5"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-1"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-1"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-2"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-3"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-4"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-5"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:1001-2-1"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:1001-2-2"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-1"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-2"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-3"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-4"
-        }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-5"
+            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-5"
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:3000-2-1"
         }, {
@@ -85,30 +57,58 @@
         }, {
             "@iot.id": "urn:ogc:object:observation:GEOM:3000-4-5"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-3"
+            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-3"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-4"
+            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-4"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-5"
+            "@iot.id": "urn:ogc:object:observation:GEOM:304-2-5"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-2-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-3-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-4-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-3"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-5-1"
+            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-4"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-2-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:305-2-5"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-3-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-1"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-4-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-2"
         }, {
-            "@iot.id": "urn:ogc:object:observation:GEOM:7001-5-2"
+            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-3"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-4"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:406-2-5"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-2"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-3"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-4"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-5"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:307-2-1"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-1"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-2"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-3"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-4"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:2000-2-5"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:1001-2-1"
+        }, {
+            "@iot.id": "urn:ogc:object:observation:GEOM:1001-2-2"
         }]
 }

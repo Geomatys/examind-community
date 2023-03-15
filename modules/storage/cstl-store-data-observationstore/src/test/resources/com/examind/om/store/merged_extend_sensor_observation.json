@@ -1,0 +1,90 @@
+{
+    "id": "obs-1001",
+    "name": "urn:ogc:object:observation:GEOM:1001",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:extend_sensor",
+        "name": "Sensor extended"
+    },
+    "samplingTime": {
+        "id": "time-1001",
+        "beginning": {
+            "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
+            "date": "1980-03-01T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
+            "date": "1980-03-04T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        },
+        "properties": {
+            "prop2": "value2",
+            "prop1": "value1"
+        }
+    },
+    "observedProperty": {
+        "id": "sali-depth-pres",
+        "name": "sali-depth-pres",
+        "properties": {},
+        "definition": "sali-depth-temp-EXT",
+        "component": [{
+                "id": "salinity-EXT",
+                "name": "salinity",
+                "definition": "urn:ogc:def:phenomenon:GEOM:salinity-EXT"
+            }, {
+                "id": "depth-EXT",
+                "name": "depth",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth-EXT"
+            }, {
+                "id": "temperature-EXT",
+                "name": "temperature",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature-EXT"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "salinity-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:salinity-EXT",
+                "uom": "psu"
+            }, {
+                "index": 3,
+                "type": "QUANTITY",
+                "name": "temperature-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature-EXT",
+                "uom": "°C"
+            }, {
+                "index": 4,
+                "type": "QUANTITY",
+                "name": "depth-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth-EXT",
+                "uom": "m"
+            }],
+        "nbValues": 4,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "1980-03-01T21:52:00.0,6.56,23.3,@@1980-03-02T21:52:00.0,6.57,22.1,@@1980-03-03T21:52:00.0,6.58,23.2,127.0@@1980-03-04T21:52:00.0,6.59,22.7,131.0@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    }
+}

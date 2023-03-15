@@ -185,8 +185,8 @@ INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1002',
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:1003', 1003, '2009-05-01 14:04:00.0', NULL,                    'depth',                 'urn:ogc:object:sensor:GEOM:10',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:2000', 2000, '2009-05-01 13:47:00.0', '2009-05-01 14:03:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:test-id',        'station-001');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:3000', 3000, '2000-12-01 00:00:00.0', '2012-12-22 00:00:00.0', 'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:12',             'station-001');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4000', 4000, '2000-01-01 00:00:00.0', '2000-04-01 00:00:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:13',             'station-002');
-INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4001', 4001, '2000-05-01 00:00:00.0', '2000-07-01 00:00:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:13',             'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4000', 4000, '2000-05-01 00:00:00.0', '2000-07-01 00:00:00.0', 'depth',                 'urn:ogc:object:sensor:GEOM:13',             'station-002');
+INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4001', 4001, '2000-01-01 00:00:00.0', '2000-04-01 00:00:00.0', 'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:13',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4002', 4002, '2000-08-01 00:00:00.0', '2000-10-01 00:00:00.0', 'aggregatePhenomenon-2', 'urn:ogc:object:sensor:GEOM:13',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:4003', 4003, '2000-11-01 00:00:00.0', '2001-01-01 00:00:00.0', 'temperature',           'urn:ogc:object:sensor:GEOM:13',             'station-002');
 INSERT INTO "om"."observations"  VALUES ('urn:ogc:object:observation:GEOM:5001', 5001, '2000-12-01 00:00:00.0', NULL,                    'aggregatePhenomenon',   'urn:ogc:object:sensor:GEOM:14',             'station-002');
@@ -383,14 +383,15 @@ CREATE TABLE "mesures"."mesure13"("id_observation" integer NOT NULL,
                                   "temperature"    double,
                                   "salinity"       double);
 
-INSERT INTO "mesures"."mesure13" VALUES (4000, 1,  '2000-01-01 00:00:00', 4.5, 98.5, NULL);
-INSERT INTO "mesures"."mesure13" VALUES (4000, 2,  '2000-02-01 00:00:00', 4.6, 97.5, NULL);
-INSERT INTO "mesures"."mesure13" VALUES (4000, 3,  '2000-03-01 00:00:00', 4.7, 97.5, NULL);
-INSERT INTO "mesures"."mesure13" VALUES (4000, 4,  '2000-04-01 00:00:00', 4.8, 96.5, NULL);
+-- inserted in time disorder on purpose
+INSERT INTO "mesures"."mesure13" VALUES (4000, 1,  '2000-05-01 00:00:00', 4.9, NULL, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4000, 2,  '2000-06-01 00:00:00', 5.0, NULL, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4000, 3,  '2000-07-01 00:00:00', 5.1, NULL, NULL);
 
-INSERT INTO "mesures"."mesure13" VALUES (4001, 1,  '2000-05-01 00:00:00', 4.9, NULL, NULL);
-INSERT INTO "mesures"."mesure13" VALUES (4001, 2,  '2000-06-01 00:00:00', 5.0, NULL, NULL);
-INSERT INTO "mesures"."mesure13" VALUES (4001, 3,  '2000-07-01 00:00:00', 5.1, NULL, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4001, 1,  '2000-01-01 00:00:00', 4.5, 98.5, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4001, 2,  '2000-02-01 00:00:00', 4.6, 97.5, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4001, 3,  '2000-03-01 00:00:00', 4.7, 97.5, NULL);
+INSERT INTO "mesures"."mesure13" VALUES (4001, 4,  '2000-04-01 00:00:00', 4.8, 96.5, NULL);
 
 INSERT INTO "mesures"."mesure13" VALUES (4002, 1,  '2000-08-01 00:00:00', 5.2, 98.5, 1.1);
 INSERT INTO "mesures"."mesure13" VALUES (4002, 2,  '2000-09-01 00:00:00', 5.3, 87.5, 1.1);

@@ -278,6 +278,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             resultMode = ResultMode.CSV;
         }
         final ResultBuilder values          = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
+        sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -473,7 +474,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
         // add orderby to the query
-        sqlRequest.append(" ORDER BY o.\"id\"");
+        sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
@@ -688,7 +689,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 select.append(", o.\"identifier\" ");
             }
             sqlRequest.replaceFirst("m.*", select.toString());
-            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering);
+            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append(fieldOrdering);
 
             if (firstFilter) {
                 return sqlRequest.replaceFirst("WHERE", "");
@@ -760,7 +761,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
                 fieldOrdering = "m.\"id\"";
             }
-            sqlRequest.append(" ORDER BY  o.\"id\", ").append(fieldOrdering);
+            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append(fieldOrdering);
             StringBuilder select  = new StringBuilder("m.*");
             if (profile) {
                 select.append(", o.\"id\" as oid ");
