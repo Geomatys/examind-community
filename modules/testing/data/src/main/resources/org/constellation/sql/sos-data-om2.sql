@@ -228,7 +228,8 @@ INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:1
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:14',             3, 'salinity',    'Quantity', 'urn:ogc:def:phenomenon:GEOM:salinity',     'msu', NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 2, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm',   NULL,    1);
-INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 1, 'qflag',       'Text',     'urn:ogc:def:phenomenon:GEOM:quality_flag', NULL,  'depth', 1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 1, 'qflag',       'Text',     'urn:ogc:def:phenomenon:GEOM:quality_flag',  NULL,  'depth', 1);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor', 2, 'qres',        'Quantity', 'urn:ogc:def:phenomenon:GEOM:quality_result', NULL,  'depth', 1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     2, 'isHot',       'Boolean',  'urn:ogc:def:phenomenon:GEOM:isHot',        NULL,  NULL,    1);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     3, 'color',       'Text',     'urn:ogc:def:phenomenon:GEOM:color',        NULL,  NULL,    1);
@@ -441,13 +442,14 @@ CREATE TABLE "mesures"."mesure15"("id_observation"      integer NOT NULL,
                                   "id"                  integer NOT NULL,
                                   "Time"                timestamp NOT NULL,
                                   "depth"               double,
-                                  "depth_quality_qflag" character varying(1000)); 
+                                  "depth_quality_qflag" character varying(1000),
+                                  "depth_quality_qres"  double); 
 
-INSERT INTO "mesures"."mesure15" VALUES (6001, 1,  '1980-03-01 21:52:00', 6.56, 'ok');
-INSERT INTO "mesures"."mesure15" VALUES (6001, 2,  '1981-03-01 21:52:00', 6.56, 'ko');
-INSERT INTO "mesures"."mesure15" VALUES (6001, 3,  '1982-03-01 21:52:00', 6.56, 'ok');
-INSERT INTO "mesures"."mesure15" VALUES (6001, 4,  '1983-03-01 21:52:00', 6.56, 'ko');
-INSERT INTO "mesures"."mesure15" VALUES (6001, 5,  '1984-03-01 21:52:00', 6.56, 'ok');
+INSERT INTO "mesures"."mesure15" VALUES (6001, 1,  '1980-03-01 21:52:00', 6.56, 'ok', 3.1);
+INSERT INTO "mesures"."mesure15" VALUES (6001, 2,  '1981-03-01 21:52:00', 6.56, 'ko', 3.2);
+INSERT INTO "mesures"."mesure15" VALUES (6001, 3,  '1982-03-01 21:52:00', 6.56, 'ok', 3.3);
+INSERT INTO "mesures"."mesure15" VALUES (6001, 4,  '1983-03-01 21:52:00', 6.56, 'ko', 3.4);
+INSERT INTO "mesures"."mesure15" VALUES (6001, 5,  '1984-03-01 21:52:00', 6.56, 'ok', 3.5);
 
 CREATE TABLE "mesures"."mesure16"("id_observation"      integer NOT NULL,
                                   "id"                  integer NOT NULL,

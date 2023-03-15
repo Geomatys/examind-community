@@ -4057,11 +4057,11 @@ public class ObservationStoreProviderTest {
         result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
-        expectedResult =  "1980-03-01T21:52:00.0,6.56,ok@@"
-                        + "1981-03-01T21:52:00.0,6.56,ko@@"
-                        + "1982-03-01T21:52:00.0,6.56,ok@@"
-                        + "1983-03-01T21:52:00.0,6.56,ko@@"
-                        + "1984-03-01T21:52:00.0,6.56,ok@@";
+        expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
+                        + "1981-03-01T21:52:00.0,6.56,ko,3.2@@"
+                        + "1982-03-01T21:52:00.0,6.56,ok,3.3@@"
+                        + "1983-03-01T21:52:00.0,6.56,ko,3.4@@"
+                        + "1984-03-01T21:52:00.0,6.56,ok,3.5@@";
 
         assertEquals(expectedResult, result);
 
@@ -4089,9 +4089,9 @@ public class ObservationStoreProviderTest {
         result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
-        expectedResult =  "1980-03-01T21:52:00.0,6.56,ok@@"
-                        + "1982-03-01T21:52:00.0,6.56,ok@@"
-                        + "1984-03-01T21:52:00.0,6.56,ok@@";
+        expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
+                        + "1982-03-01T21:52:00.0,6.56,ok,3.3@@"
+                        + "1984-03-01T21:52:00.0,6.56,ok,3.5@@";
 
         assertEquals(expectedResult, result);
 

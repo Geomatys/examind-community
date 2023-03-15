@@ -56,6 +56,11 @@
                         "type": "TEXT",
                         "name": "qflag",
                         "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    },{
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "qres",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_result"
                     }]
             }],
         "textEncodingProperties": {

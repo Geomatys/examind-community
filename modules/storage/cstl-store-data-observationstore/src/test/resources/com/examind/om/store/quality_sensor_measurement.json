@@ -50,6 +50,9 @@
         {
             "name": "qflag",
             "value": "ok"
+        },{
+            "name": "qres",
+            "value": 3.1
         }
     ]
 }

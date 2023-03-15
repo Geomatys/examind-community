@@ -628,7 +628,7 @@ public class OM2BaseReader {
                 stmt.setString(1, procedureID);
                 stmt.setString(2, fieldName);
                 try(final ResultSet rss = stmt.executeQuery()) {
-                    if (rss.next()) {
+                    while (rss.next()) {
                         f.qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
                     }
                 }

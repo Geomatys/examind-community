@@ -44,6 +44,8 @@
     "resultQuality": [
         {
             "name": "qflag"
+        },{
+            "name": "qres"
         }
     ]
 }

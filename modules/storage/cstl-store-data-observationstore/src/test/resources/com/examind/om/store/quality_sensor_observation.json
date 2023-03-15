@@ -57,6 +57,11 @@
                         "type": "TEXT",
                         "name": "qflag",
                         "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    },{
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "qres",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_result"
                     }]
             }],
         "nbValues": 5,
@@ -65,7 +70,7 @@
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "1980-03-01T21:52:00.0,6.56,ok@@1981-03-01T21:52:00.0,6.56,ko@@1982-03-01T21:52:00.0,6.56,ok@@1983-03-01T21:52:00.0,6.56,ko@@1984-03-01T21:52:00.0,6.56,ok@@"
+        "values": "1980-03-01T21:52:00.0,6.56,ok,3.1@@1981-03-01T21:52:00.0,6.56,ko,3.2@@1982-03-01T21:52:00.0,6.56,ok,3.3@@1983-03-01T21:52:00.0,6.56,ko,3.4@@1984-03-01T21:52:00.0,6.56,ok,3.5@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {

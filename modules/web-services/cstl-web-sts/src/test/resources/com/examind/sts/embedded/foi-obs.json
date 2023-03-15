@@ -344,6 +344,11 @@
                     "DQ_Result": {
                         "code": "ok"
                     }
+                }, {
+                    "nameOfMeasure": "qres",
+                    "DQ_Result": {
+                        "code": 3.1
+                    }
                 }],
             "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-1",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-1)",
@@ -357,6 +362,11 @@
                     "nameOfMeasure": "qflag",
                     "DQ_Result": {
                         "code": "ko"
+                    }
+                }, {
+                    "nameOfMeasure": "qres",
+                    "DQ_Result": {
+                        "code": 3.2
                     }
                 }],
             "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-2",
@@ -372,6 +382,11 @@
                     "DQ_Result": {
                         "code": "ok"
                     }
+                }, {
+                    "nameOfMeasure": "qres",
+                    "DQ_Result": {
+                        "code": 3.3
+                    }
                 }],
             "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-3",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-3)",
@@ -386,6 +401,11 @@
                     "DQ_Result": {
                         "code": "ko"
                     }
+                }, {
+                    "nameOfMeasure": "qres",
+                    "DQ_Result": {
+                        "code": 3.4
+                    }
                 }],
             "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-4",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:6001-2-4)",
@@ -399,6 +419,11 @@
                     "nameOfMeasure": "qflag",
                     "DQ_Result": {
                         "code": "ok"
+                    }
+                }, {
+                    "nameOfMeasure": "qres",
+                    "DQ_Result": {
+                        "code": 3.5
                     }
                 }],
             "@iot.id": "urn:ogc:object:observation:GEOM:6001-2-5",

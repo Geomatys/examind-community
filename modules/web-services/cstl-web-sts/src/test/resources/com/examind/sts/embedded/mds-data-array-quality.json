@@ -1,11 +1,11 @@
 {
     "value": [{
             "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality"],
-            "dataArray": [["urn:ogc:object:observation:GEOM:6001-1", "1980-03-01T20:52:00Z", "1980-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}}]], 
-                          ["urn:ogc:object:observation:GEOM:6001-2", "1981-03-01T20:52:00Z", "1981-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}}]], 
-                          ["urn:ogc:object:observation:GEOM:6001-3", "1982-03-01T20:52:00Z", "1982-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}}]], 
-                          ["urn:ogc:object:observation:GEOM:6001-4", "1983-03-01T20:52:00Z", "1983-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}}]],  
-                          ["urn:ogc:object:observation:GEOM:6001-5", "1984-03-01T20:52:00Z", "1984-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}}]]
+            "dataArray": [["urn:ogc:object:observation:GEOM:6001-1", "1980-03-01T20:52:00Z", "1980-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.1}}]], 
+                          ["urn:ogc:object:observation:GEOM:6001-2", "1981-03-01T20:52:00Z", "1981-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.2}}]], 
+                          ["urn:ogc:object:observation:GEOM:6001-3", "1982-03-01T20:52:00Z", "1982-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.3}}]], 
+                          ["urn:ogc:object:observation:GEOM:6001-4", "1983-03-01T20:52:00Z", "1983-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.4}}]],  
+                          ["urn:ogc:object:observation:GEOM:6001-5", "1984-03-01T20:52:00Z", "1984-03-01T20:52:00Z", [6.56], [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ok"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.5}}]]
                         ]
         }]
 }
