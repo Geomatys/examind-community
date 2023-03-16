@@ -47,6 +47,7 @@ import static com.examind.store.observation.FileParsingObservationStoreFactory.g
 import com.examind.store.observation.ObservedProperty;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.locationtech.jts.geom.Coordinate;
@@ -159,7 +160,6 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
 
             // -- single observation related variables --
-            String currentProc;
             Long currentTime                      = null;
             String currentFoi                     = null;
             List<String> currentMainColumns       = mainColumns;
@@ -198,22 +198,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // look for current procedure (for observation separation)
-                if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, asString(line[procIndex]));
-                    currentProc = procedureId + procId;
-                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
-                        LOGGER.finer("skipping line due to sensor filter.");
-                        continue;
-                    }
-                } else {
-                    currentProc = getProcedureID();
+                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
+                if (currentProc == null) {
+                    LOGGER.finer("skipping line due to null procedure.");
+                    continue;
                 }
-
-                // look for current procedure name
-                String currentProcName = asString(getColumnValue(procNameIndex, line, currentProc));
-
-                // look for current procedure description
-                String currentProcDesc = asString(getColumnValue(procDescIndex, line, null));
+                if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc.getId())) {
+                    LOGGER.finer("skipping line due to sensor filter.");
+                    continue;
+                }
 
                 // look for current foi (for observation separation)
                 currentFoi = asString(getColumnValue(foiIndex, line, currentFoi));
@@ -235,7 +228,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
 
                 currentBlock.updateObservedProperty(observedProperty);
 
@@ -254,7 +247,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // update spatial information
                 try {
-                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc.getId(), line);
                     if (position.length == 2) {
                         final double latitude = position[0];
                         final double longitude = position[1];
@@ -312,6 +305,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         }
     }
 
+    /**
+     * Extract the current observed property (id, name, uom).
+     * This method can be overriden by subclasses
+     * 
+     * @param line the current csv line.
+     * @param obsPropColumnIndexes Columns for observed property id.
+     * @param obsPropNameColumnIndexes Columns for observed property name.
+     * @param uomColumnIndex Column for observed property unit of measure.
+     *
+     * @return an observed property
+     */
     protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
         String observedProperty     = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
         String observedPropertyName = getMultiOrFixedValue(line, obsPropName, obsPropNameColumnIndexes);
@@ -369,6 +373,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     
     @Override
     public Set<String> extractPhenomenonIds() {
+        // TODO verify existence?
         return obsPropColumns;
     }
 
@@ -388,13 +393,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
             int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
             int procedureIndex   = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
-            int procDescIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
+            int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
+            int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader);
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
             Map<String, ProcedureDataset> result = new HashMap<>();
-            final Set<String> knownPositions  = new HashSet<>();
-            String previousProc               = null;
+            final Set<String> knownPositions     = new HashSet<>();
+            Procedure previousProc               = null;
             ProcedureDataset currentPTree        = null;
             int lineNumber                    = 1;
             
@@ -419,16 +425,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     currentObstType = observationType;
                 }
 
-                final String currentProc;
-                if (procedureIndex != -1) {
-                    String procId = extractWithRegex(procRegex, asString(line[procedureIndex]));
-                    currentProc = procedureId + procId;
-                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
-                        LOGGER.finer("skipping line due to sensor filter.");
-                        continue;
-                    }
-                } else {
-                    currentProc = getProcedureID();
+                final Procedure currentProc = parseProcedure(line, procedureIndex, procNameIndex, procDescIndex);
+                if (currentProc == null) {
+                    LOGGER.finer("skipping line due to null procedure.");
+                    continue;
+                }
+                if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc.getId())) {
+                    LOGGER.finer("skipping line due to sensor filter.");
+                    continue;
                 }
 
                 final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
@@ -438,11 +442,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                // look for current procedure description
-                final String currentProcDesc = asString(getColumnValue(procDescIndex, line, currentProc));
-
-                if (!currentProc.equals(previousProc) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, currentObstType, obsPropColumns, null));
+                if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, obsPropColumns, null));
                 }
 
                 // update temporal interval
@@ -458,10 +459,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // update spatial information
                 try {
-                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc.getId(), line);
                     if (position.length == 2) {
                         // only record when the sensor move
-                        final String posKey = currentProc + '-' + position[0] + "_" + position[1];
+                        final String posKey = currentProc.getId() + '-' + position[0] + "_" + position[1];
                         if (!knownPositions.contains(posKey)) {
                             knownPositions.add(posKey);
                             Coordinate dp = new Coordinate(position[1], position[0]);

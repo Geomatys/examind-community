@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.model.GeoSpatialBound;
+import org.geotoolkit.observation.model.Procedure;
 import org.locationtech.jts.geom.Coordinate;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -36,11 +37,7 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public class ObservationBlock {
 
-    public final String procedureId;
-
-    public final String procedureName;
-
-    public final String procedureDesc;
+    public final Procedure procedure;
 
     public String featureID;
 
@@ -52,10 +49,8 @@ public class ObservationBlock {
     
     public final GeoSpatialBound currentSpaBound;
 
-    public ObservationBlock(String procedureId, String procedureName, String procedureDesc, String featureID, MeasureBuilder cmb, String observationType) {
-        this.procedureId = procedureId;
-        this.procedureName = procedureName;
-        this.procedureDesc = procedureDesc;
+    public ObservationBlock(Procedure procedure, String featureID, MeasureBuilder cmb, String observationType) {
+        this.procedure = procedure;
         this.featureID = featureID;
         this.cmb = cmb;
         this.currentSpaBound = new GeoSpatialBound();

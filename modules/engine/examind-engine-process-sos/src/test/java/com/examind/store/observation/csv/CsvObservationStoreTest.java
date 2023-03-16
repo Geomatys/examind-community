@@ -1,6 +1,6 @@
 /*
  *    Examind - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.nio.IOUtilities;
@@ -91,7 +90,6 @@ public class CsvObservationStoreTest {
     }
 
     @Test
-    @Order(order = 1)
     public void csvStoreProfileTest() throws Exception {
 
         CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
@@ -156,7 +154,6 @@ public class CsvObservationStoreTest {
     }
 
     @Test
-    @Order(order = 1)
     public void csvStoreTSTest() throws Exception {
 
         CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
@@ -222,7 +219,6 @@ public class CsvObservationStoreTest {
     }
 
     @Test
-    @Order(order = 1)
     public void csvStoreBooleanProfileTest() throws Exception {
 
         CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
@@ -282,4 +278,68 @@ public class CsvObservationStoreTest {
         tp = (Instant) time;
         Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getDate()));
     }
+
+    @Test
+    public void csvStoreTJTest() throws Exception {
+
+        CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvObservationStoreFactory.LOCATION).setValue(fmlwFile.toUri().toString());
+
+        params.parameter(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+        params.parameter(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+
+        params.parameter(CsvObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        params.parameter(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LATITUDE (degree_north)");
+        params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LONGITUDE (degree_east)");
+
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("PSAL LEVEL1 (psu)");
+
+        params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Trajectory");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:4");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+
+        CsvObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = procedureNames.iterator().next();
+        Assert.assertEquals("urn:sensor:4", sensorId);
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("PSAL LEVEL1 (psu)"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Period);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+        Period tp = (Period) time;
+        Assert.assertEquals("2018-10-30T00:00:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2018-10-30T06:45:00.000" , sdf.format(tp.getEnding().getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(406, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+        Assert.assertEquals(1, procedures.size());
+
+        ProcedureDataset pt = procedures.get(0);
+        Assert.assertEquals(406, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("2018-10-30T00:00:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2018-10-30T06:45:00.000" , sdf.format(tp.getEnding().getDate()));
+    }
+
 }

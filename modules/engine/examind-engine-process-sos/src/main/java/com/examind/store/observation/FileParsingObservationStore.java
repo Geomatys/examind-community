@@ -58,7 +58,6 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
@@ -237,26 +236,26 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         // do nothing
     }
 
-    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final String procedureId, final String procedureName, final String procedureDesc, final String type, final String omType) {
+    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final Procedure procedure, final String type, final String omType) {
         for (ProcedureDataset tree : result.procedures) {
-            if (tree.getId().equals(procedureId)) {
+            if (tree.getId().equals(procedure.getId())) {
                 return tree;
             }
         }
-        ProcedureDataset tree = new ProcedureDataset(procedureId, procedureName, procedureDesc, type, omType, new ArrayList<>(), null);
+        ProcedureDataset tree = new ProcedureDataset(procedure.getId(), procedure.getName(), procedure.getDescription(), type, omType, new ArrayList<>(), null);
         result.procedures.add(tree);
         return tree;
     }
 
     protected final Map<String, ObservationBlock> observationBlock = new HashMap<>();
 
-    protected ObservationBlock getOrCreateObservationBlock(String procedureId, String procedureName, String procedureDesc, String foiID, Long time, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
-        String key = procedureId + '-' + foiID + '-' + time;
+    protected ObservationBlock getOrCreateObservationBlock(Procedure procedure, String foiID, Long time, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
+        String key = procedure.getId() + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
             MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, measureTypes, mainColumns, qualtityColumns, qualityTypes);
-            ObservationBlock ob = new ObservationBlock(procedureId, procedureName, procedureDesc, foiID, cmb, observationType);
+            ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, observationType);
             observationBlock.put(key, ob);
             return ob;
         }
@@ -270,7 +269,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
         if (filteredMeasure.isEmpty() ||
             ("Profile".equals(ob.observationType) && filteredMeasure.size() == 1)) {
-            LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedureId);
+            LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
             return;
         }
 
@@ -325,7 +324,6 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         MeasureStringBuilder msb = ob.getResults();
         final int currentCount   = ob.getResultsCount();
 
-        final Procedure proc = new Procedure(ob.procedureId, ob.procedureName, ob.procedureDesc, null);
         Map<String, Object> properties = new HashMap<>();
         properties.put("type", ob.observationType);
 
@@ -334,7 +332,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                                                 oid,
                                                 null, null,
                                                 "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
-                                                proc,
+                                                ob.procedure,
                                                 ob.getTimeObject(),
                                                 sp,
                                                 phenomenon,
@@ -348,7 +346,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // build procedure tree
-        final ProcedureDataset procedure = getOrCreateProcedureTree(result, ob.procedureId, ob.procedureName, ob.procedureDesc, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
+        final ProcedureDataset procedure = getOrCreateProcedureTree(result, ob.procedure, PROCEDURE_TREE_TYPE, ob.observationType.toLowerCase());
         for (Map.Entry<Long, List<Coordinate>> entry : ob.getHistoricalPositions()) {
             procedure.spatialBound.addLocation(new Date(entry.getKey()), buildGeom(entry.getValue()));
         }
@@ -383,6 +381,36 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         } catch (IOException ex) {
             throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Extract the current procedure  in the current line.
+     *
+     * Method overriden by sub-classes
+     * 
+     * @param line The current csv line processed
+     * @param procIndex Column index for procedure id.
+     * @param procNameIndex Column index for procedure name.
+     * @param procDescIndex Column index for procedure description.
+     *
+     * @return A procedure. May be null is some sub-Implementation
+     */
+    protected Procedure parseProcedure(Object[] line, int procIndex, int procNameIndex, int procDescIndex) {
+        final String id;
+        if (procIndex != -1) {
+            String procId = extractWithRegex(procRegex, asString(line[procIndex]));
+            id = procedureId + procId;
+        } else {
+            id = getProcedureID();
+        }
+
+        // look for current procedure name
+        final String name = asString(getColumnValue(procNameIndex, line, id));
+
+        // look for current procedure description
+        final String description = asString(getColumnValue(procDescIndex, line, null));
+
+        return new Procedure(id, name, description, new HashMap<>());
     }
 
     /**

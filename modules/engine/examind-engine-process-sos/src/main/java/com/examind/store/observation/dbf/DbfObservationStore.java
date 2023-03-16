@@ -45,6 +45,7 @@ import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.storage.DataStores;
@@ -144,23 +145,15 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // look for current procedure (for observation separation)
-                String currentProc;
-                if (procIndex != -1) {
-                    final String procId = extractWithRegex(procRegex, asString(line[procIndex]));
-                    currentProc = procedureId + procId;
-                    if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc)) {
-                        LOGGER.finer("skipping line due to sensor examind.");
-                        continue;
-                    }
-                } else {
-                    currentProc = getProcedureID();
+                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
+                if (currentProc == null) {
+                    LOGGER.finer("skipping line due to null procedure.");
+                    continue;
                 }
-
-                 // look for current procedure name
-                String currentProcName = asString(getColumnValue(procNameIndex, line, currentProc));
-
-                // look for current procedure description
-                String currentProcDesc = asString(getColumnValue(procDescIndex, line, null));
+                if (!query.getSensorIds().isEmpty() && !query.getSensorIds().contains(currentProc.getId())) {
+                    LOGGER.finer("skipping line due to sensor examind.");
+                    continue;
+                }
 
                 // look for current foi (for observation separation)
                 currentFoi = Objects.toString(getColumnValue(foiIndex, line, currentFoi));
@@ -175,7 +168,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentProcName, currentProcDesc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);
@@ -200,7 +193,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
                 // update spatial information
                 try {
-                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc, line);
+                    final double[] position = extractLinePosition(latitudeIndex, longitudeIndex, currentProc.getId(), line);
                     if (position.length == 2) {
                         final double latitude = position[0];
                         final double longitude = position[1];
@@ -298,32 +291,8 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
     @Override
     protected Set<String> extractPhenomenonIds() throws DataStoreException {
-        if (procedureColumn == null) return Collections.singleton(getProcedureID());
-
-        final Set<String> result = new HashSet();
-        // open csv file
-        try (final DataFileReader reader = getDataFileReader()) {
-
-            String[] headers = null;
-            if (!noHeader) {
-                headers = reader.getHeaders();
-            }
-
-            int procIndex = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader);
-
-            final Iterator<Object[]> it = reader.iterator(!noHeader);
-            while (it.hasNext()) {
-                final Object[] line = it.next();
-                if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, asString(line[procIndex]));
-                    result.add(procedureId + procId);
-                }
-            }
-            return result;
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "problem reading dbf file", ex);
-            throw new DataStoreException(ex);
-        }
+        // TODO verify existence?
+        return obsPropColumns;
     }
 
     @Override
