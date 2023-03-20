@@ -35,8 +35,6 @@ import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
 import org.constellation.util.Util;
-import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.temporal.object.ISODateParser;
 
@@ -52,14 +50,14 @@ public class OM2MeasureSQLInserter {
     private final String baseTableName;
     private final String schemaPrefix;
     private final boolean isPostgres;
-    private final List<DbField> fields;
+    private final List<InsertDbField> fields;
 
     private final ISODateParser dateParser = new ISODateParser();
 
     // calculated fields
     private final Map<Integer, String> insertRequests;
 
-    public OM2MeasureSQLInserter(final TextEncoderProperties encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<DbField> fields) throws DataStoreException {
+    public OM2MeasureSQLInserter(final TextEncoderProperties encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<InsertDbField> fields) throws DataStoreException {
         this.encoding = encoding;
         this.baseTableName = "mesure" + pid;
         this.schemaPrefix = schemaPrefix;
@@ -115,7 +113,7 @@ public class OM2MeasureSQLInserter {
      * @param c SQL connection.
      * @param oid Observation identifier.
      * @param values A data values block.
-     * @param update If set ti {@code true}, each individual measure will be search for an eventual update.
+     * @param update If set to {@code true}, each individual measure will be search for an eventual update.
      *
      * @throws SQLException
      * @throws DataStoreException
@@ -135,9 +133,9 @@ public class OM2MeasureSQLInserter {
                     continue;
                 }
 
-                List<Entry<DbField, String>> fieldValues = new ArrayList<>();
+                List<Entry<InsertDbField, String>> fieldValues = new ArrayList<>();
                 for (int i = 0; i < fields.size(); i++) {
-                    final DbField field            = fields.get(i);
+                    final InsertDbField field      = fields.get(i);
                     final boolean lastTokenInBlock = (i == fields.size() - 1);
                     final String[] nextToken       = extractNextValue(block, field, lastTokenInBlock);
                     final String value             = nextToken[0];
@@ -148,7 +146,7 @@ public class OM2MeasureSQLInserter {
 
                 // look for an existing line to update
                 if (update) {
-                    final Entry<DbField, String> main = fieldValues.get(0);
+                    final Entry<InsertDbField, String> main = fieldValues.get(0);
                     try (final PreparedStatement measExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" " +
                                                                         "WHERE \"id_observation\" = ? AND \"" + main.getKey().name + "\" = " + main.getValue())) {
                         measExist.setInt(1, oid);
@@ -200,7 +198,7 @@ public class OM2MeasureSQLInserter {
      *         The second String id the remaining block to parse.
      * @throws DataStoreException Ifthe block is malformed, if a timestamp has a bad format, or if the text value contains forbidden character.
      */
-    private String[] extractNextValue(String block, Field field, boolean lastTokenInBlock) throws DataStoreException {
+    private String[] extractNextValue(String block, InsertDbField field, boolean lastTokenInBlock) throws DataStoreException {
         String value;
         if (lastTokenInBlock) {
             value = block;
@@ -214,26 +212,38 @@ public class OM2MeasureSQLInserter {
             }
         }
 
-        //format time
-        if (FieldType.TIME.equals(field.type) && value != null && !value.isEmpty()) {
-            try {
-                value = value.trim();
-                final long millis = dateParser.parseToMillis(value);
-                value = "'" + new Timestamp(millis).toString() + "'";
-            } catch (IllegalArgumentException ex) {
-                throw new DataStoreException("Bad format of timestamp for:" + value);
+        switch (field.type) {
+            case TIME -> {
+                //format time
+                if (value != null && !(value = value.trim()).isEmpty()) {
+                     try {
+                        final long millis = dateParser.parseToMillis(value);
+                        value = "'" + new Timestamp(millis).toString() + "'";
+                    } catch (IllegalArgumentException ex) {
+                        throw new DataStoreException("Bad format of timestamp for:" + value);
+                    }
+                }
             }
-        } else if (FieldType.TEXT.equals(field.type)) {
-            if (Util.containsForbiddenCharacter(value)) {
-                throw new DataStoreException("Invalid value inserted");
+            case TEXT -> {
+                if (Util.containsForbiddenCharacter(value)) {
+                    throw new DataStoreException("Invalid value inserted");
+                }
+                value = "'" + value + "'";
             }
-            value = "'" + value + "'";
-        } else if (FieldType.BOOLEAN.equals(field.type)) {
-            boolean parsed = Boolean.parseBoolean(value);
-            if (isPostgres) {
-                 value = Boolean.toString(parsed);
-            } else {
-                value = parsed ? "1" : "0";
+            case BOOLEAN -> {
+                boolean parsed = Boolean.parseBoolean(value);
+                if (isPostgres) {
+                    value = Boolean.toString(parsed);
+                } else {
+                    value = parsed ? "1" : "0";
+                }
+            }
+            case QUANTITY -> {
+               if (value != null && !(value = value.trim()).isEmpty()) {
+                   Double d = Double.valueOf(value);
+                   d = (Double) field.convertValue(d);
+                   value = Double.toString(d);
+               }
             }
         }
         return new String[] {value, block};
@@ -248,12 +258,12 @@ public class OM2MeasureSQLInserter {
      *
      * @return A SQL insert part, to add in a SQL Batch.
      */
-    private void buildInsertLine(int mid, int oid, List<Entry<DbField, String>> fieldValues, Map<Integer, StringBuilder> builders) {
+    private void buildInsertLine(int mid, int oid, List<Entry<InsertDbField, String>> fieldValues, Map<Integer, StringBuilder> builders) {
 
         for (StringBuilder builder : builders.values()) {
             builder.append('(').append(oid).append(',').append(mid).append(',');
         }
-        for (Entry<DbField, String> entry : fieldValues) {
+        for (Entry<InsertDbField, String> entry : fieldValues) {
             StringBuilder builder = builders.get(entry.getKey().tableNumber);
             String value = entry.getValue();
             if (value != null && !value.isEmpty()) {
@@ -299,11 +309,11 @@ public class OM2MeasureSQLInserter {
      *
      * @return A SQL update query, to add in a SQL Batch.
      */
-    private List<String> buildUpdateLines(int mid, int oid, List<Entry<DbField, String>> fieldValues) {
+    private List<String> buildUpdateLines(int mid, int oid, List<Entry<InsertDbField, String>> fieldValues) {
         Map<Integer, StringBuilder> builders = new HashMap<>();
         
         for (int i = 1; i < fieldValues.size(); i++) {
-            Entry<DbField, String> entry = fieldValues.get(i);
+            Entry<InsertDbField, String> entry = fieldValues.get(i);
 
             StringBuilder sql = builders.computeIfAbsent(entry.getKey().tableNumber, tn ->
             {

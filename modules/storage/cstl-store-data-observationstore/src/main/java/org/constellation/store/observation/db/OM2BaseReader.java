@@ -508,26 +508,29 @@ public class OM2BaseReader {
         }
     }
 
-    protected List<DbField> completeDbField(final String procedureID, final List<String> fieldNames, final Connection c) throws SQLException {
-        List<DbField> results = new ArrayList<>();
-        for (String fieldName : fieldNames) {
-            results.add(completeDbField(procedureID, fieldName, c));
+    protected List<InsertDbField> completeDbField(final String procedureID, final List<Field> inputFields, final Connection c) throws SQLException {
+        List<InsertDbField> results = new ArrayList<>();
+        for (Field inputField : inputFields) {
+            results.add(completeDbField(procedureID, inputField, c));
         }
         return results;
     }
 
-    protected DbField completeDbField(final String procedureID, final String fieldName, final Connection c) throws SQLException {
+    private InsertDbField completeDbField(final String procedureID, final Field inputField, final Connection c) throws SQLException {
         final String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL AND \"field_name\" = ?";
         try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, procedureID);
-            stmt.setString(2, fieldName);
+            stmt.setString(2, inputField.name);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return getFieldFromDb(rs, procedureID, c, true);
+                    DbField dbField = getFieldFromDb(rs, procedureID, c, true);
+                    InsertDbField result = new InsertDbField(dbField);
+                    result.setInputUom(inputField.uom);
+                    return result;
                 }
             }
         }
-        throw new SQLException("No field " + fieldName + " found for procedure:" + procedureID);
+        throw new SQLException("No field " + inputField.name + " found for procedure:" + procedureID);
     }
 
     protected Field getTimeField(final String procedureID, final Connection c) throws SQLException {

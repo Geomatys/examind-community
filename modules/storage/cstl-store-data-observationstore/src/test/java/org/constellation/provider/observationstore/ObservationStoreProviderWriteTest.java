@@ -547,4 +547,29 @@ public class ObservationStoreProviderWriteTest {
 
         assertEqualsObservation(expected, result);
     }
+
+    @Test
+    public void writeChangeUomObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/change_uom_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/change_uom_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/change_uom_merged_sensor_observation.json"),   Observation.class);
+
+        String oid1 = omPr.writeObservation(first);
+        String oid2 = omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:change_uom_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+    }
 }

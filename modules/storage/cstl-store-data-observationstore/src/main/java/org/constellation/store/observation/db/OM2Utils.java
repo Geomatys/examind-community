@@ -21,6 +21,7 @@ package org.constellation.store.observation.db;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.util.FilterSQLRequest;
@@ -88,14 +89,14 @@ public class OM2Utils {
         return writer.write(pt);
     }
 
-    public static List<DbField> flatFields(List<DbField> fields) {
-        final List<DbField> results = new ArrayList<>();
-        for (DbField field : fields) {
+    public static List<InsertDbField> flatFields(List<InsertDbField> fields) {
+        final List<InsertDbField> results = new ArrayList<>();
+        for (InsertDbField field : fields) {
             results.add(field);
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
                     String name = field.name + "_quality_" + qField.name;
-                    DbField newField = new DbField(null, qField.type, name, qField.label, qField.description, qField.uom, field.tableNumber);
+                    InsertDbField newField = new InsertDbField(null, qField.type, name, qField.label, qField.description, qField.uom, field.tableNumber);
                     results.add(newField);
                 }
             }
@@ -109,5 +110,17 @@ public class OM2Utils {
         } else {
             return CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
         }
+    }
+
+    public static boolean containsField(List<Field> fields, Field field) {
+        for (Field f : fields) {
+            // only compare name and type
+            boolean found = Objects.equals(f.name, field.name)
+                        && Objects.equals(f.type, field.type);
+            if (found) {
+                return true;
+            }
+        }
+        return false;
     }
 }

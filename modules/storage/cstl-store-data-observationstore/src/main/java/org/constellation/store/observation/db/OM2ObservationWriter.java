@@ -722,7 +722,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
             final String values          = cr.getValues();
             if (values != null && !values.isEmpty()) {
-                final List<DbField> dbFields = completeDbField(procedureID, fields.stream().map(f -> f.name).toList(), c);
+                final List<InsertDbField> dbFields = completeDbField(procedureID, fields, c);
                 OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, dbFields);
                 msi.fillMesureTable(c, oid, values, update);
             }
@@ -1350,7 +1350,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
          * Prepare measure table creation / update SQL script.
          */
         for (Field field : fields) {
-            if (!oldfields.contains(field)) {
+            if (!containsField(oldfields, field)) {
                 // create new table
                 if (nbTabField == 0 || nbTabField > maxFieldByTable) {
                     nbTable++;
