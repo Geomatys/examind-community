@@ -673,8 +673,6 @@ public class OM2BaseReader {
     /**
      * Return the PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
      *
-     * z
-     *
      * @param procedure Procedure identifier.
      * @param c A SQL connection.
      *
@@ -690,6 +688,29 @@ public class OM2BaseReader {
                 return new int[] {-1, 0};
             }
         }
+    }
+
+    /**
+     * Return the number of registred fields in the measure table identified by its procedure and table number.
+     *
+     * @param procedure Procedure identifier.
+     * @param tableNum measure table number.
+     * @param c A SQL connection.
+     * 
+     * @return The number of fields (meaning SQL column) of the specified measure table for the specified procedure.
+     * If the procedure or the the table number does not exist it will return 0.
+     */
+    protected int getNbFieldInTable(final String procedure, final int tableNum, final Connection c) throws SQLException {
+        try (final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(*) FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"table_number\"=?")) {//NOSONAR
+            stmt.setString(1, procedure);
+            stmt.setInt(2, tableNum);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        throw new IllegalStateException("Unexpected no results");
     }
     
     protected String getProcedureOMType(final String procedure, final Connection c) throws SQLException {

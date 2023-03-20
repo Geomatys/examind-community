@@ -514,4 +514,37 @@ public class ObservationStoreProviderWriteTest {
         assertEqualsObservation(expected, result);
 
     }
+
+    @Test
+    public void writeTableExtendObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_extend_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_extend_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation.json"),   Observation.class);
+
+        expected.setId("obs-90001");
+        expected.setName("urn:ogc:object:observation:GEOM:90001");
+        expected.getProcedure().setId("urn:ogc:object:sensor:GEOM:multi_table_extend_sensor");
+
+        String oid1 = omPr.writeObservation(first);
+        String oid2 = omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:multi_table_extend_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        result.getObservedProperty().setId("mega-phen");
+        result.getObservedProperty().setName("mega-phen");
+        result.getObservedProperty().setDefinition("mega-phen");
+
+        assertEqualsObservation(expected, result);
+    }
 }

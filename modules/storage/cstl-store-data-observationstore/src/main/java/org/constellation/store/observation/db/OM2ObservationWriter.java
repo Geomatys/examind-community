@@ -34,7 +34,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -361,10 +360,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 if (!replacingObs.phenomenonId.equals(newPhen)) {
                     List<Field> readFields = readFields(procedureID, true, c);
-                   // Set<Phenomenon> temporaries = getAllPhenomenon(c).stream().map(phen -> TemporaryUtils.toXML(phen, "1.0.0")).collect(Collectors.toSet());
-                    Phenomenon replacingPhen = OMUtils.getPhenomenonModels("1.0.O", readFields, phenomenonIdBase, getAllPhenomenon(c));
+                    Phenomenon replacingPhen = OMUtils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
 
-                    //PhenomenonProperty replacingPhenP = SOSXmlFactory.buildPhenomenonProperty("1.0.0", (org.geotoolkit.swe.xml.Phenomenon) replacingPhen);
                     phenRef = writePhenomenon(replacingPhen, c, false);
                     updatePhen.setString(1, phenRef);
                     updatePhen.setInt(2, replacingObs.id);
@@ -1235,16 +1232,79 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         return false;
     }
 
-    private Entry<String,StringBuilder> createTableBaseInsert(int i, String baseTableName) {
-        String suffix = "";
-        if (i > 1) {
-            suffix = "_" + i;
+    private abstract static class TableStatement {
+        public final String baseTableName;
+        public final String tableName;
+
+        public TableStatement(int tableNum, String baseTableName) {
+            this.baseTableName = baseTableName;
+            String suffix = "";
+            if (tableNum > 1) {
+                suffix = "_" + tableNum;
+            }
+            this.tableName = baseTableName + suffix;
         }
-        final String tableName = baseTableName + suffix;
-        final StringBuilder sb = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\"("
+
+        abstract void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException;
+    }
+
+    private class TableUpdate extends TableStatement {
+        public final List<String> sqls = new ArrayList<>();
+
+        public TableUpdate(int tableNum, String baseTableName) {
+            super(tableNum, baseTableName);
+        }
+
+        @Override
+        public void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException {
+            if (Util.containsForbiddenCharacter(field.name)) {
+                throw new DataStoreException("Invalid field name");
+            }
+            String columnName;
+            if (parentName != null) {
+                columnName = parentName + "_quality_" + field.name;
+            } else {
+                columnName = field.name;
+            }
+            StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + columnName + "\" ");
+            sb.append(field.getSQLType(isPostgres, false));
+            sqls.add(sb.toString());
+        }
+    }
+
+    private class TableCreation extends TableStatement {
+        public final StringBuilder sql;
+        public Field mainField;
+        public final boolean fillObservations;
+
+        public TableCreation(int tableNum, String baseTableName, boolean fillObs) {
+            super(tableNum, baseTableName);
+            this.sql = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
                                                  + "\"id_observation\" integer NOT NULL,"
                                                  + "\"id\"             integer NOT NULL,");
-        return new AbstractMap.SimpleEntry<>(tableName, sb);
+            this.fillObservations = fillObs;
+        }
+
+        @Override
+        public void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException {
+            if (Util.containsForbiddenCharacter(field.name)) {
+                throw new DataStoreException("Invalid field name");
+            }
+            String columnName;
+            if (parentName != null) {
+                columnName = parentName + "_quality_" + field.name;
+            } else {
+                columnName = field.name;
+            }
+
+            sql.append('"').append(columnName).append("\" ").append(field.getSQLType(isPostgres, isMain && timescaleDB));
+            // main field should not be null (timescaledb compatibility)
+            if (isMain) {
+                mainField = field;
+                sql.append(" NOT NULL");
+            }
+            sql.append(",");
+        }
     }
 
     private void buildMeasureTable(final String procedureID, final int pid, final List<Field> fields, final Connection c) throws SQLException, DataStoreException {
@@ -1252,140 +1312,128 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             throw new DataStoreException("measure fields can not be empty");
         }
         final String baseTableName = "mesure" + pid;
-        
 
-        //look for existence
+        Map<Integer, TableStatement> tablesStmt = new LinkedHashMap<>();
+        final List<Field> oldfields;
+        final List<DbField> newFields = new ArrayList<>();
+        final int fieldOffset;
+        int nbTable;
+        int nbTabField;
+        boolean firstField;
+        
+        /**
+         * Look for table existence.
+         */
         final boolean exist = measureTableExist(pid);
         if (!exist) {
-            final List<DbField> dbFields = new ArrayList<>();
-            Map<Integer, Entry<String, StringBuilder>> creationTablesStmt = new LinkedHashMap<>();
-            boolean firstField = true;
-            Field mainField    = null;
-            int fieldCpt       = 0;
-            int nbTable        = 0;
-            int nbTabField     = -1;
+            oldfields   = new ArrayList<>();
+            firstField  = true;
+            nbTable     = 0;
+            nbTabField  = 0;
+            fieldOffset = 1;
+            
+        } else if (allowSensorStructureUpdate) {
+            final int [] pidNumber  = getPIDFromProcedure(procedureID, c);
+            
+            oldfields               = readFields(procedureID, false, c);
+            firstField              = false;
+            nbTable                 = pidNumber[1];
+            // number of field in the last measure table
+            nbTabField              = getNbFieldInTable(procedureID, nbTable, c);
+            fieldOffset             = oldfields.size() + 1;
+            
+        } else {
+            throw new DataStoreException("Observation writer does not support sensor structure update");
+        }
 
-            // Build measures tables
-            while (fieldCpt < fields.size()) {
-                
-                 // create new table
-                if (nbTabField == -1 || nbTabField > maxFieldByTable) {
+        /**
+         * Prepare measure table creation / update SQL script.
+         */
+        for (Field field : fields) {
+            if (!oldfields.contains(field)) {
+                // create new table
+                if (nbTabField == 0 || nbTabField > maxFieldByTable) {
                     nbTable++;
-                    creationTablesStmt.put(nbTable, createTableBaseInsert(nbTable, baseTableName));
+                    tablesStmt.put(nbTable, new TableCreation(nbTable, baseTableName, !firstField));
                     nbTabField = 0;
-                }
-                StringBuilder sb = creationTablesStmt.get(nbTable).getValue();
 
-                final Field field = fields.get(fieldCpt);
-                dbFields.add(new DbField(field, nbTable));
+                // update existing table
+                } else if (!tablesStmt.containsKey(nbTable)) {
+                    tablesStmt.put(nbTable, new TableUpdate(nbTable, baseTableName));
+                }
+                TableStatement tc = tablesStmt.get(nbTable);
 
-                if (Util.containsForbiddenCharacter(field.name)) {
-                    throw new DataStoreException("Invalid field name");
-                }
-                sb.append('"').append(field.name).append("\" ").append(field.getSQLType(isPostgres, firstField && timescaleDB));
-                // main field should not be null (timescaledb compatibility)
-                if (firstField) {
-                    mainField = field;
-                    sb.append(" NOT NULL");
-                    firstField = false;
-                }
-                sb.append(",");
+                tc.appendField(field, firstField, null);
+                firstField = false;
+
                 if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                     for (Field qField : field.qualityFields) {
-                        String columnName = field.name + "_quality_" + qField.name;
-                        sb.append('"').append(columnName).append("\" ").append(qField.getSQLType(isPostgres, false));
-                        sb.append(",");
+                        tc.appendField(qField, false, field.name);
                         nbTabField++;
                     }
                 }
-                fieldCpt++;
+                newFields.add(new DbField(field, nbTable));
                 nbTabField++;
             }
+        }
 
-            if (mainField == null) {
-                throw new DataStoreException("No main field was found");
-            }
-            
-            try (final Statement stmt = c.createStatement()) {
+        /**
+         * build/update measures tables.
+         */
+        try (final Statement stmt = c.createStatement()) {
 
-                // build measures tables
-                boolean first = true;
-                for (Entry<String, StringBuilder> entry : creationTablesStmt.values()) {
-                    String tableName = entry.getKey();
-                    StringBuilder tableStsmt = entry.getValue();
+            for (TableStatement ts : tablesStmt.values()) {
+                
+                if (ts instanceof TableCreation tc) {
+                    String tableName = tc.tableName;
+                    StringBuilder tableStsmt = tc.sql;
                     // close statement
                     tableStsmt.setCharAt(tableStsmt.length() - 1, ' ');
                     tableStsmt.append(")");
-                    
+
                     stmt.executeUpdate(tableStsmt.toString());
 
                     String mainFieldPk = "";
-                    if (first) {
-                        mainFieldPk = ", \"" + mainField.name + "\"";
-                        first = false;
+                    if (tc.mainField != null) {
+                        mainFieldPk = ", \"" + tc.mainField.name + "\"";
                     }
                     // main field should not be in the primary phenId (timescaledb compatibility)
                     stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")");//NOSONAR
                     stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
 
                     //only for timeseries for now
-                    if (timescaleDB && FieldType.TIME.equals(mainField.type)) {
-                        stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + mainField.name + "')");//NOSONAR
+                    if (timescaleDB && tc.mainField != null && FieldType.TIME.equals(tc.mainField.type)) {
+                        stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + tc.mainField.name + "')");//NOSONAR
                     }
-                }
 
-                // update table count
-                stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + procedureID + "'");//NOSONAR
-            }
+                    // for extra table, we prefill the observation measures
+                    if (tc.fillObservations) {
+                        ResultSet rs = stmt.executeQuery("SELECT \"id_observation\", \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + tc.baseTableName + "\"");
 
-            //fill procedure_descriptions table
-            insertFields(procedureID, dbFields, 1, c);
-
-
-        } else if (allowSensorStructureUpdate) {
-            final int [] pidNumber       = getPIDFromProcedure(procedureID, c);
-            final int nbTable            = pidNumber[1];
-            final List<Field> oldfields  = readFields(procedureID, false, c);
-            final List<Field> newfields  = new ArrayList<>();
-            final List<DbField> dbFields = new ArrayList<>();
-            for (Field field : fields) {
-                if (!oldfields.contains(field)) {
-                    newfields.add(field);
-                    dbFields.add(new DbField(field, nbTable)); // TODO. see comment under
-                }
-            }
-
-            /**
-             * Update measure table by adding new fields.
-             *
-             * TODO: this update mode actually do not handle the multi measure table mecanism.
-             * It will add all the new fields to the last measure table.
-             * we need to handle when the next fields reach the max comlumn limit and then, create a new table.
-             */
-            try (Statement addColumnStmt = c.createStatement()) {
-                String tableName = baseTableName;
-                if (nbTable > 1) {
-                    tableName = baseTableName + "_" + nbTable;
-                }
-                for (Field newField : newfields) {
-                    StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + newField.name + "\" ");
-                    sb.append(newField.getSQLType(isPostgres, false));
-                    addColumnStmt.execute(sb.toString());
-
-                    if (newField.qualityFields != null && !newField.qualityFields.isEmpty()) {
-                        for (Field qField : newField.qualityFields) {
-                            String columnName = newField.name + "_quality_" + qField.name;
-                            StringBuilder qsb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + columnName + "\" ");
-                            qsb.append(qField.getSQLType(isPostgres, false));
-                            addColumnStmt.execute(qsb.toString());
+                        try (final PreparedStatement stmtBatch = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tc.tableName + "\" (\"id_observation\", \"id\") VALUES(?,?)")) {
+                            while (rs.next()) {
+                                stmtBatch.setInt(1, rs.getInt(1));
+                                stmtBatch.setInt(2, rs.getInt(2));
+                                stmtBatch.addBatch();
+                            }
+                            stmtBatch.executeBatch();
                         }
                     }
+
+                } else if (ts instanceof TableUpdate tu) {
+                    for (String sql : tu.sqls) {
+                        stmt.executeUpdate(sql);
+                    }
                 }
             }
-
-            //fill procedure_descriptions table
-            insertFields(procedureID, dbFields, oldfields.size() + 1, c);
+            // update table count
+            stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + procedureID + "'");//NOSONAR
         }
+
+        /**
+         * fill procedure_descriptions table
+         */
+        insertFields(procedureID, newFields, fieldOffset, c);
     }
 
     private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {
