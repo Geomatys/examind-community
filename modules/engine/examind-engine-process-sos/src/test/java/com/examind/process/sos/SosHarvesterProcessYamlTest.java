@@ -510,5 +510,210 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         Assert.assertEquals(9566, nbMeasure);
     }
 
+    @Test
+    public void harvesterTsvFromYamlTest() throws Exception {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(worker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:ogc:object:sensor:GEOM:tsv_sensor";
+
+        String datasetId = "SOS_DATA";
+
+        // Create a temporary yaml file.
+        Path tempFile = Files.createTempFile(null, null);
+        List<String> listYamlParameter = Arrays.asList(
+                "process_name: sosHarvester",
+                "data_folder: " + tsvDirectory.toUri().toString(),
+                "sensor_service:",
+                "   service:",
+                "      identifier: default",
+                "      type: sos",
+                "   service2:",
+                "      identifier: default",
+                "      type: sts",
+                "dataset_identifier: " + datasetId,
+                "thing_id: " + sensorId,
+                "observation_type: Timeserie",
+                "separator: '\t'",
+                "main_column: TIME",
+                "date_column: TIME",
+                "date_format: yyyy-MM-dd'T'HH:mm:ss.S",
+                "longitude_column: LON",
+                "latitude_column: LAT",
+                "remove_previous_integration: true",
+                "store_id: observationCsvFile",
+                "format: 'text/csv; subtype=\"om\"'",
+                "observed_properties_columns:",
+                "- TEMPERATURE"
+        );
+        Files.write(tempFile, listYamlParameter, StandardOpenOption.APPEND);
+
+        ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(AdminProcessRegistry.NAME, "yamlReader");
+        ParameterValueGroup in = desc.getInputDescriptor().createValue();
+
+        in.parameter(ProcessFromYamlProcessDescriptor.DATA_FOLDER_NAME).setValue(tempFile);
+        org.geotoolkit.process.Process process = desc.createProcess(in); // Create the process
+
+        process.call();// Call the process.
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMPERATURE"));
+
+
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Assert.assertTrue(o instanceof ObservationCollection);
+
+        String observedProperty = "TEMPERATURE";
+        
+        /*
+         * Verify an inserted data
+         */
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
+        String expectedResult = getResourceAsString("com/examind/process/sos/tabulation.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(1, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, "1980-03-01T21:52:00Z", 3.6, 2.1);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(2, nbMeasure);
+    }
+
+    @Test
+    public void harvesterTsvFlatFromYamlTest() throws Exception {
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        worker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(worker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:ogc:object:sensor:GEOM:tsv_flat_sensor";
+
+        String datasetId = "SOS_DATA";
+
+        // Create a temporary yaml file.
+        Path tempFile = Files.createTempFile(null, null);
+        List<String> listYamlParameter = Arrays.asList(
+                "process_name: sosHarvester",
+                "data_folder: " + tsvFlatDirectory.toUri().toString(),
+                "sensor_service:",
+                "   service:",
+                "      identifier: default",
+                "      type: sos",
+                "   service2:",
+                "      identifier: default",
+                "      type: sts",
+                "dataset_identifier: " + datasetId,
+                "thing_id: " + sensorId,
+                "observation_type: Timeserie",
+                "separator: '\t'",
+                "main_column: TIME",
+                "date_column: TIME",
+                "date_format: yyyy-MM-dd'T'HH:mm:ss.S",
+                "longitude_column: LON",
+                "latitude_column: LAT",
+                "remove_previous_integration: true",
+                "store_id: observationCsvFlatFile",
+                "format: 'text/csv; subtype=\"om\"'",
+                "observed_properties_columns:",
+                "- PROPERTY",
+                "result_column:",
+                "- RESULT"
+        );
+        Files.write(tempFile, listYamlParameter, StandardOpenOption.APPEND);
+
+        ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(AdminProcessRegistry.NAME, "yamlReader");
+        ParameterValueGroup in = desc.getInputDescriptor().createValue();
+
+        in.parameter(ProcessFromYamlProcessDescriptor.DATA_FOLDER_NAME).setValue(tempFile);
+        org.geotoolkit.process.Process process = desc.createProcess(in); // Create the process
+
+        process.call();// Call the process.
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        ObservationOffering offp = getOffering(worker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMPERATURE"));
+
+
+        Object o = worker.getObservation(new GetObservationType("2.0.0", "SOS",Arrays.asList(offp.getId()), null, Arrays.asList(sensorId), null, null, null,null));
+        Assert.assertTrue(o instanceof ObservationCollection);
+
+        String observedProperty = "TEMPERATURE";
+
+        /*
+         * Verify an inserted data
+         */
+        GetResultResponseType gr = (GetResultResponseType) worker.getResult(new GetResultType("2.0.0", "SOS", offp.getId(), observedProperty, null, null, null));
+        String expectedResult = getResourceAsString("com/examind/process/sos/tabulation.txt");
+        Assert.assertEquals(expectedResult, gr.getResultValues().toString() + '\n');
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(1, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, "1980-03-01T21:52:00Z", 3.6, 2.1);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(2, nbMeasure);
+    }
 
 }

@@ -301,6 +301,7 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             final boolean extValid = suffix.contains(extension);
             if (extValid) {
                 switch (extension) {
+                    case "tsv" :  return new ProbeResult(true, "text/csv; subtype=\"om\"", null);
                     case "csv" :  return new ProbeResult(true, "text/csv; subtype=\"om\"", null);
                     case "xlsx":  return new ProbeResult(true, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\"", null);
                     case "xls" :  return new ProbeResult(true, "application/vnd.ms-excel; subtype=\"om\"", null);

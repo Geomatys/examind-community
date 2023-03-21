@@ -386,6 +386,7 @@ public class FileParsingUtils {
             case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\"": return new XLSXDataFileReader(dataFile);
             case "csv-flat":
             case "csv":
+            case "tsv":
             case "text/csv; subtype=\"om\"": return new CSVDataFileReader(dataFile, delimiter, quotechar);
             case "dbf":
             case "application/dbase; subtype=\"om\"":

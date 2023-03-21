@@ -81,6 +81,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path survalDirectory;
     protected static Path noHeadDirectory;
     protected static Path disjointDirectory;
+    protected static Path tsvDirectory;
+    protected static Path tsvFlatDirectory;
 
     // XLS dir
     protected static Path xDataDirectory;
@@ -119,6 +121,10 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         Files.createDirectories(noHeadDirectory);
         disjointDirectory = DATA_DIRECTORY.resolve("disjoint");
         Files.createDirectories(disjointDirectory);
+        tsvDirectory = DATA_DIRECTORY.resolve("tsv");
+        Files.createDirectories(tsvDirectory);
+        tsvFlatDirectory = DATA_DIRECTORY.resolve("tsv-flat");
+        Files.createDirectories(tsvFlatDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
@@ -136,6 +142,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         writeResourceDataFile(xDataDirectory, "com/examind/process/sos/xdata.xlsx", "xdata.xlsx");
         writeResourceDataFile(noHeadDirectory, "com/examind/process/sos/nohead.csv", "nohead.csv");
         writeResourceDataFile(disjointDirectory, "com/examind/process/sos/disjoint-1.csv", "disjoint-1.csv");
+        writeResourceDataFile(tsvDirectory, "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
+        writeResourceDataFile(tsvFlatDirectory, "com/examind/process/sos/tabulation-flat.tsv", "tabulation-flat.tsv");
     }
 
     @PostConstruct

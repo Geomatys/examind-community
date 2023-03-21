@@ -76,6 +76,6 @@ public class CsvFlatObservationStoreFactory extends FileParsingObservationStoreF
 
     @Override
     public Collection<String> getSuffix() {
-        return Arrays.asList("csv", "xlsx", "xls");
+        return Arrays.asList("csv", "xlsx", "xls", "tsv");
     }
 }
