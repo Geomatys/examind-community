@@ -1084,7 +1084,7 @@ public class STSService extends OGCWebService<STSWorker> {
                 // sensor location
                 } else {
                     request.getExtraFilter().put("procedure", id);
-                    request.getExtraFlag().put("hloc-time", "no-time");
+                    //request.getExtraFlag().put("hloc-time", "no-time");
                     return treatIncomingRequest(request).getResponseEntity(response);
                 }
             } catch (Exception ex) {

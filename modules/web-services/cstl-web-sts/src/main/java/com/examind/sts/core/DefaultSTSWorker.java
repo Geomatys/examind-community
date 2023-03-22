@@ -1593,7 +1593,12 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else if (exp.historicalLocations.selected) {
             thing = thing.historicalLocationsIotNavigationLink(selfLink + "/HistoricalLocations");
         }
-
+        if (exp.locations.expanded) {
+            RequestOptions lExp = exp.subLevel("Locations");
+            thing.addLocationsItem(buildLocation(lExp, sensorID, s, null, null));
+        } else if (exp.locations.selected) {
+            thing = thing.locationsIotNavigationLink(selfLink + "/Locations");
+        }
         return thing;
     }
 
@@ -1813,7 +1818,11 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
 
         if (exp.historicalLocations.expanded) {
-            // TODO
+            RequestOptions hlExp = exp.subLevel("HistoricalLocations");
+            for (Entry<Date, Geometry> entry : getHistoricalLocationsForSensor(sensorID).entrySet()) {
+                HistoricalLocation location = buildHistoricalLocation(hlExp, sensorID, s, entry.getKey(), entry.getValue());
+                result = result.addHistoricalLocationsItem(location);
+            }
         } else if (exp.historicalLocations.selected) {
             result = result.historicalLocationsIotNavigationLink(selfLink + "/HistoricalLocations");
         }
