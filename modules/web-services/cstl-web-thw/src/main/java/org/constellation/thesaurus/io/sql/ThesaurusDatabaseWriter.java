@@ -54,8 +54,8 @@ import org.constellation.util.Util;
  */
 public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements WriteableThesaurus {
 
-    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final boolean derby) throws ThesaurusException {
-        super(datasource, schema, derby);
+    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final String dialect) throws ThesaurusException {
+        super(datasource, schema, dialect);
     }
 
     /**
@@ -63,17 +63,17 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      *
      * @param datasource The datasource whiwh will store the thesaurus
      * @param schema The database schema for this thesaurus
-     * @param derby A flag indicating if the datasource ids a derby implementation.
+     * @param dialect A flag indicating the datasource implementation (derby, postgres, hsql).
      * @param uri The unique identifier of the thesaurus
      * @param name The name of the thesaurus.
      * @param description A brief description of the thesaurus
      * @param languages A list of languages contained in the thesaurus (for label, altLabel, ...)
      * @param defaultLanguage The default language to be used when none is specified.
      */
-    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final boolean derby,
+    public ThesaurusDatabaseWriter(final DataSource datasource, final String schema, final String dialect,
             final String uri, final String name, final String description, final List<ISOLanguageCode> languages,
             final ISOLanguageCode defaultLanguage) {
-        super(datasource, schema, derby, uri, name, description, languages, defaultLanguage);
+        super(datasource, schema, dialect, uri, name, description, languages, defaultLanguage);
     }
 
     private void writeProperty(final String uriConcept, final String property, final List<? extends Object> conceptList, final Connection connection) throws SQLException {
@@ -91,6 +91,12 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                     writeProperty(uriConcept, property, s, connection);
                 } else if (o instanceof Boolean) {
                     writeProperty(uriConcept, property, o.toString(), connection);
+                } else if (o instanceof ConceptBrief fc) {
+                    if (fc.getUri() != null) {
+                        writeProperty(uriConcept, property, fc.getUri(), connection);
+                    } else {
+                        LOGGER.log(Level.WARNING, "Full concept uri property cannot be null.");
+                    }
                 } else if (o != null) {
                     throw new IllegalArgumentException("Unexpected type for a property:" + o.getClass().getName());
                 }
@@ -101,11 +107,16 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     protected void writeProperty(final String uriconcept, final String property, final String value, final Connection connection) throws SQLException {
         if (value == null) {return;}
         try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, NULL)")) {//NOSONAR
-            stmt.setString(1, uriconcept);
-            stmt.setString(2, property);
-            stmt.setString(3, value);
+            writeProperty(uriconcept, property, value, stmt);
             stmt.executeUpdate();
         }
+    }
+
+    protected void writeProperty(final String uriconcept, final String property, final String value, final PreparedStatement stmt) throws SQLException {
+        if (value == null) {return;}
+        stmt.setString(1, uriconcept);
+        stmt.setString(2, property);
+        stmt.setString(3, value);
     }
 
     protected void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
@@ -127,6 +138,8 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             stringValue = value.toString();
         } else if (value instanceof Concept c) {
             stringValue = c.getResource();
+        } else if (value instanceof ConceptBrief c) {
+            stringValue = c.getUri();
         } else if (value instanceof List ls) {
             deleteProperty(uriconcept, property, connection);
             writeProperty(uriconcept, property, ls, connection);
@@ -282,6 +295,14 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         }
     }
 
+    public void writeConcept(final FullConcept concept) throws SQLException {
+        if (getConcept(concept.getUri()) == null) {
+            insertConcept(concept);
+        } else {
+            updateConcept(concept);
+        }
+    }
+
     protected String insertConcept(final Concept concept) throws SQLException {
         final String uriConcept;
         if (concept.getAbout() == null) {
@@ -372,6 +393,31 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             writeTerm(uriConcept, SCOPE_NOTE_TYPE,       concept.getScopeNote(),   LOCALISATION, c, true);
             writeTerm(uriConcept, EXAMPLE_TYPE,          concept.getExample(),     LOCALISATION, c, true);
             writeTerm(uriConcept, HISTORY_NOTE_TYPE,     concept.getHistoryNote(), LOCALISATION, c, true);
+        }
+        return uriConcept;
+    }
+
+    protected String updateConcept(final FullConcept concept) throws SQLException {
+        final String uriConcept = concept.getUri();
+        try (Connection c = datasource.getConnection()) {
+            updateProperty(uriConcept, RELATED_PREDICATE,           concept.getRelated(), c);
+            updateProperty(uriConcept, BROADER_PREDICATE,           concept.getBroaders(), c);
+            updateProperty(uriConcept, NARROWER_PREDICATE,          concept.getNarrowers(), c);
+
+            List<Value> prefLabels = concept.getPrefLabel().entrySet().stream().map(e -> new Value(e.getValue(), e.getKey())).toList();
+            writeTerm(uriConcept, PREF_LABEL_TYPE,      prefLabels,   COMPLETION,   c, true);
+
+            List<Value> definitions = concept.getDefinition().entrySet().stream().map(e -> new Value(e.getValue(), e.getKey())).toList();
+            writeTerm(uriConcept, DEFINITION_LABEL_TYPE,      definitions,   LOCALISATION,   c, true);
+
+            List<Value> altLabels = concept.getAltLabels().entrySet().stream().flatMap(e -> {
+                List<Value> vals = new ArrayList<>();
+                for (String v : e.getValue()) {
+                    vals.add(new Value(e.getKey(), v));
+                }
+                return vals.stream();
+            }).toList();
+            writeTerm(uriConcept, ALT_LABEL_TYPE,        altLabels,    COMPLETION,   c, true);
         }
         return uriConcept;
     }
@@ -468,11 +514,11 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      */
     public void insertConcept(FullConcept fullConcept) {
 
-        String insertRelation = "INSERT INTO \"" + schema + "\".propriete_concept (uri_concept, predicat, objet) VALUES (?, ?, ?)";
+        String insertRelation = "INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" (uri_concept, predicat, objet) VALUES (?, ?, ?)";
 
-        String insertComplTerm = "INSERT INTO \"" + schema + "\".terme_completion VALUES (?, ?, ?, ?, ?)";
+        String insertComplTerm = "INSERT INTO \"" + schema + "\".\"terme_completion\" VALUES (?, ?, ?, ?, ?)";
 
-        String insertLocalTerm = "INSERT INTO \"" + schema + "\".terme_localisation VALUES (?, ?, ?, ?, ?)";
+        String insertLocalTerm = "INSERT INTO \"" + schema + "\".\"terme_localisation\" VALUES (?, ?, ?, ?, ?)";
 
         try (Connection con = datasource.getConnection();
              PreparedStatement relationStmt = con.prepareStatement(insertRelation);//NOSONAR
@@ -480,9 +526,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
              PreparedStatement lacalTermStmt = con.prepareStatement(insertLocalTerm)) {//NOSONAR
 
             // Type.
-            relationStmt.setString(1, fullConcept.getUri());
-            relationStmt.setString(2, TYPE_PREDICATE);
-            relationStmt.setString(3, CONCEPT_TYPE);
+            writeProperty(fullConcept.getUri(), TYPE_PREDICATE, CONCEPT_TYPE, relationStmt);
             relationStmt.addBatch();
 
             if (fullConcept.isTopConcept()) {
@@ -492,13 +536,9 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                 if (hierarchyRoots.isEmpty()) {
                     String rootUri = UUID.randomUUID().toString();
                     hierarchyRoots.add(new Concept(rootUri));
-                    relationStmt.setString(1, rootUri);
-                    relationStmt.setString(2, HIERARCHY_ROOT_PREDICATE);
-                    relationStmt.setString(3, "true");
+                    writeProperty(rootUri, HIERARCHY_ROOT_PREDICATE, "true", relationStmt);
                     relationStmt.addBatch();
-                    relationStmt.setString(1, rootUri);
-                    relationStmt.setString(2, TYPE_PREDICATE);
-                    relationStmt.setString(3, CONCEPT_TYPE);
+                    writeProperty(rootUri, TYPE_PREDICATE, CONCEPT_TYPE, relationStmt);
                     relationStmt.addBatch();
                     complTermStmt.setString(1, rootUri);
                     complTermStmt.setString(2, "ROOT");
@@ -510,22 +550,16 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
                 // Top concept.
                 for (Concept concept : hierarchyRoots) {
-                    relationStmt.setString(1, concept.getAbout());
-                    relationStmt.setString(2, HAS_TOP_CONCEPT_PREDICATE);
-                    relationStmt.setString(3, fullConcept.getUri());
+                    writeProperty(concept.getAbout(), HAS_TOP_CONCEPT_PREDICATE, fullConcept.getUri(), relationStmt);
                     relationStmt.addBatch();
                 }
                 relationStmt.executeBatch();
             } else {
                 // Broaders.
                 for (ConceptBrief conceptBrief : fullConcept.getBroaders()) {
-                    relationStmt.setString(1, fullConcept.getUri());
-                    relationStmt.setString(2, BROADER_PREDICATE);
-                    relationStmt.setString(3, conceptBrief.getUri());
+                    writeProperty(fullConcept.getUri(), BROADER_PREDICATE, conceptBrief.getUri(), relationStmt);
                     relationStmt.addBatch();
-                    relationStmt.setString(1, conceptBrief.getUri());
-                    relationStmt.setString(2, NARROWER_PREDICATE);
-                    relationStmt.setString(3, fullConcept.getUri());
+                    writeProperty(conceptBrief.getUri(), NARROWER_PREDICATE, fullConcept.getUri(), relationStmt);
                     relationStmt.addBatch();
                 }
                 relationStmt.executeBatch();
@@ -533,26 +567,18 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
             // Narrowers.
             for (ConceptBrief conceptBrief : fullConcept.getNarrowers()) {
-                relationStmt.setString(1, fullConcept.getUri());
-                relationStmt.setString(2, NARROWER_PREDICATE);
-                relationStmt.setString(3, conceptBrief.getUri());
+                writeProperty(fullConcept.getUri(), NARROWER_PREDICATE, conceptBrief.getUri(), relationStmt);
                 relationStmt.addBatch();
-                relationStmt.setString(1, conceptBrief.getUri());
-                relationStmt.setString(2, BROADER_PREDICATE);
-                relationStmt.setString(3, fullConcept.getUri());
+                writeProperty(conceptBrief.getUri(), NARROWER_PREDICATE, fullConcept.getUri(), relationStmt);
                 relationStmt.addBatch();
             }
             relationStmt.executeBatch();
 
             // Related.
             for (ConceptBrief conceptBrief : fullConcept.getRelated()) {
-                relationStmt.setString(1, fullConcept.getUri());
-                relationStmt.setString(2, RELATED_PREDICATE);
-                relationStmt.setString(3, conceptBrief.getUri());
+                writeProperty(fullConcept.getUri(), RELATED_PREDICATE, conceptBrief.getUri(), relationStmt);
                 relationStmt.addBatch();
-                relationStmt.setString(1, conceptBrief.getUri());
-                relationStmt.setString(2, RELATED_PREDICATE);
-                relationStmt.setString(3, fullConcept.getUri());
+                writeProperty(conceptBrief.getUri(), RELATED_PREDICATE, fullConcept.getUri(), relationStmt);
                 relationStmt.addBatch();
             }
             relationStmt.executeBatch();
@@ -644,6 +670,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
     @Override
     public void store() throws SQLException, IOException {
+        boolean derby        = "derby".equals(dialect);
         String sql           = IOUtilities.toString(Util.getResourceAsStream("org/constellation/thesaurus/io/sql/create-new-thesaurus.sql"));
         sql                  = sql.replace("{schema}", schema);
         if (derby) {
@@ -684,9 +711,9 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
     public void delete() throws SQLException {
         try (Connection connection = datasource.getConnection();
              Statement stmt = connection.createStatement()) {
-            if (derby) {
+            if ("derby".equals(dialect)) {
                 stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"language\"");//NOSONAR
-                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"propriete_concept\"");//NOSONAR
+                stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"" + TABLE_NAME + "\"");//NOSONAR
                 stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"propriete_thesaurus\"");//NOSONAR
                 stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"terme_completion\"");//NOSONAR
                 stmt.executeUpdate("DROP TABLE \"" + schema +"\".\"terme_localisation\"");//NOSONAR
@@ -710,8 +737,8 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         /*
          * 1) look for concept with no broader
          */
-        final String query = " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"propriete_concept\"  WHERE \"uri_concept\" NOT IN ("
-                           + " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"propriete_concept\" WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#broader')";
+        final String query = " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\"  WHERE \"uri_concept\" NOT IN ("
+                           + " SELECT distinct \"uri_concept\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"predicat\"='http://www.w3.org/2004/02/skos/core#broader')";
         try (Connection connection = datasource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(query);//NOSONAR
             ResultSet result = stmt.executeQuery()) {

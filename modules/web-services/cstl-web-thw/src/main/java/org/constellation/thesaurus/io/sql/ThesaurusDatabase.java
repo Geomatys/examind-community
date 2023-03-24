@@ -121,16 +121,16 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     protected DataSource datasource;
 
-    protected final boolean derby;
+    protected final String dialect;
 
-    public ThesaurusDatabase(final DataSource datasource, final String schema, final boolean derby) throws ThesaurusException {
+    public ThesaurusDatabase(final DataSource datasource, final String schema, final String dialect) throws ThesaurusException {
         this.datasource    = datasource;
-        this.derby         = derby;
+        this.dialect         = dialect;
         if (Util.containsForbiddenCharacter(schema)) {
             throw new ThesaurusException("Invalid schema prefix value");
         }
         this.schema        = schema;
-        if (derby) {
+        if ("derby".equals(dialect)) {
             likeOperator   = "LIKE";
         } else {
             likeOperator   = "ILIKE";
@@ -148,19 +148,19 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
      *
      * @param datasource The datasource whiwh will store the thesaurus
      * @param schema The database schema for this thesaurus
-     * @param derby A flag indicating if the datasource ids a derby implementation.
+     * @param dialect A flag indicating the datasource implementation (derby, postgres, hsql).
      * @param uri The unique identifier of the thesaurus
      * @param name The name of the thesaurus.
      * @param description A brief description of the thesaurus
      * @param languages A list of languages contained in the thesaurus (for label, altLabel, ...)
      * @param defaultLanguage The default language to be used when none is specified.
      */
-    public ThesaurusDatabase(final DataSource datasource, final String schema, final boolean derby,
+    public ThesaurusDatabase(final DataSource datasource, final String schema, final String dialect,
             final String uri, final String name, final String description, final List<ISOLanguageCode> languages,
             final ISOLanguageCode defaultLanguage) {
         this.datasource = datasource;
-        this.derby      = derby;
-        if (derby) {
+        this.dialect    = dialect;
+        if ("derby".equals(dialect)) {
             likeOperator   = "LIKE";
         } else {
             likeOperator   = "ILIKE";
@@ -229,7 +229,6 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     }
 
     protected String readConceptProperty(final String uriConcept, final String predicat, final Connection c) throws SQLException {
-        final List<Tuple> response = new ArrayList<>();
         final String sql = "SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ? and \"predicat\" = ?";
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
             stmt.setString(1, uriConcept);
@@ -269,7 +268,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return theme;
     }
 
-    private List<Value> getMultiLingualTerm(final String uriConcept, final String termType, final boolean strict, final int tableFlag, final Connection c, final ISOLanguageCode language) throws SQLException {
+    protected List<Value> getMultiLingualTerm(final String uriConcept, final String termType, final boolean strict, final int tableFlag, final Connection c, final ISOLanguageCode language) throws SQLException {
         final String table;
         if (tableFlag == COMPLETION) {
             table = "terme_completion";
@@ -734,55 +733,49 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     }
 
     protected Concept readConcept(final String uriConcept, final boolean withGeometry, final Connection con, final ISOLanguageCode language) throws SQLException {
-        if (uriConcept != null) {
+        if (uriConcept == null) return null;
 
-            // hack to avoid the confusion with the LIKE operator when uriconcept is an integer
-            boolean strict = true;
-            try {
-                Integer.parseInt(uriConcept);
-            } catch (NumberFormatException ex) {
-                strict = false;
-            }
-
-            final Concept concept = buildEmptyConcept(uriConcept);
-
-            concept.setPrefLabel(getMultiLingualTerm(uriConcept,   PREF_LABEL_TYPE,       strict, COMPLETION,   con, language));
-            concept.setAltLabel(getMultiLingualTerm(uriConcept,    ALT_LABEL_TYPE,        strict, COMPLETION,   con, language));
-            concept.setLabel(getMultiLingualTerm(uriConcept,       LABEL_TYPE,            strict, COMPLETION,   con, language));
-            concept.setDefinition(getMultiLingualTerm(uriConcept,  DEFINITION_LABEL_TYPE, strict, LOCALISATION, con, language));
-            concept.setScopeNote(getMultiLingualTerm(uriConcept,   SCOPE_NOTE_TYPE,       strict, LOCALISATION, con, language));
-            concept.setHistoryNote(getMultiLingualTerm(uriConcept, HISTORY_NOTE_TYPE,     strict, LOCALISATION, con, language));
-            concept.setExample(getMultiLingualTerm(uriConcept,     EXAMPLE_TYPE,          strict, LOCALISATION, con, language));
-
-            // extended attribute for cnes distrib
-            final String theme = getTheme(uriConcept, strict, con);
-            if (theme != null && !theme.equals(schema)){
-                final Concept tconcept = new Concept();
-                tconcept.setResource(theme);
-                concept.addInScheme(tconcept);
-            }
-
-            final List<Tuple> tuples = getConceptTuples(uriConcept, strict, con);
-
-            final boolean found = !tuples.isEmpty();
-            fillConceptPropertiesFromTuple(concept, tuples);
-
-            /*
-             * Set concept type (always concept)
-             */
-            if (concept.getType() == null) {
-                final Concept c = new Concept();
-                c.setResource(CONCEPT_TYPE);
-                concept.setType(c);
-            }
-
-            if (found) {
-                return concept;
-            } else {
-                return null;
-            }
+        // hack to avoid the confusion with the LIKE operator when uriconcept is an integer
+        boolean strict = true;
+        try {
+            Integer.parseInt(uriConcept);
+        } catch (NumberFormatException ex) {
+            strict = false;
         }
-        return null;
+
+        final Concept concept = buildEmptyConcept(uriConcept);
+
+        concept.setPrefLabel(getMultiLingualTerm(uriConcept,   PREF_LABEL_TYPE,       strict, COMPLETION,   con, language));
+        concept.setAltLabel(getMultiLingualTerm(uriConcept,    ALT_LABEL_TYPE,        strict, COMPLETION,   con, language));
+        concept.setLabel(getMultiLingualTerm(uriConcept,       LABEL_TYPE,            strict, COMPLETION,   con, language));
+        concept.setDefinition(getMultiLingualTerm(uriConcept,  DEFINITION_LABEL_TYPE, strict, LOCALISATION, con, language));
+        concept.setScopeNote(getMultiLingualTerm(uriConcept,   SCOPE_NOTE_TYPE,       strict, LOCALISATION, con, language));
+        concept.setHistoryNote(getMultiLingualTerm(uriConcept, HISTORY_NOTE_TYPE,     strict, LOCALISATION, con, language));
+        concept.setExample(getMultiLingualTerm(uriConcept,     EXAMPLE_TYPE,          strict, LOCALISATION, con, language));
+
+        // extended attribute for cnes distrib
+        final String theme = getTheme(uriConcept, strict, con);
+        if (theme != null && !theme.equals(schema)){
+            final Concept tconcept = new Concept();
+            tconcept.setResource(theme);
+            concept.addInScheme(tconcept);
+        }
+
+        final List<Tuple> tuples = getConceptTuples(uriConcept, strict, con);
+
+        if (tuples.isEmpty()) return null;
+
+        fillConceptPropertiesFromTuple(concept, tuples);
+
+        /*
+         * Set concept type (always concept)
+         */
+        if (concept.getType() == null) {
+            final Concept c = new Concept();
+            c.setResource(CONCEPT_TYPE);
+            concept.setType(c);
+        }
+        return concept;
     }
 
     protected void fillConceptPropertiesFromTuple(Concept concept, final List<Tuple> tuples) {
@@ -929,7 +922,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     @Override
     public List<Concept> getAllConcepts(final int limit) {
         final List<Concept> result = new ArrayList<>();
-        final String query = "SELECT DISTINCT \"uri_concept\" FROM \"" + schema + "\".propriete_concept";
+        final String query = "SELECT DISTINCT \"uri_concept\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\"";
         try (Connection c = datasource.getConnection();
              Statement stmt = c.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {//NOSONAR
@@ -1202,12 +1195,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
      */
     public List<ConceptNode> getConceptNarrowers(String conceptUri) {
 
-        String countNarrowers = "SELECT count(*) FROM \"" + schema + "\".propriete_concept" +
+        String countNarrowers = "SELECT count(*) FROM \"" + schema + "\".\"" + TABLE_NAME + "\"" +
                 " WHERE uri_concept = pc.objet AND predicat = '" + NARROWER_PREDICATE + "'";
 
         String selectNarrowers = "SELECT pc.objet, tc.label, tc.type_terme, tc.langage_iso, (" + countNarrowers + ")" +
-                " FROM \"" + schema + "\".propriete_concept AS pc" +
-                " LEFT JOIN \"" + schema + "\".terme_completion AS tc ON tc.uri_concept = pc.objet" +
+                " FROM \"" + schema + "\".\"" + TABLE_NAME + "\" AS pc" +
+                " LEFT JOIN \"" + schema + "\".\"terme_completion\" AS tc ON tc.uri_concept = pc.objet" +
                 " WHERE pc.uri_concept = ? AND pc.predicat = '" + NARROWER_PREDICATE + "'" +
                 " GROUP BY pc.objet, tc.label, tc.type_terme, tc.langage_iso";
 
@@ -1251,21 +1244,21 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
      */
     public FullConcept getFullConcept(String conceptUri) throws SQLException {
 
-        String selectTerms = "SELECT tc.label, tc.type_terme, tc.langage_iso" +
-                " FROM \"" + schema + "\".terme_completion AS tc" +
-                " WHERE tc.uri_concept = ?" +
-                " UNION SELECT tl.label, tl.type_terme, tl.langage_iso" +
-                " FROM \"" + schema + "\".terme_localisation AS tl" +
-                " WHERE tl.uri_concept = ?";
+        String selectTerms = "SELECT tc.\"label\", tc.\"type_terme\", tc.\"langage_iso\"" +
+                " FROM \"" + schema + "\".\"terme_completion\" AS tc" +
+                " WHERE tc.\"uri_concept\" = ?" +
+                " UNION SELECT tl.\"label\", tl.\"type_terme\", tl.\"langage_iso\"" +
+                " FROM \"" + schema + "\".\"terme_localisation\" AS tl" +
+                " WHERE tl.\"uri_concept\" = ?";
 
         String selectHasTop = "SELECT count(*)" +
-                " FROM \"" + schema + "\".propriete_concept AS pc" +
-                " WHERE pc.objet = ? AND pc.predicat = '" + HAS_TOP_CONCEPT_PREDICATE + "'";
+                " FROM \"" + schema + "\".\"" + TABLE_NAME + "\" AS pc" +
+                " WHERE pc.\"objet\" = ? AND pc.\"predicat\" = '" + HAS_TOP_CONCEPT_PREDICATE + "'";
 
-        String selectRelations = "SELECT pc.objet, pc.predicat, tc.label, tc.type_terme, tc.langage_iso" +
-                " FROM \"" + schema + "\".propriete_concept AS pc" +
-                " LEFT JOIN \"" + schema + "\".terme_completion AS tc ON tc.uri_concept = pc.objet" +
-                " WHERE pc.uri_concept = ?";
+        String selectRelations = "SELECT pc.\"objet\", pc.\"predicat\", tc.\"label\", tc.\"type_terme\", tc.\"langage_iso\"" +
+                " FROM \"" + schema + "\".\"" + TABLE_NAME + "\" AS pc" +
+                " LEFT JOIN \"" + schema + "\".\"terme_completion\" AS tc ON tc.\"uri_concept\" = pc.\"objet\"" +
+                " WHERE pc.\"uri_concept\" = ?";
 
         try (Connection con = datasource.getConnection();
              PreparedStatement termsStmt = con.prepareStatement(selectTerms);//NOSONAR

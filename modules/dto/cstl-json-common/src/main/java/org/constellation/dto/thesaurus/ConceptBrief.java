@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -84,5 +85,23 @@ public class ConceptBrief implements Serializable {
             values = new String[]{value};
         }
         altLabels.put(lang, values);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof ConceptBrief that) {
+            return     Objects.equals(this.altLabels, that.altLabels)
+                    && Objects.equals(this.prefLabel, that.prefLabel)
+                    && Objects.equals(this.uri,       that.uri);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.uri, this.prefLabel, this.altLabels);
     }
 }

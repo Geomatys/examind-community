@@ -44,7 +44,10 @@ import org.geotoolkit.thw.model.WriteableThesaurus;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service to manage Thesaurus through
+ * Service to manage Thesaurus through.
+ *
+ * TODO : currently we can not determine the SQL dialect of the datasource, so we hard coded "postgres" .
+ *
  * @author Quentin Boileau (Geomatys)
  */
 @Service("thesaurusService")
@@ -95,7 +98,7 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
     public ThesaurusDatabaseWriter createThesaurusWriter(String thesaurusURI) throws ThesaurusException {
         final Thesaurus th = thesaurusRepository.getByUri(thesaurusURI);
         if (th != null) {
-            return new ThesaurusDatabaseWriter(dataSource, th.getSchemaName(), false);
+            return new ThesaurusDatabaseWriter(dataSource, th.getSchemaName(), "postgres");
         }
         throw new ThesaurusException("Unknown thesaurus URI : " + thesaurusURI);
     }
@@ -147,7 +150,7 @@ public class ThesaurusBusiness implements IThesaurusBusiness {
         // Create the thesaurus instance.
         ThesaurusDatabaseWriter thesaurusW = new ThesaurusDatabaseWriter(dataSource,
                 thesaurus.getSchemaName(),
-                false,
+                "postgres",
                 thesaurus.getUri(),
                 thesaurus.getName(),
                 thesaurus.getDescription(),
