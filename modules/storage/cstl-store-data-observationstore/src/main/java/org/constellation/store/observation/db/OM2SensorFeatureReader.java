@@ -1,34 +1,35 @@
 
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.WKBReader;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
-import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
+import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.util.collection.CloseableIterator;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKBReader;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.FactoryException;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.logging.Logger;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
+public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     protected final Connection cnx;
@@ -41,7 +42,7 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
     protected final String schemaPrefix;
 
     @SuppressWarnings("squid:S2095")
-    SOSDatabaseFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
+    public OM2SensorFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         this.type = type;
         this.cnx = cnx;
         if (Util.containsForbiddenCharacter(schemaPrefix)) {
@@ -50,9 +51,9 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
         this.schemaPrefix = schemaPrefix;
         final PreparedStatement stmtAll;
         if (isPostgres) {
-            stmtAll = cnx.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
+            stmtAll = cnx.prepareStatement("SELECT \"id\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
         } else {
-            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
+            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
         }
         result = stmtAll.executeQuery();
 
@@ -95,7 +96,7 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
             try {
                 String crsCode = result.getString("crs");
                 if (crsCode == null) {
-                    LOGGER.warning("Missing CRS in sampling_feature. using default EPSG:4326");
+                    LOGGER.warning("Missing CRS in sensor. using default EPSG:4326");
                     crsCode = "4326";
                 }
                 crs = CRS.forCode("EPSG:" + crsCode);
@@ -111,7 +112,7 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
         current = type.newInstance();
         final String id = result.getString("id");
         current.setPropertyValue(AttributeConvention.IDENTIFIER_PROPERTY.toString(), id);
-        final byte[] b = result.getBytes(5);
+        final byte[] b = result.getBytes("shape");
         final Geometry geom;
         if (b != null) {
             WKBReader reader = new WKBReader();
@@ -122,10 +123,8 @@ class SOSDatabaseFeatureReader implements CloseableIterator<Feature> {
         } else {
             geom = null;
         }
-        current.setPropertyValue(OMFeatureTypes.SF_ATT_DESC.toString(),result.getString("description"));
-        current.setPropertyValue(OMFeatureTypes.SF_ATT_NAME.toString(),result.getString("name"));
-        current.setPropertyValue(OMFeatureTypes.SF_ATT_SAMPLED.toString(),result.getString("sampledfeature"));
-        current.setPropertyValue(OMFeatureTypes.SF_ATT_POSITION.toString(),geom);
+        current.setPropertyValue(OMFeatureTypes.SENSOR_ATT_ID.toString(), id);
+        current.setPropertyValue(OMFeatureTypes.SENSOR_ATT_POSITION.toString(),geom);
     }
 
     @Override

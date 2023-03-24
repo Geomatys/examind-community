@@ -18,74 +18,37 @@ package org.constellation.store.observation.db;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.sql.DataSource;
-import org.apache.sis.storage.AbstractFeatureSet;
-import org.apache.sis.internal.storage.StoreResource;
+
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.Aggregate;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
-import org.apache.sis.storage.WritableFeatureSet;
-import org.apache.sis.storage.event.StoreEvent;
-import org.apache.sis.storage.event.StoreListener;
+
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+
+import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.storage.event.FeatureStoreContentEvent;
-import org.geotoolkit.feature.FeatureExt;
-import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
-import static org.geotoolkit.observation.feature.OMFeatureTypes.*;
-import org.geotoolkit.observation.model.ObservationDataset;
-import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.Phenomenon;
-import org.geotoolkit.observation.model.Procedure;
-import org.geotoolkit.observation.model.ProcedureDataset;
+
 import org.geotoolkit.observation.model.ResponseMode;
-import org.geotoolkit.observation.model.SamplingFeature;
-import org.geotoolkit.observation.query.DatasetQuery;
-import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.storage.DataStores;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.WKBWriter;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureType;
-import org.opengis.filter.ResourceId;
-import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
  *
@@ -186,7 +149,8 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized Collection<? extends Resource> components() throws DataStoreException {
         if (featureSets == null) {
             featureSets = new ArrayList<>();
-            featureSets.add(new FeatureView(this, OMFeatureTypes.buildSamplingFeatureFeatureType()));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSamplingFeatureFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SAMPLING_FEATURE));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
         }
         return featureSets;
     }
@@ -272,147 +236,6 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             return false;
         } catch (SQLException | IOException ex) {
             throw new DataStoreException("Erro while building OM2 datasource", ex);
-        }
-    }
-
-    private final class FeatureView extends AbstractFeatureSet implements StoreResource, WritableFeatureSet {
-
-        private FeatureType type;
-        private final ObservationStore store;
-
-        FeatureView(ObservationStore originator, FeatureType type) {
-            super(null, false);
-            this.type = type;
-            this.store = originator;
-        }
-
-        @Override
-        public synchronized FeatureType getType() throws DataStoreException {
-            if (FeatureExt.getCRS(type) == null) {
-                //read a first feature to find the crs
-                try (final SOSDatabaseFeatureReader r = new SOSDatabaseFeatureReader(getConnection(), isPostgres, type, schemaPrefix)){
-                    if (r.hasNext()) {
-                        type = r.next().getType();
-                    }
-                } catch (SQLException ex) {
-                    throw new DataStoreException("Error while building feature type from first record", ex);
-                }
-            }
-
-            return type;
-        }
-
-        @Override
-        public DataStore getOriginator() {
-            return (DataStore) store;
-        }
-
-        public ResourceId getNewFeatureId() {
-        try (final Connection cnx = getConnection();
-             final PreparedStatement stmtLastId = cnx.prepareStatement(SQL_GET_LAST_ID);
-             final ResultSet result = stmtLastId.executeQuery()){
-            if (result.next()) {
-                final int nb = result.getInt(1) + 1;
-                return FilterUtilities.FF.resourceId("sampling-point-" + nb);
-            }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, null, ex);
-        }
-        return null;
-    }
-
-        @Override
-        public Stream<Feature> features(boolean parallel) throws DataStoreException {
-            final FeatureType sft = getType();
-            try {
-                final SOSDatabaseFeatureReader reader = new SOSDatabaseFeatureReader(getConnection(), isPostgres, sft, schemaPrefix);
-                final Spliterator<Feature> spliterator = Spliterators.spliteratorUnknownSize(reader, Spliterator.ORDERED);
-                final Stream<Feature> stream = StreamSupport.stream(spliterator, false);
-                return stream.onClose(reader::close);
-            } catch (SQLException ex) {
-                throw new DataStoreException(ex);
-            }
-        }
-
-        @Override
-        public void add(Iterator<? extends Feature> features) throws DataStoreException {
-            final Set<ResourceId> result = new LinkedHashSet<>();
-
-            try (Connection cnx = getConnection();
-                 PreparedStatement stmtWrite = cnx.prepareStatement(SQL_WRITE_SAMPLING_POINT)) {
-
-                while (features.hasNext()) {
-                    final Feature feature = features.next();
-                    ResourceId identifier = FeatureExt.getId(feature);
-                    if (identifier == null || identifier.getIdentifier().isEmpty()) {
-                        identifier = getNewFeatureId();
-                    }
-
-                    stmtWrite.setString(1, identifier.getIdentifier());
-                    Collection<String> names = ((Collection)feature.getPropertyValue(SF_ATT_NAME.toString()));
-                    Collection<String> sampleds = ((Collection)feature.getPropertyValue(SF_ATT_SAMPLED.toString()));
-                    stmtWrite.setString(2, (String) names.iterator().next());
-                    stmtWrite.setString(3, (String)feature.getPropertyValue(SF_ATT_DESC.toString()));
-                    stmtWrite.setString(4, sampleds.isEmpty() ? null : sampleds.iterator().next());
-                    final Optional<org.locationtech.jts.geom.Geometry> geometry = FeatureExt.getDefaultGeometryValue(feature)
-                            .filter(org.locationtech.jts.geom.Geometry.class::isInstance)
-                            .map(org.locationtech.jts.geom.Geometry.class::cast);
-                    if (geometry.isPresent()) {
-                        final org.locationtech.jts.geom.Geometry geom = geometry.get();
-                        WKBWriter writer = new WKBWriter();
-                        final int SRID = geom.getSRID();
-                        stmtWrite.setBytes(5, writer.write(geom));
-                        stmtWrite.setInt(6, SRID);
-                    } else {
-                        stmtWrite.setNull(5, java.sql.Types.VARBINARY);
-                        stmtWrite.setNull(6, java.sql.Types.INTEGER);
-                    }
-                    stmtWrite.executeUpdate();
-                    result.add(identifier);
-                }
-            } catch (SQLException ex) {
-                LOGGER.log(Level.WARNING, SQL_WRITE_SAMPLING_POINT, ex);
-            }
-            //todo return created ids
-            //return result;
-            listeners.fire( FeatureStoreContentEvent.class, new FeatureStoreContentEvent(this, FeatureStoreContentEvent.Type.ADD, getType().getName(), result));
-        }
-
-        @Override
-        public boolean removeIf(Predicate<? super Feature> filter) throws DataStoreException {
-            boolean match = false;
-            try (SOSDatabaseFeatureWriter writer = new SOSDatabaseFeatureWriter(getConnection(),isPostgres,getType(), schemaPrefix)) {
-                while (writer.hasNext()) {
-                    Feature feature = writer.next();
-                    if (filter.test(feature)) {
-                        writer.remove();
-                        match = true;
-                    }
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(OM2FeatureStore.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            return match;
-        }
-
-        @Override
-        public void updateType(FeatureType newType) throws DataStoreException {
-            throw new DataStoreException("Not supported.");
-        }
-
-        @Override
-        public void replaceIf(Predicate<? super Feature> filter, UnaryOperator<Feature> updater) throws DataStoreException {
-            throw new DataStoreException("Not supported.");
-        }
-
-        @Override
-        public <T extends StoreEvent> void addListener(Class<T> eventType, StoreListener<? super T> listener) {
-            listeners.addListener(eventType, listener);
-        }
-
-        @Override
-        public synchronized <T extends StoreEvent> void removeListener(Class<T> eventType, StoreListener<? super T> listener) {
-            listeners.removeListener(eventType, listener);
         }
     }
 }
