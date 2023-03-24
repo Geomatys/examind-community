@@ -250,7 +250,8 @@ angular.module('cstl-webservice-create', [
             'cswOnlyPublished':false,
             'cswEsURL':'',
             'cswDataDirectory':'',
-            'cswIndexType':'lucene-node'
+            'cswIndexType':'lucene-node',
+            'createData':false
         };
 
         self.initSource = function() {
@@ -314,7 +315,7 @@ angular.module('cstl-webservice-create', [
         };
 
         function createProviders() {
-            Examind.providers.create(self.id + '-' + self.type +'-om', false,
+            Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData,
             {
                 type: "observation-store",
                 subType: "observationSOSDatabase",

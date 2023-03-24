@@ -1197,6 +1197,7 @@
   "service.config.source.choose.sos.data": "Choisir la source de données",
   "service.config.source.choose.sts": "Choisir la source de Métadonnées",
   "service.config.source.choose.sts.data": "Choisir la source de données",
+  "service.config.source.create.data": "Créer la donnée",
   "service.config.source.csw.title": "Service de catalogues (CSW)",
   "service.config.source.database": "Base de données",
   "service.config.source.database.description": "Base de données contenant des métadonnées géoréférencées",

@@ -1090,6 +1090,7 @@
   "service.config.source.choose.sos.data": "Choose Data source",
   "service.config.source.choose.sts": "Choose Metadata source",
   "service.config.source.choose.sts.data": "Choose Data source",
+  "service.config.source.create.data": "Create data",
   "service.config.source.database": "Database",
   "service.config.source.database.description": "Database which contains georeferenced metadata records",
   "service.config.source.database.name": "Database name",
