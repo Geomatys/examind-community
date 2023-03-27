@@ -627,8 +627,8 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         for (MemberPropertyType prop : result.getMember()) {
             assertEquals(1, prop.getContent().size());
             Object feat = prop.getContent().get(0);
-            if (feat instanceof JAXBElement) {
-                feat = ((JAXBElement) feat).getValue();
+            if (feat instanceof JAXBElement jb) {
+                feat = jb.getValue();
             }
             assertTrue(feat instanceof SamplingPointType);
             resultIds.add(((SamplingPointType)feat).getId());
@@ -660,8 +660,8 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         for (MemberPropertyType prop : result.getMember()) {
             assertEquals(1, prop.getContent().size());
             Object feat = prop.getContent().get(0);
-            if (feat instanceof JAXBElement) {
-                feat = ((JAXBElement) feat).getValue();
+            if (feat instanceof JAXBElement jb) {
+                feat = jb.getValue();
             }
             assertTrue(feat instanceof SamplingPointType);
             resultIds.add(((SamplingPointType)feat).getId());
@@ -803,7 +803,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         Schema schema = (Schema) obj;
 
-        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(5, schema.getIncludeOrImportOrRedefine().size());
 
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test?" + WFS_DESCRIBE_FEATURE_TYPE_URL_V2);
@@ -818,7 +818,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         schema = (Schema) obj;
 
-        assertEquals(3, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
 
 
     }
@@ -1121,7 +1121,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         assertTrue(obj instanceof Schema);
 
         Schema schema = (Schema) obj;
-        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(5, schema.getIncludeOrImportOrRedefine().size());
 
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/schema");
@@ -1136,7 +1136,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         schema = (Schema) obj;
 
-        assertEquals(3, schema.getIncludeOrImportOrRedefine().size());
+        assertEquals(4, schema.getIncludeOrImportOrRedefine().size());
 
         try {
             getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/test/2.0.0/BasicPolygons.xsd");
@@ -1883,9 +1883,9 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("2.0.0", "1.1.0");
-        instances.add(new Instance(1, "default", "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 17, ServiceStatus.STARTED, "null/wfs/default"));
-        instances.add(new Instance(2, "test1",   "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 13, ServiceStatus.STARTED, "null/wfs/test1"));
-        instances.add(new Instance(3, "test",    "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 16, ServiceStatus.STARTED, "null/wfs/test"));
+        instances.add(new Instance(1, "default", "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 18, ServiceStatus.STARTED, "null/wfs/default"));
+        instances.add(new Instance(2, "test1",   "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 14, ServiceStatus.STARTED, "null/wfs/test1"));
+        instances.add(new Instance(3, "test",    "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 17, ServiceStatus.STARTED, "null/wfs/test"));
         
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);

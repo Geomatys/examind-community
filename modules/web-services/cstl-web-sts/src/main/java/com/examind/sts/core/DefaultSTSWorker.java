@@ -1837,7 +1837,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
     private Geometry toWGS84JTS(Geometry locGeom) throws ConstellationStoreException {
         try {
-            CoordinateReferenceSystem crs = CommonCRS.WGS84.geographic();
+            CoordinateReferenceSystem crs = CommonCRS.WGS84.normalizedGeographic();
             CoordinateReferenceSystem geomCrs = JTS.findCoordinateReferenceSystem(locGeom);
             if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
                 try {

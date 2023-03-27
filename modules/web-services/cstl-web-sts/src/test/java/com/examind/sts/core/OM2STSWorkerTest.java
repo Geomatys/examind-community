@@ -33,6 +33,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IProviderBusiness;
@@ -45,6 +47,7 @@ import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
+import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.sts.GetCapabilities;
@@ -82,6 +85,11 @@ import org.geotoolkit.util.DeltaComparable;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 
 /**
  * TODO: remove dirty context annotation once we've managed to sanitize Spring context management.
@@ -342,7 +350,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         GeoJSONFeature feature = new GeoJSONFeature();
         GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
-        point.setCoordinates(new double[]{42.38798858151254, -4.144984627896042});
+        point.setCoordinates(new double[]{-4.144984627896042, 42.38798858151254});
         feature.setGeometry(point);
         Map<String, Object> properties = new HashMap<>();
         properties.put("prop2", "value2");
@@ -1184,18 +1192,18 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Datastream result = worker.getDatastreamById(request);
 
         GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
-        // POLYGON ((5 -4.144984627896042, 5 10, 42.38798858151254 10, 42.38798858151254 -4.144984627896042, 5 -4.144984627896042))
+        // POLYGON ((-4.144984627896044 10, -4.144984627896044 42.387988581512545, 5 42.387988581512545, 5 10, -4.144984627896044 10))
         double[][][] coordinates = new double[1][5][2];
-        coordinates[0][0][0] = 5.0;
-        coordinates[0][0][1] = -4.144984627896042;
-        coordinates[0][1][0] = 5.0;
-        coordinates[0][1][1] = 10.0;
-        coordinates[0][2][0] = 42.38798858151254;
-        coordinates[0][2][1] = 10.0;
-        coordinates[0][3][0] = 42.38798858151254;
-        coordinates[0][3][1] = -4.144984627896042;
-        coordinates[0][4][0] = 5.0;
-        coordinates[0][4][1] = -4.144984627896042;
+        coordinates[0][0][0] = -4.144984627896044;
+        coordinates[0][0][1] = 10.0;
+        coordinates[0][1][0] = -4.144984627896044;
+        coordinates[0][1][1] = 42.387988581512545;
+        coordinates[0][2][0] = 5.0;
+        coordinates[0][2][1] = 42.387988581512545;
+        coordinates[0][3][0] = 5.0;
+        coordinates[0][3][1] = 10.0;
+        coordinates[0][4][0] = -4.144984627896044;
+        coordinates[0][4][1] = 10.0;
         polygon.setCoordinates(coordinates);
 
         Datastream expResult = new Datastream()
@@ -1323,7 +1331,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Datastream result = worker.getDatastreamById(request);
 
         GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
-        point.setCoordinates(new double[]{42.38798858151254, -4.144984627896042});
+        point.setCoordinates(new double[]{-4.144984627896042, 42.38798858151254});
 
         Datastream expResult = new Datastream()
                 .iotId("urn:ogc:object:observation:template:GEOM:test-id-2")
@@ -1489,16 +1497,16 @@ public class OM2STSWorkerTest extends SpringContextTest {
         // POLYGON ((27.142098949519518 -3.404947100307331, 27.142098949519518 -3.4049470103064325, 27.142099023169745 -3.4049470103064325, 27.142099023169745 -3.404947100307331, 27.142098949519518 -3.404947100307331))
         GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
         double[][][] coordinates = new double[1][5][2];
-        coordinates[0][0][0] = 27.142098949519518;
-        coordinates[0][0][1] = -3.404947100307331;
-        coordinates[0][1][0] = 27.142098949519518;
-        coordinates[0][1][1] = -3.4049470103064325;
-        coordinates[0][2][0] = 27.142099023169745;
-        coordinates[0][2][1] = -3.4049470103064325;
-        coordinates[0][3][0] = 27.142099023169745;
-        coordinates[0][3][1] = -3.404947100307331;
-        coordinates[0][4][0] = 27.142098949519518;
-        coordinates[0][4][1] = -3.404947100307331;
+        coordinates[0][0][0] = -3.404947100307331;
+        coordinates[0][0][1] = 27.142098949519518;
+        coordinates[0][1][0] = -3.4049470103064325;
+        coordinates[0][1][1] = 27.142098949519518;
+        coordinates[0][2][0] = -3.4049470103064325;
+        coordinates[0][2][1] = 27.142099023169745;
+        coordinates[0][3][0] = -3.404947100307331;
+        coordinates[0][3][1] = 27.142099023169745;
+        coordinates[0][4][0] = -3.404947100307331;
+        coordinates[0][4][1] = 27.142098949519518;
         polygon.setCoordinates(coordinates);
         
         List<UnitOfMeasure> uoms = new ArrayList<>();
@@ -1671,19 +1679,18 @@ public class OM2STSWorkerTest extends SpringContextTest {
         MultiDatastream result = worker.getMultiDatastreamById(request);
         
         GeoJSONGeometry.GeoJSONPolygon polygon = new GeoJSONGeometry.GeoJSONPolygon();
-        // POLYGON ((5 10, 5 1731368, 65400 1731368, 65400 10, 5 10))
-        // POLYGON ((5 -4.144984627896042, 5 10, 42.38798858151254 10, 42.38798858151254 -4.144984627896042, 5 -4.144984627896042))
+        // POLYGON ((-4.144984627896044 10, -4.144984627896044 42.387988581512545, 5 42.387988581512545, 5 10, -4.144984627896044 10))
         double[][][] coordinates = new double[1][5][2];
-        coordinates[0][0][0] = 5.0;
-        coordinates[0][0][1] = -4.144984627896042;
-        coordinates[0][1][0] = 5.0;
-        coordinates[0][1][1] = 10.0;
-        coordinates[0][2][0] = 42.38798858151254;
-        coordinates[0][2][1] = 10.0;
-        coordinates[0][3][0] = 42.38798858151254;
-        coordinates[0][3][1] = -4.144984627896042;
-        coordinates[0][4][0] = 5.0;
-        coordinates[0][4][1] = -4.144984627896042;
+        coordinates[0][0][0] = -4.144984627896044;
+        coordinates[0][0][1] = 10.0;
+        coordinates[0][1][0] = -4.144984627896044;
+        coordinates[0][1][1] = 42.387988581512545;
+        coordinates[0][2][0] = 5.0;
+        coordinates[0][2][1] = 42.387988581512545;
+        coordinates[0][3][0] = 5.0;
+        coordinates[0][3][1] = 10.0;
+        coordinates[0][4][0] = -4.144984627896044;
+        coordinates[0][4][1] = 10.0;
         polygon.setCoordinates(coordinates);
 
         List<UnitOfMeasure> uoms = new ArrayList<>();
@@ -1824,7 +1831,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         MultiDatastream result = worker.getMultiDatastreamById(request);
 
         GeoJSONGeometry.GeoJSONPoint point = new GeoJSONGeometry.GeoJSONPoint();
-        point.setCoordinates(new double[]{42.38798858151254, -4.144984627896042});
+        point.setCoordinates(new double[]{-4.144984627896042, 42.38798858151254});
 
         List<UnitOfMeasure> uoms = new ArrayList<>();
         uoms.add(new UnitOfMeasure("m", "m", "m"));
@@ -2147,5 +2154,16 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Location result = worker.getLocationById(req);
 
         Assert.assertNotNull(result);
+    }
+
+    @Test
+    @Order(order=14)
+    public void test() throws Exception {
+        Geometry geom = new Point(new CoordinateArraySequence(new Coordinate[] {new Coordinate(65400, 1731368)}), new GeometryFactory());
+        JTS.setCRS(geom, CRS.forCode("EPSG:27582"));
+
+        geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, CommonCRS.WGS84.normalizedGeographic());
+
+        System.out.println(geom);
     }
 }

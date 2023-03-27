@@ -8,7 +8,7 @@
                 "geometry": {
                     "type": "Point",
                     "type": "Point",
-                    "coordinates": [42.38798858151254, -4.144984627896042]
+                    "coordinates": [-4.144984627896042, 42.38798858151254]
                 },
                 "properties": {}
             },
@@ -59,7 +59,7 @@
                 "geometry": {
                     "type": "Point",
                     "type": "Point",
-                    "coordinates": [12.00000000309688, 20.00000000001678]
+                    "coordinates": [20.00000000001678, 12.00000000309688]
                 },
                 "properties": {}
             },
@@ -76,7 +76,7 @@
                 "geometry": {
                     "type": "Point",
                     "type": "Point",
-                    "coordinates": [42.38798858151254, -4.144984627896042]
+                    "coordinates": [-4.144984627896042, 42.38798858151254]
                 },
                 "properties": {}
             },

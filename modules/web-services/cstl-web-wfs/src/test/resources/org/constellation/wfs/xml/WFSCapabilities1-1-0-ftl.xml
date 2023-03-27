@@ -149,9 +149,21 @@
       <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
       <wfs:OtherSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:OtherSRS>
       <ows:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
-        <ows:LowerCorner>-6.005569537102806 27.138853294768698</ows:LowerCorner>
-        <ows:UpperCorner>-2.7284896314336695 49.88198714417634</ows:UpperCorner>
+        <ows:LowerCorner>-6.006642997675948 9.91372311454679</ows:LowerCorner>
+        <ows:UpperCorner>7.221509418495713 50.10773096680785</ows:UpperCorner>
       </ows:WGS84BoundingBox>
+    </wfs:FeatureType>
+    <wfs:FeatureType>
+        <wfs:Name xmlns:ns38="http://geotoolkit.org/">ns38:Sensor</wfs:Name>
+        <wfs:Title>Sensor</wfs:Title>
+        <wfs:DefaultSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:27582</wfs:DefaultSRS>
+        <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:4326</wfs:OtherSRS>
+        <wfs:OtherSRS>urn:ogc:def:crs:EPSG:EPSG_VERSION:3395</wfs:OtherSRS>
+        <wfs:OtherSRS>urn:ogc:def:crs:OGC:1.3:CRS84</wfs:OtherSRS>
+        <ows:WGS84BoundingBox dimensions="2" crs="urn:ogc:def:crs:OGC:2:84">
+            <ows:LowerCorner>-4.144984627896044 -4.105680015355706</ows:LowerCorner>
+            <ows:UpperCorner>58.596458326620294 42.585889619507014</ows:UpperCorner>
+        </ows:WGS84BoundingBox>
     </wfs:FeatureType>
     <wfs:FeatureType>
       <wfs:Name>gml1:Streams</wfs:Name>

@@ -40,7 +40,7 @@
             },
             "geometry": {
                 "type": "Point",
-                "coordinates": [-378989.4256, 3141106.6415]
+                "coordinates": [556597.4539, 1118889.9753]
             },
             "properties": {
                 "@id": "station-002",
@@ -49,7 +49,7 @@
                 "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"],
                 "position": {
                     "type": "Point",
-                    "coordinates": [-378989.4256, 3141106.6415]
+                    "coordinates": [556597.4539, 1118889.9753]
                 }
             }
         }]

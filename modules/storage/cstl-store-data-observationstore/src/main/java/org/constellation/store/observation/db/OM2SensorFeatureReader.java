@@ -1,10 +1,26 @@
-
+/*
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com/
+ *
+ * Copyright 2023 Geomatys.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.constellation.store.observation.db;
 
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.internal.feature.AttributeConvention;
-import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.JTS;
@@ -16,14 +32,16 @@ import org.locationtech.jts.io.WKBReader;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.FactoryException;
-
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.util.Utilities;
+import org.constellation.exception.ConstellationStoreException;
+import org.geotoolkit.feature.FeatureExt;
+import org.opengis.referencing.operation.TransformException;
 
 /**
  *
@@ -32,11 +50,13 @@ import java.util.logging.Logger;
 public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
-    protected final Connection cnx;
+    private final Connection cnx;
     private boolean firstCRS = true;
-    protected FeatureType type;
+    private FeatureType type;
     private final ResultSet result;
-    protected Feature current = null;
+
+    private Feature candidate = null;
+    private Feature current = null;
     private CoordinateReferenceSystem crs;
 
     protected final String schemaPrefix;
@@ -56,7 +76,6 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
             stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
         }
         result = stmtAll.executeQuery();
-
     }
 
     public FeatureType getFeatureType() {
@@ -92,33 +111,33 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
         if (!result.next()) {
             return;
         }
+        int srid = result.getInt("crs");
+        CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
         if (firstCRS) {
-            try {
-                String crsCode = result.getString("crs");
-                if (crsCode == null) {
-                    LOGGER.warning("Missing CRS in sensor. using default EPSG:4326");
-                    crsCode = "4326";
-                }
-                crs = CRS.forCode("EPSG:" + crsCode);
-                final FeatureTypeBuilder ftb = new FeatureTypeBuilder(type);
-                ((AttributeTypeBuilder)ftb.getProperty("position")).setCRS(crs);
-                type = ftb.build();
-                firstCRS = false;
-            } catch (FactoryException ex) {
-                throw new IOException(ex);
-            }
+            crs = currentCRS;
+            final FeatureTypeBuilder ftb = new FeatureTypeBuilder(type);
+            ((AttributeTypeBuilder)ftb.getProperty("position")).setCRS(crs);
+            type = ftb.build();
+            firstCRS = false;
         }
 
         current = type.newInstance();
         final String id = result.getString("id");
         current.setPropertyValue(AttributeConvention.IDENTIFIER_PROPERTY.toString(), id);
         final byte[] b = result.getBytes("shape");
-        final Geometry geom;
+        Geometry geom;
         if (b != null) {
             WKBReader reader = new WKBReader();
             geom = reader.read(b);
             if (geom != null) {
-                JTS.setCRS(geom, crs);
+                JTS.setCRS(geom, currentCRS);
+            }
+            if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
+                try {
+                    geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
+                } catch (TransformException ex) {
+                    throw new ConstellationStoreException(ex);
+                }
             }
         } else {
             geom = null;
@@ -139,7 +158,16 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
 
     @Override
     public void remove() throws FeatureStoreRuntimeException {
-        throw new FeatureStoreRuntimeException("Not supported.");
-    }
+        if (candidate == null) {
+            return;
+        }
+        try (PreparedStatement stmtDelete = cnx.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = ?")) {//NOSONAR
 
+            stmtDelete.setString(1, FeatureExt.getId(candidate).getIdentifier());
+            stmtDelete.executeUpdate();
+
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Error while deleting procedure features", ex);
+        }
+    }
 }

@@ -30,6 +30,7 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.sis.storage.FeatureSet;
@@ -59,14 +60,16 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         dataBusiness.deleteAll();
         providerBusiness.removeAll();
 
-        DataImport d = testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas.get(0);
+        List<DataImport> datas = testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas;
 
         final LayerContext config = new LayerContext();
         config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
         config.getCustomParameters().put(TRANSACTIONAL, "true");
 
         Integer defId = serviceBusiness.create("wfs", "default", config, null, null);
-        layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
+        for (DataImport d : datas) {
+            layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, null);
+        }
 
         serviceBusiness.start(defId);
 

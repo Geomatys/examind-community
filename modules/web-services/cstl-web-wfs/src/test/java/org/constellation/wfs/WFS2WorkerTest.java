@@ -51,7 +51,6 @@ import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureReader;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamValueCollectionWriter;
@@ -131,6 +130,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","feature"));
                 ALL_TYPES.add(new QName("http://www.opengis.net/gml/3.2","featureCollection"));
                 ALL_TYPES.add(new QName("JS2"));
+                ALL_TYPES.add(new QName("http://geotoolkit.org/","Sensor"));
                 Collections.sort(ALL_TYPES, new QNameComparator());
 
 

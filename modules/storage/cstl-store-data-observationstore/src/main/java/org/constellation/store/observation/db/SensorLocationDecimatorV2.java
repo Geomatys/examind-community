@@ -27,14 +27,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
+import org.apache.sis.util.Utilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -49,8 +53,12 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
     @Override
     public Map<String, Map<Date, Geometry>> processLocations(ResultSet rs) throws SQLException, DataStoreException {
         Polygon spaFilter = null;
+        final CoordinateReferenceSystem envCRS;
         if (envelopeFilter != null) {
+            envCRS = envelopeFilter.getCoordinateReferenceSystem();
             spaFilter = JTS.toGeometry(envelopeFilter);
+        } else {
+            envCRS = CommonCRS.WGS84.normalizedGeographic();
         }
         Map<String, Map<Integer, List>> procedureCells = new HashMap<>();
         Map<Integer, List> currentGeoms = null;
@@ -74,15 +82,19 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
 
                 final byte[] b = rs.getBytes(3);
                 final int srid = rs.getInt(4);
-                /*final CoordinateReferenceSystem crs;
-                if (srid != 0) {
-                    crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                } else {
-                    crs = defaultCRS;
-                }*/
-                final org.locationtech.jts.geom.Geometry geom;
+                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
+                org.locationtech.jts.geom.Geometry geom;
                 if (b != null) {
                     geom = reader.read(b);
+                    JTS.setCRS(geom, currentCRS);
+                    // reproject geom to envelope CRS if needed
+                    if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {
+                        try {
+                            geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, envCRS);
+                        } catch (TransformException ex) {
+                            throw new DataStoreException(ex);
+                        }
+                    }
                 } else {
                     continue;
                 }
@@ -106,7 +118,7 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                     currentGeoms.put(tIndex, geoms);
                 }
 
-            } catch (ParseException ex) {
+            } catch (ParseException | FactoryException ex) {
                 throw new DataStoreException(ex);
             }
         }
@@ -135,7 +147,7 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                     geom = coll.getCentroid();
                 }
 
-                JTS.setCRS(geom, defaultCRS);
+                //JTS.setCRS(geom, defaultCRS);
 
                 final Map<Date, Geometry> procedureLocations;
                 if (locations.containsKey(procedure)) {

@@ -35,8 +35,8 @@
             </gml:boundedBy>
             <sa:sampledFeature  xlink:href="urn:-sandre:object:bdrhf:123X"/>
             <sa:position>
-                <gml:Point srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" srsDimension="2" gml:id="STATION-LOCALISATION">
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326" srsDimension="2">5.0 10.0</gml:pos>
+                <gml:Point srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2" gml:id="STATION-LOCALISATION">
+                    <gml:pos srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2">5.0 10.0</gml:pos>
                 </gml:Point>
             </sa:position>
         </sa:SamplingPoint>

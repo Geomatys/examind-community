@@ -7,7 +7,7 @@
         "geometry": {
             "type": "Point",
             "type": "Point",
-            "coordinates": [42.38798858151254, -4.144984627896042]
+            "coordinates": [-4.144984627896042, 42.38798858151254]
         },
         "properties": {}
     },

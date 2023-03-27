@@ -148,8 +148,6 @@ public class OM2BaseReader {
      */
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
-    protected static final CoordinateReferenceSystem defaultCRS = CommonCRS.WGS84.geographic();
-
     protected SamplingFeature getFeatureOfInterest(final String id, final Connection c) throws SQLException, DataStoreException {
         if (cacheEnabled && cachedFoi.containsKey(id)) {
             return cachedFoi.get(id);
@@ -176,12 +174,7 @@ public class OM2BaseReader {
                         return null;
                     }
                 }
-                final CoordinateReferenceSystem crs;
-                if (srid != 0) {
-                    crs = CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
-                } else {
-                    crs = defaultCRS;
-                }
+                final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                 final Geometry geom;
                 if (b != null) {
                     WKBReader reader = new WKBReader();

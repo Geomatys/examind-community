@@ -28,8 +28,9 @@ import java.util.List;
 import java.util.Map;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.Utilities;
+import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
-import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
@@ -38,6 +39,9 @@ import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
+import org.opengis.util.FactoryException;
 
 /**
  *
@@ -55,6 +59,7 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
         final Envelope[][] geoCells = new Envelope[nbCell][nbCell];
 
         // prepare geometrie cells
+        final CoordinateReferenceSystem envCRS = envelopeFilter.getCoordinateReferenceSystem();
         final double envMinx = envelopeFilter.getMinimum(0);
         final double envMiny = envelopeFilter.getMinimum(1);
         final double xStep = envelopeFilter.getSpan(0) / nbCell;
@@ -114,18 +119,22 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
                 final byte[] b = rs.getBytes(3);
                 final int srid = rs.getInt(4);
-                /*final CoordinateReferenceSystem crs;
-                if (srid != 0) {
-                    crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                } else {
-                    crs = defaultCRS;
-                }*/
-                final org.locationtech.jts.geom.Geometry geom;
+                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
+                org.locationtech.jts.geom.Geometry geom;
                 if (b != null) {
                     geom = reader.read(b);
+                    JTS.setCRS(geom, currentCRS);
                     if (!(geom instanceof Point)) {
                         LOGGER.warning("Geometry is not a point. excluded from decimation");
                         continue;
+                    }
+                    // reproject geom to envelope CRS if needed
+                    if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {
+                        try {
+                            geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, envCRS);
+                        } catch (TransformException ex) {
+                            throw new DataStoreException(ex);
+                        }
                     }
                 } else {
                     continue;
@@ -198,7 +207,7 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
 
 
-            } catch (ParseException ex) {
+            } catch (ParseException | FactoryException ex) {
                 throw new DataStoreException(ex);
             }
         }
@@ -231,9 +240,8 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
                             // merge geometries
                             GeometryCollection coll = new GeometryCollection(cellgeoms.toArray(new Geometry[cellgeoms.size()]), JTS_GEOM_FACTORY);
                             geom = coll.getCentroid();
+                            JTS.setCRS(geom, envCRS);
                         }
-
-                        JTS.setCRS(geom, defaultCRS);
 
                         final Map<Date, Geometry> procedureLocations;
                         if (locations.containsKey(procedure)) {

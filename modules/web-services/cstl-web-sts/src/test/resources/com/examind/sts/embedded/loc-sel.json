@@ -5,7 +5,7 @@
         "geometry": {
             "type": "Point",
             "type": "Point",
-            "coordinates": [42.00000000005154, -3.9999999934153996]
+            "coordinates": [-3.9999999934153996, 42.00000000005154]
         },
         "properties": {}
     }

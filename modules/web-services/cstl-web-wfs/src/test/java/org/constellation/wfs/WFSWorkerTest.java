@@ -25,7 +25,6 @@ import org.constellation.util.Util;
 import org.constellation.wfs.core.DefaultWFSWorker;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.feature.xml.jaxp.JAXPStreamFeatureWriter;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.ogc.xml.v110.*;

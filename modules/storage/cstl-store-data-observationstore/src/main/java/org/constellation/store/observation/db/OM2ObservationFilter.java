@@ -47,9 +47,7 @@ import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
-import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
@@ -1208,12 +1206,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (spaFilter != null) {
                         final byte[] b = rs.getBytes(2);
                         final int srid = rs.getInt(3);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
+                        final CoordinateReferenceSystem crs= OM2Utils.parsePostgisCRS(srid);
                         final org.locationtech.jts.geom.Geometry geom;
                         if (b != null) {
                             WKBReader reader = new WKBReader();
@@ -1289,12 +1282,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (envelopeFilter != null) {
                         final byte[] b = rs.getBytes(3);
                         final int srid = rs.getInt(4);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
+                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                         final org.locationtech.jts.geom.Geometry geom;
                         if (b != null) {
                             WKBReader reader = new WKBReader();

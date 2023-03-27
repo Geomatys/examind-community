@@ -31,10 +31,12 @@ import javax.sql.DataSource;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasObservation;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasurement;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsObservation;
+import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.SOSDatabaseObservationStore;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import org.geotoolkit.observation.json.ObservationJsonUtils;
@@ -48,6 +50,8 @@ import static org.geotoolkit.observation.OMUtils.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
+import static org.geotoolkit.observation.feature.OMFeatureTypes.SAMPLINGPOINT_TN;
+import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_TN;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -96,19 +100,28 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
             store = new SOSDatabaseObservationStore(parameters);
 
-            final String nsOM = "http://www.opengis.net/sampling/1.0";
-            final GenericName name = NamesExt.create(nsOM, "SamplingPoint");
-            names.add(name);
+            names.add(SAMPLINGPOINT_TN);
+            names.add(SENSOR_TN);
 
             int size = 6;
-            GeneralEnvelope env = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
-            env.setRange(0, -30.711, 70800);
-            env.setRange(1,    10.0, 2567987);
+            //BOX(-30.711 -2139360.341789026, 950456.6157569555 2567987)
+            GeneralEnvelope envSP = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
+            envSP.setRange(0, -30.711,            950456.6157569555);
+            envSP.setRange(1, -2139360.341789026, 2567987);
 
             CoordinateReferenceSystem crs = CRS.forCode("EPSG:27582");
-            FeatureType type = OMFeatureTypes.buildSamplingFeatureFeatureType(name, crs);
-            final ExpectedResult res = new ExpectedResult(name, type, size, env);
-            expecteds.add(res);
+            FeatureType typeSP = OMFeatureTypes.buildSamplingFeatureFeatureType(SAMPLINGPOINT_TN, crs);
+            final ExpectedResult resSP = new ExpectedResult(SAMPLINGPOINT_TN, typeSP, size, envSP);
+            expecteds.add(resSP);
+
+            size = 16;
+            // BOX(65400 -2820055.4026983716, 6224894.909802356 1731368)
+            GeneralEnvelope envSN = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
+            envSN.setRange(0,  65400,            6224894.909802356);
+            envSN.setRange(1, -2820055.4026983716, 1731368);
+            FeatureType typeSN = OM2Utils.buildSensorFeatureType(SENSOR_TN, crs);
+            final ExpectedResult resSN = new ExpectedResult(SENSOR_TN, typeSN, size, envSN);
+            expecteds.add(resSN);
 
         } catch(Exception ex) {
             Logger.getLogger("org.constellation.store.observation.db").log(Level.SEVERE, "Error at test initialization.", ex);

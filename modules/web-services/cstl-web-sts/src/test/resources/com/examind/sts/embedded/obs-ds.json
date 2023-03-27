@@ -9,7 +9,7 @@
     "observationType" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
     "observedArea" : {
       "type" : "Point",
-      "coordinates" : [ 42.38798858151254, -4.144984627896042 ]
+      "coordinates" : [ -4.144984627896042 , 42.38798858151254 ]
     },
     "phenomenonTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",
     "resultTime" : "2007-05-01T00:59:00Z/2007-05-01T19:59:00Z",

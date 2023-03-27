@@ -275,12 +275,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     }
                 }
             }
-            final CoordinateReferenceSystem crs;
-            if (srid != 0) {
-                crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-            } else {
-                crs = defaultCRS;
-            }
+            final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
             final Geometry geom;
             if (b != null) {
                 WKBReader reader = new WKBReader();
@@ -309,12 +304,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         final Date d = new Date(rs.getTimestamp(1).getTime());
                         final byte[] b = rs.getBytes(2);
                         final int srid = rs.getInt(3);
-                        final CoordinateReferenceSystem crs;
-                        if (srid != 0) {
-                            crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                        } else {
-                            crs = defaultCRS;
-                        }
+                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                         final Geometry geom;
                         if (b != null) {
                             WKBReader reader = new WKBReader();

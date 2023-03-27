@@ -35,6 +35,7 @@ import org.apache.sis.storage.Resource;
 
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import static org.constellation.store.observation.db.OM2Utils.buildSensorFeatureType;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
@@ -45,6 +46,7 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
+import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_TN;
 
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.storage.DataStores;
@@ -55,9 +57,6 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Guilhem Legal (Geomatys)
  */
 public class SOSDatabaseObservationStore extends AbstractFilteredObservationStore implements Aggregate {
-
-    private final String SQL_WRITE_SAMPLING_POINT;
-    private final String SQL_GET_LAST_ID;
 
     static final Map<String, List<String>> RESPONSE_FORMAT = new HashMap<>();
     static {
@@ -74,8 +73,6 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     protected final int maxFieldByTable;
 
     protected final boolean isPostgres;
-    private final List<Resource> components = new ArrayList<>();
-
 
     public SOSDatabaseObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(Parameters.castOrWrap(params));
@@ -121,9 +118,6 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         } catch(IOException ex) {
             throw new DataStoreException(ex);
         }
-
-        SQL_WRITE_SAMPLING_POINT = "INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)";
-        SQL_GET_LAST_ID = "SELECT COUNT(*) FROM \"" + schemaPrefix + "om\".\"sampling_features\"";
     }
 
     /**
@@ -150,7 +144,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         if (featureSets == null) {
             featureSets = new ArrayList<>();
             featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSamplingFeatureFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SAMPLING_FEATURE));
-            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
+            featureSets.add(new SensorFeatureSet(this, buildSensorFeatureType(SENSOR_TN, null), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
         }
         return featureSets;
     }

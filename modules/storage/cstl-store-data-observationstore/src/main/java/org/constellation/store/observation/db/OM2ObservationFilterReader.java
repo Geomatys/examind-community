@@ -34,22 +34,18 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import javax.sql.DataSource;
-import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
-import static org.constellation.store.observation.db.OM2BaseReader.defaultCRS;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -1012,12 +1008,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String sf = rs.getString("sampledfeature");
                 final int srid = rs.getInt("crs");
                 final byte[] b = rs.getBytes("shape");
-                final CoordinateReferenceSystem crs;
-                if (srid != 0) {
-                    crs = CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
-                } else {
-                    crs = defaultCRS;
-                }
+                final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                 final org.locationtech.jts.geom.Geometry geom;
                 if (b != null) {
                     WKBReader reader = new WKBReader();
@@ -1204,12 +1195,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final String procedure = rs.getString("id");
                     final byte[] b = rs.getBytes(2);
                     final int srid = rs.getInt(3);
-                    final CoordinateReferenceSystem crs;
-                    if (srid != 0) {
-                        crs = CRS.forCode("urn:ogc:def:crs:EPSG::" + srid);
-                    } else {
-                        crs = defaultCRS;
-                    }
+                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                     final org.locationtech.jts.geom.Geometry geom;
                     if (b != null) {
                         WKBReader reader = new WKBReader();

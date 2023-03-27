@@ -2,7 +2,7 @@
     "name": "temperature",
     "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
     "description": "the temperature in celcius degree",
-    "properties": { },
+    "properties": {},
     "@iot.id": "temperature",
     "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(temperature)",
     "Datastreams": [{
@@ -15,7 +15,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
             "observedArea": {
                 "type": "Point",
-                "coordinates": [42.38798858151254, -4.144984627896042]
+                "coordinates": [-4.144984627896044, 42.387988581512545]
             },
             "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
@@ -115,7 +115,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
             "observedArea": {
                 "type": "Polygon",
-                "coordinates": [[[27.142098949519518, -3.404947100307331], [27.142098949519518, -3.4049470103064325], [27.142099023169745, -3.4049470103064325], [27.142099023169745, -3.404947100307331], [27.142098949519518, -3.404947100307331]]]
+                "coordinates": [[[-3.404947100307334, 27.142098949519525], [-3.404947100307334, 27.142099023169745], [-3.4049470103064357, 27.142099023169745], [-3.4049470103064357, 27.142098949519525], [-3.404947100307334, 27.142098949519525]]]
             },
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
@@ -163,7 +163,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
             "observedArea": {
                 "type": "Point",
-                "coordinates": [42.38798858151254, -4.144984627896042]
+                "coordinates": [-4.144984627896044, 42.387988581512545]
             },
             "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
@@ -287,7 +287,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
             "observedArea": {
                 "type": "Polygon",
-                "coordinates": [[[27.142098949519518, -3.404947100307331], [27.142098949519518, -3.4049470103064325], [27.142099023169745, -3.4049470103064325], [27.142099023169745, -3.404947100307331], [27.142098949519518, -3.404947100307331]]]
+                "coordinates": [[[-3.404947100307334, 27.142098949519525], [-3.404947100307334, 27.142099023169745], [-3.4049470103064357, 27.142099023169745], [-3.4049470103064357, 27.142098949519525], [-3.404947100307334, 27.142098949519525]]]
             },
             "phenomenonTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",
             "resultTime": "2007-05-01T10:59:00Z/2007-05-01T14:59:00Z",

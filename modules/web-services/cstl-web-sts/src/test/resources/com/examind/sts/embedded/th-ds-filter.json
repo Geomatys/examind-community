@@ -9,7 +9,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
             "observedArea": {
                 "type": "Point",
-                "coordinates": [42.38798858151254, -4.144984627896042]
+                "coordinates": [-4.144984627896042, 42.38798858151254]
             },
             "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
@@ -38,7 +38,7 @@
             "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
             "observedArea": {
                 "type": "Point",
-                "coordinates": [42.38798858151254, -4.144984627896042]
+                "coordinates": [-4.144984627896042, 42.38798858151254]
             },
             "phenomenonTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
             "resultTime": "2000-11-30T23:00:00Z/2012-12-21T23:00:00Z",
