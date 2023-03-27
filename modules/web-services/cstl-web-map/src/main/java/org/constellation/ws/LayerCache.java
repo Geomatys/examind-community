@@ -139,7 +139,12 @@ public class LayerCache {
      */
     public Envelope getEnvelope() throws ConstellationStoreException {
         if (envelope == null) {
-            envelope = dataBusiness.getEnvelope(nip.dataId).orElse(data.getEnvelope());
+            Optional<Envelope> env = dataBusiness.getEnvelope(nip.dataId);
+            if (env.isPresent()) {
+                envelope = env.get();
+            } else {
+                envelope = data.getEnvelope();
+            }
         }
         return envelope;
     }

@@ -118,7 +118,7 @@ public class ImportData extends AbstractCstlProcess {
              LOGGER.log(Level.INFO, "{0} files to integrate.", paths.size());
              List<Integer> outputDatas = new ArrayList<>();
              int i = 1;
-             int part = 90 / paths.size();
+             float part = 90 / (float) paths.size();
              for (DataSourceSelectedPath p : paths) {
                  checkDismissed();
                  List<Integer> storeDatas = new ArrayList<>();
