@@ -67,7 +67,7 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                     });
                 } else if ($scope.service.type.toLowerCase() === 'wfs') {
                     dataList = dataList.map(function(item){
-                        if (item.type.toLowerCase() === 'vector' || item.type.toLowerCase() === 'sensor') {
+                        if (item.type.toLowerCase() === 'vector' || item.type.toLowerCase() === 'sensor' || item.type.toLowerCase() === 'observation') {
                             return item;
                         }
                     });
