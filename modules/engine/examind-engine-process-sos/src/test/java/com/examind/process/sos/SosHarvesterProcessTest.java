@@ -146,6 +146,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
+        Assert.assertEquals(1, offp.getObservedProperties().size());
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", sensorId);

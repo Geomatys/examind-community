@@ -42,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
@@ -430,9 +431,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             for (Entry<String, Object> entry : properties.entrySet()) {
                 stmt.setString(1, id);
                 stmt.setString(2, entry.getKey());
-                stmt.setString(3, entry.getValue().toString());
-                stmt.executeUpdate();
+                stmt.setString(3,  Objects.toString(entry.getValue()));
+                stmt.addBatch();
             }
+            stmt.executeBatch();
         }
     }
 
@@ -451,10 +453,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private String writePhenomenon(final Phenomenon phenomenon, final Connection c, final boolean partial) throws SQLException {
-        final String phenomenonId   = phenomenon != null ? phenomenon.getId() : null;
-        if (phenomenonId == null) return null;
+        if (phenomenon ==null || phenomenon.getId() == null) return null;
 
-        try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\", \"partial\" FROM  \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
+        final String phenomenonId = phenomenon.getId();
+        try (final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\", \"partial\" FROM  \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, phenomenonId);
             boolean exist = false;
             boolean isPartial = false;
@@ -528,8 +530,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                     }
                 }
+            } else {
+                // not a complete update, only properties
+                deleteProperties("observed_properties_properties", "id_phenomenon", phenomenonId, c);
+                writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
             }
-            // no real update of a phenomenon is available for now
         }
         return phenomenonId;
     }

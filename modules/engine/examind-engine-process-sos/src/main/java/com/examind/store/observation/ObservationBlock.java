@@ -79,7 +79,7 @@ public class ObservationBlock {
         return positions.historicalPositions.entrySet();
     }
 
-    public Map<String, MeasureField> getUsedFields() {
+    public Set<MeasureField> getUsedFields() {
         return cmb.getUsedMeasureColumns();
     }
 

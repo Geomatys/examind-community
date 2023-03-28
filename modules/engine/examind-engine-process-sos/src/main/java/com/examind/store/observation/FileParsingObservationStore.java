@@ -35,7 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -55,6 +55,7 @@ import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.feature.SensorFeatureSet;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
@@ -261,23 +262,46 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
 
+    protected Phenomenon buildPhenomenon(final Set<MeasureField> fields, final String phenomenonIdBase, final Set<Phenomenon> existingPhens) {
+        final List<Phenomenon> components = new ArrayList<>();
+        for (MeasureField field : fields) {
+            String id = extractWithRegex(obsPropRegex, field.name);
+            String name = field.label != null ? field.label : id;
+            components.add(new Phenomenon(id, name, id, field.description, field.properties));
+        }
+
+        if (components.size() == 1) {
+            return components.get(0);
+        } else {
+            // look for an already existing (composite) phenomenon to use instead of creating a new one
+            for (Phenomenon existingPhen : existingPhens) {
+                if (existingPhen instanceof CompositePhenomenon cphen) {
+                    if (Objects.equals(cphen.getComponent(), components)) {
+                        return cphen;
+                    }
+                }
+            }
+            final String compositeId = "composite-" + UUID.randomUUID().toString();
+            final String name = phenomenonIdBase + compositeId;
+            return new CompositePhenomenon(compositeId, name, name, null, null, components);
+        }
+    }
+
     protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
             Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures) {
 
         // On extrait les types de mesure trouvées dans la donnée
-        Map<String, MeasureField> filteredMeasure = ob.getUsedFields();
+        Set<MeasureField> measureFields = ob.getUsedFields();
 
-        if (filteredMeasure.isEmpty() ||
-            ("Profile".equals(ob.observationType) && filteredMeasure.size() == 1)) {
+        if (measureFields.isEmpty() || ("Profile".equals(ob.observationType) && measureFields.size() == 1)) {
             LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
             return;
         }
 
         final List<Field> fields = new ArrayList<>();
         int i = 1;
-        for (final Entry<String, MeasureField> field : filteredMeasure.entrySet()) {
-            MeasureField mf = field.getValue();
-            String name     = field.getKey();
+        for (final MeasureField mf : measureFields) {
+            String name     = mf.name;
             String uom      = mf.uom;
             
             uom  = extractWithRegex(uomRegex, name, uom);
@@ -293,7 +317,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // Get existing or create a new Phenomenon
-        Phenomenon phenomenon = OMUtils.getPhenomenonModels(null, fields, "", phenomenons);
+        Phenomenon phenomenon = buildPhenomenon(measureFields, "", phenomenons);
         if (!phenomenons.contains(phenomenon)) {
             phenomenons.add(phenomenon);
         }

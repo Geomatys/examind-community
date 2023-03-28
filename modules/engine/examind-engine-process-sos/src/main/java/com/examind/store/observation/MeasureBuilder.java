@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -142,20 +143,20 @@ public class MeasureBuilder {
         return result;
     }
 
-    public Map<String, MeasureField> getUsedMeasureColumns() {
+    public Set<MeasureField> getUsedMeasureColumns() {
         final Set<String> measureColumnFound = getMeasureFromMap();
 
         // On complète les champs de mesures seulement avec celles trouvées dans la donnée
-        Map<String, MeasureField> filteredMeasure = new LinkedHashMap<>();
+        Set<MeasureField> filteredMeasure = new LinkedHashSet<>();
         if (isProfile) {
             if (mainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            filteredMeasure.put(mainColumns.get(0), new MeasureField(mainColumns.get(0), FieldType.QUANTITY, new ArrayList<>()));
+            filteredMeasure.add(new MeasureField(mainColumns.get(0), FieldType.QUANTITY, new ArrayList<>()));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
-                filteredMeasure.put(m.getKey(), m.getValue());
+                filteredMeasure.add(m.getValue());
             }
         }
         return filteredMeasure;
@@ -164,8 +165,10 @@ public class MeasureBuilder {
     public void updateObservedProperty(ObservedProperty observedProperty) {
         MeasureField field = measureColumns.get(observedProperty.id);
         if (field != null) {
-            field.label = observedProperty.name;
-            field.uom   = observedProperty.uom;
+            field.label       = observedProperty.name;
+            field.uom         = observedProperty.uom;
+            field.description = observedProperty.description;
+            field.properties  = observedProperty.properties;
         }
     }
 

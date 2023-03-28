@@ -18,6 +18,9 @@
  */
 package com.examind.store.observation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  * @author Guilhem Legal (Geomatys)
@@ -28,11 +31,21 @@ public class ObservedProperty {
 
     public final String name;
 
+    public final String description;
+
     public final String uom;
 
+    public final Map<String, Object> properties;
+
     public ObservedProperty(String id, String name, String uom) {
+        this(id, name, uom, null, new HashMap<>());
+    }
+
+    public ObservedProperty(String id, String name, String uom, String description, Map<String, Object> properties) {
         this.id = id;
         this.name = name;
+        this.description = description;
         this.uom = uom;
+        this.properties = properties;
     }
 }
