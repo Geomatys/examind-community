@@ -45,7 +45,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
      * Limit number of properties to a few dozens, to limit system overhead.
      * TODO: better describe this choice, or relax this limitation.
      */
-    private static final int MAX_CARDINALITY = 92;
+    private static final int INPUT_MAX_CARDINALITY = 92;
+    private static final int OUTPUT_MAX_CARDINALITY = Integer.MAX_VALUE;
 
     /**Process name : addition */
     public static final String NAME = "sosHarvester";
@@ -115,7 +116,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final String SERVICE_ID_DESC = "Sensor service where to publish the sensors.";
     public static final ParameterDescriptor<ServiceProcessReference> SERVICE_ID =
     new ExtendedParameterDescriptor<>(
-                SERVICE_ID_NAME, SERVICE_ID_DESC, 1, MAX_CARDINALITY, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
+                SERVICE_ID_NAME, SERVICE_ID_DESC, 1, INPUT_MAX_CARDINALITY, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", Arrays.asList("sos", "sts"))));
 
     public static final String DATASET_IDENTIFIER_NAME = "dataset_identifier";
     public static final String DATASET_IDENTIFIER_DESC = "Dataset identifier where to add the data.";
@@ -186,11 +187,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> MAIN_COLUMN = new ExtendedParameterDescriptor<>(
             MAIN_COLUMN_NAME,
             MAIN_COLUMN_DESC,
-            1, MAX_CARDINALITY,
+            1, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
     );
-    
+
     public static final String Z_COLUMN_NAME = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
     public static final String Z_COLUMN_DESC = FileParsingObservationStoreFactory.Z_COLUMN.getName().getCode();
     public static final ParameterDescriptor<String> Z_COLUMN = PARAM_BUILDER
@@ -204,7 +205,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> DATE_COLUMN = new ExtendedParameterDescriptor<>(
             DATE_COLUMN_NAME,
             DATE_COLUMN_DESC,
-            1, MAX_CARDINALITY,
+            1, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -308,7 +309,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_COLUMN = new ExtendedParameterDescriptor<>(
             OBS_PROP_COLUMN_NAME,
             OBS_PROP_COLUMN_DESC,
-            0, MAX_CARDINALITY,
+            0, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -326,7 +327,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = new ExtendedParameterDescriptor<>(
             OBS_PROP_NAME_COLUMN_NAME,
             OBS_PROP_NAME_COLUMN_DESC,
-            0, MAX_CARDINALITY,
+            0, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -336,7 +337,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_COLUMNS_FILTER  = new ExtendedParameterDescriptor<>(
                 OBS_PROP_COLUMNS_FILTER_NAME,
                 OBS_PROP_COLUMNS_FILTER_DESC,
-                0, MAX_CARDINALITY,
+                0, INPUT_MAX_CARDINALITY,
                 String.class,
                 null, null, null
                 );
@@ -354,7 +355,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> OBS_PROP_COLUMN_TYPE = new ExtendedParameterDescriptor<>(
             OBS_PROP_COLUMN_TYPE_NAME,
             OBS_PROP_COLUMN_TYPE_DESC,
-            0, MAX_CARDINALITY,
+            0, INPUT_MAX_CARDINALITY,
             String.class,
             "QUANTITY",
             new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
@@ -366,7 +367,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> QUALITY_COLUMN = new ExtendedParameterDescriptor<>(
             QUALITY_COLUMN_NAME,
             QUALITY_COLUMN_DESC,
-            0, MAX_CARDINALITY,
+            0, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
     );
@@ -376,13 +377,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> QUALITY_COLUMN_TYPE = new ExtendedParameterDescriptor<>(
             QUALITY_COLUMN_TYPE_NAME,
             QUALITY_COLUMN_TYPE_DESC,
-            0, MAX_CARDINALITY,
+            0, INPUT_MAX_CARDINALITY,
             String.class,
             "QUANTITY",
             new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
             null
     );
-    
+
     public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
     public static final ParameterDescriptor<String> TYPE_COLUMN = PARAM_BUILDER
@@ -435,7 +436,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<Integer> GENERATE_DATA_IDS = new ExtendedParameterDescriptor<>(
             GENERATE_DATA_IDS_NAME,
             GENERATE_DATA_IDS_DESC,
-            0, MAX_CARDINALITY,
+            0, OUTPUT_MAX_CARDINALITY,
             Integer.class,
             null, null, null
     );
