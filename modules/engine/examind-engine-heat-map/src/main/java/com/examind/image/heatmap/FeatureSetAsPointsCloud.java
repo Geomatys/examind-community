@@ -70,7 +70,8 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
         final AttributeType<?> defaultGeometry = Features.toAttribute(defaultGeometryProp)
                 .orElseThrow(() -> new IllegalStateException("Failed to retrieve the geometry AttributeType from the FeatureType.\nThe input FeatureSet must refer to features with valid geometry attribute."));
 
-        this.geometryProperty = defaultGeometry.getName().toString();
+        // Hack for namespaces that are url and are not supported by FF.property(property)
+        this.geometryProperty = defaultGeometry.getName().tip().toString();
 
         checkGeometryType(defaultGeometry, source);
 
