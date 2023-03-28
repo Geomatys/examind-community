@@ -68,12 +68,12 @@ public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderD
 
 
         TILING_DIMENSION_X = builder.addName("tiling.x")
-                .setDescription("Number of tile expected to the first axis. Default value : null for the use of a single tile.")
+                .setDescription("Expected tile width. Default value : null for the use of a single tile on X axis.")
                 .setRequired(false)
                 .create(Integer.class, null);
 
         TILING_DIMENSION_Y = builder.addName("tiling.y")
-                .setDescription("Number of tile expected to the second axis. Default value : null for the use of a single tile.")
+                .setDescription("Expected tile height. Default value : null for the use of a single tile on Y axis.")
                 .setRequired(false)
                 .create(Integer.class, null);
 
