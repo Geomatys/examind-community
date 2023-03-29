@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.feature;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBReader;
@@ -32,6 +32,7 @@ import org.apache.sis.internal.feature.AttributeConvention;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.util.Util;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;

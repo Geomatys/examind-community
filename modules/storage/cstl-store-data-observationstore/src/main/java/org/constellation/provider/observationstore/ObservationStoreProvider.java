@@ -99,8 +99,12 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Data computeData(GenericName key) throws ConstellationStoreException {
         try {
             final DataStore store = getMainStore();
-            store.findResource(key.toString()); // will throw an exception if not exist.
-            return new DefaultObservationData(key, (ObservationStore) store);
+            Resource origin = store.findResource(key.toString());
+            if (origin instanceof FeatureSet fs) {
+                return new FeatureSetObservationData(key, fs, store);
+            } else {
+                return new DefaultObservationData(key, (ObservationStore) store);
+            }
         } catch (Exception ex) {
             LOGGER.log(Level.FINE, "Error while looking for resource:" + key.toString() + " in observation store.", ex);
             return null;

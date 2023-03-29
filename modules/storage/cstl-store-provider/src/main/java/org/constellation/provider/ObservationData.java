@@ -17,14 +17,14 @@
  * limitations under the License.
  */
 
-package org.constellation.provider.observationstore;
+package org.constellation.provider;
 
-import org.constellation.provider.Data;
+import org.apache.sis.storage.Resource;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public interface ObservationData extends Data{
+public interface ObservationData<T extends Resource> extends Data<T>{
 
 }

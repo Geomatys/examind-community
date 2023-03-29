@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.feature;
 
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
+import org.constellation.store.observation.db.OM2Utils;
 import org.geotoolkit.feature.FeatureExt;
 import org.opengis.referencing.operation.TransformException;
 

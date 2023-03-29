@@ -22,8 +22,6 @@ import org.apache.sis.internal.storage.StoreResource;
 import org.apache.sis.storage.AbstractFeatureSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.store.observation.db.OM2SamplingFeatureReader;
-import org.constellation.store.observation.db.OM2SensorFeatureReader;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.util.collection.CloseableIterator;
