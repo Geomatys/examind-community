@@ -50,17 +50,17 @@ public class FeatureToHeatMapDescriptor extends AbstractProcessDescriptor implem
 
     static {
         final ParameterBuilder builder = new ParameterBuilder();
-        builder.setRequired(true);
+        builder.setRequired(false);
 
         TILING_DIMENSION_X = builder.addName("tiling.x")
                 .setDescription("Expected tile width. Default value : null for the use of a single tile on X axis.")
-                .setRequired(false)
                 .create(Integer.class, null);
 
         TILING_DIMENSION_Y = builder.addName("tiling.y")
                 .setDescription("Expected tile height. Default value : null for the use of a single tile on Y axis.")
-                .setRequired(false)
                 .create(Integer.class, null);
+
+        builder.setRequired(true);
 
         DISTANCE_X = builder.addName("distance.x")
                 .setDescription("Distance along the first CRS dimension to take into account for the HeatMap computation")
