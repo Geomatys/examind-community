@@ -395,16 +395,6 @@ public class DtoToOGCFilterTransformer {
         return filterFactory.literal("");
     }
 
-    /**
-     * Change a QName in Name.
-     */
-    public GenericName visitQName(final QName qname) {
-        if (qname == null) {
-            return null;
-        }
-        return NamesExt.create(qname);
-    }
-
     private boolean isBinaryComparisonOp(org.constellation.dto.Filter f) {
         final String OpName = f.getOperator();
         return OGCJAXBStatics.FILTER_COMPARISON_ISEQUAL.equalsIgnoreCase(OpName)

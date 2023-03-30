@@ -23,17 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.swe.xml.DataArray;
-import org.geotoolkit.swe.xml.DataRecord;
-import org.geotoolkit.swe.xml.SimpleDataRecord;
-import org.geotoolkit.swe.xml.TextBlock;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
-import org.opengis.observation.Measure;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -44,13 +38,6 @@ import org.opengis.util.FactoryException;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2Utils {
-
-    public static Long getInstantTime(Instant inst) {
-        if (inst != null && inst.getDate() != null) {
-            return inst.getDate().getTime();
-        }
-        return null;
-    }
 
     public static Timestamp getInstantTimestamp(Instant inst) {
         if (inst != null && inst.getDate() != null) {
@@ -94,27 +81,6 @@ public class OM2Utils {
 
         // the multiple observations which overlaps the whole period
         sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
-    }
-
-    public static TextBlock verifyDataArray(final DataArray array) throws DataStoreException {
-        if (!(array.getEncoding() instanceof TextBlock encoding)) {
-            throw new DataStoreException("Only TextEncoding is supported");
-        }
-        if (!(array.getPropertyElementType().getAbstractRecord() instanceof DataRecord) &&
-            !(array.getPropertyElementType().getAbstractRecord() instanceof SimpleDataRecord)) {
-            throw new DataStoreException("Only DataRecord/SimpleDataRecord is supported");
-        }
-        return encoding;
-    }
-
-    public static double getMeasureValue(Object result) {
-        double value;
-        if (result instanceof org.apache.sis.internal.jaxb.gml.Measure meas) {
-            value = meas.value;
-        } else {
-            value = ((Measure) result).getValue();
-        }
-        return value;
     }
 
     public static byte[] getGeometryBytes(Geometry pt) {
