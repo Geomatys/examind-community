@@ -40,12 +40,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.sis.referencing.CRS;
-import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.geometry.jts.SRIDGenerator;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
@@ -770,11 +767,7 @@ public class OM2BaseReader {
                     }
                     
                 }
-                try {
-                    results.add(OMUtils.createQualityElement2(field, value));
-                } catch (ReflectiveOperationException ex) {
-                    throw new SQLException(ex);
-                }
+                results.add(OMUtils.createQualityElement(field, value));
             }
         }
         return results;

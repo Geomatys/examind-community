@@ -35,7 +35,6 @@ import org.apache.sis.storage.Resource;
 
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
-import static org.constellation.store.observation.db.OM2Utils.buildSensorFeatureType;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
@@ -144,13 +143,9 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         if (featureSets == null) {
             featureSets = new ArrayList<>();
             featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSamplingFeatureFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SAMPLING_FEATURE));
-            featureSets.add(new SensorFeatureSet(this, buildSensorFeatureType(SENSOR_TN, null), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(),          source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
         }
         return featureSets;
-    }
-
-    private Connection getConnection() throws SQLException{
-        return source.getConnection();
     }
 
     /**

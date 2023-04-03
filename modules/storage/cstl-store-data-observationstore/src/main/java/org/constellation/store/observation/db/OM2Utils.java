@@ -21,15 +21,11 @@ package org.constellation.store.observation.db;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.sis.feature.builder.AttributeRole;
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
-import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_ATT_ID;
-import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_ATT_POSITION;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataRecord;
@@ -37,14 +33,12 @@ import org.geotoolkit.swe.xml.SimpleDataRecord;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
-import org.opengis.feature.FeatureType;
 import org.opengis.observation.Measure;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -149,22 +143,5 @@ public class OM2Utils {
         } else {
             return CRS.forCode(SRIDGenerator.toSRS(srid, SRIDGenerator.Version.V1));
         }
-    }
-
-     /**
-     * TEMPORARY untile geotk will be update
-     * @param name
-     * @return
-     */
-    public static FeatureType buildSensorFeatureType(GenericName name, CoordinateReferenceSystem crs) {
-        final FeatureTypeBuilder ftb = new FeatureTypeBuilder();
-        ftb.setName(name);
-        ftb.addAttribute(String.class).setName(SENSOR_ATT_ID).addRole(AttributeRole.IDENTIFIER_COMPONENT);
-        if (crs != null) {
-            ftb.addAttribute(Geometry.class).setName(SENSOR_ATT_POSITION).setCRS(crs).addRole(AttributeRole.DEFAULT_GEOMETRY);
-        } else {
-            ftb.addAttribute(Geometry.class).setName(SENSOR_ATT_POSITION).addRole(AttributeRole.DEFAULT_GEOMETRY);
-        }
-        return ftb.build();
     }
 }
