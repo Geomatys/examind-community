@@ -149,7 +149,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
             // final result
             final ObservationDataset result = new ObservationDataset();
-
+            final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
+            
             /*
             2- compute measures
             =================*/
@@ -228,7 +229,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
 
                 currentBlock.updateObservedProperty(observedProperty);
 
@@ -398,7 +399,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
-            Map<String, ProcedureDataset> result = new HashMap<>();
+            Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions     = new HashSet<>();
             Procedure previousProc               = null;
             ProcedureDataset currentPTree        = null;

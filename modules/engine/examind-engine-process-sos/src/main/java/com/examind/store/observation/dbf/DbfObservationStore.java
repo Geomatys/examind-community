@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -118,7 +119,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
              // final result
             final ObservationDataset result = new ObservationDataset();
-
+            final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
             /*
             2- compute measures
             =================*/
@@ -168,7 +169,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);

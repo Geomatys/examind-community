@@ -45,6 +45,7 @@ import com.examind.store.observation.ObservedProperty;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Objects;
@@ -135,7 +136,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             
              // final result
             final ObservationDataset result = new ObservationDataset();
-
+            final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
+            
             /*
             2- compute measures
             =================*/
@@ -184,7 +186,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(currentProc, currentFoi, currentTime, measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityTypes);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);
@@ -388,7 +390,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 measureFields.add(obsPropId);
             }
 
-            Map<String, ProcedureDataset> result = new HashMap<>();
+            Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
             Procedure previousProc               = null;
             ProcedureDataset currentPTree        = null;
