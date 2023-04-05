@@ -776,8 +776,8 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         //
 
         //       -- get the List of layer references
-        final String userLogin             = getUserLogin();
-        final List<GenericName> layerNames = getFI.getQueryLayers();
+        final String userLogin        = getUserLogin();
+        final List<String> layerNames = getFI.getQueryLayers();
         final List<LayerCache> layersCache;
         try {
             layersCache = getLayerCaches(userLogin, layerNames);
@@ -1002,7 +1002,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final boolean errorBlank   = WMSConstant.isErrorBlank(errorType, queryVersion);
 
         // get the List of layer references
-        final List<GenericName> layerNames = getMap.getLayers();
+        final List<String> layerNames = getMap.getLayers();
 
         //check layer limit
         final Details skeleton = getStaticCapabilitiesObject("wms", getDefaultLanguage());

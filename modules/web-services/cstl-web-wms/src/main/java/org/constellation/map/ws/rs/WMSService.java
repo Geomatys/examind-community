@@ -368,7 +368,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         final String strQueryLayers = getParameter(KEY_QUERY_LAYERS, true);
               String infoFormat  = getParameter(KEY_INFO_FORMAT, false);
         final String strFeatureCount = getParameter(KEY_FEATURE_COUNT, false);
-        final List<GenericName> namedQueryableLayers = parseLayerNameList(strQueryLayers);
+        final List<String> namedQueryableLayers = StringUtilities.toStringList(strQueryLayers);
         if (infoFormat == null) {
             infoFormat = MimeType.TEXT_XML;
         }
@@ -406,8 +406,8 @@ public class WMSService extends GridWebService<WMSWorker> {
      * @throws CstlServiceException
      */
     private GetLegendGraphic adaptGetLegendGraphic() throws CstlServiceException {
-        final GenericName strLayer  = Util.parseLayerName(getParameter(KEY_LAYER,  true));
-        final String strFormat = getParameter(KEY_FORMAT, true );
+        final String strLayer  = getParameter(KEY_LAYER,  true);
+        final String strFormat = getParameter(KEY_FORMAT, true);
         // Verify that the format is known, otherwise returns an exception.
         final String format;
         try {
@@ -561,7 +561,6 @@ public class WMSService extends GridWebService<WMSWorker> {
             throw new CstlServiceException("Invalid format specified.", INVALID_FORMAT, KEY_FORMAT.toLowerCase());
         }
         final List<String> layers  = StringUtilities.toStringList(strLayers);
-        final List<GenericName> namedLayers  = parseLayerNameList(layers);
         final List<String> styles = StringUtilities.toStringList(strStyles);
         final Double elevation;
         try {
@@ -651,7 +650,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         }
 
         // Builds the request.
-        return new GetMap(env, new Version(version), format, namedLayers, styles, sld, elevation,
+        return new GetMap(env, new Version(version), format, layers, styles, sld, elevation,
                     dates, size, background, transparent, azimuth, strExceptions, extraParameters);
     }
 

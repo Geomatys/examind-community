@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
+import javax.xml.namespace.QName;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
@@ -57,6 +58,7 @@ import org.constellation.business.IMapBusiness;
 import org.constellation.dto.StyleReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.map.featureinfo.FeatureInfoFormat;
+import org.constellation.util.Util;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.style.Style;
@@ -196,6 +198,14 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         return layerBusiness.getFullLayerName(getServiceId(), name.tip().toString(), NamesExt.getNamespace(name), login);
     }
 
+    private NameInProvider getFullLayerName(final String login, final String name) throws ConfigurationException {
+        if (name == null) {
+            return null;
+        }
+        QName qname = Util.parseQName(name);
+        return layerBusiness.getFullLayerName(getServiceId(), qname.getLocalPart(), qname.getNamespaceURI(), login);
+    }
+
     protected Style getStyle(final StyleReference styleReference) throws CstlServiceException {
         Style style;
         if (styleReference != null) {
@@ -285,15 +295,28 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         }
     }
 
-    protected List<LayerCache> getLayerCaches(final String login, final Collection<GenericName> names) throws CstlServiceException {
+    protected List<LayerCache> getLayerCaches(final String login, final Collection<String> names) throws CstlServiceException {
         List<LayerCache> results = new ArrayList<>();
-        for (GenericName name : names) {
+        for (String name : names) {
             results.add(getLayerCache(login, name));
         }
         return results;
     }
 
     protected LayerCache getLayerCache(final String login, GenericName name) throws CstlServiceException {
+        try {
+            NameInProvider nip = getFullLayerName(login, name);
+            if (nip != null) {
+                return getLayerCache(nip, login);
+            } else {
+                throw new CstlServiceException("Unknown Layer name:" + name, LAYER_NOT_DEFINED);
+            }
+        } catch (ConfigurationException ex) {
+            throw new CstlServiceException("Error while retrieving layer :" + name + ". " + ex.getMessage(), LAYER_NOT_DEFINED);
+        }
+    }
+
+    protected LayerCache getLayerCache(final String login, String name) throws CstlServiceException {
         try {
             NameInProvider nip = getFullLayerName(login, name);
             if (nip != null) {
