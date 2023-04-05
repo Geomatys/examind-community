@@ -41,7 +41,7 @@ import org.opengis.referencing.operation.TransformException;
  */
 public class AggregateUtils {
 
-    static Data<?> getData(DataRepository repo, int dataId) throws ConfigurationException {
+    public static Data<?> getData(DataRepository repo, int dataId) throws ConfigurationException {
         final org.constellation.dto.Data d = repo.findById(dataId);
         if (d == null) throw new TargetNotFoundException("No data found with id:" + dataId);
         final Data<?> dp = DataProviders.getProviderData(d.getProviderId(), d.getNamespace(), d.getName());
