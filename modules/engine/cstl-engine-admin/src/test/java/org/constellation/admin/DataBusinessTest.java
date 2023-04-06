@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -233,6 +234,17 @@ public class DataBusinessTest extends AbstractBusinessTest {
         Map<String,Object> results = dataBusiness.getDataRawModel(db.getId());
         Assert.assertNotNull(results);
         Assert.assertTrue(results.get("GridCoverageResource") instanceof Map);
+    }
 
+    @Test
+    public void exportDataTest() throws Exception {
+        Path[] exportData = dataBusiness.exportData(vectorDID);
+        Assert.assertEquals(6, exportData.length);
+
+        exportData = dataBusiness.exportData(coverage1DID);
+        Assert.assertEquals(3, exportData.length);
+
+        exportData = dataBusiness.exportData(coverage2DID);
+        Assert.assertEquals(1, exportData.length);
     }
 }

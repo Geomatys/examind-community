@@ -28,10 +28,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -51,6 +54,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IStyleBusiness;
+import org.constellation.dto.Data;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataDescription;
 import org.constellation.dto.DataSetBrief;
@@ -66,7 +70,6 @@ import org.constellation.dto.process.DatasetProcessReference;
 import org.constellation.dto.process.TaskParameter;
 import org.constellation.exception.ConstellationException;
 import org.constellation.metadata.utils.Utils;
-import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.PyramidData;
 import org.constellation.util.MetadataMerger;
@@ -438,7 +441,7 @@ public class DataRestAPI extends AbstractRestAPI{
             result.put("crs", crss);
 
             //get data
-            final Data data = DataProviders.getProviderData(brief.getProviderId(), brief.getNamespace(), brief.getName());
+            final org.constellation.provider.Data data = DataProviders.getProviderData(brief.getProviderId(), brief.getNamespace(), brief.getName());
             if (!(data instanceof PyramidData)) return new ResponseEntity(result, OK);
 
             crss.addAll( ((PyramidData)data).listPyramidCRSCode());
@@ -657,14 +660,68 @@ public class DataRestAPI extends AbstractRestAPI{
 
         //create ZIP
         try {
-            final Path zip = Paths.get(System.getProperty("java.io.tmpdir"), "exported_data.zip");
+            final Path zip = Files.createTempFile("exported_data" , ".zip");
             Files.deleteIfExists(zip);
             ZipUtilities.zipNIO(zip, filesToSend);
 
             final FileSystemResource r = new FileSystemResource(zip.toFile());
 
             final HttpHeaders header = new HttpHeaders();
-            header.set("Content-Disposition", "attachment; filename=" + zip.getFileName().toString());
+            header.set("Content-Disposition", "attachment; filename=exported_data.zip");
+
+            return new ResponseEntity(r, header, OK);
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING,"Error while zipping data",ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/datas/export",method=POST,produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity exportDatas(@RequestBody final List<Integer> dataIds) {
+        try {
+
+            final Path archive = Files.createTempDirectory("export-datas");
+            final List<Path> toSend = new ArrayList<>();
+
+            // has for now exporting a data will export in fact all the data in the provider
+            // we export only one data by provider to avoid havind doublon.
+            // TODO remove this hack when the data will be properly exported
+            Set<Integer> alreadyVisitedProvider = new HashSet<>();
+            for (Integer dataId : dataIds) {
+                try {
+                    Data d = dataBusiness.getData(dataId);
+                    Integer pid = d.getProviderId();
+                    if (!alreadyVisitedProvider.contains(pid)) {
+                        final Path[] dataFiles = dataBusiness.exportData(dataId);
+                        alreadyVisitedProvider.add(pid);
+                        if (dataFiles.length == 0) {
+                            LOGGER.warning("No files for the data " + d.getId() + " to export.");
+                        } else {
+                            Path dataDir = archive.resolve(pid + "_" + d.getName());
+                            Files.createDirectory(dataDir);
+                            for (Path f : dataFiles) {
+                                Path dst = dataDir.resolve(f.getFileName());
+                                IOUtilities.copy(f, dst);
+                            }
+                            toSend.add(dataDir);
+                        }
+                    }
+
+                } catch (ConstellationException | IOException ex) {
+                    LOGGER.log(Level.WARNING, "Error while trying to export data: " + dataId, ex);
+                    return new ErrorMessage(ex).build();
+                }
+            }
+        
+            //create ZIP
+            final Path zip = Files.createTempFile("exported_data" , ".zip");
+            Files.deleteIfExists(zip);
+            ZipUtilities.zipNIO(zip, toSend.toArray(Path[]::new));
+
+            final FileSystemResource r = new FileSystemResource(zip.toFile());
+
+            final HttpHeaders header = new HttpHeaders();
+            header.set("Content-Disposition", "attachment; filename=exported_data.zip");
 
             return new ResponseEntity(r, header, OK);
         } catch (IOException ex) {

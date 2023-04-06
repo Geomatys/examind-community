@@ -18,10 +18,14 @@
  */
 package org.constellation.provider.datastore;
 
+import java.io.File;
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
@@ -42,6 +46,7 @@ import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
+import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.IllegalNameException;
 import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -55,6 +60,7 @@ import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.datastore.SafeAccess.Session;
+import org.opengis.parameter.ParameterNotFoundException;
 
 /**
  * @implNote Some of this object methods modify underlying storage state. To avoid problems over concurrent access, a
@@ -211,12 +217,25 @@ public class DataStoreProvider extends AbstractDataProvider {
             if (currentStore instanceof ExtendedFeatureStore) {
                 currentStore = (DataStore) ((ExtendedFeatureStore) currentStore).getWrapped();
             }
-            if (!(currentStore instanceof ResourceOnFileSystem)) {
-                throw new ConstellationException("Store is not made of files.");
-            }
+            if (currentStore instanceof ResourceOnFileSystem fileStore) {
+                return fileStore.getComponentFiles();
 
-            final ResourceOnFileSystem fileStore = (ResourceOnFileSystem) currentStore;
-            return fileStore.getComponentFiles();
+            // fallback LOCATION parameter (because of SIS tiff not implementing the interface)
+            } else if (currentStore != null) {
+                try {
+                   Object location = currentStore.getOpenParameters().map(params -> params.parameter(LOCATION).getValue()).orElse(null);
+                    if (location instanceof URI uri) {
+                        return new Path[] {Paths.get(uri)};
+                    } else if (location instanceof Path p) {
+                        return new Path[] {p};
+                    } else if (location instanceof File f) {
+                        return new Path[] {f.toPath()};
+                    }
+                } catch (ParameterNotFoundException ex) {
+                    LOGGER.fine("No location parameter avaiable on store:" + currentStore);
+                }
+            }
+            throw new ConstellationException("Unable to extract files from store: " + id);
         } catch (Exception ex) {
             throw new ConstellationException(ex);
         }
