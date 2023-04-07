@@ -1667,6 +1667,14 @@ function Examind($http, url) {
                 url: 'datas/' + dataId + '/export'
             });
         },
+        exportDatas : function (dataIds) {
+            return self.request({
+                method: 'POST',
+                url: 'datas/export',
+                data : dataIds,
+                responseType: "arraybuffer"
+            });
+        },
         linkDataToSensor : function (dataId, sensorId) {
             return self.request({
                 method: 'POST',

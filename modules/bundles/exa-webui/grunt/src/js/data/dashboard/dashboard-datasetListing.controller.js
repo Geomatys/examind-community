@@ -245,6 +245,31 @@ function DatasetListingController($rootScope, $scope, $modal, $q, $translate, Gr
             return res;
         }
     };
+    
+    self.exportMultiData = function () {
+        if (!self.data || self.data.length === 0) {
+            return $q.reject("No data");
+        }
+        var dataIds = [];
+        for (var i = 0; i < self.data.length; i++) {
+            dataIds.push(self.data[i].id);
+        }
+        Examind.datas.exportDatas(dataIds)
+                    .then(function (response) {
+                        var blob = new Blob([response.data], {type: "application/zip"});
+
+                        var url = window.URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        // the filename you want
+                        a.download = 'exported_data.zip';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        Growl('success', 'Success', 'Data successfully exported');
+                    });
+    };
 
     self.deleteDataset = function () {
         return Dataset.deleteDataset(self.dataset,
