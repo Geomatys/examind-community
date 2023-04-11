@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>24.11.19</version>
+        <version>25.01.16</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
@@ -30,7 +30,7 @@
     <inceptionYear>2007</inceptionYear>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>22</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Define packages for GUI including -->
         <examind.services.packages>all</examind.services.packages>
