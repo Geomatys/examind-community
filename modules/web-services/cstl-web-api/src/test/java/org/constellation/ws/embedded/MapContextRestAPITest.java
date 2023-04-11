@@ -71,7 +71,7 @@ public class MapContextRestAPITest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void startup() {
         ConfigDirectory.setupTestEnvironement("MapContextRestAPITest");
-        controllerConfiguration = RestApiTestControllerConfig.class;
+        apiControllerConfiguration = RestApiTestControllerConfig.class;
     }
 
     /**

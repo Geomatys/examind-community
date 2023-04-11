@@ -38,6 +38,7 @@
   <mvc:annotation-driven>
     <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
+        <bean class="org.constellation.api.rest.converter.CoverageResponseConverter" />
         <bean class="org.constellation.api.rest.converter.MapContextMessageConverter" />
         <bean class="org.constellation.api.rest.converter.StyleMessageConverter" />
         <bean class="org.constellation.api.rest.converter.JsonStyleMessageConverter" />

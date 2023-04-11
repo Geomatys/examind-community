@@ -75,7 +75,7 @@ public class RestApiRequestsTest extends AbstractGrizzlyServer {
     @BeforeClass
     public static void startup() {
         ConfigDirectory.setupTestEnvironement("RestApiRequestsTest");
-        controllerConfiguration = RestApiTestControllerConfig.class;
+        apiControllerConfiguration = RestApiTestControllerConfig.class;
     }
 
     /**

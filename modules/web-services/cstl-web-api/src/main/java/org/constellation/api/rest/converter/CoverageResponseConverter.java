@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-package org.constellation.wfs.ws.rs;
+package org.constellation.api.rest.converter;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.ws.MimeType;
+import org.geotoolkit.coverage.xml.CoverageMarshallerPool;
+import org.geotoolkit.coverage.xml.CoverageResponse;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.InvalidMediaTypeException;
@@ -43,9 +45,9 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
+public class CoverageResponseConverter implements HttpMessageConverter<CoverageResponse> {
 
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.wfs.ws.rs");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest.converter");
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
@@ -54,7 +56,7 @@ public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return WFSResponse.class.isAssignableFrom(clazz);
+        return CoverageResponse.class.isAssignableFrom(clazz);
     }
 
     @Override
@@ -63,12 +65,12 @@ public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
     }
 
     @Override
-    public WFSResponse read(Class<? extends WFSResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+    public CoverageResponse read(Class<? extends CoverageResponse> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("WFSResponse message converter do not support reading.", him);
     }
     
     @Override
-    public void write(WFSResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+    public void write(CoverageResponse t, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try {
             MediaType media = null;
             try {
@@ -78,39 +80,25 @@ public class WFSResponseWriter implements HttpMessageConverter<WFSResponse> {
             }
 
             if (isXMLMime(media)) {
-                final Marshaller m = WFSMarshallerPool.getInstance().acquireMarshaller();
+                // TODO coverage
+                final Marshaller m = CoverageMarshallerPool.getInstance().acquireMarshaller();
 
-                final String version = t.getVersion();
-                if ("1.0.0".equals(version)) {
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/wfs.xsd");
-                } else if("1.1.0".equals(version)){
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd");
-                } else if("2.0.0".equals(version)){
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd");
-                } else if("feat-1.0.0".equals(version)){
-                    m.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.opengis.net/ogcapi-features-1/1.0 http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd");
-                }
-
-                if (t instanceof WFSResponseWrapper) {
-                    m.marshal(((WFSResponseWrapper)t).getResponse(), outputMessage.getBody());
-                } else {
-                    m.marshal(t, outputMessage.getBody());
-                }
-                 WFSMarshallerPool.getInstance().recycle(m);
+                m.marshal(t, outputMessage.getBody());
+                CoverageMarshallerPool.getInstance().recycle(m);
             } else {
                 ObjectMapper m = new ObjectMapper();
                 m.setSerializationInclusion(Include.NON_NULL);
                 m.writeValue(outputMessage.getBody(), t);
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Exception while writing the WFS/FeatureAPI response", ex);
+            LOGGER.log(Level.SEVERE, "Exception while writing the CoverageAPI response", ex);
         }
     }
 
     private boolean isXMLMime(MediaType media) {
-        // default to xml if null
+        // default to json if null
         // some mime type lost their initial space character.
-        return media == null || MediaType.APPLICATION_XML.equals(media) || MediaType.TEXT_XML.equals(media) ||
-                media.includes(MediaType.TEXT_XML) || media.toString().equals(MimeType.APP_GML32_XML.replaceAll(" ", ""));
+        return media != null && (MediaType.APPLICATION_XML.equals(media) || MediaType.TEXT_XML.equals(media) ||
+                media.includes(MediaType.TEXT_XML) || media.toString().equals(MimeType.APP_GML32_XML.replaceAll(" ", "")));
     }
 }

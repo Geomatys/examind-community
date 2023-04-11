@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -76,12 +75,14 @@ public class TestEnvironment {
         public final String namespace;
         public final String name;
         public final int pid;
+        public final String providerName;
 
-        DataImport(int id, String namespace, String name, int pid) {
+        DataImport(int id, String namespace, String name, int pid, String providerName) {
             this.id = id;
             this.namespace = namespace;
             this.name = name;
             this.pid = pid;
+            this.providerName = providerName;
         }
     }
 
@@ -386,7 +387,7 @@ public class TestEnvironment {
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
            }
@@ -401,7 +402,7 @@ public class TestEnvironment {
                 for (Integer pid : pids) {
                     int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                     List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                            .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
+                            .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
                             .collect(Collectors.toList());
                     results.add(new ProviderImport(pid, dsId, datas));
                 }
@@ -465,7 +466,7 @@ public class TestEnvironment {
                int pid = dpr.createProvider(providerBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
                        .collect(Collectors.toList());
                return new ProviderImport(pid, dsId, datas);
            }
@@ -525,7 +526,7 @@ public class TestEnvironment {
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
             List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
-                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid))
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
                        .collect(Collectors.toList());
             return new ProviderImport(pid, dsId, datas);
         } catch (Exception ex) {
