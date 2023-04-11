@@ -19,7 +19,6 @@
 package org.constellation.provider.observationstore;
 
 import java.io.File;
-import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,24 +34,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.sql.DataSource;
+import javax.annotation.PostConstruct;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataStoreProvider;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureTree;
-import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
-import org.constellation.util.SQLUtilities;
-import org.constellation.util.Util;
+import org.constellation.test.SpringContextTest;
+import org.constellation.test.utils.TestEnvironment;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
@@ -68,7 +65,6 @@ import org.geotoolkit.observation.query.OfferingQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
-import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -77,7 +73,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -90,63 +85,46 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.parameter.ParameterValueGroup;
 import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.temporal.TemporalObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderTest {
+public class ObservationStoreProviderTest extends SpringContextTest {
 
+    @Autowired
+    protected IProviderBusiness providerBusiness;
+    
     private static final long TOTAL_NB_SENSOR = 15;
 
-    private static FilterFactory ff;
+    private static final FilterFactory ff = FilterUtilities.FF;
 
     private static ObservationProvider omPr;
 
     private static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        String url = "jdbc:derby:memory:OM2Test2;create=true";
-        DataSource ds = SQLUtilities.getDataSource(url);
+    private static boolean initialized = false;
 
-        ff = FilterUtilities.FF;
+    @PostConstruct
+    public void setUp() throws Exception {
+          if (!initialized) {
 
-        Connection con = ds.getConnection();
+            // clean up
+            providerBusiness.removeAll();
 
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.setEncoding("UTF-8");
-        String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sql = sql.replace("$SCHEMA", "");
-        sr.run(sql);
-        sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+            final TestEnvironment.TestResources testResource = initDataDirectory();
+            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB, providerBusiness, null).id;
 
-        final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
-        final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
-        dbConfig.parameter("sgbdtype").setValue("derby");
-        dbConfig.parameter("derbyurl").setValue(url);
-        dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-        dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-        dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-        dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-
-        DataProviderFactory pFactory = new ObservationStoreProviderService();
-        final ParameterValueGroup providerConfig = pFactory.getProviderDescriptor().createValue();
-
-        providerConfig.parameter("id").setValue("omSrc");
-        providerConfig.parameter("providerType").setValue(IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME.name);
-        final ParameterValueGroup choice =
-                providerConfig.groups("choice").get(0).addGroup(dbConfig.getDescriptor().getName().getCode());
-        org.apache.sis.parameter.Parameters.copy(dbConfig, choice);
-
-        omPr = new ObservationStoreProvider("omSrc", pFactory, providerConfig);
+            omPr = (ObservationProvider) DataProviders.getProvider(omPid);
+            initialized = true;
+          }
     }
 
     @AfterClass

@@ -654,7 +654,7 @@
         </sos:observedProperty>
         <sos:observedProperty>
           <ns31:Phenomenon gml:id="isHot">
-            <gml:description>hotness smallint indicator</gml:description>
+            <gml:description>hotness indicator</gml:description>
             <gml:name>urn:ogc:def:phenomenon:GEOM:isHot</gml:name>
           </ns31:Phenomenon>
         </sos:observedProperty>

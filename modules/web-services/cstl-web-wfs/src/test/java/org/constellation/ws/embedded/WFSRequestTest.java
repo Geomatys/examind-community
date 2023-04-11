@@ -213,7 +213,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
                 datas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
 
                 // O&M feature database
-                datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
+                datas.addAll(testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).datas);
 
                 // for aliased layer
                 DataImport d23 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);

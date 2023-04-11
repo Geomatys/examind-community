@@ -23,7 +23,7 @@
         "id": "isHot",
         "name": "isHot",
         "definition": "urn:ogc:def:phenomenon:GEOM:isHot",
-        "description": "hotness boolean indicator"
+        "description": "hotness indicator"
     },
     "result": {
         "field": {

@@ -87,7 +87,7 @@ public class WFSWorkerTest extends AbstractWFSWorkerTest {
                 /**
                  * SOS DB DATA
                  */
-                datas.addAll(testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
+                datas.addAll(testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).datas);
 
                 /**
                  * GEOJSON DATA

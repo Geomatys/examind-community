@@ -105,7 +105,7 @@ public class WFS2WorkerTest extends AbstractWFSWorkerTest {
                 NamedPlaceDataId = piImps.findDataByName("NamedPlaces").id;
 
                 // SOS DB DATA
-                datas.addAll(testResource.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas);
+                datas.addAll(testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).datas);
 
                 // GEOJSON DATA
                 datas.addAll(testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas);

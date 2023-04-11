@@ -20,29 +20,23 @@
 package org.constellation.sos;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sql.DataSource;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasObservation;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasurement;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsObservation;
-import org.constellation.store.observation.db.SOSDatabaseObservationStore;
-import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
+import org.constellation.test.utils.TestEnvironment;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.observation.json.ObservationJsonUtils;
-import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.storage.AbstractReadingTests;
-import org.geotoolkit.internal.sql.ScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
 import static org.geotoolkit.observation.OMUtils.MEASUREMENT_QNAME;
 import org.geotoolkit.observation.ObservationReader;
@@ -70,32 +64,13 @@ import org.opengis.util.GenericName;
  */
 public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
-    private static DataSource ds;
     private static DataStore store;
     private static final Set<GenericName> names = new HashSet<>();
     private static final List<ExpectedResult> expecteds = new ArrayList<>();
     static {
         try {
-            final String url = "jdbc:derby:memory:TestOM;create=true";
-            ds = SQLUtilities.getDataSource(url);
-
-            Connection con = ds.getConnection();
-
-            final ScriptRunner exec = new ScriptRunner(con);
-            String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-            sql = sql.replace("$SCHEMA", "");
-            exec.run(sql);
-            exec.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
-
-            DefaultParameterValueGroup parameters = (DefaultParameterValueGroup) SOSDatabaseObservationStoreFactory.PARAMETERS_DESCRIPTOR.createValue();
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SGBDTYPE).setValue("derby");
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.DERBYURL).setValue(url);
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.PHENOMENON_ID_BASE).setValue("urn:ogc:def:phenomenon:GEOM:");
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE).setValue("urn:ogc:object:observation:template:GEOM:");
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.OBSERVATION_ID_BASE).setValue("urn:ogc:object:observation:GEOM:");
-            parameters.getOrCreate(SOSDatabaseObservationStoreFactory.SENSOR_ID_BASE).setValue("urn:ogc:object:sensor:GEOM:");
-
-            store = new SOSDatabaseObservationStore(parameters);
+            final TestEnvironment.TestResources testResource = initDataDirectory();
+            store = testResource.createStore(TestEnvironment.TestResource.OM2_DB);
 
             names.add(SAMPLINGPOINT_TN);
             names.add(SENSOR_TN);

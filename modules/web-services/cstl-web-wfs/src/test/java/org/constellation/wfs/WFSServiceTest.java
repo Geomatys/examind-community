@@ -60,7 +60,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         dataBusiness.deleteAll();
         providerBusiness.removeAll();
 
-        List<DataImport> datas = testResources.createProvider(TestResource.OM2_FEATURE_DB, providerBusiness, null).datas;
+        List<DataImport> datas = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).datas;
 
         final LayerContext config = new LayerContext();
         config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");

@@ -38,7 +38,7 @@
         "component": [{
                 "id": "isHot",
                 "name": "isHot",
-                "description": "hotness boolean indicator",
+                "description": "hotness indicator",
                 "definition": "urn:ogc:def:phenomenon:GEOM:isHot"
             }, {
                 "id": "color",

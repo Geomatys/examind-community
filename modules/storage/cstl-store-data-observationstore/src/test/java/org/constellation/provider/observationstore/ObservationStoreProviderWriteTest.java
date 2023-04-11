@@ -20,83 +20,63 @@ package org.constellation.provider.observationstore;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.sql.Connection;
 import java.util.List;
-import javax.sql.DataSource;
-import org.apache.sis.storage.DataStoreProvider;
+import javax.annotation.PostConstruct;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.provider.DataProviderFactory;
+import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
+import org.constellation.test.SpringContextTest;
+import org.constellation.test.utils.TestEnvironment;
+import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.observation.json.ObservationJsonUtils;
-import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
-import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.model.Observation;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
 import org.geotoolkit.observation.query.ObservationQuery;
-import org.geotoolkit.storage.DataStores;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
-import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderWriteTest {
+public class ObservationStoreProviderWriteTest extends SpringContextTest {
 
+    @Autowired
+    protected IProviderBusiness providerBusiness;
+    
     private static ObservationProvider omPr;
 
-    private static FilterFactory ff;
+    private static final FilterFactory ff = FilterUtilities.FF;
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-         ff = FilterUtilities.FF;
+    private static boolean initialized = false;
+    
+    @PostConstruct
+    public void setUp() throws Exception {
+          if (!initialized) {
 
-        String url = "jdbc:derby:memory:OM2Test3;create=true";
-        DataSource ds = SQLUtilities.getDataSource(url);
-        Connection con = ds.getConnection();
+            // clean up
+            providerBusiness.removeAll();
 
-        DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-        sr.setEncoding("UTF-8");
-        String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
-        sql = sql.replace("$SCHEMA", "");
-        sr.run(sql);
+            final TestEnvironment.TestResources testResource = initDataDirectory();
+            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB_NO_DATA, providerBusiness, null).id;
 
-        final DataStoreProvider factory = DataStores.getProviderById("observationSOSDatabase");
-        final ParameterValueGroup dbConfig = factory.getOpenParameters().createValue();
-        dbConfig.parameter("sgbdtype").setValue("derby");
-        dbConfig.parameter("derbyurl").setValue(url);
-        dbConfig.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-        dbConfig.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-        dbConfig.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-        dbConfig.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-        dbConfig.parameter("max-field-by-table").setValue(10);
-
-        DataProviderFactory pFactory = new ObservationStoreProviderService();
-        final ParameterValueGroup providerConfig = pFactory.getProviderDescriptor().createValue();
-
-        providerConfig.parameter("id").setValue("omSrc");
-        providerConfig.parameter("providerType").setValue(IProviderBusiness.SPI_NAMES.OBSERVATION_SPI_NAME.name);
-        final ParameterValueGroup choice =
-                providerConfig.groups("choice").get(0).addGroup(dbConfig.getDescriptor().getName().getCode());
-        org.apache.sis.parameter.Parameters.copy(dbConfig, choice);
-
-        omPr = new ObservationStoreProvider("omSrc", pFactory, providerConfig);
+            omPr = (ObservationProvider) DataProviders.getProvider(omPid);
+            initialized = true;
+          }
     }
 
     @AfterClass

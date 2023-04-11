@@ -40,7 +40,7 @@
         }, {
             "name": "isHot",
             "definition": "urn:ogc:def:phenomenon:GEOM:isHot",
-            "description": "hotness smallint indicator",
+            "description": "hotness indicator",
             "properties": { },
             "@iot.id": "isHot",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)",

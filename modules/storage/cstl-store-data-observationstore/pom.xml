@@ -33,6 +33,8 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-feature-om</artifactId>
         </dependency>
+        
+        <!-- test dependencies -->
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-storage</artifactId>
@@ -52,6 +54,24 @@
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-database-configuration</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-database-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-engine-admin</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

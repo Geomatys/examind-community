@@ -234,8 +234,9 @@ public class TestEnvironment {
          * data :
          * - http://www.opengis.net/sampling/1.0 : SamplingPoint
          */
-        public static final TestResource OM2_FEATURE_DB = new TestResource(null, TestEnvironment::createOM2FeatureProvider);
-        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider);
+        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
+        public static final TestResource OM2_DB_NO_DATA = new TestResource(null, TestEnvironment::createOM2DatabaseProviderNoData);
+
         public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
         public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/config/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
         public static final TestResource OM_LUCENE = new TestResource("org/constellation/xml/sos",  TestEnvironment::createOMLuceneProvider, null);
@@ -596,26 +597,6 @@ public class TestEnvironment {
         }
     }
 
-    private static Integer createOM2FeatureProvider(IProviderBusiness providerBusiness, Path p) {
-        try {
-            final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildDerbyOM2Database(providerIdentifier);
-
-            final DataProviderFactory factory = DataProviders.getFactory("data-store");
-            final ParameterValueGroup source = factory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("SOSDBParameters");
-            config.parameter("sgbdtype").setValue("derby");
-            config.parameter("derbyurl").setValue(url);
-
-            return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
-        } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
-        }
-    }
-
     private static Integer createGMLProvider(IProviderBusiness providerBusiness, Path p, String providerIdentifier, String typeName) {
         try {
 
@@ -772,7 +753,7 @@ public class TestEnvironment {
         }
     }
 
-    private static String buildDerbyOM2Database(String providerIdentifier) throws Exception {
+    private static String buildDerbyOM2Database(String providerIdentifier, boolean withData) throws Exception {
         final String url = "jdbc:derby:memory:" + providerIdentifier;
         final DataSource ds = SQLUtilities.getDataSource(url + ";create=true");
         try (final Connection con = ds.getConnection()) {
@@ -780,7 +761,9 @@ public class TestEnvironment {
             String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
             sql = sql.replace("$SCHEMA", "");
             sr.run(sql);
-            sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+            if (withData) {
+                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+            }
         }
         return url;
     }
@@ -803,9 +786,17 @@ public class TestEnvironment {
     }
 
     private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p) {
+        return createOM2DatabaseProvider(providerBusiness, p, true);
+    }
+
+    private static Integer createOM2DatabaseProviderNoData(IProviderBusiness providerBusiness, Path p) {
+        return createOM2DatabaseProvider(providerBusiness, p, false);
+    }
+
+    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildDerbyOM2Database(providerIdentifier);
+            final String url = buildDerbyOM2Database(providerIdentifier, withData);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -826,11 +817,35 @@ public class TestEnvironment {
         }
     }
 
+    private static DataStore createOM2DatabaseStore(Path p) {
+        try {
+            final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
+            final String url = buildDerbyOM2Database(providerIdentifier, true);
+
+            final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
+            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
+
+            final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
+            config.parameter("sgbdtype").setValue("derby");
+            config.parameter("derbyurl").setValue(url);
+            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+
+            return omFactory.createProvider(providerIdentifier, source).getMainStore();
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
     private static Integer createOMGenericDBProvider(IProviderBusiness providerBusiness, Path p) {
         try {
             final String providerIdentifier = "omGenericDBSrc-" + UUID.randomUUID().toString();
 
-            final String url = buildDerbyOM2Database(providerIdentifier);
+            final String url = buildDerbyOM2Database(providerIdentifier, true);
 
             MarshallerPool pool = GenericDatabaseMarshallerPool.getInstance();
             Unmarshaller unmarshaller = pool.acquireUnmarshaller();
