@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>25.01.27</version>
+        <version>25.02.18</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
