@@ -1,0 +1,115 @@
+{
+    "spatialBound": {
+        "dateStart": 1178017140000,
+        "dateEnd": 1178017140000,
+        "minx": -180.0,
+        "maxx": 180.0,
+        "miny": -90.0,
+        "maxy": 134.205
+    },
+    "observations": [{
+            "id": "obs-801-2-1",
+            "name": "urn:ogc:object:observation:GEOM:801-2-1",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:8",
+                "name": "Sensor 8",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "801-1-st-time",
+                "date": "2007-05-01T12:59:00.0Z"
+            },
+            "featureOfInterest": {
+                "id": "station-006",
+                "name": "cycle1",
+                "description": "Geology traverse",
+                "properties": {},
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+                }
+            },
+            "observedProperty": {
+                "id": "depth",
+                "name": "depth",
+                "description": "the depth in water",
+                "properties": {
+                    "prop1": "value4"
+                },
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+            },
+            "result": {
+                "field": {
+                    "index": 2,
+                    "type": "QUANTITY",
+                    "name": "depth",
+                    "label": "depth",
+                    "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                    "uom": "m",
+                    "qualityFields": [],
+                    "tableNumber": 1
+                },
+                "value": 6.56
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-006",
+            "name": "cycle1",
+            "description": "Geology traverse",
+            "properties": {},
+            "geometry": {
+                "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "depth",
+            "name": "depth",
+            "description": "the depth in water",
+            "properties": {
+                "prop1": "value4"
+            },
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+        }, {
+            "id": "temperature",
+            "name": "temperature",
+            "description": "the temperature in celcius degree",
+            "properties": {},
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:8",
+            "name": "Sensor 8",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 1178017140000,
+                "dateEnd": 1178017140000,
+                "minx": -30.711,
+                "maxx": -30.702,
+                "miny": 134.196,
+                "maxy": 134.205
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-8",
+            "name": "offering-8",
+            "properties": {},
+            "time": {
+                "id": "offering-8-time",
+                "date": "2007-05-01T12:59:00.0Z"
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:8",
+            "featureOfInterestIds": ["station-006"],
+            "observedProperties": ["depth"]
+        }]
+}

@@ -1,0 +1,110 @@
+{
+    "spatialBound": {
+        "dateStart": 1178031540000,
+        "dateEnd": 1178031540000,
+        "minx": -180.0,
+        "maxx": 180.0,
+        "miny": -90.0,
+        "maxy": 90.0
+    },
+    "observations": [{
+            "id": "obs-702-2-1",
+            "name": "urn:ogc:object:observation:GEOM:702-2-1",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:7",
+                "name": "Sensor 7",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "702-1-st-time",
+                "date": "2007-05-01T16:59:00.0Z"
+            },
+            "featureOfInterest": {
+                "id": "station-002",
+                "name": "10972X0137-PLOUF",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "prop1": "value3"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+                    "geometry": "POINT (5 10)"
+                }
+            },
+            "observedProperty": {
+                "id": "temperature",
+                "name": "temperature",
+                "description": "the temperature in celcius degree",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+            },
+            "result": {
+                "field": {
+                    "index": 2,
+                    "type": "QUANTITY",
+                    "name": "temperature",
+                    "label": "temperature",
+                    "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                    "uom": "°C",
+                    "qualityFields": []
+                },
+                "value": 6.56
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-002",
+            "name": "10972X0137-PLOUF",
+            "description": "Point d'eau BSSS",
+            "properties": {
+                "prop1": "value3"
+            },
+            "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+            "geometry": {
+                "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+                "geometry": "POINT (5 10)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "temperature",
+            "name": "temperature",
+            "description": "the temperature in celcius degree",
+            "properties": {},
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:7",
+            "name": "Sensor 7",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 1178031540000,
+                "dateEnd": 1178031540000,
+                "minx": 5.0,
+                "maxx": 5.0,
+                "miny": 10.0,
+                "maxy": 10.0
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-7",
+            "name": "offering-7",
+            "properties": {},
+            "time": {
+                "id": "offering-7-st-time",
+                "date": "2007-05-01T16:59:00.0Z"
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:7",
+            "featureOfInterestIds": ["station-002"],
+            "observedProperties": ["temperature"]
+        }]
+}

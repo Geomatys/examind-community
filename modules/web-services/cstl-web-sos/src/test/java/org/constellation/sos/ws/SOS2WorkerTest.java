@@ -1159,6 +1159,7 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
     public void GetObservationProfileTest() throws Exception {
 
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
+        Marshaller marshaller = marshallerPool.acquireMarshaller();
         final List<String> nullList = null;
 
         /**
@@ -1173,36 +1174,24 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
                                       nullList,
                                       "http://www.opengis.net/om/2.0");
         GetObservationResponseType result = (GetObservationResponseType) worker.getObservation(request);
-        OMObservationType obsResult = (OMObservationType) result.getMember().iterator().next();
+        assertEquals(3, result.getMember().size());
 
+        OMObservationType obsResult = (OMObservationType) result.getMember().get(0);
         JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation201.xml");
         OMObservationType expResult = (OMObservationType)obj.getValue();
+        observationEquals(obsResult, expResult);
 
-        assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
-        final SFSpatialSamplingFeatureType expectedFOI = (SFSpatialSamplingFeatureType)expResult.getFeatureOfInterest();
-        final SFSpatialSamplingFeatureType resultFOI   = (SFSpatialSamplingFeatureType)obsResult.getFeatureOfInterest();
-        assertEquals(expectedFOI.getShape(),     resultFOI.getShape());
-        assertEquals(expectedFOI.getBoundedBy(), resultFOI.getBoundedBy());
-        assertEquals(expectedFOI, resultFOI);
-        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
-        assertEquals(expResult.getObservedPropertyRef(), obsResult.getObservedPropertyRef());
-        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
+        obsResult = (OMObservationType) result.getMember().get(1);
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation202.xml");
+        expResult = (OMObservationType)obj.getValue();
+        expResult.getPropertyFeatureOfInterest().setToHref();
+        observationEquals(obsResult, expResult);
 
-        assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
-        DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
-        DataArrayPropertyType resArray = (DataArrayPropertyType) obsResult.getResult();
-
-         // do not compare datarray name (ID) because it depends on the implementation
-        emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
-
-        assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
-        assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
-        assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
-        assertEquals(expArray.getDataArray(), resArray.getDataArray());
-        assertEquals(expArray, resArray);
-        assertEquals(expResult.getResult(), obsResult.getResult());
-        assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
-        assertEquals(expResult, obsResult);
+        obsResult = (OMObservationType) result.getMember().get(2);
+        obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v200/observations/observation203.xml");
+        expResult = (OMObservationType)obj.getValue();
+        expResult.getPropertyFeatureOfInterest().setToHref();
+        observationEquals(obsResult, expResult);
 
         marshallerPool.recycle(unmarshaller);
     }
@@ -2184,6 +2173,36 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
         assertEquals(expResult, obsResult);
     }
 
+     private static void observationEquals (OMObservationType obsResult, OMObservationType expResult) {
+         assertTrue(obsResult.getFeatureOfInterest() instanceof SFSpatialSamplingFeatureType);
+        final SFSpatialSamplingFeatureType expectedFOI = (SFSpatialSamplingFeatureType)expResult.getFeatureOfInterest();
+        final SFSpatialSamplingFeatureType resultFOI   = (SFSpatialSamplingFeatureType)obsResult.getFeatureOfInterest();
+        if (expectedFOI != null && resultFOI != null) {
+            assertEquals(expectedFOI.getShape(),     resultFOI.getShape());
+            assertEquals(expectedFOI.getBoundedBy(), resultFOI.getBoundedBy());
+            assertEquals(expectedFOI, resultFOI);
+        }
+        assertEquals(expResult.getFeatureOfInterest(), obsResult.getFeatureOfInterest());
+        assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
+        assertEquals(expResult.getObservedPropertyRef(), obsResult.getObservedPropertyRef());
+        assertProcedureEquals(expResult.getProcedure(), obsResult.getProcedure());
+
+        assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
+        DataArrayPropertyType expArray = (DataArrayPropertyType) expResult.getResult();
+        DataArrayPropertyType resArray = (DataArrayPropertyType) obsResult.getResult();
+
+         // do not compare datarray name (ID) because it depends on the implementation
+        emptyNameAndId(expArray.getDataArray(),  resArray.getDataArray());
+
+        assertEquals(expArray.getDataArray().getElementCount(), resArray.getDataArray().getElementCount());
+        assertEquals(expArray.getDataArray().getElementType(),  resArray.getDataArray().getElementType());
+        assertEquals(expArray.getDataArray().getEncoding(),  resArray.getDataArray().getEncoding());
+        assertEquals(expArray.getDataArray(), resArray.getDataArray());
+        assertEquals(expArray, resArray);
+        assertEquals(expResult.getResult(), obsResult.getResult());
+        assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
+        assertEquals(expResult, obsResult);
+     }
     /**
      * Fix EPSG version before unmarshall expected result file.
      *

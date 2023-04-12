@@ -106,6 +106,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean foiPropJoin  = false;
 
     protected boolean separatedMeasure       = false;
+    protected boolean separatedProfileObs   = true;
     protected boolean includeIDInDataBlock  = false;
     protected boolean includeTimeForProfile = false;
     protected boolean includeTimeInTemplate = false;
@@ -196,6 +197,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.resultMode            = query.getResultMode();
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();
+        this.separatedProfileObs   = query.isSeparatedProfileObservation();
         
         this.singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
@@ -237,20 +239,24 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         this.firstFilter = false;
         try(final Connection c = source.getConnection()) {
-            final TableInfo tableInfos = getPIDFromProcedure(currentProcedure, c);
-            final String measureJoin = getMeasureTableJoin(tableInfos);
-            currentOMType = getProcedureOMType(currentProcedure, c);
-            StringBuilder select = new StringBuilder("m.* ");
-            for (int i = 1; i < tableInfos.nbTable; i++) {
-                select.append(", m").append(i + 1).append(".* ");
+            final ProcedureInfo pi = getPIDFromProcedure(currentProcedure, c).orElse(null);
+            if (pi != null) {
+                final String measureJoin = getMeasureTableJoin(pi);
+                currentOMType = getProcedureOMType(currentProcedure, c);
+                StringBuilder select = new StringBuilder("m.* ");
+                for (int i = 1; i < pi.nbTable; i++) {
+                    select.append(", m").append(i + 1).append(".* ");
+                }
+
+                sqlRequest = new FilterSQLRequest("SELECT " + select.toString() + " "
+                                                + "FROM "   + measureJoin + ",\"" + schemaPrefix + "om\".\"observations\" o "
+                                                + "WHERE o.\"id\" = m.\"id_observation\"");
+
+                //we add to the request the property of the template
+                sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
+            } else {
+                throw new DataStoreException("Unexisting procedure:" + currentProcedure);
             }
-
-            sqlRequest = new FilterSQLRequest("SELECT " + select.toString() + " "
-                                            + "FROM "   + measureJoin + ",\"" + schemaPrefix + "om\".\"observations\" o "
-                                            + "WHERE o.\"id\" = m.\"id_observation\"");
-
-            //we add to the request the property of the template
-            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
         }
@@ -1110,7 +1116,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int oid                 = rs.getInt("id");
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
-                    final String measureJoin      = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+                    final String measureJoin      = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get()); // we know that the procedure exist
                     final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure, c);
                     boolean profile               = !FieldType.TIME.equals(mainField.type);

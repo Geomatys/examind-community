@@ -1,0 +1,137 @@
+{
+    "spatialBound": {
+        "dateStart": 1260536460000,
+        "dateEnd": 1260882120000,
+        "minx": -180.0,
+        "maxx": 65400.0,
+        "miny": -90.0,
+        "maxy": 1731368.0
+    },
+    "observations": [{
+            "id": "obs-3000",
+            "name": "urn:ogc:object:observation:GEOM:3000",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:12",
+                "name": "Sensor 12",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "obs-3000-time",
+                "beginning": {
+                    "id": "obs-3000-st-time",
+                    "date": "2009-12-11T14:01:00.0Z"
+                },
+                "ending": {
+                    "id": "obs-3000-en-time",
+                    "date": "2009-12-15T14:02:00.0Z"
+                }
+            },
+            "featureOfInterest": {
+                "id": "station-001",
+                "name": "10972X0137-PONT",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "POINT (65400 1731368)"
+                }
+            },
+            "observedProperty": {
+                        "id": "temperature",
+                        "name": "temperature",
+                        "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+                        "description": "the temperature in celcius degree"
+                    },
+            "result": {
+                "fields": [{
+                        "index": 1,
+                        "type": "TIME",
+                        "name": "Time",
+                        "label": "Time",
+                        "description": "urn:ogc:data:time:iso8601",
+                        "qualityFields": []
+                    }, {
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "temperature",
+                        "label": "temperature",
+                        "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                        "uom": "°C",
+                        "qualityFields": []
+                    }],
+                "nbValues": 2,
+                "textEncodingProperties": {
+                    "tokenSeparator": ",",
+                    "blockSeparator": "@@",
+                    "decimalSeparator": "."
+                },
+                "values": "2009-12-11T14:01:00.0,78.5@@2009-12-15T14:02:00.0,14.5@@"
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-001",
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "properties": {
+                "prop2": "value2",
+                "prop1": "value1"
+            },
+            "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+            "geometry": {
+                "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                "geometry": "POINT (65400 1731368)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "temperature",
+            "name": "temperature",
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+            "description": "the temperature in celcius degree"
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:12",
+            "name": "Sensor 12",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 1260536460000,
+                "dateEnd": 1260882120000,
+                "minx": 65400.0,
+                "maxx": 65400.0,
+                "miny": 1731368.0,
+                "maxy": 1731368.0
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-12",
+            "name": "offering-12",
+            "properties": {},
+            "time": {
+                "id": "offering-12-time",
+                "beginning": {
+                    "id": "offering-12-st-time",
+                    "date": "2009-12-11T14:01:00.0Z"
+                },
+                "ending": {
+                    "id": "offering-12-en-time",
+                    "date": "2009-12-15T14:02:00.0Z"
+                }
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:12",
+            "featureOfInterestIds": ["station-001"],
+            "observedProperties": ["temperature"]
+        }]
+}

@@ -36,11 +36,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.JTS;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
@@ -110,16 +113,6 @@ public class OM2BaseReader {
     protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
     protected Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
-
-    protected static class TableInfo {
-        public final int pid;
-        public final int nbTable;
-
-        public TableInfo(int pid, int nbTable) {
-            this.pid = pid;
-            this.nbTable = nbTable;
-        }
-    }
 
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
@@ -315,6 +308,30 @@ public class OM2BaseReader {
         }
     }
 
+     protected Phenomenon getPhenomenonForFields(final List<Field> fields, final Connection c) throws DataStoreException {
+         FilterSQLRequest request = new FilterSQLRequest("SELECT \"phenomenon\", COUNT(\"component\") FROM \"" + schemaPrefix + "om\".\"components\" ");
+         request.append(" WHERE \"component\" IN (");
+         request.appendValues(fields.stream().map(f -> f.name).toList());
+         request.append(" ) AND \"phenomenon\" NOT IN (");
+         request.append("SELECT cc.\"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" cc WHERE ");
+         for (Field field : fields) {
+             request.append(" \"component\" <> ").appendValue(field.name).append(" AND ");
+         }
+         request.delete(request.length() - 4, request.length());
+         request.append(" ) ");
+         request.append(" GROUP BY \"phenomenon\" HAVING COUNT(\"component\") = ").append(Integer.toString(fields.size()));
+
+         String result = null;
+         try (final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest())); final ResultSet rs = pstmt.executeQuery()) {
+             if (rs.next()) {
+                 result = rs.getString(1);
+             }
+         } catch (SQLException ex) {
+             throw new DataStoreException(ex.getMessage(), ex);
+         }
+         return (result != null) ? getPhenomenon(result, c) : null;
+     }
+
     private Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
         try {
             final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", id, c);
@@ -435,6 +452,22 @@ public class OM2BaseReader {
             LOGGER.log(Level.WARNING, "Error while building virtual composite phenomenon.", ex);
             throw new DataStoreException("Error while building virtual composite phenomenon.");
        }
+    }
+
+    protected Phenomenon createCompositePhenomenonFromField(Connection c, List<Field> fields) throws DataStoreException {
+        if (fields == null || fields.size() < 2) {
+            throw new DataStoreException("at least two fields are required for building composite phenomenon");
+        }
+        final List<Phenomenon> components = new ArrayList<>();
+        for (Field field : fields) {
+            final Phenomenon phen = getPhenomenon(field.name, c);
+            if (phen == null) {
+                throw new DataStoreException("Unable to link a field to a phenomenon: " + field.name);
+            }
+            components.add(phen);
+        }
+        final String name = "computed-phen-" + UUID.randomUUID().toString();
+        return new CompositePhenomenon(name, name, name, null, null, components);
     }
 
     protected Offering readObservationOffering(final String offeringId, final Connection c) throws DataStoreException {
@@ -612,10 +645,10 @@ public class OM2BaseReader {
         return results;
     }
 
-    protected Field getFieldForPhenomenon(final String procedureID, final String phenomenon, final Connection c) throws SQLException {
+    protected Field getProcedureField(final String procedureID, final String fieldName, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND (\"field_name\"= ?) AND \"parent\" IS NULL")) {//NOSONAR
             stmt.setString(1, procedureID);
-            stmt.setString(2, phenomenon);
+            stmt.setString(2, fieldName);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return getFieldFromDb(rs, procedureID, c, true);
@@ -650,22 +683,33 @@ public class OM2BaseReader {
         return f;
     }
 
-    /**
-     * @deprecated This method should not be used anymore has it leads to potentially select more than 1664 columns.
-     * leading postres to throw the error : target lists can have at most 1664 entries
-     */
-    @Deprecated
-    protected String getMeasureTableJoin(TableInfo ti) {
-        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + ti.pid + "\" m");
-        for (int i = 1; i < ti.nbTable; i++) {
+    protected String getMeasureTableJoin(ProcedureInfo procInfo) {
+        if (procInfo == null) throw new IllegalArgumentException("procInfo must not be null");
+        int pid = procInfo.pid;
+        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m");
+        for (int i = 1; i < procInfo.nbTable; i++) {
             String alias = "m" + (i+1);
-            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + ti.pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
+            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
         }
         return result.toString();
     }
 
+    protected static class ProcedureInfo  {
+        public final int pid;
+        public final int nbTable;
+        public final String procedureId;
+        public final String type;
+
+        public ProcedureInfo(int pid, int nbTable, String procedureId, String type) {
+            this.pid = pid;
+            this.nbTable = nbTable;
+            this.procedureId = procedureId;
+            this.type = type;
+        }
+    }
+
     /**
-     * Return the information about the procedure:  PID (internal int procedure identifier) and the number of measure table associated for the specified observation.
+     * Return the information about the procedure:  PID (internal int procedure identifier) , the number of measure table, ... associated for the specified observation.
      * If there is no procedure for the specified procedure id, this method will return PID = -1, nb table = 0 (for backward compatibility).
      * 
      * @param obsIdentifier Observation identifier.
@@ -674,14 +718,14 @@ public class OM2BaseReader {
      * @return Information about the procedure such as PID and number of measure table.
      * @throws SQLException id The sql query fails.
      */
-    protected TableInfo getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
+    protected Optional<ProcedureInfo> getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", p.\"id\", p.\"om_type\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new TableInfo(rs.getInt(1), rs.getInt(2));
+                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4)));
                 }
-                return new TableInfo(-1, 0);
+                return Optional.empty();
             }
         }
     }
@@ -694,14 +738,14 @@ public class OM2BaseReader {
      *
      * @return Information about the procedure such as PID and number of measure table.
      */
-    protected TableInfo getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+    protected Optional<ProcedureInfo> getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new TableInfo(rs.getInt(1), rs.getInt(2));
+                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedure, rs.getString(3)));
                 }
-                return new TableInfo(-1, 0);
+                return Optional.empty();
             }
         }
     }
@@ -808,5 +852,33 @@ public class OM2BaseReader {
             }
         }
         return results;
+    }
+
+    protected int getNbMeasureForProcedure(int pid, Connection c) {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(\"id\" FROM \"" + schemaPrefix + "om\".\"mesure" + pid + "\"");
+            final ResultSet rs = stmt.executeQuery()) {//NOSONAR
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException ex) {
+            // we catch it because the table can not exist.
+            LOGGER.log(Level.FINE, "Error while looking for measure count", ex);
+        }
+        return -1;
+    }
+
+    protected int getNbMeasureForObservation(int pid, int oid, Connection c) {
+        try (final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" WHERE \"id_observation\" = ?")) {
+            stmt.setInt(1, oid);
+            try (final ResultSet rs = stmt.executeQuery()) {//NOSONAR
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException ex) {
+            // we catch it because the table can not exist.
+            LOGGER.log(Level.FINE, "Error while looking for measure count", ex);
+        }
+        return -1;
     }
 }

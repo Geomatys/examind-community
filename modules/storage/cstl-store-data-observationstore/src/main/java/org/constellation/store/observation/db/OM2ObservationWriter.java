@@ -37,11 +37,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
@@ -49,6 +51,7 @@ import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.OMUtils;
+import static org.geotoolkit.observation.OMUtils.getPhenomenonsFields;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -63,6 +66,8 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.model.TextEncoderProperties;
+import org.opengis.temporal.RelativePosition;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 
 
 
@@ -131,11 +136,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             throw new DataStoreException("Error while inserting observations.", ex);
         }
         return results;
-    }
-
-    @Override
-    public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private static final class ObservationRef {
@@ -344,7 +344,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 insertObs.setString(5, phenRef);
 
 
-                final int pid = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, null, new ArrayList<>(), null), null, c);
+                final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, null, new ArrayList<>(), null), null, c);
                 insertObs.setString(6, procedureID);
                 if (foiID != null) {
                     insertObs.setString(7, foiID);
@@ -353,7 +353,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     insertObs.setNull(7, java.sql.Types.VARCHAR);
                 }
                 insertObs.executeUpdate();
-                writeResult(oid, pid, procedureID, observation.getResult(), c, false);
+                writeResult(oid, pi, observation.getResult(), c, false);
                 emitResultOnBus(procedureID, observation.getResult());
 
             // update an existing observation
@@ -361,8 +361,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 String newPhen = writePhenomenon(phenomenon, c, false);
                 
                 observationName = replacingObs.name;
-                final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
-                writeResult(replacingObs.id, tableInfo.pid, procedureID, observation.getResult(), c, true);
+                final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
+                writeResult(replacingObs.id, pi, observation.getResult(), c, true);
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 if (!replacingObs.phenomenonId.equals(newPhen)) {
                     List<Field> readFields = readFields(procedureID, true, c);
@@ -551,9 +551,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private int writeProcedure(final ProcedureDataset procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
+    private ProcedureInfo writeProcedure(final ProcedureDataset procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
         int pid;
-        try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+        int nbTable;
+        try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, procedure.getId());
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
@@ -566,7 +567,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     // compute the number of measure table needed
-                    int nbTable = procedure.fields.size() / maxFieldByTable;
+                    nbTable = procedure.fields.size() / maxFieldByTable;
                     if (procedure.fields.size() % maxFieldByTable > 1) {
                         nbTable++;
                     }
@@ -626,7 +627,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 } else {
                     pid = rs.getInt(1);
-
+                    nbTable = rs.getInt(2);
                     try(final PreparedStatement stmtHlExist  = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=? AND \"time\"=?");//NOSONAR
                         final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
                         stmtHlExist.setString(1, procedure.getId());
@@ -647,7 +648,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         for (ProcedureDataset child : procedure.children) {
             writeProcedure(child, procedure.getId(), c);
         }
-        return pid;
+        return new ProcedureInfo(pid, nbTable, procedure.getId(), procedure.omType);
     }
 
     private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException, DataStoreException, FactoryException {
@@ -703,18 +704,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldType.QUANTITY, "value", null, null, null, 1);
 
-    private void writeResult(final int oid, final int pid, final String procedureID, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
+    private void writeResult(final int oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof MeasureResult measRes) {
             
-            buildMeasureTable(procedureID, pid, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
+            buildMeasureTable(pi, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
             if (update) {
-                try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
+                try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
                     setResultField(stmt, 1, measRes);
                     stmt.setInt(2, oid);
                     stmt.executeUpdate();
                 }
             } else {
-                try (final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" VALUES(?,?,?)")) {//NOSONAR
+                try (final PreparedStatement stmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" VALUES(?,?,?)")) {//NOSONAR
                     stmt.setInt(1, oid);
                     stmt.setInt(2, 1);
                     setResultField(stmt, 3, measRes);
@@ -722,15 +723,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
         } else if (result instanceof ComplexResult cr) {
-            final TextEncoderProperties encoding = cr.getTextEncodingProperties();
             final List<Field> fields = cr.getFields();
-            buildMeasureTable(procedureID, pid, fields, c);
+            buildMeasureTable(pi, fields, c);
 
             final String values          = cr.getValues();
             if (values != null && !values.isEmpty()) {
-                final List<InsertDbField> dbFields = completeDbField(procedureID, fields, c);
-                OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(encoding, pid, schemaPrefix, isPostgres, dbFields);
-                msi.fillMesureTable(c, oid, values, update);
+                final List<InsertDbField> dbFields = completeDbField(pi.procedureId, fields, c);
+                OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(pi, schemaPrefix, isPostgres, dbFields);
+                msi.fillMesureTable(c, oid, cr, update);
             }
         } else if (result != null) {
             throw new DataStoreException("This type of resultat is not supported :" + result.getClass().getName());
@@ -1058,37 +1058,38 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private synchronized void removeObservationForProcedure(final String procedureID, Connection c) throws DataStoreException, SQLException {
-        final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
+        final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).orElse(null);
+        if (pi != null) {
+            // remove from measures tables
+            for (int i = 0; i < pi.nbTable; i++) {
+                String suffix = Integer.toString(pi.pid);
+                if (i > 0) {
+                    suffix = suffix + "_" + (i + 1);
+                }
 
-        // remove from measures tables
-        for (int i = 0; i < tableInfo.nbTable; i++) {
-            String suffix = tableInfo.pid + "";
-            if (i > 0) {
-                suffix = suffix + "_" + (i + 1);
-            }
+                boolean mesureTableExist = true;
+                try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"")) {//NOSONAR
+                    stmtExist.executeQuery();
+                } catch (SQLException ex) {
+                    LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", suffix);
+                    mesureTableExist = false;
+                }
 
-            boolean mesureTableExist = true;
-            try(final PreparedStatement stmtExist  = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"")) {//NOSONAR
-                stmtExist.executeQuery();
-            } catch (SQLException ex) {
-                LOGGER.log(Level.WARNING, "no measure table mesure{0} exist.", suffix);
-                mesureTableExist = false;
-            }
+                if (mesureTableExist) {
+                    try (final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)")) {//NOSONAR
 
-            if (mesureTableExist) {
-                try (final PreparedStatement stmtMes  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?)")) {//NOSONAR
-
-                    stmtMes.setString(1, procedureID);
-                    stmtMes.executeUpdate();
+                        stmtMes.setString(1, procedureID);
+                        stmtMes.executeUpdate();
+                    }
                 }
             }
-        }
 
-        // remove from observation table
-        try(final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
+            // remove from observation table
+            try(final PreparedStatement stmtObs  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
 
-            stmtObs.setString(1, procedureID);
-            stmtObs.executeUpdate();
+                stmtObs.setString(1, procedureID);
+                stmtObs.executeUpdate();
+            }
         }
     }
 
@@ -1096,99 +1097,297 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * {@inheritDoc}
      */
     @Override
-    public synchronized void removeProcedure(final String procedureID) throws DataStoreException {
-        try {
-            try (final Connection c = source.getConnection()) {
+    public synchronized List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
+        List<String> sensorRemoved = new ArrayList<>();
+        try (final Connection c = source.getConnection()) {
 
-                deleteProperties("procedures_properties", "id_procedure", procedureID, c);
-                removeObservationForProcedure(procedureID, c);
-                
-                // remove measure tables
-                try (final Statement stmtDrop = c.createStatement()) {
-                    final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
+            for (Observation obs : dataset.observations) {
+                // 1. look for intersecting observation based on time and phenomenon
+                Set<ObservationInfos> candidates = getIntersectingObservation(obs, c);
 
-                    for (int i = 0; i < tableInfo.nbTable; i++) {
-                        String suffix = tableInfo.pid + "";
-                        if (i > 0) {
-                            suffix = suffix + "_" + (i + 1);
+                // 2. look for each observation if we should remove it, totally or partially
+                for (ObservationInfos cdt : candidates) {
+                    final RelativePosition pos = obs.getSamplingTime().relativePosition(cdt.time);
+
+                    LOGGER.fine("Observation candidate id:" + cdt.id + " phen:" + cdt.phenomenon.getId() + " time related:" + pos.name());
+
+                    boolean timeEquals = pos.equals(RelativePosition.EQUALS);
+                    boolean fullRemoval  = timeEquals && (getMeasureCount(obs) == cdt.nbMeasure);
+
+                    /*
+                     * case 1: the time span is equals and the measure count is equals.
+                     * This is not perfect and can lead to bad removal.
+                     * But in most of the case this will do the job with minimum time/resource comsumption.
+                     */
+                    if (fullRemoval) {
+
+                        // case 1.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
+                        if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
+                            removeObservation(cdt.identifier, cdt.pi, c);
+                            
+                            // remove procedure if needed
+                            boolean removed = removeProcedureIfEmpty(cdt.pi.procedureId, c);
+                            if (removed) sensorRemoved.add(cdt.pi.procedureId);
+
+                        // case 1.2 phenomenon to remove is part of the original phenomenon we need to remove only a part of the observation.
+                        } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
+
+                            final List<Field> fields                 = getMeasureFields(obs);
+                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
+                            OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, fieldsToRemove);
+                            remover.removeMeasures(c);
+                            
+                            int nbRemoved = removeEmptyMeasures(cdt, c);
+                            if (nbRemoved > 0) {
+                                final Field mainField = getMainField(cdt.pi.procedureId, c);
+                                updateObservationTemporalBounds(cdt, mainField, c);
+                            }
+                            updateObservationPhenomenon(cdt, fieldsToRemove, c);
+                        } else {
+                            LOGGER.fine("Full removal mode: no intersecting phenomenon. no deletion");
                         }
-                        stmtDrop.executeUpdate("DROP TABLE \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"");//NOSONAR
-                    }
-                }  catch (SQLException ex) {
-                    // it happen that the table does not exist
-                    LOGGER.log(Level.WARNING, "Unable to remove measure table.{0}", ex.getMessage());
-                }
-                
-                try (final PreparedStatement stmtObsP = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
-                     final PreparedStatement stmtFoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
-                     final PreparedStatement stmtHl  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?");//NOSONAR
-                     final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?");//NOSONAR
-                     final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");//NOSONAR
-                     final PreparedStatement stmtProcDesc = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?")) {//NOSONAR
 
-                    stmtObsP.setString(1, procedureID);
-                    stmtObsP.executeUpdate();
+                    // case 2: the time span is intersecting
+                    } else if (timeEquals || isTimeIntersect(pos)) {
 
-                    stmtFoi.setString(1, procedureID);
-                    stmtFoi.executeUpdate();
+                        final Field mainField = getMainField(cdt.pi.procedureId, c);
 
-                    stmtHl.setString(1, procedureID);
-                    stmtHl.executeUpdate();
-
-                    stmtMes.setString(1, procedureID);
-                    stmtMes.executeUpdate();
-
-                    stmtProcDesc.setString(1, procedureID);
-                    stmtProcDesc.executeUpdate();
-
-                    stmtObs.setString(1, procedureID);
-                    stmtObs.executeUpdate();
-                }
-
-                final String cleanOPQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\""
-                                          + " WHERE  \"id\" NOT IN (SELECT DISTINCT \"observed_property\" FROM \"" + schemaPrefix + "om\".\"observations\") "
-                                          + " AND    \"id\" NOT IN (SELECT DISTINCT \"phenomenon\"        FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\")"
-                                          + " AND    \"id\" NOT IN (SELECT DISTINCT \"component\"         FROM \"" + schemaPrefix + "om\".\"components\")";
-
-                final String cleanFOIQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"sampling_features\""
-                                           + " WHERE \"id\" NOT IN (SELECT DISTINCT \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\") "
-                                           + " AND \"id\" NOT IN (SELECT DISTINCT \"foi\" FROM \"" + schemaPrefix + "om\".\"offering_foi\")";
-
-                //look for unused observed properties (execute the statement 2 times for remaining components)
-                try (final Statement stmtOP = c.createStatement()) {
-                    for (int i = 0; i < 2; i++) {
-                        try (final ResultSet rs = stmtOP.executeQuery(cleanOPQUery)) {//NOSONAR
-
-                            try (final PreparedStatement stmtdeleteCompo = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?");//NOSONAR
-                                 final PreparedStatement stmtdeleteobsPr = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
-                                while (rs.next()) {
-                                    final String phenId = rs.getString(1);
-                                    deleteProperties("observed_properties_properties", "id_phenomenon", phenId, c);
-                                    stmtdeleteCompo.setString(1, phenId);
-                                    stmtdeleteCompo.execute();
-                                    stmtdeleteobsPr.setString(1, phenId);
-                                    stmtdeleteobsPr.execute();
+                        // case 2.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
+                        // so we remove all the measure line that match the main field
+                        if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
+                            OM2MeasureRemover remover = new OM2MeasureRemover(cdt, mainField, schemaPrefix);
+                            remover.removeMeasures(c, obs);
+                            boolean rmo = removeObservationIfEmpty(cdt, c);
+                            if (!rmo) {
+                                updateObservationTemporalBounds(cdt, mainField, c);
+                                List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
+                                if (!emptyFields.isEmpty()) {
+                                    updateObservationPhenomenon(cdt, emptyFields, c);
                                 }
+                            } else {
+                                boolean removed = removeProcedureIfEmpty(cdt.pi.procedureId, c);
+                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
                             }
-                        }
-                    }
 
-                    //look for unused foi
-                    try (final Statement stmtFOI = c.createStatement();
-                         final ResultSet rs2 = stmtFOI.executeQuery(cleanFOIQUery)) {//NOSONAR
-                        try (final PreparedStatement stmtdeletefoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
-                            while (rs2.next()) {
-                                String foiId = rs2.getString(1);
-                                deleteProperties("sampling_features_properties", "id_sampling_feature", foiId, c);
-                                stmtdeletefoi.setString(1, foiId);
-                                stmtdeletefoi.execute();
+                        // case 2.2 phenomenon to remove is part of the original phenomenon we need to remove only a part of the observation.
+                        } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
+                            final List<Field> fields                 = getMeasureFields(obs);
+                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
+                            OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, mainField, schemaPrefix, fieldsToRemove);
+                            remover.removeMeasures(c, obs);
+
+                            removeEmptyMeasures(cdt, c);
+                            updateObservationTemporalBounds(cdt, mainField, c);
+
+                            // the phenomenon may be updated if some fields are now empty
+                            List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
+                            if (!emptyFields.isEmpty()) {
+                                updateObservationPhenomenon(cdt, emptyFields, c);
                             }
+                           
+                        } else {
+                            LOGGER.fine("Fine removal mode: no intersecting phenomenon. no deletion");
+                        }
+                    } else {
+                        LOGGER.fine("No intersecting time: " + pos);
+                    }
+                }
+            }
+            
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while removing observation Dataset.", ex);
+        }
+        return sensorRemoved;
+    }
+
+    public static class ObservationInfos {
+        public final int id;
+        public final int nbMeasure;
+        public final String identifier;
+        public final TemporalGeometricPrimitive time;
+        public final Phenomenon phenomenon;
+        public final ProcedureInfo pi;
+
+        public ObservationInfos(int id, String identifier, TemporalGeometricPrimitive time, Phenomenon phenomenon, int nbMeasure, ProcedureInfo pi) {
+            this.id         = id;
+            this.identifier = identifier;
+            this.time       = time;
+            this.phenomenon = phenomenon;
+            this.nbMeasure  = nbMeasure;
+            this.pi         = pi;
+        }
+    }
+
+    private Set<ObservationInfos> getIntersectingObservation(Observation obs, Connection c) throws SQLException, DataStoreException {
+        FilterSQLRequest sql = new FilterSQLRequest("SELECT \"id\", \"identifier\", \"time_begin\", \"time_end\", \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
+        // procedure match
+        sql.append("o.\"procedure\" = ").appendValue(obs.getProcedure().getId()).append(" AND ");
+        // phenomenon match
+        Set<String> intersectingPhen = getIntersectingPhenomenon(obs.getObservedProperty(), c);
+        if (intersectingPhen.isEmpty()) {
+            return new HashSet<>();
+        }
+        sql.append("( o.\"observed_property\" IN ( ").appendValues(intersectingPhen).append(") )");
+        // time matching
+        sql.append(" AND (");
+        OM2Utils.addtimeDuringSQLFilter(sql, obs.getSamplingTime(), "o");
+        sql.append(" ) ");
+
+        Set<ObservationInfos> results = new HashSet<>();
+        try (final PreparedStatement pstmt = sql.fillParams(c.prepareStatement(sql.getRequest()));
+             final ResultSet result       = pstmt.executeQuery()) {
+            while (result.next()) {
+                TemporalGeometricPrimitive time = OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
+                Phenomenon phenomenon = getPhenomenon(result.getString("observed_property"), c);
+                int obsId = result.getInt("id");
+                String identifier = result.getString("identifier");
+                final ProcedureInfo pi = getPIDFromObservation(identifier, c).orElse(null);
+                int nbMeasure = getNbMeasureForObservation(pi.pid, obsId, c);
+                results.add(new ObservationInfos(obsId, result.getString("identifier"), time, phenomenon, nbMeasure, pi));
+            }
+        }
+        return results;
+    }
+
+    private Set<String> getIntersectingPhenomenon(Phenomenon phen, Connection c) throws SQLException {
+        if (phen == null) return new HashSet<>();
+        FilterSQLRequest sql = new FilterSQLRequest("SELECT DISTINCT(\"id\") FROM  \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
+
+        // look for a direct phenomenon use, or a single component use
+        sql.append(" \"id\" = ").appendValue(phen.getId());
+        if (phen instanceof CompositePhenomenon cPhen) {
+            for (Phenomenon compo : cPhen.getComponent()) {
+                sql.append( "OR \"id\" = ").appendValue(compo.getId());
+            }
+        }
+        sql.append(" OR  \"id\" IN ( SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+
+        if (phen instanceof CompositePhenomenon cPhen && !cPhen.getComponent().isEmpty()) {
+            // look for other composite containing a component of the searched one
+            sql.append("( \"component\" = ").appendValue(cPhen.getComponent().get(0).getId());
+            for (int i = 1; i < cPhen.getComponent().size(); i++) {
+                sql.append(" OR \"component\" = ").appendValue(cPhen.getComponent().get(i).getId());
+            }
+            sql.append("))");
+            // add the components of the composite to the result
+            sql.append(" OR  \"id\" IN ( SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\" = ").appendValue(phen.getId()).append(")");
+
+        } else {
+            sql.append(" \"component\" = ").appendValue(phen.getId()).append(")");
+        }
+
+        Set<String> results = new HashSet<>();
+        try (final PreparedStatement pstmt = sql.fillParams(c.prepareStatement(sql.getRequest()));
+             final ResultSet result       = pstmt.executeQuery()) {
+            while (result.next()) {
+                results.add(result.getString("id"));
+            }
+        }
+        return results;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public synchronized void removeProcedure(final String procedureID) throws DataStoreException {
+        try (final Connection c = source.getConnection()) {
+            removeProcedure(procedureID, c);
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while removing procedure.", ex);
+        }
+    }
+
+
+    private void removeProcedure(final String procedureID, final Connection c) throws SQLException, DataStoreException {
+        ProcedureInfo pi = getPIDFromProcedure(procedureID, c).orElse(null);
+        if (pi == null) return;
+        
+        deleteProperties("procedures_properties", "id_procedure", procedureID, c);
+        removeObservationForProcedure(procedureID, c);
+
+        // remove measure tables
+        try (final Statement stmtDrop = c.createStatement()) {
+
+            for (int i = 0; i < pi.nbTable; i++) {
+                String suffix = Integer.toString(pi.pid);
+                if (i > 0) {
+                    suffix = suffix + "_" + (i + 1);
+                }
+                stmtDrop.executeUpdate("DROP TABLE \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\"");//NOSONAR
+            }
+        }  catch (SQLException ex) {
+            // it happen that the table does not exist
+            LOGGER.log(Level.WARNING, "Unable to remove measure table.{0}", ex.getMessage());
+        }
+
+        try (final PreparedStatement stmtObsP = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
+             final PreparedStatement stmtFoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\" IN(SELECT \"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?)");//NOSONAR
+             final PreparedStatement stmtHl  = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?");//NOSONAR
+             final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?");//NOSONAR
+             final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");//NOSONAR
+             final PreparedStatement stmtProcDesc = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?")) {//NOSONAR
+
+            stmtObsP.setString(1, procedureID);
+            stmtObsP.executeUpdate();
+
+            stmtFoi.setString(1, procedureID);
+            stmtFoi.executeUpdate();
+
+            stmtHl.setString(1, procedureID);
+            stmtHl.executeUpdate();
+
+            stmtMes.setString(1, procedureID);
+            stmtMes.executeUpdate();
+
+            stmtProcDesc.setString(1, procedureID);
+            stmtProcDesc.executeUpdate();
+
+            stmtObs.setString(1, procedureID);
+            stmtObs.executeUpdate();
+        }
+
+        final String cleanOPQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\""
+                                  + " WHERE  \"id\" NOT IN (SELECT DISTINCT \"observed_property\" FROM \"" + schemaPrefix + "om\".\"observations\") "
+                                  + " AND    \"id\" NOT IN (SELECT DISTINCT \"phenomenon\"        FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\")"
+                                  + " AND    \"id\" NOT IN (SELECT DISTINCT \"component\"         FROM \"" + schemaPrefix + "om\".\"components\")";
+
+        final String cleanFOIQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"sampling_features\""
+                                   + " WHERE \"id\" NOT IN (SELECT DISTINCT \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\") "
+                                   + " AND \"id\" NOT IN (SELECT DISTINCT \"foi\" FROM \"" + schemaPrefix + "om\".\"offering_foi\")";
+
+        //look for unused observed properties (execute the statement 2 times for remaining components)
+        try (final Statement stmtOP = c.createStatement()) {
+            for (int i = 0; i < 2; i++) {
+                try (final ResultSet rs = stmtOP.executeQuery(cleanOPQUery)) {//NOSONAR
+
+                    try (final PreparedStatement stmtdeleteCompo = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=?");//NOSONAR
+                         final PreparedStatement stmtdeleteobsPr = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
+                        while (rs.next()) {
+                            final String phenId = rs.getString(1);
+                            deleteProperties("observed_properties_properties", "id_phenomenon", phenId, c);
+                            stmtdeleteCompo.setString(1, phenId);
+                            stmtdeleteCompo.execute();
+                            stmtdeleteobsPr.setString(1, phenId);
+                            stmtdeleteobsPr.execute();
                         }
                     }
                 }
             }
-        } catch (SQLException ex) {
-            throw new DataStoreException("Error while removing procedure.", ex);
+
+            //look for unused foi
+            try (final Statement stmtFOI = c.createStatement();
+                 final ResultSet rs2 = stmtFOI.executeQuery(cleanFOIQUery)) {//NOSONAR
+                try (final PreparedStatement stmtdeletefoi = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
+                    while (rs2.next()) {
+                        String foiId = rs2.getString(1);
+                        deleteProperties("sampling_features_properties", "id_sampling_feature", foiId, c);
+                        stmtdeletefoi.setString(1, foiId);
+                        stmtdeletefoi.execute();
+                    }
+                }
+            }
         }
     }
 
@@ -1197,29 +1396,263 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public synchronized void removeObservation(final String observationID) throws DataStoreException {
-        try (final Connection c       = source.getConnection()) {
-            final TableInfo ti = getPIDFromObservation(observationID, c);
+        try (final Connection c = source.getConnection()) {
+             final ProcedureInfo pi = getPIDFromObservation(observationID, c).orElse(null);
+            // observation does not exist
+            if (pi == null) return;
 
-            // remove from measure tables
-            for (int i = 0; i < ti.nbTable; i++) {
-                String suffix = ti.pid + "";
-                if (i > 0) {
-                    suffix = suffix + "_" + (i + 1);
-                }
-                try (final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE id_observation IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?)")){//NOSONAR
-                    stmtMes.setString(1, observationID);
-                    stmtMes.executeUpdate();
-                }
-            }
-            
-            // remove from observation table
-            try(final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE identifier=?")) {//NOSONAR
-                stmtObs.setString(1, observationID);
-                stmtObs.executeUpdate();
-            }
-            
+            removeObservation(observationID, pi, c);
+            removeProcedureIfEmpty(pi.procedureId, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting observation.", ex);
+        }
+    }
+
+    /**
+     * Remove an observation with the specified identifier.
+     * this will remove all its measures.
+     *
+     * @param observationID Observation identifier.
+     * @param c A SQL connection.
+     */
+    private synchronized void removeObservation(final String observationID, final ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
+        
+        // remove from measure tables
+        for (int i = 0; i < pi.nbTable; i++) {
+            String suffix = pi.pid + "";
+            if (i > 0) {
+                suffix = suffix + "_" + (i + 1);
+            }
+            try (final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" IN (SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?)")){//NOSONAR
+                stmtMes.setString(1, observationID);
+                stmtMes.executeUpdate();
+            }
+        }
+
+        // remove from observation table
+        try(final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
+            stmtObs.setString(1, observationID);
+            stmtObs.executeUpdate();
+        }
+    }
+
+    /**
+     * Remove a procedure if it has no more observation linked to it.
+     *
+     * @param procedureId procedure identifier.
+     * @param c A SQL connection.
+     *
+     * @return {@code true} id the procedure has been removed
+     */
+    private boolean removeProcedureIfEmpty(String procedureId, Connection c) throws SQLException, DataStoreException {
+        boolean removeProc = false;
+        try (final PreparedStatement stmtObsCount = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?");) {//NOSONAR
+            stmtObsCount.setString(1, procedureId);
+            try (ResultSet rs = stmtObsCount.executeQuery()) {
+                if (rs.next()) {
+                    removeProc = (rs.getInt(1) == 0);
+                }
+            }
+        }
+        if (removeProc) {
+            removeProcedure(procedureId);
+        }
+        return removeProc;
+    }
+
+    /**
+     * Remove an observation if it has no more measure.
+     *
+     * @param obsInfo Informations about the observation that may need removal.
+     * @param c A SQL connection.
+     *
+     * @return {@code true} if the observation has been removed.
+     */
+    private boolean removeObservationIfEmpty(ObservationInfos obsInfo, Connection c) throws SQLException, DataStoreException {
+        boolean removeObs = getNbMeasureForObservation(obsInfo.pi.pid, obsInfo.id, c) == 0;
+        if (removeObs) {
+            removeObservation(obsInfo.identifier, obsInfo.pi, c);
+        }
+        return removeObs;
+    }
+
+    /**
+     * Update the temporal bound of a timeseries observation by looking for the min/max value of the main (Time) field.
+     *
+     * @param obsInfo Informations about the observation that need to be updated.
+     * @param mainField Main field for the observation.
+     * @param c A SQL connection.
+     */
+    private void updateObservationTemporalBounds(ObservationInfos obsInfo, Field mainField, Connection c) throws SQLException, DataStoreException {
+        // only for timeseries
+        if (mainField.type.equals(FieldType.TIME)) {
+            String boundSQL  = "SELECT min(\"" + mainField.name + "\"), max(\"" + mainField.name + "\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + obsInfo.pi.pid + "\" WHERE \"id_observation\" = ?" ;
+            String updateObs = "UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_begin\"=?, \"time_end\"=? WHERE \"id\"=?";
+            try (PreparedStatement bStmt  = c.prepareStatement(boundSQL);
+                 PreparedStatement upStmt = c.prepareStatement(updateObs)) {
+                bStmt.setInt(1, obsInfo.id);
+                try (ResultSet rs = bStmt.executeQuery()) {
+                    if (rs.next()) {
+                        Timestamp begin = rs.getTimestamp(1);
+                        Timestamp end   = rs.getTimestamp(2);
+                        upStmt.setTimestamp(1, begin);
+                        if (begin.equals(end)) {
+                            upStmt.setNull(2, java.sql.Types.TIMESTAMP);
+                        } else {
+                            upStmt.setTimestamp(2, end);
+                        }
+                        upStmt.setInt(3, obsInfo.id);
+                        upStmt.executeUpdate();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove the empty measures in an observation.
+     *
+     * @param obsInfo Informations about the observation that need to be updated.
+     * @param c A SQL connection.
+     *
+     * @return the number of measure removed.
+     */
+    private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
+        final ProcedureInfo pi = obsInfo.pi;
+        List<Field> fields = readFields(pi.procedureId, true, c);
+
+        List<String> rmSQLs = new ArrayList<>();
+        StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m");
+        StringBuilder where = new StringBuilder(" WHERE ");
+        rmSQLs.add("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" WHERE \"id\" = ? AND \"id_observation\" = ?");
+        for (int i = 1; i < pi.nbTable; i++) {
+            String tableName = "mesure" + pi.pid + "_" + (i + 1);
+            sb.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m" + i + " ");
+            where.append(" m" + i + ".\"id\" = m.\"id\" AND ");
+            rmSQLs.add("DELETE FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" WHERE \"id\" = ? AND \"id_observation\" = ?");
+        }
+        sb.append(where);
+        sb.append(" m.\"id_observation\" = ? ");
+        for (Field f : fields) {
+            sb.append(" AND \"").append(f.name).append("\" IS NULL");
+        }
+        List<PreparedStatement> rmStmts = new ArrayList<>();
+        for (String sql : rmSQLs) {
+            rmStmts.add(c.prepareStatement(sql));
+        }
+        int rmCount = 0;
+        try (PreparedStatement stmt = c.prepareStatement(sb.toString())) {
+            stmt.setInt(1, obsInfo.id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    for (int i = 0; i < rmStmts.size(); i++) {
+                        PreparedStatement rmStmt = rmStmts.get(i);
+                        rmStmt.setInt(1, rs.getInt(1));
+                        rmStmt.setInt(2, obsInfo.id);
+                        int removed = rmStmt.executeUpdate();
+                        // if one table match all the other table should match also
+                        if (i == 0) {
+                            rmCount += removed;
+                        }
+                    }
+                }
+            }
+            LOGGER.fine(rmCount + " empty measures deleted");
+        } finally {
+            for (PreparedStatement stmt : rmStmts) {
+                try {stmt.close();} catch (SQLException ex) {LOGGER.log(Level.FINER, "Error while closing reove measure statement", ex);}
+            }
+        }
+        return rmCount;
+    }
+
+    private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
+        final ProcedureInfo pi = obsInfo.pi;
+        List<Field> fields = readFields(pi.procedureId, true, c);
+
+        StringBuilder sql = new StringBuilder("SELECT ");
+
+        for (Field field : fields) {
+            DbField db = (DbField) field;
+            sql.append(" COUNT(m" + db.tableNumber + ".\"" + db.name + "\") as \"" + db.name + "\",");
+        }
+        sql.deleteCharAt(sql.length() - 1);
+        sql.append(" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m1");
+
+        StringBuilder where = new StringBuilder(" WHERE ");
+        for (int i = 1; i < pi.nbTable; i++) {
+            int tableNum = i + 1;
+            String tableName = "mesure" + pi.pid + "_" + tableNum;
+            sql.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m" + tableNum + " ");
+            where.append(" m" + tableNum + ".\"id\" = m1.\"id\" AND ");
+           
+        }
+        sql.append(where);
+        sql.append(" m1.\"id_observation\" = " + obsInfo.id);
+
+        List<Field> results = new ArrayList<>();
+        try (PreparedStatement stmt = c.prepareStatement(sql.toString());
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                for (int i = 0; i < fields.size(); i++) {
+                    Field field = fields.get(i);
+                    if (rs.getInt(i + 1) == 0) {
+                        results.add(field);
+                    }
+                }
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Update the observation identifier by removing the specified fields from the current phenomenon fields.
+     * Try to find an existing composite phenomenon if it exist. If not a new composite will be created.
+     * 
+     * @param obsInfo Informations about the observation that need to be updated.
+     * @param fieldsToRemove Phenomenon fields that need to be removed fom the current phenomenon.
+     * @param c An SQL connection.
+     *
+     */
+    private synchronized void updateObservationPhenomenon(final ObservationInfos obsInfo, List<? extends Field> fieldsToRemove, Connection c) throws SQLException, DataStoreException {
+
+        /*
+        * Update the new phenomenon of the observation
+        */
+        List<Field> remainingFields = new ArrayList<>();
+        List<Field> initialFields = getPhenomenonsFields(obsInfo.phenomenon);
+        ini:for (Field initialField : initialFields) {
+            for (Field rmField : fieldsToRemove) {
+                if (Objects.equals(initialField.name, rmField.name)) {
+                    continue ini;
+                }
+            }
+            remainingFields.add(initialField);
+        }
+
+        Phenomenon phen;
+        if (remainingFields.size() == 1) {
+            // should never return null
+            phen = getPhenomenon(remainingFields.get(0).name, c);
+        } else {
+            phen = getPhenomenonForFields(remainingFields, c);
+            // no existing phenomenon for remaning fields
+            // we muste creat a new one
+            if (phen == null) {
+                phen = createCompositePhenomenonFromField(c, remainingFields);
+                writePhenomenon(phen, c, false);
+            }
+        }
+
+        if (phen != null) {
+            try (final PreparedStatement stmtMes = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"observed_property\" = ? WHERE \"id\" = ?")){//NOSONAR
+                stmtMes.setString(1, phen.getId());
+                stmtMes.setInt(2, obsInfo.id);
+                stmtMes.executeUpdate();
+            }
+        } else {
+            // should never happen
+            throw new DataStoreException("Unable to update observation phenomenon after field removal");
         }
     }
 
@@ -1311,11 +1744,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private void buildMeasureTable(final String procedureID, final int pid, final List<Field> fields, final Connection c) throws SQLException, DataStoreException {
+    private void buildMeasureTable(final ProcedureInfo pi, final List<Field> fields, final Connection c) throws SQLException, DataStoreException {
         if (fields == null || fields.isEmpty()) {
             throw new DataStoreException("measure fields can not be empty");
         }
-        final String baseTableName = "mesure" + pid;
+        final String baseTableName = "mesure" + pi.pid;
 
         Map<Integer, TableStatement> tablesStmt = new LinkedHashMap<>();
         final List<Field> oldfields;
@@ -1328,7 +1761,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         /**
          * Look for table existence.
          */
-        final boolean exist = measureTableExist(pid);
+        final boolean exist = measureTableExist(pi.pid);
         if (!exist) {
             oldfields   = new ArrayList<>();
             firstField  = true;
@@ -1337,13 +1770,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             fieldOffset = 1;
             
         } else if (allowSensorStructureUpdate) {
-            final TableInfo ti      = getPIDFromProcedure(procedureID, c);
-            
-            oldfields               = readFields(procedureID, false, c);
+            oldfields               = readFields(pi.procedureId, false, c);
             firstField              = false;
-            nbTable                 = ti.nbTable;
+            nbTable                 = pi.nbTable;
             // number of field in the last measure table
-            nbTabField              = getNbFieldInTable(procedureID, nbTable, c);
+            nbTabField              = getNbFieldInTable(pi.procedureId, nbTable, c);
             fieldOffset             = oldfields.size() + 1;
             
         } else {
@@ -1431,13 +1862,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
             // update table count
-            stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + procedureID + "'");//NOSONAR
+            stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + pi.procedureId + "'");//NOSONAR
         }
 
         /**
          * fill procedure_descriptions table
          */
-        insertFields(procedureID, newFields, fieldOffset, c);
+        insertFields(pi.procedureId, newFields, fieldOffset, c);
     }
 
     private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {

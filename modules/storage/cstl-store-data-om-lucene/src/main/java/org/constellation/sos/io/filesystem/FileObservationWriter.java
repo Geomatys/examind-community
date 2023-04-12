@@ -144,6 +144,11 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
+    @Override
+    public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet in this implementation.");
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -226,10 +231,5 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
     @Override
     public void destroy() {
         indexer.destroy();
-    }
-
-    @Override
-    public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

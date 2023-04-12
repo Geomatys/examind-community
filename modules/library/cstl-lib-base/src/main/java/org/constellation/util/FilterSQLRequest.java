@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -149,6 +150,23 @@ public class FilterSQLRequest {
         } else {
             this.sqlRequest.append("?");
             this.params.add(new Param(value, Timestamp.class));
+        }
+        return this;
+    }
+
+    public FilterSQLRequest appendValues(Collection<String> values) {
+        return appendValues(values, false);
+    }
+    
+    public FilterSQLRequest appendValues(Collection<String> values, boolean conditional) {
+        for (String value : values) {
+            appendValue(value, conditional);
+            append(",", conditional);
+        }
+        if (conditional) {
+            this.conditionalRequest.deleteCharAt(this.conditionalRequest.length() - 1);
+        } else {
+            this.sqlRequest.deleteCharAt(this.sqlRequest.length() - 1);
         }
         return this;
     }

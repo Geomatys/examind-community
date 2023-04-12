@@ -20,18 +20,27 @@ package org.constellation.store.observation.db;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKBWriter;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
+import org.opengis.temporal.RelativePosition;
 import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
 
@@ -122,5 +131,73 @@ public class OM2Utils {
             }
         }
         return false;
+    }
+
+    public static boolean isEqualsOrSubset(Phenomenon candidate, Phenomenon phenomenon) {
+        if (Objects.equals(candidate, phenomenon)) {
+            return true;
+        } else if (phenomenon instanceof CompositePhenomenon composite) {
+            if (candidate instanceof CompositePhenomenon compositeCdt) {
+                return OMUtils.isACompositeSubSet(compositeCdt, composite);
+            } else if (candidate != null) {
+                return OMUtils.hasComponent(candidate.getId(), composite);
+            }
+        }
+        return false;
+    }
+
+    public static boolean isPartOf(Phenomenon candidate, Phenomenon phenomenon) {
+        if (candidate instanceof CompositePhenomenon compositeCdt) {
+            if (phenomenon instanceof CompositePhenomenon composite) {
+                return OMUtils.isACompositeSubSet(composite, compositeCdt);
+            } else if (phenomenon != null) {
+                return OMUtils.hasComponent(phenomenon.getId(), compositeCdt);
+            }
+        }
+        return false;
+    }
+
+    public static boolean isTimeIntersect(RelativePosition pos) {
+        return pos.equals(RelativePosition.BEGUN_BY) ||
+              pos.equals(RelativePosition.ENDED_BY) ||
+              pos.equals(RelativePosition.CONTAINS) ||
+              pos.equals(RelativePosition.OVERLAPS) ||
+              pos.equals(RelativePosition.DURING)   ||
+              pos.equals(RelativePosition.BEGINS)   ||
+              pos.equals(RelativePosition.ENDS)   ||
+              pos.equals(RelativePosition.MET_BY)   ||
+              pos.equals(RelativePosition.MEETS);
+    }
+
+    public static int getMeasureCount(Observation obs) {
+        if (obs.getResult() instanceof ComplexResult cr) {
+            return cr.getNbValues();
+        } else if (obs.getResult() instanceof MeasureResult) {
+            return 1;
+        }
+        return -1;
+    }
+
+    /**
+     * Return a list of measure fields for the observation.
+     * For a complex result, the main field at index 0 will be removed.
+     *
+     * @param obs An observation.
+     * @return A liste of measure fields
+     * 
+     * @throws IllegalArgumentException if the observation result has no field or is of an unknown type.
+     */
+    public static List<Field> getMeasureFields(Observation obs) {
+        final List<Field> fields;
+        if (obs.getResult() instanceof ComplexResult cr && !cr.getFields().isEmpty()) {
+            // remove main field at index O.
+            fields = cr.getFields().subList(1, cr.getFields().size());
+
+        } else if (obs.getResult() instanceof MeasureResult mr && mr.getField() != null) {
+            fields = Arrays.asList(mr.getField());
+        } else {
+            throw new IllegalArgumentException("Unxexpected result type in observation");
+        }
+        return fields;
     }
 }

@@ -1,0 +1,177 @@
+{
+    "spatialBound": {
+        "dateStart": 1241178420000,
+        "dateEnd": 1241179380000,
+        "minx": -180.0,
+        "maxx": 65400.0,
+        "miny": -90.0,
+        "maxy": 1731368.0
+    },
+    "observations": [{
+            "id": "obs-2000-2-1",
+            "name": "urn:ogc:object:observation:GEOM:2000-2-1",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:test-id",
+                "name": "Sensor test id",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "2000-1-st-time",
+                "date": "2009-05-01T13:47:00.0Z"
+            },
+            "featureOfInterest": {
+                "id": "station-001",
+                "name": "10972X0137-PONT",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "POINT (65400 1731368)"
+                }
+            },
+            "observedProperty": {
+                "id": "depth",
+                "name": "depth",
+                "description": "the depth in water",
+                "properties": {
+                    "prop1": "value4"
+                },
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+            },
+            "result": {
+                "field": {
+                    "index": 2,
+                    "type": "QUANTITY",
+                    "name": "depth",
+                    "label": "depth",
+                    "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                    "uom": "m",
+                    "qualityFields": [],
+                    "tableNumber": 1
+                },
+                "value": 4.5
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }, {
+            "id": "obs-2000-2-5",
+            "name": "urn:ogc:object:observation:GEOM:2000-2-5",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:test-id",
+                "name": "Sensor test id",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "2000-5-st-time",
+                "date": "2009-05-01T14:03:00.0Z"
+            },
+            "featureOfInterest": {
+                "id": "station-001",
+                "name": "10972X0137-PONT",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "prop2": "value2",
+                    "prop1": "value1"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "POINT (65400 1731368)"
+                }
+            },
+            "observedProperty": {
+                "id": "depth",
+                "name": "depth",
+                "description": "the depth in water",
+                "properties": {
+                    "prop1": "value4"
+                },
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+            },
+            "result": {
+                "field": {
+                    "index": 2,
+                    "type": "QUANTITY",
+                    "name": "depth",
+                    "label": "depth",
+                    "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                    "uom": "m",
+                    "qualityFields": [],
+                    "tableNumber": 1
+                },
+                "value": 9.9
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-001",
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "properties": {
+                "prop2": "value2",
+                "prop1": "value1"
+            },
+            "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+            "geometry": {
+                "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                "geometry": "POINT (65400 1731368)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "depth",
+            "name": "depth",
+            "description": "the depth in water",
+            "properties": {
+                "prop1": "value4"
+            },
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:test-id",
+            "name": "Sensor test id",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 1241178420000,
+                "dateEnd": 1241178420000,
+                "minx": 65400.0,
+                "maxx": 65400.0,
+                "miny": 1731368.0,
+                "maxy": 1731368.0
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-11",
+            "name": "offering-11",
+            "properties": {},
+            "time": {
+                "id": "offering-11-time",
+                "beginning": {
+                    "id": "offering-11-st-time",
+                    "date": "2009-05-01T13:47:00.0Z"
+                },
+                "ending": {
+                    "id": "offering-11-en-time",
+                    "date": "2009-05-01T14:03:00.0Z"
+                }
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:test-id",
+            "featureOfInterestIds": ["station-001"],
+            "observedProperties": ["depth"]
+        }]
+}

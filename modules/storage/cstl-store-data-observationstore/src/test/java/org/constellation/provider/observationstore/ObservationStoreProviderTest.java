@@ -3622,6 +3622,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * - foi
         */
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        query.setSeparatedProfileObservation(false);
         List<Observation> results = omPr.getObservations(query);
         assertEquals(TOTAL_NB_SENSOR, results.size());
 
@@ -3694,6 +3695,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * This observation is a profile
          */
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        query.setSeparatedProfileObservation(false);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
         results = omPr.getObservations(query);
@@ -3876,6 +3878,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
+        query.setSeparatedProfileObservation(false);
         results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
@@ -3894,10 +3897,36 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(expectedResult, result);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setSelection(filter);
+        query.setSeparatedProfileObservation(true);
+        results = omPr.getObservations(query);
+        assertEquals(3, results.size());
+
+        result = getResultValues(results.get(0));
+        expectedResult =  "12.0,18.5@@"
+                        + "24.0,19.7@@"
+                        + "48.0,21.2@@"
+                        + "96.0,23.9@@"
+                        + "192.0,26.2@@"
+                        + "384.0,31.4@@"
+                        + "768.0,35.1@@";
+        assertEquals(expectedResult, result);
+
+        result = getResultValues(results.get(1));
+        expectedResult  = "12.0,18.5@@";
+        assertEquals(expectedResult, result);
+
+        result = getResultValues(results.get(2));
+        expectedResult  = "12.0,18.5@@";
+        assertEquals(expectedResult, result);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         f2 = ff.lessOrEqual(ff.property("result") , ff.literal(19.0));
         filter = ff.and(f1, f2);
         query.setSelection(filter);
+        query.setSeparatedProfileObservation(false);
         results = omPr.getObservations(query);
         assertEquals(1, results.size());
 

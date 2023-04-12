@@ -335,7 +335,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String featureID   = rs.getString("foi");
                 final int oid            = rs.getInt("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
-                TableInfo procTableInfos = getPIDFromProcedure(procedure, c);
+                ProcedureInfo procTableInfos = getPIDFromProcedure(procedure, c).orElse(null);
                 final String measureJoin = getMeasureTableJoin(procTableInfos);
                 final Field mainField    = getMainField(procedure, c);
                 boolean profile          = !FieldType.TIME.equals(mainField.type);
@@ -359,7 +359,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                         List<Field> phenFields = new ArrayList<>();
                         for (String f : currentFields) {
-                            final Field field = getFieldForPhenomenon(procedure, f, c);
+                            final Field field = getProcedureField(procedure, f, c);
                             if (field != null && !fields.contains(field)) {
                                 phenFields.add(field);
                             }
@@ -412,7 +412,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final Phenomenon phen         = getGlobalCompositePhenomenon(c, procedure);
 
                     if (profile) {
-                        // profile oservation are instant
+                        // profile observation are instant
                         parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
                     }
 
@@ -476,7 +476,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                       null,
                                                       result,
                                                       properties);
-                        observations.put(procedure + '-' + featureID, observation);
+                        if (separatedProfileObs && profile) {
+                            synchronized (format2) {
+                                observations.put(procedure + '-' + featureID + '-' + format2.format(parser.firstTime), observation);
+                            }
+                        } else {
+                            observations.put(procedure + '-' + featureID, observation);
+                        }
                     }
                 } else {
                     /**
@@ -547,7 +553,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String observedProperty = rs.getString("observed_property");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final Phenomenon phen = getPhenomenon(observedProperty, c);
-                final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+                final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get()); // we know that the procedure exist
                 final List<Field> fields = readFields(procedure, true, c);
                 final Map<Field, Phenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
@@ -693,7 +699,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 }
                 List<Field> phenFields = new ArrayList<>();
                 for (String f : currentFields) {
-                    final Field field = getFieldForPhenomenon(currentProcedure, f, c);
+                    final Field field = getProcedureField(currentProcedure, f, c);
                     if (field != null && !fields.contains(field)) {
                         phenFields.add(field);
                     }

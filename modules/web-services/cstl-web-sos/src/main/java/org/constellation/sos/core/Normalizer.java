@@ -39,11 +39,16 @@ import org.geotoolkit.observation.xml.v100.MeasurementType;
 import org.geotoolkit.sos.xml.Capabilities;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.sos.xml.v100.ObservationOfferingType;
+import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AbstractEncodingProperty;
+import org.geotoolkit.swe.xml.AbstractTime;
+import org.geotoolkit.swe.xml.AnyScalar;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataComponentProperty;
+import org.geotoolkit.swe.xml.DataRecord;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
+import org.geotoolkit.swe.xml.SimpleDataRecord;
 import org.geotoolkit.swe.xml.v101.CompositePhenomenonType;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
@@ -62,16 +67,23 @@ public final class Normalizer {
 
     private Normalizer() {}
 
+    /**
+     * Normalize the capabilities document by replacing the double by reference
+     *
+     * @param capa the unnormalized document.
+     *
+     * @return a normalized document
+     */
     public static Capabilities normalizeDocument(final Capabilities capa){
-        if (capa instanceof org.geotoolkit.sos.xml.v100.Capabilities) {
-            return normalizeDocumentv100((org.geotoolkit.sos.xml.v100.Capabilities)capa);
+        if (capa instanceof org.geotoolkit.sos.xml.v100.Capabilities cp) {
+            return normalizeDocumentv100(cp);
         } else {
             return capa; // no necessary in SOS 2
         }
     }
 
     /**
-     * Normalize the capabilities document by replacing the double by reference
+     * Normalize a SOS  capabilities verion 1.0.0 document by replacing the doublons by reference.
      *
      * @param capa the unnormalized document.
      *
@@ -85,8 +97,7 @@ public final class Normalizer {
                     if (alreadySee.contains(pheno)) {
                         pheno.setToHref();
                     } else {
-                        if (pheno.getPhenomenon() instanceof CompositePhenomenonType) {
-                            final CompositePhenomenonType compo = (CompositePhenomenonType) pheno.getPhenomenon();
+                        if (pheno.getPhenomenon() instanceof CompositePhenomenonType compo) {
                             for (PhenomenonProperty pheno2: compo.getRealComponent()) {
                                 if (alreadySee.contains(pheno2)) {
                                     pheno2.setToHref();
@@ -104,13 +115,13 @@ public final class Normalizer {
     }
 
     /**
-     * Regroup the different Observation by sensor and by feature of interest.
+     * Regroup the different observations by sensor and by feature of interest.
      *
-     * @param version
-     * @param bounds
-     * @param collection
+     * @param version SOS version.
+     * @param bounds Already computed bounds of the collection.
+     * @param collection An observation collection.
      *
-     * @return a collection
+     * @return An observation collection.
      */
     public static ObservationCollection regroupObservation(final String version, final Envelope bounds, final ObservationCollection collection){
         final List<Observation> members = collection.getMember();
@@ -118,7 +129,13 @@ public final class Normalizer {
         for (Observation obs : members) {
             final Process process    = (Process) obs.getProcedure();
             final String featureID   = getFeatureID(obs);
-            final String key         = process.getHref() + '-' + featureID;
+            final String key;
+            // we don't want to regroup the profile observations.
+            if (isProfile(obs)) {
+                key = UUID.randomUUID().toString();
+            } else {
+                key = process.getHref() + '-' + featureID;
+            }
 
             if (obs instanceof MeasurementType meas) {
                 // measurment are not merged
@@ -126,12 +143,10 @@ public final class Normalizer {
 
             } else if (merged.containsKey(key)) {
                 final AbstractObservation uniqueObs = (AbstractObservation) merged.get(key);
-                if (uniqueObs.getResult() instanceof DataArrayProperty) {
-                    final DataArrayProperty mergedArrayP = (DataArrayProperty) uniqueObs.getResult();
+                if (uniqueObs.getResult() instanceof DataArrayProperty mergedArrayP) {
                     final DataArray mergedArray          = mergedArrayP.getDataArray();
 
-                    if (obs.getResult() instanceof DataArrayProperty) {
-                        final DataArrayProperty arrayP = (DataArrayProperty) obs.getResult();
+                    if (obs.getResult() instanceof DataArrayProperty arrayP) {
                         final DataArray array          = arrayP.getDataArray();
 
                         //we merge this observation with the map one
@@ -140,10 +155,8 @@ public final class Normalizer {
                     }
                 }
                 // merge the samplingTime
-                if (uniqueObs.getSamplingTime() instanceof Period) {
-                    final Period totalPeriod = (Period)uniqueObs.getSamplingTime();
-                    if (obs.getSamplingTime() instanceof Instant) {
-                        final Instant instant = (Instant)obs.getSamplingTime();
+                if (uniqueObs.getSamplingTime() instanceof Period totalPeriod) {
+                    if (obs.getSamplingTime() instanceof Instant instant) {
                         if (totalPeriod.getBeginning().getDate().getTime() > instant.getDate().getTime()) {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  new Timestamp(instant.getDate().getTime()), new Timestamp(totalPeriod.getEnding().getDate().getTime()));
                             uniqueObs.setSamplingTimePeriod(newPeriod);
@@ -152,8 +165,7 @@ public final class Normalizer {
                             final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), instant.getDate());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
-                    } else if (obs.getSamplingTime() instanceof Period) {
-                        final Period period = (Period)obs.getSamplingTime();
+                    } else if (obs.getSamplingTime() instanceof Period period) {
                         // BEGIN
                         if (TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)totalPeriod.getBeginning()).getTimePosition()).getIndeterminatePosition()) ||
                             TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)     period.getBeginning()).getTimePosition()).getIndeterminatePosition())) {
@@ -189,9 +201,14 @@ public final class Normalizer {
         return SOSXmlFactory.buildGetObservationResponse(version, "collection-1", bounds, obervations);
     }
 
+    /**
+     * Return the feature of interest identifier got the specified observation.
+     *
+     * @param obs A XML observation.
+     * @return An identifer or {@code null}
+     */
     private static String getFeatureID(final Observation obs) {
-        if (obs instanceof AbstractObservation) {
-            final AbstractObservation observation = (AbstractObservation)obs;
+        if (obs instanceof AbstractObservation observation) {
             final FeatureProperty featProp = observation.getPropertyFeatureOfInterest();
             if (featProp != null) {
                 if (featProp.getHref() != null) {
@@ -212,6 +229,7 @@ public final class Normalizer {
     /**
      * Normalize the Observation collection document by replacing the double by reference
      *
+     * @param version SOS version.
      * @param collection the unnormalized document.
      *
      * @return a normalized document
@@ -242,8 +260,7 @@ public final class Normalizer {
                 if (phenoAlreadySee.contains(phenomenon)){
                     phenomenon.setToHref();
                 } else {
-                    if (phenomenon.getPhenomenon() instanceof CompositePhenomenonType) {
-                        final CompositePhenomenonType compo = (CompositePhenomenonType) phenomenon.getPhenomenon();
+                    if (phenomenon.getPhenomenon() instanceof CompositePhenomenonType compo) {
                         for (PhenomenonProperty pheno2: compo.getRealComponent()) {
                             if (phenoAlreadySee.contains(pheno2)) {
                                 pheno2.setToHref();
@@ -256,8 +273,8 @@ public final class Normalizer {
                 }
             }
             //for the result : textBlock encoding and element type
-            if (observation.getResult() instanceof DataArrayProperty) {
-                final DataArray array = ((DataArrayProperty)observation.getResult()).getDataArray();
+            if (observation.getResult() instanceof DataArrayProperty dap) {
+                final DataArray array = dap.getDataArray();
 
                 //element type
                 final DataComponentProperty elementType = array.getPropertyElementType();
@@ -288,19 +305,51 @@ public final class Normalizer {
         return collection;
     }
 
+    /**
+     * Return the encapsulated feature of interest for an XML observation.
+     *
+     * @param obs A XML observation.
+     * @return
+     */
     private static FeatureProperty getPropertyFeatureOfInterest(final Observation obs) {
-        if (obs instanceof AbstractObservation) {
-            final AbstractObservation observation = (AbstractObservation)obs;
+        if (obs instanceof AbstractObservation observation) {
             return observation.getPropertyFeatureOfInterest();
         }
         return null;
     }
 
+    /**
+     * Return the encapsulated phenomenon for an XML observation.
+     *
+     * @param obs A XML observation.
+     * @return
+     */
     private static PhenomenonProperty getPhenomenonProperty(final Observation obs) {
-        if (obs instanceof AbstractObservation) {
-            final AbstractObservation observation = (AbstractObservation)obs;
+        if (obs instanceof AbstractObservation observation) {
             return observation.getPropertyObservedProperty();
         }
         return null;
+    }
+
+    /**
+     * Determine if the observation is a profile by looking for its data array first field type.
+     * 
+     * @param obs A XML observation.
+     * @return
+     */
+    private static boolean isProfile(final Observation obs) {
+        if (obs.getResult() instanceof DataArrayProperty dap && dap.getDataArray() != null) {
+            DataArray dataArray = dap.getDataArray();
+            DataComponentProperty dcp = dataArray.getPropertyElementType();
+            if (dcp.getValue() instanceof DataRecord dr && !dr.getField().isEmpty()) {
+                DataComponentProperty f = dr.getField().get(0);
+                return f.getTime() == null;
+            } else if (dcp.getValue() instanceof SimpleDataRecord dr && !dr.getField().isEmpty()) {
+                AnyScalar f = dr.getField().iterator().next();
+                return !(f.getValue() instanceof AbstractTime);
+            }
+            return false;
+        }
+        return false;
     }
 }

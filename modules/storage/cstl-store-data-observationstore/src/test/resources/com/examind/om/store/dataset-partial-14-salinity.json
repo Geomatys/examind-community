@@ -1,0 +1,138 @@
+{
+    "spatialBound": {
+        "dateStart": 977439600000,
+        "dateEnd": 977439600000,
+        "minx": -180.0,
+        "maxx": 180.0,
+        "miny": -90.0,
+        "maxy": 90.0
+    },
+    "observations": [{
+            "id": "obs-99",
+            "name": "urn:ogc:object:observation:GEOM:99",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:14",
+                "name": "Sensor 14",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "obs-5001-time",
+                "date": "2000-12-22T00:00:00.0Z"
+            },
+            "featureOfInterest": {
+                "id": "station-002",
+                "name": "10972X0137-PLOUF",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "prop1": "value3"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+                    "geometry": "POINT (5 10)"
+                }
+            },
+            "observedProperty": {
+                "id": "depth-sal",
+                "name": "depth-sal",
+                "description": "the aggregation of salinity and depth phenomenons",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth-sal",
+                "component": [{
+                        "id": "depth",
+                        "name": "depth",
+                        "description": "the depth in water",
+                        "properties": {
+                            "prop1": "value4"
+                        },
+                        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+                    }, {
+                        "id": "salinity",
+                        "name": "salinity",
+                        "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
+                        "description": "the salinity in water"
+                    }]
+            },
+            "result": {
+                "fields": [{
+                        "index": 1,
+                        "type": "QUANTITY",
+                        "name": "depth",
+                        "label": "depth",
+                        "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                        "uom": "m",
+                        "qualityFields": []
+                    }, {
+                        "index": 1,
+                        "type": "QUANTITY",
+                        "name": "salinity",
+                        "label": "salinity",
+                        "description": "urn:ogc:def:phenomenon:GEOM:salinity",
+                        "uom": "msu",
+                        "qualityFields": []
+                    }],
+                "nbValues": 7,
+                "textEncodingProperties": {
+                    "tokenSeparator": ",",
+                    "blockSeparator": "@@",
+                    "decimalSeparator": "."
+                },
+                "values": "18.5,5.1@@19.7,5.2@@21.2,5.3@@23.9,5.4@@24.2,5.5@@29.4,5.6@@31.1,5.7@@"
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+            "properties": {
+                "type": "profile"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-002",
+            "name": "10972X0137-PLOUF",
+            "description": "Point d'eau BSSS",
+            "properties": {
+                "prop1": "value3"
+            },
+            "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+            "geometry": {
+                "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+                "geometry": "POINT (5 10)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "depth-sal",
+            "name": "depth-sal",
+            "description": "the aggregation of salinity and depth phenomenons",
+            "definition": "urn:ogc:def:phenomenon:GEOM:depth-sal",
+            "component": [{
+                    "id": "depth",
+                    "name": "depth",
+                    "description": "the depth in water",
+                    "properties": {
+                        "prop1": "value4"
+                    },
+                    "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+                }, {
+                    "id": "salinity",
+                    "name": "salinity",
+                    "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
+                    "description": "the salinity in water"
+                }]
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:14",
+            "name": "Sensor 14",
+            "properties": {},
+            "type": "Component",
+            "omType": "profile",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 977439600000,
+                "dateEnd": 977439600000,
+                "minx": 5.0,
+                "maxx": 5.0,
+                "miny": 10.0,
+                "maxy": 10.0
+            },
+            "fields": []
+        }],
+    "offerings": []
+}

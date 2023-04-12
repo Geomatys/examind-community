@@ -22,7 +22,6 @@ package org.constellation.store.observation.db;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
-import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -529,36 +528,40 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     private ComplexResult buildComplexResult2(final String identifier, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
         final String procedure     = getProcedureFromObservation(identifier, c);
-        final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
-        final List<Field> fields   = readFields(procedure, false, c);
+        if (procedure != null) {
+            final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get());// we know that the procedure exist
+            final List<Field> fields   = readFields(procedure, false, c);
 
-        int nbValue                 = 0;
-        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
-        final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
-        String query                = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
-                                    + "WHERE \"id_observation\" = o.\"id\" "
-                                    + "AND o.\"identifier\"=?";
-        if (measureId != null) {
-            query = query + " AND m.\"id\" = " + measureId + " ";
-        }
-        query = query + " ORDER BY m.\"id\"";
-        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
-            stmt.setString(1, identifier);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    parser.parseLine(rs, 0);
-                    nbValue = nbValue + parser.nbValue;
+            int nbValue                 = 0;
+            final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+            final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
+            String query                = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
+                                        + "WHERE \"id_observation\" = o.\"id\" "
+                                        + "AND o.\"identifier\"=?";
+            if (measureId != null) {
+                query = query + " AND m.\"id\" = " + measureId + " ";
+            }
+            query = query + " ORDER BY m.\"id\"";
+            try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
+                stmt.setString(1, identifier);
+                try(final ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        parser.parseLine(rs, 0);
+                        nbValue = nbValue + parser.nbValue;
+                    }
                 }
             }
+            return new ComplexResult(fields, DEFAULT_ENCODING, values.getStringValues(), nbValue);
         }
-        return new ComplexResult(fields, DEFAULT_ENCODING, values.getStringValues(), nbValue);
+        return null;
     }
 
     private MeasureResult buildMeasureResult(final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
+        ProcedureInfo pi = getPIDFromObservation(identifier, c).orElseThrow(IllegalArgumentException::new);
+        final String measureJoin   = getMeasureTableJoin(pi);
         final String uom           = selectedField.uom;
         final FieldType fType      = selectedField.type;
         String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
@@ -599,21 +602,24 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, Field mainField, final Connection c, int measureId) throws SQLException {
-        final String measureJoin   = getMeasureTableJoin(getPIDFromObservation(identifier, c));
-        String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
-                           + "WHERE \"id_observation\" = o.\"id\" "
-                           + "AND o.\"identifier\" = ? "
-                           + "AND m.\"id\" = ?";
-        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
-            stmt.setString(1, identifier);
-            stmt.setInt(2, measureId);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    final Timestamp t = rs.getTimestamp(mainField.name);
-                    return buildTime(identifier, t, null);
+        ProcedureInfo pi = getPIDFromObservation(identifier, c).orElse(null);
+        if (pi != null) {
+            final String measureJoin   = getMeasureTableJoin(pi);
+            String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
+                               + "WHERE \"id_observation\" = o.\"id\" "
+                               + "AND o.\"identifier\" = ? "
+                               + "AND m.\"id\" = ?";
+            try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
+                stmt.setString(1, identifier);
+                stmt.setInt(2, measureId);
+                try(final ResultSet rs = stmt.executeQuery()) {
+                    while (rs.next()) {
+                        final Timestamp t = rs.getTimestamp(mainField.name);
+                        return buildTime(identifier, t, null);
                     }
                 }
             }
+        }
         return null;
     }
 
@@ -624,7 +630,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+        final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get());// we know that the procedure exist
         String query       = "SELECT * FROM " + measureJoin + ", \"" + schemaPrefix + "om\".\"observations\" o "
                            + "WHERE \"id_observation\" = o.\"id\" "
                            + "AND o.\"identifier\"=?";

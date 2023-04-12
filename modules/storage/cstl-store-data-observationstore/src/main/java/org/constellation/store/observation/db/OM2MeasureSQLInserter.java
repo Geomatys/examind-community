@@ -31,36 +31,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
 import org.constellation.util.Util;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.TextEncoderProperties;
-import org.geotoolkit.temporal.object.ISODateParser;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class OM2MeasureSQLInserter {
+public class OM2MeasureSQLInserter extends OM2MeasureHandler {
 
-    private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
-
-    private final TextEncoderProperties encoding;
-    private final String baseTableName;
-    private final String schemaPrefix;
     private final boolean isPostgres;
     private final List<InsertDbField> fields;
 
-    private final ISODateParser dateParser = new ISODateParser();
-
-    // calculated fields
+    // calculated
     private final Map<Integer, String> insertRequests;
 
-    public OM2MeasureSQLInserter(final TextEncoderProperties encoding, final int pid, final String schemaPrefix, final boolean isPostgres, final List<InsertDbField> fields) throws DataStoreException {
-        this.encoding = encoding;
-        this.baseTableName = "mesure" + pid;
-        this.schemaPrefix = schemaPrefix;
+    public OM2MeasureSQLInserter(final ProcedureInfo pi, final String schemaPrefix, final boolean isPostgres, final List<InsertDbField> fields) throws DataStoreException {
+        super(pi, schemaPrefix);
         this.fields = flatFields(fields);
         this.isPostgres = isPostgres;
         this.insertRequests = buildInsertRequests();
@@ -112,17 +103,20 @@ public class OM2MeasureSQLInserter {
      *
      * @param c SQL connection.
      * @param oid Observation identifier.
-     * @param values A data values block.
+     * @param cr A complex result.
      * @param update If set to {@code true}, each individual measure will be search for an eventual update.
      *
      * @throws SQLException
      * @throws DataStoreException
      */
-    public void fillMesureTable(final Connection c, final int oid, final String values, boolean update) throws SQLException, DataStoreException {
-        if (update) {
-            LOGGER.info("Inserting measure in update mode");
-        }
-        final StringTokenizer tokenizer = new StringTokenizer(values, encoding.getBlockSeparator());
+    public void fillMesureTable(final Connection c, final int oid, final ComplexResult cr, boolean update) throws SQLException, DataStoreException {
+         // do we need to handle dataObject mode?
+        if (cr.getValues() == null) throw new UnsupportedOperationException("Not supported for now. or never");
+
+        if (update) LOGGER.info("Inserting measure in update mode");
+
+        final TextEncoderProperties encoding = cr.getTextEncodingProperties();
+        final StringTokenizer tokenizer = new StringTokenizer(cr.getValues(), encoding.getBlockSeparator());
         int mid =  update ? getLastMeasureId(c, oid) : 1;
         int sqlCpt = 0;
         try (final Statement stmtSQL = c.createStatement()) {
@@ -137,7 +131,7 @@ public class OM2MeasureSQLInserter {
                 for (int i = 0; i < fields.size(); i++) {
                     final InsertDbField field      = fields.get(i);
                     final boolean lastTokenInBlock = (i == fields.size() - 1);
-                    final String[] nextToken       = extractNextValue(block, field, lastTokenInBlock);
+                    final String[] nextToken       = extractNextValue(block, field, lastTokenInBlock, encoding);
                     final String value             = nextToken[0];
                     block                          = nextToken[1];
 
@@ -193,12 +187,13 @@ public class OM2MeasureSQLInserter {
      * @param block A line correspounding to a single mesure.
      * @param field the current field to extract.
      * @param lastTokenInBlock if set t true, it means that the block contain the entire last value.
+     * @param encoding text encoding infos.
      *
      * @return A string array of a fixed value of 2. The first String is the value (quoted or not depeding on field type).
      *         The second String id the remaining block to parse.
      * @throws DataStoreException Ifthe block is malformed, if a timestamp has a bad format, or if the text value contains forbidden character.
      */
-    private String[] extractNextValue(String block, InsertDbField field, boolean lastTokenInBlock) throws DataStoreException {
+    private String[] extractNextValue(String block, InsertDbField field, boolean lastTokenInBlock, final TextEncoderProperties encoding) throws DataStoreException {
         String value;
         if (lastTokenInBlock) {
             value = block;

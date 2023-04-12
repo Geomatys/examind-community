@@ -1,0 +1,131 @@
+{
+    "spatialBound": {
+        "dateStart": 1178017140000,
+        "dateEnd": 1178031540000,
+        "minx": -180.0,
+        "maxx": 180.0,
+        "miny": -90.0,
+        "maxy": 134.205
+    },
+    "observations": [{
+            "id": "obs-801",
+            "name": "urn:ogc:object:observation:GEOM:801",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:8",
+                "name": "Sensor 8",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "obs-801-time",
+                "beginning": {
+                    "id": "obs-801-st-time",
+                    "date": "2007-05-01T12:59:00.0Z"
+                },
+                "ending": {
+                    "id": "obs-801-en-time",
+                    "date": "2007-05-01T16:59:00.0Z"
+                }
+            },
+            "featureOfInterest": {
+                "id": "station-006",
+                "name": "cycle1",
+                "description": "Geology traverse",
+                "properties": {},
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+                }
+            },
+            "observedProperty": {
+                "id": "temperature",
+                "name": "temperature",
+                "description": "the temperature in celcius degree",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+            },
+            "result": {
+                "fields": [{
+                        "index": 1,
+                        "type": "TIME",
+                        "name": "Time",
+                        "label": "Time",
+                        "description": "urn:ogc:data:time:iso8601",
+                        "qualityFields": []
+                    }, {
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "temperature",
+                        "label": "temperature",
+                        "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                        "uom": "°C",
+                        "qualityFields": []
+                    }],
+                "nbValues": 5,
+                "textEncodingProperties": {
+                    "tokenSeparator": ",",
+                    "blockSeparator": "@@",
+                    "decimalSeparator": "."
+                },
+                "values": "2007-05-01T12:59:00.0,12.0@@2007-05-01T13:59:00.0,13.0@@2007-05-01T14:59:00.0,14.0@@2007-05-01T15:59:00.0,15.0@@2007-05-01T16:59:00.0,16.0@@"
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-006",
+            "name": "cycle1",
+            "description": "Geology traverse",
+            "properties": {},
+            "geometry": {
+                "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                "geometry": "LINESTRING (-30.711 134.205, -30.71 134.204, -30.709 134.203, -30.708 134.201, -30.706 134.196, -30.703 134.197, -30.702 134.199)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "temperature",
+            "name": "temperature",
+            "description": "the temperature in celcius degree",
+            "properties": {},
+            "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:8",
+            "name": "Sensor 8",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 1178017140000,
+                "dateEnd": 1178031540000,
+                "minx": -30.711,
+                "maxx": -30.702,
+                "miny": 134.196,
+                "maxy": 134.205
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-8",
+            "name": "offering-8",
+            "properties": {},
+            "time": {
+                "id": "offering-8-time",
+                "beginning": {
+                    "id": "offering-8-st-time",
+                    "date": "2007-05-01T12:59:00.0Z"
+                },
+                "ending": {
+                    "id": "offering-8-en-time",
+                    "date": "2007-05-01T16:59:00.0Z"
+                }
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:8",
+            "featureOfInterestIds": ["station-006"],
+            "observedProperties": ["temperature"]
+        }]
+}

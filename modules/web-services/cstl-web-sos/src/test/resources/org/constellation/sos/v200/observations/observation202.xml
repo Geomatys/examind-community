@@ -7,12 +7,12 @@
                    xmlns:sf="http://www.opengis.net/sampling/2.0"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                   gml:id="obs-201">
-    <gml:name>urn:ogc:object:observation:GEOM:201</gml:name>
+                   gml:id="obs-202">
+    <gml:name>urn:ogc:object:observation:GEOM:202</gml:name>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>
-        <gml:TimeInstant gml:id="time-201">
-            <gml:timePosition>2000-12-01T00:00:00.0</gml:timePosition>
+        <gml:TimeInstant gml:id="time-202">
+            <gml:timePosition>2000-12-11T00:00:00.0</gml:timePosition>
         </gml:TimeInstant>
     </om:phenomenonTime>
     <om:resultTime/>
@@ -35,7 +35,7 @@
         <swe:DataArray id="dataArray-2">
             <swe:elementCount>
                 <swe:Count>
-                    <swe:value>7</swe:value>
+                    <swe:value>1</swe:value>
                 </swe:Count>
             </swe:elementCount>
             <swe:elementType name="dataArray-2">
@@ -55,7 +55,7 @@
             <swe:encoding>
                 <swe:TextEncoding blockSeparator="@@" decimalSeparator="." tokenSeparator="," id="encoding-1"/>
             </swe:encoding>
-            <swe:values>12.0,18.5@@24.0,19.7@@48.0,21.2@@96.0,23.9@@192.0,26.2@@384.0,31.4@@768.0,35.1@@</swe:values>
+            <swe:values>12.0,18.5@@</swe:values>
         </swe:DataArray>
     </om:result>
 </om:OM_Observation>
