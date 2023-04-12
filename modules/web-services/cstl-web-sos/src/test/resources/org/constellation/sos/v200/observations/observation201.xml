@@ -11,9 +11,10 @@
     <gml:name>urn:ogc:object:observation:GEOM:201</gml:name>
     <om:type xlink:href="http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation"/>
     <om:phenomenonTime>
-        <gml:TimeInstant gml:id="time-201">
-            <gml:timePosition>2000-12-01T00:00:00.0</gml:timePosition>
-        </gml:TimeInstant>
+        <gml:TimePeriod gml:id="time-201">
+            <gml:beginPosition>2000-12-01T00:00:00.0</gml:beginPosition>
+            <gml:endPosition>2000-12-22T00:00:00.0</gml:endPosition>
+        </gml:TimePeriod>
     </om:phenomenonTime>
     <om:resultTime/>
     <om:procedure xlink:href="urn:ogc:object:sensor:GEOM:2"/>

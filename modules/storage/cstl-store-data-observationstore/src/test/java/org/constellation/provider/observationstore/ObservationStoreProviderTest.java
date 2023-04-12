@@ -19,9 +19,6 @@
 package org.constellation.provider.observationstore;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -87,10 +84,7 @@ import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -107,8 +101,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     private static final FilterFactory ff = FilterUtilities.FF;
 
     private static ObservationProvider omPr;
-
-    private static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'");
 
     private static boolean initialized = false;
 
@@ -348,7 +340,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new SamplingFeatureQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(2, resultIds.size());
@@ -529,7 +521,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new SamplingFeatureQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
@@ -2073,7 +2065,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ProcedureQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(4, resultIds.size());
@@ -2327,7 +2319,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ProcedureQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         results = omPr.getProcedures(query);
 
@@ -2440,7 +2432,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new OfferingQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(4, resultIds.size());
@@ -2542,7 +2534,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new OfferingQuery();
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         results = omPr.getOfferings(query);
 
@@ -2693,7 +2685,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
-        Filter filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        Filter filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(6, resultIds.size());
@@ -2809,7 +2801,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(4, resultIds.size());
@@ -2843,41 +2835,41 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     @Test
     public void getTimeForTemplateTest() throws Exception {
         TemporalGeometricPrimitive result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:2");
-        assertPeriodEquals("2000-12-01T00:00:00.0Z", "2000-12-22T00:00:00.0Z", result);
+        assertPeriodEquals("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z", result);
 
         // this sensor has no observation
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:1");
         Assert.assertNull(result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:10");
-        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", result);
+        assertPeriodEquals("2009-05-01T13:47:00Z", "2009-05-01T14:04:00Z", result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:12");
-        assertPeriodEquals("2000-12-01T00:00:00.0Z", "2012-12-22T00:00:00.0Z",result);
+        assertPeriodEquals("2000-12-01T00:00:00Z", "2012-12-22T00:00:00Z",result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:3");
-        assertPeriodEquals("2007-05-01T02:59:00.0Z", "2007-05-01T21:59:00.0Z",result);
+        assertPeriodEquals("2007-05-01T02:59:00Z", "2007-05-01T21:59:00Z",result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:4");
-        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        assertPeriodEquals("2007-05-01T12:59:00Z", "2007-05-01T16:59:00Z",result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:test-1");
-        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        assertPeriodEquals("2007-05-01T12:59:00Z", "2007-05-01T16:59:00Z",result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:6");
         Assert.assertNull(result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:7");
-        assertInstantEquals("2007-05-01T16:59:00.0Z", result);
+        assertInstantEquals("2007-05-01T16:59:00Z", result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:8");
-        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z",result);
+        assertPeriodEquals("2007-05-01T12:59:00Z", "2007-05-01T16:59:00Z",result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:9");
-        assertInstantEquals("2009-05-01T13:47:00.0Z", result);
+        assertInstantEquals("2009-05-01T13:47:00Z", result);
 
         result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:test-id");
-        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:03:00.0Z",result);
+        assertPeriodEquals("2009-05-01T13:47:00Z", "2009-05-01T14:03:00Z",result);
     }
 
     @Test
@@ -2891,7 +2883,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(result.getName());
         assertEquals("urn:ogc:object:observation:template:GEOM:10", result.getName().getCode());
         assertNull(result.getFeatureOfInterest());
-        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", result.getSamplingTime());
+        assertPeriodEquals("2009-05-01T13:47:00Z", "2009-05-01T14:04:00Z", result.getSamplingTime());
         assertNotNull(result.getObservedProperty());
         assertEquals("depth", getPhenomenonId(result));
 
@@ -2904,7 +2896,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(result.getName());
         assertEquals("urn:ogc:object:observation:template:GEOM:13", result.getName().getCode());
         assertNotNull(result.getFeatureOfInterest());
-        assertPeriodEquals("2000-01-01T00:00:00.0Z", "2001-01-01T00:00:00.0Z", result.getSamplingTime());
+        assertPeriodEquals("2000-01-01T00:00:00Z", "2001-01-01T00:00:00Z", result.getSamplingTime());
         assertEquals("aggregatePhenomenon-2", getPhenomenonId(result));
     }
 
@@ -2957,7 +2949,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // template time is now included by adding the query
         assertNotNull(template1.getSamplingTime());
-        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
+        assertPeriodEquals("2009-05-01T13:47:00Z", "2009-05-01T14:04:00Z", template1.getSamplingTime());
 
 
         // The sensor '13'  got observations with different observed properties
@@ -3049,7 +3041,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         results = omPr.getObservations(query);
         resultIds = new LinkedHashSet<>();
@@ -3081,6 +3073,34 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type");
         Assert.assertEquals(expectedIds, resultIds);
 
+        // in this test we verify the sampling time returned in the template.
+        // has the template does not really contains value, its acceptable that the sampling time are the original bounds of the observations
+        query = new ObservationQuery(OBSERVATION_QNAME, RESULT_TEMPLATE, null);
+        query.setIncludeTimeInTemplate(true);
+        filter = ff.during(ff.property("phenomenonTime"), ff.literal(buildPeriod("2007-05-01T03:59:00Z", "2007-05-01T05:59:00Z")));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        template1 = null;
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            String obsId = p.getName().getCode();
+            resultIds.add(obsId);
+            if ("urn:ogc:object:observation:template:GEOM:3".equals(obsId)) {
+                template1 = p;
+            }
+        }
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        assertNotNull(template1);
+
+        // here we obtain the total sampling time of the 3 observations of the sensor GEOM:3
+        assertPeriodEquals("2007-05-01T02:59:00Z", "2007-05-01T21:59:00Z", template1.getSamplingTime());
     }
 
     @Test
@@ -3130,7 +3150,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // template time is now included by adding the query
         assertNotNull(template1.getSamplingTime());
-        assertPeriodEquals("2009-05-01T13:47:00.0Z", "2009-05-01T14:04:00.0Z", template1.getSamplingTime());
+        assertPeriodEquals("2009-05-01T13:47:00Z", "2009-05-01T14:04:00Z", template1.getSamplingTime());
 
         // The sensor '13'  got observations with different observed properties
         // we verify that we got the 3 single component
@@ -3269,7 +3289,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * time filter
          */
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
-        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T11:47:00Z")));
+        filter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildInstant("2009-05-01T13:47:00Z")));
         query.setSelection(filter);
         results = omPr.getObservations(query);
         resultIds = new LinkedHashSet<>();
@@ -3474,7 +3494,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), FORMAT.parse("2007-05-01T15:00:00.0Z"))));
+        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), ISO_8601_FORMATTER.parse("2007-05-01T15:00:00Z"))));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -3483,7 +3503,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(result, 6L);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), FORMAT.parse("2007-05-01T15:00:00.0Z"))));
+        be = ff.before(ff.property("phenomenonTime") , ff.literal((buildInstant("2007-05-01T15:00:00Z"))));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -3496,7 +3516,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), FORMAT.parse("2000-12-12T00:00:00.0Z"))));
+        be = ff.before(ff.property("phenomenonTime") , ff.literal(buildInstant("2000-12-12T00:00:00Z")));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -3505,7 +3525,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(result, 28L);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), FORMAT.parse("2000-12-12T00:00:00.0Z"))));
+        be = ff.before(ff.property("phenomenonTime") , ff.literal((buildInstant("2000-12-12T00:00:00Z"))));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:14"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -3634,7 +3654,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * the observation from sensor '3' is a merge of 3 observations
          */
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        BinaryComparisonOperator filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:3"));
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:3"));
         query.setSelection(filter);
         results = omPr.getObservations(query);
         assertEquals(1, results.size());
@@ -3670,7 +3690,8 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
 
         /**
-         * the observation from sensor '2' is a single observations with an aggregate phenomenon
+         * the observation from sensor '2' is a single observations with an aggregate phenomenon.
+         * This observation is a profile
          */
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
@@ -3684,6 +3705,48 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
+
+        assertTrue(result.getResult() instanceof ComplexResult);
+
+        cr = (ComplexResult) result.getResult();
+
+        expectedValues = "12.0,18.5@@" +
+                         "24.0,19.7@@" +
+                         "48.0,21.2@@" +
+                         "96.0,23.9@@" +
+                         "192.0,26.2@@" +
+                         "384.0,31.4@@" +
+                         "768.0,35.1@@" +
+                         "12.0,18.5@@" +
+                         "12.0,18.5@@";
+        assertEquals(expectedValues, cr.getValues());
+
+        assertPeriodEquals("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z", result.getSamplingTime());
+
+        // same request but including time in result wich is not present in profile by default
+
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+
+
+        cr = (ComplexResult) result.getResult();
+
+        expectedValues = "2000-12-01T00:00:00.0,12.0,18.5@@" +
+                         "2000-12-01T00:00:00.0,24.0,19.7@@" +
+                         "2000-12-01T00:00:00.0,48.0,21.2@@" +
+                         "2000-12-01T00:00:00.0,96.0,23.9@@" +
+                         "2000-12-01T00:00:00.0,192.0,26.2@@" +
+                         "2000-12-01T00:00:00.0,384.0,31.4@@" +
+                         "2000-12-01T00:00:00.0,768.0,35.1@@" +
+                         "2000-12-11T00:00:00.0,12.0,18.5@@" +
+                         "2000-12-22T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedValues, cr.getValues());
+
+        assertPeriodEquals("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z", result.getSamplingTime());
 
         /**
          * the observation from sensor 'test-1' is a single observations with an aggregate phenomenon
@@ -3701,7 +3764,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
 
-        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z", result.getSamplingTime());
+        assertPeriodEquals("2007-05-01T12:59:00Z", "2007-05-01T16:59:00Z", result.getSamplingTime());
 
         assertTrue(result.getResult() instanceof ComplexResult);
 
@@ -3730,7 +3793,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
 
-        assertPeriodEquals("2007-05-01T12:59:00.0Z", "2007-05-01T16:59:00.0Z", result.getSamplingTime());
+        assertPeriodEquals("2007-05-01T12:59:00Z", "2007-05-01T16:59:00Z", result.getSamplingTime());
 
         assertTrue(result.getResult() instanceof ComplexResult);
 
@@ -3742,6 +3805,35 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                        + "2007-05-01T15:59:00.0,6.56,15.0@@"
                        + "2007-05-01T16:59:00.0,6.56,16.0@@";
         assertEquals(expectedValues, cr.getValues());
+
+        // in this test we verify the sampling time returned in the observation.
+        // the sampling time must be fitted to the value included in the result
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.during(ff.property("phenomenonTime"), ff.literal(buildPeriod("2007-05-01T03:59:00Z", "2007-05-01T05:59:00Z")));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        result = null;
+        resultIds = new LinkedHashSet<>();
+        for (Observation p : results) {
+            String obsId = p.getName().getCode();
+            resultIds.add(obsId);
+            if ("urn:ogc:object:observation:GEOM:304".equals(obsId)) {
+                result = p;
+            }
+        }
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:304");
+        expectedIds.add("urn:ogc:object:observation:GEOM:3000");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        assertNotNull(result);
+
+        // here the sampling time must be fitted to the filter
+        assertPeriodEquals("2007-05-01T03:59:00Z", "2007-05-01T05:59:00Z", result.getSamplingTime());
 
     }
 
@@ -4360,23 +4452,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
         return cr.getValues();
-    }
-
-    private static void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
-        if (result instanceof Period tResult) {
-            assertEquals(FORMAT.parse(begin), tResult.getBeginning().getDate());
-            assertEquals(FORMAT.parse(end),   tResult.getEnding().getDate());
-        } else {
-            throw new AssertionError("Not a time period");
-        }
-    }
-
-    private static void assertInstantEquals(String position, TemporalGeometricPrimitive result) throws ParseException {
-        if (result instanceof Instant tResult) {
-            assertEquals(FORMAT.parse(position), tResult.getDate());
-        } else {
-            throw new AssertionError("Not a time instant");
-        }
     }
 
     private static int countElementInMap(Map<String, Map<Date, Geometry>> map) {

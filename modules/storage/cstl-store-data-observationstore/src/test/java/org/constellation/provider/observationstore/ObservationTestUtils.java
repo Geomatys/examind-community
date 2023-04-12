@@ -34,7 +34,10 @@ import static org.junit.Assert.assertTrue;
 import org.opengis.metadata.quality.Element;
 import org.opengis.metadata.quality.QuantitativeResult;
 import org.opengis.metadata.quality.Result;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalObject;
 import org.opengis.util.MemberName;
 import org.opengis.util.RecordType;
 import org.opengis.util.Type;
@@ -45,9 +48,9 @@ import org.opengis.util.Type;
  */
 public class ObservationTestUtils {
 
-    private static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     static {
-        ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+        ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("Europe/Paris") );
     }
 
     public static TemporalGeometricPrimitive buildInstant(String date) throws ParseException {
@@ -60,7 +63,25 @@ public class ObservationTestUtils {
         Date e = ISO_8601_FORMATTER.parse(end);
         return OMUtils.buildTime("ft", b, e);
     }
-    
+
+    public static void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
+        if (result instanceof Period tResult) {
+            String msg = "expected <" + begin + '/' + end + "> but was <" +  ISO_8601_FORMATTER.format(tResult.getBeginning().getDate()) + "/" + ISO_8601_FORMATTER.format(tResult.getEnding().getDate()) + ">\n";
+            assertEquals(msg, ISO_8601_FORMATTER.parse(begin), tResult.getBeginning().getDate());
+            assertEquals(msg, ISO_8601_FORMATTER.parse(end),   tResult.getEnding().getDate());
+        } else {
+            throw new AssertionError("Not a time period");
+        }
+    }
+
+    public static void assertInstantEquals(String position, TemporalGeometricPrimitive result) throws ParseException {
+        if (result instanceof Instant tResult) {
+            assertEquals(ISO_8601_FORMATTER.parse(position), tResult.getDate());
+        } else {
+            throw new AssertionError("Not a time instant");
+        }
+    }
+
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */

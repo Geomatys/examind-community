@@ -43,7 +43,7 @@ public class FieldParser {
     private final ResultBuilder values;
     private String name;
 
-    private boolean first = false;
+    private boolean first = true;
 
     public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
         this.profileWithTime = profileWithTime;

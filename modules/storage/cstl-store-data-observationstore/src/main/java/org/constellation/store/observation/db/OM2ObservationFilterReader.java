@@ -368,8 +368,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final SamplingFeature feature = getFeatureOfInterest(featureID,  c);
                     final Phenomenon phen         = getGlobalCompositePhenomenon(c, procedure);
 
-                    parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
-                    parser.lastTime = dateFromTS(rs.getTimestamp("time_end"));
+                    if (profile) {
+                        // profile oservation are instant
+                        parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    }
 
                     /*
                      *  BUILD RESULT
@@ -437,6 +439,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     /**
                      * complete the previous observation with new measures.
                      */
+                    if (profile) {
+                        // profile oservation are instant
+                        parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    }
                     measureRequest.setParamValue(0, oid);
                     LOGGER.fine(measureRequest.toString());
                     try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
@@ -454,7 +460,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         case DATA_ARRAY: cr.getDataArray().addAll(values.getDataArray()); break;
                         case CSV:        cr.setValues(cr.getValues() + values.getStringValues()); break;
                     }
-                   observation.extendSamplingTime(parser.lastTime);
+                    // observation can be instant
+                    observation.extendSamplingTime(parser.firstTime);
+                    observation.extendSamplingTime(parser.lastTime);
                 }
                 values.clear();
             }

@@ -6,7 +6,14 @@
     },
     "samplingTime": {
         "id": "time-201",
-        "date": "2000-12-01T00:00:00.0Z"
+        "beginning": {
+            "id": "c1725916-aed0-4aa6-8ae6-322d431a81d9-time",
+            "date": "2000-12-01T00:00:00.0Z"
+        },
+        "ending": {
+            "id": "7c4adc46-cfaa-478d-a720-0c2bde226ff6-time",
+            "date": "2000-12-22T00:00:00.0Z"
+        }
     },
     "featureOfInterest": {
         "id": "station-002",
