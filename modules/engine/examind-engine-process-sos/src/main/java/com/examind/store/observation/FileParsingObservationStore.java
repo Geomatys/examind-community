@@ -43,6 +43,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.parameter.Parameters;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
@@ -69,11 +70,13 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.util.GenericName;
 
 /**
  *
@@ -209,7 +212,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     public synchronized Collection<? extends Resource> components() throws DataStoreException {
         if (featureSets == null) {
             featureSets = new ArrayList<>();
-            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(dataFile.getFileName().toString())));
+            final GenericName name = NamesExt.create(IOUtilities.filenameWithoutExtension(dataFile));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(name, CommonCRS.defaultGeographic())));
         }
         return featureSets;
     }
