@@ -7,10 +7,10 @@
 <project name="UpdateVersion" default="update">
 
     <target name="update" >
-        <replace dir="${cstl.dir}" failOnNoReplacements="true">
+        <replace dir=".." failOnNoReplacements="true">
             <include name="**/pom.xml"/>
-            <replacefilter token="&lt;version&gt;${cstl.oldversion}&lt;/version&gt;"
-                           value="&lt;version&gt;${cstl.version}&lt;/version&gt;"/>
+            <replacefilter token="&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;"
+                           value="&lt;version&gt;1.0.31&lt;/version&gt;"/>
         </replace>
     </target>
     <!--<target name="updateGeotkVersion" depends="updateSisVersion">
