@@ -117,7 +117,7 @@ public class XLSXDataFileReader implements DataFileReader {
                         }
                         return results;
                     } else {
-                        LOGGER.warning("Empty line in xls file");
+                        LOGGER.finer("Empty line in xls file: " + row.getRowNum());
                         return new String[0];
                     }
                 }

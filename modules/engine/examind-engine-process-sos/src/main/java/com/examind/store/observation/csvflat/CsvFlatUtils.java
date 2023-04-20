@@ -38,17 +38,27 @@ public class CsvFlatUtils {
     public static Set<String> extractCodes(String format, Path dataFile, Collection<String> measureCodeColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException {
         try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, quoteChar)) {
 
-            // read headers
-            final String[] headers = reader.getHeaders();
             List<Integer> measureCodeIndex = new ArrayList<>();
+            
+            // read headers
+            String[] headers = null;
 
             // find measureCodeIndex
-            for (int i = 0; i < headers.length; i++) {
-                final String header = headers[i];
+            if (!noHeader) {
+                headers = reader.getHeaders();
 
-                if ((directColumnIndex && measureCodeColumns.contains(Integer.toString(i))) ||
-                    (!directColumnIndex && measureCodeColumns.contains(header))) {
-                    measureCodeIndex.add(i);
+                for (int i = 0; i < headers.length; i++) {
+                    final String header = headers[i];
+
+                    if ((directColumnIndex && measureCodeColumns.contains(Integer.toString(i))) ||
+                        (!directColumnIndex && measureCodeColumns.contains(header))) {
+                        measureCodeIndex.add(i);
+                    }
+                }
+            } else {
+                // implying direct column index
+                for (String i : measureCodeColumns) {
+                    measureCodeIndex.add(Integer.valueOf(i));
                 }
             }
 
@@ -66,8 +76,12 @@ public class CsvFlatUtils {
                 final Object[] line = it.next();
                 if (line.length == 0) {
                     LOGGER.finer("skipping empty line " + lineNb);
-                    continue line;
+                    continue;
+                } else if (headers != null && line.length < headers.length) {
+                    LOGGER.finer("skipping imcomplete line " + lineNb + " (" +line.length + "/" + headers.length + ")");
+                    continue;
                 }
+                
                 String computed = "";
                 boolean first = true;
                 for(Integer i : measureCodeIndex) {
@@ -93,7 +107,7 @@ public class CsvFlatUtils {
             }
             return storeCode;
             
-        } catch (IOException ex) {
+        } catch (IOException | IndexOutOfBoundsException ex) {
             throw new ConstellationStoreException("problem reading csv file", ex);
         }
     }

@@ -68,6 +68,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     private final String typeColumn;
     private final String uomColumn;
 
+    /**
+     * use to avoid loading obsPropColumns at store creation.
+     */
+    private boolean obsPropColumnsLoaded = false;
+    private final Set<String> obsPropFilterColumns;
 
     public CsvFlatObservationStore(final ParameterValueGroup params) throws DataStoreException, IOException {
         super(params);
@@ -78,22 +83,34 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         this.typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         this.uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
 
-        final Set<String> obsPropFilterColumns = getMultipleValues(params, OBS_PROP_FILTER_COLUMN.getName().toString());
+        this.obsPropFilterColumns = getMultipleValues(params, OBS_PROP_FILTER_COLUMN.getName().toString());
+    }
 
-        // special case for hard coded observed property
-        if (obsPropId != null && !obsPropId.isEmpty()) {
-            this.obsPropColumns = Collections.singleton(obsPropId);
-        // special case for * measure columns
-        // if the store is open with missing mime type we skip this part.
-        } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
-            try {
-                this.obsPropColumns = extractCodes(mimeType, dataFile, csvFlatobsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
-            } catch (ConstellationStoreException ex) {
-                throw new DataStoreException(ex);
+    /**
+     * Load obsPropColumns.
+     * 
+     * @return
+     * @throws DataStoreException
+     */
+    private synchronized  Set<String> getObsPropColumns() throws DataStoreException {
+        if (!obsPropColumnsLoaded) {
+            // special case for hard coded observed property
+            if (obsPropId != null && !obsPropId.isEmpty()) {
+                this.obsPropColumns = Collections.singleton(obsPropId);
+            // special case for * measure columns
+            // if the store is open with missing mime type we skip this part.
+            } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
+                try {
+                    this.obsPropColumns = extractCodes(mimeType, dataFile, csvFlatobsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
+                } catch (ConstellationStoreException ex) {
+                    throw new DataStoreException(ex);
+                }
+            } else {
+                 this.obsPropColumns = obsPropFilterColumns;
             }
-        } else {
-             this.obsPropColumns = obsPropFilterColumns;
+            obsPropColumnsLoaded = true;
         }
+        return this.obsPropColumns;
     }
 
     @Override
@@ -145,7 +162,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             // add measure column
-            final List<String> sortedMeasureColumns = obsPropColumns.stream().sorted().collect(Collectors.toList());
+            final List<String> sortedMeasureColumns = getObsPropColumns().stream().sorted().collect(Collectors.toList());
 
             // final result
             final ObservationDataset result = new ObservationDataset();
@@ -173,7 +190,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final Object[] line = it.next();
 
                 if (line.length == 0) {
-                    LOGGER.fine("skipping empty line.");
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < headers.length) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }
 
@@ -356,7 +376,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     // checks if row matches the observed properties filter
                     String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
-                    if (!obsPropColumns.contains(observedProperty)) {
+                    if (!getObsPropColumns().contains(observedProperty)) {
                         continue;
                     }
 
@@ -373,9 +393,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
     
     @Override
-    public Set<String> extractPhenomenonIds() {
+    public Set<String> extractPhenomenonIds() throws DataStoreException {
         // TODO verify existence?
-        return obsPropColumns;
+        return getObsPropColumns();
     }
 
     @Override
@@ -411,7 +431,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final Object[] line   = it.next();
 
                 if (line.length == 0) {
-                    LOGGER.fine("skipping empty line.");
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < headers.length) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }
 
@@ -439,12 +462,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
                 
                 // checks if row matches the observed properties wanted
-                if (!obsPropColumns.contains(observedProperty)) {
+                if (!getObsPropColumns().contains(observedProperty)) {
                     continue;
                 }
 
                 if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, obsPropColumns, null));
+                    Set<String> opc = getObsPropColumns();
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, opc, null));
                 }
 
                 // update temporal interval
