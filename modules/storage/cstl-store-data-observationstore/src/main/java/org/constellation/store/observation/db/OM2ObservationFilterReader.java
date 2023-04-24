@@ -833,7 +833,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // TODO the measure filter is not used ? need testing
 
             // calculate step
-            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), fields.get(0), c, decimationSize);
+            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), mainField, c, decimationSize);
             final long step;
             if (profile) {
                 // choose the first step
@@ -859,9 +859,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             if (profileWithTime) {
                 select.append(", o.\"time_begin\" ");
-            }
-            if (includeIDInDataBlock) {
-                select.append(", o.\"identifier\" ");
             }
             sqlRequest.replaceFirst("m.*", select.toString());
             if (profile) {
