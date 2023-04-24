@@ -843,6 +843,27 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "Things({id:[^\\)]+})/Locations", method = RequestMethod.GET)
+    public ResponseEntity getLocationForThing(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+       putServiceIdParam(serviceId);
+       id = removeQuote(id);
+       putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETLOCATIONS, worker, req.getPathInfo());
+                request.getExtraFilter().put("procedure", id);
+                return treatIncomingRequest(request).getResponseEntity(response);
+
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
     @RequestMapping(path = "Locations({id:[^\\)]+})/Things", method = RequestMethod.GET)
     public ResponseEntity getThingsForLocation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
        putServiceIdParam(serviceId);

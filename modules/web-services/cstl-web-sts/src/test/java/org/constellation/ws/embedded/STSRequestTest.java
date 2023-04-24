@@ -1068,6 +1068,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order=12)
+    public void getThingLocationsTest() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Things(urn:ogc:object:sensor:GEOM:2)/Locations");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/th-loc.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
     @Order(order=13)
     public void getThingsTest() throws Exception {
         initPool();
