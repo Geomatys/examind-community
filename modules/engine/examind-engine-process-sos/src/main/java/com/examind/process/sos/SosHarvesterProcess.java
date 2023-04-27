@@ -41,7 +41,7 @@ import org.constellation.provider.DataProviders;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.parameter.GeneralParameterValue;
@@ -64,7 +64,7 @@ import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.importdata.StoreFormat;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.ObservationProvider;
@@ -234,24 +234,14 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 }
 
                 // remove data
-                Set<SensorReference> sensors = new HashSet<>();
+                Set<Integer> dataIds = new HashSet<>();
                 for (Integer pid : providers) {
-                    for (Integer dataId : providerBusiness.getDataIdsFromProviderId(pid)) {
-                        sensors.addAll(sensorBusiness.getByDataId(dataId));
-                    }
-                    providerBusiness.removeProvider(pid);
+                    dataIds.addAll(providerBusiness.getDataIdsFromProviderId(pid));
                 }
 
-                // remove sensors
-                for (SensorReference sid : sensors) {
-
-                    // unlink from SOS
-                    for (Integer service : sensorBusiness.getLinkedServiceIds(sid.getId())) {
-                        sensorServBusiness.removeSensor(service, sid.getIdentifier());
-                    }
-
-                    // remove sensor
-                    sensorBusiness.delete(sid.getId());
+                for (Integer dataId : dataIds) {
+                    sensorServBusiness.removeDataObservationsFromServices(dataId);
+                    dataBusiness.removeData(dataId, false);
                 }
 
                 datasourceBusiness.clearSelectedPaths(dsId);
@@ -445,10 +435,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final List<String> ids = new ArrayList<>();
 
         if (provider instanceof ObservationProvider op) {
-            final List<ProcedureTree> procedures = op.getProcedureTrees(null);
+            final List<ProcedureDataset> procedures = op.getProcedureTrees(null);
 
             // SensorML generation
-            for (final ProcedureTree process : procedures) {
+            for (final ProcedureDataset process : procedures) {
                 ids.add(process.getId());
             }
         } else {
@@ -485,12 +475,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             // import observations
             if (!alreadyInserted) {
                 try {
-                    final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
+                    final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
                     reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
                     if (!result.getObservations().isEmpty()) {
 
                         // generate sensor
-                        for (ProcedureTree process : result.getProcedures()) {
+                        for (ProcedureDataset process : result.getProcedures()) {
                             sensorServBusiness.writeProcedure(sosRef.getId(), process);
                             Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
                             sensorBusiness.addSensorToService(sosRef.getId(), sid);
@@ -520,7 +510,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return nbObsTotal;
     }
 
-    private void reuseExistingPhenomenonAndFOI(final ExtractionResult result, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingFois) {
+    private void reuseExistingPhenomenonAndFOI(final ObservationDataset result, final Set<Phenomenon> existingPhenomenons, final Set<SamplingFeature> existingFois) {
         /**
          * look for an already existing (composite) phenomenon to use instead of inserting a new one
          */

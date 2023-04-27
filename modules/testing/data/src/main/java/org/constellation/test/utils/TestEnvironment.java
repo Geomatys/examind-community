@@ -30,7 +30,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
@@ -414,10 +414,10 @@ public class TestEnvironment {
 
         public void generateSensors(ISensorBusiness sensorBusiness, int omProviderId, int smlProviderId) throws ConstellationException {
            ObservationProvider omProv = (ObservationProvider) DataProviders.getProvider(omProviderId);
-           List<ProcedureTree> procs   = omProv.getProcedureTrees(null);
+           List<ProcedureDataset> procs   = omProv.getProcedureTrees(null);
 
            // default sensor initialisation from the sensor present in the OM provider
-            for (ProcedureTree proc : procs) {
+            for (ProcedureDataset proc : procs) {
                 sensorBusiness.generateSensor(proc, smlProviderId, null, null);
             }
 

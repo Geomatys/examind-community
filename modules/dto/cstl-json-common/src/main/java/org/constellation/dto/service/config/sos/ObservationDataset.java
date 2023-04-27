@@ -19,30 +19,41 @@
 package org.constellation.dto.service.config.sos;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 
 /**
+ * This pojo is here to replace the class {@linkplain org.geotoolkit.observation.model.ObservationDataset} to avoid adding the dependency to the geotk module.
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ExtractionResult {
+public class ObservationDataset {
 
     private List<Observation> observations = new ArrayList<>();
 
     private List<Phenomenon> phenomenons = new ArrayList<>();
 
-    private List<ProcedureTree> procedures = new ArrayList<>();
+    private List<ProcedureDataset> procedures = new ArrayList<>();
 
     private List<SamplingFeature> featureOfInterest = new ArrayList<>();
 
-    public ExtractionResult() {
+    private Date dateStart;
+    private Date dateEnd;
+
+    private Double minx;
+    private Double maxx;
+
+    private Double miny;
+    private Double maxy;
+
+    public ObservationDataset() {
 
     }
 
-    public ExtractionResult(List<Observation> observations, List<Phenomenon> phenomenons, List<SamplingFeature> featureOfInterest, List<ProcedureTree> procedures) {
+    public ObservationDataset(List<Observation> observations, List<Phenomenon> phenomenons, List<SamplingFeature> featureOfInterest, List<ProcedureDataset> procedures) {
         this.observations = observations;
         this.phenomenons = phenomenons;
         this.procedures = procedures;
@@ -80,14 +91,14 @@ public class ExtractionResult {
     /**
      * @return the procedures
      */
-    public List<ProcedureTree> getProcedures() {
+    public List<ProcedureDataset> getProcedures() {
         return procedures;
     }
 
     /**
      * @param procedures the procedures to set
      */
-    public void setProcedures(List<ProcedureTree> procedures) {
+    public void setProcedures(List<ProcedureDataset> procedures) {
         this.procedures = procedures;
     }
 
@@ -103,5 +114,53 @@ public class ExtractionResult {
      */
     public void setFeatureOfInterest(List<SamplingFeature> featureOfInterest) {
         this.featureOfInterest = featureOfInterest;
+    }
+
+    public Date getDateStart() {
+        return dateStart;
+    }
+
+    public void setDateStart(Date dateStart) {
+        this.dateStart = dateStart;
+    }
+
+    public Date getDateEnd() {
+        return dateEnd;
+    }
+
+    public void setDateEnd(Date dateEnd) {
+        this.dateEnd = dateEnd;
+    }
+
+    public Double getMinx() {
+        return minx;
+    }
+
+    public void setMinx(Double minx) {
+        this.minx = minx;
+    }
+
+    public Double getMaxx() {
+        return maxx;
+    }
+
+    public void setMaxx(Double maxx) {
+        this.maxx = maxx;
+    }
+
+    public Double getMiny() {
+        return miny;
+    }
+
+    public void setMiny(Double miny) {
+        this.miny = miny;
+    }
+
+    public Double getMaxy() {
+        return maxy;
+    }
+
+    public void setMaxy(Double maxy) {
+        this.maxy = maxy;
     }
 }

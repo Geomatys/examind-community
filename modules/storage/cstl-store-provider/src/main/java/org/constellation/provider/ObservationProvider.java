@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.sis.storage.Query;
-import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.constellation.dto.service.config.sos.Offering;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationStoreException;
@@ -45,7 +45,7 @@ public interface ObservationProvider extends DataProvider {
 
     Collection<String> getIdentifiers(Query q) throws ConstellationStoreException;
 
-    List<ProcedureTree> getProcedureTrees(Query query) throws ConstellationStoreException;
+    List<ProcedureDataset> getProcedureTrees(Query query) throws ConstellationStoreException;
 
     List<Phenomenon> getPhenomenon(Query query) throws ConstellationStoreException;
 
@@ -83,7 +83,7 @@ public interface ObservationProvider extends DataProvider {
 
     String writeObservation(final Observation observation) throws ConstellationStoreException;
 
-    void writeProcedure(final ProcedureTree procedure) throws ConstellationStoreException;
+    void writeProcedure(final ProcedureDataset procedure) throws ConstellationStoreException;
 
     void writeOffering(Offering offering) throws ConstellationStoreException;
 
@@ -95,7 +95,9 @@ public interface ObservationProvider extends DataProvider {
 
     Map<String, Set<Date>> getHistoricalTimes(Query q) throws ConstellationStoreException;
 
-    ExtractionResult extractResults(Query query) throws ConstellationStoreException;
+    ObservationDataset extractResults(Query query) throws ConstellationStoreException;
+
+    List<String> removeDataset(ObservationDataset dataset) throws ConstellationStoreException;
 
     /**
      * Special key computed by the provider.

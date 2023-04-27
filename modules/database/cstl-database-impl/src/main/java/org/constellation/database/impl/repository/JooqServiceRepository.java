@@ -346,7 +346,7 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public List<Service> getLinkedSOSServices(Integer providerId) {
+    public List<Service> getProviderLinkedSensorServices(Integer providerId) {
         return convertListToDto(dsl.select(SERVICE.fields()).from(Arrays.asList(PROVIDER_X_SOS,SERVICE))
                 .where(PROVIDER_X_SOS.SOS_ID.eq(SERVICE.ID))
                 .and(PROVIDER_X_SOS.PROVIDER_ID.eq(providerId))
@@ -354,13 +354,22 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
     }
 
     @Override
-    public List<Service> getSensorLinkedServices(int sensorId) {
+    public List<Service> getSensorLinkedSensorServices(int sensorId) {
         return convertListToDto(dsl.select(SERVICE.fields()).from(Arrays.asList(SENSOR_X_SOS,SERVICE))
                 .where(SENSOR_X_SOS.SOS_ID.eq(SERVICE.ID))
                 .and(SENSOR_X_SOS.SENSOR_ID.eq(sensorId))
                 .fetchInto(com.examind.database.api.jooq.tables.pojos.Service.class));
     }
 
+    @Override
+    public List<Service> getDataLinkedSensorServices(int dataId) {
+        return convertListToDto(dsl.select(SERVICE.fields()).from(Arrays.asList(SENSOR_X_SOS,SERVICE, SENSORED_DATA))
+                .where(SENSOR_X_SOS.SOS_ID.eq(SERVICE.ID))
+                .and(SENSOR_X_SOS.SENSOR_ID.eq(SENSORED_DATA.SENSOR))
+                .and(SENSORED_DATA.DATA.eq(dataId))
+                .fetchInto(com.examind.database.api.jooq.tables.pojos.Service.class));
+    }
+    
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void linkSensorProvider(int serviceId, int providerID, boolean allSensor) {

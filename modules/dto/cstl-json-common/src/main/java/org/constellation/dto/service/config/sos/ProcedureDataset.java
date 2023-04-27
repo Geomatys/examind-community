@@ -28,10 +28,11 @@ import java.util.Objects;
 import org.locationtech.jts.geom.Geometry;
 
 /**
- *
+ * This pojo is here to replace the class {@linkplain org.geotoolkit.observation.model.ProcedureDataset} to avoid adding the dependency to the geotk module.
+ * 
  * @author Guilhem Legal (Geomatys)
  */
-public class ProcedureTree {
+public class ProcedureDataset {
 
     private String id;
 
@@ -43,7 +44,7 @@ public class ProcedureTree {
 
     protected String omType;
 
-    private List<ProcedureTree> children = new ArrayList<>();
+    private List<ProcedureDataset> children = new ArrayList<>();
 
     private List<String> fields = new ArrayList<>();
 
@@ -60,11 +61,11 @@ public class ProcedureTree {
 
     private Map<Date, Geometry> historicalLocations = new HashMap<>();
 
-    public ProcedureTree() {
+    public ProcedureDataset() {
 
     }
 
-    public ProcedureTree(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
+    public ProcedureDataset(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -113,14 +114,14 @@ public class ProcedureTree {
     /**
      * @return the children
      */
-    public List<ProcedureTree> getChildren() {
+    public List<ProcedureDataset> getChildren() {
         return children;
     }
 
     /**
      * @param children the children to set
      */
-    public void setChildren(List<ProcedureTree> children) {
+    public void setChildren(List<ProcedureDataset> children) {
         this.children = children;
     }
 
@@ -343,7 +344,7 @@ public class ProcedureTree {
         }
         if (children != null) {
             sb.append("children:\n");
-            for (ProcedureTree child : children) {
+            for (ProcedureDataset child : children) {
                 sb.append(child.id).append("\n");
             }
         }
@@ -359,7 +360,7 @@ public class ProcedureTree {
             return false;
         }
         if (this.getClass() == object.getClass()) {
-            final ProcedureTree that = (ProcedureTree) object;
+            final ProcedureDataset that = (ProcedureDataset) object;
             return Objects.equals(this.id,           that.id)   &&
                    Objects.equals(this.dateEnd,      that.dateEnd)   &&
                    Objects.equals(this.name,         that.name)   &&

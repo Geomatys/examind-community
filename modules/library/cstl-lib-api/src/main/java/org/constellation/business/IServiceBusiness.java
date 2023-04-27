@@ -309,12 +309,36 @@ public interface IServiceBusiness {
     /**
      * Return the provider identifiers linked to this service.
      *
-     * @param serviceID
-     * @return
+     * @param serviceID A service identifier.
+     * @return A List of provider identifiers.
      */
     List<Integer> getLinkedProviders(final Integer serviceID);
 
+    /**
+     * Return All the sensor services including the specified sensor.
+     * 
+     * @param sensorID A sensor identifier
+     * @return A List of services.
+     * 
+     */
     List<Service> getSensorLinkedServices(final Integer sensorID) throws ConfigurationException;
+
+    /**
+     * Return All the sensor services using the specified provider.
+     *
+     * @param providerId A provider identifier
+     * @return A List of services.
+     *
+     */
+    List<Service> getProviderLinkedSensorServices(final Integer providerId);
+
+    /**
+     * Return the sensor services (STA, SOS, ...) where the specified Data is published through its sensor.
+     *
+     * @param dataId A data identifier.
+     * @return A list of services.
+     */
+    List<Service> getDataLinkedSensorServices(int dataId);
 
     /**
      * Link a service and a provider

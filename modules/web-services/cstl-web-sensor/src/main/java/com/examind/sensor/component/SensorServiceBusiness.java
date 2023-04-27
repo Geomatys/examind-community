@@ -39,15 +39,18 @@ import org.constellation.provider.ObservationProvider;
 import org.constellation.provider.SensorProvider;
 import com.examind.sensor.ws.SensorUtils;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.sis.util.collection.BackingStoreException;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IDataBusiness;
-import org.constellation.dto.service.config.sos.ExtractionResult;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.Service;
+import org.constellation.dto.service.config.sos.ObservationDataset;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -117,7 +120,7 @@ public class SensorServiceBusiness {
         }
 
         try {
-            int smlProviderId = getSensorProviderId(serviceID);
+            int smlProviderId = getSensorProviderId(serviceID, SensorProvider.class);
             for (Path importedFile: files) {
                 if (importedFile != null) {
                     final Object sensor = sensorBusiness.unmarshallSensor(importedFile);
@@ -291,59 +294,98 @@ public class SensorServiceBusiness {
         }
     }
 
-    public void removeDataObservationsFromService(final Integer sid, final Integer dataID) throws ConstellationException {
+    /**
+     * Return the observation provider linked to the specified data.
+     *
+     * @param dataID Data identifier.
+     *
+     * @return An observation provider.
+     *
+     * @throws ConfigurationException If the data does not exist, or if the data provider is not an observation one.
+     */
+    private ObservationProvider getDataObservationProvider(Integer dataID) throws ConfigurationException {
         final Integer providerId = dataBusiness.getDataProvider(dataID);
+        if (providerId == null) throw new TargetNotFoundException("The specified data does not exist");
+        final DataProvider dataProvider = DataProviders.getProvider(providerId);
+        if (dataProvider instanceof ObservationProvider omProvider) return omProvider;
+        throw new ConfigurationException("data provider is not an observation store.");
+    }
+    
+    /**
+     * Remove an observation data from all the services in which the data is integrated.
+     * 
+     * @param dataID Data identifier.
+     *
+     * @throws ConstellationException If the data does not exist, or if the data provider is not an observation one.
+     */
+    public void removeDataObservationsFromServices(final Integer dataID) throws ConstellationException {
+        final ObservationProvider omProvider = getDataObservationProvider(dataID);
+        List<Service> services = serviceBusiness.getDataLinkedSensorServices(dataID);
+        removeDataObservationsFromServices(services, omProvider);
+    }
 
-        if (providerId != null) {
-            final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
+    /**
+     * Remove an observation data from a service in which the data is integrated.
+     * however some sensor service share their provider so the removal can occurs on multiple service
+     *
+     * @param sid service identifier.
+     * @param dataID data identifier.
+     * 
+     * @throws ConstellationException  If the data does not exist, or if the data provider is not an observation one.
+     */
+    public void removeDataObservationsFromService(final Integer sid, final Integer dataID) throws ConstellationException {
+        final ObservationProvider omProvider = getDataObservationProvider(dataID);
+        final Integer serviceProviderId = getSensorProviderId(sid, ObservationProvider.class);
+        List<Service> services = serviceBusiness.getProviderLinkedSensorServices(serviceProviderId);
+        removeDataObservationsFromServices(services, omProvider);
+    }
 
-                // remove from O&M database
-                for (Observation obs : result.getObservations()) {
-                    if (obs.getName() != null) {
-                        removeSingleObservation(sid, obs.getName().getCode());
-                    }
-                }
+    private void removeDataObservationsFromServices(final List<Service> services, final ObservationProvider omProvider) throws ConstellationException {
+        // multiple services can use the same provider.
+        // so we list the providers linked to the service and then remove the data from them
+        Map<String, List<String>> removedSensors = new HashMap<>();
+        for (Service service : services) {
+            final ObservationProvider serviceProvider = getSensorProvider(service.getId(), ObservationProvider.class);
+
+            // 1. perform the removal on the provider
+            List<String> removedSensor;
+            if (!removedSensors.containsKey(serviceProvider.getId())) {
+                final ObservationDataset dataset = omProvider.extractResults(new DatasetQuery());
+                removedSensor = serviceProvider.removeDataset(dataset);
+                removedSensors.put(serviceProvider.getId(), removedSensor);
             } else {
-                throw new ConfigurationException("provider is not an observation store.");
+                removedSensor = removedSensors.get(serviceProvider.getId());
             }
-        } else {
-            throw new TargetNotFoundException("The specified data does not exist");
+
+            // 2; unlink the sensors from the service in database
+            for (String sensorId : removedSensor) {
+                Sensor s = sensorBusiness.getSensor(sensorId);
+                sensorBusiness.removeSensorFromService(service.getId(), s.getId());
+            }
         }
     }
 
     public void importObservationsFromData(final Integer sid, final Integer dataID) throws ConstellationException {
-        final Integer providerId = dataBusiness.getDataProvider(dataID);
+        final ObservationProvider omProvider = getDataObservationProvider(dataID);
+        final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
 
-        if (providerId != null) {
-            final DataProvider provider = DataProviders.getProvider(providerId);
-            if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults(new DatasetQuery());
+        // import in O&M database
+        importObservations(sid, result.getObservations(), result.getPhenomenons());
 
-                // import in O&M database
-                importObservations(sid, result.getObservations(), result.getPhenomenons());
-
-                // SensorML generation
-                for (ProcedureTree process : result.getProcedures()) {
-                    generateSensor(process, sid, null, dataID);
-                    updateSensorLocation(sid, process);
-                }
-            } else {
-                throw new ConfigurationException("provider is not an observation store.");
-            }
-        } else {
-            throw new TargetNotFoundException("The specified data does not exist");
+        // SensorML generation
+        for (ProcedureDataset process : result.getProcedures()) {
+            generateSensor(process, sid, null, dataID);
+            updateSensorLocation(sid, process);
         }
     }
 
-    private void updateSensorLocation(final Integer serviceId, final ProcedureTree process) throws ConfigurationException {
+    private void updateSensorLocation(final Integer serviceId, final ProcedureDataset process) throws ConfigurationException {
         //record location
         final Geometry geom = process.getGeom();
         if (geom != null) {
             updateSensorLocation(serviceId, process.getId(), geom);
         }
-        for (ProcedureTree child : process.getChildren()) {
+        for (ProcedureDataset child : process.getChildren()) {
             updateSensorLocation(serviceId, child);
         }
     }
@@ -382,7 +424,7 @@ public class SensorServiceBusiness {
         }
     }
 
-    public void writeProcedure(final Integer id, final ProcedureTree procedure) throws ConfigurationException {
+    public void writeProcedure(final Integer id, final ProcedureDataset procedure) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.writeProcedure(procedure);
@@ -457,8 +499,8 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Integer generateSensor(final ProcedureTree process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
-        Integer smlId = getSensorProviderId(serviceID);
+    public Integer generateSensor(final ProcedureDataset process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
+        Integer smlId = getSensorProviderId(serviceID, SensorProvider.class);
         return sensorBusiness.generateSensor(process, smlId, parentID, dataID);
     }
 
@@ -469,7 +511,7 @@ public class SensorServiceBusiness {
         final List<String> sensorIds      = new ArrayList<>();
         final List<Integer> dataProviders = new ArrayList<>();
 
-        // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+        // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M dataProvider
         if (!previous.contains(sensorID)) {
             dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(sensor.getId()));
         }
@@ -479,7 +521,7 @@ public class SensorServiceBusiness {
 
         //import sensor children
         for (Sensor child : sensorChildren) {
-            // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M provider
+            // hack for not importing already inserted sensor. must be reviewed when the SOS/STS service will share an O&M dataProvider
             if (!previous.contains(child.getIdentifier())) {
                 dataProviders.addAll(sensorBusiness.getLinkedDataProviderIds(child.getId()));
             }
@@ -487,7 +529,7 @@ public class SensorServiceBusiness {
             sensorIds.add(child.getIdentifier());
         }
 
-        // look for provider ids (remove doublon)
+        // look for dataProvider ids (remove doublon)
         final Set<Integer> providerIDs = new HashSet<>();
         for (Integer dataProvider : dataProviders) {
             providerIDs.add(dataProvider);
@@ -497,10 +539,10 @@ public class SensorServiceBusiness {
         for (Integer providerId : providerIDs) {
             final DataProvider provider = DataProviders.getProvider(providerId);
             if (provider instanceof ObservationProvider omProvider) {
-                final ExtractionResult result = omProvider.extractResults(new DatasetQuery(sensorIds));
+                final ObservationDataset result = omProvider.extractResults(new DatasetQuery(sensorIds));
 
                 // update sensor location
-                for (ProcedureTree process : result.getProcedures()) {
+                for (ProcedureDataset process : result.getProcedures()) {
                     writeProcedure(id, process);
                 }
 
@@ -516,7 +558,7 @@ public class SensorServiceBusiness {
     public SensorMLTree getServiceSensorMLTree(Integer id) throws ConstellationException {
         if (isDirectProviderMode(id)) {
             SensorProvider sp = getSensorProvider(id, SensorProvider.class);
-            Integer sid       = getSensorProviderId(id);
+            Integer sid       = getSensorProviderId(id, SensorProvider.class);
             List<SensorMLTree> ss = sp.getKeys().stream()
                                 .map(gn -> getData(sp, gn))
                                 .map(sd -> SensorUtils.getSensorFromData(sd, sid))
@@ -573,24 +615,25 @@ public class SensorServiceBusiness {
         }
     }
 
-    private Integer getSensorProviderId(final Integer serviceID) throws ConfigurationException {
+    private <T> Integer getSensorProviderId(final Integer serviceID, Class<T> c) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
-            if(p instanceof SensorProvider){
-                // TODO for now we only take one provider by type
+            if (c.isInstance(p)) {
+                // TODO for now we only take one dataProvider by type
                 return providerID;
             }
         }
         throw new ConfigurationException("there is no sensor provider linked to this ID:" + serviceID);
     }
 
+
     private <T> T getSensorProvider(final Integer serviceID, Class<T> c) throws ConfigurationException {
         final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
         for (Integer providerID : providers) {
             final DataProvider p = DataProviders.getProvider(providerID);
             if(c.isInstance(p)){
-                // TODO for now we only take one provider by type
+                // TODO for now we only take one dataProvider by type
                 return (T) p;
             }
         }

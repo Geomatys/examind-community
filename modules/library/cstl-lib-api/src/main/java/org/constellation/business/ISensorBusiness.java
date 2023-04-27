@@ -26,7 +26,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.SensorReference;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationException;
 
@@ -191,6 +191,6 @@ public interface ISensorBusiness {
      * @return the root sensor id.
      * @throws ConfigurationException
      */
-    Integer generateSensor(final ProcedureTree process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException;
+    Integer generateSensor(final ProcedureDataset process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException;
 
 }

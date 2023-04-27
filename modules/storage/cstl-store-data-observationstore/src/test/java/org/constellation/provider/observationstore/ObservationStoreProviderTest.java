@@ -39,7 +39,7 @@ import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.Offering;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
@@ -135,7 +135,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     public void getProcedureTreesTest() throws Exception {
         assertNotNull(omPr);
 
-        List<ProcedureTree> procs = omPr.getProcedureTrees(null);
+        List<ProcedureDataset> procs = omPr.getProcedureTrees(null);
         assertEquals(TOTAL_NB_SENSOR + 1, procs.size());
 
         Set<String> resultIds = new HashSet<>();

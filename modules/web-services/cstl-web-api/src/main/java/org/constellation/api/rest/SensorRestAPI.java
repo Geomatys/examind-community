@@ -66,7 +66,7 @@ import org.constellation.provider.DataProviders;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.ObservationProvider;
@@ -289,7 +289,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             LOGGER.log(Level.WARNING, "Error while accessing provider", ex);
             return new ErrorMessage(ex).message("Error while accessing provider.").build();
         }
-        final List<ProcedureTree> procedures;
+        final List<ProcedureDataset> procedures;
         try {
             if (provider instanceof ObservationProvider) {
                 procedures = ((ObservationProvider)provider).getProcedureTrees(null);
@@ -304,7 +304,7 @@ public class SensorRestAPI extends AbstractRestAPI {
         // Sensor generation
         try {
             final Integer smlProviderId = sensorBusiness.getDefaultInternalProviderID();
-            for (ProcedureTree process : procedures) {
+            for (ProcedureDataset process : procedures) {
                 sensorBusiness.generateSensor(process, smlProviderId, null, dataId);
             }
             IOUtils.write("The sensors has been succesfully generated", response.getOutputStream(), StandardCharsets.UTF_8);

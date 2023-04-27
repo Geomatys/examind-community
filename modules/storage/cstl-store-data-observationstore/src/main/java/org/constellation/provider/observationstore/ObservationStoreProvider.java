@@ -37,7 +37,7 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.util.Utilities;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.dto.service.config.sos.Offering;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.IndexedNameDataProvider;
@@ -45,7 +45,7 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.ObservationStore;
-import org.constellation.dto.service.config.sos.ExtractionResult;
+import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.storage.DataStores;
@@ -138,7 +138,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public List<ProcedureTree> getProcedureTrees(Query q) throws ConstellationStoreException {
+    public List<ProcedureDataset> getProcedureTrees(Query q) throws ConstellationStoreException {
         if (q == null) {
             q = new DatasetQuery();
         } else if (!(q instanceof DatasetQuery)){
@@ -396,7 +396,16 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public void writeProcedure(ProcedureTree procedure) throws ConstellationStoreException {
+    public List<String> removeDataset(ObservationDataset dataset) throws ConstellationStoreException {
+        try {
+            return ((ObservationStore)getMainStore()).getWriter().removeDataSet(toGeotk(dataset));
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException(ex);
+        }
+    }
+
+    @Override
+    public void writeProcedure(ProcedureDataset procedure) throws ConstellationStoreException {
         try {
             ((ObservationStore)getMainStore()).getWriter().writeProcedure(toGeotk(procedure));
         } catch (DataStoreException ex) {
@@ -524,7 +533,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public ExtractionResult extractResults(Query query) throws ConstellationStoreException {
+    public ObservationDataset extractResults(Query query) throws ConstellationStoreException {
         try {
             DatasetQuery dq = new DatasetQuery();
             if (query instanceof DatasetQuery dqq) {
@@ -532,7 +541,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             } else if (query != null) {
                 throw new ConstellationStoreException("Only DatasetQuery are supported");
             }
-            ExtractionResult results = toDto(((ObservationStore)getMainStore()).getDataset(dq));
+            ObservationDataset results = toDto(((ObservationStore)getMainStore()).getDataset(dq));
             return results;
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
@@ -540,18 +549,25 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
 
-    private ExtractionResult toDto(org.geotoolkit.observation.model.ObservationDataset ext) {
-        final List<ProcedureTree> procedures = new ArrayList<>();
+    private ObservationDataset toDto(org.geotoolkit.observation.model.ObservationDataset ext) {
+        final List<ProcedureDataset> procedures = new ArrayList<>();
         for (org.geotoolkit.observation.model.ProcedureDataset pt: ext.procedures) {
             procedures.add(toDto(pt));
         }
-        return new ExtractionResult(new ArrayList<>(ext.observations), new ArrayList<>(ext.phenomenons), new ArrayList<>(ext.featureOfInterest), procedures);
+        ObservationDataset result = new ObservationDataset(new ArrayList<>(ext.observations), new ArrayList<>(ext.phenomenons), new ArrayList<>(ext.featureOfInterest), procedures);
+        result.setDateStart(ext.spatialBound.dateStart);
+        result.setDateEnd(ext.spatialBound.dateEnd);
+        result.setMinx(ext.spatialBound.minx);
+        result.setMiny(ext.spatialBound.miny);
+        result.setMaxx(ext.spatialBound.maxx);
+        result.setMaxy(ext.spatialBound.maxy);
+        return result;
     }
 
-    private ProcedureTree toDto(org.geotoolkit.observation.model.ProcedureDataset pt) {
+    private ProcedureDataset toDto(org.geotoolkit.observation.model.ProcedureDataset pt) {
         GeoSpatialBound bound = pt.spatialBound;
         final Geometry geom = bound.getLastGeometry();
-        ProcedureTree result  = new ProcedureTree(pt.getId(),
+        ProcedureDataset result  = new ProcedureDataset(pt.getId(),
                                                   pt.getName(),
                                                   pt.getDescription(),
                                                   pt.type,
@@ -573,21 +589,35 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         return result;
     }
 
-    private org.geotoolkit.observation.model.ProcedureDataset toGeotk(ProcedureTree pt) {
-        if (pt != null) {
-            org.geotoolkit.observation.model.ProcedureDataset result =
-                    new org.geotoolkit.observation.model.ProcedureDataset(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields(), null);
-            result.spatialBound.addDate(pt.getDateStart());
-            result.spatialBound.addDate(pt.getDateEnd());
-            result.spatialBound.addGeometry(pt.getGeom());
-            result.spatialBound.getHistoricalLocations().putAll( pt.getHistoricalLocations());
+    private org.geotoolkit.observation.model.ProcedureDataset toGeotk(ProcedureDataset pt) {
+        if (pt == null) return null;
+        org.geotoolkit.observation.model.ProcedureDataset result =
+                new org.geotoolkit.observation.model.ProcedureDataset(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields(), null);
+        result.spatialBound.addDate(pt.getDateStart());
+        result.spatialBound.addDate(pt.getDateEnd());
+        result.spatialBound.addGeometry(pt.getGeom());
+        result.spatialBound.getHistoricalLocations().putAll( pt.getHistoricalLocations());
 
-            for (ProcedureTree child : pt.getChildren()) {
-                result.children.add(toGeotk(child));
-            }
-            return result;
+        for (ProcedureDataset child : pt.getChildren()) {
+            result.children.add(toGeotk(child));
         }
-        return null;
+        return result;
+    }
+
+    private org.geotoolkit.observation.model.ObservationDataset toGeotk(ObservationDataset ods) {
+        if (ods == null) return null;
+        org.geotoolkit.observation.model.ObservationDataset result = new org.geotoolkit.observation.model.ObservationDataset();
+        result.featureOfInterest.addAll(ods.getFeatureOfInterest().stream().map(f -> (org.geotoolkit.observation.model.SamplingFeature) f).toList());
+        result.observations.addAll(ods.getObservations().stream().map(f -> (org.geotoolkit.observation.model.Observation) f).toList());
+        // TODO offering ?
+        result.phenomenons.addAll(ods.getPhenomenons().stream().map(f -> (org.geotoolkit.observation.model.Phenomenon) f).toList());
+        result.procedures.addAll(ods.getProcedures().stream().map(f -> toGeotk(f)).toList());
+
+        result.spatialBound.addDate(ods.getDateStart());
+        result.spatialBound.addDate(ods.getDateEnd());
+        result.spatialBound.addXYCoordinate(ods.getMinx(), ods.getMiny());
+        result.spatialBound.addXYCoordinate(ods.getMaxx(), ods.getMaxy());
+        return result;
     }
 
     @Override

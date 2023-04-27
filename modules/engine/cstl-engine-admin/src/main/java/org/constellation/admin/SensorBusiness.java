@@ -69,7 +69,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.dto.SensorReference;
 import org.constellation.business.IUserBusiness;
-import org.constellation.dto.service.config.sos.ProcedureTree;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
@@ -641,7 +641,7 @@ public class SensorBusiness implements ISensorBusiness {
      */
     @Override
     @Transactional
-    public Integer generateSensor(final ProcedureTree process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException {
+    public Integer generateSensor(final ProcedureDataset process, Integer providerID, final String parentID, final Integer dataID) throws ConfigurationException {
         
         if (providerID == null) {
             providerID = getDefaultInternalProviderID();
@@ -672,7 +672,7 @@ public class SensorBusiness implements ISensorBusiness {
         }
 
         final List<String> component = new ArrayList<>();
-        for (ProcedureTree child : process.getChildren()) {
+        for (ProcedureDataset child : process.getChildren()) {
             component.add(child.getId());
             generateSensor(child, providerID, process.getId(), dataID);
         }

@@ -66,9 +66,17 @@ public class ObservationTestUtils {
 
     public static void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
         if (result instanceof Period tResult) {
-            String msg = "expected <" + begin + '/' + end + "> but was <" +  ISO_8601_FORMATTER.format(tResult.getBeginning().getDate()) + "/" + ISO_8601_FORMATTER.format(tResult.getEnding().getDate()) + ">\n";
-            assertEquals(msg, ISO_8601_FORMATTER.parse(begin), tResult.getBeginning().getDate());
-            assertEquals(msg, ISO_8601_FORMATTER.parse(end),   tResult.getEnding().getDate());
+            assertPeriodEquals(begin, end, tResult.getBeginning().getDate(), tResult.getEnding().getDate());
+        } else {
+            throw new AssertionError("Not a time period");
+        }
+    }
+
+    public static void assertPeriodEquals(String begin, String end, Date dateStart, Date dateEnd) throws ParseException {
+        if (dateStart != null && dateEnd != null) {
+            String msg = "expected <" + begin + '/' + end + "> but was <" +  ISO_8601_FORMATTER.format(dateStart) + "/" + ISO_8601_FORMATTER.format(dateEnd) + ">\n";
+            assertEquals(msg, ISO_8601_FORMATTER.parse(begin), dateStart);
+            assertEquals(msg, ISO_8601_FORMATTER.parse(end),   dateEnd);
         } else {
             throw new AssertionError("Not a time period");
         }

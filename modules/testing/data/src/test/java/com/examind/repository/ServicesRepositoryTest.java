@@ -29,6 +29,7 @@ import org.constellation.dto.ServiceReference;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.ProviderRepository;
+import org.constellation.repository.SensorRepository;
 import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -45,6 +46,9 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
 
     @Autowired
     private LayerRepository layerRepository;
+
+    @Autowired
+    private SensorRepository sensorRepository;
 
     public void all() {
         dump(serviceRepository.findAll());
@@ -68,6 +72,9 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
 
         Integer pid2 = providerRepository.create(TestSamples.newProvider(owner.getId()));
         Assert.assertNotNull(pid2);
+
+        Integer did2 = dataRepository.create(TestSamples.newData2(owner.getId(), pid1, null));
+        Assert.assertNotNull(did2);
 
         Integer pid3 = providerRepository.create(TestSamples.newProvider2(owner.getId()));
         Assert.assertNotNull(pid3);
@@ -134,7 +141,10 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
                 "</ns2:details>";
         serviceRepository.createOrUpdateServiceDetails(sid3, "fr", xmlFR, false);
 
-        
+        Integer sensId1 = sensorRepository.create(TestSamples.newSensor(owner.getId(), "sensor1"));
+        Assert.assertNotNull(sid1);
+        sensorRepository.linkDataToSensor(did2, sensId1);
+        sensorRepository.linkSensorToService(sensId1, sid1);
 
         /**
          * service search.
@@ -152,15 +162,6 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
 
         Assert.assertEquals(s3,         serviceRepository.findByIdentifierAndType("te'; delete * from st", "wms"));
         Assert.assertEquals(s3.getId(), serviceRepository.findIdByIdentifierAndType("te'; delete * from st", "wms"));
-
-        List<ServiceReference> refs = serviceRepository.fetchByDataId(did1);
-        Assert.assertEquals(1, refs.size());
-        Assert.assertEquals(new ServiceReference(s1), refs.get(0));
-
-
-        services = serviceRepository.findByDataId(did1);
-        Assert.assertEquals(1, services.size());
-        Assert.assertEquals(s1, services.get(0));
 
         Assert.assertEquals("impl1",   serviceRepository.getImplementation(sid1));
         Assert.assertEquals("impl''3", serviceRepository.getImplementation(sid3));
@@ -185,12 +186,27 @@ public class ServicesRepositoryTest extends AbstractRepositoryTest {
          * sensor provider link.
          */
         Assert.assertTrue(serviceRepository.getLinkedSensorProviders(sid2, null).contains(pid3));
-        Assert.assertTrue(serviceRepository.getLinkedSOSServices(pid3).contains(s2));
+        Assert.assertTrue(serviceRepository.getProviderLinkedSensorServices(pid3).contains(s2));
 
         serviceRepository.removelinkedSensorProviders(sid2);
 
         Assert.assertFalse(serviceRepository.getLinkedSensorProviders(sid2, null).contains(pid3));
-        Assert.assertFalse(serviceRepository.getLinkedSOSServices(pid3).contains(s2));
+        Assert.assertFalse(serviceRepository.getProviderLinkedSensorServices(pid3).contains(s2));
+
+        /**
+         * data link.
+         */
+        List<ServiceReference> refs = serviceRepository.fetchByDataId(did1);
+        Assert.assertEquals(1, refs.size());
+        Assert.assertEquals(new ServiceReference(s1), refs.get(0));
+
+        services = serviceRepository.findByDataId(did1);
+        Assert.assertEquals(1, services.size());
+        Assert.assertEquals(s1, services.get(0));
+
+        services = serviceRepository.getDataLinkedSensorServices(did2);
+        Assert.assertEquals(1, services.size());
+        Assert.assertEquals(s1, services.get(0));
 
         /**
          * service details.

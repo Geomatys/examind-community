@@ -67,9 +67,29 @@ public interface ServiceRepository extends AbstractRepository {
 
     List<Integer> getLinkedSensorProviders(Integer serviceId, String type);
 
-    List<Service> getLinkedSOSServices(Integer providerId);
+    /**
+     * Return the sensor services (STA, SOS, ...) linked to the specified provider.
+     * 
+     * @param providerId Provider identifier.
+     * @return A list of services.
+     */
+    List<Service> getProviderLinkedSensorServices(Integer providerId);
 
-    List<Service> getSensorLinkedServices(int sensorId);
+    /**
+     * Return the sensor services (STA, SOS, ...) where the specified sensor is published.
+     *
+     * @param sensorId A sensor identifier.
+     * @return A list of services.
+     */
+    List<Service> getSensorLinkedSensorServices(int sensorId);
+
+    /**
+     * Return the sensor services (STA, SOS, ...) where the specified Data is published through its sensor.
+     *
+     * @param dataId A data identifier.
+     * @return A list of services.
+     */
+    List<Service> getDataLinkedSensorServices(int dataId);
 
     void linkSensorProvider(int serviceId, int providerID, boolean allSensor);
 
