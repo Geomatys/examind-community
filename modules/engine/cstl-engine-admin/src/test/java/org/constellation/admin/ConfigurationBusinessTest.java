@@ -27,7 +27,7 @@ public class ConfigurationBusinessTest extends AbstractBusinessTest {
 
     @Test
     public void cannotRemoveBadDirectory() throws IOException {
-        Files.createDirectories(configBusiness.getDataIntegratedDirectory(null));
+        Files.createDirectories(configBusiness.getDataIntegratedDirectory(null, true));
         final String[] candidates = { "", null, ".", "..", "./../.", "/" };
         for (String candidate : candidates) {
             try {
@@ -35,7 +35,7 @@ public class ConfigurationBusinessTest extends AbstractBusinessTest {
                 Assert.fail("We should not be able to delete a parent folder of any provider. Input provider Id was: "+candidate);
             } catch (IllegalArgumentException e) {
                 // That's the expected behavior. Just check that root directory still exists.
-                Assert.assertTrue(Files.exists(configBusiness.getDataIntegratedDirectory(null)));
+                Assert.assertTrue(Files.exists(configBusiness.getDataIntegratedDirectory(null, false)));
             }
         }
     }

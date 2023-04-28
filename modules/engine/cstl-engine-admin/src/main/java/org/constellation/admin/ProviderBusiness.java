@@ -39,6 +39,7 @@ import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
 import static org.constellation.business.ClusterMessageConstant.*;
+import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
@@ -61,6 +62,7 @@ import org.constellation.provider.MetadataProvider;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
 import org.constellation.repository.DataRepository;
+import org.constellation.repository.DatasourceRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
 import org.constellation.repository.StyleRepository;
@@ -116,6 +118,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private IDatasourceBusiness datasourceBusiness;
+
+    @Inject
+    private DatasourceRepository datasourceRepository;
 
     @Override
     public List<ProviderBrief> getProviders() {
@@ -207,8 +212,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
         //delete provider folder
         //TODO : not hazelcast compatible
+        boolean fileRemoved = false;
         try {
-            configBusiness.removeDataIntegratedDirectory(provider.getIdentifier());
+            fileRemoved = configBusiness.removeDataIntegratedDirectory(provider.getIdentifier());
         } catch (InvalidPathException e) {
             // Note: the provider try to remove an associated integration directory even when none is available.
             // In case of a provider that does not use any directory, and if its name contains invalid file characters,
@@ -216,6 +222,12 @@ public class ProviderBusiness implements IProviderBusiness {
             // provider cannot have created the directory previously, so it is of no consequence.
             LOGGER.log(Level.FINE, "Cannot delete provider associated directory: invalid file path", e);
         }
+
+        // change the integrated datasource path status:
+        //  - "REMOVED" if the file has been removed from the filesystem
+        //  - "PENDING" if the file is still present. meaning it can be re-integratd again
+        PathStatus newStatus = fileRemoved  ? PathStatus.REMOVED : PathStatus.PENDING;
+        datasourceRepository.updateAfterProviderRemoval(identifier, newStatus.name());
     }
 
     @Override

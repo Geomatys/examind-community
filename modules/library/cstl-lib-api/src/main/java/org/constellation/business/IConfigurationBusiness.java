@@ -83,21 +83,22 @@ public interface IConfigurationBusiness {
     /**
      * Return the data integrated / provider directory.
      * If the parameter "providerId" is {@code null}, return the complete data integrated folder.
-     * If set and if the provider folder does not exist, it will be created.
      *
      * @param providerId Provider identifier.
+     * @param create if {@code true} the directory will be created if it don't already exist.
      * @return never {@code null}.
      *
      * @throws IOException
      */
-    Path getDataIntegratedDirectory(String providerId) throws IOException;
+    Path getDataIntegratedDirectory(String providerId, boolean create) throws IOException;
 
     /**
      * Remove recusively the provider directory.
      *
      * @param providerId Provider identifier, must not be {@code null}.
+     * @return {@code true} if the directory has been removed.
      */
-    void removeDataIntegratedDirectory(String providerId);
+    boolean removeDataIntegratedDirectory(String providerId);
 
     /**
      * Return the assignated user upload directory.

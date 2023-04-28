@@ -190,14 +190,16 @@ public final class ConfigDirectory {
      * constellation.properties or by default on .constellation-data/integrated/
      * from user home directory for given provider.
      *
+     * @param providerId The provider identifier. will be used as the directory name.
+     * @param create if {@code true} the directory will be created if it don't already exist.
      * @return providers directory as {@link java.nio.file.Path}
      * @throws IOException if provider directory creation failed
      */
-    public static Path getDataIntegratedDirectory(String providerId) throws IOException {
+    public static Path getDataIntegratedDirectory(String providerId, boolean create) throws IOException {
         final Path rootFolder = getDataIntegratedDirectory().normalize();
         final Path f = rootFolder.resolve(providerId).normalize();
         if (!f.startsWith(rootFolder)) throw new IllegalArgumentException("Invalid provider ID: "+providerId);
-        if (!Files.isDirectory(f)) {
+        if (create && !Files.isDirectory(f)) {
             Files.createDirectories(f);
         }
         return f;

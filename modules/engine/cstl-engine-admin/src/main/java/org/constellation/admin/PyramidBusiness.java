@@ -433,7 +433,7 @@ public class PyramidBusiness implements IPyramidBusiness {
         try {
             //create the output folder for pyramid if not supplied
             if (pyramidDirectory == null) {
-                pyramidDirectory = configBusiness.getDataIntegratedDirectory(pyramidProviderId);
+                pyramidDirectory = configBusiness.getDataIntegratedDirectory(pyramidProviderId, true);
             }
 
             final DataProviderFactory factory = DataProviders.getFactory("data-store");

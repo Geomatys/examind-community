@@ -41,6 +41,8 @@ import com.examind.database.api.jooq.tables.pojos.DatasourcePath;
 import com.examind.database.api.jooq.tables.pojos.DatasourceStore;
 import com.examind.database.api.jooq.tables.records.DatasourcePathRecord;
 import com.examind.database.api.jooq.tables.records.DatasourceRecord;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -404,6 +406,16 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
                   .from(DATASOURCE_SELECTED_PATH)
                   .where(DATASOURCE_SELECTED_PATH.PROVIDER_ID.eq(providerId));
             return convertListToDtoPath(query.fetchInto(DatasourceSelectedPath.class));
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void updateAfterProviderRemoval(int providerId, String newStatus) {
+        dsl.update(DATASOURCE_SELECTED_PATH)
+           .set(DATASOURCE_SELECTED_PATH.PROVIDER_ID, -1)
+           .set(DATASOURCE_SELECTED_PATH.STATUS, newStatus)
+           .where(DATASOURCE_SELECTED_PATH.PROVIDER_ID.eq(providerId))
+           .execute();
     }
 
     private DataSource convertToDto(Datasource ds) {

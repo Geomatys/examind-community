@@ -53,22 +53,30 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
         return ConfigDirectory.getDataDirectory();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Path getDataIntegratedDirectory(String providerId) throws IOException {
+    public Path getDataIntegratedDirectory(String providerId, boolean create) throws IOException {
         if (providerId == null) {
             return ConfigDirectory.getDataIntegratedDirectory();
         }
-        return ConfigDirectory.getDataIntegratedDirectory(providerId);
+        return ConfigDirectory.getDataIntegratedDirectory(providerId, create);
     }
 
     @Override
-    public void removeDataIntegratedDirectory(String providerId) {
+    public boolean removeDataIntegratedDirectory(String providerId) {
+        boolean result = false;
         try {
-            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId);
-            org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
+            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId, false);
+            if (Files.exists(provDir)) {
+                org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
+                result = true;
+            }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Error during delete data on FS for provider {0}", providerId);
         }
+        return result;
     }
 
     @Override

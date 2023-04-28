@@ -1100,7 +1100,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
         final Path providerDir;
         try {
-            providerDir = configBusiness.getDataIntegratedDirectory(provId);
+            providerDir = configBusiness.getDataIntegratedDirectory(provId, true);
         } catch (IOException ex) {
             throw new UncheckedIOException("Cannot create provider root directory", ex);
         }

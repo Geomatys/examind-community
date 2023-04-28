@@ -77,30 +77,38 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
         return folder;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Path getDataIntegratedDirectory(String providerId) throws IOException {
+    public Path getDataIntegratedDirectory(String providerId, boolean create) throws IOException {
         if (providerId == null) {
             return ConfigDirectory.getDataIntegratedDirectory();
         }
-        return ConfigDirectory.getDataIntegratedDirectory(providerId);
+        return ConfigDirectory.getDataIntegratedDirectory(providerId, create);
     }
 
     @Override
-    public void removeDataIntegratedDirectory(String providerId) {
+    public boolean removeDataIntegratedDirectory(String providerId) {
+        boolean result = false;
         if (providerId == null || providerId.isEmpty()) {
             throw new IllegalArgumentException("ProviderId must not be null or empty");
         }
         try {
-            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId).normalize();
+            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId, false).normalize();
             final Path baseDir = ConfigDirectory.getDataIntegratedDirectory().normalize();
             // Security: if given "." or ".." or any fragment allowing to resolve directory upstream, launch an error to prevent data corruption
             if (!provDir.startsWith(baseDir) || baseDir.startsWith(provDir)) {
                 throw new IllegalArgumentException("Given provider ID is invalid");
             }
-            org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
+            if (Files.exists(provDir)) {
+                org.geotoolkit.nio.IOUtilities.deleteRecursively(provDir);
+                result = true;
+            }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Error during delete data on FS for provider: {0}", providerId);
         }
+        return result;
     }
 
     @Override
