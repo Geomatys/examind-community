@@ -32,6 +32,8 @@ public interface SensorRepository extends AbstractRepository {
     Sensor findById(Integer id);
 
     List<String> getDataLinkedSensors(Integer dataID);
+    
+    List<Integer> getDataLinkedSensorIds(Integer dataID);
 
     List<Integer> getLinkedDatas(Integer sensorID);
 
@@ -56,6 +58,8 @@ public interface SensorRepository extends AbstractRepository {
     void linkDataToSensor(Integer dataId, Integer sensorId);
 
     void unlinkDataToSensor(Integer dataId, Integer sensorId);
+
+    void unlinkAllDataSensor(Integer dataId);
     
     boolean isLinkedDataToSensor(Integer dataId, Integer sensorId);
 

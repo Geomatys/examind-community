@@ -59,6 +59,12 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     }
 
     @Override
+    public List<Integer> getDataLinkedSensorIds(Integer dataID) {
+        return dsl.select(SENSOR.ID).from(SENSOR).join(SENSORED_DATA).onKey()
+                .where(SENSORED_DATA.DATA.eq(dataID)).fetch(SENSOR.ID);
+    }
+
+    @Override
     public List<Integer> getLinkedDatas(Integer sensorID) {
         return dsl.select(DATA.ID).from(DATA).join(SENSORED_DATA).onKey()
                 .where(SENSORED_DATA.SENSOR.eq(sensorID)).fetchInto(Integer.class);
@@ -186,6 +192,12 @@ public class JooqSensorRepository extends AbstractJooqRespository<SensorRecord, 
     @Transactional(propagation = Propagation.MANDATORY)
     public void unlinkDataToSensor(Integer dataId, Integer sensorId) {
         dsl.delete(SENSORED_DATA).where(SENSORED_DATA.DATA.eq(dataId)).and(SENSORED_DATA.SENSOR.eq(sensorId)).execute();
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void unlinkAllDataSensor(Integer dataId) {
+        dsl.delete(SENSORED_DATA).where(SENSORED_DATA.DATA.eq(dataId)).execute();
     }
 
     @Override

@@ -705,13 +705,23 @@ public class DataBusiness implements IDataBusiness {
                 // 3. remove metadata
                 metadataBusiness.deleteDataMetadata(dataID);
 
-                // 4. remove data files
+                // 4. - Unlink sensor related to this data
+                //    - remove sensor that are now data orphan
+                List<Integer> sensorIds = sensorRepository.getDataLinkedSensorIds(dataID);
+                sensorRepository.unlinkAllDataSensor(dataID);
+                for (Integer sid : sensorIds) {
+                    if (sensorRepository.getLinkedDatas(sid).isEmpty()) {
+                        sensorRepository.delete(sid);
+                    }
+                }
+
+                // 5. remove data files
                 if (removeFiles) {
                     final DataProvider dataProvider = DataProviders.getProvider(providerID);
                     dataProvider.remove(data.getNamespace(), data.getName());
                 }
 
-                // 5. cleanup provider if empty
+                // 6. cleanup provider if empty
                 boolean remove = true;
                 List<Data> providerData = dataRepository.findByProviderId(providerID);
                 for (Data pdata : providerData) {
