@@ -121,6 +121,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     @Override
     public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
 
+        // pre-load the obsProp colmuns has we don't want to open twice the file
+        // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
+        final List<String> sortedMeasureColumns = getObsPropColumns().stream().sorted().collect(Collectors.toList());
+
         // open csv file with a delimiter set as process SosHarvester input.
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -160,9 +164,6 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             if (mainIndexes.isEmpty() && observationType != null) {
                 throw new DataStoreException("Unexpected column main:" + mainColumns);
             }
-
-            // add measure column
-            final List<String> sortedMeasureColumns = getObsPropColumns().stream().sorted().collect(Collectors.toList());
 
             // final result
             final ObservationDataset result = new ObservationDataset();
@@ -348,6 +349,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     protected Set<String> extractProcedureIds() throws DataStoreException {
         if (procedureColumn == null) return Collections.singleton(getProcedureID());
 
+        // pre-load the obsProp colmuns has we don't want to open twice the file
+        // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
+        final Set<String> obspropColumns = getObsPropColumns();
+
         final Set<String> result = new HashSet();
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
@@ -376,7 +381,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                     // checks if row matches the observed properties filter
                     String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
-                    if (!getObsPropColumns().contains(observedProperty)) {
+                    if (!obspropColumns.contains(observedProperty)) {
                         continue;
                     }
 
@@ -400,6 +405,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
     @Override
     public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
+        // pre-load the obsProp colmuns has we don't want to open twice the file
+        // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
+        final Set<String> obspropColumns = getObsPropColumns();
+
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -462,13 +471,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
                 
                 // checks if row matches the observed properties wanted
-                if (!getObsPropColumns().contains(observedProperty)) {
+                if (!obspropColumns.contains(observedProperty)) {
                     continue;
                 }
 
                 if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
-                    Set<String> opc = getObsPropColumns();
-                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, opc, null));
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, obspropColumns, null));
                 }
 
                 // update temporal interval

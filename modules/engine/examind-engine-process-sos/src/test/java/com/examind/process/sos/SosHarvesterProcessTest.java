@@ -2151,6 +2151,105 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     }
 
     @Test
+    public void harvesterXLSFlatTest() throws Exception {
+
+        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+
+        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+
+        sensorServBusiness.removeAllSensors(sc.getId());
+        sensorServBusiness.removeAllSensors(sc2.getId());
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String datasetId = "SOS_DATA_4";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(xDataFlatDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFlatFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("TIME");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("TIME");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("dd/MM/yyyy'T'HH:mm:ss");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("dd/MM/yy");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE");
+
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("RES");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("PROPERTY");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue("urn:flat:xlsx");
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        ParameterValue s1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s1.setValue(new ServiceProcessReference(sc));
+        in.values().add(s1);
+        ParameterValue s2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        s2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(s2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Sensor sensor = sensorBusiness.getSensor("urn:flat:xlsx");
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals("urn:flat:xlsx", sensor.getIdentifier());
+
+        Thing t = getThing(stsWorker, "urn:flat:xlsx");
+        Assert.assertNotNull(t);
+
+        Assert.assertEquals(1, getNbOffering(sosWorker, prev));
+
+        /*
+        * first extracted procedure
+        */
+
+        ObservationOffering offp = getOffering(sosWorker, "urn:flat:xlsx");
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-02T21:52:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        String observedProperty = offp.getObservedProperties().get(0);
+
+        /*
+        * Verify an inserted data
+        */
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, null);
+        String expectedResult = getResourceAsString("com/examind/process/sos/test-flat-X-datablock-values.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        int nbMeasure = getNbMeasure(stsWorker, "urn:flat:xlsx");
+        Assert.assertEquals(2, nbMeasure);
+    }
+
+    @Test
     public void harvesterCSVNoHeaderTSTest() throws Exception {
 
         ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
