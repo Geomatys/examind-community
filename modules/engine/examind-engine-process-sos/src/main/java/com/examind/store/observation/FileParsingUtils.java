@@ -446,7 +446,7 @@ public class FileParsingUtils {
         if (value instanceof String s) {
             return s;
         } else if (value instanceof Number) {
-            return value.toString().replace("\\.0*$", "");
+            return value.toString().replaceFirst("\\.0*$", "");
         } else if (value instanceof Date d) {
             if (df == null) throw new IllegalArgumentException("asString for a date must provide a DateFormat");
             return df.format(d);

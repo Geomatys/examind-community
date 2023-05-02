@@ -43,6 +43,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.opengis.observation.Phenomenon;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
@@ -356,6 +357,7 @@ public class CsvFlatObservationStoreTest {
 
         params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("RES");
         params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().getCode()).setValue("PROPNAME");
 
         params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
         params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue(sensorId);
@@ -376,6 +378,17 @@ public class CsvFlatObservationStoreTest {
         Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
         Assert.assertTrue(phenomenonNames.contains("TEMP"));
         Assert.assertTrue(phenomenonNames.contains("SALINITY"));
+
+        List<Phenomenon> phenomenons = store.getPhenomenons(new ObservedPropertyQuery(true));
+        for (Phenomenon phenO : phenomenons) {
+            Assert.assertTrue(phenO  instanceof org.geotoolkit.observation.model.Phenomenon);
+            org.geotoolkit.observation.model.Phenomenon phen = (org.geotoolkit.observation.model.Phenomenon) phenO;
+            if (phen.getId().endsWith("TEMP")) {
+                Assert.assertEquals("12", phen.getName());
+            } else if (phen.getId().endsWith("SALINITY")) {
+                Assert.assertEquals("13", phen.getName());
+            }
+        }
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
         TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
