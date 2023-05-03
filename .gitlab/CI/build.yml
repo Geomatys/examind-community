@@ -13,6 +13,11 @@ build:
   stage: build
   script:
     - mvn clean install -ntp -DskipTests -s $MAVEN_SETTINGS
+    # Prepare Docker inputs, to avoid having to do so in a dedicated job.
+    - >
+      mvn -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG
+      resources:copy-resources@copy-dockerfile
+      dependency:copy@copy-nio-filesystems
   artifacts:
     paths:
       - modules/bundles/exa-bundle/target/

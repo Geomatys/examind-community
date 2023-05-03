@@ -17,32 +17,37 @@ maven-deploy-tag:
 
 .docker-push:
   extends: .publish
+  image: gcr.io/kaniko-project/executor:debug
   variables:
-    DOCKER_TAG:
+    DOCKER_TAG: "latest"
+    KANIKO_OPTS: "--no-push"
   script:
     # Login to Docker repository
-    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > ~/.docker/config.json
-    # Build Docker image. Use step by step command, to avoid re-packaging the entire project, which is not needed.
+    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > /kaniko/.docker/config.json
     - >
-      mvn -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG
-      resources:copy-resources@copy-dockerfile
-      dependency:copy@copy-nio-filesystems
-      dockerfile:build@build-tomcat-image
-    - mvn -pl :exa-bundle -Pdocker -Ddocker.tag=$DOCKER_TAG dockerfile:push
+      /kaniko/executor $KANIKO_OPTS 
+      --context $CI_PROJECT_DIR/modules/bundles/exa-bundle/target 
+      --dockerfile $CI_PROJECT_DIR/modules/bundles/exa-bundle/target/Dockerfile 
+      --destination images.geomatys.com/examind/examind-community:$DOCKER_TAG
   # Avoid executing default after-script that uses maven.
   after_script:
-    - echo 'pushed'
+    - echo 'done'
 
-docker-push-latest:
+# On merge request, only build docker.
+docker-build:
   extends: .docker-push
-  variables:
-    DOCKER_TAG: latest
-  only:
-    - master
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
 
-docker-push-release:
+# On master or tag, push image to Geomatys registry with appropriate tag.
+docker-push:
   extends: .docker-push
-  variables:
-    DOCKER_TAG: $CI_COMMIT_TAG
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG == null
+      variables:
+        KANIKO_OPTS: ""
+    - if: $CI_COMMIT_TAG != null
+      variables:
+        KANIKO_OPTS: ""
+        DOCKER_TAG: "$CI_COMMIT_TAG"
+
