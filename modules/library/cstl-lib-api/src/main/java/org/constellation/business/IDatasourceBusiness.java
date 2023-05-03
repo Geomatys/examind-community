@@ -249,11 +249,12 @@ public interface IDatasourceBusiness {
      * @param id The datasource identifier.
      * @param async if true, and if the datasource is not yet analyzed, it will return an empty result and perform the analysis on a new Thread.
      * @param deep if false, it will only analyse the first level of tha datasource.
+     * @param lookForS63 If true, the analysis will seach for S63 dataset.
      *
      * @return A map of store / formats detected in the datasource.
      * @throws ConstellationException
      */
-    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, boolean deep) throws ConstellationException;
+    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, boolean deep, boolean lookForS63) throws ConstellationException;
 
     /**
      * Perform an analysis on each file of the datasource (if deep is set to false, perform it only in the first level).
@@ -264,11 +265,12 @@ public interface IDatasourceBusiness {
      * @param async if true, and if the datasource is not yet analyzed, it will return an empty result and perform the analysis on a new Thread.
      * @param storeId Allow to analyse the file only against one store.
      * @param deep if false, it will only analyse the first level of tha datasource.
+     * @param lookForS63 If true, the analysis will seach for S63 dataset.
      *
      * @return A map of store / formats detected in the datasource.
      * @throws ConstellationException
      */
-    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep) throws ConstellationException;
+    Map<String, Set<String>> computeDatasourceStores(int id, boolean async, String storeId, boolean deep, boolean lookForS63) throws ConstellationException;
 
     /**
      * Return the current state of the datasource analysis going on (or already finished).

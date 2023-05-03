@@ -272,7 +272,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         try {
             datasourceBusiness.updateDatasourceAnalysisState(dsId,  AnalysisState.NOT_STARTED.name());
-            datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true);
+            datasourceBusiness.computeDatasourceStores(dsId, false, storeId, true, false);
             datasourceBusiness.recordSelectedPath(dsId, true);
         } catch (ConstellationException e) {
             throw new ProcessException("Error occurs during directory browsing", this, e);

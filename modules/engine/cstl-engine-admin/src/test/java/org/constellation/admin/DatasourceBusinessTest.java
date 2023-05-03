@@ -74,7 +74,7 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
         String state = datasourceBusiness.getDatasourceAnalysisState(ds.getId());
         Assert.assertEquals("NOT_STARTED", state);
 
-        Map<String, Set<String>> analyse = datasourceBusiness.computeDatasourceStores(ds.getId(), false, true);
+        Map<String, Set<String>> analyse = datasourceBusiness.computeDatasourceStores(ds.getId(), false, true, false);
         Assert.assertNotNull(analyse);
         Assert.assertTrue(analyse.containsKey("shapefile"));
         Assert.assertTrue(analyse.containsKey("GeoTIFF"));

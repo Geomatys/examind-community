@@ -402,14 +402,17 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      * @param id The {@link DataSource} id.
      * @param async Asynchrous mode, default to {@code false}
      * @param deep Deep mode, default to {@code false}
+     * @param s63 If true, the analysis will seach for S63 dataset. set default to true for retro-compatibility
      * 
      * @return A list of {@link StoreFormat} detected in the datasource, or an empty result if set to asynchrous.
      */
     @RequestMapping(value = "/datasources/{id}/stores", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getDatasourceStores(@PathVariable("id") int id, @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
-                                               @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep) {
+    public ResponseEntity getDatasourceStores(@PathVariable("id") int id,
+                                            @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
+                                            @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep,
+                                            @RequestParam(name = "s63", required = false, defaultValue = "true") Boolean s63) {
         try {
-            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep);
+            Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep, s63);
             final List<StoreFormat> results = new ArrayList<>();
             for (Entry<String, Set<String>> entry : storeFormats.entrySet()) {
                 for (String format : entry.getValue()) {
