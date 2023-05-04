@@ -21,6 +21,7 @@ package com.examind.store.observation;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -31,20 +32,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.observation.model.CompositePhenomenon;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -59,7 +55,7 @@ public class FileParsingUtils {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
-    private static final NumberFormat FR_FORMAT = NumberFormat.getInstance(Locale.FRANCE);
+    private static final NumberFormat FR_FORMAT = DecimalFormat.getNumberInstance(Locale.FRANCE);
 
     private static final GeometryFactory GF = new GeometryFactory();
 
@@ -286,6 +282,9 @@ public class FileParsingUtils {
     public static double parseDouble(Object obj) throws ParseException, NumberFormatException {
         if (obj instanceof String s) {
             s = s.trim();
+            // nbsp
+            s = s.replace(" ", "");
+            s = s.replace(" ", "");
             if (s.contains(",")) {
                 synchronized(FR_FORMAT) {
                     Number number = FR_FORMAT.parse(s);
