@@ -23,7 +23,7 @@ maven-deploy-tag:
     KANIKO_OPTS: "--no-push"
   script:
     # Login to Docker repository
-    - mkdir ~/.docker && echo $DOCKER_AUTH_CONFIG > /kaniko/.docker/config.json
+    - mkdir -p /kaniko/.docker && echo $DOCKER_AUTH_CONFIG > /kaniko/.docker/config.json
     - >
       /kaniko/executor $KANIKO_OPTS 
       --context $CI_PROJECT_DIR/modules/bundles/exa-bundle/target 
