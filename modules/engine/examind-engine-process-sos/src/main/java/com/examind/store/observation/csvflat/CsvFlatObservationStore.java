@@ -45,6 +45,7 @@ import static com.examind.store.observation.FileParsingObservationStoreFactory.T
 import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValues;
 import com.examind.store.observation.ObservedProperty;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -137,23 +138,27 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
             final List<Integer> doubleFields = new ArrayList<>();
-            
-            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex, laxHeader);
-            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex, laxHeader);
-            int foiIndex         = getColumnIndex(foiColumn,           headers,               directColumnIndex, laxHeader);
-            int zIndex           = getColumnIndex(zColumn,             headers,               directColumnIndex, laxHeader);
-            int procIndex        = getColumnIndex(procedureColumn,     headers,               directColumnIndex, laxHeader);
-            int procNameIndex    = getColumnIndex(procedureNameColumn, headers,               directColumnIndex, laxHeader);
-            int procDescIndex    = getColumnIndex(procedureDescColumn, headers,               directColumnIndex, laxHeader);
-            int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader);
-            int uomColumnIndex   = getColumnIndex(uomColumn,           headers,               directColumnIndex, laxHeader);
-            int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex, laxHeader);
 
-            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex, laxHeader);
-            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader);
-            List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader);
-            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader);
-            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader);
+            // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
+            // so we want to consider a line as imcomplete only if the last index we look for is missing.
+            AtomicInteger maxIndex  = new AtomicInteger();
+            
+            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+            int foiIndex         = getColumnIndex(foiColumn,           headers,               directColumnIndex, laxHeader, maxIndex);
+            int zIndex           = getColumnIndex(zColumn,             headers,               directColumnIndex, laxHeader, maxIndex);
+            int procIndex        = getColumnIndex(procedureColumn,     headers,               directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn, headers,               directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn, headers,               directColumnIndex, laxHeader, maxIndex);
+            int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+            int uomColumnIndex   = getColumnIndex(uomColumn,           headers,               directColumnIndex, laxHeader, maxIndex);
+            int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex, laxHeader, maxIndex);
+
+            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex);
 
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(csvFlatobsPropColumns.toArray()));
@@ -193,7 +198,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 if (line.length == 0) {
                     LOGGER.finer("skipping empty line " + lineNumber);
                     continue;
-                } else if (headers != null && line.length < headers.length) {
+                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
                     LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }
@@ -416,16 +421,19 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             if (!noHeader) {
                 headers = reader.getHeaders();
             }
+            // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
+            // so we want to consider a line as imcomplete only if the last index we look for is missing.
+            final AtomicInteger maxIndex  = new AtomicInteger();
 
-            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex, laxHeader);
-            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
-            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
-            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
-            int procedureIndex   = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
-            int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
-            int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader);
-            int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader);
+            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int procedureIndex   = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader, maxIndex);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();

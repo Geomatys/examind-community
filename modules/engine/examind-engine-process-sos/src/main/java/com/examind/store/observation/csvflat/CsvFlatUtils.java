@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
@@ -66,6 +67,14 @@ public class CsvFlatUtils {
                 throw new ConstellationStoreException("csv headers does not contains All the Measure Code parameter.");
             }
 
+            // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
+            // so we want to consider a line as imcomplete only if the last index we look for is missing.
+            int maxIndex  = -1;
+            for  (Integer i : measureCodeIndex) {
+                if (maxIndex < i) {
+                    maxIndex = i;
+                }
+            }
             final Set<String> storeCode = new HashSet<>();
 
             // extract all codes
@@ -77,7 +86,7 @@ public class CsvFlatUtils {
                 if (line.length == 0) {
                     LOGGER.finer("skipping empty line " + lineNb);
                     continue;
-                } else if (headers != null && line.length < headers.length) {
+                } else if (headers != null && line.length < maxIndex + 1) {
                     LOGGER.finer("skipping imcomplete line " + lineNb + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }

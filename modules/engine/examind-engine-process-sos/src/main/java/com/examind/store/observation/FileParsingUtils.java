@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -69,13 +70,20 @@ public class FileParsingUtils {
     }
 
     public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
-        return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase);
+        return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase, null);
+    }
+    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+        return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase, maxIndex);
     }
 
     public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+        return getColumnIndex(columnName, headers, appendIndex, directColumnIndex, ignoreCase, null);
+    }
+
+    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
         if (columnName == null) return -1;
         if (directColumnIndex) {
-            return Integer.parseInt(columnName);
+            return computeMaxValue(Integer.parseInt(columnName), maxIndex);
         }
         for (int i = 0; i < headers.length; i++) {
             final String header = headers[i];
@@ -83,10 +91,17 @@ public class FileParsingUtils {
                 if (appendIndex != null) {
                     appendIndex.add(i);
                 }
-                return i;
+                return computeMaxValue(i, maxIndex);
             }
         }
         return -1;
+    }
+
+    private static int computeMaxValue(int i, AtomicInteger max) {
+        if (max != null && max.get() < i) {
+            max.set(i);
+        }
+        return i;
     }
 
     public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex, boolean ignoreCase) throws IOException {
@@ -102,15 +117,23 @@ public class FileParsingUtils {
     }
 
     public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
-        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase);
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, null);
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, maxIndex);
     }
 
     public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, null);
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
         List<Integer> results = new ArrayList<>();
         if (directColumnIndex) {
             for (String columnName : columnNames) {
                 int index = Integer.parseInt(columnName);
-                results.add(index);
+                results.add(computeMaxValue(index, maxIndex));
                 if (headers != null) {
                     appendName.add(headers[index]);
                 }
@@ -120,7 +143,7 @@ public class FileParsingUtils {
         for (int i = 0; i < headers.length; i++) {
             final String header = headers[i];
             if (columnNames.contains(header)) {
-                results.add(i);
+                results.add(computeMaxValue(i, maxIndex));
                 if (appendName != null) {
                     appendName.add(header);
                 }
