@@ -103,9 +103,43 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private List<org.opengis.observation.Observation> getObservationTemplates() throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
+        List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
+        if (phenPropJoin) {
+            /*
+             * PROBLEM HERE: if we look for a property on a simple phenomenon :
+             *
+             * - we will lost the templates with composite phenomenon containing a component matching the property.
+             * - we will include those with multiple observation with a least one with the single phenomenon.
+             *
+             * I dont know what response is the more correct.
+             * - return a full observation template as long as one of its components match the property.
+             * - exclude the template if not all components match the property.
+             * - build a trunctated template with only the matching components.
+             *
+             * Anyway i let this piece of sql here so i don't forget it, for solution number one:
+             * replace the join by :
+             (o."observed_property" in (
+                    SELECT cmp.phenomenon
+                    FROM  "om"."components" cmp,"om"."observed_properties_properties" opp
+                    where  cmp."component" = opp.id_phenomenon
+                    AND opp."property_name"= 'propName'  AND opp."value" = ' propValue')
+             ) OR (
+               o."observed_property" in (
+                    select op.id
+                    FROM  "om".observed_properties op ,"om"."observed_properties_properties" opp
+                    where  op."id" = opp.id_phenomenon
+                    AND opp."property_name"= 'propName'  AND opp."value" = ' propValue')
+            )
+             */
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = o.\"observed_property\""));
         }
+        if (procPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+        }
+        if (foiPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
@@ -180,9 +214,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     private List<org.opengis.observation.Observation> getMesurementTemplates() throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
+        List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
+        if (phenPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = pd.\"field_name\""));
         }
+        if (procPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+        }
+        if (foiPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\", pd.\"order\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 

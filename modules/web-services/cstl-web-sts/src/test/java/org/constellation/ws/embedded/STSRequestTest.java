@@ -673,6 +673,34 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order=2)
+    public void getDatastreamFilterTest() throws Exception {
+        initPool();
+
+        String filter = "ObservedProperty/properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-property.json");
+        compareJSON(expResult, result);
+
+        filter = "ObservedProperty/Thing/properties/prop1 eq 'value1')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-property-2.json");
+        compareJSON(expResult, result);
+
+        filter = "Observation/FeatureOfInterest/properties/prop1 eq 'value3')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-property-3.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
     @Order(order=9)
     public void getDatastreamsTest() throws Exception {
         initPool();
@@ -898,6 +926,34 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
         expResult = expResult.replace("\"{count}\"", "14");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    @Order(order=2)
+    public void getMultiDatastreamFilterTest() throws Exception {
+        initPool();
+
+        String filter = "ObservedProperty/properties/prop1 eq 'value4')".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-property.json");
+        compareJSON(expResult, result);
+
+        filter = "ObservedProperty/Thing/properties/prop1 eq 'value1')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-property-2.json");
+        compareJSON(expResult, result);
+
+        filter = "Observation/FeatureOfInterest/properties/prop1 eq 'value3')".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-property-3.json");
         compareJSON(expResult, result);
     }
 

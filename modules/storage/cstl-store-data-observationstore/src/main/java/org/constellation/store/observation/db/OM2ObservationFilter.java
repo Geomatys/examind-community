@@ -43,7 +43,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
