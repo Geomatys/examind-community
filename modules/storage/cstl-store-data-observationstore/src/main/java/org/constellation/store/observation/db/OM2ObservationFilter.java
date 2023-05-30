@@ -888,6 +888,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (cpos <= opos) {
                 throw new ObservationStoreException("Malformed propertyName in result filter:" + propertyName);
             }
+
+            // we look for a quality field on the form ".field_name"
             String index = propertyName.substring(opos + 1, cpos);
             String suffix = propertyName.substring(cpos + 1);
             if (!suffix.isEmpty()) {

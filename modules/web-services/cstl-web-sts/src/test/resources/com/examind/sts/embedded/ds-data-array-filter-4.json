@@ -1,0 +1,8 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality"],
+            "dataArray": [["urn:ogc:object:observation:GEOM:6001-2-2", "1981-03-01T20:52:00Z", "1981-03-01T20:52:00Z", 6.56, [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.2}}]], 
+                          ["urn:ogc:object:observation:GEOM:6001-2-4", "1983-03-01T20:52:00Z", "1983-03-01T20:52:00Z", 6.56, [{"nameOfMeasure": "qflag", "DQ_Result": {"code": "ko"}},{"nameOfMeasure": "qres","DQ_Result": {"code": 3.4}}]]
+                     ]
+        }]
+}

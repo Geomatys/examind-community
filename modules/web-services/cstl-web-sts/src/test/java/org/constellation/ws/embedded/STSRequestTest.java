@@ -488,6 +488,58 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
+    @Order(order=24)
+    public void getDataArrayForDatastreamsFiltered() throws Exception {
+        initPool();
+
+        /*
+        * result filter on all fields (single)
+        */
+        String filter = "(result le 6.55)".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-1.json");
+        compareJSON(expResult, result);
+
+        /*
+        * result filter on all fields (multiple)
+        */
+        filter = "(result ge 75.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-2.json");
+        compareJSON(expResult, result);
+
+       /*
+        * result filter on specific fields
+        */
+        filter = "(result le 14.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-3.json");
+        compareJSON(expResult, result);
+
+        // the [0] should not be necessary, but it s for now
+        filter = "(result[0].qflag eq 'ko')".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:quality_sensor-2)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-4.json");
+        compareJSON(expResult, result);
+
+        // the [0] should not be necessary, but it s for now
+        filter = "(result[0].qres ge 3.3)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:quality_sensor-2)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-5.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
     @Order(order=6)
     public void getDataArrayForMultiDatastreams() throws Exception {
         initPool();
@@ -1751,6 +1803,56 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter2-3.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    @Order(order=24)
+    public void getDataArrayForMultiDatastreamsFiltered3() throws Exception {
+        initPool();
+        
+        /*
+        * result filter on all fields (single)
+        */
+        String filter = "(result le 6.55)".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3-1.json");
+        compareJSON(expResult, result);
+
+        /*
+        * result filter on all fields (multiple)
+        */
+        filter = "(result ge 2.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:12)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3-2.json");
+        compareJSON(expResult, result);
+
+       /*
+        * result filter on specific fields
+        */
+        filter = "(result[1] le 14.0)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3-3.json");
+        compareJSON(expResult, result);
+        
+        filter = "(result[0].qflag eq 'ko')".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:quality_sensor)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3-4.json");
+        compareJSON(expResult, result);
+
+        filter = "(result[0].qres ge 3.3)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:quality_sensor)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-filter3-5.json");
         compareJSON(expResult, result);
     }
     
