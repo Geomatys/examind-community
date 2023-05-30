@@ -28,11 +28,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import org.constellation.test.utils.Order;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -59,7 +61,8 @@ public class CsvFlatObservationStoreTest {
     private static Path survalFile;
     private static Path tsvFile;
     protected static Path bigdataFile;
-     protected static Path XdataFile;
+    protected static Path XdataFile;
+    protected static Path qualSpaceFile;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -74,7 +77,8 @@ public class CsvFlatObservationStoreTest {
         Files.createDirectories(bgDirectory);
         Path xDataFlatDirectory = DATA_DIRECTORY.resolve("xlsx-flat");
         Files.createDirectories(xDataFlatDirectory);
-
+        Path qualSpaceFlatDirectory = DATA_DIRECTORY.resolve("qual-space-flat");
+        Files.createDirectories(qualSpaceFlatDirectory);
 
         writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
         survalFile = survalDirectory.resolve("surval-small.csv");
@@ -87,14 +91,17 @@ public class CsvFlatObservationStoreTest {
 
         writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/test-flat.xlsx", "test-flat.xlsx");
         XdataFile = xDataFlatDirectory.resolve("test-flat.xlsx");
+
+        writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/quality-space-flat.csv", "quality-space-flat.csv");
+        qualSpaceFile = xDataFlatDirectory.resolve("quality-space-flat.csv");
     }
+    
     @AfterClass
     public static void tearDownClass() throws Exception {
         IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
 
     @Test
-    @Order(order = 1)
     public void csvFlatStoreSurvalTest() throws Exception {
 
         CsvFlatObservationStoreFactory factory = new CsvFlatObservationStoreFactory();
@@ -413,5 +420,87 @@ public class CsvFlatObservationStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getBeginning().getDate()));
         Assert.assertEquals("1980-03-02T21:52:00.000" , sdf.format(tp.getEnding().getDate()));
+    }
+
+    @Test
+    public void csvFlatStoreQualitySpaceTest() throws Exception {
+
+        CsvFlatObservationStoreFactory factory = new CsvFlatObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvFlatObservationStoreFactory.LOCATION).setValue(qualSpaceFile.toUri().toString());
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("TIME");
+        params.parameter(CsvFlatObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("TIME");
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LAT");
+        params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LON");
+
+        params.parameter(CsvFlatObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+
+        params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:space-qual:1");
+        params.parameter(CsvFlatObservationStoreFactory.QUALITY_COLUMN.getName().getCode()).setValue("QUA LITY FI");
+
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(';'));
+
+        CsvFlatObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = "urn:space-qual:1";
+        Assert.assertTrue(procedureNames.contains(sensorId));
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Period);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+        Period tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        ProcedureDataset proc = results.procedures.get(0);
+        Assert.assertEquals(sensorId, proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        Assert.assertEquals(1, results.observations.size());
+        Observation obs = results.observations.get(0);
+        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) obs.getResult();
+
+        Assert.assertEquals(2, cr.getFields().size());
+
+        Field f = cr.getFields().get(1);
+        Assert.assertEquals(1, f.qualityFields.size());
+
+        Field qualityField = f.qualityFields.get(0);
+        Assert.assertEquals("qua_lity_fi", qualityField.name);
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+
+        Assert.assertEquals(1, procedures.size());
+        proc = procedures.get(0);
+        Assert.assertEquals(sensorId, proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        time = proc.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
     }
 }

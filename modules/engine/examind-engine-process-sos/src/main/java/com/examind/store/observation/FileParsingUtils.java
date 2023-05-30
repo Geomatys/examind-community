@@ -506,4 +506,8 @@ public class FileParsingUtils {
             }
         }
     }
+
+    public static String normalizeFieldName(String s) {
+        return s.toLowerCase().replace(" ", "_");
+    }
 }

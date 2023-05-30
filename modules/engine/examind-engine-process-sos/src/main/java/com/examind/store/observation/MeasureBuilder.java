@@ -19,6 +19,7 @@
 
 package com.examind.store.observation;
 
+import static com.examind.store.observation.FileParsingUtils.normalizeFieldName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -93,7 +94,7 @@ public class MeasureBuilder {
 
             List<MeasureField> qualityFields = new ArrayList<>();
             for (int i = 0; i < qualityColumns.size(); i++) {
-                String qc = qualityColumns.get(i);
+                String qc = normalizeFieldName(qualityColumns.get(i));
                 FieldType qtype = FieldType.TEXT;
                 if (i < qualityTypes.size()) {
                     qtype = FieldType.valueOf(qualityTypes.get(i));
