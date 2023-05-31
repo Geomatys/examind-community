@@ -429,7 +429,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             /**
                              * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
                              */
-                            if (separatedObs) {
+                            if (separatedMeasure) {
                                 final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
                                 final ComplexResult result = buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
                                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
@@ -460,7 +460,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                    /**
                     * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
                     */
-                    if (!separatedObs) {
+                    if (!separatedMeasure) {
                         final TemporalGeometricPrimitive time = buildTime(obsID, parser.firstTime, parser.lastTime);
                         final ComplexResult result = buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
                         final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});

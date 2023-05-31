@@ -56,6 +56,7 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -130,6 +131,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             throw new DataStoreException("Error while inserting observations.", ex);
         }
         return results;
+    }
+
+    @Override
+    public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     private static final class ObservationRef {

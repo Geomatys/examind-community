@@ -105,7 +105,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean procPropJoin = false;
     protected boolean foiPropJoin  = false;
 
-    protected boolean separatedObs          = false;
+    protected boolean separatedMeasure       = false;
     protected boolean includeIDInDataBlock  = false;
     protected boolean includeTimeForProfile = false;
     protected boolean includeTimeInTemplate = false;
@@ -192,7 +192,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.includeTimeForProfile = query.isIncludeTimeForProfile();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
         this.includeQualityFields  = query.isIncludeQualityFields();
-        this.separatedObs          = query.isSeparatedObservation();
+        this.separatedMeasure      = query.isSeparatedMeasure();
         this.resultMode            = query.getResultMode();
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();

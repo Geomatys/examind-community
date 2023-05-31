@@ -393,7 +393,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             obsSubquery.setIncludeIdInDataBlock(true);
             obsSubquery.setIncludeTimeForProfile(true);
             obsSubquery.setIncludeQualityFields(includeQUalityFields);
-            obsSubquery.setSeparatedObservation(true);
+            obsSubquery.setSeparatedMeasure(true);
             obsSubquery.setDecimationSize(decimation);
             obsSubquery.setResultMode(resMode);
             
@@ -1156,7 +1156,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             BinaryComparisonOperator pe = ff.equal(ff.property("procedure"), ff.literal(tmp.getProcedure().getId()));
             subquery.setSelection(pe);
             subquery.setIncludeIdInDataBlock(true);
-            subquery.setSeparatedObservation(true);
+            subquery.setSeparatedMeasure(true);
             subquery.setIncludeTimeForProfile(true);
             subquery.setResultMode(ResultMode.DATA_ARRAY);
             return omProvider.getObservations(subquery);

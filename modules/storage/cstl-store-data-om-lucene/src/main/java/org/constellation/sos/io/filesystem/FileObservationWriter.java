@@ -37,6 +37,7 @@ import static java.nio.file.StandardOpenOption.*;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -227,4 +228,8 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
         indexer.destroy();
     }
 
+    @Override
+    public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

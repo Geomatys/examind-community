@@ -1704,7 +1704,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             ft = feat.getType();
                             features.add(feat);
                         }
-                        featureObject = new InMemoryFeatureSet(NamesExt.create(id), ft, features);
+                        featureObject = new InMemoryFeatureSet(NamesExt.create(id), ft, features, true);
                     }
                 } catch (IllegalArgumentException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
