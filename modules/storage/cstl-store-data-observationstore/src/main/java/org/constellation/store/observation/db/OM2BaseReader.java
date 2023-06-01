@@ -516,7 +516,7 @@ public class OM2BaseReader {
         return results;
     }
 
-    private InsertDbField completeDbField(final String procedureID, final Field inputField, final Connection c) throws SQLException {
+    protected InsertDbField completeDbField(final String procedureID, final Field inputField, final Connection c) throws SQLException {
         final String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL AND \"field_name\" = ?";
         try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, procedureID);
@@ -615,7 +615,7 @@ public class OM2BaseReader {
         }
     }
 
-    private DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
+    protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
         final DbField f = new DbField(
                          rs.getInt("order"),
