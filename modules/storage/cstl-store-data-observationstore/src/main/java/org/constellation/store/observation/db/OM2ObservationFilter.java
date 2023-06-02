@@ -237,11 +237,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         this.firstFilter = false;
         try(final Connection c = source.getConnection()) {
-            final int[] pidNumber = getPIDFromProcedure(currentProcedure, c);
-            final String measureJoin = getMeasureTableJoin(pidNumber);
+            final TableInfo tableInfos = getPIDFromProcedure(currentProcedure, c);
+            final String measureJoin = getMeasureTableJoin(tableInfos);
             currentOMType = getProcedureOMType(currentProcedure, c);
             StringBuilder select = new StringBuilder("m.* ");
-            for (int i = 1; i < pidNumber[1]; i++) {
+            for (int i = 1; i < tableInfos.nbTable; i++) {
                 select.append(", m").append(i + 1).append(".* ");
             }
 

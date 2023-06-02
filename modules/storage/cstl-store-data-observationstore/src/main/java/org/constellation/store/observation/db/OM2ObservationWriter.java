@@ -361,8 +361,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 String newPhen = writePhenomenon(phenomenon, c, false);
                 
                 observationName = replacingObs.name;
-                final int[] pidNumber = getPIDFromProcedure(procedureID, c);
-                writeResult(replacingObs.id, pidNumber[0], procedureID, observation.getResult(), c, true);
+                final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
+                writeResult(replacingObs.id, tableInfo.pid, procedureID, observation.getResult(), c, true);
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 if (!replacingObs.phenomenonId.equals(newPhen)) {
                     List<Field> readFields = readFields(procedureID, true, c);
@@ -1058,11 +1058,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private synchronized void removeObservationForProcedure(final String procedureID, Connection c) throws DataStoreException, SQLException {
-        final int[] pidNumber = getPIDFromProcedure(procedureID, c);
+        final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
 
         // remove from measures tables
-        for (int i = 0; i < pidNumber[1]; i++) {
-            String suffix = pidNumber[0] + "";
+        for (int i = 0; i < tableInfo.nbTable; i++) {
+            String suffix = tableInfo.pid + "";
             if (i > 0) {
                 suffix = suffix + "_" + (i + 1);
             }
@@ -1105,10 +1105,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 
                 // remove measure tables
                 try (final Statement stmtDrop = c.createStatement()) {
-                    final int[] pidNumber = getPIDFromProcedure(procedureID, c);
+                    final TableInfo tableInfo = getPIDFromProcedure(procedureID, c);
 
-                    for (int i = 0; i < pidNumber[1]; i++) {
-                        String suffix = pidNumber[0] + "";
+                    for (int i = 0; i < tableInfo.nbTable; i++) {
+                        String suffix = tableInfo.pid + "";
                         if (i > 0) {
                             suffix = suffix + "_" + (i + 1);
                         }
@@ -1197,14 +1197,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public synchronized void removeObservation(final String observationID) throws DataStoreException {
-        try(final Connection c     = source.getConnection()) {
-            final int[] pidNumber  = getPIDFromObservation(observationID, c);
-            final int pid          = pidNumber[0];
-            final int nbTable      = pidNumber[1];
+        try (final Connection c       = source.getConnection()) {
+            final TableInfo ti = getPIDFromObservation(observationID, c);
 
             // remove from measure tables
-            for (int i = 0; i < nbTable; i++) {
-                String suffix = pid + "";
+            for (int i = 0; i < ti.nbTable; i++) {
+                String suffix = ti.pid + "";
                 if (i > 0) {
                     suffix = suffix + "_" + (i + 1);
                 }
@@ -1339,11 +1337,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             fieldOffset = 1;
             
         } else if (allowSensorStructureUpdate) {
-            final int [] pidNumber  = getPIDFromProcedure(procedureID, c);
+            final TableInfo ti      = getPIDFromProcedure(procedureID, c);
             
             oldfields               = readFields(procedureID, false, c);
             firstField              = false;
-            nbTable                 = pidNumber[1];
+            nbTable                 = ti.nbTable;
             // number of field in the last measure table
             nbTabField              = getNbFieldInTable(procedureID, nbTable, c);
             fieldOffset             = oldfields.size() + 1;

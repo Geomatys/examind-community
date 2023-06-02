@@ -335,7 +335,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String featureID   = rs.getString("foi");
                 final int oid            = rs.getInt("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
-                final String measureJoin = getMeasureTableJoin(getPIDFromProcedure(procedure, c));
+                TableInfo procTableInfos = getPIDFromProcedure(procedure, c);
+                final String measureJoin = getMeasureTableJoin(procTableInfos);
                 final Field mainField    = getMainField(procedure, c);
                 boolean profile          = !FieldType.TIME.equals(mainField.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
@@ -566,6 +567,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, new ArrayList<>(fieldPhen.keySet()));
 
+                //final List<FilterSQLRequest> measureRequests = new ArrayList<>();
                 final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
                 measureRequest.appendValue(oid).append(" ").append(measureFilter, notProfile);
                 measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");

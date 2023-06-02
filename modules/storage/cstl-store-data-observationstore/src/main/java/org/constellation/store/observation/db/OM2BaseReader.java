@@ -111,6 +111,16 @@ public class OM2BaseReader {
 
     protected Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
+    protected static class TableInfo {
+        public final int pid;
+        public final int nbTable;
+
+        public TableInfo(int pid, int nbTable) {
+            this.pid = pid;
+            this.nbTable = nbTable;
+        }
+    }
+
     public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
         this.isPostgres = isPostgres;
         this.timescaleDB = timescaleDB;
@@ -640,55 +650,58 @@ public class OM2BaseReader {
         return f;
     }
 
-    protected String getMeasureTableJoin(int[] pidNumber) {
-        int pid = pidNumber[0];
-        int nbTable = pidNumber[1];
-        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m");
-        for (int i = 1; i < nbTable; i++) {
+    /**
+     * @deprecated This method should not be used anymore has it leads to potentially select more than 1664 columns.
+     * leading postres to throw the error : target lists can have at most 1664 entries
+     */
+    @Deprecated
+    protected String getMeasureTableJoin(TableInfo ti) {
+        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + ti.pid + "\" m");
+        for (int i = 1; i < ti.nbTable; i++) {
             String alias = "m" + (i+1);
-            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
+            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + ti.pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
         }
         return result.toString();
     }
 
     /**
-     * Return the PID (internal int procedure identifier) and the number of measure table associated for the specified observation.
-     * If there is no procedure for the specified procedure id, thsi method will return {-1, 0}
+     * Return the information about the procedure:  PID (internal int procedure identifier) and the number of measure table associated for the specified observation.
+     * If there is no procedure for the specified procedure id, this method will return PID = -1, nb table = 0 (for backward compatibility).
      * 
      * @param obsIdentifier Observation identifier.
      * @param c A SQL connection.
      *
-     * @return A int array with PID and number of measure table.
+     * @return Information about the procedure such as PID and number of measure table.
      * @throws SQLException id The sql query fails.
      */
-    protected int[] getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
+    protected TableInfo getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new int[] {rs.getInt(1), rs.getInt(2)};
+                    return new TableInfo(rs.getInt(1), rs.getInt(2));
                 }
-                return new int[] {-1, 0};
+                return new TableInfo(-1, 0);
             }
         }
     }
 
     /**
-     * Return the PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
+     * Return  the information about the procedure: PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
      *
      * @param procedure Procedure identifier.
      * @param c A SQL connection.
      *
-     * @return A int array with PID and number of measure table.
+     * @return Information about the procedure such as PID and number of measure table.
      */
-    protected int[] getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
+    protected TableInfo getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedure);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return new int[] {rs.getInt(1), rs.getInt(2)};
+                    return new TableInfo(rs.getInt(1), rs.getInt(2));
                 }
-                return new int[] {-1, 0};
+                return new TableInfo(-1, 0);
             }
         }
     }
