@@ -36,12 +36,14 @@ import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 
 /**
@@ -150,6 +152,9 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/test-flat.xlsx", "test-flat.xlsx");
     }
 
+    protected ServiceComplete sc;
+    protected ServiceComplete sc2;
+
     @PostConstruct
     public void setUp() throws Exception {
         if (!initialized) {
@@ -174,6 +179,14 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
 
             initialized = true;
         }
+
+        sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
+        Assert.assertNotNull(sc);
+        sensorServBusiness.removeAllSensors(sc.getId());
+
+        sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
+        Assert.assertNotNull(sc2);
+        sensorServBusiness.removeAllSensors(sc2.getId());
     }
 
     @AfterClass

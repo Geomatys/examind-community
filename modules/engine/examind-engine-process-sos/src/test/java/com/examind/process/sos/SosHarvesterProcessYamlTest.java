@@ -70,11 +70,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
     @Test
     @Order(order = 9)
     public void harvesterCSVFlatProfileSingleFromYamlNoFIlterTest() throws ConstellationException, NoSuchIdentifierException, ProcessException, IOException, ParseException {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
@@ -210,11 +205,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
     @Test
     @Order(order = 9)
     public void harvesterCSVSurvalProfileSingleFromYamlTest() throws Exception {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
@@ -382,11 +372,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
     @Test
     @Order(order = 9)
     public void harvesterCSVFlatProfileSingleFromYamlTest() throws Exception {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
@@ -512,11 +497,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterTsvFromYamlTest() throws Exception {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 
@@ -614,11 +594,6 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterTsvFlatFromYamlTest() throws Exception {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker worker = (SOSworker) wsEngine.buildWorker("sos", "default");
         worker.setServiceUrl("http://localhost/examind/");
 

@@ -66,16 +66,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvestCSVProfileTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-        sensorServBusiness.removeAllSensors(sc2.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -309,14 +299,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvestCSVTrajTest() throws Exception {
 
-        ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sos);
-        sensorServBusiness.removeAllSensors(sos.getId());
-
-        ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sts);
-        sensorServBusiness.removeAllSensors(sts.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -350,13 +332,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Trajectory");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sos));
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
         ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        val1.setValue(new ServiceProcessReference(sos));
+        val1.setValue(new ServiceProcessReference(sc));
         in.values().add(val1);
         ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        val2.setValue(new ServiceProcessReference(sts));
+        val2.setValue(new ServiceProcessReference(sc2));
         in.values().add(val2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
@@ -422,14 +404,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvestCSVTSTest() throws Exception {
 
-        ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sos);
-        sensorServBusiness.removeAllSensors(sos.getId());
-
-        ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sts);
-        sensorServBusiness.removeAllSensors(sts.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -471,10 +445,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.THING_DESC_COLUMN_NAME).setValue("PLATFORM_DESC");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv1.setValue(new ServiceProcessReference(sos));
+        serv1.setValue(new ServiceProcessReference(sc));
         in.values().add(serv1);
         ParameterValue serv2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv2.setValue(new ServiceProcessReference(sts));
+        serv2.setValue(new ServiceProcessReference(sc2));
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
@@ -537,11 +511,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvestTS2Test() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -646,14 +615,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvestDBFTSTest() throws Exception {
-        ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sos);
-        sensorServBusiness.removeAllSensors(sos.getId());
-
-        ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sts);
-        sensorServBusiness.removeAllSensors(sts.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -690,10 +651,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv1.setValue(new ServiceProcessReference(sos));
+        serv1.setValue(new ServiceProcessReference(sc));
         in.values().add(serv1);
         ParameterValue serv2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv2.setValue(new ServiceProcessReference(sts));
+        serv2.setValue(new ServiceProcessReference(sc2));
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
@@ -743,12 +704,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvestDBFTS2Test() throws Exception {
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
-        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
         STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
@@ -840,14 +796,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvestCSVTSMultiPlatformTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1042,13 +990,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvesterCSVFlatProfileSingleTest() throws Exception {
 
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -1171,14 +1112,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvesterCSVFlatProfileTest() throws Exception {
 
-        ServiceComplete sos = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sos);
-        sensorServBusiness.removeAllSensors(sos.getId());
-
-        ServiceComplete sts = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sts);
-        sensorServBusiness.removeAllSensors(sts.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -1225,10 +1158,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("platform_code");
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv1.setValue(new ServiceProcessReference(sos));
+        serv1.setValue(new ServiceProcessReference(sc));
         in.values().add(serv1);
         ParameterValue serv2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
-        serv2.setValue(new ServiceProcessReference(sts));
+        serv2.setValue(new ServiceProcessReference(sc2));
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
@@ -1328,7 +1261,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals(503, nbMeasure);
 
         // verify that all the sensors have at least one of the three observed properties
-        List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sos.getId(), null);
+        List<String> sensorIds = sensorBusiness.getLinkedSensorIdentifiers(sc.getId(), null);
         for (String sid : sensorIds) {
             if (sid.startsWith("urn:template:")) {
                 verifyObservedProperties(stsWorker, sid, Arrays.asList("30", "35", "66"));
@@ -1338,14 +1271,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterCSVFlatTSTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1567,14 +1492,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterCSVFlatMultiTypeTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-        sensorServBusiness.removeAllSensors(sc.getId());
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -1880,15 +1797,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvesterCSVSurvalTSTest() throws Exception {
 
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -2055,15 +1963,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvesterXLSTSTest() throws Exception {
 
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -2152,15 +2051,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterXLSFlatTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -2251,15 +2141,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterCSVNoHeaderTSTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -2362,15 +2243,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterCSVDisjointTSTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
@@ -2557,15 +2429,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
     @Test
     public void harvesterTSVTSTest() throws Exception {
 
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
-
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -2656,15 +2519,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
     @Test
     public void harvesterTSVFlatTSTest() throws Exception {
-
-        ServiceComplete sc = serviceBusiness.getServiceByIdentifierAndType("sos", "default");
-        Assert.assertNotNull(sc);
-
-        ServiceComplete sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
-        Assert.assertNotNull(sc2);
-
-        sensorServBusiness.removeAllSensors(sc.getId());
-        sensorServBusiness.removeAllSensors(sc2.getId());
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
