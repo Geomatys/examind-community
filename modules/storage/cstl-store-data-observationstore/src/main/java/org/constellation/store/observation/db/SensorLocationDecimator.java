@@ -29,7 +29,7 @@ import java.util.Map;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
-import org.constellation.exception.ConstellationStoreException;
+import org.constellation.util.SQLResult;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Coordinate;
@@ -54,7 +54,7 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> processLocations(ResultSet rs) throws SQLException, DataStoreException {
+    public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
 
         final Envelope[][] geoCells = new Envelope[nbCell][nbCell];
 

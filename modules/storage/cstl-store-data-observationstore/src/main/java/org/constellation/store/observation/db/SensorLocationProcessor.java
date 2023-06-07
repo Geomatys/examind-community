@@ -27,6 +27,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
+import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
@@ -48,7 +49,7 @@ public class SensorLocationProcessor {
         this.envelopeFilter = envelopeFilter;
     }
 
-    public Map<String, Map<Date, Geometry>> processLocations(ResultSet rs) throws SQLException, DataStoreException {
+    public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
         Polygon spaFilter = null;
         final CoordinateReferenceSystem envCRS;
         if (envelopeFilter != null) {

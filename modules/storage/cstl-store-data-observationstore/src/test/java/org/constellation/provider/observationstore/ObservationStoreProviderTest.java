@@ -49,6 +49,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
@@ -3563,6 +3564,31 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     @Test
+    public void getObservationNames2Test() throws Exception {
+        /**
+         * Filter on Time - Multi table
+         */
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter be = ff.before(ff.property("phenomenonTime") , ff.literal(buildInstant("2009-12-11T15:00:00Z")));
+        Filter eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        Filter filter = ff.and(be, eq);
+        query.setSelection(filter);
+        long result = omPr.getCount(query);
+
+        assertEquals(result, 9L);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        be = ff.before(ff.property("phenomenonTime") , ff.literal((buildInstant("2009-12-11T15:00:00Z"))));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        filter = ff.and(be, eq);
+        query.setSelection(filter);
+        result = omPr.getCount(query);
+
+        assertEquals(result, 3L);
+    }
+
+    @Test
     public void getMeasurementsTest() throws Exception {
         assertNotNull(omPr);
 
@@ -3595,6 +3621,24 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getObservations(query);
         assertEquals(6, results.size());
 
+    }
+
+    @Test
+    public void getMeasurements2Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        BinaryComparisonOperator f1 = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:12-2"));
+        BinaryComparisonOperator f2 = ff.equal(ff.property("result") , ff.literal(9.9));
+        Filter filter = ff.and(f1, f2);
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        assertEquals(1, results.size());
+        assertTrue(results.get(0).getResult() instanceof MeasureResult);
+
+        MeasureResult result = (MeasureResult) results.get(0).getResult();
+        assertEquals(result.getValue(), 9.9);
     }
 
     @Test
@@ -4166,6 +4210,114 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedResult =  "urn:ogc:object:sensor:GEOM:8-dec-0,2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "urn:ogc:object:sensor:GEOM:8-dec-1,2007-05-01T15:59:00.0,6.56,15.0@@"
                         + "urn:ogc:object:sensor:GEOM:8-dec-2,2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void getResultsSingleFilter2Test() throws Exception {
+        // sensor 12 no decimation
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        Object result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        String expectedResult = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                                "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"  +
+                                "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                                "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
+                                "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setDecimationSize(10);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        // here the decimated results are not the same because of the gaps between the values
+        expectedResult = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                         "2009-05-10T20:12:00.0,5.9,1.5,1.0@@"  +
+                         "2010-07-25T05:48:00.0,8.9,78.5,3.0@@" +
+                         "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 no decimation with filter on result component
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        BinaryComparisonOperator filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
+                          "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation with filter on result component
+        query.setDecimationSize(10);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
+                          "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 no decimation with filter on result component
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                          "2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation with filter on result component
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setDecimationSize(10);
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        // here the decimated results are not the same because of the gaps between the values
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "2009-01-19T10:13:48.0,7.8,14.5,1.0@@" +
+                          "2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 no decimation with filter on result component + id
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setIncludeIdInDataBlock(true);
+        filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:3000-1,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                          "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 8 with decimation with filter on result component  + id
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setIncludeIdInDataBlock(true);
+        query.setDecimationSize(10);
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        // here the decimated results are not the same because of the gaps between the values
+        expectedResult =  "urn:ogc:object:sensor:GEOM:12-dec-0,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "urn:ogc:object:sensor:GEOM:12-dec-1,2009-01-19T10:13:48.0,7.8,14.5,1.0@@" +
+                          "urn:ogc:object:sensor:GEOM:12-dec-2,2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
 
         assertEquals(expectedResult, result);
     }

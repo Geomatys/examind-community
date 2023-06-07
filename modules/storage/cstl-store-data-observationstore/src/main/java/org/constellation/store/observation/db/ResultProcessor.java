@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
+import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
@@ -42,12 +42,16 @@ public class ResultProcessor {
     protected final boolean profile;
     protected final boolean includeId;
     protected final boolean includeQuality;
+    protected final Field mainField;
+    protected final int mainFieldIndex;
 
-    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality) {
+    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality, Field mainField) {
         this.fields = fields;
         this.profile = profile;
         this.includeId = includeId;
         this.includeQuality = includeQuality;
+        this.mainField = mainField;
+        this.mainFieldIndex = fields.indexOf(mainField);
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
@@ -65,14 +69,14 @@ public class ResultProcessor {
         return values;
     }
 
-    public void processResults(ResultSet rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null);
-        while (rs.next()) {
+        while (rs.nextOnField(mainField.name)) {
             if (includeId) {
-                String name = rs.getString("identifier");
+                String name = rs.getString("identifier", 0);
                 parser.setName(name);
             }
             parser.parseLine(rs, 0);

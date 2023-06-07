@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
+import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +51,7 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
     }
 
     @Override
-    public Map<String, Map<Date, Geometry>> processLocations(ResultSet rs) throws SQLException, DataStoreException {
+    public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
         Polygon spaFilter = null;
         final CoordinateReferenceSystem envCRS;
         if (envelopeFilter != null) {

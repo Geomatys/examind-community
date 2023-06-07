@@ -23,8 +23,6 @@ import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -44,6 +42,8 @@ import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
+import org.constellation.util.MultiFilterSQLRequest;
+import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
@@ -146,10 +146,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<org.opengis.observation.Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
 
-        LOGGER.fine(sqlRequest.getRequest());
-        try (final Connection c            = source.getConnection();
-             final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-             final ResultSet rs            = pstmt.executeQuery()) {
+        LOGGER.fine(sqlRequest.toString());
+        try (final Connection c = source.getConnection();
+             final SQLResult rs = sqlRequest.execute(c)) {
 
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
@@ -232,10 +231,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Map<String, Procedure> processMap = new HashMap<>();
         final Map<String, Map<String, Object>> obsPropMap  = new HashMap<>();
 
-        LOGGER.fine(sqlRequest.getRequest());
-        try (final Connection c              = source.getConnection();
-             final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-             final ResultSet rs              = pstmt.executeQuery()) {
+        LOGGER.fine(sqlRequest.toString());
+        try (final Connection c = source.getConnection();
+             final SQLResult rs = sqlRequest.execute(c)) {
 
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
@@ -324,10 +322,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        LOGGER.fine(sqlRequest.getRequest());
-        try(final Connection c              = source.getConnection();
-            final PreparedStatement pstmt   = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs              = pstmt.executeQuery()) {
+        LOGGER.fine(sqlRequest.toString());
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
 
             while (rs.next()) {
                 int nbValue = 0;
@@ -335,8 +332,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String featureID   = rs.getString("foi");
                 final int oid            = rs.getInt("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
-                ProcedureInfo procTableInfos = getPIDFromProcedure(procedure, c).orElse(null);
-                final String measureJoin = getMeasureTableJoin(procTableInfos);
+                ProcedureInfo pti        = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
                 final Field mainField    = getMainField(procedure, c);
                 boolean profile          = !FieldType.TIME.equals(mainField.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
@@ -385,11 +381,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     // add the time for profile in the dataBlock if requested
                     if (profileWithTime) {
-                        fields.add(0, new Field(0, FieldType.TIME, "time_begin", "time", "time", null));
+                        fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new Field(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null));
+                        fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -398,13 +394,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 * Compute procedure measure request
                 */
                 int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-                FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+                final FilterSQLRequest measureFilter        = applyFilterOnMeasureRequest(offset, mainField, fields, pti);
+                final MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, mainField, measureFilter, profile, oid, false, true, false);
+                LOGGER.fine(measureRequests.toString());
                 
-                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
-                measureRequest.appendValue(-1).append(measureFilter, !profile).append("ORDER BY ").append("m.\"" + mainField.name + "\"");
-
                 final String name = rs.getString("identifier");
                 final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
+
+                // profile oservation are instant
+                if (profile) {
+                    parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                }
 
                 if (observation == null) {
                     final String obsID            = "obs-" + oid;
@@ -419,11 +419,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     /*
                      *  BUILD RESULT
                      */
-                    measureRequest.setParamValue(0, oid);
-                    LOGGER.fine(measureRequest.getRequest());
-                    try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
-                        final ResultSet rs2 = stmt.executeQuery()) {
-                        while (rs2.next()) {
+                    try (final SQLResult rs2 = measureRequests.execute(c)) {
+                        while (rs2.nextOnField(mainField.name)) {
                             parser.parseLine(rs2, offset);
                             nbValue = nbValue + parser.nbValue;
 
@@ -434,7 +431,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
                                 final ComplexResult result = buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
                                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
-                                final String measureID = rs2.getString("id");
+                                final String measureID = rs2.getString("id", 0);
                                 final String singleObsID = "obs-" + oid + '-' + measureID;
                                 final String singleName  = name + '-' + measureID;
                                 observation = new Observation(singleObsID,
@@ -454,11 +451,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             }
                         }
                     } catch (SQLException ex) {
-                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequest.getRequest());
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequests.toString());
                         throw new DataStoreException("the service has throw a SQL Exception.", ex);
                     }
 
-                   /**
+                    /**
                     * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
                     */
                     if (!separatedMeasure) {
@@ -485,17 +482,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         }
                     }
                 } else {
-                    /**
-                     * complete the previous observation with new measures.
-                     */
-                    if (profile) {
-                        // profile oservation are instant
-                        parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
-                    }
-                    measureRequest.setParamValue(0, oid);
-                    LOGGER.fine(measureRequest.toString());
-                    try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
-                        final ResultSet rs2 = stmt.executeQuery()) {
+                   /**
+                    * complete the previous observation with new measures.
+                    */
+                    try (final SQLResult rs2 = measureRequests.execute(c)) {
                         while (rs2.next()) {
                             parser.parseLine(rs2, offset);
                             nbValue = nbValue + parser.nbValue;
@@ -539,9 +529,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
         LOGGER.fine(sqlRequest.toString());
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
                 final Date startTime = dateFromTS(rs.getTimestamp("time_begin"));
@@ -553,7 +542,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String observedProperty = rs.getString("observed_property");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final Phenomenon phen = getPhenomenon(observedProperty, c);
-                final String measureJoin   = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get()); // we know that the procedure exist
+                final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
                 final List<Field> fields = readFields(procedure, true, c);
                 final Map<Field, Phenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
@@ -571,25 +560,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     properties.put("type", "profile");
                 }
 
-                final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, new ArrayList<>(fieldPhen.keySet()));
-
-                //final List<FilterSQLRequest> measureRequests = new ArrayList<>();
-                final FilterSQLRequest measureRequest = new FilterSQLRequest("SELECT * FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
-                measureRequest.appendValue(oid).append(" ").append(measureFilter, notProfile);
-                measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
+                final FilterSQLRequest measureFilter  = applyFilterOnMeasureRequest(0, mainField, new ArrayList<>(fieldPhen.keySet()), pti);
+                final FilterSQLRequest measureRequest =  buildMesureRequests(pti, mainField, measureFilter, !notProfile, oid, false, true, false);
 
                 /**
                  * coherence verification
                  */
                 LOGGER.fine(measureRequest.toString());
-                try(final PreparedStatement stmt = measureRequest.fillParams(c.prepareStatement(measureRequest.getRequest()));
-                    final ResultSet rs2 = stmt.executeQuery()) {
-                    while (rs2.next()) {
-                        final Integer rid = rs2.getInt("id");
+                try (final SQLResult rs2 = measureRequest.execute(c)) {
+                    while (rs2.nextOnField(mainField.name)) {
+                        final Integer rid = rs2.getInt("id", 0);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalGeometricPrimitive measureTime;
                             if (notProfile) {
-                                final Date mt = dateFromTS(rs2.getTimestamp(mainField.name));
+                                final Date mt = dateFromTS(rs2.getTimestamp(mainField.name, 0));
                                 measureTime = buildTime(oid + "-" + rid, mt, null);
                             } else {
                                 measureTime = time;
@@ -597,19 +581,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                             for (Entry<Field, Phenomenon> entry : fieldPhen.entrySet()) {
                                 Phenomenon fphen = entry.getValue();
-                                Field field      = entry.getKey();
+                                DbField field    = (DbField) entry.getKey();
                                 FieldType fType  = field.type;
                                 String fName     = field.name;
+                                int rsIndex      = field.tableNumber - 1;
                                 final String observationType = getOmTypeFromFieldType(fType);
-                                final String value = rs2.getString(fName);
+                                final String value = rs2.getString(fName, rsIndex);
                                 if (value != null) {
                                     Object resultValue;
                                     if (fType == FieldType.QUANTITY) {
-                                        resultValue = rs2.getDouble(fName);
+                                        resultValue = rs2.getDouble(fName, rsIndex);
                                     } else if (fType == FieldType.BOOLEAN) {
-                                        resultValue = rs2.getBoolean(fName);
+                                        resultValue = rs2.getBoolean(fName, rsIndex);
                                     } else if (fType == FieldType.TIME) {
-                                        Timestamp ts = rs2.getTimestamp(fName);
+                                        Timestamp ts = rs2.getTimestamp(fName, rsIndex);
                                         resultValue = new Date(ts.getTime());
                                     } else {
                                         resultValue = value;
@@ -689,7 +674,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  1) build field list.
              */
-            final Field mainField = getMainField(currentProcedure);
+            final Field mainField   = getMainField(currentProcedure, c);
+            final ProcedureInfo pti = getPIDFromProcedure(currentProcedure, c).orElseThrow(); // we know that the procedure exist
             
             final List<Field> fields;
             if (!currentFields.isEmpty()) {
@@ -714,28 +700,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new Field(0, FieldType.TIME, "time_begin", "time", "time", null));
+                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new Field(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null));
+                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
             }
 
             /**
              *  2) complete SQL request.
              */
             int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields, pti);
             sqlRequest.append(measureFilter);
             
-            final String fieldOrdering;
-            if (mainField != null) {
-                fieldOrdering = "m.\"" + mainField.name + "\"";
-            } else {
-                // we keep this fallback where no main field is found.
-                // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
-                fieldOrdering = "m.\"id\"";
-            }
             StringBuilder select  = new StringBuilder("m.*");
             if (profile) {
                 select.append(", o.\"id\" as oid ");
@@ -747,20 +725,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 select.append(", o.\"identifier\" ");
             }
             sqlRequest.replaceFirst("m.*", select.toString());
-            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append(fieldOrdering);
+            sqlRequest.append(" ORDER BY o.\"time_begin\", \"").append(mainField.name).append("\"");
 
             if (firstFilter) {
-                return sqlRequest.replaceFirst("WHERE", "");
+                sqlRequest = sqlRequest.replaceFirst("WHERE", "");
             }
             LOGGER.fine(sqlRequest.toString());
 
             /**
              * 3) Extract results.
              */
-            ResultProcessor processor = new ResultProcessor(fields, profile, includeIDInDataBlock, includeQualityFields);
+            ResultProcessor processor = new ResultProcessor(fields, profile, includeIDInDataBlock, includeQualityFields, mainField);
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
-            try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                 final ResultSet rs = pstmt.executeQuery()) {
+            try (final SQLResult rs = sqlRequest.execute(c)) {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
@@ -783,7 +760,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  1) build field list.
              */
-            final List<Field> fields = new ArrayList<>();
+            final ProcedureInfo pti    = getPIDFromProcedure(currentProcedure, c).orElseThrow(); // we know that the procedure exist
+            final List<Field> fields    = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
             for (int i = 1; i < allfields.size(); i++) {
@@ -795,11 +773,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new Field(0, FieldType.TIME, "time_begin", "time", "time", null));
+                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new Field(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null));
+                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
             }
             final Field mainField = getMainField(currentProcedure, c);
 
@@ -807,19 +785,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              *  2) complete SQL request.
              */
             int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields, pti);
             sqlRequest.append(measureFilter);
             
             final FilterSQLRequest fieldRequest = sqlRequest.clone();
-            final String fieldOrdering;
-            if (mainField != null) {
-                fieldOrdering = "m.\"" + mainField.name + "\"";
-            } else {
-                // we keep this fallback where no main field is found.
-                // i'm not sure it will be possible to handle an observation with no main field (meaning its not a timeseries or a profile).
-                fieldOrdering = "m.\"id\"";
-            }
-            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append(fieldOrdering);
+            
+            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append("\"" + mainField.name + "\"");
             StringBuilder select  = new StringBuilder("m.*");
             if (profile) {
                 select.append(", o.\"id\" as oid ");
@@ -837,12 +808,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              * 3) Extract results.
              */
             final Map<Object, long[]> times = getMainFieldStep(fieldRequest, mainField, c, decimationSize);
-            final int mainFieldIndex = fields.indexOf(mainField);
-            ResultProcessor processor = new DefaultResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainFieldIndex, currentProcedure, times);
+            ResultProcessor processor = new DefaultResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainField, currentProcedure, times);
             ResultBuilder values = processor.initResultBuilder(responseFormat, false);
 
-            try (final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                 final ResultSet rs = pstmt.executeQuery()) {
+            try (final SQLResult rs = sqlRequest.execute(c)) {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
@@ -864,7 +833,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  1) build field list.
              */
-            final List<Field> fields = new ArrayList<>();
+            final ProcedureInfo pti     = getPIDFromProcedure(currentProcedure, c).orElseThrow(); // we know that the procedure exist
+            final List<Field> fields    = new ArrayList<>();
             final List<Field> allfields = readFields(currentProcedure, c);
             fields.add(allfields.get(0));
             for (int i = 1; i < allfields.size(); i++) {
@@ -876,18 +846,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final Field mainField = getMainField(currentProcedure, c);
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new Field(0, FieldType.TIME, "time_begin", "time", "time", null));
+                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new Field(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null));
+                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
             }
             
             /**
              *  2) complete SQL request.
              */
             int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, mainField, fields, pti);
             // TODO the measure filter is not used ? need testing
 
             // calculate step
@@ -929,11 +899,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              * 3) Extract results.
              */
-            final int mainFieldIndex = fields.indexOf(mainField);
-            ResultProcessor processor = new TimeScaleResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainFieldIndex, currentProcedure);
+            ResultProcessor processor = new TimeScaleResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, mainField, currentProcedure);
             ResultBuilder values = processor.initResultBuilder(responseFormat, false);
-            try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                 final ResultSet rs            = pstmt.executeQuery()) {
+            try (final SQLResult rs = sqlRequest.execute(c)) {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
@@ -976,14 +944,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         }
         LOGGER.fine(request.toString());
-        try (final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest()));
-             final ResultSet rs = pstmt.executeQuery()) {
+        try (final SQLResult rs = request.execute(c)) {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
                 if (FieldType.TIME.equals(mainField.type)) {
-                    final Timestamp minT = rs.getTimestamp(1);
-                    final Timestamp maxT = rs.getTimestamp(2);
+                    final Timestamp minT = rs.getTimestamp(1, 0);
+                    final Timestamp maxT = rs.getTimestamp(2, 0);
                     if (minT != null && maxT != null) {
                         final long min = minT.getTime();
                         final long max = maxT.getTime();
@@ -996,8 +963,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         result[1] = step;
                     }
                 } else if (FieldType.QUANTITY.equals(mainField.type)) {
-                    final Double minT = rs.getDouble(1);
-                    final Double maxT = rs.getDouble(2);
+                    final Double minT = rs.getDouble(1, 0);
+                    final Double maxT = rs.getDouble(2, 0);
                     final long min    = minT.longValue();
                     final long max    = maxT.longValue();
                     result[0] = min;
@@ -1055,8 +1022,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         LOGGER.fine(sqlRequest.toString());
         final List<org.opengis.observation.sampling.SamplingFeature> features = new ArrayList<>();
         try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 final String id = rs.getString("id");
                 final String name = rs.getString("name");
@@ -1144,9 +1110,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest = appendPaginationToRequest(sqlRequest);
         final List<org.opengis.observation.Phenomenon> phenomenons = new ArrayList<>();
         LOGGER.fine(sqlRequest.toString());
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try (final Connection c = source.getConnection();
+            final SQLResult rs  = sqlRequest.execute(c)) {
             while (rs.next()) {
                 phenomenons.add(getPhenomenon(rs.getString(1), c));
             }
@@ -1181,9 +1146,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Process> results = new ArrayList<>();
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs =  sqlRequest.execute(c)) {
             while (rs.next()) {
                 results.add(getProcess(rs.getString(1), c));
             }
@@ -1207,9 +1171,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Offering> results = new ArrayList<>();
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt =  sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try (final Connection c = source.getConnection();
+             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 results.add(readObservationOffering(rs.getString(1), c));
             }
@@ -1243,9 +1206,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         Map<String, Geometry> locations = new LinkedHashMap<>();
         LOGGER.fine(sqlRequest.toString());
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 try {
                     final String procedure = rs.getString("id");
@@ -1306,9 +1268,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
         LOGGER.fine(sqlRequest.toString());
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
 
             SensorLocationProcessor processor = new SensorLocationProcessor(envelopeFilter);
             return processor.processLocations(rs);
@@ -1350,8 +1311,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
 
             LOGGER.fine(sqlRequest.toString());
-            try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                final ResultSet rs = pstmt.executeQuery()) {
+            try(final SQLResult rs = sqlRequest.execute(c)) {
                 SensorLocationProcessor processor = new SensorLocationDecimator(envelopeFilter, nbCell, times);
                 return processor.processLocations(rs);
             }
@@ -1387,8 +1347,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // calculate the first date and the time step for each procedure.
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
             LOGGER.fine(sqlRequest.toString());
-            try(final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                final ResultSet rs = pstmt.executeQuery()) {
+            try(final SQLResult rs = sqlRequest.execute(c)) {
                 final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, nbCell, times);
                 return processor.processLocations(rs);
             }
@@ -1421,9 +1380,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         Map<String, Set<Date>> times = new LinkedHashMap<>();
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
                 final Date time = new Date(rs.getTimestamp("time").getTime());

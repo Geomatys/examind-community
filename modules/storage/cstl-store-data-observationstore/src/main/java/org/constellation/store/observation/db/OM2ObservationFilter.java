@@ -48,6 +48,9 @@ import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import org.constellation.util.FilterSQLRequest.TableJoin;
+import org.constellation.util.MultiFilterSQLRequest;
+import org.constellation.util.SQLResult;
+import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.*;
@@ -87,7 +90,7 @@ import org.opengis.util.FactoryException;
 public abstract class OM2ObservationFilter extends OM2BaseReader implements ObservationFilterReader {
 
     protected FilterSQLRequest sqlRequest;
-    protected FilterSQLRequest sqlMeasureRequest = new FilterSQLRequest();
+    protected FilterSQLRequest sqlMeasureRequest = new SingleFilterSQLRequest();
 
     protected final DataSource source;
 
@@ -201,7 +204,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         
         this.singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
-            sqlRequest = new FilterSQLRequest("SELECT distinct  o.\"procedure\"");
+            sqlRequest = new SingleFilterSQLRequest("SELECT distinct o.\"procedure\"");
             if (singleObservedPropertyInTemplate) {
                 sqlRequest.append(", (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) AS \"obsprop\", pd.\"order\", pd.\"uom\"");
             } 
@@ -222,7 +225,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
             template = true;
         } else {
-            sqlRequest = new FilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
+            sqlRequest = new SingleFilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
             sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
             firstFilter = false;
         }
@@ -240,23 +243,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.firstFilter = false;
         try(final Connection c = source.getConnection()) {
             final ProcedureInfo pi = getPIDFromProcedure(currentProcedure, c).orElse(null);
-            if (pi != null) {
-                final String measureJoin = getMeasureTableJoin(pi);
-                currentOMType = getProcedureOMType(currentProcedure, c);
-                StringBuilder select = new StringBuilder("m.* ");
-                for (int i = 1; i < pi.nbTable; i++) {
-                    select.append(", m").append(i + 1).append(".* ");
-                }
+            if (pi == null) throw new DataStoreException("Unexisting procedure:" + currentProcedure);
 
-                sqlRequest = new FilterSQLRequest("SELECT " + select.toString() + " "
-                                                + "FROM "   + measureJoin + ",\"" + schemaPrefix + "om\".\"observations\" o "
-                                                + "WHERE o.\"id\" = m.\"id_observation\"");
+            currentOMType = getProcedureOMType(currentProcedure, c);
+            Field mainField = getMainField(currentProcedure, c);
 
-                //we add to the request the property of the template
-                sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
-            } else {
-                throw new DataStoreException("Unexisting procedure:" + currentProcedure);
-            }
+            sqlRequest = buildMesureRequests(pi, mainField, null, "profile".equals(currentOMType), null, true, false, false);
+            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
         }
@@ -270,14 +263,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } else {
             geomColum = "\"shape\"";
         }
-        sqlRequest = new FilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
+        sqlRequest = new SingleFilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
         obsJoin = false;
     }
 
     private void initFilterGetPhenomenon(ObservedPropertyQuery query) {
         this.noCompositePhenomenon = query.isNoCompositePhenomenon();
-        sqlRequest = new FilterSQLRequest("SELECT DISTINCT(op.\"id\") as \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
+        sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT(op.\"id\") as \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
         if (noCompositePhenomenon) {
             sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
             firstFilter = false;
@@ -288,12 +281,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     private void initFilterGetSensor() {
-        sqlRequest = new FilterSQLRequest("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
+        sqlRequest = new SingleFilterSQLRequest("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
         firstFilter = true;
     }
 
     private void initFilterOffering() throws DataStoreException {
-        sqlRequest = new FilterSQLRequest("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
+        sqlRequest = new SingleFilterSQLRequest("SELECT off.\"identifier\" FROM \"" + schemaPrefix + "om\".\"offerings\" off WHERE ");
         firstFilter = true;
     }
 
@@ -304,7 +297,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } else {
             geomColum = "\"shape\"";
         }
-        sqlRequest = new FilterSQLRequest("SELECT pr.\"id\", ")
+        sqlRequest = new SingleFilterSQLRequest("SELECT pr.\"id\", ")
                 .append(geomColum).append(", pr.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"procedures\" pr WHERE ");
         firstFilter = true;
@@ -318,14 +311,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } else {
             geomColum = "\"location\"";
         }
-        sqlRequest = new FilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\", ")
+        sqlRequest = new SingleFilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\", ")
                 .append(geomColum).append(", hl.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
     }
 
     private void initFilterGetProcedureTimes() throws DataStoreException {
-        sqlRequest = new FilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" hl WHERE ");
+        sqlRequest = new SingleFilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" hl WHERE ");
         firstFilter = true;
     }
 
@@ -336,8 +329,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public void setProcedure(final List<String> procedures) throws DataStoreException {
         if (procedures != null && !procedures.isEmpty()) {
             if (OMEntity.OBSERVED_PROPERTY.equals(objectType)) {
-                final FilterSQLRequest procSb  = new FilterSQLRequest();
-                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+                final FilterSQLRequest procSb  = new SingleFilterSQLRequest();
+                final FilterSQLRequest fieldSb = new SingleFilterSQLRequest();
                 for (String procedureID : procedures) {
                     if (!noCompositePhenomenon) {
                         Phenomenon phen;
@@ -356,8 +349,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         procDescJoin = true;
                     }
                 }
-                if (procSb.length() > 0) {
-                    procSb.delete(procSb.length() - 3, procSb.length());
+                if (!procSb.isEmpty()) {
+                    procSb.deleteLastChar(3);
                     if (!firstFilter) {
                         sqlRequest.append(" AND( ").append(procSb).append(") ");
                     } else {
@@ -365,8 +358,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         firstFilter = false;
                     }
                 }
-                if (fieldSb.length() > 0) {
-                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                if (!fieldSb.isEmpty()) {
+                    fieldSb.deleteLastChar(3);
                     if (!firstFilter) {
                         sqlRequest.append(" AND( ").append(fieldSb).append(") ");
                     } else {
@@ -397,7 +390,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         sqlRequest.append(" ").append(columnName).append("=").appendValue(s).append(" OR ");
                     }
                 }
-                sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
+                sqlRequest.deleteLastChar(3);
                 sqlRequest.append(") ");
                 firstFilter = false;
             }
@@ -431,7 +424,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
             boolean getFOI  = OMEntity.FEATURE_OF_INTEREST.equals(objectType);
             if (getPhen) {
-                final FilterSQLRequest sbPheno = new FilterSQLRequest();
+                final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
                 for (String p : phenomenon) {
                     sbPheno.append(" \"id\"=").appendValue(p).append(" OR ");
                     // try to be flexible and allow to call this ommiting phenomenon id base
@@ -440,27 +433,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     }
                     fields.addAll(getFieldsForPhenomenon(p));
                 }
-                sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                sbPheno.deleteLastChar(3);
                 sb = sbPheno;
             } else {
                 if (singleObservedPropertyInTemplate) {
-                    final FilterSQLRequest sbPheno = new FilterSQLRequest();
+                    final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
                     for (String p : phenomenon) {
                         sbPheno.append(" (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = ").appendValue(p).append(" OR ");
                         fields.addAll(getFieldsForPhenomenon(p));
                     }
-                    sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
+                    sbPheno.deleteLastChar(3);
                     sb = sbPheno;
                 } else {
-                    final FilterSQLRequest sbPheno = new FilterSQLRequest();
-                    final FilterSQLRequest sbCompo = new FilterSQLRequest(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                    final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
+                    final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
                     for (String p : phenomenon) {
                         sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
                         sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
                         fields.addAll(getFieldsForPhenomenon(p));
                     }
-                    sbPheno.delete(sbPheno.length() - 3, sbPheno.length());
-                    sbCompo.delete(sbCompo.length() - 3, sbCompo.length());
+                    sbPheno.deleteLastChar(3);
+                    sbCompo.deleteLastChar(3);
                     sbCompo.append(")");
                     sb = sbPheno.append(sbCompo);
                     obsJoin = true;
@@ -509,11 +502,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 columnName = "\"foi\"";
                 obsJoin = true;
             }
-            final FilterSQLRequest sb = new FilterSQLRequest();
+            final FilterSQLRequest sb = new SingleFilterSQLRequest();
             for (String foi : fois) {
                 sb.append("(").append(columnName).append("=").appendValue(foi).append(") OR");
             }
-            sb.delete(sb.length() - 3, sb.length());
+            sb.deleteLastChar(3);
 
             if (!firstFilter) {
                 sqlRequest.append(" AND( ").append(sb).append(") ");
@@ -529,8 +522,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (!ids.isEmpty()) {
             boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
             if (getPhen) {
-                final FilterSQLRequest procSb  = new FilterSQLRequest();
-                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+                final FilterSQLRequest procSb  = new SingleFilterSQLRequest();
+                final FilterSQLRequest fieldSb = new SingleFilterSQLRequest();
                /*
                 * in phenomenon mode 2 possibility :
                 *   1) look for for observation for a template:
@@ -604,8 +597,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         // ?? what to do with oid ?
                     }
                 }
-                if (procSb.length() > 0) {
-                    procSb.delete(procSb.length() - 3, procSb.length());
+                if (!procSb.isEmpty()) {
+                    procSb.deleteLastChar(3);
                     if (!firstFilter) {
                         sqlRequest.append(" AND( ").append(procSb).append(") ");
                     } else {
@@ -613,8 +606,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         firstFilter = false;
                     }
                 }
-                if (fieldSb.length() > 0) {
-                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                if (!fieldSb.isEmpty()) {
+                    fieldSb.deleteLastChar(3);
                     if (!firstFilter) {
                         sqlRequest.append(" AND( ").append(fieldSb).append(") ");
                     } else {
@@ -624,8 +617,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
 
             } else {
-                final FilterSQLRequest procSb  = new FilterSQLRequest();
-                final FilterSQLRequest fieldSb = new FilterSQLRequest();
+                final FilterSQLRequest procSb  = new SingleFilterSQLRequest();
+                final FilterSQLRequest fieldSb = new SingleFilterSQLRequest();
                /*
                 * in template mode 2 possibility :
                 *   1) look for for a template by id:
@@ -726,9 +719,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         }
                     }
                 }
-                procSb.delete(procSb.length() - 3, procSb.length());
-                if (fieldSb.length() > 0) {
-                    fieldSb.delete(fieldSb.length() - 3, fieldSb.length());
+                procSb.deleteLastChar(3);
+                if (!fieldSb.isEmpty()) {
+                    fieldSb.deleteLastChar(3);
                 }
                 if (!firstFilter) {
                     sqlRequest.append(" AND( ").append(procSb).append(") ");
@@ -736,7 +729,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     sqlRequest.append(procSb);
                     firstFilter = false;
                 }
-                if (fieldSb.length() > 0) {
+                if (!fieldSb.isEmpty()) {
                     sqlRequest.append(" AND( ").append(fieldSb).append(") ");
                 }
                 obsJoin = true;
@@ -902,7 +895,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 suffix = "_quality_" + suffix.substring(1);
             }
             // if the field is not a number this will fail.
-            sqlMeasureRequest.append(" AND (\"$phen").append(index).append(suffix).append("\" ").append(operator).appendObjectValue(value.getValue()).append(")");
+            sqlMeasureRequest.append(" AND (\"$phen").append(index).append(suffix).append("\" ").append(operator).appendNamedObjectValue("phen" + index, value.getValue()).append(")");
 
         // apply only on all phenonemenon
         } else {
@@ -997,7 +990,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     sqlRequest.append(columnName).appendValue(s).append(" OR ");
                 }
             }
-            sqlRequest.delete(sqlRequest.length() - 3, sqlRequest.length());
+            sqlRequest.deleteLastChar(3);
             sqlRequest.append(") ");
             firstFilter = false;
             offJoin = true;
@@ -1031,33 +1024,63 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      *
      * @return a filtered measure request.
      */
-    protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, Field mainField, List<Field> fields) {
-        FilterSQLRequest result = sqlMeasureRequest.clone();
+    protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, Field mainField, List<Field> fields, ProcedureInfo pti) {
+        // some time filter may have already been set in the measure request
+        MultiFilterSQLRequest result = new MultiFilterSQLRequest();
+        for (int k = 1; k < pti.nbTable + 1; k++) {
+            FilterSQLRequest single = sqlMeasureRequest.clone();
+            single.replaceAll("$time", mainField.name);
 
-        result.replaceAll("$time", mainField.name);
-
-        /**
-         * there is an issue here in a measurement context.
-         * The filter should be applied on each field separately
-         * Actually the filter is apply on each field with a "AND"
-         */
-        while (result.contains("${allphen")) {
-            String measureFilter = result.getRequest();
-            int opos = measureFilter.indexOf("${allphen");
-            int cpos = measureFilter.indexOf("}", opos + 9);
-            String block = measureFilter.substring(opos, cpos + 1);
-            StringBuilder sb = new StringBuilder();
-            for (int i = offset; i < fields.size(); i++) {
-                Field field = fields.get(i);
-                sb.append(" AND (").append(block.replace("${allphen", "\"" + field.name + "\"").replace('}', ' ')).append(") ");
+           /**
+            * there is an issue here in a measurement context.
+            * The filter should be applied on each field separately
+            * Actually the filter is apply on each field with a "AND"
+            */
+            final String allPhenKeyword = "${allphen";
+            while (single.contains(allPhenKeyword)) {
+                String measureFilter = single.getRequest();
+                int opos = measureFilter.indexOf(allPhenKeyword);
+                int cpos = measureFilter.indexOf("}", opos + allPhenKeyword.length());
+                String block = measureFilter.substring(opos, cpos + 1);
+                StringBuilder sb = new StringBuilder();
+                int extraFilter = -1;
+                for (int i = offset; i < fields.size(); i++) {
+                    DbField field = (DbField) fields.get(i);
+                    if (field.tableNumber == k) {
+                        extraFilter++;
+                        sb.append(" AND (").append(block.replace("${allphen", "\"" + field.name + "\"").replace('}', ' ')).append(") ");
+                    }
+                }
+                single.replaceFirst(block, sb.toString());
+                if (extraFilter == -1) {
+                    // the filter has been removed, we need to remove the param
+                    single.removeNamedParam("allphen");
+                } else {
+                    single.duplicateNamedParam("allphen", extraFilter);
+                }
             }
-            result.replaceFirst(block, sb.toString());
-            result.duplicateNamedParam("allphen", fields.size() - offset);
+
+
+            for (int i = offset; i < fields.size(); i++) {
+                DbField field = (DbField) fields.get(i);
+                if (field.tableNumber == k) {
+                    single.replaceAll("$phen" + (i - offset), field.name);
+                } else {
+                    // we need to remove the filter fom the request, as it does not apply to this table
+                    final String phenKeyword = " AND (\"$phen" + (i - offset);
+                    while (single.contains(phenKeyword)) {
+                        String measureFilter = single.getRequest();
+                        int opos = measureFilter.indexOf(phenKeyword);
+                        int cpos = measureFilter.indexOf(")", opos + phenKeyword.length());
+                        String block = measureFilter.substring(opos, cpos + 1);
+                        single.replaceFirst(block, "");
+                        single.removeNamedParam("phen" + (i - offset));
+                    }
+                }
+            }
+            result.addRequest(single);
         }
-        for (int i = offset; i < fields.size(); i++) {
-            Field f = fields.get(i);
-            result.replaceAll("$phen" + (i - offset), f.name);
-        }
+        
         return result;
     }
 
@@ -1069,9 +1092,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         LOGGER.log(Level.FINER, "request:{0}", sqlRequest.toString());
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
-        try (final Connection c                   = source.getConnection();
-            final PreparedStatement pstmt         = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet result                = pstmt.executeQuery()) {
+        try (final Connection c    = source.getConnection();
+            final SQLResult result = sqlRequest.execute(c)) {
             final List<ObservationResult> results = new ArrayList<>();
             while (result.next()) {
                 results.add(new ObservationResult(result.getString(1),
@@ -1110,9 +1132,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
         LOGGER.fine(sqlRequest.toString());
-        try(final Connection c               = source.getConnection();
-            final PreparedStatement pstmt    = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs               = pstmt.executeQuery()) {
+        try (final Connection c = source.getConnection();
+             final SQLResult rs = sqlRequest.execute(c)) {
             final List<String> results       = new ArrayList<>();
             while (rs.next()) {
                 final String procedure       = rs.getString("procedure");
@@ -1134,34 +1155,28 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int oid                 = rs.getInt("id");
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
-                    final String measureJoin      = getMeasureTableJoin(getPIDFromProcedure(procedure, c).get()); // we know that the procedure exist
                     final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure, c);
+                    final ProcedureInfo pti       = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
                     boolean profile               = !FieldType.TIME.equals(mainField.type);
 
-                    final String select;
-                    if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        select = "*";
-                    } else {
-                        select = "m.\"id\"";
-                    }
-                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields);
-                    final FilterSQLRequest sqlRequest = new FilterSQLRequest( "SELECT " + select + " FROM " + measureJoin + " WHERE m.\"id_observation\" = ");
-                    sqlRequest.appendValue(oid).append(measureFilter, !profile).append("ORDER BY m.\"id\"");
-                    LOGGER.fine(sqlRequest.getRequest());
+                    final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
+                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields, pti);
+                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, mainField, measureFilter, profile, oid, false, true, idOnly);
+                    LOGGER.fine(mesureRequest.toString());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final Phenomenon phen = getPhenomenon(observedProperty, c);
                         List<Field> fieldPhen = getFieldsForPhenomenon(phen, fields, c);
                         
-                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                             final ResultSet rs2 = stmt.executeQuery()) {
+                        try (final SQLResult rs2 = mesureRequest.execute(c)) {
                             while (rs2.next()) {
-                                final Integer rid = rs2.getInt("id");
+                                final Integer rid = rs2.getInt("id", 0);
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     for (int i = 0; i < fieldPhen.size(); i++) {
-                                        Field field = fieldPhen.get(i);
-                                        final String value = rs2.getString(field.name);
+                                        DbField field = (DbField) fieldPhen.get(i);
+                                        // in measurement mode we only want the non empty measure
+                                        final String value = rs2.getString(field.name, field.tableNumber -1);
                                         if (value != null) {
                                             results.add(name + '-' + field.index + '-' + rid);
                                         }
@@ -1169,22 +1184,21 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 }
                             }
                         } catch (SQLException ex) {
-                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
+                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
                             throw new DataStoreException("the service has throw a SQL Exception.");
                         }
                         
 
                     } else {
-                        try (final PreparedStatement stmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                            final ResultSet rs2 = stmt.executeQuery()) {
+                        try (final SQLResult rs2 = mesureRequest.execute(c)) {
                             while (rs2.next()) {
-                                final Integer rid = rs2.getInt("id");
+                                final Integer rid = rs2.getInt("id", 0);
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     results.add(name + '-' + rid);
                                 }
                             }
                         } catch (SQLException ex) {
-                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
+                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
                             throw new DataStoreException("the service has throw a SQL Exception.");
                         }
                     }
@@ -1220,9 +1234,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         LOGGER.fine(sqlRequest.toString());
         List<String> locations            = new ArrayList<>();
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 try {
                     final String procedure = rs.getString("id");
@@ -1296,9 +1309,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         LOGGER.fine(sqlRequest.toString());
         List<String> results            = new ArrayList<>();
-        try(final Connection c            = source.getConnection();
-            final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-            final ResultSet rs            = pstmt.executeQuery()) {
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 try {
                     final String procedure = rs.getString("procedure");

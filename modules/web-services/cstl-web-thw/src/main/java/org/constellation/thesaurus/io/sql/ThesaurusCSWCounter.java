@@ -40,6 +40,8 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.thesaurus.api.IThesaurusCSWCounter;
 import org.constellation.thesaurus.util.HTTPCommunicator;
 import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.SQLResult;
+import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
@@ -306,7 +308,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         } else {
             countColumn = "count";
         }
-        final FilterSQLRequest request = new FilterSQLRequest("SELECT \"uri_concept\", \"label\", \"");
+        final FilterSQLRequest request = new SingleFilterSQLRequest("SELECT \"uri_concept\", \"label\", \"");
         request.append(countColumn);
         request.append("\" FROM \"th_base\".\"term_count\" tc, \"th_base\".\"linked_service\" ls");
         /*
@@ -322,7 +324,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             for (String cswUrl : csw) {
                 request.append("\"url\"=").appendValue(cswUrl).append(" OR ");
             }
-            request.delete(request.length() - 4, request.length());
+            request.deleteLastChar(4);
             request.append(")");
         }
 
@@ -334,7 +336,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             for (String cswUrl : ignoreCsw) {
                 request.append("\"url\"!=").appendValue(cswUrl).append(" AND ");
             }
-            request.delete(request.length() - 5, request.length());
+            request.deleteLastChar(5);
             request.append(")");
         }
 
@@ -346,7 +348,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
             for (String theme : themes) {
                 request.append("\"theme\"=").appendValue(theme).append(" OR ");
             }
-            request.delete(request.length() - 4, request.length());
+            request.deleteLastChar(4);
             request.append(")");
         }
 
@@ -375,7 +377,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
         for (String thesaurus : thesaurusList) {
             request.append("\"uri_thesaurus\"=").appendValue(thesaurus).append(" OR ");
         }
-        request.delete(request.length() - 4, request.length());
+        request.deleteLastChar(4);
         request.append(")");
 
         /*
@@ -383,8 +385,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
          */
         
         try (Connection c = datasource.getConnection();
-             final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest()));
-             ResultSet rs = pstmt.executeQuery()){
+             final SQLResult rs = request.execute(c)) {
 
             while (rs.next()) {
                 final String uri_concept = rs.getString(1);
@@ -414,7 +415,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public Integer getNumeredCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
         try (Connection c = datasource.getConnection()) {
-            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"count\" FROM \"th_base\".\"term_count\" WHERE ");
+            final FilterSQLRequest sb = new SingleFilterSQLRequest("SELECT \"count\" FROM \"th_base\".\"term_count\" WHERE ");
             sb.append("\"label\"=").appendValue(term);
             sb.append("\"language\"=").appendValue(language.toUpperCase());
             sb.append("\"uri_concept\"=").appendValue(uriConcept);
@@ -424,11 +425,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                     final String cswId = getCswID(url, c);
                     sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
-                sb.delete(sb.length() - 4, sb.length());
+                sb.deleteLastChar(4);
                 sb.append(" )");
             }
-            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
-                 final ResultSet rs            = pstmt.executeQuery()) {
+            try (final SQLResult rs = sb.execute(c)) {
                 while (rs.next()) {
                     if (result == null) {
                         result = 0;
@@ -446,7 +446,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public Integer getAggregatedCountForTerm(final String uriConcept, final String term, final String language, final List<String> csw, final String theme) {
         Integer result = null;
         try (Connection c = datasource.getConnection()) {
-            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"aggregated_count\" FROM \"th_base\".\"term_count\" WHERE ");
+            final FilterSQLRequest sb = new SingleFilterSQLRequest("SELECT \"aggregated_count\" FROM \"th_base\".\"term_count\" WHERE ");
             sb.append("\"label\"=").appendValue(term);
             sb.append("\"language\"=").appendValue(language.toUpperCase());
             sb.append("\"uri_concept\"=").appendValue(uriConcept);
@@ -456,11 +456,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                     final String cswId = getCswID(url, c);
                     sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
-                sb.delete(sb.length() - 4, sb.length());
+                sb.deleteLastChar(4);
                 sb.append(" )");
             }
-            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
-                 final ResultSet rs            = pstmt.executeQuery()) {
+            try (final SQLResult rs = sb.execute(c)) {
                 while (rs.next()) {
                     if (result == null) {
                         result = 0;
@@ -503,7 +502,7 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
     public List<String> getAggregatedIdsForTerm(final String uriConcept, final String prefLabel, final String language, final List<String> csw, final String theme) {
         final List<String> results =  new ArrayList<>();
         try (Connection c = datasource.getConnection()) {
-            final FilterSQLRequest sb = new FilterSQLRequest("SELECT \"identifier\" FROM \"th_base\".\"aggregated_identifier\" WHERE ");
+            final FilterSQLRequest sb = new SingleFilterSQLRequest("SELECT \"identifier\" FROM \"th_base\".\"aggregated_identifier\" WHERE ");
             sb.append("\"label\"=").appendValue(prefLabel);
             sb.append("\"language\"=").appendValue(language.toUpperCase());
             sb.append("\"uri_concept\"=").appendValue(uriConcept);
@@ -513,11 +512,10 @@ public class ThesaurusCSWCounter implements IThesaurusCSWCounter {
                     final String cswId = getCswID(url, c);
                     sb.append("\"service\"=").appendValue(cswId).append(" OR ");
                 }
-                sb.delete(sb.length() - 4, sb.length());
+                sb.deleteLastChar(4);
                 sb.append(" )");
             }
-            try (final PreparedStatement pstmt = sb.fillParams(c.prepareStatement(sb.getRequest()));
-                 final ResultSet rs            = pstmt.executeQuery()) {
+            try (final SQLResult rs = sb.execute(c)) {
                 if (rs.next()) {
                     final String idList = rs.getString(1);
                     results.addAll(Arrays.asList(idList.split(";")));

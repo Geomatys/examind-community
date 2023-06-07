@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
@@ -45,13 +46,13 @@ public class DefaultResultDecimator extends ResultDecimator {
 
     private final Map<Object, long[]> times;
 
-    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId, final Map<Object, long[]> times) {
-        super(fields, profile, includeId, width, fieldFilters, mainFieldIndex, sensorId);
+    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId, final Map<Object, long[]> times) {
+        super(fields, profile, includeId, width, fieldFilters, mainField, sensorId);
         this.times = times;
     }
 
     @Override
-    public void processResults(ResultSet rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -61,11 +62,10 @@ public class DefaultResultDecimator extends ResultDecimator {
         Integer prevObs = null;
         Date t = null;
         AtomicInteger cpt = new AtomicInteger();
-        final Field mainField = fields.get(mainFieldIndex);
-        while (rs.next()) {
+        while (rs.nextOnField(mainField.name)) {
             Integer currentObs;
             if (profile) {
-                currentObs = rs.getInt("oid");
+                currentObs = rs.getInt("oid", 0);
             } else {
                 currentObs = 1;
             }
@@ -81,7 +81,7 @@ public class DefaultResultDecimator extends ResultDecimator {
             }
             prevObs = currentObs;
 
-            final long currentMainValue = extractMainValue(mainField, rs.getString(mainField.name));
+            final long currentMainValue = extractMainValue(mainField, rs.getString(mainField.name, 0));
             if (currentMainValue > (start + step)) {
                 appendValue(t, cpt, mapValues);
 
@@ -95,11 +95,12 @@ public class DefaultResultDecimator extends ResultDecimator {
             }
 
             for (int i = 0; i < fields.size(); i++) {
-                Field field = fields.get(i);
+                DbField field = (DbField) fields.get(i);
+                int rsIndex = field.tableNumber -1;
 
                 // time for profile field
                 if (i < mainFieldIndex && field.type == FieldType.TIME) {
-                    t = dateFromTS(rs.getTimestamp(field.name));
+                    t = dateFromTS(rs.getTimestamp(field.name, rsIndex));
 
                 // identifier field
                 } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
@@ -109,7 +110,7 @@ public class DefaultResultDecimator extends ResultDecimator {
                     // already extracted
                     
                 } else {
-                    String value = rs.getString(field.name);
+                    String value = rs.getString(field.name, rsIndex);
                     mapValues.addToMapVal(currentMainValue, field.name, value);
                 }
             }

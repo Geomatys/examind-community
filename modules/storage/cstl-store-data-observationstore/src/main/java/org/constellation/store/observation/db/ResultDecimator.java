@@ -31,15 +31,12 @@ public abstract class ResultDecimator extends ResultProcessor {
 
     protected List<Integer> fieldFilters;
 
-    protected final int mainFieldIndex;
-
     protected final String sensorId;
     
-    public ResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId) {
-        super(fields, profile, includeId, false);
+    public ResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId) {
+        super(fields, profile, includeId, false, mainField);
         this.width = width;
         this.fieldFilters = fieldFilters;
-        this.mainFieldIndex = mainFieldIndex;
         this.sensorId = sensorId;
     }
 

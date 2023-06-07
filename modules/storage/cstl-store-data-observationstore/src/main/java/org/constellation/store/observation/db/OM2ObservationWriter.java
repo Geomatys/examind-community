@@ -49,6 +49,8 @@ import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.SQLResult;
+import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -155,7 +157,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private ObservationRef isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
         if (samplingTime != null) {
-            FilterSQLRequest sqlRequest = new FilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
+            FilterSQLRequest sqlRequest = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
             sqlRequest.append(" \"procedure\"=").appendValue(procedureID);
             if (foiID != null) {
                 sqlRequest.append(" AND \"foi\"=").appendValue(foiID);
@@ -167,8 +169,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             sqlConflictRequest.append(" ) ");
             
             List<ObservationRef> obs = new ArrayList<>();
-            try (final PreparedStatement pstmt = sqlConflictRequest.fillParams(c.prepareStatement(sqlConflictRequest.getRequest()));
-                 final ResultSet rs = pstmt.executeQuery()) {
+            try (final SQLResult rs = sqlConflictRequest.execute(c)) {
                 while (rs.next()) {
                     // look for observation time extension
                     Timestamp extBegin = null;
@@ -1218,7 +1219,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private Set<ObservationInfos> getIntersectingObservation(Observation obs, Connection c) throws SQLException, DataStoreException {
-        FilterSQLRequest sql = new FilterSQLRequest("SELECT \"id\", \"identifier\", \"time_begin\", \"time_end\", \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
+        FilterSQLRequest sql = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"time_begin\", \"time_end\", \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
         // procedure match
         sql.append("o.\"procedure\" = ").appendValue(obs.getProcedure().getId()).append(" AND ");
         // phenomenon match
@@ -1233,16 +1234,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         sql.append(" ) ");
 
         Set<ObservationInfos> results = new HashSet<>();
-        try (final PreparedStatement pstmt = sql.fillParams(c.prepareStatement(sql.getRequest()));
-             final ResultSet result       = pstmt.executeQuery()) {
+        try (final SQLResult result = sql.execute(c)) {
             while (result.next()) {
                 TemporalGeometricPrimitive time = OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
                 Phenomenon phenomenon = getPhenomenon(result.getString("observed_property"), c);
-                int obsId = result.getInt("id");
-                String identifier = result.getString("identifier");
-                final ProcedureInfo pi = getPIDFromObservation(identifier, c).orElse(null);
+                final int obsId = result.getInt("id");
+                final String identifier = result.getString("identifier");
+                final ProcedureInfo pi = getPIDFromOID(obsId, c).orElseThrow(IllegalStateException::new);
                 int nbMeasure = getNbMeasureForObservation(pi.pid, obsId, c);
-                results.add(new ObservationInfos(obsId, result.getString("identifier"), time, phenomenon, nbMeasure, pi));
+                results.add(new ObservationInfos(obsId, identifier, time, phenomenon, nbMeasure, pi));
             }
         }
         return results;
@@ -1250,7 +1250,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private Set<String> getIntersectingPhenomenon(Phenomenon phen, Connection c) throws SQLException {
         if (phen == null) return new HashSet<>();
-        FilterSQLRequest sql = new FilterSQLRequest("SELECT DISTINCT(\"id\") FROM  \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
+        FilterSQLRequest sql = new SingleFilterSQLRequest("SELECT DISTINCT(\"id\") FROM  \"" + schemaPrefix + "om\".\"observed_properties\" op WHERE ");
 
         // look for a direct phenomenon use, or a single component use
         sql.append(" \"id\" = ").appendValue(phen.getId());
@@ -1276,8 +1276,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
 
         Set<String> results = new HashSet<>();
-        try (final PreparedStatement pstmt = sql.fillParams(c.prepareStatement(sql.getRequest()));
-             final ResultSet result       = pstmt.executeQuery()) {
+        try (final SQLResult result = sql.execute(c)) {
             while (result.next()) {
                 results.add(result.getString("id"));
             }

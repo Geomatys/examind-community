@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
@@ -33,21 +34,22 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public class TimeScaleResultDecimator extends ResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, int mainFieldIndex, String sensorId) {
-        super(fields, profile, includeId, width, fieldFilters, mainFieldIndex, sensorId);
+    public TimeScaleResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId) {
+        super(fields, profile, includeId, width, fieldFilters, mainField, sensorId);
     }
 
     @Override
-    public void processResults(ResultSet rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         int cpt = 0;
-        while (rs.next()) {
+        while (rs.nextOnField(mainField.name)) {
             values.newBlock();
             for (int i = 0; i < fields.size(); i++) {
-                Field field = fields.get(i);
+                DbField field = (DbField) fields.get(i);
                 String fieldName = field.name;
+                int rsIndex = field.tableNumber -1;
                 
                 // id field
                 if (i < mainFieldIndex && field.type == FieldType.TEXT) {
@@ -67,19 +69,19 @@ public class TimeScaleResultDecimator extends ResultDecimator {
                 String value;
                 switch (field.type) {
                     case TIME:
-                        Date t = dateFromTS(rs.getTimestamp(fieldName));
+                        Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                         values.appendTime(t);
                         break;
                     case QUANTITY:
-                        value = rs.getString(fieldName); // we need to kown if the value is null (rs.getDouble return 0 if so).
+                        value = rs.getString(fieldName, rsIndex); // we need to kown if the value is null (rs.getDouble return 0 if so).
                         Double d = Double.NaN;
                         if (value != null && !value.isEmpty()) {
-                            d = rs.getDouble(fieldName);
+                            d = rs.getDouble(fieldName, rsIndex);
                         }
                         values.appendDouble(d);
                         break;
                     default:
-                        values.appendString(rs.getString(fieldName));
+                        values.appendString(rs.getString(fieldName, rsIndex));
                         break;
                 }
             }

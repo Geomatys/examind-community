@@ -44,7 +44,10 @@ import java.util.logging.Logger;
 
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.Util;
+import org.constellation.util.SQLResult;
+import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.geometry.jts.JTS;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
@@ -148,6 +151,17 @@ public class OM2BaseReader {
      */
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
+    /**
+     * Extract a Feature of interest from its identifier.
+     * If cache is enabled, it can be returned from it if already read.
+     * 
+     * @param id FOI identifier.
+     * @param c A SQL connection.
+     *
+     * @return
+     * @throws SQLException If an error occurs during query execution.
+     * @throws DataStoreException If an error occurs during geometry instanciation.
+     */
     protected SamplingFeature getFeatureOfInterest(final String id, final Connection c) throws SQLException, DataStoreException {
         if (cacheEnabled && cachedFoi.containsKey(id)) {
             return cachedFoi.get(id);
@@ -195,6 +209,17 @@ public class OM2BaseReader {
         }
     }
 
+    /**
+     * Read specified entity properties.
+     *
+     * @param tableName Properties table name, depending on the type of the entity.
+     * @param columnName Column name of the entity identifier depending on the type of the entity.
+     * @param id Entity identifier.
+     * @param c A SQL connection.
+     * 
+     * @return A Map of properties.
+     * @throws SQLException If an error occurs during query execution.
+     */
     protected Map<String, Object> readProperties(String tableName, String columnName, String id, Connection c) throws SQLException {
         String request = "SELECT \"property_name\", \"value\" FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\"=?";
         LOGGER.fine(request);
@@ -309,7 +334,7 @@ public class OM2BaseReader {
     }
 
      protected Phenomenon getPhenomenonForFields(final List<Field> fields, final Connection c) throws DataStoreException {
-         FilterSQLRequest request = new FilterSQLRequest("SELECT \"phenomenon\", COUNT(\"component\") FROM \"" + schemaPrefix + "om\".\"components\" ");
+         FilterSQLRequest request = new SingleFilterSQLRequest("SELECT \"phenomenon\", COUNT(\"component\") FROM \"" + schemaPrefix + "om\".\"components\" ");
          request.append(" WHERE \"component\" IN (");
          request.appendValues(fields.stream().map(f -> f.name).toList());
          request.append(" ) AND \"phenomenon\" NOT IN (");
@@ -317,12 +342,12 @@ public class OM2BaseReader {
          for (Field field : fields) {
              request.append(" \"component\" <> ").appendValue(field.name).append(" AND ");
          }
-         request.delete(request.length() - 4, request.length());
+         request.deleteLastChar(4);
          request.append(" ) ");
          request.append(" GROUP BY \"phenomenon\" HAVING COUNT(\"component\") = ").append(Integer.toString(fields.size()));
 
          String result = null;
-         try (final PreparedStatement pstmt = request.fillParams(c.prepareStatement(request.getRequest())); final ResultSet rs = pstmt.executeQuery()) {
+         try (final SQLResult rs = request.execute(c)) {
              if (rs.next()) {
                  result = rs.getString(1);
              }
@@ -683,17 +708,6 @@ public class OM2BaseReader {
         return f;
     }
 
-    protected String getMeasureTableJoin(ProcedureInfo procInfo) {
-        if (procInfo == null) throw new IllegalArgumentException("procInfo must not be null");
-        int pid = procInfo.pid;
-        StringBuilder result = new StringBuilder("\"" + schemaPrefix + "mesures\".\"mesure" + pid + "\" m");
-        for (int i = 1; i < procInfo.nbTable; i++) {
-            String alias = "m" + (i+1);
-            result.append(" LEFT JOIN \"" + schemaPrefix + "mesures\".\"mesure" + pid + "_" + (i+1) + "\" " + alias + " ON (m.\"id\" = " + alias + ".\"id\" and  m.\"id_observation\" = " + alias + ".\"id_observation\") ");
-        }
-        return result.toString();
-    }
-
     protected static class ProcedureInfo  {
         public final int pid;
         public final int nbTable;
@@ -731,6 +745,28 @@ public class OM2BaseReader {
     }
 
     /**
+     * Return  the information about the procedure: PID (internal int procedure identifier) and the number of measure table associated for the specified observation.
+     * If there is no procedure for the specified procedure id, thsi method will return {-1, 0}
+     *
+     * @param oid Observation id.
+     * @param c A SQL connection.
+     *
+     * @return A int array with PID and number of measure table.
+     * @throws SQLException id The sql query fails.
+     */
+    protected Optional<ProcedureInfo> getPIDFromOID(final int oid, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", p.\"id\", p.\"om_type\" FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"procedures\" p WHERE o.\"id\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
+            stmt.setInt(1, oid);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                   return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4)));
+                }
+                return Optional.empty();
+            }
+        }
+    }
+
+    /**
      * Return  the information about the procedure: PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
      *
      * @param procedure Procedure identifier.
@@ -746,6 +782,27 @@ public class OM2BaseReader {
                     return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedure, rs.getString(3)));
                 }
                 return Optional.empty();
+            }
+        }
+    }
+
+    /**
+     * Return the observation internal id for the specified observation identifier.
+     *
+     * @param identifier  observation identifier.
+     * @param c An SQL connection.
+     *
+     * @return The observation internal id or -1 if the observation does not exist.
+     * @throws SQLException
+     */
+    protected int getOIDFromIdentifier(final String identifier, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
+            stmt.setString(1, identifier);
+            try (final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+                return -1;
             }
         }
     }
@@ -785,9 +842,9 @@ public class OM2BaseReader {
         }
     }
 
-    protected String getProcedureFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
-            stmt.setString(1, obsIdentifier);
+    protected String getProcedureFromOID(final int oid, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"id\"=?")) {//NOSONAR
+            stmt.setInt(1, oid);
             try(final ResultSet rs = stmt.executeQuery()) {
                 String pid = null;
                 if (rs.next()) {
@@ -832,19 +889,20 @@ public class OM2BaseReader {
         }
     }
 
-    protected List<Element> buildResultQuality(Field parent, ResultSet rs) throws SQLException {
+    protected List<Element> buildResultQuality(Field parent, SQLResult rs) throws SQLException {
         List<Element> results = new ArrayList<>();
         if (parent.qualityFields != null) {
             for (Field field : parent.qualityFields) {
+                int rsIndex = ((DbField)field).tableNumber - 1;
                 String fieldName = parent.name + "_quality_" + field.name;
                 Object value = null;
                 if (rs != null) {
                     switch(field.type) {
-                        case BOOLEAN: value = rs.getBoolean(fieldName);break;
-                        case QUANTITY: value = rs.getDouble(fieldName);break;
-                        case TIME: value = rs.getTimestamp(fieldName);break;
+                        case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
+                        case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
+                        case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
                         case TEXT:
-                        default: value = rs.getString(fieldName);
+                        default: value = rs.getString(fieldName, rsIndex);
                     }
                     
                 }
@@ -880,5 +938,80 @@ public class OM2BaseReader {
             LOGGER.log(Level.FINE, "Error while looking for measure count", ex);
         }
         return -1;
+    }
+    
+    /**
+     * Build one or more SQL request on the measure(s) tables.
+     * The point of this mecanism is to bypass the issue of selecting more than 1664 columns in a select.
+     * The measure table columns are already multiple to avoid the probleme of limited columns in a table,
+     * so we build a select request for eache measure table, join with the main field of the primary table.
+     *
+     * @param pti Informations abut the measure tables.
+     * @param mainField Main field of the procedure.
+     * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
+     * @param profile True if the procedure is a profile (used only if measureFilter is not empty)
+     * @param oid An Observation id used to filter the measure. (can be null)
+     * @param obsJoin If true, a join with the observation table will be applied.
+     * @param addOrderBy If true, an order by main filed wille be applied.
+     * @param idOnly If true, only the measure identifier will be selected.
+     * 
+     * @return A Multi filter request on measure tables.
+     */
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, Field mainField, FilterSQLRequest measureFilter, boolean profile, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
+        final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
+        for (int i = 0; i < pti.nbTable; i++) {
+            String baseTableName = "mesure" + pti.pid;
+            final FilterSQLRequest measureRequest;
+            if (i > 0) {
+                String tableName = baseTableName + "_" + (i + 1);
+                String select;
+                if (idOnly) {
+                    select = "m2.\"id\"";
+                } else {
+                    select = "m2.*, m.\"" + mainField.name + "\"";
+                }
+                measureRequest = new SingleFilterSQLRequest("SELECT ").append(select);
+                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+                if (obsJoin) {
+                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
+                }
+                measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+                if (oid != null) {
+                    measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
+                }
+                if (obsJoin) {
+                    measureRequest.append(" AND o.\"id\" = m2.\"id_observation\" ");
+                }
+
+            } else {
+                String select;
+                if (idOnly) {
+                    select = "m.\"id\"";
+                } else {
+                    select = "m.*";
+                }
+                measureRequest = new SingleFilterSQLRequest("SELECT ").append(select).append(" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+                if (obsJoin) {
+                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
+                }
+                if (oid != null) {
+                    measureRequest.append(" WHERE m.\"id_observation\" = ").appendValue(oid);
+                }
+                if (obsJoin) {
+                    String where = (oid != null) ? " AND " : " WHERE ";
+                    measureRequest.append(where).append(" o.\"id\" = m.\"id_observation\" ");
+                }
+            }
+            if (measureFilter instanceof MultiFilterSQLRequest mf) {
+                measureRequest.append(mf.getRequest(i), !profile);
+            } else if (measureFilter != null) {
+                measureRequest.append(measureFilter, !profile);
+            }
+            if (addOrderBy) {
+                measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
+            }
+            measureRequests.addRequest(measureRequest);
+        }
+        return measureRequests;
     }
 }

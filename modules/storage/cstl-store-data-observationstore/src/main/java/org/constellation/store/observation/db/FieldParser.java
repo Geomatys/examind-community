@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
+import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
@@ -58,36 +58,37 @@ public class FieldParser {
         this.name = name;
     }
 
-    public void parseLine(ResultSet rs,  int offset) throws SQLException {
+    public void parseLine(SQLResult rs, int offset) throws SQLException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
 
-            Field field = fields.get(i);
+            DbField field = (DbField) fields.get(i);
             parseField(field, rs, i, offset, null);
 
             if (includeQuality && field.qualityFields != null) {
                 for (Field qField : field.qualityFields) {
-                    parseField(qField, rs, -1, -1, field);
+                    parseField((DbField) qField, rs, -1, -1, field);
                 }
             }
         }
         nbValue = values.endBlock();
     }
 
-    private void parseField(Field field, ResultSet rs, int fieldIndex,  int offset, Field parent) throws SQLException {
+    private void parseField(DbField field, SQLResult rs, int fieldIndex, int offset, Field parent) throws SQLException {
         String fieldName;
         if (parent != null) {
            fieldName = parent.name + "_quality_" + field.name;
         } else {
            fieldName = field.name;
         }
+        int rsIndex = field.tableNumber - 1;
         switch (field.type) {
             case TIME:
                 // profile with time field
                 if (profileWithTime && fieldIndex < offset) {
                     values.appendTime(firstTime);
                 } else {
-                    Date t = dateFromTS(rs.getTimestamp(fieldName));
+                    Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                     values.appendTime(t);
                     
                     if (fieldIndex < offset) {
@@ -100,18 +101,18 @@ public class FieldParser {
                 }
                 break;
             case QUANTITY:
-                Double d =  rs.getDouble(fieldName);
-                if (rs.wasNull()) {
+                Double d =  rs.getDouble(fieldName, rsIndex);
+                if (rs.wasNull(rsIndex)) {
                     d = Double.NaN;
                 }
                 values.appendDouble(d);
                 break;
             case BOOLEAN:
-                boolean bvalue = rs.getBoolean(fieldName);
+                boolean bvalue = rs.getBoolean(fieldName, rsIndex);
                 values.appendBoolean(bvalue);
                 break;
             default:
-                String svalue = rs.getString(fieldName);
+                String svalue = rs.getString(fieldName, rsIndex);
                 if (includeID && fieldName.equals("id")) {
                     svalue = name + '-' + svalue;
                 }
