@@ -1,5 +1,23 @@
 {
     "value": [{
+            "name": "age",
+            "definition": "urn:ogc:def:phenomenon:GEOM:age",
+            "description": "current age",
+            "properties": {},
+            "@iot.id": "age",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/MultiDatastreams"
+        }, {
+            "name": "color",
+            "definition": "urn:ogc:def:phenomenon:GEOM:color",
+            "description": "the color label",
+            "properties": {},
+            "@iot.id": "color",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)/MultiDatastreams"
+        }, {
             "name": "depth",
             "definition": "urn:ogc:def:phenomenon:GEOM:depth",
             "description": "the depth in water",
@@ -10,6 +28,24 @@
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)",
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams"
+        }, {
+            "name": "expiration",
+            "definition": "urn:ogc:def:phenomenon:GEOM:expiration",
+            "description": "Expiration date",
+            "properties": {},
+            "@iot.id": "expiration",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/MultiDatastreams"
+        }, {
+            "name": "isHot",
+            "definition": "urn:ogc:def:phenomenon:GEOM:isHot",
+            "description": "hotness indicator",
+            "properties": {},
+            "@iot.id": "isHot",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)/MultiDatastreams"
         }, {
             "name": "temperature",
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature",

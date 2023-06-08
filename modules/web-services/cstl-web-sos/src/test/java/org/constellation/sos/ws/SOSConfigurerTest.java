@@ -416,6 +416,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         expResults.add("urn:ogc:object:sensor:GEOM:12");
         expResults.add("urn:ogc:object:sensor:GEOM:13");
         expResults.add("urn:ogc:object:sensor:GEOM:14");
+        expResults.add("urn:ogc:object:sensor:GEOM:17");
         expResults.add("urn:ogc:object:sensor:GEOM:2");
         expResults.add("urn:ogc:object:sensor:GEOM:3");
         expResults.add("urn:ogc:object:sensor:GEOM:4");
@@ -483,6 +484,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         expResults.add("multi-type-phenomenon");
         expResults.add("temperature");
         expResults.add("salinity");
+        expResults.add("multi-type-phenprofile");
         Assert.assertEquals(expResults, results);
     }
 

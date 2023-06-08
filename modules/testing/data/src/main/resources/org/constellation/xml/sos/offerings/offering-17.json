@@ -1,0 +1,20 @@
+{
+    "id": "offering-17",
+    "name": "offering-17",
+    "properties": {},
+    "time": {
+        "id": "0952fc20-4674-42f7-b22a-7d00ab3bf241-time",
+        "beginning": {
+            "id": "49db3d46-468b-4300-bb03-38efd0a74479-time",
+            "date": "2000-01-01T00:00:00.0Z"
+        },
+        "ending": {
+            "id": "837d6307-f100-4943-83b9-2626281b5f3d-time",
+            "date": "2000-01-03T00:00:00.0Z"
+        }
+    },
+    "srsNames": [],
+    "procedure": "urn:ogc:object:sensor:GEOM:17",
+    "featureOfInterestIds": ["station-001"],
+    "observedProperties": ["age", "color", "depth", "expiration", "isHot", "multi-type-phenprofile"]
+}

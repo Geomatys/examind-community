@@ -21,7 +21,6 @@ package org.constellation.sos;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.List;
-import org.constellation.api.CommonConstants;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -68,20 +67,20 @@ public class SOSDatabaseDataStoreRemoveTest {
         // get the full content of the store
         ObservationDataset fullDataset = store.getDataset(new DatasetQuery());
 
-        Assert.assertEquals(20, fullDataset.observations.size());
+        Assert.assertEquals(23, fullDataset.observations.size());
         // contains the phenomenon directly used in the observations
-        Assert.assertEquals(5, fullDataset.phenomenons.size());
-        Assert.assertEquals(16, fullDataset.offerings.size());
+        Assert.assertEquals(6, fullDataset.phenomenons.size());
+        Assert.assertEquals(17, fullDataset.offerings.size());
         // only 3 because 3 of the recorded procedure have no observations
         Assert.assertEquals(3, fullDataset.featureOfInterest.size());
         // only 14 because 2 of the recorded procedure have no observation
-        Assert.assertEquals(14, fullDataset.procedures.size());
+        Assert.assertEquals(15, fullDataset.procedures.size());
         Assert.assertTrue(fullDataset.spatialBound.getTimeObject() instanceof Period);
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
         // include empty procedure
         List<Process> procedures = store.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(16, procedures.size());
+        Assert.assertEquals(17, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:2"
@@ -108,17 +107,17 @@ public class SOSDatabaseDataStoreRemoveTest {
         // get the full content of the store to verify the deletion
         fullDataset = store.getDataset(new DatasetQuery());
 
-        Assert.assertEquals(17, fullDataset.observations.size()); // 1 merged observations has been removed
-        Assert.assertEquals(5, fullDataset.phenomenons.size()); // no phenomenon removed, still in use
-        Assert.assertEquals(15, fullDataset.offerings.size());  // 1 offering has been removed
+        Assert.assertEquals(20, fullDataset.observations.size()); // 1 merged observations has been removed
+        Assert.assertEquals(6, fullDataset.phenomenons.size()); // no phenomenon removed, still in use
+        Assert.assertEquals(16, fullDataset.offerings.size());  // 1 offering has been removed
         Assert.assertEquals(3, fullDataset.featureOfInterest.size());  // no foi removed, still in use
-        Assert.assertEquals(13, fullDataset.procedures.size());  // 1 procedure has been removed
+        Assert.assertEquals(14, fullDataset.procedures.size());  // 1 procedure has been removed
         Assert.assertTrue(fullDataset.spatialBound.getTimeObject() instanceof Period);
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
         // verify that the procedure has been totaly removed
         procedures = store.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(15, procedures.size());
+        Assert.assertEquals(16, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:13"
@@ -146,17 +145,17 @@ public class SOSDatabaseDataStoreRemoveTest {
         // get the full content of the store to verify the deletion
         fullDataset = store.getDataset(new DatasetQuery());
 
-        Assert.assertEquals(16, fullDataset.observations.size()); // 1 merged observations has been removed
-        Assert.assertEquals(5, fullDataset.phenomenons.size());  // no phenomenon removed, still in use
-        Assert.assertEquals(14, fullDataset.offerings.size()); // 1 offering has been removed
+        Assert.assertEquals(19, fullDataset.observations.size()); // 1 merged observations has been removed
+        Assert.assertEquals(6, fullDataset.phenomenons.size());  // no phenomenon removed, still in use
+        Assert.assertEquals(15, fullDataset.offerings.size()); // 1 offering has been removed
         Assert.assertEquals(3, fullDataset.featureOfInterest.size());  // no foi removed, still in use
-        Assert.assertEquals(12, fullDataset.procedures.size());  // 1 procedure has been removed
+        Assert.assertEquals(13, fullDataset.procedures.size());  // 1 procedure has been removed
         Assert.assertTrue(fullDataset.spatialBound.getTimeObject() instanceof Period);
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
          // verify that the procedure has been totaly removed
         procedures = store.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(14, procedures.size());
+        Assert.assertEquals(15, procedures.size());
         
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:9" AND "urn:ogc:object:sensor:GEOM:8"
@@ -184,17 +183,17 @@ public class SOSDatabaseDataStoreRemoveTest {
          // get the full content of the store to verify the deletion
         fullDataset = store.getDataset(new DatasetQuery());
 
-        Assert.assertEquals(14, fullDataset.observations.size()); // 2 observations has been removed
-        Assert.assertEquals(5, fullDataset.phenomenons.size());  // no phenomenon removed, still in use
-        Assert.assertEquals(12, fullDataset.offerings.size()); // 2 offering has been removed
+        Assert.assertEquals(17, fullDataset.observations.size()); // 2 observations has been removed
+        Assert.assertEquals(6, fullDataset.phenomenons.size());  // no phenomenon removed, still in use
+        Assert.assertEquals(13, fullDataset.offerings.size()); // 2 offering has been removed
         Assert.assertEquals(2, fullDataset.featureOfInterest.size());  // 1 foi removed
-        Assert.assertEquals(10, fullDataset.procedures.size());  // 2 procedure has been removed
+        Assert.assertEquals(11, fullDataset.procedures.size());  // 2 procedure has been removed
         Assert.assertTrue(fullDataset.spatialBound.getTimeObject() instanceof Period);
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
          // verify that the procedure has been totaly removed
         procedures = store.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(12, procedures.size());
+        Assert.assertEquals(13, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:multi-type"
@@ -220,17 +219,17 @@ public class SOSDatabaseDataStoreRemoveTest {
          // get the full content of the store to verify the deletion
         fullDataset = store.getDataset(new DatasetQuery());
 
-        Assert.assertEquals(13, fullDataset.observations.size()); // 1 observations has been removed
-        Assert.assertEquals(4, fullDataset.phenomenons.size());  // 1 phenomenon removed
-        Assert.assertEquals(11, fullDataset.offerings.size()); // 1 offering has been removed
+        Assert.assertEquals(16, fullDataset.observations.size()); // 1 observations has been removed
+        Assert.assertEquals(5, fullDataset.phenomenons.size());  // 1 phenomenon removed
+        Assert.assertEquals(12, fullDataset.offerings.size()); // 1 offering has been removed
         Assert.assertEquals(2, fullDataset.featureOfInterest.size());  // no foi removed
-        Assert.assertEquals(9, fullDataset.procedures.size());  // 1 procedure has been removed
+        Assert.assertEquals(10, fullDataset.procedures.size());  // 1 procedure has been removed
         Assert.assertTrue(fullDataset.spatialBound.getTimeObject() instanceof Period);
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
          // verify that the procedure has been totaly removed
         procedures = store.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(11, procedures.size());
+        Assert.assertEquals(12, procedures.size());
     }
 
     @Test

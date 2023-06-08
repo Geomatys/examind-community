@@ -86,7 +86,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             final ExpectedResult resSP = new ExpectedResult(SAMPLINGPOINT_TN, typeSP, size, envSP);
             expecteds.add(resSP);
 
-            size = 16;
+            size = 17;
             // BOX(65400 -2820055.4026983716, 6224894.909802356 1731368)
             GeneralEnvelope envSN = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
             envSN.setRange(0,  65400,            6224894.909802356);
@@ -201,6 +201,6 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         ObservationStore omStore = (ObservationStore) store;
 
         List<ProcedureDataset> procedures = omStore.getProcedureDatasets(new DatasetQuery());
-        Assert.assertEquals(16, procedures.size());
+        Assert.assertEquals(17, procedures.size());
     }
 }

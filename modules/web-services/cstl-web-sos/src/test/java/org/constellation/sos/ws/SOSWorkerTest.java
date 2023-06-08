@@ -129,7 +129,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
     @Autowired
     protected ISensorBusiness sensorBusiness;
 
-    protected static final int NB_SENSOR = 16;
+    protected static final int NB_SENSOR = 17;
 
     protected static SOSworker worker;
 

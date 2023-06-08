@@ -95,7 +95,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path rtDirectory;
 
 
-    protected static final int ORIGIN_NB_SENSOR = 16;
+    protected static final int ORIGIN_NB_SENSOR = 17;
 
     @BeforeClass
     public static void setUpClass() throws Exception {

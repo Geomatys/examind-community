@@ -236,6 +236,7 @@
           <ows:Value>offering-14</ows:Value>
           <ows:Value>offering-15</ows:Value>
           <ows:Value>offering-16</ows:Value>
+          <ows:Value>offering-17</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -261,6 +262,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -284,6 +286,7 @@
           <ows:Value>expiration</ows:Value>
           <ows:Value>isHot</ows:Value>
           <ows:Value>multi-type-phenomenon</ows:Value>
+          <ows:Value>multi-type-phenprofile</ows:Value>
           <ows:Value>salinity</ows:Value>
           <ows:Value>temperature</ows:Value>
         </ows:AllowedValues>
@@ -404,6 +407,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -717,6 +721,35 @@
             <gml:TimePeriod gml:id="time-offering-16">
               <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
               <gml:endPosition>1981-03-01T22:52:00.000</gml:endPosition>
+            </gml:TimePeriod>
+          </sos:phenomenonTime>
+          <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation</sos:observationType>
+          <sos:observationType>http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement</sos:observationType>
+        </sos:ObservationOffering>
+      </swes:offering>
+      <swes:offering>
+        <sos:ObservationOffering swes:id="offering-17">
+          <swes:identifier>offering-17</swes:identifier>
+          <swes:name>offering-17</swes:name>
+          <swes:procedure>urn:ogc:object:sensor:GEOM:17</swes:procedure>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
+          <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
+          <swes:observableProperty>age</swes:observableProperty>
+          <swes:observableProperty>color</swes:observableProperty>
+          <swes:observableProperty>depth</swes:observableProperty>
+          <swes:observableProperty>expiration</swes:observableProperty>
+          <swes:observableProperty>isHot</swes:observableProperty>
+          <swes:observableProperty>multi-type-phenprofile</swes:observableProperty>
+          <swes:relatedFeature>
+            <swes:FeatureRelationship>
+              <swes:target xlink:href="station-001"/>
+            </swes:FeatureRelationship>
+          </swes:relatedFeature>
+          <sos:phenomenonTime>
+            <gml:TimePeriod gml:id="time-offering-17">
+              <gml:beginPosition>2000-01-01</gml:beginPosition>
+              <gml:endPosition>2000-01-03</gml:endPosition>
             </gml:TimePeriod>
           </sos:phenomenonTime>
           <sos:responseFormat>http://www.opengis.net/om/2.0</sos:responseFormat>

@@ -1,37 +1,55 @@
 {
-    "@iot.count": 193,
+    "@iot.count": 238,
     "value": [{
-            "phenomenonTime": "2009-12-15T13:02:00Z",
-            "result": 14.5,
-            "resultTime": "2009-12-15T13:02:00Z",
-            "@iot.id": "urn:ogc:object:observation:GEOM:3000-3-4",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-4)",
-            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-4)/Datastreams",
-            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-4)/FeaturesOfInterest"
+            "phenomenonTime": "2000-01-02T23:00:00Z",
+            "result": 22.0,
+            "resultTime": "2000-01-02T23:00:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "age_qual",
+                    "DQ_Result": {
+                        "code": 0.0
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:8003-5-2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-5-2)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-5-2)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-5-2)/FeaturesOfInterest"
         }, {
-            "phenomenonTime": "2009-12-15T13:02:00Z",
-            "result": 1.0,
-            "resultTime": "2009-12-15T13:02:00Z",
-            "@iot.id": "urn:ogc:object:observation:GEOM:3000-4-4",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-4)",
-            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-4)/Datastreams",
-            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-4-4)/FeaturesOfInterest"
+            "phenomenonTime": "2000-01-02T23:00:00Z",
+            "result": 3.0,
+            "resultTime": "2000-01-02T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:GEOM:8003-1-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-1-3)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-1-3)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-1-3)/FeaturesOfInterest"
         }, {
-            "phenomenonTime": "2012-12-21T23:00:00Z",
-            "result": 9.9,
-            "resultTime": "2012-12-21T23:00:00Z",
-            "@iot.id": "urn:ogc:object:observation:GEOM:3000-2-5",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-2-5)",
-            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-2-5)/Datastreams",
-            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-2-5)/FeaturesOfInterest"
+            "phenomenonTime": "2000-01-02T23:00:00Z",
+            "result": false,
+            "resultTime": "2000-01-02T23:00:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "isHot_qual",
+                    "DQ_Result": {
+                        "code": false
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:8003-2-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-2-3)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-2-3)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-2-3)/FeaturesOfInterest"
         }, {
-            "phenomenonTime": "2012-12-21T23:00:00Z",
-            "result": 5.5,
-            "resultTime": "2012-12-21T23:00:00Z",
-            "@iot.id": "urn:ogc:object:observation:GEOM:3000-3-5",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-5)",
-            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-5)/Datastreams",
-            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:3000-3-5)/FeaturesOfInterest"
+            "phenomenonTime": "2000-01-02T23:00:00Z",
+            "result": "black",
+            "resultTime": "2000-01-02T23:00:00Z",
+            "resultQuality": [{
+                    "nameOfMeasure": "color_qual",
+                    "DQ_Result": {
+                        "code": "fade"
+                    }
+                }],
+            "@iot.id": "urn:ogc:object:observation:GEOM:8003-3-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-3-3)",
+            "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-3-3)/Datastreams",
+            "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8003-3-3)/FeaturesOfInterest"
         }],
     "@iot.nextLink": "http://localhost:9090/WS/sts/default/v1.1/Observations?$skip=64&$top=4&$count=true"
 }

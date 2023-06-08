@@ -153,6 +153,7 @@
           <ows:Value>offering-14</ows:Value>
           <ows:Value>offering-15</ows:Value>
           <ows:Value>offering-16</ows:Value>
+          <ows:Value>offering-17</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -178,6 +179,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -201,6 +203,7 @@
           <ows:Value>expiration</ows:Value>
           <ows:Value>isHot</ows:Value>
           <ows:Value>multi-type-phenomenon</ows:Value>
+          <ows:Value>multi-type-phenprofile</ows:Value>
           <ows:Value>salinity</ows:Value>
           <ows:Value>temperature</ows:Value>
         </ows:AllowedValues>
@@ -365,6 +368,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:12</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -662,6 +666,41 @@
           <ns31:CompositePhenomenon dimension="4" gml:id="multi-type-phenomenon">
             <gml:description>the aggregation of variable phenomenons type</gml:description>
             <gml:name>urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:isHot"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:color"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:expiration"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:age"/>
+          </ns31:CompositePhenomenon>
+        </sos:observedProperty>
+        <sos:featureOfInterest xlink:href="station-001"/>
+        <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+        <sos:resultModel>om:Observation</sos:resultModel>
+        <sos:resultModel>om:Measurement</sos:resultModel>
+        <sos:responseMode>inline</sos:responseMode>
+        <sos:responseMode>resultTemplate</sos:responseMode>
+      </sos:ObservationOffering>
+      <sos:ObservationOffering gml:id="offering-17">
+        <gml:name>offering-17</gml:name>
+        <gml:boundedBy>
+          <gml:Null>not_bounded</gml:Null>
+        </gml:boundedBy>
+        <sos:time>
+          <gml:TimePeriod>
+            <gml:beginPosition>2000-01-01</gml:beginPosition>
+            <gml:endPosition>2000-01-03</gml:endPosition>
+          </gml:TimePeriod>
+        </sos:time>
+        <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:17"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:age"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:color"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:expiration"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:isHot"/>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="5" gml:id="multi-type-phenprofile">
+            <gml:description>the aggregation of variable phenomenons type for profile</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:multi-type-phenprofile</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:isHot"/>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:color"/>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:expiration"/>
