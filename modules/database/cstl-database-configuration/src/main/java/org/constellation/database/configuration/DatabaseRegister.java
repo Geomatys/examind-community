@@ -18,6 +18,7 @@
  */
 package org.constellation.database.configuration;
 
+import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import org.jooq.SQLDialect;
@@ -94,10 +95,13 @@ public class DatabaseRegister {
             final Integer exaMaxPoolSize = Application.getIntegerProperty(AppProperty.CSTL_DATABASE_MAX_POOL_SIZE);
             exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold);
 
-            final Integer epsgMaxPoolSize = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MAX_POOL_SIZE);
-            // TODO: Verify what would be the advantages and limitations of re-using above exaDatasource in case both
-            // database url denote the same server.
-            epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
+            boolean separatedPool = Application.getBooleanProperty(AppProperty.EPSG_DATABASE_SEPARATED_POOL, false);
+            if (!Objects.equals(exaDbUrl, epsgDbUrl) || separatedPool) {
+                final Integer epsgMaxPoolSize = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MAX_POOL_SIZE);
+                epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
+            } else {
+                epsgDatasource = exaDatasource;
+            }
 
         } catch (Exception e) {
             throw new ConfigurationRuntimeException("Error while initializing the examind datasources", e);

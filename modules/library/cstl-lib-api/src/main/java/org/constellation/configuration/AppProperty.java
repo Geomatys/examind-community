@@ -21,14 +21,23 @@ public enum AppProperty {
     CSTL_DATABASE_MAX_POOL_SIZE("database.max.pool.size"),
 
     /**
-     * EPSG database URL in Hiroku like format
-     * "protocol://login:password@host:port/instance"
+     * EPSG database URL in Hiroku like format :  "protocol://login:password@host:port/instance".
      */
     EPSG_DATABASE_URL("epsg.database.url"),
 
     /**
+     * By default if the epsg url is not set, or if its equals to database.url
+     * A shared connection pool will be used.
+     * Set the property to {@code true} to force separated connection pool.
+     */
+    EPSG_DATABASE_SEPARATED_POOL("epsg.database.separated.pool", false, Boolean.class),
+
+    /**
      * Maximum pool size for EPSG database.
-     * If not specified, set to 5.
+     * If not specified, default implementation size will be used (10).
+     * 
+     * If the epsg database is the same as the main database and epsg.database.separated.pool is set to {@code true},
+     * this parameter will be ignored.
      */
     EPSG_DATABASE_MAX_POOL_SIZE("epsg.database.max.pool.size"),
 
