@@ -22,8 +22,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.AbstractMap;
-import java.util.Map;
 import javax.sql.DataSource;
 import org.constellation.exception.ConfigurationRuntimeException;
 
@@ -41,9 +39,9 @@ public class SQLUtilities {
      * @return A SQL Datasource.
      */
     public static DataSource getDataSource(String connectURL) {
-        return getDataSource(null, connectURL, null, null);
+        return getDataSource(connectURL, null, null, null, null, null, null);
     }
-    
+
     /**
      * Build a SQL datasource.
      * 
@@ -54,15 +52,76 @@ public class SQLUtilities {
      *
      * @return A SQL Datasource.
      */
-    public static DataSource getDataSource(String className, String connectURL, String user, String password) {
+    public static DataSource getDataSource(String connectURL, String className, String user, String password) {
+        return getDataSource(connectURL, className, null, user, password, null, null);
+    }
+
+    /**
+     * Build an Hikari datasource.
+     *
+     * @param databaseURL A database URL in Hiroku like format with included username/password.
+     * @param poolName Name assigned to the connection pool.
+     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
+     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
+    * logged indicating a possible connection leak. can be {@code null}.
+    *
+     * @return An Hikari datasource.
+     */
+    public static DataSource getDataSource(String databaseURL, String poolName, Integer maxPoolSize, Long leakDetectionThreshold) {
+        var userInfos = extractUserPasswordUrl(databaseURL);
+        return getDataSource(userInfos[0], null, poolName, userInfos[1], userInfos[2], maxPoolSize, leakDetectionThreshold);
+    }
+
+    /**
+     * Build an Hikari datasource.
+     *
+     * @param databaseURL A database URL in Hiroku like format NOT including username/password.
+     * @param className A JDBC driver class name or {@code null}
+     * @param poolName Name assigned to the connection pool.
+     * @param userName user name.
+     * @param password user pwd.
+     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
+     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
+     * @return
+     */
+    public static DataSource getDataSource(String databaseURL, String className, String poolName, String userName, String password, Integer maxPoolSize, Long leakDetectionThreshold) {
+        HikariConfig config = createHikariConfig(poolName, className, maxPoolSize, databaseURL, userName, password, leakDetectionThreshold);
+        return new HikariDataSource(config);
+    }
+
+    /**
+     * Build an Hikaru configuration.
+     *
+     * @param poolName Name assigned to the connection pool.
+     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
+     * @param jdbcUrl  An JDBC database URL. accept hiroku form.
+     * @param userName User name.
+     * @param password User password.
+     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
+    * logged indicating a possible connection leak. can be {@code null}.
+    *
+     * @return An Hikari configuration.
+     */
+    private static HikariConfig createHikariConfig(String poolName, String className, Integer maxPoolSize, String jdbcUrl, String userName, String password, Long leakDetectionThreshold) {
         HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(convertToJDBCUrl(jdbcUrl));
+
+        config.setUsername(userName);
+        config.setPassword(password);
+
         if (className != null) {
             config.setDriverClassName(className);
         }
-        config.setJdbcUrl(connectURL);
-        config.setUsername(user);
-        config.setPassword(password);
-        return new HikariDataSource(config);
+        if (poolName != null) {
+            config.setPoolName(poolName);
+        }
+        if (maxPoolSize != null) {
+            config.setMaximumPoolSize(maxPoolSize);
+        }
+        if (leakDetectionThreshold != null) {
+            config.setLeakDetectionThreshold(leakDetectionThreshold);
+        }
+        return config;
     }
 
     /**
@@ -73,7 +132,7 @@ public class SQLUtilities {
      * @return JDBC url String
      * @throws ConfigurationRuntimeException
      */
-    static String convertToJDBCUrl(String databaseURL) throws ConfigurationRuntimeException {
+    public static String convertToJDBCUrl(String databaseURL) throws ConfigurationRuntimeException {
         if (databaseURL == null || (databaseURL = databaseURL.trim()).isEmpty()) {
             throw new ConfigurationRuntimeException("Input database url is blank");
         }
@@ -107,13 +166,15 @@ public class SQLUtilities {
 
     /**
      * Parse and extract user infos (login, password) from a database URL in Hiroku form.
+     * Remove then the user infos from the url and return it.
+     *
      *
      * @param databaseURL A database URL in Hiroku like format.
      *
-     * @return A map entry username => password
+     * @return A String array with url / user name / password.
      * @throws ConfigurationRuntimeException
      */
-    static Map.Entry<String, String> extractUserPassword(String databaseURL) throws ConfigurationRuntimeException {
+    public static String[] extractUserPasswordUrl(String databaseURL) throws ConfigurationRuntimeException {
         URI dbUri;
         try {
             dbUri = new URI(databaseURL);
@@ -123,79 +184,19 @@ public class SQLUtilities {
         if (dbUri.getUserInfo() != null) {
             final String username = dbUri.getUserInfo().split(":")[0];
             final String password = dbUri.getUserInfo().split(":")[1];
-            return new AbstractMap.SimpleImmutableEntry<>(username, password);
+            databaseURL = databaseURL.replace(username + ':' + password + '@', "");
+            return new String[]{databaseURL, username, password};
         }
-        return null;
+        return new String[]{databaseURL, null, null};
     }
 
-    /**
-     * Build an Hikari configuration.
-     * 
-     * @param databaseURL A database URL in Hiroku like format.
-     * @param poolName pool name optional
-     * @param maxPoolSize maximum pool size. If null use Hikari default value
-     *
-     * @return An Hikari configuration.
-     */
-    private static HikariConfig createHikariConfig(String databaseURL, String poolName, Integer maxPoolSize, Long leakDetectionThreshold) {
-        final String dbUrl = convertToJDBCUrl(databaseURL);
-        final Map.Entry<String, String> userInfo = extractUserPassword(databaseURL);
-
-        String user = null;
-        String password = null;
-
-        if (userInfo != null) {
-            user = userInfo.getKey();
-            password = userInfo.getValue();
+    public static String addUserPwdToHirokuUrl(String databaseURL, String userName, String password) {
+        URI dbUri;
+        try {
+            dbUri = new URI(databaseURL);
+            return dbUri.getScheme() +"://" + userName + ':' + password + '@'+ dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
+        } catch (URISyntaxException e) {
+            throw new ConfigurationRuntimeException("", e);
         }
-        return createHikariConfig(poolName, maxPoolSize, dbUrl, user, password, leakDetectionThreshold);
-    }
-
-    /**
-     * Build an Hikaru configuration.
-     *
-     * @param poolName Name assigned to the connection pool.
-     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
-     * @param jdbcUrl  An JDBC database URL.
-     * @param userName User name.
-     * @param password User password.
-     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
-    * logged indicating a possible connection leak. can be {@code null}.
-    *
-     * @return An Hikari configuration.
-     */
-    private static HikariConfig createHikariConfig(String poolName, Integer maxPoolSize, String jdbcUrl, String userName, String password, Long leakDetectionThreshold) {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(jdbcUrl);
-
-        config.setUsername(userName);
-        config.setPassword(password);
-
-        if (poolName != null) {
-            config.setPoolName(poolName);
-        }
-        if (maxPoolSize != null) {
-            config.setMaximumPoolSize(maxPoolSize);
-        }
-        if (leakDetectionThreshold != null) {
-            config.setLeakDetectionThreshold(leakDetectionThreshold);
-        }
-        return config;
-    }
-
-    /**
-     * Build an Hikari datasource.
-     * 
-     * @param databaseURL A database URL in Hiroku like format.
-     * @param poolName Name assigned to the connection pool.
-     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
-     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
-    * logged indicating a possible connection leak. can be {@code null}.
-    * 
-     * @return An Hikari datasource.
-     */
-    public static DataSource createDataSource(String databaseURL, String poolName, Integer maxPoolSize, Long leakDetectionThreshold) {
-        HikariConfig config = createHikariConfig(databaseURL, poolName, maxPoolSize, leakDetectionThreshold);
-        return new HikariDataSource(config);
     }
 }

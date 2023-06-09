@@ -50,12 +50,14 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.constellation.dto.DataSource;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.DataProviderFactory;
+import org.constellation.util.SQLUtilities;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
 import org.geotoolkit.nio.IOUtilities;
@@ -185,6 +187,13 @@ public class SetupBusiness {
             LOGGER.log(Level.WARNING, "An error occurred when initializing filesystems.", ex);
         }
 
+        LOGGER.log(Level.INFO, "initializing default datasource ...");
+        try {
+            createInternalDatasource();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "An error occurred when initializing default datasource.", ex);
+        }
+
         boolean serviceWarmup = Application.getBooleanProperty(AppProperty.EXA_SERVICE_WARMUP, Boolean.FALSE);
         if (serviceWarmup) {
             long start = System.currentTimeMillis();
@@ -215,6 +224,24 @@ public class SetupBusiness {
     @PreDestroy
     public void contextDestroyed() {
         DataProviders.dispose();
+    }
+
+    /**
+     * Record the current sql datasource ine order to use it for further usage.
+     * 
+     * @throws ConstellationException
+     */
+    private void createInternalDatasource() throws ConstellationException {
+        String fullDbUrl = Application.getProperty(AppProperty.CSTL_DATABASE_URL);
+        String[] infos = SQLUtilities.extractUserPasswordUrl(fullDbUrl);
+        String dbUrl = infos[0];
+        String user  = infos[1];
+        String pwd   = infos[2];
+        List<DataSource> datasources = datasourceBusiness.search(dbUrl, "NULL", "NULL", user, pwd);
+        if (datasources.isEmpty()) {
+            DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true);
+            datasourceBusiness.create(ds);
+        }
     }
 
     private WithDefaultResources deployDefaultResources(final Path dataDirectory) {

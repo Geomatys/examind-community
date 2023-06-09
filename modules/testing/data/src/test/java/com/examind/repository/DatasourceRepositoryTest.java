@@ -80,7 +80,7 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         /**
          * datasource verification
          */
-        List<DataSource> dss = datasourceRepository.search("file:///home/test", null, null);
+        List<DataSource> dss = datasourceRepository.search("file:///home/test", null, null, null, null);
         Assert.assertEquals(1, dss.size());
         DataSource ds = dss.get(0);
         Assert.assertNotNull(ds);
@@ -109,7 +109,7 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
         dpc = datasourceRepository.getAnalyzedPath(did, "/file1");
         Assert.assertNull(dpc);
 
-        dss = datasourceRepository.search("file:///home/tes't", null, null);
+        dss = datasourceRepository.search("file:///home/tes't", null, null, null, null);
         Assert.assertEquals(1, dss.size());
         ds = dss.get(0);
         Assert.assertNotNull(ds);

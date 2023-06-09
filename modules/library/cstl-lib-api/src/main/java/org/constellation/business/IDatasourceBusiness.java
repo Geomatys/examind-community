@@ -109,15 +109,35 @@ public interface IDatasourceBusiness {
 
     /**
      * Search permanent datasources by its url.
-     * The can also be filtered on store id and format
+     * The can also be filtered on store id and format.
+     *
+     * if the specific String value "NULL" is set to store id or format, the search will filter on null value for this attribute.
+     * otherwise the fielter will not be applied.
      *
      * @param url the searched datasource url.
-     * @param storeId filter on store id can be {@code null}
+     * @param storeId filter on store id can be {@code null}.
      * @param format filter on format can be {@code null}
      *
      * @return A List of Datasources (never {@code null})
      */
     List<DataSource> search(String url, String storeId, String format);
+
+    /**
+     * Search permanent datasources by its url.
+     * The can also be filtered on store id and format.
+     *
+     * if the specific String value "NULL" is set to store id or format, the search will filter on null value for this attribute.
+     * otherwise the fielter will not be applied.
+     *
+     * @param url the searched datasource url.
+     * @param storeId filter on store id can be {@code null}.
+     * @param format filter on format can be {@code null}
+     * @param userName filter on user name can be {@code null}
+     * @param pwd filter on user password can be {@code null}
+     *
+     * @return A List of Datasources (never {@code null})
+     */
+    List<DataSource> search(String url, String storeId, String format, String userName, String pwd);
 
     /**
      * Test if the url pointed by the datasource is reachable.
@@ -349,4 +369,27 @@ public interface IDatasourceBusiness {
      * @return  A Path.
      */
     Path getDatasourcePath(int id, final String subPath) throws ConstellationException;
+
+    /**
+     * Instanciate or return a cached sql datasource.
+     *
+     * @param id examind datasource identifier.
+     * 
+     * @return An Optional datasource. If the specified datasource does not exist, will return empty.
+     * @throws ConstellationException If the specified datasource is not of type "sql".
+     */
+    Optional<javax.sql.DataSource> getSQLDatasource(int id) throws ConstellationException;
+
+    /**
+     * Search for an existing sql datasource, if found,  instanciate or return a cached sql datasource.
+     * If no datasource match for the specified parameters, return empty.
+     *
+     * @param hirokuUrl database url in hiroku form
+     * @param userName user name.
+     * @param pwd user password.
+     *
+     * @return An Optional datasource. If no datasource match for the specified parameters, return empty.
+     * @throws ConstellationException If we found a datasource with the specified parameters, but not of type "sql". this should never happen in a consistent database.
+     */
+    Optional<javax.sql.DataSource> getSQLDatasource(String hirokuUrl, String userName, String pwd) throws ConstellationException;
 }

@@ -3,8 +3,6 @@ package org.constellation.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
-
 /**
  * @author Quentin Boileau (Geomatys)
  */
@@ -14,10 +12,11 @@ public class SQLUtilitiesTest {
     public void testDatabaseURLParser() {
         String postgresURL = "postgres://login:passwd@localhost:5432/database";
         final String postgresJDBC = SQLUtilities.convertToJDBCUrl(postgresURL);
-        final Map.Entry<String, String> userInfo = SQLUtilities.extractUserPassword(postgresURL);
+        final String[] userInfo = SQLUtilities.extractUserPasswordUrl(postgresURL);
         Assert.assertEquals("jdbc:postgresql://localhost:5432/database", postgresJDBC);
-        Assert.assertEquals("login", userInfo.getKey());
-        Assert.assertEquals("passwd", userInfo.getValue());
+        Assert.assertEquals("postgres://localhost:5432/database",  userInfo[0]);
+        Assert.assertEquals("login", userInfo[1]);
+        Assert.assertEquals("passwd", userInfo[2]);
 
         String derbyMemoryURL = "derby:derby:memory:db";
         final String derbyMemJDBC = SQLUtilities.convertToJDBCUrl(derbyMemoryURL);

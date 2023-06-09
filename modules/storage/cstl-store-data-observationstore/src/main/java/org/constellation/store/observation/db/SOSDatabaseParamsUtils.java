@@ -47,4 +47,17 @@ public class SOSDatabaseParamsUtils {
             return "jdbc:postgresql" + "://" + host + ":" + port + "/" + db;
         }
     }
+
+    public static String getHirokuUrl(final ParameterValueGroup params) throws IOException {
+        final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
+        if (type.equals("derby")) {
+            // i don't know if its possible to build an hiroku url for derby
+            return null;
+        } else {
+            final String host  = (String) params.parameter(SOSDatabaseObservationStoreFactory.HOST.getName().toString()).getValue();
+            final Integer port = (Integer) params.parameter(SOSDatabaseObservationStoreFactory.PORT.getName().toString()).getValue();
+            final String db    = (String) params.parameter(SOSDatabaseObservationStoreFactory.DATABASE.getName().toString()).getValue();
+            return "postgres" + "://" + host + ":" + port + "/" + db;
+        }
+    }
 }

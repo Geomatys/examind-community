@@ -92,12 +92,12 @@ public class DatabaseRegister {
         }
         try {
             final Integer exaMaxPoolSize = Application.getIntegerProperty(AppProperty.CSTL_DATABASE_MAX_POOL_SIZE);
-            exaDatasource = SQLUtilities.createDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold);
+            exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold);
 
             final Integer epsgMaxPoolSize = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MAX_POOL_SIZE);
             // TODO: Verify what would be the advantages and limitations of re-using above exaDatasource in case both
             // database url denote the same server.
-            epsgDatasource = SQLUtilities.createDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
+            epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold);
 
         } catch (Exception e) {
             throw new ConfigurationRuntimeException("Error while initializing the examind datasources", e);

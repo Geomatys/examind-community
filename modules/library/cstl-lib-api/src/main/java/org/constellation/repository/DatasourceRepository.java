@@ -34,7 +34,7 @@ public interface DatasourceRepository extends AbstractRepository {
 
     DataSource findById(int id);
 
-    List<DataSource> search(String url, String storeId, String format);
+    List<DataSource> search(String url, String storeId, String format, String userName, String pwd);
 
     int create(DataSource data);
 

@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.sql.DataSource;
 
 import org.apache.sis.parameter.Parameters;
@@ -32,9 +33,11 @@ import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
+import org.constellation.admin.SpringHelper;
 
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.constellation.business.IDatasourceBusiness;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
@@ -80,8 +83,11 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             // driver
             final String driver = SOSDatabaseParamsUtils.getDriverClassName(params);
 
-            // url
+            // jdbc url
             final String jdbcUrl = SOSDatabaseParamsUtils.getJDBCUrl(params);
+
+            // hiroku form url
+            final String hirokuUrl = SOSDatabaseParamsUtils.getHirokuUrl(params);
 
             // username
             final String user = (String) params.parameter(SOSDatabaseObservationStoreFactory.USER.getName().toString()).getValue();
@@ -89,7 +95,24 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             // password
             final String passwd = (String) params.parameter(SOSDatabaseObservationStoreFactory.PASSWD.getName().toString()).getValue();
 
-            source =  SQLUtilities.getDataSource(driver, jdbcUrl, user, passwd);
+            // examind special for sharing datasource (disabled for derby)
+            DataSource candidate = null;
+            if (hirokuUrl != null) {
+                try {
+                    IDatasourceBusiness dsBusiness = SpringHelper.getBean(IDatasourceBusiness.class).orElse(null);
+                    candidate = dsBusiness.getSQLDatasource(hirokuUrl, user, passwd).orElse(null);
+                    if (candidate == null) {
+                        LOGGER.info("No existing examind datasource found.");
+                    }
+                } catch (Exception ex) {
+                    LOGGER.log(Level.WARNING, "Unable to get an existing examind datasource.", ex);
+                }
+            }
+            // fall back on direct datasource instanciation.
+            if (candidate == null) {
+                candidate = SQLUtilities.getDataSource(jdbcUrl, driver, user, passwd);
+            }
+            source =  candidate;
 
             isPostgres = driver.startsWith("org.postgresql");
             timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();

@@ -74,15 +74,29 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
     }
 
     @Override
-    public List<DataSource> search(String url, String storeId, String format) {
+    public List<DataSource> search(String url, String storeId, String format, String userName, String pwd) {
         SelectConditionStep<Record> query = dsl.select().from(DATASOURCE)
                                                .where(DATASOURCE.URL.eq(url))
                                                .and(DATASOURCE.PERMANENT.isTrue());
         if (storeId != null) {
-            query = query.and(DATASOURCE.STORE_ID.eq(storeId));
+             if (storeId.equals("NULL")){
+                query = query.and(DATASOURCE.STORE_ID.isNull());
+            } else {
+                query = query.and(DATASOURCE.STORE_ID.eq(storeId));
+             }
         }
         if (format != null) {
-            query = query.and(DATASOURCE.FORMAT.eq(format));
+            if (format.equals("NULL")){
+                query = query.and(DATASOURCE.FORMAT.isNull());
+            } else {
+                query = query.and(DATASOURCE.FORMAT.eq(format));
+            }
+        }
+        if (userName != null) {
+            query = query.and(DATASOURCE.USERNAME.eq(userName));
+        }
+        if (pwd != null) {
+            query = query.and(DATASOURCE.PWD.eq(pwd));
         }
         return convertListToDto(query.fetchInto(Datasource.class));
     }

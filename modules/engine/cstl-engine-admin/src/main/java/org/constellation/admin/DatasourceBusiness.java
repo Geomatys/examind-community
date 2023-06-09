@@ -84,10 +84,13 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviders;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
+import org.constellation.util.SQLUtilities;
 import org.constellation.ws.UnauthorizedException;
 import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.storage.DataStores;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -122,6 +125,10 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     @Inject
     protected IConfigurationBusiness configBusiness;
+
+    @Autowired
+    @Qualifier(value = "dataSource")
+    private javax.sql.DataSource dataSource;
 
     private final Map<Integer, Thread> currentRunningAnalysis = new ConcurrentHashMap<>();
 
@@ -266,7 +273,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     public List<DataSource> search(String url, String storeId, String format) {
-        return dsRepository.search(url, storeId, format);
+        return search(url, storeId, format, null, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<DataSource> search(String url, String storeId, String format, String userName, String password) {
+        return dsRepository.search(url, storeId, format, userName, password);
     }
 
     /**
@@ -377,6 +392,49 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
+    private final Map<String, javax.sql.DataSource> SQL_DATASOURCE_CACHE = new HashMap<>();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<javax.sql.DataSource> getSQLDatasource(int id) throws ConstellationException {
+        DataSource ds = dsRepository.findById(id);
+        if (ds != null) {
+            return Optional.of(convert(ds));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<javax.sql.DataSource> getSQLDatasource(String hirokuUrl, String userName, String pwd) throws ConstellationException {
+        List<org.constellation.dto.DataSource> dss = search(hirokuUrl, null, null, userName, pwd);
+        if (!dss.isEmpty()) {
+            return Optional.of(convert(dss.get(0)));
+        }
+        return Optional.empty();
+    }
+
+    private javax.sql.DataSource convert(DataSource ds) throws ConfigurationException {
+        if (!"database".equals(ds.getType())) throw new ConfigurationException("Datasource is not a sql database");
+        String dbKey = SQLUtilities.addUserPwdToHirokuUrl(ds.getUrl(), ds.getUsername(), ds.getPwd());
+        javax.sql.DataSource result = SQL_DATASOURCE_CACHE.get(dbKey);
+        if (result == null) {
+            // special case to use the datasource of examind.
+            if (dbKey.equals(Application.getProperty(AppProperty.CSTL_DATABASE_URL))) {
+                result = dataSource;
+            } else {
+                result = SQLUtilities.getDataSource(ds.getUrl(), null, ds.getUsername(), ds.getPwd());
+            }
+            SQL_DATASOURCE_CACHE.put(dbKey, result);
+        }
+        return result;
+    }
+
+
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
 
         private boolean serialPresent = false;
@@ -401,7 +459,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         switch (ds.getType().toLowerCase()) {
             case "database":
                 if (ds.getUrl() == null) return "Missing url.";
-                String dbURL = ds.getUrl().replace("postgres://", "jdbc:postgresql://");
+                String dbURL = SQLUtilities.convertToJDBCUrl(ds.getUrl());
                 DefaultDataSource database = new DefaultDataSource(dbURL);
                 try (Connection c = database.getConnection(ds.getUsername(), ds.getPwd())){
                 } catch (SQLException ex) {

@@ -134,7 +134,7 @@ public abstract class GenericReader  {
         try {
             final BDD bdd = configuration.getBdd();
             if (bdd != null) {
-                this.datasource = SQLUtilities.getDataSource(bdd.getClassName(), bdd.getConnectURL(), bdd.getUser(), bdd.getPassword());
+                this.datasource = SQLUtilities.getDataSource(bdd.getConnectURL(), bdd.getClassName(), bdd.getUser(), bdd.getPassword());
                 //try to connect
                 final Connection c = datasource.getConnection();
                 c.close();
