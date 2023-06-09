@@ -43,6 +43,7 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataSource;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
@@ -112,6 +113,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Inject
     private IConfigurationBusiness configBusiness;
+
+    @Inject
+    private IDatasourceBusiness datasourceBusiness;
 
     @Override
     public List<ProviderBrief> getProviders() {
@@ -289,10 +293,13 @@ public class ProviderBusiness implements IProviderBusiness {
      */
     @Override
     @Transactional
-    public Integer create(final String id, final ProviderConfiguration config) throws ConfigurationException {
+    public Integer create(final String id, final ProviderConfiguration config) throws ConstellationException {
         final String type = config.getType();
         final String subType = config.getSubType();
         final Map<String,String> inParams = config.getParameters();
+
+        // we record the sql datasource if we found one in the parameters (not really generic for now)
+        recordSQLDataSource(config);
 
         final DataProviderFactory providerService = DataProviders.getFactory(type);
         if (providerService != null) {
@@ -306,6 +313,24 @@ public class ProviderBusiness implements IProviderBusiness {
         throw new ConfigurationException("Unable to find a provider factory for type:" + type);
     }
 
+
+    private void recordSQLDataSource(ProviderConfiguration config) throws ConstellationException {
+        String sgbdtype = config.getParameters().get("sgbdtype");
+        String host = config.getParameters().get("host");
+        String port = config.getParameters().get("port");
+        String database = config.getParameters().get("database");
+        String user = config.getParameters().get("user");
+        String pwd = config.getParameters().get("password");
+
+        if (sgbdtype != null && host != null && port != null && database != null && user != null && pwd != null) {
+            String dbUrl = sgbdtype + "://" + host + ':' + port + '/' + database;
+            List<DataSource> dss = datasourceBusiness.search(dbUrl, null, null, user, pwd);
+            if (dss.isEmpty()) {
+                DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true);
+                datasourceBusiness.create(ds);
+            }
+        }
+    }
     
     /**
      * {@inheritDoc}

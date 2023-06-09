@@ -65,11 +65,11 @@ public interface IProviderBusiness {
      * @param id The identifier (name) to give to the created provider.
      * @param config Serialized provider configuration (entire parameter group, as defined in the matching DataProviderFactory.
      * @return  A new Provider ID.
-     * @throws ConfigurationException If a provider already exists with the given name, or if the configuration is invalid.
+     * @throws ConstellationException If a provider already exists with the given name, or if the configuration is invalid.
      *
      * @deprecated : Following procedure will be removed once the new DataStoreSource system will be created.
      */
-    Integer create(String id, ProviderConfiguration config) throws ConfigurationException;
+    Integer create(String id, ProviderConfiguration config) throws ConstellationException;
 
     /**
      * Create and save a provider object with given identifier. Input spi and configuration must be org.apache.sis.storage.DataStoreProvider
