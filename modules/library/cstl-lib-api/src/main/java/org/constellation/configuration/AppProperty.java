@@ -21,6 +21,19 @@ public enum AppProperty {
     CSTL_DATABASE_MAX_POOL_SIZE("database.max.pool.size"),
 
     /**
+     * Minimum number of idle connectionsmaintained maintained in the pool,
+     * including both idle and in-use connections.
+     * default to maxPoolSize
+     */
+    CSTL_DATABASE_MIN_IDLE("database.min.idle", false, Integer.class),
+
+    /**
+     * Maximum amount of time (in milliseconds) that a connection is allowed to sit
+     * idle in the pool. default to 10 minutes.
+     */
+    CSTL_DATABASE_IDLE_TIMEOUT("database.idle.timeout", false, Long.class),
+
+    /**
      * EPSG database URL in Hiroku like format :  "protocol://login:password@host:port/instance".
      */
     EPSG_DATABASE_URL("epsg.database.url"),
@@ -40,6 +53,18 @@ public enum AppProperty {
      * this parameter will be ignored.
      */
     EPSG_DATABASE_MAX_POOL_SIZE("epsg.database.max.pool.size"),
+
+    /**
+     * Minimum number of idle connectionsmaintained maintained in the pool,
+     * including both idle and in-use connections.
+     */
+    EPSG_DATABASE_MIN_IDLE("epsg.database.min.idle"),
+
+    /**
+     * Maximum amount of time (in milliseconds) that a connection is allowed to sit
+     * idle in the pool. default to 10 minutes.
+     */
+    EPSG_DATABASE_IDLE_TIMEOUT("epsg.database.idle.timeout"),
 
     /**
      * Testing database URL in Hiroku like format

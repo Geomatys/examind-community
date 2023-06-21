@@ -149,7 +149,7 @@ public final class Application {
     public static Boolean getBooleanProperty(AppProperty key, Boolean fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
-            return Boolean.parseBoolean(val);
+            return Boolean.valueOf(val);
         }
         return fallback;
     }
@@ -157,7 +157,7 @@ public final class Application {
     public static Boolean getBooleanProperty(String key, Boolean fallback) {
         String val = getProperty(key, null);
         if (val != null) {
-            return Boolean.parseBoolean(val);
+            return Boolean.valueOf(val);
         }
         return fallback;
     }
@@ -165,7 +165,7 @@ public final class Application {
     public static Integer getIntegerProperty(AppProperty key, Integer fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
-            return Integer.parseInt(val);
+            return Integer.valueOf(val);
         }
         return fallback;
     }
@@ -173,7 +173,7 @@ public final class Application {
     public static Integer getIntegerProperty(String key, Integer fallback) {
         String val = getProperty(key, null);
         if (val != null) {
-            return Integer.parseInt(val);
+            return Integer.valueOf(val);
         }
         return fallback;
     }
@@ -181,7 +181,7 @@ public final class Application {
     public static Integer getIntegerProperty(AppProperty key) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
-            return Integer.parseInt(val);
+            return Integer.valueOf(val);
         }
         return null;
     }
@@ -189,14 +189,14 @@ public final class Application {
     public static Long getLongProperty(AppProperty key, Long fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
-            return Long.parseLong(val);
+            return Long.valueOf(val);
         }
         return fallback;
     }
     public static Long getLongProperty(String key, Long fallback) {
         String val = getProperty(key, null);
         if (val != null) {
-            return Long.parseLong(val);
+            return Long.valueOf(val);
         }
         return fallback;
     }
@@ -204,14 +204,14 @@ public final class Application {
     public static Float getFloatProperty(AppProperty key, Float fallback) {
         String val = getProperty(key.getKey(), null);
         if (val != null) {
-            return Float.parseFloat(val);
+            return Float.valueOf(val);
         }
         return fallback;
     }
     public static Float getFloatProperty(String key, Float fallback) {
         String val = getProperty(key, null);
         if (val != null) {
-            return Float.parseFloat(val);
+            return Float.valueOf(val);
         }
         return fallback;
     }
