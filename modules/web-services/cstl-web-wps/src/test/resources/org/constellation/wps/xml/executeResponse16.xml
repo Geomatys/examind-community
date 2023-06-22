@@ -20,9 +20,9 @@
             <ows:Abstract>The merged FeatureCollection</ows:Abstract>
             <wps:Data>
                 <wps:ComplexData encoding="UTF-8" mimeType="application/gml+xml" schema="http://localhost:9090/WS/wps/default/products/schema_d8405769-b45c-4d29-933f-c18b5c0f3706.xsd">
-                    <gml:FeatureCollection xmlns:ns1="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" gml:id="noid" numberOfFeatures="1" ns1:schemaLocation="http://www.geotoolkit.org/custom http://localhost:9090/WS/wps/default/products/schema_d8405769-b45c-4d29-933f-c18b5c0f3706.xsd" timeStamp="2020-10-13T17:11:48">
+                    <gml:FeatureCollection xmlns:ns1="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml" gml:id="http://www.geotoolkit.org/custom:TestSimple" numberOfFeatures="1" ns1:schemaLocation="http://www.geotoolkit.org/custom http://localhost:9090/WS/wps/default/products/schema_d8405769-b45c-4d29-933f-c18b5c0f3706.xsd" timeStamp="2020-10-13T17:11:48">
                         <gml:featureMember>
-                            <ns0:TestSimple xmlns:ns0="http://www.geotoolkit.org/custom" gml:id="TestSimple.0">
+                            <ns0:TestSimple xmlns:ns0="http://www.geotoolkit.org/custom">
                                 <ns0:metaDataProperty xmlns:ns0="http://www.opengis.net/gml"></ns0:metaDataProperty>
                                 <ns0:description xmlns:ns0="http://www.opengis.net/gml"></ns0:description>
                                 <ns0:name xmlns:ns0="http://www.opengis.net/gml"></ns0:name>

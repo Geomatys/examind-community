@@ -1715,8 +1715,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 FeatureSet featureCollection;
 
                 if (featureObject instanceof Feature feature) {
-                    typeName = feature.getType().getName();
-                    featureCollection = FeatureStoreUtilities.collection(feature);
+                    final FeatureType fType = feature.getType();
+                    typeName = fType.getName();
+                    featureCollection = new InMemoryFeatureSet(fType, List.of(feature));
                 } else if (featureObject instanceof FeatureSet fs) {
                     try {
                         typeName = fs.getType().getName();

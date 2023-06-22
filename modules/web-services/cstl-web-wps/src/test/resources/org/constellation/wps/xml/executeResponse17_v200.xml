@@ -8,7 +8,7 @@
         <wps:Data mimeType="application/geo+json" encoding="utf-8"><![CDATA[{
 "type":"FeatureCollection"
 ,"features":[
-{"type":"Feature","id":"TestSimple.0","properties":{"@id":"TestSimple.0","metaDataProperty":null,"description":null,"name":null,"boundedBy":null,"location":null,"ID":1,"attString":"hello"}}
+{"type":"Feature","id":"0","properties":{"@id":"0","metaDataProperty":null,"description":null,"name":null,"boundedBy":null,"location":null,"ID":1,"attString":"hello"}}
 ]}]]></wps:Data>
     </wps:Output>
 </wps:Result>

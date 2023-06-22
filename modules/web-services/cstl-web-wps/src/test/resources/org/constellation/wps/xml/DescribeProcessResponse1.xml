@@ -1152,7 +1152,7 @@
     <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::vector:startoffset</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:startoffset</ows:Title>
-        <ows:Abstract xml:lang="fr-FR">Start FeatureCollection iteration at given offset</ows:Abstract>
+        <ows:Abstract xml:lang="fr-FR">Start FeatureSet iteration at given offset</ows:Abstract>
         <DataInputs>
             <Input minOccurs="1" maxOccurs="1">
                 <ns9:Identifier>urn:exa:wps:geotoolkit::vector:startoffset:input:feature_in</ns9:Identifier>

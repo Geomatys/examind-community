@@ -614,7 +614,7 @@
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:startoffset</ows:Title>
-            <ows:Abstract xml:lang="fr-FR">Start FeatureCollection iteration at given offset</ows:Abstract>
+            <ows:Abstract xml:lang="fr-FR">Start FeatureSet iteration at given offset</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:startoffset</ows:Identifier>
             <wps:Input minOccurs="1" maxOccurs="1">
                 <ows:Title xml:lang="fr-FR">Feature_in</ows:Title>

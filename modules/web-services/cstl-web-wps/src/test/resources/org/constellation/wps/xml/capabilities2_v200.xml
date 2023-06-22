@@ -188,7 +188,7 @@
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:startoffset</ows:Title>
-            <ows:Abstract>Start FeatureCollection iteration at given offset</ows:Abstract>
+            <ows:Abstract>Start FeatureSet iteration at given offset</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:startoffset</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">

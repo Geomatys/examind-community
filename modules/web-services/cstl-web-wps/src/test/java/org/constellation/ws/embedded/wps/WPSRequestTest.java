@@ -408,8 +408,15 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
             we earch the file in temp directory instead
         */
         Thread.sleep(3000);
+        int max_retry = 5, retry_count = 0;
+        while (retry_count++ < max_retry) {
+            Thread.sleep(1000);
+            try (var in = new URL(statusLocation).openStream()) {
+                result = IOUtilities.toString(new URL(statusLocation).openStream());
+                if (result.contains("ProcessSucceeded>")) break;
+            }
+        }
 
-        result = IOUtilities.toString(new URL(statusLocation).openStream());
         expected = getStringFromFile("org/constellation/wps/xml/executeResponse3_result.xml");
         domCompare(result, expected, Arrays.asList("creationTime"));
 
