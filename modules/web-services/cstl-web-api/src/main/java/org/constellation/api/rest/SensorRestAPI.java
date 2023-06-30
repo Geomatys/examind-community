@@ -142,7 +142,11 @@ public class SensorRestAPI extends AbstractRestAPI {
                 if (removeData != null && removeData) {
                     List<Integer> dataIds = sensorBusiness.getLinkedDataIds(id);
                     for (Integer dataId : dataIds) {
-                        dataBusiness.removeData(dataId, false);
+                        // remove the data only if there is no other
+                        long count = sensorBusiness.getByDataId(dataId).stream().filter(sr -> !sr.getIdentifier().equals(sensor.getIdentifier())).count();
+                        if (count == 0) {
+                            dataBusiness.removeData(dataId, false);
+                        }
                     }
                 }
                 sensorBusiness.delete(id);
