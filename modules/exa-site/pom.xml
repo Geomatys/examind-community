@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.examind.community</groupId>
         <artifactId>modules</artifactId>
-        <version>1.0.33</version>
+        <version>1.0.33.1</version>
     </parent>
     <artifactId>exa-site</artifactId>
     <packaging>jar</packaging>
