@@ -108,7 +108,11 @@ public class DeleteSensorProcess extends AbstractCstlProcess {
                 if (removeData) {
                     List<Integer> dataIds = sensorBusiness.getLinkedDataIds(sid);
                     for (Integer dataId : dataIds) {
-                        dataBusiness.removeData(dataId, false);
+                        // remove the data only if there is no other
+                        long count = sensorBusiness.getByDataId(dataId).stream().filter(sr -> !sr.getIdentifier().equals(sensor.getIdentifier())).count();
+                        if (count == 0) {
+                            dataBusiness.removeData(dataId, false);
+                        }
                     }
                 }
                 sensorBusiness.delete(sid);

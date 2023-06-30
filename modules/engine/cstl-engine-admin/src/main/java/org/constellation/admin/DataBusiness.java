@@ -165,6 +165,7 @@ public class DataBusiness implements IDataBusiness {
      */
     @Inject
     private SensorRepository sensorRepository;
+
     /**
      * Injected metadata repository.
      */
@@ -711,6 +712,7 @@ public class DataBusiness implements IDataBusiness {
                 sensorRepository.unlinkAllDataSensor(dataID);
                 for (Integer sid : sensorIds) {
                     if (sensorRepository.getLinkedDatas(sid).isEmpty()) {
+                        sensorRepository.unlinkSensorFromAllServices(sid);
                         sensorRepository.delete(sid);
                     }
                 }
