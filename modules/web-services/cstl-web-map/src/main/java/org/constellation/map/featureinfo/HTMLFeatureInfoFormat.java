@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.measure.Unit;
-import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.FeatureInfoUtilities.Sample;
 import org.constellation.ws.MimeType;
@@ -43,9 +41,9 @@ import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureAssociationRole;
+import org.opengis.feature.PropertyNotFoundException;
 import org.opengis.feature.PropertyType;
 import org.opengis.util.GenericName;
-import org.opengis.util.InternationalString;
 
 /**
  * A generic FeatureInfoFormat that produce HTML output for Features and Coverages.
@@ -96,7 +94,14 @@ public class HTMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         final StringBuilder typeBuilder = new StringBuilder();
         final StringBuilder dataBuilder = new StringBuilder();
 
-        typeBuilder.append("<h2>").append(FeatureExt.getId(feature).getIdentifier()).append("</h2>");
+        Object identifier = null;
+        try {
+            identifier = FeatureExt.getId(feature).getIdentifier();
+        } catch (PropertyNotFoundException ex) {
+            identifier = "No identifier for this feature";
+        }
+
+        typeBuilder.append("<h2>").append(identifier).append("</h2>");
         typeBuilder.append("</br>");
         typeBuilder.append("<div>");
         typeBuilder.append("<div class=\"left-part\">");
