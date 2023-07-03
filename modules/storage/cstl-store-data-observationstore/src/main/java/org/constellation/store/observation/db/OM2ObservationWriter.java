@@ -182,7 +182,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         if (newBegin.before(obsBegin)) {
                             extBegin = newBegin;
                         }
-                        if (newEnd.after(obsEnd)) {
+                        if (obsEnd == null || newEnd.after(obsEnd)) {
                             extEnd = newEnd;
                         }
                     }
