@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.metadata.utils.Utils;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
 import static org.junit.Assert.assertEquals;

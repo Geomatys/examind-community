@@ -22,8 +22,8 @@ import org.geotoolkit.lang.Setup;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import javax.imageio.ImageIO;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Properties;
 import java.util.logging.Level;

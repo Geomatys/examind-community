@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.iso.citation.DefaultOrganisation;

@@ -8,7 +8,7 @@ package org.constellation.api.rest;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Level;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.dto.UserWithRole;
 import static org.springframework.http.HttpStatus.NOT_FOUND;

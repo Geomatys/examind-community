@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import org.geotoolkit.index.LogicalFilterType;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
 import static org.junit.Assert.assertEquals;

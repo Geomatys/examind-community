@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import static org.constellation.metadata.index.analyzer.AbstractAnalyzerTest.indexSearcher;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 

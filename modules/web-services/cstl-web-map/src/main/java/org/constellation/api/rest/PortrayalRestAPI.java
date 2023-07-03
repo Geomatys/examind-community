@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapBusiness;
 import org.constellation.dto.DataBrief;

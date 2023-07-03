@@ -26,8 +26,8 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import static org.constellation.admin.SpringHelper.get;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

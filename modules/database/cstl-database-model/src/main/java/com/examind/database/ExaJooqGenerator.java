@@ -50,8 +50,9 @@ public class ExaJooqGenerator extends JavaGenerator {
 
     @Override
     protected void printPackageComment(JavaWriter out, Definition definition, GeneratorStrategy.Mode mode) {
+        // TODO: find proper configuration to delegate header printing
         out.println("/*");
-        printJavadocParagraph(out, EXAMIND_LICENCE, "");
+        out.print(EXAMIND_LICENCE);
         out.println("*/");
     }
 
@@ -65,17 +66,4 @@ public class ExaJooqGenerator extends JavaGenerator {
         }
         printClassJavadoc(out, escapeEntities(comment));
     }
-
-    @Override
-    protected void printClassJavadoc(JavaWriter out, String comment) {
-        if (generateJavadoc()) {
-            out.println("/**");
-            printJavadocParagraph(out, comment, "");
-            out.println(" */");
-        }
-    }
-
-
-
-
 }

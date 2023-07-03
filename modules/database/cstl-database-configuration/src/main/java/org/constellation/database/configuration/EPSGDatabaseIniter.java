@@ -18,14 +18,14 @@
  */
 package org.constellation.database.configuration;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.*;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import org.apache.sis.referencing.CRS;
 import org.constellation.business.IClusterBusiness;
 import org.geotoolkit.lang.Setup;

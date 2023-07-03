@@ -21,7 +21,7 @@ package org.constellation.provider.observationstore;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.constellation.provider.DataProviders;

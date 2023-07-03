@@ -21,7 +21,7 @@ package org.constellation.sos.ws;
 
 import java.util.List;
 import java.util.logging.Level;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.Sensor;

@@ -4,7 +4,7 @@ import java.util.Collections;
 import org.constellation.ws.ConstellationOGCModule;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;

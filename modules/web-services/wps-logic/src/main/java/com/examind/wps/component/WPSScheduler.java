@@ -28,7 +28,7 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import org.geotoolkit.processing.quartz.ProcessJobDetail;
 import org.springframework.stereotype.Component;

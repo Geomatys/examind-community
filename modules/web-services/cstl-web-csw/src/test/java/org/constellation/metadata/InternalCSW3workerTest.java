@@ -25,7 +25,7 @@ import java.util.Arrays;
 import org.constellation.metadata.core.CSWworker;
 import java.util.logging.Level;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.test.utils.Order;

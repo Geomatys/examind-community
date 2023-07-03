@@ -20,8 +20,8 @@ package org.constellation.admin.web.filter.gzip;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public final class GZipResponseUtil {
 
@@ -69,9 +69,9 @@ public final class GZipResponseUtil {
     /**
      * Performs a number of checks to ensure response saneness according to the rules of RFC2616:
      * <ol>
-     * <li>If the response code is {@link javax.servlet.http.HttpServletResponse#SC_NO_CONTENT} then it is illegal for the body
+     * <li>If the response code is {@link jakarta.servlet.http.HttpServletResponse#SC_NO_CONTENT} then it is illegal for the body
      * to contain anything. See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.5
-     * <li>If the response code is {@link javax.servlet.http.HttpServletResponse#SC_NOT_MODIFIED} then it is illegal for the body
+     * <li>If the response code is {@link jakarta.servlet.http.HttpServletResponse#SC_NOT_MODIFIED} then it is illegal for the body
      * to contain anything. See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.3.5
      * </ol>
      *
@@ -106,7 +106,7 @@ public final class GZipResponseUtil {
      *
      * @param response the response which will have a header added to it. I.e this method changes its parameter
      * @throws GzipResponseHeadersNotModifiableException Either the response is committed or we were called using the include method
-     * from a {@link javax.servlet.RequestDispatcher#include(javax.servlet.ServletRequest, javax.servlet.ServletResponse)}
+     * from a {@link jakarta.servlet.RequestDispatcher#include(jakarta.servlet.ServletRequest, jakarta.servlet.ServletResponse)}
      * method and the set set header is ignored.
      */
     public static void addGzipHeader(final HttpServletResponse response) throws GzipResponseHeadersNotModifiableException {

@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.process.ChainProcessRetriever;

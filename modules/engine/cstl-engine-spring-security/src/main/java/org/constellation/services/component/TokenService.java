@@ -23,9 +23,9 @@ import org.constellation.configuration.Application;
 import org.constellation.token.TokenExtender;
 import org.constellation.token.TokenUtils;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
 import static org.constellation.token.TokenUtils.ACCESS_TOKEN;
 

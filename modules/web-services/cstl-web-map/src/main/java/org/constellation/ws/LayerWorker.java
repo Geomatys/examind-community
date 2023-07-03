@@ -32,14 +32,14 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.security.SimplePDP;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ClusterMessage;

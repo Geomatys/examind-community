@@ -54,7 +54,7 @@ import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.util.MetadataUtilities;

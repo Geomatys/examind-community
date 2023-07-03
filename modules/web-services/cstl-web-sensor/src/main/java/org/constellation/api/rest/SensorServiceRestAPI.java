@@ -22,7 +22,7 @@ import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;

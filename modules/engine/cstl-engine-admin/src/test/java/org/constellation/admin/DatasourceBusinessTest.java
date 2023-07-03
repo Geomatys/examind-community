@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataSource;

@@ -36,8 +36,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.zip.CRC32;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;

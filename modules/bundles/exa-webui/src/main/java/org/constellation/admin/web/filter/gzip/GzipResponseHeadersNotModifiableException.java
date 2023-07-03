@@ -18,7 +18,7 @@
  */
 package org.constellation.admin.web.filter.gzip;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 public class GzipResponseHeadersNotModifiableException extends ServletException {
 

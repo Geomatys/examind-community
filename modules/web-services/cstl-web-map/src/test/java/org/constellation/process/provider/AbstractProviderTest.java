@@ -28,7 +28,7 @@ import org.junit.BeforeClass;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;

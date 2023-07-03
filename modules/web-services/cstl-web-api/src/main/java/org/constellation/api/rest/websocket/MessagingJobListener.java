@@ -24,7 +24,7 @@ import org.constellation.dto.process.TaskStatus;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;

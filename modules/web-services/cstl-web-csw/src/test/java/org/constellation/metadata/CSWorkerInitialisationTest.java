@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 import java.util.Date;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import javax.inject.Inject;
 import jakarta.xml.bind.JAXBContext;

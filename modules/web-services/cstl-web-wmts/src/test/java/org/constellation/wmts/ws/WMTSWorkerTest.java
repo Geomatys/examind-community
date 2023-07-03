@@ -37,7 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import jakarta.xml.bind.Marshaller;
 import java.io.StringWriter;

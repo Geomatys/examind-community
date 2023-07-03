@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;

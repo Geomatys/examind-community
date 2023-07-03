@@ -20,7 +20,7 @@ package org.constellation.database.configuration;
 
 import java.util.Objects;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.springframework.context.annotation.Bean;

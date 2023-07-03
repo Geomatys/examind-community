@@ -38,7 +38,7 @@ import org.geotoolkit.wfs.xml.v200.StoredQueryDescriptionType;
 import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;

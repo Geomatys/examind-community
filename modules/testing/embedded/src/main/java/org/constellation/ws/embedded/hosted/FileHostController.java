@@ -21,7 +21,7 @@ package org.constellation.ws.embedded.hosted;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Path;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.business.IConfigurationBusiness;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.beans.factory.annotation.Autowired;

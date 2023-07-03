@@ -18,12 +18,12 @@
  */
 package org.constellation.admin.web.filter.gzip;
 
-import javax.servlet.ServletOutputStream;
+import jakarta.servlet.ServletOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Logger;
-import javax.servlet.WriteListener;
+import jakarta.servlet.WriteListener;
 
 class GZipServletOutputStream extends ServletOutputStream {
 

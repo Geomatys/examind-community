@@ -27,10 +27,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 
@@ -167,7 +166,7 @@ public class TokenUtils {
      */
     public static String extractFromQueryParameters(HttpServletRequest httpRequest, String name) {
         String queryString = httpRequest.getQueryString();
-        if (StringUtils.isNotBlank(queryString)) {
+        if (queryString != null && !queryString.isBlank()) {
             int tokenIndex = queryString.indexOf(name+"=");
             if (tokenIndex != -1) {
                 tokenIndex += (name + "=").length();
@@ -200,7 +199,7 @@ public class TokenUtils {
                 if (name.equals(cookie.getName())) {
                     try {
                         String value = URLDecoder.decode(cookie.getValue(), "UTF-8");
-                        if (StringUtils.isNotBlank(value)) {
+                        if (value != null && !value.isBlank()) {
                           return value;
                         }
                     } catch (UnsupportedEncodingException e) {
@@ -222,10 +221,8 @@ public class TokenUtils {
      */
     public static String extractFromHeaders(HttpServletRequest httpRequest, String name) {
         String value = httpRequest.getHeader(name);
-        if (value != null) {
-            if (StringUtils.isNotBlank(value)) {
-                return value;
-            }
+        if (value != null && !value.isBlank()) {
+            return value;
         }
         return null;
     }

@@ -32,7 +32,7 @@ import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
 import org.constellation.admin.SpringHelper;

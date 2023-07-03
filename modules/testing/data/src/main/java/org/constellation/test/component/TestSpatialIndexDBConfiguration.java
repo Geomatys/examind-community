@@ -19,7 +19,7 @@
 package org.constellation.test.component;
 
 import com.zaxxer.hikari.HikariDataSource;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
 import org.geotoolkit.index.tree.manager.postgres.PGDataSource;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -22,7 +22,7 @@ import org.constellation.services.security.CookieUtils;
 import com.examind.oauth.Oauth2Client;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.springframework.http.HttpHeaders;
