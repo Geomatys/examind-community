@@ -61,6 +61,7 @@ import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
@@ -119,7 +120,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final String observationType;
 
     protected final List<String> qualityColumns;
-    protected final List<String> qualityTypes;
+    protected final List<String> qualityColumnsIds;
+    protected final List<String> qualityColumnsTypes;
 
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
@@ -175,8 +177,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.laxHeader = (boolean) params.parameter(LAX_HEADER.getName().toString()).getValue();
         this.obsPropId = (String) params.parameter(OBS_PROP_ID.getName().toString()).getValue();
         this.obsPropName = (String) params.parameter(OBS_PROP_NAME.getName().toString()).getValue();
-        this.qualityColumns = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
-        this.qualityTypes = getMultipleValuesList(params, QUALITY_COLUMN_TYPE.getName().getCode());
+        this.qualityColumns      = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
+        this.qualityColumnsTypes = getMultipleValuesList(params, QUALITY_COLUMN_TYPE.getName().getCode());
+        this.qualityColumnsIds   = getMultipleValuesList(params, QUALITY_COLUMN_ID.getName().getCode());
 
         String pid = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
         if (pid == null && procedureColumn == null) {
@@ -253,13 +256,52 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return tree;
     }
 
-    protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualtityColumns, List<String> qualityTypes) {
+    protected static class MeasureColumns {;
+        public final String observationType;
+        public final boolean isProfile;
+        public final List<MeasureField> measureFields;
+        public final List<String> mainColumns;
+
+        public MeasureColumns(List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualityColumns, List<String> qualtityColumnsIds, List<String> qualityColumnsTypes) {
+            this.observationType = observationType;
+            this.isProfile = observationType.equals("Profile");
+            this.mainColumns = mainColumns;
+            this.measureFields = new ArrayList<>();
+            // initialize description
+            int offset = isProfile ? 1 : 0;
+            for (int j = 0, k = offset; j < measureColumns.size(); j++, k++) {
+                String mc = measureColumns.get(j);
+                FieldType type = FieldType.QUANTITY;
+                if ((!isProfile && j == 0) && k < measureTypes.size()) {
+                    type = FieldType.valueOf(measureTypes.get(k));
+                }
+
+                List<MeasureField> qualityFields = new ArrayList<>();
+                for (int i = 0; i < qualityColumns.size(); i++) {
+                    String qName = qualityColumns.get(i);
+                    if (i < qualtityColumnsIds.size()) {
+                        qName = qualtityColumnsIds.get(i);
+                    }
+                    qName = normalizeFieldName(qName);
+                    FieldType qtype = FieldType.TEXT;
+                    if (i < qualityColumnsTypes.size()) {
+                        qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                    }
+                    qualityFields.add(new MeasureField(qName, qtype, new ArrayList<>()));
+                }
+                measureFields.add(new MeasureField(mc, type, qualityFields));
+            }
+        }
+    }
+
+    protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, MeasureColumns measColumns) {
         String key = procedure.getId() + '-' + foiID + '-' + time;
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            MeasureBuilder cmb = new MeasureBuilder(observationType.equals("Profile"), measureColumns, measureTypes, mainColumns, qualtityColumns, qualityTypes);
-            ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, observationType);
+            
+            MeasureBuilder cmb = new MeasureBuilder(measColumns);
+            ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, measColumns.observationType);
             observationBlock.put(key, ob);
             return ob;
         }

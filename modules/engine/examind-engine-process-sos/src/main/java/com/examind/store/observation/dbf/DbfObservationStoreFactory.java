@@ -20,18 +20,13 @@ import com.examind.store.observation.FileParsingObservationStoreFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
-import org.apache.sis.metadata.iso.citation.Citations;
-import org.apache.sis.parameter.DefaultParameterDescriptorGroup;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
-import org.opengis.metadata.Identifier;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
@@ -55,9 +50,9 @@ public class DbfObservationStoreFactory extends FileParsingObservationStoreFacto
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR
             = PARAM_BUILDER.addName(NAME).addName("ObservationDbfFileParameters").createGroup(IDENTIFIER, NAMESPACE, PATH,
-                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, FOI_COLUMN, OBSERVATION_TYPE,
+                    MAIN_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, OBS_PROP_COLUMN, OBS_PROP_ID, OBS_PROP_NAME, OBS_PROP_COLUMN_TYPE, FOI_COLUMN, OBSERVATION_TYPE,
                     PROCEDURE_ID, PROCEDURE_COLUMN, PROCEDURE_NAME_COLUMN, PROCEDURE_DESC_COLUMN, PROCEDURE_REGEX, Z_COLUMN, UOM_REGEX, OBS_PROP_REGEX, FILE_MIME_TYPE, NO_HEADER,
-                    DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_TYPE, LAX_HEADER);
+                    DIRECT_COLUMN_INDEX, QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, LAX_HEADER);
 
     @Override
     public String getShortName() {

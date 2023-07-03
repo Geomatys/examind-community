@@ -173,6 +173,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             // final result
             final ObservationDataset result = new ObservationDataset();
             final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
+            final Map<String, ObservedProperty> observedProperties = new HashMap<>();
             
             /*
             2- compute measures
@@ -186,9 +187,10 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             // -- single observation related variables --
             Long currentTime                      = null;
             String currentFoi                     = null;
-            List<String> currentMainColumns       = mainColumns;
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
+
+            final Map<String, MeasureColumns> measureColumnsMap = new HashMap<>();
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -210,6 +212,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // checks if row matches the observed data types
+                final List<String> currentMainColumns;
                 if (typeColumnIndex!=-1) {
                     if (!obsTypeCodes.contains(asString(line[typeColumnIndex]))) continue;
                     if (observationType == null) {
@@ -221,8 +224,16 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                             mainIndexes = dateIndexes;
                             currentMainColumns = dateColumns;
                         }
+                    } else {
+                        currentMainColumns = mainColumns;
                     }
+                } else {
+                    currentMainColumns = mainColumns;
                 }
+                MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
+                    return new MeasureColumns(sortedMeasureColumns, new ArrayList<>(), currentMainColumns, cot, qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+                });
+
 
                 // look for current procedure (for observation separation)
                 final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
@@ -248,14 +259,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     }
                 }
 
-                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex);
+                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex, observedProperties);
 
                 // checks if row matches the observed properties wanted
                 if (!sortedMeasureColumns.contains(observedProperty.id)) {
                     continue;
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, sortedMeasureColumns, new ArrayList<>(), currentMainColumns, currentObstType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureColums);
 
                 currentBlock.updateObservedProperty(observedProperty);
 
@@ -333,17 +344,19 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     }
 
     /**
-     * Extract the current observed property (id, name, uom).
-     * This method can be overriden by subclasses
+     * Extract the current observed property (id, name, uom).This method can be overriden by subclasses
+     *
+     * (The cache map is not used in this implementation for now)
      * 
      * @param line the current csv line.
      * @param obsPropColumnIndexes Columns for observed property id.
      * @param obsPropNameColumnIndexes Columns for observed property name.
      * @param uomColumnIndex Column for observed property unit of measure.
+     * @param cache Cached map of observed properties.
      *
      * @return an observed property
      */
-    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex) {
+    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex, Map<String, ObservedProperty> cache) {
         String observedProperty     = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
         String observedPropertyName = getMultiOrFixedValue(line, obsPropName, obsPropNameColumnIndexes);
         String observedPropertyUOM  = asString(getColumnValue(uomColumnIndex, line, null));

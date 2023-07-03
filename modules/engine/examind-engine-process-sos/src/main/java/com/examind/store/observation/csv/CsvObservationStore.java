@@ -39,6 +39,7 @@ import org.geotoolkit.storage.DataStores;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.QUALITY_COLUMN_ID;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
@@ -67,7 +68,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class CsvObservationStore extends FileParsingObservationStore implements ObservationStore {
 
-    protected List<String> obsPropColumnsTypes;
+    protected final List<String> obsPropColumnsTypes;
 
     public CsvObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
@@ -127,13 +128,15 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 obsPropFields.put(obsPropIndexes.get(i), ft);
             }
 
-            // special case where there is no header, and a specified observation peorperty identifier
+            // special case where there is no header, and a specified observation property identifier
             ObservedProperty fixedObsProp = null;
             if (directColumnIndex && noHeader && obsPropId != null) {
                 measureFields.add(obsPropId);
                 fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
             }
             
+            MeasureColumns measureColumns = new MeasureColumns(measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+
              // final result
             final ObservationDataset result = new ObservationDataset();
             final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
@@ -186,7 +189,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureColumns);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);

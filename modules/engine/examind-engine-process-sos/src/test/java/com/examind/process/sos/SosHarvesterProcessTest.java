@@ -26,12 +26,12 @@ import java.util.Arrays;
 import java.util.List;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.process.ServiceProcessReference;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static com.examind.process.sos.SosHarvesterTestUtils.*;
+import java.util.Set;
 import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -1307,6 +1307,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val2);
 
         in.parameter(SosHarvesterProcessDescriptor.QUALITY_COLUMN_NAME).setValue("parameter_qc");
+        in.parameter(SosHarvesterProcessDescriptor.QUALITY_COLUMN_ID_NAME).setValue("parameter_qc_mod");
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN_NAME).setValue("parameter_value");
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).setValue("parameter_code");
         in.parameter(SosHarvesterProcessDescriptor.TYPE_COLUMN_NAME).setValue("file_type");
@@ -1358,6 +1359,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals(1, offp.getObservedProperties().size());
         String observedProperty = offp.getObservedProperties().get(0);
         Assert.assertEquals("35", observedProperty);
+
+        Set<String> qualityFields = getQualityFieldNames(stsWorker, "urn:template:1501563");
+        Assert.assertEquals(1, qualityFields.size());
+        assertTrue(qualityFields.contains("parameter_qc_mod"));
 
         /*
         * Verify an inserted data

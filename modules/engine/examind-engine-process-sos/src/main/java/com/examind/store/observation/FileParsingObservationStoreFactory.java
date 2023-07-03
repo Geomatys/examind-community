@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.apache.sis.feature.AbstractIdentifiedType.NAME_KEY;
 import org.apache.sis.feature.DefaultAttributeType;
@@ -193,6 +194,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> QUALITY_COLUMN_ID = PARAM_BUILDER
+            .addName("qualtity_column_id")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> QUALITY_COLUMN_TYPE = PARAM_BUILDER
             .addName("qualtity_column_type")
             .setRequired(false)
@@ -276,15 +282,25 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
     protected static final GeometryFactory GF = new GeometryFactory();
 
     public static Set<String> getMultipleValues(final ParameterValueGroup params, final String descCode) {
-        final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
-        return paramValues.getValue() == null ?
-                new HashSet<>() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
+        try {
+            final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
+            return paramValues.getValue() == null ?
+                    new HashSet<>() : new HashSet<>(StringUtilities.toStringList(paramValues.getValue()));
+        } catch (ParameterNotFoundException ex) {
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);
+            return new HashSet<>();
+        }
     }
 
     public static List<String> getMultipleValuesList(final ParameterValueGroup params, final String descCode) {
-        final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
-        return paramValues.getValue() == null ?
-                new ArrayList<>() : StringUtilities.toStringList(paramValues.getValue());
+        try {
+            final ParameterValue<String> paramValues = (ParameterValue<String>) params.parameter(descCode);
+            return paramValues.getValue() == null ?
+                    new ArrayList<>() : StringUtilities.toStringList(paramValues.getValue());
+        } catch (ParameterNotFoundException ex) {
+            LOGGER.log(Level.FINE, ex.getMessage(), ex);
+            return new ArrayList<>();
+        }
     }
 
     @Override

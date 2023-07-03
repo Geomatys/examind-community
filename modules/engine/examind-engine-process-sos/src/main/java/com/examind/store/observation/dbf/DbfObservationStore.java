@@ -19,6 +19,8 @@ package com.examind.store.observation.dbf;
 
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FileParsingObservationStore;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
@@ -61,9 +63,11 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class DbfObservationStore extends FileParsingObservationStore implements ObservationStore {
 
+    protected final List<String> obsPropColumnsTypes;
 
     public DbfObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
+        this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
     }
 
     @Override
@@ -117,6 +121,8 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
             }
 
+            MeasureColumns measureColumns = new MeasureColumns(measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+
              // final result
             final ObservationDataset result = new ObservationDataset();
             final Map<String, ObservationBlock> observationBlock = new LinkedHashMap<>();
@@ -169,7 +175,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                     }
                 }
 
-                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureFields, new ArrayList<>(), mainColumns, observationType, qualityColumns, qualityTypes);
+                ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureColumns);
 
                 if (fixedObsProp != null) {
                     currentBlock.updateObservedProperty(fixedObsProp);

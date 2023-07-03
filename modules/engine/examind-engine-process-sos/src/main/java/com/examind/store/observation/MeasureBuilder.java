@@ -19,7 +19,6 @@
 
 package com.examind.store.observation;
 
-import static com.examind.store.observation.FileParsingUtils.normalizeFieldName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -79,31 +78,14 @@ public class MeasureBuilder {
         }
     }
 
-    public MeasureBuilder(boolean isProfile, List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, List<String> qualityColumns, List<String> qualityTypes) {
-        if (mainColumns == null    || mainColumns.isEmpty())    throw new IllegalArgumentException("mains columns should not be null or empty");
-        if (measureColumns == null || measureColumns.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
-        this.isProfile = isProfile;
-        int offset = isProfile ? 1 : 0;
-        // initialize description
-        for (int j = 0, k = offset; j < measureColumns.size(); j++, k++) {
-            String mc = measureColumns.get(j);
-            FieldType type = FieldType.QUANTITY;
-            if ((!isProfile && j ==0) && k < measureTypes.size()) {
-                type = FieldType.valueOf(measureTypes.get(k));
-            }
-
-            List<MeasureField> qualityFields = new ArrayList<>();
-            for (int i = 0; i < qualityColumns.size(); i++) {
-                String qc = normalizeFieldName(qualityColumns.get(i));
-                FieldType qtype = FieldType.TEXT;
-                if (i < qualityTypes.size()) {
-                    qtype = FieldType.valueOf(qualityTypes.get(i));
-                }
-                qualityFields.add(new MeasureField(qc, qtype, new ArrayList<>()));
-            }
-            this.measureColumns.put(mc, new MeasureField(mc, type, qualityFields));
+    public MeasureBuilder(FileParsingObservationStore.MeasureColumns measColumns) {
+        if (measColumns.mainColumns == null   || measColumns.mainColumns.isEmpty())   throw new IllegalArgumentException("mains columns should not be null or empty");
+        if (measColumns.measureFields == null || measColumns.measureFields.isEmpty()) throw new IllegalArgumentException("measures columns should not be null or empty");
+        this.isProfile = measColumns.isProfile;
+        for (MeasureField mf : measColumns.measureFields) {
+            this.measureColumns.put(mf.name, mf);
         }
-        this.mainColumns = mainColumns;
+        this.mainColumns = measColumns.mainColumns;
     }
 
     public MeasureBuilder(MeasureBuilder cmb, boolean isProfile) {

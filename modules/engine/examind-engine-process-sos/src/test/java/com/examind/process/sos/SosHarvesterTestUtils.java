@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.ws.CstlServiceException;
@@ -45,12 +46,15 @@ import org.geotoolkit.sos.xml.v200.GetCapabilitiesType;
 import org.geotoolkit.sos.xml.v200.GetFeatureOfInterestType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
+import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArray;
 import org.geotoolkit.sts.json.HistoricalLocation;
+import org.geotoolkit.sts.json.MultiDatastream;
+import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.Thing;
@@ -97,6 +101,29 @@ public class SosHarvesterTestUtils {
         GetObservedPropertyById request = new GetObservedPropertyById();
         request.setId(obsId);
         return stsWorker.getObservedPropertyById(request);
+    }
+
+    public static Set<String> getQualityFieldNames(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        GetObservations request = new GetObservations();
+        request.setResultFormat("dataArray");
+        request.getExtraFlag().put("forMDS", "true");
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
+        DataArrayResponseExt resp = (DataArrayResponseExt) stsWorker.getObservations(request);
+        Set<String> results = new HashSet<>();
+        for (DataArray array : resp.getValue()) {
+            int index = array.getComponents().indexOf("resultQuality");
+            if (index != -1) {
+                for (Object o : array.getDataArray()) {
+                    List obs = (List) o;
+                    List quals = (List) obs.get(index);
+                    for (Object q : quals) {
+                        Map qual = (Map) q;
+                        results.add((String)qual.get("nameOfMeasure"));
+                    }
+                }
+            }
+        }
+        return results;
     }
 
     public static void verifyAllObservedProperties(STSWorker stsWorker, String sensorId, List<String> expectedObsProp) throws CstlServiceException {
