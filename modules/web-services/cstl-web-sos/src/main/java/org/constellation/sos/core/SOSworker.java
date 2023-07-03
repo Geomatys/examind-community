@@ -38,7 +38,7 @@ import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Level;
 import javax.inject.Named;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConstellationException;

@@ -21,9 +21,9 @@ package org.constellation.dto.portrayal;
 import org.geotoolkit.display2d.ext.scalebar.DefaultScaleBarTemplate;
 import org.geotoolkit.display2d.ext.scalebar.ScaleBarTemplate;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
 import java.awt.*;
 import java.text.NumberFormat;
 import org.apache.sis.measure.Units;

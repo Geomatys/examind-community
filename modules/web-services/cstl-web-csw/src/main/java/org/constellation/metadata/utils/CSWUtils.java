@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;

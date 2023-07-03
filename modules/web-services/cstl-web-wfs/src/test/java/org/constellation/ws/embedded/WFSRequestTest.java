@@ -19,7 +19,7 @@
 
 package org.constellation.ws.embedded;
 
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
 import org.constellation.dto.service.config.wxs.LayerContext;
@@ -48,8 +48,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.StringReader;
 import java.net.MalformedURLException;

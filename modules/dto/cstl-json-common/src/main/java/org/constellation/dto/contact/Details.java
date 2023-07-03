@@ -21,7 +21,7 @@ package org.constellation.dto.contact;
 
 
 import java.util.ArrayList;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 /**

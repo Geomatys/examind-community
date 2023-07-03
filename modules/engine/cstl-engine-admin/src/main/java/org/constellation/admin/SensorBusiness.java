@@ -27,9 +27,9 @@ import java.nio.file.Files;
 import java.util.List;
 
 import javax.inject.Inject;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.constellation.business.ISensorBusiness;
@@ -55,7 +55,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.admin.util.MetadataUtilities;
 import static org.constellation.api.ProviderConstants.INTERNAL_SENSOR_PROVIDER;

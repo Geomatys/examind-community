@@ -44,7 +44,7 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Named;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import org.apache.sis.internal.feature.AttributeConvention;

@@ -48,8 +48,8 @@ import org.geotoolkit.wcs.xml.v100.TimeSequenceType;
 import org.geotoolkit.wcs.xml.v100.WCSCapabilitiesType;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.util.ArrayList;

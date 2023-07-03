@@ -91,8 +91,8 @@ import org.springframework.context.annotation.Scope;
 import org.w3c.dom.Node;
 
 import javax.inject.Named;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.net.URI;
 import java.util.ArrayList;

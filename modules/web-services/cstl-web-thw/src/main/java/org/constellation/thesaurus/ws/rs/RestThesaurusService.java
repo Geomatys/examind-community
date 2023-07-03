@@ -22,7 +22,7 @@ package org.constellation.thesaurus.ws.rs;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.CstlServiceException;

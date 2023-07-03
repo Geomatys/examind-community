@@ -27,8 +27,8 @@ import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.GetRecordsRequest;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.List;
 import java.util.logging.Level;

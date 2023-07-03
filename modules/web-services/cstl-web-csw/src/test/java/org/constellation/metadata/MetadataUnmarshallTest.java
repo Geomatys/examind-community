@@ -91,9 +91,9 @@ import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.InternationalString;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;

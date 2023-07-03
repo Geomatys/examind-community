@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.admin.util.MetadataUtilities;
@@ -71,8 +71,8 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import org.apache.sis.storage.DataStoreProvider;

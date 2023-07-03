@@ -21,9 +21,9 @@ package org.constellation.dto.portrayal;
 import org.geotoolkit.display2d.ext.BackgroundTemplate;
 import org.geotoolkit.display2d.ext.legend.DefaultLegendTemplate;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.awt.*;
 import java.io.Serializable;
 

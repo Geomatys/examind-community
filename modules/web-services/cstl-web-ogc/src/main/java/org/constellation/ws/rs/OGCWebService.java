@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import javax.annotation.PreDestroy;
 import javax.inject.Inject;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.validation.Schema;
 import org.apache.sis.util.iso.Types;
 import org.constellation.admin.SpringHelper;

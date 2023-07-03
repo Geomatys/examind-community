@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import org.apache.sis.storage.DataStoreException;
 
 import org.apache.sis.xml.MarshallerPool;

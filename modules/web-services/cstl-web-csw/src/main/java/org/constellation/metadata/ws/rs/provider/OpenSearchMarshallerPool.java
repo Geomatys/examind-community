@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.apache.sis.xml.MarshallerPool;
 
 /**
@@ -60,7 +60,7 @@ public class OpenSearchMarshallerPool {
             final JAXBContext jaxbCtxt = JAXBContext.newInstance(classes.toArray(new Class[classes.size()]));
 
             Map<String, Object> properties = new HashMap();
-            properties.put("com.sun.xml.bind.namespacePrefixMapper", new OSPrefixMapper());
+            properties.put("org.glassfish.jaxb.namespacePrefixMapper", new OSPrefixMapper());
 
             POOL = new MarshallerPool(jaxbCtxt, properties);
         } catch (JAXBException ex) {

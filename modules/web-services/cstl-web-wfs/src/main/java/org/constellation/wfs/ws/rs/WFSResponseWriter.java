@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geotoolkit.wfs.xml.WFSMarshallerPool;
 import org.geotoolkit.wfs.xml.WFSResponse;
 
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

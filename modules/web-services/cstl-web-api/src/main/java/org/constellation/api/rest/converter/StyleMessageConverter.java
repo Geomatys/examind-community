@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.inject.Inject;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.constellation.business.IStyleBusiness;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.xml.StyleXmlIO;

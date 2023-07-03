@@ -44,7 +44,7 @@ import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.apache.commons.io.IOUtils;
 import org.constellation.api.ServiceDef;
 import org.constellation.ws.IWSEngine;

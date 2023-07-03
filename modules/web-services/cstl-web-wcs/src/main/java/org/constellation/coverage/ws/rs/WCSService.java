@@ -67,7 +67,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import static org.constellation.api.QueryConstants.ACCEPT_FORMATS_PARAMETER;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;

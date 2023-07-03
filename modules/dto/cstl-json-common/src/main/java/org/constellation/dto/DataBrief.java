@@ -20,7 +20,7 @@
 package org.constellation.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import javax.xml.bind.annotation.*;
+import jakarta.xml.bind.annotation.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

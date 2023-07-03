@@ -26,8 +26,8 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import static org.constellation.api.CommonConstants.SENSOR_ID_BASE;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.DirectoryStream;

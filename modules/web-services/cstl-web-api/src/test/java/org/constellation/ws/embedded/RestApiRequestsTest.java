@@ -31,7 +31,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.net.URL;
 import java.net.URLConnection;

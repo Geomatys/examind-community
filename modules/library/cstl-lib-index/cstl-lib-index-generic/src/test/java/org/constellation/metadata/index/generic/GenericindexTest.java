@@ -39,9 +39,9 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import org.opengis.metadata.citation.DateType;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;

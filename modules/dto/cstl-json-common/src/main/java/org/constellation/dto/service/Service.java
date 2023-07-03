@@ -21,7 +21,7 @@ package org.constellation.dto.service;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.constellation.dto.ServiceReference;
 
 @XmlRootElement

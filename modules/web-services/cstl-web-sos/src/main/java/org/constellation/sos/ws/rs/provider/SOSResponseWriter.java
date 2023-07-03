@@ -23,8 +23,8 @@ import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.SOSResponseWrapper;
 import org.geotoolkit.swes.xml.SOSResponse;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;

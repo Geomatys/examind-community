@@ -53,7 +53,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;

@@ -77,10 +77,10 @@ import org.geotoolkit.swes.xml.v200.DescribeSensorType;
 import org.geotoolkit.swes.xml.v200.InsertSensorResponseType;
 import org.geotoolkit.swes.xml.v200.InsertSensorType;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -20,7 +20,7 @@
 package org.constellation.portrayal;
 
 import java.awt.image.RenderedImage;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.OutputDef;

@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.constellation.dto.service.config.generic.Automatic;
 
-import javax.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wxs.LayerContext;

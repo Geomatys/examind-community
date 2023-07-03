@@ -22,8 +22,8 @@ package org.constellation.wps.ws.rs;
 import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

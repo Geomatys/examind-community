@@ -32,8 +32,8 @@ import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;

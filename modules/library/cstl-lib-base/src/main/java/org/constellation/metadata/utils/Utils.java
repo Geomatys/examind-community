@@ -29,7 +29,7 @@ import java.util.MissingResourceException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 import org.opengis.metadata.Metadata;
 import org.opengis.temporal.Instant;

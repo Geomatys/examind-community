@@ -36,8 +36,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.util.Arrays;
 import javax.xml.namespace.QName;

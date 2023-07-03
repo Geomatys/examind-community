@@ -22,8 +22,8 @@ package org.constellation.coverage.ws.rs;
 import org.geotoolkit.wcs.xml.WCSMarshallerPool;
 import org.geotoolkit.wcs.xml.WCSResponse;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

@@ -51,7 +51,7 @@ import org.opengis.metadata.maintenance.ScopeCode;
 import org.opengis.util.LocalName;
 import org.opengis.util.NameFactory;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

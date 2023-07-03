@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.nio.file.Files;
 import java.nio.file.Path;

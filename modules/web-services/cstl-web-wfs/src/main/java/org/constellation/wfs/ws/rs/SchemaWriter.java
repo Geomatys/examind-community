@@ -22,8 +22,8 @@ package org.constellation.wfs.ws.rs;
 import org.geotoolkit.xsd.xml.v2001.Schema;
 import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

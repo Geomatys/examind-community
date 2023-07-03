@@ -28,7 +28,7 @@ import java.io.StringWriter;
 import java.util.Date;
 
 import javax.inject.Inject;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.Marshaller;
 
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;

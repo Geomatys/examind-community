@@ -19,7 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;

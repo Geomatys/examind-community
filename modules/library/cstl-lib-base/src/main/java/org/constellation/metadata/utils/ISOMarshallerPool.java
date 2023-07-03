@@ -23,12 +23,12 @@ import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.xml.MarshallerPool;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBContext;
 
 /**
  *

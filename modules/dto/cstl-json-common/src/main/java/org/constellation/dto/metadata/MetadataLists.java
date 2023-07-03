@@ -18,7 +18,7 @@
  */
 package org.constellation.dto.metadata;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.List;
 

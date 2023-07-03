@@ -23,8 +23,8 @@ import org.constellation.writer.ExceptionFilterWriter;
 import org.geotoolkit.ows.xml.ExceptionReportMarshallerPool;
 import org.geotoolkit.ows.xml.ExceptionResponse;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

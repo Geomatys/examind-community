@@ -18,9 +18,9 @@
  */
 package org.constellation.metadata.ws.rs.provider;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import java.util.HashMap;
 import java.util.Map;
+import org.glassfish.jaxb.runtime.marshaller.NamespacePrefixMapper;
 
 /**
  *
@@ -50,7 +50,7 @@ public class OSPrefixMapper extends NamespacePrefixMapper {
 
     /* (non-Javadoc)
      * Returning null when not found based on spec.
-     * @see com.sun.xml.bind.marshaller.NamespacePrefixMapper#getPreferredPrefix(java.lang.String, java.lang.String, boolean)
+     * @see NamespacePrefixMapper#getPreferredPrefix(java.lang.String, java.lang.String, boolean)
      */
     @Override
     public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {

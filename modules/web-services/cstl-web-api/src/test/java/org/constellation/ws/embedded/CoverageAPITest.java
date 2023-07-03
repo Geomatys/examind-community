@@ -26,7 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.logging.Level;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.configuration.ConfigDirectory;

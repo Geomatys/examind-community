@@ -58,7 +58,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;

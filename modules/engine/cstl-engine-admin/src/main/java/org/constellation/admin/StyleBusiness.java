@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;

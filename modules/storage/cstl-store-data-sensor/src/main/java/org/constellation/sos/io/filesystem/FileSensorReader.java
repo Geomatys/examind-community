@@ -26,9 +26,9 @@ import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
 import org.geotoolkit.util.StringUtilities;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;

@@ -39,8 +39,8 @@ import org.geotoolkit.xsd.xml.v2001.*;
 import org.junit.*;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
 import java.nio.file.Path;

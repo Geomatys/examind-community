@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;

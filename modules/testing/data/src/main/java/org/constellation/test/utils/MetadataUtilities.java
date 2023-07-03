@@ -67,7 +67,7 @@ import org.opengis.metadata.spatial.Georectified;
 import org.opengis.metadata.spatial.SpatialRepresentation;
 import org.opengis.metadata.Identifier;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.util.Collection;
 import java.util.Iterator;
 

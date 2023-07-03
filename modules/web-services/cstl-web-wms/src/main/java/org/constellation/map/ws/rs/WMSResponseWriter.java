@@ -26,8 +26,8 @@ import org.geotoolkit.wms.xml.WMSResponse;
 import org.geotoolkit.wms.xml.v111.WMT_MS_Capabilities;
 import org.geotoolkit.wms.xml.v130.WMSCapabilities;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

@@ -38,7 +38,7 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

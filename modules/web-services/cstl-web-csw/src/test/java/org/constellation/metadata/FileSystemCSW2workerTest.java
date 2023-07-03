@@ -30,7 +30,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

@@ -33,10 +33,10 @@ import org.constellation.util.Util;
 import org.geotoolkit.image.io.XImageIO;
 
 import javax.imageio.ImageReader;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;

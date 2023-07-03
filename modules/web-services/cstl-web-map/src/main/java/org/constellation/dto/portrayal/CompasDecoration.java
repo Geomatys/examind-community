@@ -21,10 +21,10 @@ package org.constellation.dto.portrayal;
 import org.geotoolkit.display2d.ext.northarrow.DefaultNorthArrowTemplate;
 import org.geotoolkit.display2d.ext.northarrow.NorthArrowTemplate;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.awt.*;
 
 /**

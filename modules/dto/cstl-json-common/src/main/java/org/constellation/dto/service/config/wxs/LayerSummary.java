@@ -20,8 +20,8 @@ package org.constellation.dto.service.config.wxs;
 
 
 import java.util.Date;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
 import java.util.List;
 import javax.xml.namespace.QName;
 import org.constellation.dto.Data;

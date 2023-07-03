@@ -21,8 +21,8 @@ package org.constellation.generic.database;
 
 import org.apache.sis.xml.MarshallerPool;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 
 /**
  *

@@ -24,8 +24,8 @@ import org.constellation.jaxb.MarshallWarnings;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.CSWResponse;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;

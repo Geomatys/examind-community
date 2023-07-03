@@ -24,8 +24,8 @@ import org.geotoolkit.csw.xml.GetRecordsRequest;
 import org.geotoolkit.nio.IOUtilities;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;

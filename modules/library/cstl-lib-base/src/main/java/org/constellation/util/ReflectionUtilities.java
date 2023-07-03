@@ -22,8 +22,8 @@ package org.constellation.util;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.annotation.UML;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.XmlElement;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
