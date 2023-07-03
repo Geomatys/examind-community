@@ -58,10 +58,6 @@
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-client-wmts</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
         <!-- Tests dependencies -->
         <dependency>
             <groupId>com.examind.community</groupId>

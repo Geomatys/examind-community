@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>23.07.05</version>
+        <version>23.07.06</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
@@ -34,9 +34,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- Define packages for GUI including -->
         <examind.services.packages>all</examind.services.packages>
-
-        <!-- associated projects dependencies -->
-        <sis.build.helper.version>${sis.version}</sis.build.helper.version>
 
         <!-- third party dependencies versions -->
         <codahale.metrics.version>3.0.1</codahale.metrics.version>
@@ -178,12 +175,6 @@
     </contributors>
 
      <dependencies>
-
-         <dependency>
-             <groupId>javax.annotation</groupId>
-             <artifactId>javax.annotation-api</artifactId>
-         </dependency>
-
         <dependency>
             <groupId>org.opengis</groupId>
             <artifactId>geoapi-pending</artifactId>

@@ -35,11 +35,7 @@
             <artifactId>cstl-lib-base</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-ows</artifactId>
