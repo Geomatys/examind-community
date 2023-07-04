@@ -17,10 +17,6 @@
         <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
     </listener>
 
-    <listener>
-        <listener-class>org.constellation.setup.CstlInstaller</listener-class>
-    </listener>
-
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>WEB-INF/applicationContext.xml</param-value>
@@ -94,20 +90,6 @@
         <url-pattern>/API/*</url-pattern>
     </filter-mapping>
 
-    <!-- metrics filter -->
-    <filter>
-        <filter-name>webappMetricsFilter</filter-name>
-        <filter-class>com.codahale.metrics.servlet.InstrumentedFilter</filter-class>
-        <async-supported>true</async-supported>
-    </filter>
-    <filter-mapping>
-        <filter-name>webappMetricsFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-        <dispatcher>FORWARD</dispatcher>
-        <dispatcher>REQUEST</dispatcher>
-        <dispatcher>ASYNC</dispatcher>
-    </filter-mapping>
-
     <!-- REST Servlet for constellation web service -->
     <servlet>
         <servlet-name>ogcws</servlet-name>
@@ -143,18 +125,6 @@
         <servlet-name>examindapi</servlet-name>
         <url-pattern>/API/*</url-pattern>
     </servlet-mapping>
-
-    <!-- metrics servlet -->
-    <servlet>
-        <servlet-name>metricsAdminServlet</servlet-name>
-        <servlet-class>com.codahale.metrics.servlets.AdminServlet</servlet-class>
-        <load-on-startup>2</load-on-startup>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>metricsAdminServlet</servlet-name>
-        <url-pattern>/metrics/*</url-pattern>
-    </servlet-mapping>
-
 
     <session-config>
         <session-timeout>30</session-timeout>

@@ -18,20 +18,16 @@
  */
 package org.constellation;
 
-import com.codahale.metrics.servlet.InstrumentedFilter;
-import com.codahale.metrics.servlets.AdminServlet;
-import java.util.EnumSet;
+import io.dropwizard.metrics.servlets.AdminServlet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import jakarta.servlet.DispatcherType;
 import jakarta.servlet.MultipartConfigElement;
 import org.apache.catalina.Context;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.filter.CorsFilter;
 import org.constellation.services.logger.MDCFilter;
-import org.constellation.setup.CstlInstaller;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
@@ -174,26 +170,6 @@ public class Examind extends SpringBootServletInitializer {
     @Bean
     public GeotkInstaller geotkInstaller() {
         return new GeotkInstaller();
-    }
-
-    @Bean
-    public CstlInstaller cstlInstaller() {
-        return new CstlInstaller();
-    }
-
-    @Bean
-    public FilterRegistrationBean metricsFilter() {
-        FilterRegistrationBean registration = new FilterRegistrationBean();
-        InstrumentedFilter instrumentFIlter = new InstrumentedFilter();
-        registration.setFilter(instrumentFIlter);
-        registration.setName("webappMetricsFilter");
-        EnumSet<DispatcherType> disps = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC);
-        registration.setMatchAfter(true);
-        registration.setDispatcherTypes(disps);
-        registration.addUrlPatterns("/*");
-        registration.setAsyncSupported(true);
-
-        return registration;
     }
 
     @Bean

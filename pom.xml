@@ -36,7 +36,6 @@
         <examind.services.packages>all</examind.services.packages>
 
         <!-- third party dependencies versions -->
-        <codahale.metrics.version>3.0.1</codahale.metrics.version>
         <commons-collections.version>3.2.2</commons-collections.version>
         <commons-codec.version>1.6</commons-codec.version>
         <commons-email.version>1.2</commons-email.version>
@@ -44,7 +43,6 @@
         <javax.inject.version>2.3.0-b10</javax.inject.version>
         <javax.mail.version>1.4.7</javax.mail.version>
         <jettison.version>1.3</jettison.version>
-        <metrics-spring.version>3.0.0-RC2</metrics-spring.version>
         <stax-utils.version>20060502</stax-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <woodstox.version>4.1.2</woodstox.version>
@@ -335,11 +333,6 @@
                 <groupId>org.codehaus.woodstox</groupId>
                 <artifactId>woodstox-core-asl</artifactId>
                 <version>${woodstox.version}</version>
-            </dependency>
-            <dependency>
-               <groupId>com.ryantenney.metrics</groupId>
-               <artifactId>metrics-spring</artifactId>
-               <version>${metrics-spring.version}</version>
             </dependency>
 
             <dependency>
