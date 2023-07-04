@@ -59,7 +59,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
-import javax.inject.Inject;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -69,6 +68,7 @@ import org.constellation.dto.service.config.wxs.LayerContext;
 import org.constellation.test.utils.TestEnvironment.ProviderImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.junit.AfterClass;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -94,13 +94,13 @@ public class WCSWorkerOutputTest extends SpringContextTest {
     private static final String LAYER_TEST = "SSTMDE200305";
     private static final String LAYER_ALIAS = "aliased";
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
     private static WCSWorker WORKER;

@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.api.WorkerState;
@@ -35,6 +34,7 @@ import org.constellation.ws.IWSEngine;
 import org.constellation.ws.ServiceConfigurer;
 import org.constellation.ws.Worker;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import static org.constellation.api.WorkerState.*;
@@ -48,7 +48,7 @@ public class WSEngine implements IWSEngine {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.ws");
 
-    @Inject
+    @Autowired
     private ApplicationContext applicationContext;
 
     /**

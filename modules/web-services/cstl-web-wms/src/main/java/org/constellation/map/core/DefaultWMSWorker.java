@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import javax.inject.Named;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
@@ -139,6 +138,7 @@ import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 /**
  * A WMS worker for a local WMS service which handles requests from REST
@@ -157,7 +157,7 @@ import org.springframework.lang.NonNull;
  * @since 0.3
  */
 
-@Named("WMSWorker")
+@Component("WMSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 

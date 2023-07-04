@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -53,6 +52,7 @@ import org.constellation.provider.util.StatsUtilities;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.function.Categorize;
 import org.geotoolkit.style.function.Interpolate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import static org.springframework.http.HttpStatus.*;
@@ -77,13 +77,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 public class InternalStyleRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private IStyleConverterBusiness styleConverterBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
     /**

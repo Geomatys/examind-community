@@ -32,7 +32,6 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.inject.Inject;
 import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -57,6 +56,7 @@ import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.SAXException;
 
 /**
@@ -129,10 +129,10 @@ public abstract class AbstractWorker<A extends AbstractConfigurationObject> impl
 
     private long currentUpdateSequence = System.currentTimeMillis();
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
     protected A configuration;

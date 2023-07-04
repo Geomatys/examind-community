@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.api.ServiceDef.Specification;
@@ -85,10 +84,10 @@ public class CSWRestAPI extends AbstractRestAPI {
     @Autowired
     protected IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     @RequestMapping(value="/CSW/{id}/index/refresh",method=GET,produces=APPLICATION_JSON_VALUE)

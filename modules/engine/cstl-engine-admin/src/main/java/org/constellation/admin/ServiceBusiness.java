@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.xml.MarshallerPool;
@@ -45,6 +44,7 @@ import org.constellation.repository.ThesaurusRepository;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.security.SecurityManager;
 import org.constellation.util.Util;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,25 +73,25 @@ public class ServiceBusiness implements IServiceBusiness {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    @Inject
+    @Autowired
     private SecurityManager securityManager;
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     private ServiceRepository serviceRepository;
 
-    @Inject
+    @Autowired
     private IConfigurationBusiness configBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    @Inject
+    @Autowired
     private ThesaurusRepository thesaurusRepository;
 
     /**

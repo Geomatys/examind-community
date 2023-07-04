@@ -39,6 +39,7 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.geotoolkit.process.ProcessingRegistry;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
@@ -47,7 +48,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -88,22 +88,22 @@ public class ProcessBusiness implements IProcessBusiness {
     private final DateFormat taskDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    @Inject
+    @Autowired
     private TaskParameterRepository taskParameterRepository;
 
-    @Inject
+    @Autowired
     private TaskRepository taskRepository;
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     private ChainProcessRepository chainRepository;
 
-    @Inject
+    @Autowired
     private CstlScheduler quartzScheduler;
 
-    @Inject
+    @Autowired
     private PlatformTransactionManager transactionManager;
 
     private DirectoryWatcher directoryWatcher;

@@ -27,7 +27,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.StringWriter;
 import java.util.Date;
 
-import javax.inject.Inject;
 import jakarta.xml.bind.Marshaller;
 
 import org.apache.sis.xml.MarshallerPool;
@@ -44,6 +43,7 @@ import org.geotoolkit.sos.xml.SOSMarshallerPool;
 import org.geotoolkit.sos.xml.v100.GetCapabilities;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
@@ -55,9 +55,9 @@ import org.springframework.transaction.support.TransactionCallback;
  */
 public class SOSWorkerInitialisationTest extends SpringContextTest {
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     private ServiceRepository serviceRepository;
 
     private static MarshallerPool pool;

@@ -22,12 +22,11 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.constellation.dto.process.TaskStatus;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import org.springframework.stereotype.Component;
 
 /**
  * Quartz job listener that register a geotk process listener each time the job is executed.
@@ -35,14 +34,13 @@ import javax.inject.Singleton;
  *
  * @author Quentin Boileau (Geomatys)
  */
-@Named
-@Singleton
+@Component
 public class MessagingJobListener  {
 
-    @Inject
+    @Autowired
     private SimpMessagingTemplate template;
 
-    @Inject
+    @Autowired
     private EventBus eventBus;
 
     @PostConstruct

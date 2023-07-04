@@ -21,10 +21,9 @@ package org.constellation.wcs.component;
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Named;
-
-@Named
+@Component
 public class WCSConstellationOGCModule implements ConstellationOGCModule {
 
     @Override

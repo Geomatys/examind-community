@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.api.rest.ErrorMessage;
@@ -32,6 +31,7 @@ import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.exception.ConfigurationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,10 +52,10 @@ public class WPSResultService {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.wps.ws.rs");
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private IConfigurationBusiness configBusiness;
 
     public WPSResultService() {

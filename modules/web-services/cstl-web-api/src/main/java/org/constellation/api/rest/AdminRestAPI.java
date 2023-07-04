@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import org.apache.commons.lang3.StringUtils;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.repository.PropertyRepository;
@@ -35,6 +34,7 @@ import org.constellation.dto.SimpleValue;
 import org.constellation.dto.StringList;
 import org.constellation.util.json.JsonUtils;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import static org.springframework.http.HttpStatus.*;
@@ -52,9 +52,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 @RestController
 public class AdminRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private PropertyRepository propertyRepository;
-    @Inject
+    @Autowired
     private IConfigurationBusiness configurationBusiness;
 
 

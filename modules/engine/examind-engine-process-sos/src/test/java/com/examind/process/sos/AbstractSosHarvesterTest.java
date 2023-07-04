@@ -27,7 +27,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
@@ -45,6 +44,7 @@ import org.geotoolkit.nio.IOUtilities;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -54,20 +54,20 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("com.examind.process.sos");
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected IDatasourceBusiness datasourceBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected ISensorBusiness sensorBusiness;
-    @Inject
+    @Autowired
     protected SensorServiceBusiness sensorServBusiness;
-    @Inject
+    @Autowired
     protected IDatasetBusiness datasetBusiness;
 
-    @Inject
+    @Autowired
     protected WSEngine wsEngine;
 
     private static boolean initialized = false;

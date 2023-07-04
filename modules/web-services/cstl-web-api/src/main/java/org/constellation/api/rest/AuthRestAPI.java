@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -37,6 +36,7 @@ import org.constellation.dto.user.ResetPassword;
 import org.constellation.engine.security.AuthenticationProxy;
 import org.constellation.security.SecurityManagerHolder;
 import org.constellation.security.UnknownAccountException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,10 +58,10 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 @RestController
 public class AuthRestAPI extends AbstractRestAPI{
 
-    @Inject
+    @Autowired
     private IMailBusiness mailService;
 
-    @Inject
+    @Autowired
     @Qualifier("authenticationProxy")
     private AuthenticationProxy authProxy;
 

@@ -20,11 +20,11 @@ package org.constellation.admin;
 
 import java.util.List;
 import java.util.Optional;
-import javax.inject.Inject;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.UserWithRole;
 import org.constellation.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Primary
 public class UserBusiness implements IUserBusiness {
 
-    @Inject
+    @Autowired
     UserRepository userRepository;
 
     @Override

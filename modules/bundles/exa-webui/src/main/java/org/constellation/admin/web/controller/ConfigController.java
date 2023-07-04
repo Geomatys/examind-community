@@ -21,13 +21,13 @@ package org.constellation.admin.web.controller;
 import java.util.HashMap;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -43,8 +43,8 @@ public class ConfigController {
         LOGGER.finer("ConfigController construct");
     }
 
-    @Inject
-    @Named("build")
+    @Autowired
+    @Qualifier("build")
     private Properties buildProperties;
 
     /**

@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreProvider;
@@ -73,6 +72,7 @@ import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,43 +83,43 @@ import org.w3c.dom.Node;
 public class ProviderBusiness implements IProviderBusiness {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     private ProviderRepository providerRepository;
 
-    @Inject
+    @Autowired
     private SensorRepository sensorRepository;
 
-    @Inject
+    @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
-    @Inject
+    @Autowired
     private StyleRepository styleRepository;
 
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private ISensorBusiness sensorBusiness;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    @Inject
+    @Autowired
     private IConfigurationBusiness configBusiness;
 
-    @Inject
+    @Autowired
     private IDatasourceBusiness datasourceBusiness;
 
-    @Inject
+    @Autowired
     private DatasourceRepository datasourceRepository;
 
     @Override

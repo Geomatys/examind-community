@@ -46,13 +46,13 @@ import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -73,19 +73,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 public class MapRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
 
-    @Inject
+    @Autowired
     private SecurityManager securityManager;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
     /**

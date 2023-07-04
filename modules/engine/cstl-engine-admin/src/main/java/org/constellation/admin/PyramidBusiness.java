@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -86,6 +85,7 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 import org.opengis.util.NoSuchIdentifierException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,25 +102,25 @@ public class PyramidBusiness implements IPyramidBusiness {
 
     private static final String CONFORM_PREFIX = "conform_";
 
-    @Inject
+    @Autowired
     private IProcessBusiness processBusiness;
 
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     protected IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     protected IMapContextBusiness mapContextBusiness;
 
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     protected IConfigurationBusiness configBusiness;
 
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
     /**

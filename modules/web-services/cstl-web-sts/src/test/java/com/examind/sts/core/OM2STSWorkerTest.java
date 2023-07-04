@@ -32,7 +32,6 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
@@ -90,6 +89,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * TODO: remove dirty context annotation once we've managed to sanitize Spring context management.
@@ -99,11 +99,11 @@ import org.locationtech.jts.geom.impl.CoordinateArraySequence;
  */
 public class OM2STSWorkerTest extends SpringContextTest {
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected ISensorBusiness sensorBusiness;
 
     private static boolean initialized = false;

@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -111,6 +110,7 @@ import static org.junit.Assert.assertTrue;
 import org.opengis.observation.Observation;
 import org.opengis.observation.sampling.SamplingPoint;
 import org.opengis.temporal.TemporalPrimitive;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StreamUtils;
 
 
@@ -122,11 +122,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected ISensorBusiness sensorBusiness;
 
     protected static final int NB_SENSOR = 16;

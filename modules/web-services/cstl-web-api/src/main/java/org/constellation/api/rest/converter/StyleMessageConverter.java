@@ -23,13 +23,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBException;
 import org.constellation.business.IStyleBusiness;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sld.xml.StyleXmlIO;
 import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.style.Style;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -46,7 +46,7 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
     
     @Override

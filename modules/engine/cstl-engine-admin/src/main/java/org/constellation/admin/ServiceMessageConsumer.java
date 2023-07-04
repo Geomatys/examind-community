@@ -21,7 +21,6 @@ package org.constellation.admin;
 import java.util.Map;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import javax.inject.Inject;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.WorkerState;
 import static org.constellation.api.WorkerState.UNKNOWN;
@@ -36,6 +35,7 @@ import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Refreshable;
 import org.constellation.ws.Worker;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import static org.constellation.business.ClusterMessageConstant.*;
 
@@ -49,10 +49,10 @@ public class ServiceMessageConsumer extends MessageListener{
 
     private String uid;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
     @PostConstruct

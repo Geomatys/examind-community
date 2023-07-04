@@ -23,7 +23,6 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import javax.inject.Inject;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.business.IMetadataBusiness;
@@ -34,6 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,10 +53,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class InternalMetadataRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     /**

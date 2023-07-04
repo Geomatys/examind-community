@@ -28,7 +28,6 @@ import java.io.StringWriter;
 import java.util.Date;
 import jakarta.annotation.PostConstruct;
 
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -47,6 +46,7 @@ import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.csw.xml.v202.GetCapabilitiesType;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,10 +62,10 @@ public class CSWorkerInitialisationTest extends SpringContextTest {
 
     private static MarshallerPool pool;
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private ServiceRepository serviceRepository;
 
     @BeforeClass

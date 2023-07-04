@@ -58,8 +58,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.sis.util.Version;
 import org.constellation.admin.SpringHelper;
@@ -172,6 +170,7 @@ import org.geotoolkit.wps.xml.v200.UndeployResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 /**
@@ -184,7 +183,7 @@ import org.springframework.context.annotation.Scope;
  *
  * @author Quentin Boileau
  */
-@Named("WPSWorker")
+@Component("WPSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements WPSWorker {
 
@@ -232,7 +231,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
     private final QuotationInfo quoteInfo = new QuotationInfo();
 
-    @Inject SimpleJobExecutor jobExecutor;
+    @Autowired SimpleJobExecutor jobExecutor;
 
     @Autowired(required=false)
     private Collection<ProcessPreConsumer> preConsumers;

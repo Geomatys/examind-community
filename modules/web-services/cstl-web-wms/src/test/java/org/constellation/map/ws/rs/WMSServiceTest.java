@@ -33,7 +33,6 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import org.apache.sis.referencing.CRS;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -56,6 +55,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -67,15 +68,15 @@ public class WMSServiceTest extends SpringContextTest {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws.rs");
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected ILayerBusiness layerBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
     private static final double DELTA = 0.00000001;

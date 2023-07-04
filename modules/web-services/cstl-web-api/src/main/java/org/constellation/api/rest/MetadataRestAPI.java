@@ -40,7 +40,6 @@ import java.util.logging.Level;
 import java.util.zip.Deflater;
 import java.util.zip.ZipOutputStream;
 import javax.activation.MimetypesFileTypeMap;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -77,6 +76,7 @@ import static org.constellation.metadata.utils.Utils.UNKNOW_IDENTIFIER;
 import org.constellation.util.Util;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -110,19 +110,19 @@ public class MetadataRestAPI extends AbstractRestAPI{
     /**
      * Inject metadata business
      */
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
     /**
      * Inject configuration business
      */
-    @Inject
+    @Autowired
     private IConfigurationBusiness configurationBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     public MetadataRestAPI() {}

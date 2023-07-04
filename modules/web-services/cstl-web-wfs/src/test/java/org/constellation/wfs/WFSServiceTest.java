@@ -103,7 +103,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         InputStream is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.GetFeature.xml"));
         ResponseEntity result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
         FeatureSet collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
@@ -115,7 +115,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.InsertFeature.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         /*
          * we verify that the features has been inserted
@@ -123,7 +123,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.GetFeature.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
         collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
@@ -135,7 +135,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.DeleteFeature.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         /*
          * we verify that the features has been deleted
@@ -143,7 +143,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.GetFeature.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
         collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);
@@ -155,7 +155,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.InsertFeature2.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         /*
          * we verify that the features has been inserted
@@ -163,7 +163,7 @@ public class WFSServiceTest extends AbstractWFSWorkerTest {
         is = Files.newInputStream(IOUtilities.getResourceAsPath("org.constellation.wfs.request.xml.GetFeature.xml"));
         result = service.doPOSTXml("default", is);
 
-        assertEquals(HttpStatus.OK.value(), result.getStatusCodeValue());
+        assertTrue(result.getStatusCode().is2xxSuccessful());
 
         assertTrue(result.getBody() instanceof FeatureSetWrapper);
         collection = ((FeatureSetWrapper) result.getBody()).getFeatureSet().get(0);

@@ -20,11 +20,12 @@ package org.constellation.api.rest;
 
 import java.util.List;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.dto.Role;
 import org.constellation.repository.RoleRepository;
 import static org.springframework.http.HttpStatus.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RoleRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private RoleRepository roleRepository;
 
     /**

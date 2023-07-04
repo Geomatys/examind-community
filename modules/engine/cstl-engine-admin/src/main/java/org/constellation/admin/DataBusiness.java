@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.metadata.MetadataCopier;
@@ -125,51 +124,51 @@ public class DataBusiness implements IDataBusiness {
     /**
      * Injected user business.
      */
-    @Inject
+    @Autowired
     protected IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     protected IConfigurationBusiness configBusiness;
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     protected DataRepository dataRepository;
     /**
      * Injected layer repository.
      */
-    @Inject
+    @Autowired
     protected LayerRepository layerRepository;
     /**
      * Injected security manager.
      */
-    @Inject
+    @Autowired
     protected org.constellation.security.SecurityManager securityManager;
     /**
      * Injected style repository.
      */
-    @Inject
+    @Autowired
     private StyleRepository styleRepository;
     /**
      * Injected provider repository.
      */
-    @Inject
+    @Autowired
     protected ProviderRepository providerRepository;
     /**
      * Injected dataset repository.
      */
-    @Inject
+    @Autowired
     protected DatasetRepository datasetRepository;
     /**
      * Injected sensor repository.
      */
-    @Inject
+    @Autowired
     private SensorRepository sensorRepository;
 
     /**
      * Injected metadata repository.
      */
-    @Inject
+    @Autowired
     protected IMetadataBusiness metadataBusiness;
 
     @Autowired(required = false)
@@ -178,7 +177,7 @@ public class DataBusiness implements IDataBusiness {
      /**
      * Injected service repository.
      */
-    @Inject
+    @Autowired
     private ServiceRepository serviceRepository;
 
     /**

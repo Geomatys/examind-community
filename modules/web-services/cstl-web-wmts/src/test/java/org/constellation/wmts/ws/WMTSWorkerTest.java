@@ -38,7 +38,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import jakarta.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.util.logging.Level;
@@ -49,6 +48,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
@@ -62,16 +62,16 @@ import static org.junit.Assert.fail;
  */
 public class WMTSWorkerTest extends SpringContextTest {
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
     private static MarshallerPool pool;

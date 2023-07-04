@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBException;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
@@ -49,6 +48,7 @@ import org.constellation.repository.ServiceRepository;
 import org.constellation.json.metadata.Template;
 import org.constellation.json.metadata.bean.TemplateResolver;
 import org.geotoolkit.nio.IOUtilities;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -161,53 +161,53 @@ public class MetadataBusiness implements IMetadataBusiness {
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     protected DataRepository dataRepository;
     /**
      * Injected dataset repository.
      */
-    @Inject
+    @Autowired
     protected DatasetRepository datasetRepository;
     /**
      * Injected service repository.
      */
-    @Inject
+    @Autowired
     protected ServiceRepository serviceRepository;
     /**
      * Injected metadata repository.
      */
-    @Inject
+    @Autowired
     protected MetadataRepository metadataRepository;
     /**
      * Injected attachment repository.
      */
-    @Inject
+    @Autowired
     protected AttachmentRepository attachmentRepository;
     /**
      * Injected mapContext repository.
      */
-    @Inject
+    @Autowired
     protected MapContextRepository mapContextRepository;
 
-    @Inject
+    @Autowired
     protected InternalMetadataRepository internalMetadataRepository;
 
-    @Inject
+    @Autowired
     protected IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     @PostConstruct

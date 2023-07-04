@@ -22,11 +22,9 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
 
-import javax.inject.Named;
+import org.springframework.stereotype.Component;
 
-;
-
-@Named
+@Component
 public class WMSConstellationOGCModule implements ConstellationOGCModule {
 
     @Override

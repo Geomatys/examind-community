@@ -43,7 +43,6 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.inject.Named;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -221,6 +220,7 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -231,7 +231,7 @@ import org.w3c.dom.NodeList;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Named("WFSWorker")
+@Component("WFSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 

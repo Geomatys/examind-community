@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.inject.Inject;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 
@@ -56,6 +55,7 @@ import org.constellation.portrayal.PortrayalResponse;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
@@ -83,11 +83,11 @@ public class MapBusiness implements IMapBusiness {
             RenderingHints.KEY_INTERPOLATION,
             RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
     /**

@@ -37,7 +37,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.logging.Level;
-import javax.inject.Named;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import org.constellation.api.ServiceDef;
@@ -199,13 +198,14 @@ import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 /**
  *
  * @author Guilhem Legal (Geomatys).
  */
-@Named("SOSWorker")
+@Component("SOSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class SOSworker extends SensorWorker {
 

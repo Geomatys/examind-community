@@ -39,10 +39,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
 
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import jakarta.xml.bind.Unmarshaller;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -76,10 +76,10 @@ import org.junit.Ignore;
 @RunWith(SpringTestRunner.class)
 public class NetCDFCSW2WorkerTest extends CSW2workerTest {
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
     private static Path DATA_DIRECTORY;

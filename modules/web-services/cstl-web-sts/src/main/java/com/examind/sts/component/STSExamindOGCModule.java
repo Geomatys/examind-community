@@ -21,10 +21,9 @@ package com.examind.sts.component;
 import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 import org.constellation.ws.ConstellationOGCModule;
+import org.springframework.stereotype.Component;
 
-import javax.inject.Named;
-
-@Named
+@Component
 public class STSExamindOGCModule implements ConstellationOGCModule {
 
     @Override

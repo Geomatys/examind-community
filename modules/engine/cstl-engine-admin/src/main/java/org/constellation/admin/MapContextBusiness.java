@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import javax.xml.namespace.QName;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -66,6 +65,7 @@ import org.constellation.repository.LayerRepository;
 import org.constellation.repository.MapContextRepository;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,22 +76,22 @@ public class MapContextBusiness implements IMapContextBusiness {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    @Inject
+    @Autowired
     private MapContextRepository mapContextRepository;
 
-    @Inject
+    @Autowired
     private LayerRepository layerRepository;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
     @Override

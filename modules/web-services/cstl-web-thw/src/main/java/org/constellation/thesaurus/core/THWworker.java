@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Named;
 
 // constellation dependencies
 import org.constellation.api.ServiceDef.Specification;
@@ -49,13 +48,14 @@ import org.geotoolkit.thw.xml.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Named("THWWorker")
+@Component("THWWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class THWworker extends AbstractWorker {
 

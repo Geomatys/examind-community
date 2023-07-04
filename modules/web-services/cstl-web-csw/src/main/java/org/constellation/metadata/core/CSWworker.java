@@ -88,9 +88,9 @@ import org.opengis.util.CodeList;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
-import javax.inject.Named;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
@@ -171,7 +171,7 @@ import org.w3._2005.atom.FeedType;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Named("CSWWorker")
+@Component("CSWWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class CSWworker extends AbstractWorker<Automatic> implements Refreshable {
 

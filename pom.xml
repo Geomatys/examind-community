@@ -40,7 +40,6 @@
         <commons-codec.version>1.6</commons-codec.version>
         <commons-email.version>1.2</commons-email.version>
         <commons-fileupload.version>1.3.3</commons-fileupload.version>
-        <javax.inject.version>2.3.0-b10</javax.inject.version>
         <javax.mail.version>1.4.7</javax.mail.version>
         <jettison.version>1.3</jettison.version>
         <stax-utils.version>20060502</stax-utils.version>
@@ -248,12 +247,6 @@
 
     <dependencyManagement>
         <dependencies>
-
-            <dependency>
-                <groupId>org.glassfish.hk2.external</groupId>
-                <artifactId>javax.inject</artifactId>
-                <version>${javax.inject.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
@@ -805,6 +798,13 @@
                                         <exclude>com.sun.xml.bind:jaxb-impl</exclude>
                                     </excludes>
                                     <message>Outdated JAXB implementation.</message>
+                                </bannedDependencies>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>javax.annotation:jsr250-api</exclude>
+                                        <exclude>org.glassfish.hk2.external:javax.inject</exclude>
+                                    </excludes>
+                                    <message>Outdated javax annotations</message>
                                 </bannedDependencies>
                             </rules>
                         </configuration>

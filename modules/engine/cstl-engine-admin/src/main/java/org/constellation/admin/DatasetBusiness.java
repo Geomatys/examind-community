@@ -33,11 +33,11 @@ import org.constellation.dto.DataSet;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasetRepository;
 import org.constellation.repository.ProviderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -71,35 +71,35 @@ public class DatasetBusiness implements IDatasetBusiness {
     /**
      * Injected user business.
      */
-    @Inject
+    @Autowired
     protected IUserBusiness userBusiness;
 
     /**
      * Injected dataset repository.
      */
-    @Inject
+    @Autowired
     protected DatasetRepository datasetRepository;
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     protected DataRepository dataRepository;
 
     /**
      * Injected data business.
      */
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
 
     /**
      * Injected provider repository.
      */
-    @Inject
+    @Autowired
     private ProviderRepository providerRepository;
     /**
      * Injected metadata repository.
      */
-    @Inject
+    @Autowired
     protected IMetadataBusiness metadataBusiness;
 
     /**

@@ -23,8 +23,7 @@ import org.constellation.business.ILayerBusiness;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
 import org.constellation.ogc.configuration.OGCConfigurer;
-
-import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@link org.constellation.ogc.configuration.OGCConfigurer} base for "map" services.
@@ -37,7 +36,7 @@ import javax.inject.Inject;
  */
 public class MapConfigurer extends OGCConfigurer {
 
-    @Inject
+    @Autowired
     ILayerBusiness layerBusiness;
 
     /**

@@ -37,7 +37,6 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
-import javax.inject.Named;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -112,6 +111,7 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * Working part of the WMTS service.
@@ -122,7 +122,7 @@ import org.springframework.context.annotation.Scope;
  * @author Guilhem Legal (Geomatys)
  * @since 0.3
  */
-@Named("WMTSWorker")
+@Component("WMTSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
 

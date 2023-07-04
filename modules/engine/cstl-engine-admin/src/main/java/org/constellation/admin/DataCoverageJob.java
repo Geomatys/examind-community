@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 
 import org.opengis.metadata.Metadata;
 import org.opengis.metadata.content.CoverageDescription;
@@ -42,6 +41,7 @@ import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.ProviderRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -74,16 +74,16 @@ public class DataCoverageJob implements IDataCoverageJob {
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
     /**
      * Injected data repository.
      */
-    @Inject
+    @Autowired
     private ProviderRepository providerRepository;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataService;
 
     /**

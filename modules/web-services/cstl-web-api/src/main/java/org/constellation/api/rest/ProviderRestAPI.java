@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.DataBrief;
@@ -38,6 +37,7 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProvider;
 import org.constellation.provider.DataProviders;
 import org.opengis.util.GenericName;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -64,7 +64,7 @@ import org.constellation.provider.FeatureData;
 @RequestMapping("/providers")
 public class ProviderRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
     /**

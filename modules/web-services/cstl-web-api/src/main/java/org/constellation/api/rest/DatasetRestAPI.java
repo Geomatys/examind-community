@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -80,22 +79,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DatasetRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IDatasetBusiness datasetBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
     @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     private static final String AGG_COV_DATASET_NAME = "Aggregated-Coverage-Dataset";

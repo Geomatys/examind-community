@@ -92,7 +92,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.Utilities;
 
@@ -115,6 +114,8 @@ import org.geotoolkit.swe.xml.v200.QuantityType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StreamUtils;
 
 /**
@@ -125,11 +126,11 @@ public abstract class SOS2WorkerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected ISensorBusiness sensorBusiness;
 
     protected static final int NB_SENSOR = 16;

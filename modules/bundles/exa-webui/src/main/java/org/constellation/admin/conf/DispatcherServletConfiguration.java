@@ -19,6 +19,7 @@
 package org.constellation.admin.conf;
 
 import java.nio.charset.StandardCharsets;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,7 +40,6 @@ import org.springframework.web.servlet.view.JstlView;
 import org.springframework.web.servlet.view.UrlBasedViewResolver;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class DispatcherServletConfiguration implements WebMvcConfigurer {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
 
-    @Inject
+    @Autowired
     private Environment env;
 
     @Bean

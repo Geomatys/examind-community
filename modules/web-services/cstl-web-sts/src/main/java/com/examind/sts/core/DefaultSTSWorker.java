@@ -42,7 +42,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import javax.inject.Named;
 import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.referencing.CommonCRS;
@@ -141,13 +140,14 @@ import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Named("STSWorker")
+@Component("STSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 

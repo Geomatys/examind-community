@@ -26,7 +26,6 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.List;
 
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -39,6 +38,7 @@ import org.constellation.dto.Sensor;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.SensorRepository;
 import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,25 +85,25 @@ public class SensorBusiness implements ISensorBusiness {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.admin");
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     protected SensorRepository sensorRepository;
 
-    @Inject
+    @Autowired
     protected ServiceRepository serviceRepository;
 
-    @Inject
+    @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
     @PostConstruct

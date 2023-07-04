@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.config.wps.ProcessContext;
 import org.constellation.dto.service.config.wps.ProcessFactory;
@@ -42,6 +41,8 @@ import org.opengis.metadata.Identifier;
 import org.opengis.util.NoSuchIdentifierException;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +64,7 @@ public class WPSRestAPI {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
     /**

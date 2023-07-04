@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -48,11 +47,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 public abstract class SOSConfigurerTest extends SpringContextTest {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected ISensorBusiness sensorBusiness;
 
     @Autowired

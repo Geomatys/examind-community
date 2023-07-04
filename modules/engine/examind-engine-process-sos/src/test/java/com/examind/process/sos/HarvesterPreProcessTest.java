@@ -26,7 +26,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import org.constellation.business.IProcessBusiness;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
@@ -45,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -61,7 +61,7 @@ public class HarvesterPreProcessTest extends SpringContextTest {
     private static Path fmlwDirectory;
     private static Path mooDirectory;
 
-    @Inject
+    @Autowired
     protected IProcessBusiness processBusiness;
 
     @BeforeClass

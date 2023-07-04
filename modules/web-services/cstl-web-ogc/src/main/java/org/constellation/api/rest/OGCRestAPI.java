@@ -20,7 +20,6 @@ package org.constellation.api.rest;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.inject.Inject;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ILayerBusiness;
@@ -38,6 +37,8 @@ import org.constellation.ogc.configuration.OGCConfigurer;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,13 +58,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class OGCRestAPI {
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
     /**

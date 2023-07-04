@@ -18,9 +18,9 @@
  */
 package org.constellation.api.rest;
 
-import javax.inject.Inject;
 import org.constellation.dto.cluster.Cluster;
 import org.constellation.business.IClusterBusiness;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ClusterRestAPI {
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
     /**

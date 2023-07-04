@@ -21,7 +21,6 @@ package org.constellation.wfs;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
@@ -33,6 +32,7 @@ import org.constellation.wfs.core.WFSWorker;
 import org.geotoolkit.feature.xml.XmlFeatureWriter;
 import org.geotoolkit.referencing.CRS;
 import org.junit.AfterClass;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -49,13 +49,13 @@ public abstract class AbstractWFSWorkerTest extends SpringContextTest {
 
     protected XmlFeatureWriter featureWriter;
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     protected ILayerBusiness layerBusiness;
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
 
      @AfterClass

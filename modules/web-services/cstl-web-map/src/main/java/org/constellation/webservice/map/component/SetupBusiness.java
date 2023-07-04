@@ -29,10 +29,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import javax.inject.Inject;
-import javax.inject.Named;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.parameter.Parameters;
 
@@ -70,6 +66,10 @@ import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.MutableStyleFactory;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.style.GraphicalSymbol;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -86,46 +86,45 @@ import org.opengis.style.StyleFactory;
  * @author Alexis Manin (Geomatys)
  * @author Cédric Briançon (Geomatys)
  */
-@Named
-//@DependsOn("database-initer")
-public class SetupBusiness {
+@Component
+public class SetupBusiness implements InitializingBean, DisposableBean {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.webservice.map.component");
 
     private static final String DEFAULT_RESOURCES = "org/constellation/map/setup.zip";
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-     @Inject
+     @Autowired
     private IMapContextBusiness mapContextBusiness;
 
-    @Inject
+    @Autowired
     private IConfigurationBusiness configurationBusiness;
 
-    @Inject
+    @Autowired
     private IDatasourceBusiness datasourceBusiness;
     
-    @Inject
+    @Autowired
     private IDataCoverageJob dataCoverageJob;
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsEngine;
 
-    @Inject
+    @Autowired
     private ExaDataCreator dataCreator;
 
-    @PostConstruct
-    public void contextInitialized() {
+    @Override
+    public void afterPropertiesSet() {
         LOGGER.log(Level.INFO, "=== Initialize Application ===");
 
         try {
@@ -221,8 +220,8 @@ public class SetupBusiness {
     /**
      * Invoked when the module needs to be shutdown.
      */
-    @PreDestroy
-    public void contextDestroyed() {
+    @Override
+    public void destroy() {
         DataProviders.dispose();
     }
 

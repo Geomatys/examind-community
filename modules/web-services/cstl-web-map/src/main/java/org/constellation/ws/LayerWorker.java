@@ -18,6 +18,8 @@
  */
 package org.constellation.ws;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IStyleBusiness;
@@ -32,14 +34,11 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.security.SimplePDP;
 
-import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
-import jakarta.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ClusterMessage;
@@ -62,6 +61,7 @@ import org.constellation.util.Util;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.style.Style;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 
 /**
@@ -71,16 +71,16 @@ import org.springframework.lang.NonNull;
  */
 public abstract class LayerWorker extends AbstractWorker<LayerContext> {
 
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
 
-    @Inject
+    @Autowired
     protected IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     protected IMapBusiness mapBusiness;
 
-    @Inject
+    @Autowired
     protected IClusterBusiness clusterBusiness;
 
     protected final List<String> supportedLanguages = new ArrayList<>();

@@ -22,7 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IClusterBusiness;
@@ -42,6 +41,7 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ProviderParameters;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -51,16 +51,16 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
  */
 public class MetadataConfigurationUpgrade {
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.legacy");

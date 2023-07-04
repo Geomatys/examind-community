@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import jakarta.annotation.PreDestroy;
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.validation.Schema;
 import org.apache.sis.util.iso.Types;
@@ -55,6 +54,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 import org.geotoolkit.ows.xml.OWSXmlFactory;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.CodeList;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -89,7 +89,7 @@ public abstract class OGCWebService<W extends Worker> extends AbstractWebService
 
     private final String serviceName;
 
-    @Inject
+    @Autowired
     protected IWSEngine wsengine;
 
     /**

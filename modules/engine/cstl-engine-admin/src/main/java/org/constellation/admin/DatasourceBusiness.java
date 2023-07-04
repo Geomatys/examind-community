@@ -52,7 +52,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.inject.Inject;
 import org.apache.sis.internal.storage.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -111,19 +110,19 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     /**
      * Injected datasource repository.
      */
-    @Inject
+    @Autowired
     protected DatasourceRepository dsRepository;
 
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     protected IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     protected IConfigurationBusiness configBusiness;
 
     @Autowired

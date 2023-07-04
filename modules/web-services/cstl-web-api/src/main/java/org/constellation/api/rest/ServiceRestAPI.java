@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.api.ServiceDef.Specification;
@@ -39,6 +38,7 @@ import org.constellation.dto.service.ServiceReport;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.NotRunningServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
@@ -66,11 +66,11 @@ public class ServiceRestAPI extends AbstractRestAPI {
      */
     private static final int DEFAULT_LIMIT_4096 = 4096;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
-    @Inject
+    @Autowired
     private IConfigurationBusiness configBusiness;
 
     /**

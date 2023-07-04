@@ -21,7 +21,6 @@ package org.constellation.api.rest;
 import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.constellation.business.IDataBusiness;
@@ -33,6 +32,7 @@ import org.constellation.dto.SimpleValue;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
@@ -56,13 +56,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class SensorServiceRestAPI {
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     private SensorServiceBusiness sensorServiceBusiness;
 
     @RequestMapping(value="/SensorService/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)

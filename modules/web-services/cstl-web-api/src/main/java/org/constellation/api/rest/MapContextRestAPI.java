@@ -27,7 +27,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -62,6 +61,7 @@ import org.geotoolkit.gml.xml.v311.EnvelopeType;
 import org.geotoolkit.owc.xml.v10.MethodCodeType;
 import org.geotoolkit.owc.xml.v10.OfferingType;
 import org.geotoolkit.owc.xml.v10.OperationType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
 import org.springframework.http.MediaType;
@@ -92,16 +92,16 @@ import org.w3._2005.atom.TextType;
 @RestController
 public class MapContextRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IMapContextBusiness contextBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private IPyramidBusiness pyramidBusiness;
 
     /**

@@ -39,10 +39,10 @@ import org.geotoolkit.style.MutableStyleFactory;
 import org.opengis.style.RasterSymbolizer;
 import org.opengis.style.Symbolizer;
 import org.opengis.util.FactoryException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.inject.Inject;
 import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -73,31 +73,31 @@ import org.opengis.style.StyleFactory;
 @Component("exaStyleBusiness")
 public class StyleBusiness implements IStyleBusiness {
 
-    @Inject
+    @Autowired
     private IUserBusiness userBusiness;
 
-    @Inject
+    @Autowired
     private StyleRepository styleRepository;
 
-    @Inject
+    @Autowired
     private DataRepository dataRepository;
 
-    @Inject
+    @Autowired
     private LayerRepository layerRepository;
 
-    @Inject
+    @Autowired
     private ServiceRepository serviceRepository;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private ILayerBusiness layerBusiness;
 
-    @Inject
+    @Autowired
     private IClusterBusiness clusterBusiness;
 
-    @Inject
+    @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
     private final StyleXmlIO sldParser = new StyleXmlIO();

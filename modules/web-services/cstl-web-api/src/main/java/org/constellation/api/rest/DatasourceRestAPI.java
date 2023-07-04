@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.zip.CRC32;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -67,6 +66,7 @@ import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -89,10 +89,10 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 public class DatasourceRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IDatasourceBusiness datasourceBusiness;
 
-    @Inject
+    @Autowired
     private IProcessBusiness processBusiness;
 
     /**

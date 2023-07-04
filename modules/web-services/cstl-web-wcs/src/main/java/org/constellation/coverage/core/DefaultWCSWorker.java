@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
-import javax.inject.Named;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
@@ -190,6 +189,7 @@ import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 /**
  * Worker for the WCS services in Constellation which services both the REST
@@ -207,7 +207,7 @@ import org.springframework.context.annotation.Scope;
  * @author Guilhem Legal (Geomatys)
  * @since 0.3
  */
-@Named("WCSWorker")
+@Component("WCSWorker")
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 

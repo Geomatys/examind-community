@@ -5,13 +5,11 @@ import org.constellation.ws.ConstellationOGCModule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import jakarta.annotation.PostConstruct;
-import javax.inject.Named;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.constellation.api.WorkerState;
 import org.constellation.ws.IWSEngine;
 import org.constellation.exception.ConfigurationException;
@@ -20,8 +18,9 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.ServiceProtocol;
 import org.constellation.ws.Worker;
+import org.springframework.stereotype.Component;
 
-@Named
+@Component
 public class ConstellationOGCRegistry {
 
     private final static Logger LOGGER = Logger.getLogger("org.constellation.ws.component");
@@ -29,9 +28,9 @@ public class ConstellationOGCRegistry {
     @Autowired(required = false)
     private Map<String,ConstellationOGCModule> constellationOGCModules = new HashMap<>();
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
 
     @PostConstruct

@@ -18,13 +18,13 @@
  */
 package org.constellation.admin.conf;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
 import jakarta.annotation.PostConstruct;
-import javax.inject.Inject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -39,7 +39,7 @@ public class ApplicationConfiguration {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
 
-    @Inject
+    @Autowired
     private Environment env;
 
 

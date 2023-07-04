@@ -36,7 +36,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -81,6 +80,7 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessFinder;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.NoSuchIdentifierException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import static org.springframework.http.HttpStatus.*;
@@ -106,31 +106,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class DataRestAPI extends AbstractRestAPI{
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IDatasetBusiness datasetBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IProcessBusiness processBusiness;
 
-    @Inject
+    @Autowired
     private ISensorBusiness sensorBusiness;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IPyramidBusiness pyramidBusiness;
 
-    @Inject
+    @Autowired
     private IDataCoverageJob dataCoverageJob;
 
     @RequestMapping(value="/datas/{dataId}/accept",method=POST, produces=APPLICATION_JSON_VALUE)

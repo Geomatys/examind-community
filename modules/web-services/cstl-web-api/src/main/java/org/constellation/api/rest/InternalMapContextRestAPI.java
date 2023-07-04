@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
-import javax.inject.Inject;
 
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CommonCRS;
@@ -41,6 +40,8 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
 import static org.springframework.http.HttpStatus.OK;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +58,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class InternalMapContextRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IMapContextBusiness contextBusiness;
 
     @RequestMapping(value="/internal/mapcontexts/extent/layers",method=POST,produces=APPLICATION_JSON_VALUE)

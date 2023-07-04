@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -72,6 +71,7 @@ import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.InvalidParameterValueException;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.util.NoSuchIdentifierException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -93,37 +93,37 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class TaskRestAPI extends AbstractRestAPI {
     private static final DateFormat TASK_DATE = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 
-    @Inject
+    @Autowired
     private IProcessBusiness processBusiness;
 
     /**
      * DatasetBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IDatasetBusiness datasetBusiness;
 
     /**
      * DatasetBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
     /**
      * ServiceBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IServiceBusiness serviceBusiness;
     
     /**
      * MapContextBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IMapContextBusiness mapcontextBusiness;
 
     /**
      * StyleBusiness used for provider GUI editors data
      */
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
     /**

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.xml.bind.JAXBException;
@@ -70,6 +69,7 @@ import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.ObservationProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -98,19 +98,19 @@ import org.geotoolkit.observation.query.ProcedureQuery;
 @RestController
 public class SensorRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private ISensorBusiness sensorBusiness;
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     protected IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IWSEngine wsengine;
 
-    @Inject
+    @Autowired
     private TemplateResolver templateResolver;
 
     /**

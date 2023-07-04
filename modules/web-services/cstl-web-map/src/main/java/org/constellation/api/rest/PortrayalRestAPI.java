@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapBusiness;
@@ -30,6 +29,8 @@ import org.constellation.dto.DataBrief;
 import org.constellation.util.Util;
 import org.constellation.ws.rs.ResponseObject;
 import static org.springframework.http.HttpStatus.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,10 +47,10 @@ public class PortrayalRestAPI {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
-    @Inject
+    @Autowired
     private IMapBusiness mapBusiness;
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
     /**

@@ -21,7 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
@@ -32,6 +31,7 @@ import org.constellation.metadata.core.CSWworker;
 import org.constellation.test.SpringContextTest;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.AfterClass;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -39,13 +39,13 @@ import org.junit.AfterClass;
  */
 public abstract class AbstractCSWworkerTest extends SpringContextTest {
 
-    @Inject
+    @Autowired
     protected IServiceBusiness serviceBusiness;
 
-    @Inject
+    @Autowired
     protected IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     protected IMetadataBusiness metadataBusiness;
 
     protected static CSWworker worker;

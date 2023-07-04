@@ -71,7 +71,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
 import static org.constellation.api.QueryConstants.REQUEST_PARAMETER;
@@ -99,6 +98,7 @@ import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -121,7 +121,7 @@ public class WMSService extends GridWebService<WMSWorker> {
 
     public static boolean writeDTD = true;
 
-    @Inject
+    @Autowired
     private IStyleBusiness styleBusiness;
 
     /**

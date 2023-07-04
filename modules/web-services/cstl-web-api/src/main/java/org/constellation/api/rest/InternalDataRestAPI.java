@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
-import javax.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreProvider;
@@ -49,6 +48,8 @@ import org.opengis.feature.catalog.FeatureCatalogue;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,16 +66,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class InternalDataRestAPI extends AbstractRestAPI {
 
-    @Inject
+    @Autowired
     private IDataBusiness dataBusiness;
 
-    @Inject
+    @Autowired
     private IMetadataBusiness metadataBusiness;
 
-    @Inject
+    @Autowired
     private IProviderBusiness providerBusiness;
 
-    @Inject
+    @Autowired
     private IDatasetBusiness datasetBusiness;
 
     @RequestMapping(value="/internal/datas/store/{storeId}",method=GET,produces=APPLICATION_JSON_VALUE)
