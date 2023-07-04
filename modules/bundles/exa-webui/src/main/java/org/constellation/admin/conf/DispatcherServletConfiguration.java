@@ -30,7 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -50,12 +50,9 @@ import java.util.logging.Logger;
 @Configuration
 @ComponentScan("org.constellation.admin.web")
 @EnableWebMvc
-public class DispatcherServletConfiguration extends WebMvcConfigurerAdapter {
+public class DispatcherServletConfiguration implements WebMvcConfigurer {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.admin.conf");
-
-    // 10 Mo max file size
-    private static final int MAX_UPLOAD_SIZE = 10 * 1000 * 1000;
 
     @Inject
     private Environment env;
