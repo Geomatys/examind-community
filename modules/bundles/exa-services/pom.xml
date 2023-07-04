@@ -387,49 +387,64 @@
                     </webResources>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>restdoc</id>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <source>${java.version}</source>
-                            <release>${java.version}</release>
-                            <doctitle>EXAMIND REST ${project.version} Documentation</doctitle>
-                            <windowtitle>EXAMIND REST ${project.version} Documentation</windowtitle>
-                            <name>EXAMIND REST Endpoints</name>
-                            <description>EXAMIND REST ${project.version} Documentation</description>
-                            <doclet>org.calrissian.restdoclet.RestDoclet</doclet>
-                            <docletArtifact>
-                                <groupId>com.geomatys.restdoclet</groupId>
-                                <artifactId>rest-doclet</artifactId>
-                                <version>2.0.1</version>
-                            </docletArtifact>
-                            <useStandardDocletOptions>false</useStandardDocletOptions>
-                            <dependencySourceIncludes>
-                                <dependencySourceInclude>com.examind.community:cstl-web-api</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-map</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-ogc</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-sensor</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-csw</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-thw</dependencySourceInclude>
-                                <dependencySourceInclude>com.examind.community:cstl-web-wps</dependencySourceInclude>
-                            </dependencySourceIncludes>
-                            <includeDependencySources>true</includeDependencySources>
-                            <reportOutputDirectory>${project.build.directory}/${project.build.finalName}
-                            </reportOutputDirectory>
-                            <destDir>apidocs</destDir>
-                            <additionalparam>-o swagger -version ${project.version} -path "/examind/API"
-                            </additionalparam>
-                        </configuration>
-                        <goals>
-                            <goal>javadoc</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>restdoc</id>-->
+<!--                        <phase>generate-resources</phase>-->
+<!--                        <configuration>-->
+<!--                            <source>${java.version}</source>-->
+<!--                            <release>${java.version}</release>-->
+<!--                            <doctitle>EXAMIND REST ${project.version} Documentation</doctitle>-->
+<!--                            <windowtitle>EXAMIND REST ${project.version} Documentation</windowtitle>-->
+<!--                            <name>EXAMIND REST Endpoints</name>-->
+<!--                            <description>EXAMIND REST ${project.version} Documentation</description>-->
+<!--                            <doclet>org.calrissian.restdoclet.RestDoclet</doclet>-->
+<!--                            <docletArtifact>-->
+<!--                                <groupId>com.geomatys.restdoclet</groupId>-->
+<!--                                <artifactId>rest-doclet</artifactId>-->
+<!--                                <version>2.0.1</version>-->
+<!--                            </docletArtifact>-->
+<!--                            <useStandardDocletOptions>false</useStandardDocletOptions>-->
+<!--                            <dependencySourceIncludes>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-api</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-map</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-ogc</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-sensor</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-csw</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-thw</dependencySourceInclude>-->
+<!--                                <dependencySourceInclude>com.examind.community:cstl-web-wps</dependencySourceInclude>-->
+<!--                            </dependencySourceIncludes>-->
+<!--                            <includeDependencySources>true</includeDependencySources>-->
+<!--                            <reportOutputDirectory>${project.build.directory}/${project.build.finalName}-->
+<!--                            </reportOutputDirectory>-->
+<!--                            <destDir>apidocs</destDir>-->
+<!--                            <additionalOptions>-->
+<!--                                <additionalOption>-o swagger</additionalOption>-->
+<!--                                <additionalOption>-version ${project.version}</additionalOption>-->
+<!--                                <additionalOption>-path "/examind/API"</additionalOption>-->
+<!--                            </additionalOptions>-->
+<!--                            <additionalDependencies>-->
+<!--                                <dependency>-->
+<!--                                    <groupId>org.glassfish.jaxb</groupId>-->
+<!--                                    <artifactId>jaxb-runtime</artifactId>-->
+<!--                                    <version>${glassfish-jaxb.version}</version>-->
+<!--                                </dependency>-->
+<!--                                <dependency>-->
+<!--                                    <groupId>com.fasterxml.jackson.core</groupId>-->
+<!--                                    <artifactId>jackson-databind</artifactId>-->
+<!--                                    <version>${jackson-bom.version}</version>-->
+<!--                                </dependency>-->
+<!--                            </additionalDependencies>-->
+<!--                        </configuration>-->
+<!--                        <goals>-->
+<!--                            <goal>javadoc</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
