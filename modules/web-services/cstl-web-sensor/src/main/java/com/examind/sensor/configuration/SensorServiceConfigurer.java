@@ -57,4 +57,13 @@ public class SensorServiceConfigurer extends OGCConfigurer implements ISensorCon
         sensorServBusiness.removeSensor(id, sensorID);
     }
 
+    @Override
+    public void removeDataFromSensorServices(int dataId) throws ConstellationException {
+        sensorServBusiness.removeDataObservationsFromServices(dataId);
+    }
+
+    @Override
+    public void removeDataFromSensorService(int dataId, int serviceId) throws ConstellationException {
+        sensorServBusiness.removeDataObservationsFromService(serviceId, dataId);
+    }
 }

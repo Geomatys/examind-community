@@ -23,21 +23,17 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.SimpleValue;
 import org.constellation.exception.ConstellationException;
-import org.geotoolkit.gml.GeometrytoJTS;
-import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,7 +42,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -84,7 +79,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/{sensorID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeSensor(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
+    public ResponseEntity removeSensorFromService(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
          AcknowlegementType response;
         if (sensorServiceBusiness.removeSensor(serviceId, sensorID)) {
             response = new AcknowlegementType("Success", "The specified sensor have been removed from the Sensor service");
@@ -95,7 +90,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeAllSensor(final @PathVariable("id") Integer serviceId) throws Exception {
+    public ResponseEntity removeAllSensorFromService(final @PathVariable("id") Integer serviceId) throws Exception {
         AcknowlegementType response;
         if (sensorServiceBusiness.removeAllSensors(serviceId)) {
             response = new AcknowlegementType("Success", "The specified sensors have been removed in the Sensor service");
@@ -124,26 +119,9 @@ public class SensorServiceRestAPI {
         return new ResponseEntity(sensorServiceBusiness.getSensorIds(serviceId), OK);
     }
 
-    @RequestMapping(value="/SensorService/{id}/sensors/identifiers/id", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity getSensorIdsForObservedProperty(final @PathVariable("id") Integer serviceId, final @RequestParam("observedProperty") String observedProperty) throws Exception {
-        return new ResponseEntity(sensorServiceBusiness.getSensorIdsForObservedProperty(serviceId, observedProperty), OK);
-    }
-
     @RequestMapping(value="/SensorService/{id}/sensors/count", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getSensortCount(final @PathVariable("id") Integer serviceId) throws Exception {
         return new ResponseEntity(new SimpleValue(sensorServiceBusiness.getSensorCount(serviceId)), OK);
-    }
-
-    @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = PUT, consumes = APPLICATION_XML_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity updateSensorLocation(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID, final @RequestBody AbstractGeometry gmlLocation) throws Exception {
-        AcknowlegementType response;
-        org.locationtech.jts.geom.Geometry location = GeometrytoJTS.toJTS(gmlLocation);
-        if (sensorServiceBusiness.updateSensorLocation(serviceId, sensorID, location)) {
-            response =  new AcknowlegementType("Success", "The sensor location have been updated in the Sensor service");
-        } else {
-            response =  new AcknowlegementType("Success", "The sensor location fail to be updated in the Sensor service");
-        }
-        return new ResponseEntity(response, OK);
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/location/{sensorID:.+}", method = GET, produces = APPLICATION_JSON_VALUE)
@@ -185,17 +163,6 @@ public class SensorServiceRestAPI {
         }
     }
 
-    @RequestMapping(value="/SensorService/{id}/observation/{observationID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeObservation(final @PathVariable("id") Integer serviceId, final @PathVariable("observationID") String observationID) throws Exception {
-        AcknowlegementType response;
-        if (sensorServiceBusiness.removeSingleObservation(serviceId, observationID)) {
-            response = new AcknowlegementType("Success", "The specified observation have been removed from the Sensor service");
-        } else {
-            response = new AcknowlegementType("Failure", "The specified observation fail to be removed from the Sensor service");
-        }
-        return new ResponseEntity(response, OK);
-    }
-
     @RequestMapping(value="/SensorService/{id}/observedProperties/identifiers", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getObservedPropertiesIds(final @PathVariable("id") Integer serviceId) throws Exception {
         return new ResponseEntity(sensorServiceBusiness.getObservedPropertiesIds(serviceId), OK);
@@ -212,7 +179,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity removeDataFromSXS(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
+    public ResponseEntity removeDataFromService(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
         try {
             sensorServiceBusiness.removeDataObservationsFromService(serviceId, dataID);
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the Sensor Service"), OK);
@@ -222,7 +189,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID:.+}", method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity importSensor(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
+    public ResponseEntity addSensorInservice(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
         boolean success = sensorServiceBusiness.importSensor(sid, sensorID);
         if (success) {
             return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);

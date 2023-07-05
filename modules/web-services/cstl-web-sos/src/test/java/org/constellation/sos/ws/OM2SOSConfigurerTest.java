@@ -148,13 +148,6 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
 
     @Test
     @Override
-    @Order(order=4)
-    public void getSensorIdsForObservedPropertyTest() throws Exception {
-        super.getSensorIdsForObservedPropertyTest();
-    }
-
-    @Test
-    @Override
     @Order(order=5)
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         super.getObservedPropertiesForSensorIdTest();

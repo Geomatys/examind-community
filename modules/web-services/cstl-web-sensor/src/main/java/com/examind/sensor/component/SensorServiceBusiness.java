@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.sis.util.collection.BackingStoreException;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IDataBusiness;
@@ -60,7 +59,6 @@ import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
-import org.geotoolkit.observation.query.AbstractObservationQuery;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
@@ -249,23 +247,6 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Collection<String> getSensorIdsForObservedProperty(final Integer id, final String observedProperty) throws ConfigurationException {
-        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
-        try {
-            AbstractObservationQuery query = new ProcedureQuery();
-            query.setSelection(buildFilter(null, null, Arrays.asList(observedProperty), new ArrayList<>()));
-            Stream<String> processes = pr.getIdentifiers(query).stream();
-
-            if (!isDirectProviderMode(id)) {
-                // filter on linked sensors
-                processes = processes.filter(p -> sensorBusiness.isLinkedSensor(id, p));
-            }
-             return processes.collect(Collectors.toList());
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
     public Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID, final boolean decompose) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -379,17 +360,18 @@ public class SensorServiceBusiness {
         }
     }
 
-    private void updateSensorLocation(final Integer serviceId, final ProcedureDataset process) throws ConfigurationException {
+    private void updateSensorLocation(final Integer serviceId, final ProcedureDataset sensor) throws ConstellationException {
+        final ObservationProvider pr = getSensorProvider(serviceId, ObservationProvider.class);
         //record location
-        final Geometry geom = process.getGeom();
-        if (geom != null) {
-            updateSensorLocation(serviceId, process.getId(), geom);
+        final Geometry location = sensor.getGeom();
+        if (location != null) {
+            pr.writeLocation(sensor.getId(), location);
         }
-        for (ProcedureDataset child : process.getChildren()) {
+        for (ProcedureDataset child : sensor.getChildren()) {
             updateSensorLocation(serviceId, child);
         }
     }
-    
+
     public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -399,16 +381,6 @@ public class SensorServiceBusiness {
                 writer.writeObservation(obs);
             }
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
-    public boolean removeSingleObservation(final Integer id, final String observationID) throws ConfigurationException {
-        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
-        try {
-            pr.removeObservation(observationID);
-            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
@@ -428,16 +400,6 @@ public class SensorServiceBusiness {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             pr.writeProcedure(procedure);
-        } catch (ConstellationStoreException ex) {
-            throw new ConfigurationException(ex);
-        }
-    }
-
-    public boolean updateSensorLocation(final Integer id, final String sensorID, final Geometry location) throws ConfigurationException {
-        final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
-        try {
-            pr.writeLocation(sensorID, location);
-            return true;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

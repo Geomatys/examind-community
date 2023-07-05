@@ -35,10 +35,12 @@ import org.apache.sis.storage.Resource;
 import org.constellation.admin.listener.DefaultDataBusinessListener;
 import org.constellation.admin.util.MetadataUtilities;
 import org.constellation.api.DataType;
+import org.constellation.api.ServiceDef;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.business.listener.IDataBusinessListener;
 import org.constellation.configuration.AppProperty;
@@ -61,6 +63,7 @@ import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.NotRunningServiceException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
@@ -75,6 +78,8 @@ import org.constellation.repository.SensorRepository;
 import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.security.SecurityManagerHolder;
+import org.constellation.ws.ISensorConfigurer;
+import org.constellation.ws.IWSEngine;
 import org.geotoolkit.temporal.util.PeriodUtilities;
 import org.opengis.feature.catalog.FeatureCatalogue;
 import org.opengis.geometry.Envelope;
@@ -165,6 +170,9 @@ public class DataBusiness implements IDataBusiness {
     @Autowired
     private SensorRepository sensorRepository;
 
+    @Autowired
+    private ISensorBusiness sensorBusiness;
+
     /**
      * Injected metadata repository.
      */
@@ -179,6 +187,9 @@ public class DataBusiness implements IDataBusiness {
      */
     @Autowired
     private ServiceRepository serviceRepository;
+
+    @Autowired
+    private IWSEngine wsengine;
 
     /**
      * {@inheritDoc}
@@ -705,24 +716,33 @@ public class DataBusiness implements IDataBusiness {
                 // 3. remove metadata
                 metadataBusiness.deleteDataMetadata(dataID);
 
-                // 4. - Unlink sensor related to this data
+                // 4. - Remove the data from sensor services
+                List<Service> linkedServices = serviceRepository.findByDataId(dataID);
+                for (Service serv : linkedServices) {
+                    if ("STS".equalsIgnoreCase(serv.getType()) || "SOS".equalsIgnoreCase(serv.getType())) {
+                        ISensorConfigurer configurer = getConfigurer(serv.getType());
+                        configurer.removeDataFromSensorService(dataID, serv.getId());
+                    }
+                }
+
+                // 5. - Unlink sensor related to this data
                 //    - remove sensor that are now data orphan
                 List<Integer> sensorIds = sensorRepository.getDataLinkedSensorIds(dataID);
                 sensorRepository.unlinkAllDataSensor(dataID);
                 for (Integer sid : sensorIds) {
                     if (sensorRepository.getLinkedDatas(sid).isEmpty()) {
                         sensorRepository.unlinkSensorFromAllServices(sid);
-                        sensorRepository.delete(sid);
+                        sensorBusiness.delete(sid);
                     }
                 }
 
-                // 5. remove data files
+                // 6. remove data files
                 if (removeFiles) {
                     final DataProvider dataProvider = DataProviders.getProvider(providerID);
                     dataProvider.remove(data.getNamespace(), data.getName());
                 }
 
-                // 6. cleanup provider if empty
+                // 7. cleanup provider if empty
                 boolean remove = true;
                 List<Data> providerData = dataRepository.findByProviderId(providerID);
                 for (Data pdata : providerData) {
@@ -758,6 +778,11 @@ public class DataBusiness implements IDataBusiness {
                 deleteDatasetIfEmpty(data.getDatasetId());
             }
         }
+    }
+
+    private ISensorConfigurer getConfigurer(String type) throws NotRunningServiceException {
+        final ServiceDef.Specification spec = ServiceDef.Specification.fromShortName(type);
+        return (ISensorConfigurer) wsengine.newInstance(spec);
     }
 
     /**

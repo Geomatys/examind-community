@@ -27,4 +27,9 @@ import org.constellation.exception.ConstellationException;
 public interface ISensorConfigurer extends IOGCConfigurer {
 
     void removeSensor(final Integer id, final String sensorID) throws ConstellationException;
+    
+    void removeDataFromSensorServices(int dataId) throws ConstellationException;
+
+    void removeDataFromSensorService(int dataId, int serviceId) throws ConstellationException;
+
 }

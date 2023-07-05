@@ -430,19 +430,6 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         Assert.assertEquals(expResults, results);
     }
 
-    public void getSensorIdsForObservedPropertyTest() throws Exception {
-        final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
-        Collection<String> results = sensorServBusiness.getSensorIdsForObservedProperty(sid, "temperature");
-        List<String> expResults = Arrays.asList("urn:ogc:object:sensor:GEOM:12",
-                                                "urn:ogc:object:sensor:GEOM:13",
-                                                "urn:ogc:object:sensor:GEOM:14",
-                                                "urn:ogc:object:sensor:GEOM:2",
-                                                "urn:ogc:object:sensor:GEOM:7",
-                                                "urn:ogc:object:sensor:GEOM:8",
-                                                "urn:ogc:object:sensor:GEOM:test-1");
-        Assert.assertEquals(expResults, results);
-    }
-
     public void getObservedPropertiesForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         Collection<String> results = sensorServBusiness.getObservedPropertiesForSensorId(sid, "urn:ogc:object:sensor:GEOM:3", true);
