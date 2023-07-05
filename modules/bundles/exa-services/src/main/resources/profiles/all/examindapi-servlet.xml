@@ -21,7 +21,7 @@
 
   <!-- mutipart upload configuration -->
   <bean id="multipartResolver"
-          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+          class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
       <!-- max upload size in bytes >
       <property name="maxUploadSize" value="1024" />
       < max size of file in memory (in bytes) >
