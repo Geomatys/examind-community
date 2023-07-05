@@ -32,7 +32,7 @@
     <constructor-arg ref="cstlExecutor" />
   </bean>
 
-<!-- <bean id="authenticationProxy" class="org.constellation.services.security.DummyAuthenticationProxy"/>-->
+ <bean id="authenticationProxy" class="org.constellation.services.security.DummyAuthenticationProxy"/>
  <bean id="cstlStyleConverterBusiness" class="org.constellation.json.component.StyleConverterBusiness" />
 
   <bean class="org.constellation.test.component.TestSpatialIndexDBConfiguration" />
@@ -41,13 +41,13 @@
 
   <import resource="classpath*:/cstl/spring/auto/*-context.xml" />
 
-<!--  <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">-->
-<!--    <property name="userDetailsExtractor">-->
-<!--      <bean class="org.constellation.services.security.DummyUserDetailExtractor"/>-->
-<!--    </property>-->
-<!--    <property name="allowUnauthorized" value="true"/>-->
-<!--  </bean>-->
-<!--  -->
-<!--  <import resource="classpath:/cstl/spring/test-security.xml" />-->
+  <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">
+    <property name="userDetailsExtractor">
+      <bean class="org.constellation.services.security.DummyUserDetailExtractor"/>
+    </property>
+    <property name="allowUnauthorized" value="true"/>
+  </bean>
+
+  <import resource="classpath:/cstl/spring/test-security.xml" />
 </beans>
 
