@@ -93,41 +93,37 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         controllerConfiguration = WPSControllerConfig.class;
     }
 
-    public void initWPSServer() {
+    public synchronized void initWPSServer() throws Exception {
         if (!initialized) {
+            startServer();
+
             try {
-                startServer();
+                serviceBusiness.deleteAll();
+            } catch (ConfigurationException ex) {ex.printStackTrace();}
 
-                try {
-                    serviceBusiness.deleteAll();
-                } catch (ConfigurationException ex) {ex.printStackTrace();}
+            final Path hostedDirectory = configDirectory.resolve("hosted");
+            Files.createDirectories(hostedDirectory);
 
-                final Path hostedDirectory = configDirectory.resolve("hosted");
-                Files.createDirectories(hostedDirectory);
+            writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
+            writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
+            writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
 
-                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
-                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
-                writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
+            ProcessFactory geotkFacto = new ProcessFactory("geotoolkit", true);
+            ProcessFactory exaFacto = new ProcessFactory("examind", false);
+            exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.echo"));
+            final List<ProcessFactory> process = Arrays.asList(geotkFacto, exaFacto);
+            final Processes processes = new Processes(process);
+            final ProcessContext config = new ProcessContext(processes);
 
-                ProcessFactory geotkFacto = new ProcessFactory("geotoolkit", true);
-                ProcessFactory exaFacto = new ProcessFactory("examind", false);
-                exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.echo"));
-                final List<ProcessFactory> process = Arrays.asList(geotkFacto, exaFacto);
-                final Processes processes = new Processes(process);
-                final ProcessContext config = new ProcessContext(processes);
+            Integer defId = serviceBusiness.create("wps", "default", config, null, null);
+            Integer testId = serviceBusiness.create("wps", "test",    config, null, null);
 
-                Integer defId = serviceBusiness.create("wps", "default", config, null, null);
-                Integer testId = serviceBusiness.create("wps", "test",    config, null, null);
+            serviceBusiness.start(defId);
+            serviceBusiness.start(testId);
 
-                serviceBusiness.start(defId);
-                serviceBusiness.start(testId);
+            pool = WPSMarshallerPool.getInstance();
 
-                pool = WPSMarshallerPool.getInstance();
-
-                initialized = true;
-            } catch (Exception ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
+            initialized = true;
         }
     }
 
