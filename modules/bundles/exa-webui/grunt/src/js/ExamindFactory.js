@@ -330,7 +330,7 @@ function Examind($http, url) {
             if (angular.isUndefined(type)) {type = 'sld';}
             return self.request({
                 method: 'POST',
-                url: 'internal/styles/?type='+type,
+                url: 'internal/styles?type='+type,
                 headers: {'Accept': 'application/json'},
                 data: style
                 });
