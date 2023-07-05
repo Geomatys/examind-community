@@ -2,7 +2,7 @@ version: "2"
 
 services :
     exa-db:
-       image: postgis/postgis:14-3.3-alpine
+       image: postgis/postgis:15-3.3-alpine
        restart: "no"
        volumes:
          - exa-db-volume:/var/lib/postgresql/data/
