@@ -142,7 +142,7 @@ function DatasetService($rootScope, $q, $modal, Growl, Examind) {
                         });
                 };
 
-                // remove from any Sensor Service if there is one
+                /* remove from any Sensor Service if there is one
                 if (data.targetService) {
                     var $removed = [];
                     data.targetService.forEach(function (service) {
@@ -153,9 +153,9 @@ function DatasetService($rootScope, $q, $modal, Growl, Examind) {
                     $q.all($removed).then(function () {
                         return deleteDataHandler(data);
                     });
-                } else {
+                } else {*/
                     return deleteDataHandler(data);
-                }
+                //}
 
 
             }
