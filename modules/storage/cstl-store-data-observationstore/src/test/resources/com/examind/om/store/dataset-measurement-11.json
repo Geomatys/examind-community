@@ -35,7 +35,7 @@
             },
             "observedProperty": {
                 "id": "depth",
-                "name": "depth",
+                "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
                     "prop1": "value4"
@@ -88,7 +88,7 @@
             },
             "observedProperty": {
                 "id": "depth",
-                "name": "depth",
+                "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
                     "prop1": "value4"
@@ -130,7 +130,7 @@
         }],
     "phenomenons": [{
             "id": "depth",
-            "name": "depth",
+            "name": "Depth",
             "description": "the depth in water",
             "properties": {
                 "prop1": "value4"

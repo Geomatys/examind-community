@@ -1,6 +1,6 @@
 {
     "value": [{
-            "name": "color",
+            "name": "Color",
             "definition": "urn:ogc:def:phenomenon:GEOM:color",
             "description": "the color label",
             "properties": { },

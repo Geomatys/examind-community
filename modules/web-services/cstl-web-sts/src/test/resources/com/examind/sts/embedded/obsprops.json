@@ -1,6 +1,6 @@
 {
     "value": [{
-            "name": "age",
+            "name": "Age",
             "definition": "urn:ogc:def:phenomenon:GEOM:age",
             "description": "current age",
             "properties": { },
@@ -9,7 +9,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(age)/MultiDatastreams"
         }, {
-            "name": "color",
+            "name": "Color",
             "definition": "urn:ogc:def:phenomenon:GEOM:color",
             "description": "the color label",
             "properties": { },
@@ -18,7 +18,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(color)/MultiDatastreams"
         }, {
-            "name": "depth",
+            "name": "Depth",
             "definition": "urn:ogc:def:phenomenon:GEOM:depth",
             "description": "the depth in water",
             "properties": {
@@ -29,7 +29,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams"
         }, {
-            "name": "expiration",
+            "name": "Expiration Date",
             "definition": "urn:ogc:def:phenomenon:GEOM:expiration",
             "description": "Expiration date",
             "properties": { },
@@ -38,7 +38,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(expiration)/MultiDatastreams"
         }, {
-            "name": "isHot",
+            "name": "Hotness",
             "definition": "urn:ogc:def:phenomenon:GEOM:isHot",
             "description": "hotness indicator",
             "properties": { },
@@ -47,7 +47,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(isHot)/MultiDatastreams"
         }, {
-            "name": "salinity",
+            "name": "Salinity",
             "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
             "description": "the salinity in water",
             "properties": { },
@@ -56,7 +56,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(salinity)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(salinity)/MultiDatastreams"
         }, {
-            "name": "temperature",
+            "name": "Temperature",
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
             "description": "the temperature in celcius degree",
             "properties": { },

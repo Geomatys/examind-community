@@ -51,7 +51,6 @@ import static org.constellation.store.observation.db.OM2Utils.*;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.OMUtils;
-import static org.geotoolkit.observation.OMUtils.getPhenomenonsFields;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;

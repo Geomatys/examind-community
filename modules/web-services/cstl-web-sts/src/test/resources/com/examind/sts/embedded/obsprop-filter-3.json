@@ -1,6 +1,6 @@
 {
     "value": [{
-            "name": "depth",
+            "name": "Depth",
             "definition": "urn:ogc:def:phenomenon:GEOM:depth",
             "description": "the depth in water",
             "properties": {
@@ -11,7 +11,7 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams"
         }, {
-            "name": "temperature",
+            "name": "Temperature",
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
             "description": "the temperature in celcius degree",
             "properties": {},

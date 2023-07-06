@@ -32,27 +32,27 @@
     },
     "observedProperty": {
         "id": "multi-type-phenomenon",
-        "name": "multi-type-phenomenon",
+        "name": "Multi type phenomenon",
         "description": "the aggregation of variable phenomenons type",
         "definition": "urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon",
         "component": [{
                 "id": "isHot",
-                "name": "isHot",
+                "name": "Hotness",
                 "description": "hotness indicator",
                 "definition": "urn:ogc:def:phenomenon:GEOM:isHot"
             }, {
                 "id": "color",
-                "name": "color",
+                "name": "Color",
                 "description": "the color label",
                 "definition": "urn:ogc:def:phenomenon:GEOM:color"
             }, {
                 "id": "expiration",
-                "name": "expiration",
+                "name": "Expiration Date",
                 "description": "Expiration date",
                 "definition": "urn:ogc:def:phenomenon:GEOM:expiration"
             }, {
                 "id": "age",
-                "name": "age",
+                "name": "Age",
                 "description": "current age",
                 "definition": "urn:ogc:def:phenomenon:GEOM:age"
             }]

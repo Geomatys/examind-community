@@ -46,7 +46,7 @@
                 "definition": "urn:ogc:def:phenomenon:GEOM:compo-1",
                 "component": [{
                         "id": "depth",
-                        "name": "depth",
+                        "name": "Depth",
                         "description": "the depth in water",
                         "properties": {
                             "prop1": "value4"
@@ -54,7 +54,7 @@
                         "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                     }, {
                         "id": "salinity",
-                        "name": "salinity",
+                        "name": "Salinity",
                         "description": "the salinity in water",
                         "properties": {},
                         "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
@@ -119,7 +119,7 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:compo-1",
             "component": [{
                     "id": "depth",
-                    "name": "depth",
+                    "name": "Depth",
                     "description": "the depth in water",
                     "properties": {
                         "prop1": "value4"
@@ -127,7 +127,7 @@
                     "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                 }, {
                     "id": "salinity",
-                    "name": "salinity",
+                    "name": "Salinity",
                     "description": "the salinity in water",
                     "properties": {},
                     "definition": "urn:ogc:def:phenomenon:GEOM:salinity"

@@ -46,13 +46,13 @@
                 "definition": "urn:ogc:def:phenomenon:GEOM:compo-1",
                 "component": [{
                         "id": "temperature",
-                        "name": "temperature",
+                        "name": "Temperature",
                         "description": "the temperature in celcius degree",
                         "properties": {},
                         "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
                     }, {
                         "id": "whatever",
-                        "name": "whatever",
+                        "name": "Whatever",
                         "description": "whatever",
                         "properties": {},
                         "definition": "urn:ogc:def:phenomenon:GEOM:whatever"
@@ -116,13 +116,13 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:compo-1",
             "component": [{
                     "id": "temperature",
-                    "name": "temperature",
+                    "name": "Temperature",
                     "description": "the temperature in celcius degree",
                     "properties": {},
                     "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
                 }, {
                     "id": "whatever",
-                    "name": "whatever",
+                    "name": "Whatever",
                     "description": "whatever",
                     "properties": {},
                     "definition": "urn:ogc:def:phenomenon:GEOM:whatever"

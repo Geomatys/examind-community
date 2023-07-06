@@ -23,7 +23,7 @@
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:8)/MultiDatastreams"
   },
   "ObservedProperty" : {
-    "name" : "temperature",
+    "name" : "Temperature",
     "definition" : "urn:ogc:def:phenomenon:GEOM:temperature",
     "description" : "the temperature in celcius degree",
     "properties" : { },

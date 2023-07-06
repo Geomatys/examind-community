@@ -1,6 +1,6 @@
 {
     "value": [{
-            "name": "depth",
+            "name": "Depth",
             "definition": "urn:ogc:def:phenomenon:GEOM:depth",
             "description": "the depth in water",
             "properties": {

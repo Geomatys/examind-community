@@ -35,7 +35,7 @@
             },
             "observedProperty": {
                 "id": "temperature",
-                "name": "temperature",
+                "name": "Temperature",
                 "description": "the temperature in celcius degree",
                 "properties": {},
                 "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
@@ -85,7 +85,7 @@
             },
             "observedProperty": {
                 "id": "salinity",
-                "name": "salinity",
+                "name": "Salinity",
                 "description": "the salinity in water",
                 "properties": {},
                 "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
@@ -124,13 +124,13 @@
         }],
     "phenomenons": [{
             "id": "temperature",
-            "name": "temperature",
+            "name": "Temperature",
             "description": "the temperature in celcius degree",
             "properties": {},
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
         }, {
             "id": "salinity",
-            "name": "salinity",
+            "name": "Salinity",
             "description": "the salinity in water",
             "properties": {},
             "definition": "urn:ogc:def:phenomenon:GEOM:salinity"

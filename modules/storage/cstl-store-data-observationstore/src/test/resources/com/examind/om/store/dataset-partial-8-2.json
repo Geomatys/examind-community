@@ -38,7 +38,7 @@
             },
             "observedProperty": {
                 "id": "aggregatePhenomenon",
-                "name": "aggregatePhenomenon",
+                "name": "Aggregate Phenomenon",
                 "description": "the aggregation of temperature and depth phenomenons",
                 "properties": {
                     "prop2": "value2",
@@ -47,7 +47,7 @@
                 "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
                 "component": [{
                         "id": "depth",
-                        "name": "depth",
+                        "name": "Depth",
                         "description": "the depth in water",
                         "properties": {
                             "prop1": "value4"
@@ -55,7 +55,7 @@
                         "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                     }, {
                         "id": "temperature",
-                        "name": "temperature",
+                        "name": "Temperature",
                         "description": "the temperature in celcius degree",
                         "properties": {},
                         "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
@@ -112,7 +112,7 @@
         }],
     "phenomenons": [{
             "id": "aggregatePhenomenon",
-            "name": "aggregatePhenomenon",
+            "name": "Aggregate Phenomenon",
             "description": "the aggregation of temperature and depth phenomenons",
             "properties": {
                 "prop2": "value2",
@@ -121,7 +121,7 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
             "component": [{
                     "id": "depth",
-                    "name": "depth",
+                    "name": "Depth",
                     "description": "the depth in water",
                     "properties": {
                         "prop1": "value4"
@@ -129,7 +129,7 @@
                     "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                 }, {
                     "id": "temperature",
-                    "name": "temperature",
+                    "name": "Temperature",
                     "description": "the temperature in celcius degree",
                     "properties": {},
                     "definition": "urn:ogc:def:phenomenon:GEOM:temperature"

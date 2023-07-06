@@ -1,5 +1,5 @@
 {
-  "name" : "temperature",
+  "name" : "Temperature",
   "definition" : "urn:ogc:def:phenomenon:GEOM:temperature",
   "description" : "the temperature in celcius degree",
   "properties" : { },

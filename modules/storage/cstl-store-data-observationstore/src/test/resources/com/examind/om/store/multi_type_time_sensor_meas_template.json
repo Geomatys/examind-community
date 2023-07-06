@@ -21,7 +21,7 @@
     },
     "observedProperty": {
         "id": "expiration",
-        "name": "expiration",
+        "name": "Expiration Date",
         "description": "Expiration date",
         "definition": "urn:ogc:def:phenomenon:GEOM:expiration"
     },

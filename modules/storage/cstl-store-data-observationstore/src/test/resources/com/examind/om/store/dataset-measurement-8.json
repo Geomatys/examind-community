@@ -31,7 +31,7 @@
             },
             "observedProperty": {
                 "id": "depth",
-                "name": "depth",
+                "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
                     "prop1": "value4"
@@ -69,18 +69,12 @@
         }],
     "phenomenons": [{
             "id": "depth",
-            "name": "depth",
+            "name": "Depth",
             "description": "the depth in water",
             "properties": {
                 "prop1": "value4"
             },
             "definition": "urn:ogc:def:phenomenon:GEOM:depth"
-        }, {
-            "id": "temperature",
-            "name": "temperature",
-            "description": "the temperature in celcius degree",
-            "properties": {},
-            "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
         }],
     "procedures": [{
             "id": "urn:ogc:object:sensor:GEOM:8",

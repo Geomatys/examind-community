@@ -25,7 +25,7 @@
     },
     "observedProperty": {
         "id": "depth",
-        "name": "depth",
+        "name": "Depth",
         "description": "the depth in water",
         "definition": "urn:ogc:def:phenomenon:GEOM:depth",
         "properties": {

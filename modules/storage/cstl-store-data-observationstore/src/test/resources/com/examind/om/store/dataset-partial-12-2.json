@@ -41,11 +41,11 @@
                 }
             },
             "observedProperty": {
-                        "id": "temperature",
-                        "name": "temperature",
-                        "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
-                        "description": "the temperature in celcius degree"
-                    },
+                "id": "temperature",
+                "name": "Temperature",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
+                "description": "the temperature in celcius degree"
+            },
             "result": {
                 "fields": [{
                         "index": 1,
@@ -93,7 +93,7 @@
         }],
     "phenomenons": [{
             "id": "temperature",
-            "name": "temperature",
+            "name": "Temperature",
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
             "description": "the temperature in celcius degree"
         }],

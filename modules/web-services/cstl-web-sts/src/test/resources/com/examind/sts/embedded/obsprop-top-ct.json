@@ -1,6 +1,6 @@
 {
     "value": [{
-            "name": "age",
+            "name": "Age",
             "definition": "urn:ogc:def:phenomenon:GEOM:age",
             "description": "current age",
             "properties": { },

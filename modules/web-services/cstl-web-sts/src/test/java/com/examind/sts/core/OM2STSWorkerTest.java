@@ -958,7 +958,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         ObservedProperty expResult = new ObservedProperty()
                 .iotId("temperature")
-                .name("temperature")
+                .name("Temperature")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .description("the temperature in celcius degree")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)")
@@ -1111,7 +1111,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .properties(obsPropProperties)
@@ -1279,7 +1279,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .properties(obsPropProperties)
@@ -1407,7 +1407,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
@@ -1595,7 +1595,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
@@ -1604,7 +1604,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams");
         ObservedProperty expObsProp2 = new ObservedProperty()
                 .iotId("temperature")
-                .name("temperature")
+                .name("Temperature")
                 .description("the temperature in celcius degree")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .properties(Collections.EMPTY_MAP)
@@ -1777,7 +1777,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")
@@ -1917,7 +1917,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         obsPropProperties.put("prop1", "value4");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
-                .name("depth")
+                .name("Depth")
                 .description("the depth in water")
                 .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:depth")

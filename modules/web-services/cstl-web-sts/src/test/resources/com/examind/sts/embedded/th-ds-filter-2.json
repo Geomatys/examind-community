@@ -16,7 +16,7 @@
             "@iot.id": "urn:ogc:object:observation:template:GEOM:12-2",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:12-2)",
             "ObservedProperty": {
-                "name": "depth",
+                "name": "Depth",
                 "definition": "urn:ogc:def:phenomenon:GEOM:depth",
                 "description": "the depth in water",
                 "properties": {
@@ -47,7 +47,7 @@
             "@iot.id": "urn:ogc:object:observation:template:GEOM:12-3",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:12-3)",
             "ObservedProperty": {
-                "name": "temperature",
+                "name": "Temperature",
                 "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
                 "description": "the temperature in celcius degree",
                 "properties": { },
@@ -76,7 +76,7 @@
             "@iot.id": "urn:ogc:object:observation:template:GEOM:12-4",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:12-4)",
             "ObservedProperty": {
-                "name": "salinity",
+                "name": "Salinity",
                 "definition": "urn:ogc:def:phenomenon:GEOM:salinity",
                 "description": "the salinity in water",
                 "properties": { },

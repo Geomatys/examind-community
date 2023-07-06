@@ -25,7 +25,7 @@
     },
     "observedProperty": {
         "id": "isHot",
-        "name": "isHot",
+        "name": "Hotness",
         "definition": "urn:ogc:def:phenomenon:GEOM:isHot",
         "description": "hotness indicator"
     },

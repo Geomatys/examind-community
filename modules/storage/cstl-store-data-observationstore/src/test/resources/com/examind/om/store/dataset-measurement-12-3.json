@@ -35,7 +35,7 @@
             },
             "observedProperty": {
                 "id": "depth",
-                "name": "depth",
+                "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
                     "prop1": "value4"
@@ -87,7 +87,7 @@
             },
             "observedProperty": {
                 "id": "temperature",
-                "name": "temperature",
+                "name": "Temperature",
                 "description": "the temperature in celcius degree",
                 "properties": {},
                 "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
@@ -137,7 +137,7 @@
             },
             "observedProperty": {
                 "id": "salinity",
-                "name": "salinity",
+                "name": "Salinity",
                 "description": "the salinity in water",
                 "properties": {},
                 "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
@@ -176,7 +176,7 @@
         }],
     "phenomenons": [{
             "id": "depth",
-            "name": "depth",
+            "name": "Depth",
             "description": "the depth in water",
             "properties": {
                 "prop1": "value4"
@@ -184,13 +184,13 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:depth"
         }, {
             "id": "temperature",
-            "name": "temperature",
+            "name": "Temperature",
             "description": "the temperature in celcius degree",
             "properties": {},
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
         }, {
             "id": "salinity",
-            "name": "salinity",
+            "name": "Salinity",
             "description": "the salinity in water",
             "properties": {},
             "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
