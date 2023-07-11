@@ -52,6 +52,7 @@ import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.geometry.jts.JTS;
+import static org.geotoolkit.observation.OMUtils.buildComplexResult;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.Field;
@@ -357,7 +358,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public Observation getObservation(String identifier, final QName resultModel, final ResponseMode mode) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
-            String observationID = null;
+            String observationID;
             Integer fieldIndex   = null;
             Integer measureId    = null;
             /*
@@ -378,7 +379,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     identifier    = observationIdBase + component[0];
                     measureId     = Integer.valueOf(component[1]);
                 } else if (component.length != 1) {
-                    LOGGER.fine("Malformed ID received: " + observationID + ". We expected between 1 and 3 parts, but got " + component.length + ". It might lead to unspecified behaviour");
+                    LOGGER.fine("Malformed ID received: " + identifier + ". We expected between 1 and 3 parts, but got " + component.length + ". It might lead to unspecified behaviour");
                 }
             /*
              *  observation template id, 2 possiblity :
@@ -474,22 +475,33 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     throw new DataStoreException("Measurement extraction need a field index specified");
                 }
                 Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
-                resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
-                result = getResult(identifier, resultModel, measureId, selectedField, c);
-                omType = getOmTypeFromFieldType(selectedField.type);
                 if (phen instanceof CompositePhenomenon) {
                     resultPhen = getPhenomenon(selectedField.name, c);
                 } else {
                     resultPhen = phen;
                 }
-                if (FieldType.TIME.equals(mainField.type)) {
-                    time = getMeasureTimeForProfile(identifier, mainField, c, measureId);
+                if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
+                    resultQuality = new ArrayList<>();
+                    result = new MeasureResult(selectedField, null);
+                } else {
+                    resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
+                    result = getResult(identifier, resultModel, measureId, selectedField, c);
+                    if (FieldType.TIME.equals(mainField.type)) {
+                        time = getMeasureTimeForProfile(identifier, mainField, c, measureId);
+                    }
                 }
+                omType = getOmTypeFromFieldType(selectedField.type);
+                
             } else {
+                omType        = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
                 resultQuality = new ArrayList<>();
-                resultPhen = phen;
-                result = getResult(identifier, resultModel, measureId, null, c);
-                omType = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
+                resultPhen    = phen;
+                if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
+                    final List<Field> fields = readFields(procedure, false, c);
+                    result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
+                } else {
+                    result = getResult(identifier, resultModel, measureId, null, c);
+                }
             }
             return new Observation(obsID,
                                    name,
@@ -559,7 +571,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 parser.parseLine(rs, 0);
                 nbValue = nbValue + parser.nbValue;
             }
-            return new ComplexResult(fields, DEFAULT_ENCODING, values.getStringValues(), nbValue);
+            return buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
         }
     }
 
@@ -580,6 +592,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         if (measureId != null) {
             query = query + " AND m.\"id\" = " + measureId + " ";
         }
+        // TODO order can be bad, order must be on mainField
         query = query + " ORDER BY m.\"id\"";
 
         try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR

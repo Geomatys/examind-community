@@ -155,7 +155,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private ObservationRef isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
+    private List<ObservationRef> isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
+        List<ObservationRef> obs = new ArrayList<>();
         if (samplingTime != null) {
             FilterSQLRequest sqlRequest = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
             sqlRequest.append(" \"procedure\"=").appendValue(procedureID);
@@ -168,7 +169,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             addtimeDuringSQLFilter(sqlConflictRequest, samplingTime, "o");
             sqlConflictRequest.append(" ) ");
             
-            List<ObservationRef> obs = new ArrayList<>();
             try (final SQLResult rs = sqlConflictRequest.execute(c)) {
                 while (rs.next()) {
                     // look for observation time extension
@@ -199,62 +199,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 if (samplingTime instanceof Instant i) {
                     // the observation can be inserted into another one
                     if (obs.size() == 1) {
-                        return obs.get(0);
-                    // this means there are already conflicted observation
+                        return obs;
+                    // this means there are already conflicted observation this should not happen in a sane database.
                     } else {
                         throw new DataStoreException("The observation is in temporal conflict with other (already conflicting observation present)");
                     }
 
                 } else if (samplingTime instanceof Period p) {
-                    /*sqlRequest.append(" AND ( ");
-                    addTimeContainsSQLFilter(sqlRequest, p);
-                    sqlRequest.append(" ) ");
-
-                    // restrict to already found observations
-                    if (obs.size() == 1) {
-                        sqlRequest.append(" AND \"id\" = " + obs.get(0).id);
-                    } else {
-                        sqlRequest.append(" AND \"id\" IN ( ");
-                        for (ObservationRef o : obs) {
-                            sqlRequest.append(o.id + ", ");
-                        }
-                        sqlRequest.delete(sqlRequest.length() -2, sqlRequest.length());
-                        sqlRequest.append(")");
-                    }
-                    LOGGER.fine("conflict request:" + sqlRequest.toString());
-
-                    List<ObservationRef> matchingObs = new ArrayList<>();
-                    try (final PreparedStatement pstmt = sqlRequest.fillParams(c.prepareStatement(sqlRequest.getRequest()));
-                         final ResultSet rs = pstmt.executeQuery()) {
-                       while (rs.next()) {
-                           matchingObs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property")));
-                       }
-                    } catch (SQLException ex) {
-                       throw new DataStoreException("Error while looking for conflicting observation:" + ex.getMessage(), ex);
-                    }
-
-                    // if there is no match, this means that the current observation period is overlapping each conflicted observation
-                    // TODO: there is probably a way to handle this case by updating the observation
-                    if (matchingObs.isEmpty()) {
-                        throw new DataStoreException("Unable to find a conflicted observation to update.");
-
-                    // the current observation can be inserted inside another one
-                    } else if (matchingObs.size() == 1) {
-                        return matchingObs.get(0);
-
-                    // this means there are already conflicted observations (the current observation period is included in multiple other observations).
-                    } else {
-                        throw new DataStoreException("Unable to find a conflicted observation to update (multiple match was found).");
-                    }*/
-                    
-                    // the observation can be inserted into another one
-                    if (obs.size() == 1) {
-                        return obs.get(0);
-                        
-                    // not handled for now
-                    } else {
-                        throw new DataStoreException("The observation is in temporal conflict with multiple observations. Not handled yet");
-                    }
+                     return obs;
 
                 // unexpected case
                 } else {
@@ -262,7 +214,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
         }
-        return null;
+        return obs;
     }
 
     private String writeObservation(final Observation observation, final Connection c, final int generatedID) throws DataStoreException {
@@ -282,19 +234,20 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         final Phenomenon phenomenon = observation.getObservedProperty();
 
-        ObservationRef replacingObs = isConflicted(c, procedureID, samplingTime, foiID);
+        List<ObservationRef> conflictedObservations = isConflicted(c, procedureID, samplingTime, foiID);
         
         final String phenRef;
         final String observationName;
 
-        // insert observation
         try (final PreparedStatement insertObs   = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observations\" VALUES(?,?,?,?,?,?,?)");                  //NOSONAR
              final PreparedStatement updatePhen  = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"observed_property\" = ? WHERE \"id\" = ?");//NOSONAR
              final PreparedStatement updateBegin = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_begin\" = ? WHERE \"id\" = ?");//NOSONAR
              final PreparedStatement updateEnd   = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_end\" = ? WHERE \"id\" = ?")) { //NOSONAR
 
-            // insert a new observation
-            if (replacingObs == null) {
+            /*
+             * insert a new observation
+             */
+            if (conflictedObservations.isEmpty()) {
                 int oid;
                 if (observation.getName() == null) {
                     oid = generatedID;
@@ -356,8 +309,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 writeResult(oid, pi, observation.getResult(), c, false);
                 emitResultOnBus(procedureID, observation.getResult());
 
-            // update an existing observation
-            } else {
+            /*
+             * update an existing observation
+             */
+            } else if (conflictedObservations.size() == 1) {
+                ObservationRef replacingObs = conflictedObservations.get(0);
+                
+                // TODO this might write a duplicated phenomenon
                 String newPhen = writePhenomenon(phenomenon, c, false);
                 
                 observationName = replacingObs.name;
@@ -385,6 +343,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     updateEnd.setInt(2, replacingObs.id);
                     updateEnd.executeUpdate();
                 }
+
+            /*
+             * update multiple existing observation
+             */
+            } else {
+                throw new DataStoreException("The observation is in temporal conflict with multiple observations. Not handled yet");
             }
             
             String parent = getProcedureParent(procedureID, c);

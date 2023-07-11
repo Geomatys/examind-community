@@ -42,6 +42,7 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
@@ -551,5 +552,113 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
         Observation result   = (Observation) results.get(0);
 
         assertEqualsObservation(expected, result);
+    }
+
+
+    /**
+     * TODO not handled yet.
+     * 
+     * @throws Exception
+     */
+    @Ignore
+    public void writeOverlappingObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/overlapping_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/overlapping_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_overlapping_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:overlapping_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+        // write a third observation that overlaps the 2 previous
+        Observation third  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/overlapping_sensor_observation3.json"),   Observation.class);
+
+        omPr.writeObservation(third);
+
+        /*
+        * get the full merged observation
+        */
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+
+        expected  = third; // totally overwrite, TODO add a new value in obs 1 or 2 to be sure of the update.
+
+        assertEqualsObservation(expected, result);
+    }
+
+    @Test
+    public void writeOverlappingSingleInstantObservationTest() throws Exception {
+
+        Observation first    = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/single_instant_extend_sensor_observation.json"),   Observation.class);
+        Observation second   = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/single_instant_extend_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_single_instant_extend_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:single_instant_extend_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+    }
+
+    /**
+     * TODO not handled yet.
+     *
+     * @throws Exception
+     */
+    @Ignore
+    public void writeOverlappingInstantObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_sensor_observation2.json"),   Observation.class);
+        Observation third = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_sensor_observation3.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_instant_extend_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+        omPr.writeObservation(third);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:instant_extend_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
     }
 }

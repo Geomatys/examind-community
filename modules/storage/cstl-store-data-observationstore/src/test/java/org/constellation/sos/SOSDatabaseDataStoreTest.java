@@ -45,6 +45,7 @@ import org.geotoolkit.observation.feature.OMFeatureTypes;
 import static org.geotoolkit.observation.feature.OMFeatureTypes.SAMPLINGPOINT_TN;
 import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_TN;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.ResponseMode;
@@ -134,15 +135,94 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         Observation result = (Observation) obs;
 
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         ComplexResult resultDAP = (ComplexResult)result.getResult();
 
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(2, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+
+        Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
         String expectedValues = "2009-05-01T13:47:00.0,4.5@@"
                               + "2009-05-01T14:00:00.0,5.9@@"
                               + "2009-05-01T14:01:00.0,8.9@@"
                               + "2009-05-01T14:02:00.0,7.8@@"
                               + "2009-05-01T14:03:00.0,9.9@@";
         Assert.assertEquals(expectedValues, resultDAP.getValues());
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:2000-1", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        resultDAP = (ComplexResult)result.getResult();
+
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(2, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+
+        Assert.assertEquals(Integer.valueOf(1), resultDAP.getNbValues());
+        expectedValues = "2009-05-01T13:47:00.0,4.5@@";
+        Assert.assertEquals(expectedValues, resultDAP.getValues());
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:2000-2-1", MEASUREMENT_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult resultMeas = (MeasureResult)result.getResult();
+
+        Assert.assertNotNull(resultMeas.getField());
+        Assert.assertEquals("depth", resultMeas.getField().name);
+
+        Assert.assertEquals(4.5, resultMeas.getValue());
+    }
+
+    @Test
+    public void readObservationTemplateTest() throws Exception {
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:template:GEOM:test-id", OBSERVATION_QNAME, ResponseMode.RESULT_TEMPLATE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        ComplexResult resultDAP = (ComplexResult)result.getResult();
+
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(2, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+
+        Assert.assertNull(resultDAP.getValues());
+
+        obs = reader.getObservation("urn:ogc:object:observation:template:GEOM:test-id-2", MEASUREMENT_QNAME, ResponseMode.RESULT_TEMPLATE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+        
+        Assert.assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult resultMeas = (MeasureResult)result.getResult();
+
+        Assert.assertNotNull(resultMeas.getField());
+        Assert.assertEquals("depth", resultMeas.getField().name);
+
+        Assert.assertNull(resultMeas.getValue());
     }
 
     @Test
@@ -202,5 +282,72 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
         List<ProcedureDataset> procedures = omStore.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(17, procedures.size());
+    }
+
+    @Test
+    public void readObservationByIdMultiTableTest() throws Exception {
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:3000", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        ComplexResult resultDAP = (ComplexResult)result.getResult();
+
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(4, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("temperature", resultDAP.getFields().get(2).name);
+        Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
+
+        Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
+        String expectedValues = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                                "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
+                                "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                                "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
+                                "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        Assert.assertEquals(expectedValues, resultDAP.getValues());
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:3000-1", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        resultDAP = (ComplexResult)result.getResult();
+
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(4, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+        Assert.assertEquals("temperature", resultDAP.getFields().get(2).name);
+        Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
+
+        Assert.assertEquals(Integer.valueOf(1), resultDAP.getNbValues());
+        expectedValues = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@";
+        Assert.assertEquals(expectedValues, resultDAP.getValues());
+
+        obs = reader.getObservation("urn:ogc:object:observation:GEOM:3000-2-1", MEASUREMENT_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult resultMeas = (MeasureResult)result.getResult();
+
+        Assert.assertNotNull(resultMeas.getField());
+        Assert.assertEquals("depth", resultMeas.getField().name);
+
+         Assert.assertEquals(2.5, resultMeas.getValue());
     }
 }
