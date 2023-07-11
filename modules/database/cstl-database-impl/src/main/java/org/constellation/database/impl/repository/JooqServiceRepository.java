@@ -22,7 +22,6 @@ import com.examind.database.api.jooq.Tables;
 import org.constellation.dto.service.Service;
 import com.examind.database.api.jooq.tables.pojos.ServiceExtraConfig;
 import com.examind.database.api.jooq.tables.pojos.ProviderXSos;
-import com.examind.database.api.jooq.tables.pojos.ProviderXCsw;
 import com.examind.database.api.jooq.tables.records.ServiceDetailsRecord;
 import com.examind.database.api.jooq.tables.records.ServiceExtraConfigRecord;
 import com.examind.database.api.jooq.tables.records.ServiceRecord;
@@ -457,12 +456,16 @@ public class JooqServiceRepository extends AbstractJooqRespository<ServiceRecord
         return convertListToDto(dsl.select().from(SERVICE).fetchInto(com.examind.database.api.jooq.tables.pojos.Service.class));
     }
 
-    private List<Service> convertListToDto(List<com.examind.database.api.jooq.tables.pojos.Service> daos) {
-        List<Service> results = new ArrayList<>();
+    private List<Service> convertListToDto(Collection<com.examind.database.api.jooq.tables.pojos.Service> daos) {
+        Map<Integer, Service> results = new LinkedHashMap<>();
+        // eliminates doublons if any
         for (com.examind.database.api.jooq.tables.pojos.Service dao : daos) {
-            results.add(convertIntoServiceDto(dao));
+            if (!results.containsKey(dao.getId())) {
+                results.put(dao.getId(), convertIntoServiceDto(dao));
+            }
+            
         }
-        return results;
+        return new ArrayList<>(results.values());
     }
 
     private Service convertIntoServiceDto(final com.examind.database.api.jooq.tables.pojos.Service service) {
