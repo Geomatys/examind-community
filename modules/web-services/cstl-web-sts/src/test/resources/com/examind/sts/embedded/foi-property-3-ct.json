@@ -1,0 +1,57 @@
+{
+    "@iot.count":3,
+    "value": [{
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-4.144984627896042, 42.38798858151254]
+                },
+                "properties": {}
+            },
+            "properties": {
+                "prop2": "value2",
+                "prop1": "value1"
+            },
+            "@iot.id": "station-001",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations"
+        }, {
+            "name": "10972X0137-PLOUF",
+            "description": "Point d'eau BSSS",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [5.0, 10.0]
+                },
+                "properties": {}
+            },
+            "properties": {
+                "prop1": "value3"
+            },
+            "@iot.id": "station-002",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)/Observations"
+        }, {
+            "name": "cycle1",
+            "description": "Geology traverse",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [[-3.404947100307334, 27.142099023169745], [-3.4049470900746326, 27.142099015263835], [-3.4049470798419326, 27.142099007357945], [-3.4049470689114294, 27.142098990921856], [-3.4049470463526212, 27.142098949519525], [-3.404947018445729, 27.142098959922517], [-3.4049470103064357, 27.142098977607137]]
+                },
+                "properties": {}
+            },
+            "properties": {},
+            "@iot.id": "station-006",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-006)/Observations"
+        }]
+}

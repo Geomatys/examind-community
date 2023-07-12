@@ -1087,6 +1087,24 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     private List<String> filterObservation() throws DataStoreException {
+        List<TableJoin> joins = new ArrayList<>();
+        if (phenPropJoin) {
+            String joinColumn;
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                joinColumn = "pd.\"field_name\"";
+            } else {
+                // there is a problem here. see comment in OM2ObservationFilterReader#getObservationTemplates()
+                joinColumn = "o.\"observed_property\"";
+            }
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = " + joinColumn));
+        }
+        if (procPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+        }
+        if (foiPropJoin) {
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", " sfp.\"id_sampling_feature\" = o.\"foi\""));
+        }
+        sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\"");
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");

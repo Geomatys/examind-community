@@ -1,0 +1,23 @@
+{
+    "@iot.count":1,
+    "value": [{
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "encodingType": "application/vnd.geo+json",
+            "feature": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-4.144984627896042, 42.38798858151254]
+                },
+                "properties": {}
+            },
+            "properties": {
+                "prop2": "value2",
+                "prop1": "value1"
+            },
+            "@iot.id": "station-001",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations"
+        }]
+}
