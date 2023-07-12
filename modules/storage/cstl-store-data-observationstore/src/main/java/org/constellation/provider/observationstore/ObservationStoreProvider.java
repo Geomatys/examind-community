@@ -579,7 +579,8 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                                                   bound.miny,
                                                   bound.maxy,
                                                   pt.fields,
-                                                  geom);
+                                                  geom,
+                                                  pt.getProperties());
 
         final Map<Date, Geometry> historicalLocations = pt.spatialBound.getHistoricalLocations();
         result.setHistoricalLocations(historicalLocations);
@@ -592,7 +593,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     private org.geotoolkit.observation.model.ProcedureDataset toGeotk(ProcedureDataset pt) {
         if (pt == null) return null;
         org.geotoolkit.observation.model.ProcedureDataset result =
-                new org.geotoolkit.observation.model.ProcedureDataset(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields(), null);
+                new org.geotoolkit.observation.model.ProcedureDataset(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields(), pt.getProperties());
         result.spatialBound.addDate(pt.getDateStart());
         result.spatialBound.addDate(pt.getDateEnd());
         result.spatialBound.addGeometry(pt.getGeom());

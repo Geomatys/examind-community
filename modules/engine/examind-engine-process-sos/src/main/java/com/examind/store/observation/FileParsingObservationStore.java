@@ -251,7 +251,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                 return tree;
             }
         }
-        ProcedureDataset tree = new ProcedureDataset(procedure.getId(), procedure.getName(), procedure.getDescription(), type, omType, new ArrayList<>(), null);
+        ProcedureDataset tree = new ProcedureDataset(procedure.getId(), procedure.getName(), procedure.getDescription(), type, omType, new ArrayList<>(), procedure.getProperties());
         result.procedures.add(tree);
         return tree;
     }

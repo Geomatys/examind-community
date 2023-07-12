@@ -42,7 +42,7 @@ public class ProcedureDataset {
 
     private String type;
 
-    protected String omType;
+    private String omType;
 
     private List<ProcedureDataset> children = new ArrayList<>();
 
@@ -61,11 +61,14 @@ public class ProcedureDataset {
 
     private Map<Date, Geometry> historicalLocations = new HashMap<>();
 
+    private Map<String, Object> properties = new HashMap<>();
+
     public ProcedureDataset() {
 
     }
 
-    public ProcedureDataset(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom) {
+    public ProcedureDataset(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, 
+            Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom, Map<String, Object> properties) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -81,6 +84,7 @@ public class ProcedureDataset {
         this.miny = miny;
         this.maxy = maxy;
         this.geom = geom;
+        this.properties = properties;
     }
 
     /**
@@ -293,6 +297,14 @@ public class ProcedureDataset {
         this.description = description;
     }
 
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("[ProcedureTree]\n");
@@ -337,9 +349,15 @@ public class ProcedureDataset {
             }
         }
         if (historicalLocations != null) {
-            sb.append("historical Locations:\n");
+            sb.append("historical locations:\n");
             for (Entry<Date, Geometry> hl : historicalLocations.entrySet()) {
                 sb.append(hl.getKey()).append(" => ").append(hl.getValue()).append("\n");
+            }
+        }
+        if (properties != null) {
+            sb.append("properties:\n");
+            for (Entry<String, Object> p : properties.entrySet()) {
+                sb.append(p.getKey()).append(" => ").append(p.getValue()).append("\n");
             }
         }
         if (children != null) {
@@ -375,6 +393,7 @@ public class ProcedureDataset {
                    Objects.equals(this.omType,       that.omType)   &&
                    Objects.equals(this.geom,         that.geom)   &&
                    Objects.equals(this.historicalLocations, that.historicalLocations)   &&
+                   Objects.equals(this.properties,   that.properties)   &&
                    Objects.equals(this.type,         that.type);
         }
         return false;
@@ -382,22 +401,7 @@ public class ProcedureDataset {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 11 * hash + Objects.hashCode(this.id);
-        hash = 11 * hash + Objects.hashCode(this.name);
-        hash = 11 * hash + Objects.hashCode(this.description);
-        hash = 11 * hash + Objects.hashCode(this.type);
-        hash = 11 * hash + Objects.hashCode(this.omType);
-        hash = 11 * hash + Objects.hashCode(this.children);
-        hash = 11 * hash + Objects.hashCode(this.fields);
-        hash = 11 * hash + Objects.hashCode(this.dateStart);
-        hash = 11 * hash + Objects.hashCode(this.dateEnd);
-        hash = 11 * hash + Objects.hashCode(this.minx);
-        hash = 11 * hash + Objects.hashCode(this.maxx);
-        hash = 11 * hash + Objects.hashCode(this.miny);
-        hash = 11 * hash + Objects.hashCode(this.maxy);
-        hash = 11 * hash + Objects.hashCode(this.geom);
-        hash = 11 * hash + Objects.hashCode(this.historicalLocations);
-        return hash;
+        return Objects.hash(this.id, this.name, this.description, this.type, this.omType, this.children, this.fields,
+                this.dateStart, this.dateEnd, this.minx, this.maxx, this.miny, this.maxy, this.geom, this.historicalLocations, this.properties);
     }
 }
