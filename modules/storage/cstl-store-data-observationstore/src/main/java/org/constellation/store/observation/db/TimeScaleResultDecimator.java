@@ -18,11 +18,11 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
@@ -34,8 +34,8 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public class TimeScaleResultDecimator extends ResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId) {
-        super(fields, profile, includeId, width, fieldFilters, mainField, sensorId);
+    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure) {
+        super(fields, includeId, width, fieldFilters, mainField, procedure);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class TimeScaleResultDecimator extends ResultDecimator {
                 
                 // id field
                 if (i < mainFieldIndex && field.type == FieldType.TEXT) {
-                    values.appendString(sensorId + "-dec-" + cpt);
+                    values.appendString(procedure.procedureId + "-dec-" + cpt);
                     cpt++;
                     continue;
                 // main field

@@ -350,4 +350,35 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
          Assert.assertEquals(2.5, resultMeas.getValue());
     }
+
+    @Test
+    public void readObservationDisorderTest() throws Exception {
+        Assert.assertTrue(store instanceof ObservationStore);
+        ObservationStore omStore = (ObservationStore) store;
+        ObservationReader reader = omStore.getReader();
+
+        Assert.assertNotNull(reader);
+
+        org.opengis.observation.Observation obs = reader.getObservation("urn:ogc:object:observation:GEOM:307", OBSERVATION_QNAME, ResponseMode.INLINE);
+        Assert.assertTrue(obs instanceof Observation);
+        Observation result = (Observation) obs;
+
+        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+
+        Assert.assertTrue(result.getResult() instanceof ComplexResult);
+        ComplexResult resultDAP = (ComplexResult)result.getResult();
+
+        Assert.assertNotNull(resultDAP.getFields());
+        Assert.assertEquals(2, resultDAP.getFields().size());
+        Assert.assertEquals("Time", resultDAP.getFields().get(0).name);
+        Assert.assertEquals("depth", resultDAP.getFields().get(1).name);
+
+        Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
+        String expectedValues = "2007-05-01T17:59:00.0,6.56@@" +
+                                "2007-05-01T18:59:00.0,6.55@@" +
+                                "2007-05-01T19:59:00.0,6.55@@" +
+                                "2007-05-01T20:59:00.0,6.55@@" +
+                                "2007-05-01T21:59:00.0,6.55@@";
+        Assert.assertEquals(expectedValues, resultDAP.getValues());
+    }
 }

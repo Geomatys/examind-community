@@ -3642,6 +3642,29 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     @Test
+    public void getMeasurements3Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:GEOM:6001-2-1"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
+        org.geotoolkit.observation.model.Observation result = (org.geotoolkit.observation.model.Observation) results.get(0);
+
+        assertInstantEquals("1980-03-01T21:52:00Z", result.getSamplingTime());
+
+        assertEquals(2, result.getResultQuality().size());
+
+        assertTrue(result.getResult() instanceof MeasureResult);
+
+        MeasureResult mresult = (MeasureResult) results.get(0).getResult();
+        assertEquals(mresult.getValue(),  6.56);
+    }
+
+    @Test
     public void getObservationsTimeDisorderTest() throws Exception {
         assertNotNull(omPr);
 
@@ -4406,7 +4429,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor quality no decimation with filter on quality field
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
         query.setIncludeQualityFields(true);
-        filter = ff.equal(ff.property("result[1].qflag") , ff.literal("ok"));
+        filter = ff.equal(ff.property("result[0].qflag") , ff.literal("ok"));
         query.setSelection(filter);
 
         result = omPr.getResults(query);

@@ -56,7 +56,6 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.CompositePhenomenon;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Phenomenon;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -126,8 +125,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected OMEntity objectType = null;
 
     protected ResponseMode responseMode;
-    protected String currentProcedure = null;
-    protected String currentOMType = null;
+    protected ProcedureInfo currentProcedure = null;
 
     protected List<String> currentFields = new ArrayList<>();
 
@@ -234,7 +232,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     private void initFilterGetResult(ResultQuery query) throws DataStoreException {
         this.includeTimeForProfile = query.isIncludeTimeForProfile();
         this.responseMode          = query.getResponseMode();
-        this.currentProcedure      = query.getProcedure();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
         this.includeQualityFields  = query.isIncludeQualityFields();
         this.responseFormat        = query.getResponseFormat();
@@ -242,14 +239,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         this.firstFilter = false;
         try(final Connection c = source.getConnection()) {
-            final ProcedureInfo pi = getPIDFromProcedure(currentProcedure, c).orElse(null);
-            if (pi == null) throw new DataStoreException("Unexisting procedure:" + currentProcedure);
+            currentProcedure = getPIDFromProcedure(query.getProcedure(), c).orElse(null);
+            if (currentProcedure == null) throw new DataStoreException("Unexisting procedure:" + query.getProcedure());
 
-            currentOMType = getProcedureOMType(currentProcedure, c);
-            Field mainField = getMainField(currentProcedure, c);
+            Field mainField = getMainField(currentProcedure.procedureId, c);
 
-            sqlRequest = buildMesureRequests(pi, mainField, null, "profile".equals(currentOMType), null, true, false, false);
-            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure).append(" ");
+            sqlRequest = buildMesureRequests(currentProcedure, mainField, null, null, true, false, false);
+            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure.procedureId).append(" ");
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
         }
@@ -746,6 +742,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         // String XPath = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
         TemporalOperatorName type = tFilter.getOperatorType();
+        String currentOMType = currentProcedure != null ? currentProcedure.type : null;
 
         final String tableAlias;
         if (objectType == OMEntity.OFFERING) {
@@ -1067,18 +1064,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
+                int pIndex = (i - offset);
                 if (field.tableNumber == k) {
-                    single.replaceAll("$phen" + (i - offset), field.name);
+                    single.replaceAll("$phen" + pIndex, field.name);
                 } else {
                     // we need to remove the filter fom the request, as it does not apply to this table
-                    final String phenKeyword = " AND (\"$phen" + (i - offset);
+                    final String phenKeyword = " AND (\"$phen" + pIndex;
                     while (single.contains(phenKeyword)) {
                         String measureFilter = single.getRequest();
                         int opos = measureFilter.indexOf(phenKeyword);
                         int cpos = measureFilter.indexOf(")", opos + phenKeyword.length());
                         String block = measureFilter.substring(opos, cpos + 1);
                         single.replaceFirst(block, "");
-                        single.removeNamedParam("phen" + (i - offset));
+                        single.removeNamedParam("phen" + pIndex);
                     }
                 }
             }
@@ -1162,11 +1160,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final List<Field> fields      = readFields(procedure, true, c);
                     final Field mainField         = getMainField(procedure, c);
                     final ProcedureInfo pti       = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
-                    boolean profile               = !FieldType.TIME.equals(mainField.type);
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields, pti);
-                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, mainField, measureFilter, profile, oid, false, true, idOnly);
+                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, mainField, measureFilter, oid, false, true, idOnly);
                     LOGGER.fine(mesureRequest.toString());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -1608,15 +1605,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
         }
     }
-
-    protected Field getTimeField(final String procedure) throws DataStoreException {
-        try(final Connection c = source.getConnection()) {
-            return getTimeField(procedure, c);
-        } catch (SQLException ex) {
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
-        }
-    }
-
 
     public boolean existProcedure(String procedure) {
         try(final Connection c   = source.getConnection();

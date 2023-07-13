@@ -143,13 +143,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         public final int id;
         public final String name;
         public final String phenomenonId;
+        public final String foiId;
         public final Timestamp extendStartTime;
         public final Timestamp extendEndTime;
 
-        public ObservationRef(int id, String name, String phenomenonId, Timestamp extendStartTime, Timestamp extendEndTime) {
+        public ObservationRef(int id, String name, String phenomenonId, String foiId, Timestamp extendStartTime, Timestamp extendEndTime) {
             this.id = id;
             this.name = name;
             this.phenomenonId = phenomenonId;
+            this.foiId  = foiId;
             this.extendStartTime = extendStartTime;
             this.extendEndTime = extendEndTime;
         }
@@ -158,8 +160,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private List<ObservationRef> isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
         List<ObservationRef> obs = new ArrayList<>();
         if (samplingTime != null) {
-            FilterSQLRequest sqlRequest = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
+            FilterSQLRequest sqlRequest = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\", \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
             sqlRequest.append(" \"procedure\"=").appendValue(procedureID);
+
+            // i'm suspicious about this
             if (foiID != null) {
                 sqlRequest.append(" AND \"foi\"=").appendValue(foiID);
             }
@@ -186,7 +190,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             extEnd = newEnd;
                         }
                     }
-                    obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), extBegin, extEnd));
+                    obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"), extBegin, extEnd));
                     
                 }
             } catch (SQLException ex) {
@@ -223,6 +227,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         final String procedureID   = procedure.getId();
         final String procedureName = procedure.getName();
         final String procedureDesc = procedure.getDescription();
+        final String procedureOMType = (String) procedure.getProperties().getOrDefault("type", "timeseries");
         
         final TemporalObject samplingTime = observation.getSamplingTime();
 
@@ -296,8 +301,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 phenRef = writePhenomenon(phenomenon, c, false);
                 insertObs.setString(5, phenRef);
 
-
-                final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, null, new ArrayList<>(), null), null, c);
+                // TODO use new procedureDataset constructor when geotk is updated
+                final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, procedureOMType, new ArrayList<>(), procedure.getProperties()), null, c);
                 insertObs.setString(6, procedureID);
                 if (foiID != null) {
                     insertObs.setString(7, foiID);
@@ -315,7 +320,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             } else if (conflictedObservations.size() == 1) {
                 ObservationRef replacingObs = conflictedObservations.get(0);
                 
-                // TODO this might write a duplicated phenomenon
                 String newPhen = writePhenomenon(phenomenon, c, false);
                 
                 observationName = replacingObs.name;
@@ -348,6 +352,23 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
              * update multiple existing observation
              */
             } else {
+                final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
+
+                // we need to merge all the conflicted observation in one
+                ObservationRef firstObs = conflictedObservations.get(0);
+
+                //we cannot merge observations with different foi.
+                for (int i = 1; i < conflictedObservations.size(); i++) {
+                    ObservationRef obs = conflictedObservations.get(i);
+                    if (!Objects.equals(obs.foiId, firstObs.foiId)) {
+                        throw new DataStoreException("The observation is in temporal conflict with multiple observations. Multiple feature of interest are involved. Unable to perform the insertion");
+                    }
+                }
+
+                for (int i = 1; i < conflictedObservations.size(); i++) {
+
+                    //writeResult(i, pi, result, c, isPostgres);
+                }
                 throw new DataStoreException("The observation is in temporal conflict with multiple observations. Not handled yet");
             }
             
@@ -668,6 +689,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldType.QUANTITY, "value", null, null, null, 1);
 
+    /**
+     * Write  an observation result.
+     *
+     * @param oid Observation identifier.
+     * @param pi Informations about the procedure owning the observation.
+     * @param result
+     * @param c
+     * @param update
+     * @throws SQLException
+     * @throws DataStoreException
+     */
     private void writeResult(final int oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof MeasureResult measRes) {
             
@@ -1090,7 +1122,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             removeObservation(cdt.identifier, cdt.pi, c);
                             
                             // remove procedure if needed
-                            boolean removed = removeProcedureIfEmpty(cdt.pi.procedureId, c);
+                            boolean removed = removeProcedureIfEmpty(cdt.pi, c);
                             if (removed) sensorRemoved.add(cdt.pi.procedureId);
 
                         // case 1.2 phenomenon to remove is part of the original phenomenon we need to remove only a part of the observation.
@@ -1129,7 +1161,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                     updateObservationPhenomenon(cdt, emptyFields, c);
                                 }
                             } else {
-                                boolean removed = removeProcedureIfEmpty(cdt.pi.procedureId, c);
+                                boolean removed = removeProcedureIfEmpty(cdt.pi, c);
                                 if (removed) sensorRemoved.add(cdt.pi.procedureId);
                             }
 
@@ -1255,19 +1287,19 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     @Override
     public synchronized void removeProcedure(final String procedureID) throws DataStoreException {
         try (final Connection c = source.getConnection()) {
-            removeProcedure(procedureID, c);
+            final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).orElse(null);
+            removeProcedure(pi, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while removing procedure.", ex);
         }
     }
 
 
-    private void removeProcedure(final String procedureID, final Connection c) throws SQLException, DataStoreException {
-        ProcedureInfo pi = getPIDFromProcedure(procedureID, c).orElse(null);
+    private void removeProcedure(final ProcedureInfo pi, final Connection c) throws SQLException, DataStoreException {
         if (pi == null) return;
         
-        deleteProperties("procedures_properties", "id_procedure", procedureID, c);
-        removeObservationForProcedure(procedureID, c);
+        deleteProperties("procedures_properties", "id_procedure", pi.procedureId, c);
+        removeObservationForProcedure(pi.procedureId, c);
 
         // remove measure tables
         try (final Statement stmtDrop = c.createStatement()) {
@@ -1291,22 +1323,22 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
              final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");//NOSONAR
              final PreparedStatement stmtProcDesc = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?")) {//NOSONAR
 
-            stmtObsP.setString(1, procedureID);
+            stmtObsP.setString(1, pi.procedureId);
             stmtObsP.executeUpdate();
 
-            stmtFoi.setString(1, procedureID);
+            stmtFoi.setString(1, pi.procedureId);
             stmtFoi.executeUpdate();
 
-            stmtHl.setString(1, procedureID);
+            stmtHl.setString(1, pi.procedureId);
             stmtHl.executeUpdate();
 
-            stmtMes.setString(1, procedureID);
+            stmtMes.setString(1, pi.procedureId);
             stmtMes.executeUpdate();
 
-            stmtProcDesc.setString(1, procedureID);
+            stmtProcDesc.setString(1, pi.procedureId);
             stmtProcDesc.executeUpdate();
 
-            stmtObs.setString(1, procedureID);
+            stmtObs.setString(1, pi.procedureId);
             stmtObs.executeUpdate();
         }
 
@@ -1364,7 +1396,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             if (pi == null) return;
 
             removeObservation(observationID, pi, c);
-            removeProcedureIfEmpty(pi.procedureId, c);
+            removeProcedureIfEmpty(pi, c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while inserting observation.", ex);
         }
@@ -1406,18 +1438,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      *
      * @return {@code true} id the procedure has been removed
      */
-    private boolean removeProcedureIfEmpty(String procedureId, Connection c) throws SQLException, DataStoreException {
-        boolean removeProc = false;
-        try (final PreparedStatement stmtObsCount = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?");) {//NOSONAR
-            stmtObsCount.setString(1, procedureId);
-            try (ResultSet rs = stmtObsCount.executeQuery()) {
-                if (rs.next()) {
-                    removeProc = (rs.getInt(1) == 0);
-                }
-            }
-        }
+    private boolean removeProcedureIfEmpty(ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
+        boolean removeProc = (getNbMeasureForProcedure(pi.pid, c) == 0);
         if (removeProc) {
-            removeProcedure(procedureId);
+            removeProcedure(pi, c);
         }
         return removeProc;
     }

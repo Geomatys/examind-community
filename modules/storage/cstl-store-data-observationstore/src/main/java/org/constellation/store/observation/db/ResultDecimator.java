@@ -19,6 +19,7 @@
 package org.constellation.store.observation.db;
 
 import java.util.List;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 
 /**
@@ -31,13 +32,13 @@ public abstract class ResultDecimator extends ResultProcessor {
 
     protected List<Integer> fieldFilters;
 
-    protected final String sensorId;
+    protected final ProcedureInfo procedure;
     
-    public ResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId) {
-        super(fields, profile, includeId, false, mainField);
+    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure) {
+        super(fields, "profile".equals(procedure.type), includeId, false, mainField);
         this.width = width;
         this.fieldFilters = fieldFilters;
-        this.sensorId = sensorId;
+        this.procedure = procedure;
     }
 
 }

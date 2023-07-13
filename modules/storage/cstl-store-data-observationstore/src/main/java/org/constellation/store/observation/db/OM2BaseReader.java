@@ -41,8 +41,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.namespace.QName;
 
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.Util;
@@ -56,13 +58,19 @@ import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_
 import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.Result;
+import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.geotoolkit.observation.result.ResultBuilder;
 
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -601,27 +609,6 @@ public class OM2BaseReader {
         throw new SQLException("No field " + inputField.name + " found for procedure:" + procedureID);
     }
 
-    protected Field getTimeField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time' AND \"parent\" IS NULL ORDER BY \"order\"")) {//NOSONAR
-            stmt.setString(1, procedureID);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return getFieldFromDb(rs, procedureID, c, false);
-                }
-                return null;
-            }
-        }
-    }
-
-    protected boolean isMainTimeField(final String procedureID, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"field_type\" FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"field_type\"='Time'  AND \"parent\" IS NULL AND \"order\"=1")) {//NOSONAR
-            stmt.setString(1, procedureID);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
-
     /**
      * Return the main field of the timeseries/trajectory (TIME) or profile (DEPTH, PRESSION, ...).
      * This method assume that the main field is !ALWAYS! set a the order 1.
@@ -830,31 +817,6 @@ public class OM2BaseReader {
         throw new IllegalStateException("Unexpected no results");
     }
     
-    protected String getProcedureOMType(final String procedure, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
-            stmt.setString(1, procedure);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getString(1);
-                }
-                return null;
-            }
-        }
-    }
-
-    protected String getProcedureFromOID(final int oid, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"id\"=?")) {//NOSONAR
-            stmt.setInt(1, oid);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                String pid = null;
-                if (rs.next()) {
-                    pid = rs.getString(1);
-                }
-                return pid;
-            }
-        }
-    }
-
     public Procedure getProcess(String id, final Connection c) throws SQLException {
         final Map<String, Object> properties = readProperties("procedures_properties", "id_procedure", id, c);
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
@@ -913,7 +875,7 @@ public class OM2BaseReader {
     }
 
     protected int getNbMeasureForProcedure(int pid, Connection c) {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(\"id\" FROM \"" + schemaPrefix + "om\".\"mesure" + pid + "\"");
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"");
             final ResultSet rs = stmt.executeQuery()) {//NOSONAR
             if (rs.next()) {
                 return rs.getInt(1);
@@ -922,7 +884,7 @@ public class OM2BaseReader {
             // we catch it because the table can not exist.
             LOGGER.log(Level.FINE, "Error while looking for measure count", ex);
         }
-        return -1;
+        return 0;
     }
 
     protected int getNbMeasureForObservation(int pid, int oid, Connection c) {
@@ -939,7 +901,82 @@ public class OM2BaseReader {
         }
         return -1;
     }
-    
+
+    protected Result getResult(int oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+        final ProcedureInfo ti      = getPIDFromOID(oid, c).orElseThrow(IllegalArgumentException::new);
+        if (resultModel.equals(MEASUREMENT_QNAME)) {
+            return buildMeasureResult(ti, oid, measureId, selectedField, c);
+        } else {
+            return buildComplexResult(ti, oid, measureId, c);
+        }
+    }
+
+    private ComplexResult buildComplexResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
+
+        final List<Field> fields    = readFields(ti.procedureId, false, c);
+        final Field mainField       = fields.get(0); // main is always first
+        int nbValue                 = 0;
+        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+
+        FilterSQLRequest measureFilter = null;
+        if (measureId != null) {
+            measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
+        }
+
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, mainField, measureFilter,  oid, false, true, false);
+
+        final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
+        try (SQLResult rs = queries.execute(c)) {
+            while (rs.next()) {
+                parser.parseLine(rs, 0);
+                nbValue = nbValue + parser.nbValue;
+            }
+            return OMUtils.buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
+        }
+    }
+
+    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+        if (selectedField == null) {
+            throw new DataStoreException("Measurement extraction need a field index specified");
+        }
+        if (measureId == null) {
+            throw new DataStoreException("Measurement extraction need a measure id specified");
+        }
+
+        final FieldType fType  = selectedField.type;
+        String tableName = "mesure" + ti.pid;
+        int tn = ((DbField) selectedField).tableNumber;
+        if (tn > 1) {
+            tableName = tableName + "_" + tn;
+        }
+
+        String query = "SELECT \"" + selectedField.name + "\" FROM  \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m " +
+                       "WHERE \"id_observation\" = ? " +
+                       "AND m.\"id\" = ? ";
+
+        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
+            stmt.setInt(1, oid);
+            stmt.setInt(2, measureId);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Object value;
+                    switch (fType) {
+                        case QUANTITY: value = rs.getDouble(selectedField.name);break;
+                        case BOOLEAN: value = rs.getBoolean(selectedField.name);break;
+                        case TIME: value = new Date(rs.getTimestamp(selectedField.name).getTime());break;
+                        case TEXT:
+                        default: value = rs.getString(selectedField.name);break;
+                    }
+                    return new MeasureResult(selectedField, value);
+                } else {
+                    return null;
+                }
+            }
+        } catch (NumberFormatException ex) {
+            throw new DataStoreException("Unable ta parse the result value as a double");
+        }
+    }
+
     /**
      * Build one or more SQL request on the measure(s) tables.
      * The point of this mecanism is to bypass the issue of selecting more than 1664 columns in a select.
@@ -949,7 +986,6 @@ public class OM2BaseReader {
      * @param pti Informations abut the measure tables.
      * @param mainField Main field of the procedure.
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
-     * @param profile True if the procedure is a profile (used only if measureFilter is not empty)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
      * @param addOrderBy If true, an order by main filed wille be applied.
@@ -957,7 +993,8 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, Field mainField, FilterSQLRequest measureFilter, boolean profile, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, Field mainField, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
+        final boolean profile = "profile".equals(pti.type);
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         for (int i = 0; i < pti.nbTable; i++) {
             String baseTableName = "mesure" + pti.pid;

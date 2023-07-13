@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -31,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
@@ -46,8 +46,8 @@ public class DefaultResultDecimator extends ResultDecimator {
 
     private final Map<Object, long[]> times;
 
-    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, String sensorId, final Map<Object, long[]> times) {
-        super(fields, profile, includeId, width, fieldFilters, mainField, sensorId);
+    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure, final Map<Object, long[]> times) {
+        super(fields, includeId, width, fieldFilters, mainField, procedure);
         this.times = times;
     }
 
@@ -224,7 +224,7 @@ public class DefaultResultDecimator extends ResultDecimator {
                 values.appendTime(t);
             // id field
             } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
-                values.appendString(sensorId + "-dec-" + cpt);
+                values.appendString(procedure.procedureId + "-dec-" + cpt);
             // main field
             } else if (i == mainFieldIndex) {
                 if (FieldType.TIME.equals(field.type)) {

@@ -48,17 +48,13 @@ import java.util.Set;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import org.constellation.util.FilterSQLRequest;
-import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
-import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.geometry.jts.JTS;
-import static org.geotoolkit.observation.OMUtils.buildComplexResult;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
@@ -68,7 +64,6 @@ import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
-import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.IdentifierQuery;
@@ -425,12 +420,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final String observedProperty;
             final String procedure;
             final String foi;
+            final int oid;
             TemporalGeometricPrimitive time = null;
 
             try(final PreparedStatement stmt  = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
                 stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
+                        oid = rs.getInt(2);
                         final Date b = rs.getTimestamp(3);
                         final Date e = rs.getTimestamp(4);
                         if (b != null && e == null) {
@@ -485,7 +482,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     result = new MeasureResult(selectedField, null);
                 } else {
                     resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
-                    result = getResult(identifier, resultModel, measureId, selectedField, c);
+                    result = getResult(oid, resultModel, measureId, selectedField, c);
                     if (FieldType.TIME.equals(mainField.type)) {
                         time = getMeasureTimeForProfile(identifier, mainField, c, measureId);
                     }
@@ -500,7 +497,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     final List<Field> fields = readFields(procedure, false, c);
                     result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
                 } else {
-                    result = getResult(identifier, resultModel, measureId, null, c);
+                    result = getResult(oid, resultModel, measureId, null, c);
                 }
             }
             return new Observation(obsID,
@@ -526,103 +523,18 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      */
     @Override
     public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
+        // this method can now lead to error but will be removed in a future version of geotk
         try(final Connection c = source.getConnection()) {
-            return getResult(identifier, resultModel, null, null, c);
+            int oid = getOIDFromIdentifier(identifier, c);
+            return getResult(oid, resultModel, null, null, c);
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
-    private Result getResult(final String identifier, final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
-        int oid = getOIDFromIdentifier(identifier, c);
-        if (resultModel.equals(MEASUREMENT_QNAME)) {
-            return buildMeasureResult(oid, measureId, selectedField, c);
-        } else {
-            return buildComplexResult2(oid, measureId, c);
-        }
-    }
-
-    private ComplexResult buildComplexResult2(final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
-
-        final String procedure      = getProcedureFromOID(oid, c);
-        final ProcedureInfo ti      = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
-        final List<Field> fields    = readFields(procedure, false, c);
-        int nbValue                 = 0;
-        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
-
-        final MultiFilterSQLRequest queries = new MultiFilterSQLRequest();
-        for (int i = 0; i < ti.nbTable; i++) {
-            String tableName = "mesure" + ti.pid;
-            if (i > 0) {
-                tableName = tableName + "_" + (i + 1);
-            }
-            FilterSQLRequest query = new SingleFilterSQLRequest("SELECT * FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m WHERE \"id_observation\" = ");
-            query.appendValue(oid);
-
-            if (measureId != null) {
-                query.append(" AND m.\"id\" = ").appendValue(measureId);
-            }
-            query.append(" ORDER BY m.\"id\"");
-            queries.addRequest(query);
-        }
-        final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
-        try (SQLResult rs = queries.execute(c)) {
-            while (rs.next()) {
-                parser.parseLine(rs, 0);
-                nbValue = nbValue + parser.nbValue;
-            }
-            return buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
-        }
-    }
-
-    private MeasureResult buildMeasureResult(final int oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
-        if (selectedField == null) {
-            throw new DataStoreException("Measurement extraction need a field index specified");
-        }
-        ProcedureInfo ti = getPIDFromOID(oid, c).orElseThrow(IllegalArgumentException::new);
-        final FieldType fType  = selectedField.type;
-        String tableName = "mesure" + ti.pid;
-        int tn = ((DbField) selectedField).tableNumber;
-        if (tn > 1) {
-            tableName = tableName + "_" + tn;
-        }
-
-        String query       = "SELECT \"" + selectedField.name + "\" FROM  \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m "
-                           + "WHERE \"id_observation\" = ?";
-        if (measureId != null) {
-            query = query + " AND m.\"id\" = " + measureId + " ";
-        }
-        // TODO order can be bad, order must be on mainField
-        query = query + " ORDER BY m.\"id\"";
-
-        try(final PreparedStatement stmt  = c.prepareStatement(query)) {//NOSONAR
-            stmt.setInt(1, oid);
-            try(final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    Object value;
-                    if (fType == FieldType.QUANTITY) {
-                        value = rs.getDouble(selectedField.name);
-                    } else if (fType == FieldType.BOOLEAN) {
-                        value = rs.getBoolean(selectedField.name);
-                    } else if (fType == FieldType.TIME) {
-                        Timestamp ts = rs.getTimestamp(selectedField.name);
-                        value = new Date(ts.getTime());
-                    } else {
-                        value = rs.getString(selectedField.name);
-                    }
-                    return new MeasureResult(selectedField, value);
-                } else {
-                    return null;
-                }
-            }
-        } catch (NumberFormatException ex) {
-            throw new DataStoreException("Unable ta parse the result value as a double");
-        }
-    }
-
     private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, Field mainField, final Connection c, int measureId) throws SQLException {
         ProcedureInfo pti = getPIDFromObservation(identifier, c).orElseThrow(IllegalArgumentException::new);
-        FilterSQLRequest query  = buildMesureRequests(pti, mainField, null, false, null, true, false, false);
+        FilterSQLRequest query  = buildMesureRequests(pti, mainField, null, null, true, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = " + measureId + " ");
         try(final SQLResult rs  = query.execute(c)) {
@@ -642,7 +554,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
         ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
-        FilterSQLRequest query = buildMesureRequests(pti, selectedField, null, false, null, true, false, false);
+        FilterSQLRequest query = buildMesureRequests(pti, selectedField, null, null, true, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
