@@ -1,19 +1,19 @@
 {
-    "id": "obs-1104",
-    "name": "urn:ogc:object:observation:GEOM:1104",
+    "id": "obs-1101",
+    "name": "urn:ogc:object:observation:GEOM:1101",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:overlapping_sensor",
         "name": "Sensor extended"
     },
     "samplingTime": {
-        "id": "time-1104",
+        "id": "time-1101",
         "beginning": {
             "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
-            "date": "1980-03-03T21:52:00.0Z"
+            "date": "1980-03-01T01:52:00.0Z"
         },
         "ending": {
             "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
-            "date": "1980-03-04T21:52:00.0Z"
+            "date": "1980-03-05T21:52:00.0Z"
         }
     },
     "featureOfInterest": {
@@ -65,13 +65,13 @@
                 "description": "urn:ogc:def:phenomenon:GEOM:temperature-EXT",
                 "uom": "°C"
             }],
-        "nbValues": 2,
+        "nbValues": 6,
         "textEncodingProperties": {
             "tokenSeparator": ",",
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "1980-03-03T21:52:00.0,6.58,23.1@@1980-03-04T21:52:00.0,6.59,22.3@@"
+        "values": "1980-03-01T01:52:00.0,6.55,20.0@@1980-03-01T21:52:00.0,6.56,23.3@@1980-03-02T21:52:00.0,6.57,22.1@@1980-03-03T21:52:00.0,6.58,23.1@@1980-03-04T21:52:00.0,6.59,22.3@@1980-03-05T21:52:00.0,7.0,25.5@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {

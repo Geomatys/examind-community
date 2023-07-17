@@ -53,6 +53,7 @@ import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.OMUtils;
+import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -144,14 +145,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         public final String name;
         public final String phenomenonId;
         public final String foiId;
+        public final Timestamp startTime;
+        public final Timestamp endTime;
         public final Timestamp extendStartTime;
         public final Timestamp extendEndTime;
 
-        public ObservationRef(int id, String name, String phenomenonId, String foiId, Timestamp extendStartTime, Timestamp extendEndTime) {
+        public ObservationRef(int id, String name, String phenomenonId, String foiId, Timestamp startTime, Timestamp endTime, Timestamp extendStartTime, Timestamp extendEndTime) {
             this.id = id;
             this.name = name;
             this.phenomenonId = phenomenonId;
             this.foiId  = foiId;
+            this.endTime = endTime;
+            this.startTime = startTime;
             this.extendStartTime = extendStartTime;
             this.extendEndTime = extendEndTime;
         }
@@ -178,11 +183,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     // look for observation time extension
                     Timestamp extBegin = null;
                     Timestamp extEnd   = null;
+                    final Timestamp obsBegin = rs.getTimestamp("time_begin");
+                    final Timestamp obsEnd   = rs.getTimestamp("time_end");
                     if (samplingTime instanceof Period p) {
                         final Timestamp newBegin = getInstantTimestamp(p.getBeginning());
                         final Timestamp newEnd   = getInstantTimestamp(p.getEnding());
-                        final Timestamp obsBegin = rs.getTimestamp("time_begin");
-                        final Timestamp obsEnd   = rs.getTimestamp("time_end");
                         if (newBegin.before(obsBegin)) {
                             extBegin = newBegin;
                         }
@@ -190,7 +195,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             extEnd = newEnd;
                         }
                     }
-                    obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"), extBegin, extEnd));
+                    obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"),
+                            obsBegin, obsEnd, extBegin, extEnd));
                     
                 }
             } catch (SQLException ex) {
@@ -314,62 +320,97 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 writeResult(oid, pi, observation.getResult(), c, false);
                 emitResultOnBus(procedureID, observation.getResult());
 
-            /*
-             * update an existing observation
-             */
-            } else if (conflictedObservations.size() == 1) {
-                ObservationRef replacingObs = conflictedObservations.get(0);
-                
-                String newPhen = writePhenomenon(phenomenon, c, false);
-                
-                observationName = replacingObs.name;
+            } else {
                 final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
-                writeResult(replacingObs.id, pi, observation.getResult(), c, true);
+                Timestamp begin, end;
+                ObservationRef replacingObs = conflictedObservations.get(0);
+                int modOid                 = replacingObs.id;
+                observationName            = replacingObs.name;
+                boolean replacePhen        = false;
+                
+                // write the new phenomenon even if its not actually used in the observation
+                // for a composite, we need to write at least the components
+                String newPhen = writePhenomenon(phenomenon, c, false);
+
+                /*
+                * update an existing observation
+                */
+                if (conflictedObservations.size() == 1) {
+                    
+                    writeResult(modOid, pi, observation.getResult(), c, true);
+
+                    replacePhen = !replacingObs.phenomenonId.equals(newPhen);
+                    begin       = replacingObs.extendStartTime;
+                    end         = replacingObs.extendEndTime;
+
+                /*
+                 * update multiple existing observation
+                 */
+                } else {
+
+                    //we cannot merge observations with different foi.
+                    for (int i = 1; i < conflictedObservations.size(); i++) {
+                        ObservationRef obs = conflictedObservations.get(i);
+                        if (!Objects.equals(obs.foiId, replacingObs.foiId)) {
+                            throw new DataStoreException("The observation is in temporal conflict with multiple observations. Multiple feature of interest are involved. Unable to perform the insertion");
+                        }
+                    }
+
+                    if (samplingTime instanceof Period p) {
+                        begin = getInstantTimestamp(p.getBeginning());
+                        end   = getInstantTimestamp(p.getEnding());
+                    } else {
+                        throw new IllegalStateException("An observation can not be in conflict with multiple others and have a instant or null sampling time.");
+                    }
+
+                    // we need to merge all the conflicted observation in one
+                    for (int i = 0; i < conflictedObservations.size(); i++) {
+                        ObservationRef obs = conflictedObservations.get(i);
+                        if (begin == null || obs.startTime.before(begin)) {
+                            begin = obs.startTime;
+                        }
+                        if (obs.endTime != null && (end == null || obs.endTime.after(end))) {
+                            end = obs.endTime;
+                        }
+                        boolean phenChange = !obs.phenomenonId.equals(newPhen);
+                        if (phenChange) replacePhen = true;
+                        if (i >= 1) {
+                            Result result = getResult(obs.id, OBSERVATION_QNAME, null, null, c);
+                            writeResult(modOid, pi, result, c, true);
+
+                            removeObservation(obs.id, pi, c);
+                        }
+
+                    }
+                    // write the new observation into the merged one
+                    writeResult(modOid, pi, observation.getResult(), c, true);
+                }
+
                 // if a new phenomenon has been added we must create a composite and change the observation reference
-                if (!replacingObs.phenomenonId.equals(newPhen)) {
+                // for now we write the full procedure phenomenon. we should build a more precise phenomenon
+                if (replacePhen) {
                     List<Field> readFields = readFields(procedureID, true, c);
                     Phenomenon replacingPhen = OMUtils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
 
                     phenRef = writePhenomenon(replacingPhen, c, false);
                     updatePhen.setString(1, phenRef);
-                    updatePhen.setInt(2, replacingObs.id);
+                    updatePhen.setInt(2, modOid);
                     updatePhen.executeUpdate();
                 } else {
                     phenRef = newPhen;
                 }
-                if (replacingObs.extendStartTime != null) {
-                    updateBegin.setTimestamp(1, replacingObs.extendStartTime);
-                    updateBegin.setInt(2, replacingObs.id);
+
+                //update observation bounds
+                if (begin != null) {
+                    updateBegin.setTimestamp(1, begin);
+                    updateBegin.setInt(2, modOid);
                     updateBegin.executeUpdate();
                 }
-                if (replacingObs.extendEndTime != null) {
-                    updateEnd.setTimestamp(1, replacingObs.extendEndTime);
-                    updateEnd.setInt(2, replacingObs.id);
+                if (end != null) {
+                    updateEnd.setTimestamp(1, end);
+                    updateEnd.setInt(2, modOid);
                     updateEnd.executeUpdate();
                 }
-
-            /*
-             * update multiple existing observation
-             */
-            } else {
-                final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
-
-                // we need to merge all the conflicted observation in one
-                ObservationRef firstObs = conflictedObservations.get(0);
-
-                //we cannot merge observations with different foi.
-                for (int i = 1; i < conflictedObservations.size(); i++) {
-                    ObservationRef obs = conflictedObservations.get(i);
-                    if (!Objects.equals(obs.foiId, firstObs.foiId)) {
-                        throw new DataStoreException("The observation is in temporal conflict with multiple observations. Multiple feature of interest are involved. Unable to perform the insertion");
-                    }
-                }
-
-                for (int i = 1; i < conflictedObservations.size(); i++) {
-
-                    //writeResult(i, pi, result, c, isPostgres);
-                }
-                throw new DataStoreException("The observation is in temporal conflict with multiple observations. Not handled yet");
             }
             
             String parent = getProcedureParent(procedureID, c);
@@ -1119,7 +1160,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                         // case 1.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
                         if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
-                            removeObservation(cdt.identifier, cdt.pi, c);
+                            removeObservation(cdt.id, cdt.pi, c);
                             
                             // remove procedure if needed
                             boolean removed = removeProcedureIfEmpty(cdt.pi, c);
@@ -1431,6 +1472,34 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     /**
+     * Remove an observation with the specified identifier.
+     * this will remove all its measures.
+     *
+     * @param oid Observation identifier.
+     * @param c A SQL connection.
+     */
+    private synchronized void removeObservation(final int oid, final ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
+
+        // remove from measure tables
+        for (int i = 0; i < pi.nbTable; i++) {
+            String suffix = pi.pid + "";
+            if (i > 0) {
+                suffix = suffix + "_" + (i + 1);
+            }
+            try (final PreparedStatement stmtMes = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + suffix + "\" WHERE \"id_observation\" = ?")){//NOSONAR
+                stmtMes.setInt(1, oid);
+                stmtMes.executeUpdate();
+            }
+        }
+
+        // remove from observation table
+        try(final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"id\"=?")) {//NOSONAR
+            stmtObs.setInt(1, oid);
+            stmtObs.executeUpdate();
+        }
+    }
+
+    /**
      * Remove a procedure if it has no more observation linked to it.
      *
      * @param procedureId procedure identifier.
@@ -1457,7 +1526,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private boolean removeObservationIfEmpty(ObservationInfos obsInfo, Connection c) throws SQLException, DataStoreException {
         boolean removeObs = getNbMeasureForObservation(obsInfo.pi.pid, obsInfo.id, c) == 0;
         if (removeObs) {
-            removeObservation(obsInfo.identifier, obsInfo.pi, c);
+            removeObservation(obsInfo.id, obsInfo.pi, c);
         }
         return removeObs;
     }

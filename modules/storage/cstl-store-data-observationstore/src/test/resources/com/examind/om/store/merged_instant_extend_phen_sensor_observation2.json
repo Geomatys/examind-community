@@ -1,0 +1,115 @@
+{
+    "id": "obs-890",
+    "name": "urn:ogc:object:observation:GEOM:890",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor",
+        "name": "Sensor extended",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "obs-890-time",
+        "beginning": {
+            "id": "obs-890-st-time",
+            "date": "1980-03-01T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "obs-890-en-time",
+            "date": "1980-03-04T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "prop2": "value2",
+            "prop1": "value1"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "composite4d27fe55-28a3-4d17-9ff4-b9ce47c96583",
+        "name": "urn:ogc:def:phenomenon:GEOM:composite4d27fe55-28a3-4d17-9ff4-b9ce47c96583",
+        "properties": {},
+        "definition": "urn:ogc:def:phenomenon:GEOM:composite4d27fe55-28a3-4d17-9ff4-b9ce47c96583",
+        "component": [{
+                "id": "salinity-EXT",
+                "name": "salinity",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:salinity-EXT"
+            }, {
+                "id": "temperature-EXT",
+                "name": "temperature",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature-EXT"
+            }, {
+                "id": "depth-EXT",
+                "name": "depth",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth-EXT"
+            }, {
+                "id": "turbidity-EXT",
+                "name": "turbidity",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:turbidity-EXT"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "label": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "salinity-EXT",
+                "label": "salinity-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:salinity-EXT",
+                "uom": "psu",
+                "qualityFields": []
+            }, {
+                "index": 3,
+                "type": "QUANTITY",
+                "name": "temperature-EXT",
+                "label": "temperature-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature-EXT",
+                "uom": "°C",
+                "qualityFields": []
+            }, {
+                "index": 4,
+                "type": "QUANTITY",
+                "name": "depth-EXT",
+                "label": "depth-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth-EXT",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 5,
+                "type": "QUANTITY",
+                "name": "turbidity-EXT",
+                "label": "turbidity-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:turbidity-EXT",
+                "uom": "m3/s",
+                "qualityFields": []
+            }],
+        "nbValues": 4,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "1980-03-01T21:52:00.0,,,,112.1@@1980-03-02T21:52:00.0,6.57,22.1,,@@1980-03-03T21:52:00.0,6.57,,123.9,@@1980-03-04T21:52:00.0,,,,113.4@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

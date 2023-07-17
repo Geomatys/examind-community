@@ -1,0 +1,87 @@
+{
+    "id": "obs-901",
+    "name": "urn:ogc:object:observation:GEOM:901",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:intersect_sensor",
+        "name": "Sensor extended",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "obs-901-time",
+        "beginning": {
+            "id": "obs-901-st-time",
+            "date": "1980-03-03T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "obs-901-en-time",
+            "date": "1980-03-04T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "prop2": "value2",
+            "prop1": "value1"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+     "observedProperty": {
+        "id": "depth-temp-TEXT",
+        "name": "depth-temp-EXT",
+        "properties": {},
+        "definition": "depth-temp-TEXT",
+        "component": [{
+                "id": "depth-TEXT",
+                "name": "depth-TEXT",
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth-TEXT"
+            }, {
+                "id": "temperature-TEXT",
+                "name": "temperature-TEXT",
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature-TEXT"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "label": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "TEXT",
+                "name": "depth-TEXT",
+                "label": "depth-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth-TEXT",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 3,
+                "type": "TEXT",
+                "name": "temperature-TEXT",
+                "label": "temperature-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature-TEXT",
+                "uom": "°C",
+                "qualityFields": []
+            }],
+        "nbValues": 2,
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        },
+        "values": "1980-03-03T21:52:00.0,depth-3,temp-3@@1980-03-04T21:52:00.0,depth-4,temp-4@@"
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

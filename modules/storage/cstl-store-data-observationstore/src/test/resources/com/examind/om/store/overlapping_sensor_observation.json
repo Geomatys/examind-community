@@ -1,12 +1,12 @@
 {
-    "id": "obs-1001",
-    "name": "urn:ogc:object:observation:GEOM:1001",
+    "id": "obs-1101",
+    "name": "urn:ogc:object:observation:GEOM:1101",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:overlapping_sensor",
         "name": "Sensor extended"
     },
     "samplingTime": {
-        "id": "time-1001",
+        "id": "time-1101",
         "beginning": {
             "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
             "date": "1980-03-01T21:52:00.0Z"

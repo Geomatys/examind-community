@@ -1,12 +1,12 @@
 {
-    "id": "obs-562",
-    "name": "urn:ogc:object:observation:GEOM:562",
+    "id": "obs-560",
+    "name": "urn:ogc:object:observation:GEOM:560",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:instant_extend_sensor",
         "name": "Sensor extended"
     },
     "samplingTime": {
-        "id": "time-562",
+        "id": "time-560",
         "beginning": {
             "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
             "date": "1980-03-01T21:52:00.0Z"

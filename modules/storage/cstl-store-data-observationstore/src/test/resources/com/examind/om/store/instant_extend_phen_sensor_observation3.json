@@ -1,15 +1,15 @@
 {
-    "id": "obs-1104",
-    "name": "urn:ogc:object:observation:GEOM:1104",
+    "id": "obs-892",
+    "name": "urn:ogc:object:observation:GEOM:892",
     "procedure": {
-        "id": "urn:ogc:object:sensor:GEOM:overlapping_sensor",
+        "id": "urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor",
         "name": "Sensor extended"
     },
     "samplingTime": {
-        "id": "time-1104",
+        "id": "time-892",
         "beginning": {
             "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
-            "date": "1980-03-03T21:52:00.0Z"
+            "date": "1980-03-01T21:52:00.0Z"
         },
         "ending": {
             "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
@@ -31,19 +31,9 @@
         }
     },
     "observedProperty": {
-        "id": "sali-temp-EXT",
-        "name": "sali-temp-EXT",
-        "properties": {},
-        "definition": "sali-temp-EXT",
-        "component": [{
-                "id": "salinity-EXT",
-                "name": "salinity",
-                "definition": "urn:ogc:def:phenomenon:GEOM:salinity-EXT"
-            }, {
-                "id": "temperature-EXT",
-                "name": "temperature",
-                "definition": "urn:ogc:def:phenomenon:GEOM:temperature-EXT"
-            }]
+        "id": "turbidity-EXT",
+        "name": "turbidity",
+        "definition": "urn:ogc:def:phenomenon:GEOM:turbidity-EXT"
     },
     "result": {
         "fields": [{
@@ -55,15 +45,9 @@
             }, {
                 "index": 2,
                 "type": "QUANTITY",
-                "name": "salinity-EXT",
-                "description": "urn:ogc:def:phenomenon:GEOM:salinity-EXT",
-                "uom": "psu"
-            }, {
-                "index": 3,
-                "type": "QUANTITY",
-                "name": "temperature-EXT",
-                "description": "urn:ogc:def:phenomenon:GEOM:temperature-EXT",
-                "uom": "°C"
+                "name": "turbidity-EXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:turbidity-EXT",
+                "uom": "m3/s"
             }],
         "nbValues": 2,
         "textEncodingProperties": {
@@ -71,7 +55,7 @@
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "1980-03-03T21:52:00.0,6.58,23.1@@1980-03-04T21:52:00.0,6.59,22.3@@"
+        "values": "1980-03-01T21:52:00.0,112.1@@1980-03-04T21:52:00.0,113.4@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {

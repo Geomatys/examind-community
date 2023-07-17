@@ -34,6 +34,7 @@ import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.observation.json.ObservationJsonUtils;
 import org.constellation.util.Util;
 import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Observation;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
@@ -42,7 +43,6 @@ import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.Filter;
@@ -560,7 +560,7 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
      * 
      * @throws Exception
      */
-    @Ignore
+    @Test
     public void writeOverlappingObservationTest() throws Exception {
 
         Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/overlapping_sensor_observation.json"),   Observation.class);
@@ -598,7 +598,7 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
         assertTrue(results.get(0) instanceof Observation);
         result   = (Observation) results.get(0);
 
-        expected  = third; // totally overwrite, TODO add a new value in obs 1 or 2 to be sure of the update.
+        expected  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_overlapping_sensor_observation2.json"),   Observation.class);
 
         assertEqualsObservation(expected, result);
     }
@@ -629,12 +629,7 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
 
     }
 
-    /**
-     * TODO not handled yet.
-     *
-     * @throws Exception
-     */
-    @Ignore
+    @Test
     public void writeOverlappingInstantObservationTest() throws Exception {
 
         Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_sensor_observation.json"),   Observation.class);
@@ -658,6 +653,179 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
         assertTrue(results.get(0) instanceof Observation);
         Observation result   = (Observation) results.get(0);
 
+        assertEqualsObservation(expected, result);
+
+    }
+
+    @Test
+    public void writeOverlappingInstantPhenChangeObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_phen_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_phen_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_instant_extend_phen_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        // verify the computed phenomenon with the 3 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        CompositePhenomenon phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        assertEquals("computed-phen-urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor", phenResult.getId());
+        assertEquals(3, phenResult.getComponent().size());
+        
+        assertEqualsObservation(expected, result);
+
+        Observation third = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/instant_extend_phen_sensor_observation3.json"),   Observation.class);
+        omPr.writeObservation(third);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+        expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_instant_extend_phen_sensor_observation2.json"),   Observation.class);
+
+        // verify the generated phenomenon with the 4 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        // override expected obs property id/name/definition as it is generated
+        expected.getObservedProperty().setId(phenResult.getId());
+        expected.getObservedProperty().setName(phenResult.getName());
+        expected.getObservedProperty().setDefinition(phenResult.getDefinition());
+
+        assertEquals(4, phenResult.getComponent().size());
+        assertEqualsObservation(expected, result);
+
+    }
+
+    @Test
+    public void writeIntersectingInstantPhenChangeObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/intersect_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/intersect_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_intersect_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:intersect_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        // verify the computed phenomenon with the 3 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        CompositePhenomenon phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        assertEquals("computed-phen-urn:ogc:object:sensor:GEOM:intersect_sensor", phenResult.getId());
+        assertEquals(3, phenResult.getComponent().size());
+
+        assertEqualsObservation(expected, result);
+
+        Observation third = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/intersect_sensor_observation3.json"),   Observation.class);
+        omPr.writeObservation(third);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:intersect_sensor"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+        expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_intersect_sensor_observation2.json"),   Observation.class);
+
+        // verify the computed phenomenon with the 4 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        // override expected obs property id/name/definition as it is generated
+        expected.getObservedProperty().setId(phenResult.getId());
+        expected.getObservedProperty().setName(phenResult.getName());
+        expected.getObservedProperty().setDefinition(phenResult.getDefinition());
+
+        assertEquals(4, phenResult.getComponent().size());
+        assertEqualsObservation(expected, result);
+    }
+
+    @Test
+    public void writeExtend2ObservationTest() throws Exception {
+
+        Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/extend2_sensor_observation.json"),   Observation.class);
+        Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/extend2_sensor_observation2.json"),   Observation.class);
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_extend2_sensor_observation.json"),   Observation.class);
+
+        omPr.writeObservation(first);
+        omPr.writeObservation(second);
+
+        /*
+        * get the full merged observation
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:extend2_sensor"));
+        query.setSelection(filter);
+        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        // verify the computed phenomenon with the 2 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        CompositePhenomenon phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        assertEquals("computed-phen-urn:ogc:object:sensor:GEOM:extend2_sensor", phenResult.getId());
+        assertEquals(2, phenResult.getComponent().size());
+
+        assertEqualsObservation(expected, result);
+
+        Observation third = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/extend2_sensor_observation3.json"),   Observation.class);
+        omPr.writeObservation(third);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:extend2_sensor"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+        expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_extend2_sensor_observation2.json"),   Observation.class);
+
+        // verify the computed phenomenon with the 2 components
+        assertTrue(result.getObservedProperty() instanceof CompositePhenomenon);
+        phenResult = (CompositePhenomenon) result.getObservedProperty();
+
+        // override expected obs property id/name/definition as it is generated
+        expected.getObservedProperty().setId(phenResult.getId());
+        expected.getObservedProperty().setName(phenResult.getName());
+        expected.getObservedProperty().setDefinition(phenResult.getDefinition());
+
+        assertEquals(2, phenResult.getComponent().size());
         assertEqualsObservation(expected, result);
 
     }

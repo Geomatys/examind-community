@@ -1,12 +1,12 @@
 {
-    "id": "obs-1005",
-    "name": "urn:ogc:object:observation:GEOM:1005",
+    "id": "obs-1105",
+    "name": "urn:ogc:object:observation:GEOM:1105",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:overlapping_sensor",
         "name": "Sensor extended"
     },
     "samplingTime": {
-        "id": "time-1001",
+        "id": "time-1105",
         "beginning": {
             "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
             "date": "1980-03-01T01:52:00.0Z"
@@ -71,7 +71,7 @@
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "1980-03-01T01:52:00.0,6.55,20.0@@1980-03-01T21:52:00.0,6.56,23.3@@1980-03-02T21:52:00.0,6.57,22.1@@1980-03-03T21:52:00.0,6.58,23.1@@1980-03-04T21:52:00.0,6.59,22.3@@1980-03-05T21:52:00.0,7.O,25.5@@"
+        "values": "1980-03-01T01:52:00.0,6.55,20.0@@1980-03-01T21:52:00.0,6.56,23.3@@1980-03-02T21:52:00.0,6.57,22.1@@1980-03-03T21:52:00.0,6.58,23.1@@1980-03-04T21:52:00.0,6.59,22.3@@1980-03-05T21:52:00.0,7.0,25.5@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {
