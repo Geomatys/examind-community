@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2ObservationWriter.ObservationInfos;
 import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.TextEncoderProperties;
@@ -47,14 +46,12 @@ import org.opengis.temporal.Period;
 public class OM2MeasureRemover extends OM2MeasureHandler {
 
     private final ObservationInfos obsInfo;
-    private final Field mainField;
 
     // calculated
     private final Collection<String> deleteRequests;
 
-    public OM2MeasureRemover(ObservationInfos obsInfo, Field mainField, String schemaPrefix) {
+    public OM2MeasureRemover(ObservationInfos obsInfo, String schemaPrefix) {
         super(obsInfo.pi, schemaPrefix);
-        this.mainField = mainField;
         this.obsInfo = obsInfo;
         this.deleteRequests = buildDeleteRequests();
     }
@@ -66,15 +63,16 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
      * @throws DataStoreException If a field contains forbidden characters.
      */
     private List<String> buildDeleteRequests() {
+        final String mainFieldName = pi.mainField.name;
         List<String> results = new ArrayList<>();
         for (int i = 0 ; i < pi.nbTable; i++) {
             final String sql;
             if (i > 1) {
-                String suffix = "_" + (i + 1);;
+                String suffix = "_" + (i + 1);
                 sql = "DELETE FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" WHERE  \"id\" = " +
-                      "(SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"" + mainField.name + "\" = ? AND \"id_observation\" = " + obsInfo.id + ")";
+                      "(SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"" + mainFieldName + "\" = ? AND \"id_observation\" = " + obsInfo.id + ")";
             } else {
-                sql = "DELETE FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE  \"" + mainField.name + "\" = ? AND \"id_observation\" = " + obsInfo.id + "";
+                sql = "DELETE FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE  \"" + mainFieldName + "\" = ? AND \"id_observation\" = " + obsInfo.id + "";
             }
             
             results.add(sql);

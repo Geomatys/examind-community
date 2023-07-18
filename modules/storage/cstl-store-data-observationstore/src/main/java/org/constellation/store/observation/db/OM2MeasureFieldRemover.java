@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.constellation.store.observation.db.OM2ObservationWriter.ObservationInfos;
 import org.constellation.util.Util;
 

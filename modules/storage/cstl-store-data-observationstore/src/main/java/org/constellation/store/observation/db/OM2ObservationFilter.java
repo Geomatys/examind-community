@@ -97,6 +97,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected boolean firstFilter = true;
 
+    // flag set to true if there is measure filter
+    // (but time filter is not counted has one, because time filter can be used on observatio,n)
+    protected boolean hasMeasureFilter = false;
+
     protected QName resultModel;
 
     protected boolean offJoin      = false;
@@ -242,9 +246,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             currentProcedure = getPIDFromProcedure(query.getProcedure(), c).orElse(null);
             if (currentProcedure == null) throw new DataStoreException("Unexisting procedure:" + query.getProcedure());
 
-            Field mainField = getMainField(currentProcedure.procedureId, c);
-
-            sqlRequest = buildMesureRequests(currentProcedure, mainField, null, null, true, false, false);
+            sqlRequest = buildMesureRequests(currentProcedure, null, null, true, false, false);
             sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure.procedureId).append(" ");
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
@@ -898,6 +900,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } else {
             sqlMeasureRequest.append(" ${allphen").append(operator).appendNamedObjectValue("allphen", value.getValue()).append("} ");
         }
+        hasMeasureFilter = true;
     }
 
     @Override
@@ -1021,16 +1024,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      *
      * @return a filtered measure request.
      */
-    protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, Field mainField, List<Field> fields, ProcedureInfo pti) {
+    protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, List<Field> fields, ProcedureInfo pti) {
         // some time filter may have already been set in the measure request
         MultiFilterSQLRequest result = new MultiFilterSQLRequest();
         for (int k = 1; k < pti.nbTable + 1; k++) {
             FilterSQLRequest single = sqlMeasureRequest.clone();
             // $time will be present only for timeseries
             if ("timeseries".equals(pti.type) || "timeserie".equals(pti.type)) {
-                single.replaceAll("$time", mainField.name);
+                single.replaceAll("$time", pti.mainField.name);
             }
-            single.replaceAll("$time", mainField.name);
 
            /**
             * there is an issue here in a measurement context.
@@ -1158,12 +1160,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
                     final List<Field> fields      = readFields(procedure, true, c);
-                    final Field mainField         = getMainField(procedure, c);
                     final ProcedureInfo pti       = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
-                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, mainField, fields, pti);
-                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, mainField, measureFilter, oid, false, true, idOnly);
+                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
+                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, measureFilter, oid, false, true, idOnly);
                     LOGGER.fine(mesureRequest.toString());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -1596,14 +1597,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
         }
         return request;
-    }
-
-    protected Field getMainField(final String procedure) throws DataStoreException {
-        try(final Connection c = source.getConnection()) {
-            return getMainField(procedure, c);
-        } catch (SQLException ex) {
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
-        }
     }
 
     public boolean existProcedure(String procedure) {

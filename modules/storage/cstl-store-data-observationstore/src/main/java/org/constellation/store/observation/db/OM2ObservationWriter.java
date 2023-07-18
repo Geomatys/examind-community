@@ -674,7 +674,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         for (ProcedureDataset child : procedure.children) {
             writeProcedure(child, procedure.getId(), c);
         }
-        return new ProcedureInfo(pid, nbTable, procedure.getId(), procedure.omType);
+        // we don't fill the mainField at this point
+        return new ProcedureInfo(pid, nbTable, procedure.getId(), procedure.omType, null);
     }
 
     private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException, DataStoreException, FactoryException {
@@ -1176,8 +1177,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             
                             int nbRemoved = removeEmptyMeasures(cdt, c);
                             if (nbRemoved > 0) {
-                                final Field mainField = getMainField(cdt.pi.procedureId, c);
-                                updateObservationTemporalBounds(cdt, mainField, c);
+                                updateObservationTemporalBounds(cdt, c);
                             }
                             updateObservationPhenomenon(cdt, fieldsToRemove, c);
                         } else {
@@ -1187,16 +1187,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     // case 2: the time span is intersecting
                     } else if (timeEquals || isTimeIntersect(pos)) {
 
-                        final Field mainField = getMainField(cdt.pi.procedureId, c);
-
                         // case 2.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
                         // so we remove all the measure line that match the main field
                         if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
-                            OM2MeasureRemover remover = new OM2MeasureRemover(cdt, mainField, schemaPrefix);
+                            OM2MeasureRemover remover = new OM2MeasureRemover(cdt, schemaPrefix);
                             remover.removeMeasures(c, obs);
                             boolean rmo = removeObservationIfEmpty(cdt, c);
                             if (!rmo) {
-                                updateObservationTemporalBounds(cdt, mainField, c);
+                                updateObservationTemporalBounds(cdt, c);
                                 List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
                                 if (!emptyFields.isEmpty()) {
                                     updateObservationPhenomenon(cdt, emptyFields, c);
@@ -1210,11 +1208,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
                             final List<Field> fields                 = getMeasureFields(obs);
                             final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
-                            OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, mainField, schemaPrefix, fieldsToRemove);
+                            OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, fieldsToRemove);
                             remover.removeMeasures(c, obs);
 
                             removeEmptyMeasures(cdt, c);
-                            updateObservationTemporalBounds(cdt, mainField, c);
+                            updateObservationTemporalBounds(cdt, c);
 
                             // the phenomenon may be updated if some fields are now empty
                             List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
@@ -1535,11 +1533,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * Update the temporal bound of a timeseries observation by looking for the min/max value of the main (Time) field.
      *
      * @param obsInfo Informations about the observation that need to be updated.
-     * @param mainField Main field for the observation.
      * @param c A SQL connection.
      */
-    private void updateObservationTemporalBounds(ObservationInfos obsInfo, Field mainField, Connection c) throws SQLException, DataStoreException {
+    private void updateObservationTemporalBounds(ObservationInfos obsInfo, Connection c) throws SQLException, DataStoreException {
         // only for timeseries
+        Field mainField = obsInfo.pi.mainField;
         if (mainField.type.equals(FieldType.TIME)) {
             String boundSQL  = "SELECT min(\"" + mainField.name + "\"), max(\"" + mainField.name + "\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + obsInfo.pi.pid + "\" WHERE \"id_observation\" = ?" ;
             String updateObs = "UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_begin\"=?, \"time_end\"=? WHERE \"id\"=?";

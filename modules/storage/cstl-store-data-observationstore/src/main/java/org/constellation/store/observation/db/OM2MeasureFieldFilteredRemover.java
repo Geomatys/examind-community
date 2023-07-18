@@ -34,7 +34,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2ObservationWriter.ObservationInfos;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.TextEncoderProperties;
@@ -53,17 +52,14 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
 
     private final ObservationInfos obsInfo;
 
-    private final Field mainField;
-
     private final List<InsertDbField> fields;
     
      // calculated
     private final Collection<String> emptyFieldRequests;
 
-    public OM2MeasureFieldFilteredRemover(ObservationInfos obsInfo, Field mainField, String schemaPrefix, final List<InsertDbField> fields) throws DataStoreException {
+    public OM2MeasureFieldFilteredRemover(ObservationInfos obsInfo, String schemaPrefix, final List<InsertDbField> fields) throws DataStoreException {
         super(obsInfo.pi, schemaPrefix);
         this.obsInfo = obsInfo;
-        this.mainField = mainField;
         this.fields = fields;
         this.emptyFieldRequests = buildEmptyRequests();
     }
@@ -91,6 +87,7 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
             sql.append('"').append(field.name).append("\" = NULL ,");
         }
 
+        final String mainFieldName = pi.mainField.name;
         Map<Integer, String> results = new HashMap<>();
         for (Map.Entry<Integer, StringBuilder> builder : builders.entrySet()) {
             int tableNum      = builder.getKey();
@@ -98,9 +95,9 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
             sql.deleteCharAt(sql.length() - 1);
 
             if (tableNum > 1) {
-                sql.append(" WHERE  \"id\" = (SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"" + mainField.name + "\" = ? )");
+                sql.append(" WHERE  \"id\" = (SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE \"" + mainFieldName + "\" = ? )");
             } else {
-                sql.append(" WHERE  \"" + mainField.name + "\" = ?");
+                sql.append(" WHERE  \"" + mainFieldName + "\" = ?");
             }
 
             results.put(builder.getKey(), sql.toString());

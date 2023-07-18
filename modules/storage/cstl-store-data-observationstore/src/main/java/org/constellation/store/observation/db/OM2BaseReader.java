@@ -300,13 +300,21 @@ public class OM2BaseReader {
         }
     }
 
-    protected Phenomenon getPhenomenon(final String observedProperty, final Connection c) throws DataStoreException {
+    protected Phenomenon getPhenomenonSafe(String identifier, final Connection c) throws RuntimeException {
+        try {
+            return getPhenomenon(identifier, c);
+        } catch (DataStoreException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    protected Phenomenon getPhenomenon(final String identifier, final Connection c) throws DataStoreException {
         final String id;
         // cleanup phenomenon id because of its XML ype (NCName)
-        if (observedProperty.startsWith(phenomenonIdBase)) {
-            id = observedProperty.substring(phenomenonIdBase.length()).replace(':', '-');
+        if (identifier.startsWith(phenomenonIdBase)) {
+            id = identifier.substring(phenomenonIdBase.length()).replace(':', '-');
         } else {
-            id = observedProperty.replace(':', '-');
+            id = identifier.replace(':', '-');
         }
         if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
             return cachedPhenomenon.get(id);
@@ -314,14 +322,14 @@ public class OM2BaseReader {
         try {
             // look for composite phenomenon
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
-                stmt.setString(1, observedProperty);
+                stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     final List<Phenomenon> phenomenons = new ArrayList<>();
                     while (rs.next()) {
                         final String phenID = rs.getString(1);
                         phenomenons.add(getSinglePhenomenon(phenID, c));
                     }
-                    Phenomenon base = getSinglePhenomenon(observedProperty, c);
+                    Phenomenon base = getSinglePhenomenon(identifier, c);
                     Phenomenon result = null;
                     if (base != null) {
                         if (phenomenons.isEmpty()) {
@@ -700,12 +708,14 @@ public class OM2BaseReader {
         public final int nbTable;
         public final String procedureId;
         public final String type;
+        public final Field mainField;
 
-        public ProcedureInfo(int pid, int nbTable, String procedureId, String type) {
+        public ProcedureInfo(int pid, int nbTable, String procedureId, String type, Field mainField) {
             this.pid = pid;
             this.nbTable = nbTable;
             this.procedureId = procedureId;
             this.type = type;
+            this.mainField = mainField;
         }
     }
 
@@ -724,7 +734,9 @@ public class OM2BaseReader {
             stmt.setString(1, obsIdentifier);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4)));
+                    final String procedureId = rs.getString(3);
+                    final Field mainField = getMainField(procedureId, c);
+                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(4), mainField));
                 }
                 return Optional.empty();
             }
@@ -746,7 +758,9 @@ public class OM2BaseReader {
             stmt.setInt(1, oid);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                   return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4)));
+                   final String procedureId = rs.getString(3);
+                   final Field mainField = getMainField(procedureId, c);
+                   return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(4), mainField));
                 }
                 return Optional.empty();
             }
@@ -754,19 +768,20 @@ public class OM2BaseReader {
     }
 
     /**
-     * Return  the information about the procedure: PID (internal int procedure identifier) and the number of measure table associated for the specified procedure.
+     * Return  the information about the procedureId: PID (internal int procedureId identifier) and the number of measure table associated for the specified procedureId.
      *
-     * @param procedure Procedure identifier.
+     * @param procedureId Procedure identifier.
      * @param c A SQL connection.
      *
-     * @return Information about the procedure such as PID and number of measure table.
+     * @return Information about the procedureId such as PID and number of measure table.
      */
-    protected Optional<ProcedureInfo> getPIDFromProcedure(final String procedure, final Connection c) throws SQLException {
+    protected Optional<ProcedureInfo> getPIDFromProcedure(final String procedureId, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
-            stmt.setString(1, procedure);
+            stmt.setString(1, procedureId);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedure, rs.getString(3)));
+                    final Field mainField = getMainField(procedureId, c);
+                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(3), mainField));
                 }
                 return Optional.empty();
             }
@@ -815,6 +830,18 @@ public class OM2BaseReader {
             }
         }
         throw new IllegalStateException("Unexpected no results");
+    }
+
+    protected String getProcedureOMType(final String procedure, final Connection c) throws SQLException {
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+            stmt.setString(1, procedure);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString(1);
+                }
+                return null;
+            }
+        }
     }
     
     public Procedure getProcess(String id, final Connection c) throws SQLException {
@@ -914,7 +941,6 @@ public class OM2BaseReader {
     private ComplexResult buildComplexResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
         final List<Field> fields    = readFields(ti.procedureId, false, c);
-        final Field mainField       = fields.get(0); // main is always first
         int nbValue                 = 0;
         final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 
@@ -923,7 +949,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
 
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, mainField, measureFilter,  oid, false, true, false);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, measureFilter,  oid, false, true, false);
 
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
         try (SQLResult rs = queries.execute(c)) {
@@ -984,7 +1010,6 @@ public class OM2BaseReader {
      * so we build a select request for eache measure table, join with the main field of the primary table.
      *
      * @param pti Informations abut the measure tables.
-     * @param mainField Main field of the procedure.
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
@@ -993,7 +1018,7 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, Field mainField, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
         final boolean profile = "profile".equals(pti.type);
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         for (int i = 0; i < pti.nbTable; i++) {
@@ -1005,7 +1030,7 @@ public class OM2BaseReader {
                 if (idOnly) {
                     select = "m2.\"id\"";
                 } else {
-                    select = "m2.*, m.\"" + mainField.name + "\"";
+                    select = "m2.*, m.\"" + pti.mainField.name + "\"";
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ").append(select);
                 measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
@@ -1045,7 +1070,7 @@ public class OM2BaseReader {
                 measureRequest.append(measureFilter, !profile);
             }
             if (addOrderBy) {
-                measureRequest.append(" ORDER BY ").append("m.\"" + mainField.name + "\"");
+                measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
             }
             measureRequests.addRequest(measureRequest);
         }

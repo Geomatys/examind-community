@@ -32,13 +32,10 @@ public abstract class ResultDecimator extends ResultProcessor {
 
     protected List<Integer> fieldFilters;
 
-    protected final ProcedureInfo procedure;
-    
-    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure) {
-        super(fields, "profile".equals(procedure.type), includeId, false, mainField);
+    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure) {
+        super(fields, "profile".equals(procedure.type), includeId, false, procedure);
         this.width = width;
         this.fieldFilters = fieldFilters;
-        this.procedure = procedure;
     }
 
 }

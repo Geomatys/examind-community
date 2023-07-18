@@ -455,13 +455,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 name = observationIdBase + observationID;
             }
 
-            final Field mainField = getMainField(procedure, c);
             Map<String, Object> properties = new HashMap<>();
-            if (mainField.type == FieldType.TIME) {
-                properties.put("type", "timeseries");
-            } else {
-                properties.put("type", "profile");
-            }
+            properties.put("type", getProcedureOMType(procedure, c));
             final Procedure proc = getProcess(procedure, c);
             final Phenomenon resultPhen;
             final Result result;
@@ -471,7 +466,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 if (fieldIndex == null) {
                     throw new DataStoreException("Measurement extraction need a field index specified");
                 }
-                Field selectedField         = getFieldByIndex(procedure, fieldIndex, true, c);
+                Field selectedField = getFieldByIndex(procedure, fieldIndex, true, c);
                 if (phen instanceof CompositePhenomenon) {
                     resultPhen = getPhenomenon(selectedField.name, c);
                 } else {
@@ -483,8 +478,10 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 } else {
                     resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
                     result = getResult(oid, resultModel, measureId, selectedField, c);
+                    final Field mainField = getMainField(procedure, c);
                     if (FieldType.TIME.equals(mainField.type)) {
-                        time = getMeasureTimeForProfile(identifier, mainField, c, measureId);
+                        // TODO TEST ME
+                        time = getMeasureTimeForProfile(identifier, c, measureId);
                     }
                 }
                 omType = getOmTypeFromFieldType(selectedField.type);
@@ -532,14 +529,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
-    private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, Field mainField, final Connection c, int measureId) throws SQLException {
+    private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, final Connection c, int measureId) throws SQLException {
         ProcedureInfo pti = getPIDFromObservation(identifier, c).orElseThrow(IllegalArgumentException::new);
-        FilterSQLRequest query  = buildMesureRequests(pti, mainField, null, null, true, false, false);
+        FilterSQLRequest query  = buildMesureRequests(pti, null, null, true, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = " + measureId + " ");
         try(final SQLResult rs  = query.execute(c)) {
             while (rs.next()) {
-                final Timestamp t = rs.getTimestamp(mainField.name, 0);
+                final Timestamp t = rs.getTimestamp(pti.mainField.name, 0);
                 return buildTime(identifier, t, null);
             }
         }
@@ -554,7 +551,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
         ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
-        FilterSQLRequest query = buildMesureRequests(pti, selectedField, null, null, true, false, false);
+        //FilterSQLRequest query = buildMesureRequests(pti, selectedField, null, null, true, false, false);
+        // TODO TEST ME
+        FilterSQLRequest query = buildMesureRequests(pti, null, null, true, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
@@ -609,13 +608,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             }
             TemporalGeometricPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID);
             List<Field> fields = readFields(procedure, c);
-            final Field mainField = getMainField(procedure, c);
             Map<String, Object> properties = new HashMap<>();
-            if (mainField != null && mainField.type == FieldType.TIME) {
-                properties.put("type", "timeseries");
-            } else {
-                properties.put("type", "profile");
-            }
+            properties.put("type", getProcedureOMType(procedure, c));
             final Procedure proc = (Procedure) getProcess(procedure, c);
             /*
              *  BUILD RESULT

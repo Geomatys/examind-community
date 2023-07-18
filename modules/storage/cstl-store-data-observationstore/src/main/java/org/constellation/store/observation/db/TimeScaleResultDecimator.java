@@ -34,8 +34,8 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public class TimeScaleResultDecimator extends ResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, mainField, procedure);
+    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure) {
+        super(fields, includeId, width, fieldFilters, procedure);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class TimeScaleResultDecimator extends ResultDecimator {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         int cpt = 0;
-        while (rs.nextOnField(mainField.name)) {
+        while (rs.nextOnField(procedure.mainField.name)) {
             values.newBlock();
             for (int i = 0; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);

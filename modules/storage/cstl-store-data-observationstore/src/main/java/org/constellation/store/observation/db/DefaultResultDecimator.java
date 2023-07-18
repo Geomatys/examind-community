@@ -46,8 +46,8 @@ public class DefaultResultDecimator extends ResultDecimator {
 
     private final Map<Object, long[]> times;
 
-    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, Field mainField, ProcedureInfo procedure, final Map<Object, long[]> times) {
-        super(fields, includeId, width, fieldFilters, mainField, procedure);
+    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure, final Map<Object, long[]> times) {
+        super(fields, includeId, width, fieldFilters, procedure);
         this.times = times;
     }
 
@@ -62,7 +62,8 @@ public class DefaultResultDecimator extends ResultDecimator {
         Integer prevObs = null;
         Date t = null;
         AtomicInteger cpt = new AtomicInteger();
-        while (rs.nextOnField(mainField.name)) {
+        String mainFieldName = procedure.mainField.name;
+        while (rs.nextOnField(mainFieldName)) {
             Integer currentObs;
             if (profile) {
                 currentObs = rs.getInt("oid", 0);
@@ -81,7 +82,7 @@ public class DefaultResultDecimator extends ResultDecimator {
             }
             prevObs = currentObs;
 
-            final long currentMainValue = extractMainValue(mainField, rs.getString(mainField.name, 0));
+            final long currentMainValue = extractMainValue(procedure.mainField, rs.getString(mainFieldName, 0));
             if (currentMainValue > (start + step)) {
                 appendValue(t, cpt, mapValues);
 

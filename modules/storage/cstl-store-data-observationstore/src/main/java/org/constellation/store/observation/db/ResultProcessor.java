@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
@@ -42,16 +43,16 @@ public class ResultProcessor {
     protected final boolean profile;
     protected final boolean includeId;
     protected final boolean includeQuality;
-    protected final Field mainField;
+    protected final ProcedureInfo procedure;
     protected final int mainFieldIndex;
 
-    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality, Field mainField) {
+    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality, ProcedureInfo procedure) {
         this.fields = fields;
         this.profile = profile;
         this.includeId = includeId;
         this.includeQuality = includeQuality;
-        this.mainField = mainField;
-        this.mainFieldIndex = fields.indexOf(mainField);
+        this.procedure = procedure;
+        this.mainFieldIndex = fields.indexOf(procedure.mainField);
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
@@ -74,7 +75,7 @@ public class ResultProcessor {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null);
-        while (rs.nextOnField(mainField.name)) {
+        while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString("identifier", 0);
                 parser.setName(name);
