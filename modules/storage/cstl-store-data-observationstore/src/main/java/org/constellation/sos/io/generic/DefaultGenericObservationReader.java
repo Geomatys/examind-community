@@ -525,7 +525,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             if (resultModel.equals(OBSERVATION_QNAME)) {
                 type = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
             } else {
-                // TODO here we don't handle specific result type, but the getResult actually return ony measure.
+                // TODO here we don't handle specific result type, but the getResult actually return only measure.
                 type = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
             }
             final Procedure procedure = new Procedure(proc);

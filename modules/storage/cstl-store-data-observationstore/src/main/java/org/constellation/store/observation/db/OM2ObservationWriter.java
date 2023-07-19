@@ -375,7 +375,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         boolean phenChange = !obs.phenomenonId.equals(newPhen);
                         if (phenChange) replacePhen = true;
                         if (i >= 1) {
-                            Result result = getResult(obs.id, OBSERVATION_QNAME, null, null, c);
+                            Result result = getResult(pi, obs.id, OBSERVATION_QNAME, null, null, c);
                             writeResult(modOid, pi, result, c, true);
 
                             removeObservation(obs.id, pi, c);

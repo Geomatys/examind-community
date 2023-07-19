@@ -555,11 +555,6 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
     }
 
 
-    /**
-     * TODO not handled yet.
-     * 
-     * @throws Exception
-     */
     @Test
     public void writeOverlappingObservationTest() throws Exception {
 

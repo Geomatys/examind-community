@@ -58,8 +58,6 @@ public interface FilterSQLRequest {
 
     String getRequest();
 
-    void setParamValue(int i, Object newValue);
-
     FilterSQLRequest replaceFirst(String text, String replacement);
 
     FilterSQLRequest replaceSelect(String replacement);
@@ -70,19 +68,9 @@ public interface FilterSQLRequest {
 
     FilterSQLRequest deleteLastChar(int nbChar);
 
-    void replaceNamedParam(String paramName, Object newValue);
-
     FilterSQLRequest appendValues(Collection<String> values);
     
     FilterSQLRequest appendValues(Collection<String> values, boolean conditional);
-
-    void removeNamedParam(String paramName);
-
-    void duplicateNamedParam(String paramName, int size);
-
-    boolean contains(String s) ;
-
-    boolean isEmpty();
 
     FilterSQLRequest clone();
 

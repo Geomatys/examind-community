@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.sis.util.ArgumentChecks;
 
 /**
  *
@@ -122,7 +123,6 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return this;
     }
 
-    @Override
     public boolean isEmpty() {
         return this.sqlRequest.length() == 0;
     }
@@ -197,7 +197,6 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return this;
     }
 
-    @Override
     public boolean contains(String s) {
         return this.sqlRequest.toString().contains(s);
     }
@@ -241,51 +240,41 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             return new Param(name, value, Double.class);
         } else if (value instanceof Long) {
             return new Param(name, value, Long.class);
+        } else if (value instanceof Boolean) {
+            return new Param(name, value, Boolean.class);
         } else if (value != null) {
             throw new IllegalArgumentException(value.getClass().getSimpleName() + " is not supported in FilterSQLRequest");
         }
         return null;
     }
 
-    @Override
-    public void setParamValue(int i, Object newValue) {
-        params.get(i).value = newValue;
-    }
-
-    @Override
-    public void replaceNamedParam(String paramName, Object newValue) {
-        int index = getParamIndex(paramName);
-        setParamValue(index, newValue);
-    }
-
-    @Override
-    public void removeNamedParam(String paramName) {
-        int index = getParamIndex(paramName);
+    public void removeNamedParam(Param param) {
+        int index = params.indexOf(param);
+        ArgumentChecks.ensurePositive("Parameter index", index);
         params.remove(index);
     }
 
-    @Override
-    public void duplicateNamedParam(String paramName, int size) {
-        int index = getParamIndex(paramName);
-        Param p   = getParamByName(paramName);
+
+    public void removeNamedParams(String name) {
+        getParamsByName(name).forEach(this::removeNamedParam);
+    }
+
+    public void duplicateNamedParam(Param param, int size) {
+        int index = params.indexOf(param);
         for (int i = 0; i < size; i++) {
-            params.add(index, p);
+            params.add(index, param);
         }
     }
 
-    private int getParamIndex(String name) {
-        Param p = getParamByName(name);
-        return params.indexOf(p);
-    }
-
-    private Param getParamByName(String name) {
+    public List<Param> getParamsByName(String name) {
+        List<Param> results = new ArrayList<>();
         for (int i = 0; i < params.size(); i++) {
             Param p = params.get(i);
             if (name.equals(p.name)) {
-                return p;
+                results.add(p);
             }
         }
-        throw new IllegalArgumentException("No parameter \"" + name + "\" found!");
+        return results;
     }
 
     @Override
@@ -373,6 +362,8 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
                 stmt.setDouble(i, (Double) p.value);
             } else if (p.type == Long.class) {
                 stmt.setLong(i, (Long) p.value);
+            } else if (p.type == Boolean.class) {
+                stmt.setBoolean(i, (Boolean) p.value);
             } else {
                 stmt.setString(i, (String) p.value);
             }
@@ -417,7 +408,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         for (Param p : params) {
             if (p.type == String.class) {
                 s = StringUtils.replaceOnce(s, "?", "'" + p.value.toString() + "'");
-            } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class) {
+            } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class || p.type == Boolean.class) {
                 s = StringUtils.replaceOnce(s, "?", p.value.toString());
             } else if (p.type == Timestamp.class) {
                 s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
@@ -429,7 +420,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             for (Param p : conditionalParams) {
                 if (p.type == String.class) {
                     cs = StringUtils.replaceOnce(cs, "?", "'" + p.value.toString() + "'");
-                } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class) {
+                } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class || p.type == Boolean.class) {
                     cs = StringUtils.replaceOnce(cs, "?", p.value.toString());
                 } else if (p.type == Timestamp.class) {
                     cs = StringUtils.replaceOnce(cs, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
@@ -440,7 +431,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return s;
     }
 
-    private static class Param {
+    public static class Param {
         public String name;
         public Object value;
         public Class type;

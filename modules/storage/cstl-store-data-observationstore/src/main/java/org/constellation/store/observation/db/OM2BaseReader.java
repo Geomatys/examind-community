@@ -630,7 +630,7 @@ public class OM2BaseReader {
         return getFieldByIndex(procedureID, 1, false, c);
     }
 
-    protected Field getFieldByIndex(final String procedureID, final int index, final boolean fetchQualityFields, final Connection c) throws SQLException {
+    protected DbField getFieldByIndex(final String procedureID, final int index, final boolean fetchQualityFields, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=?  AND \"parent\" IS NULL")) {//NOSONAR
             stmt.setString(1, procedureID);
             stmt.setInt(2, index);
@@ -929,8 +929,7 @@ public class OM2BaseReader {
         return -1;
     }
 
-    protected Result getResult(int oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
-        final ProcedureInfo ti      = getPIDFromOID(oid, c).orElseThrow(IllegalArgumentException::new);
+    protected Result getResult(final ProcedureInfo ti, int oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             return buildMeasureResult(ti, oid, measureId, selectedField, c);
         } else {
@@ -949,7 +948,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
 
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, measureFilter,  oid, false, true, false);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, measureFilter,  oid, false, true, false, false);
 
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
         try (SQLResult rs = queries.execute(c)) {
@@ -1018,12 +1017,13 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         for (int i = 0; i < pti.nbTable; i++) {
             String baseTableName = "mesure" + pti.pid;
             final FilterSQLRequest measureRequest;
+            boolean whereSet = false;
             if (i > 0) {
                 String tableName = baseTableName + "_" + (i + 1);
                 String select;
@@ -1032,12 +1032,18 @@ public class OM2BaseReader {
                 } else {
                     select = "m2.*, m.\"" + pti.mainField.name + "\"";
                 }
-                measureRequest = new SingleFilterSQLRequest("SELECT ").append(select);
+                measureRequest = new SingleFilterSQLRequest("SELECT ");
+                if (count) {
+                    measureRequest.append("COUNT(").append(select).append(")");
+                } else {
+                    measureRequest.append(select);
+                }
                 measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
                 if (obsJoin) {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
                 measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+                whereSet = true;
                 if (oid != null) {
                     measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
                 }
@@ -1052,22 +1058,34 @@ public class OM2BaseReader {
                 } else {
                     select = "m.*";
                 }
-                measureRequest = new SingleFilterSQLRequest("SELECT ").append(select).append(" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+                measureRequest = new SingleFilterSQLRequest("SELECT ");
+                if (count) {
+                    measureRequest.append("COUNT(").append(select).append(")");
+                } else {
+                    measureRequest.append(select);
+                }
+                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
                 if (obsJoin) {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
                 if (oid != null) {
                     measureRequest.append(" WHERE m.\"id_observation\" = ").appendValue(oid);
+                    whereSet = true;
                 }
                 if (obsJoin) {
-                    String where = (oid != null) ? " AND " : " WHERE ";
+                    String where = whereSet ? " AND " : " WHERE ";
                     measureRequest.append(where).append(" o.\"id\" = m.\"id_observation\" ");
+                    whereSet = true;
                 }
             }
-            if (measureFilter instanceof MultiFilterSQLRequest mf) {
-                measureRequest.append(mf.getRequest(i), !profile);
-            } else if (measureFilter != null) {
-                measureRequest.append(measureFilter, !profile);
+            if (measureFilter != null) {
+                FilterSQLRequest clone = measureFilter.clone();
+                if (!whereSet) clone.replaceFirst("AND", "WHERE");
+                if (clone instanceof MultiFilterSQLRequest mf) {
+                    measureRequest.append(mf.getRequest(i), !profile);
+                } else {
+                    measureRequest.append(clone, !profile);
+                }
             }
             if (addOrderBy) {
                 measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");

@@ -48,7 +48,6 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
-import static org.geotoolkit.observation.feature.OMFeatureTypes.SENSOR_TN;
 
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.storage.DataStores;

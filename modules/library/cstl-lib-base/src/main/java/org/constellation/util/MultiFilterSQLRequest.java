@@ -148,11 +148,6 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public void setParamValue(int i, Object newValue) {
-        requests.forEach(r -> r.setParamValue(i, newValue));
-    }
-
-    @Override
     public FilterSQLRequest replaceFirst(String text, String replacement) {
         requests.forEach(r -> r.replaceFirst(text, replacement));
         return this;
@@ -180,40 +175,6 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     public FilterSQLRequest deleteLastChar(int nbChar) {
         requests.forEach(r -> r.deleteLastChar(nbChar));
         return this;
-    }
-
-    @Override
-    public void replaceNamedParam(String paramName, Object newValue) {
-        requests.forEach(r -> r.replaceNamedParam(paramName, newValue));
-    }
-
-    @Override
-    public void removeNamedParam(String paramName) {
-        requests.forEach(r -> r.removeNamedParam(paramName));
-    }
-
-    @Override
-    public void duplicateNamedParam(String paramName, int size) {
-        requests.forEach(r -> r.duplicateNamedParam(paramName, size));
-    }
-
-    @Override
-    public boolean contains(String s) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
-    public boolean isEmpty() {
-        boolean first = true;
-        Boolean result = null;
-        for (FilterSQLRequest request : requests) {
-            boolean tmp = request.isEmpty();
-            if (!first && tmp != result) {
-                throw new IllegalStateException("The queries have not the same size. This should not happen");
-            }
-            result = tmp;
-        }
-        return result;
     }
 
     @Override

@@ -71,6 +71,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -3357,6 +3358,193 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     @Test
+    public void getMeasurementTemplateResultFilterTest() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(32, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
+        }
+
+        // get all the sensor templates that have temperature
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        query.setIncludeFoiInTemplate(false);
+
+        Filter filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(7, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
+            org.geotoolkit.observation.model.Observation obs = (org.geotoolkit.observation.model.Observation) p;
+            assertEquals("temperature", obs.getObservedProperty().getId());
+        }
+
+        // get all the sensor templates that have at least ONE temperature value equals to 98.5
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        query.setIncludeFoiInTemplate(false);
+
+        BinaryComparisonOperator eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        BinaryComparisonOperator eqRes = ff.equal(ff.property("result") , ff.literal(98.5));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(2, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        Assert.assertEquals(expectedIds, resultIds);
+
+         // get all the sensor templates that have at least ONE temperature value less or equals to 11.1
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        eqRes = ff.lessOrEqual(ff.property("result") , ff.literal(12.1));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the sensor templates that have at least ONE temperature value between 30.0 and  100.0
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        eqRes = ff.lessOrEqual(ff.property("result") , ff.literal(100.0));
+        BinaryComparisonOperator eqRes2 = ff.greaterOrEqual(ff.property("result") , ff.literal( 30.0));
+        filter = ff.and(Arrays.asList(eqObs, eqRes, eqRes2));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the sensor templates that have at least ONE color value equals to 'blue'
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
+        eqRes = ff.equal(ff.property("result") , ff.literal("blue"));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the sensor templates that have at least ONE color value equals to 'yellow'
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
+        eqRes = ff.equal(ff.property("result") , ff.literal("yellow"));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the sensor templates that have at least ONE color value equals to 'blue'
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("isHot"));
+        eqRes = ff.equal(ff.property("result") , ff.literal(false));
+        filter = ff.and(eqObs, eqRes);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-2");
+        Assert.assertEquals(expectedIds, resultIds);
+
+
+         // get all the sensor templates that have at least ONE field value less or equals to 4.0
+        filter = ff.lessOrEqual(ff.property("result") , ff.literal(4.0));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(5, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+
+        Assert.assertEquals(expectedIds, resultIds);
+    }
+
+    /**
+     * NOT possible yet wait until new geotk version
+     */
+    @Ignore
+    public void getMeasurementTemplateResult2FilterTest() throws Exception {
+
+         // get all the sensor templates that have at least ONE qflag quality field value equals to 'ok'
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        Filter filter = ff.lessOrEqual(ff.property("result.qflag") , ff.literal("ok"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(5, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("TODO");
+
+        Assert.assertEquals(expectedIds, resultIds);
+    }
+
+    @Test
     public void getObservationNamesTest() throws Exception {
         assertNotNull(omPr);
 
@@ -3487,6 +3675,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // 6 because it include the measure of the other phenomenon
         assertEquals(result, 6L);
 
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        BinaryComparisonOperator ge = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(13.0));
+        le = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        filter = ff.and(Arrays.asList(ge, le, eq));
+        query.setSelection(filter);
+        result = omPr.getCount(query);
+
+        // 4 because it include the measure of the other phenomenon
+        assertEquals(result, 4L);
+
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         le = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
@@ -3586,6 +3785,88 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = omPr.getCount(query);
 
         assertEquals(result, 3L);
+    }
+
+    @Test
+    public void getObservationNames3Test() throws Exception {
+
+        // get all the complex observations that have at ALL its field value less or equals to 5.0
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.lessOrEqual(ff.property("result") , ff.literal(5.0));
+        query.setSelection(filter);
+        Collection<String> resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(2, resultIds.size());
+
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:1001-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:2000-1");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the measurement observations that have at ALL (it is an issue) its field value less or equals to 5.0
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        filter = ff.lessOrEqual(ff.property("result") , ff.literal(5.0));
+        query.setSelection(filter);
+        resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:1001-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:2000-2-1");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the complex observations that have at its second field value less or equals to 12.0
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(12.0));
+        query.setSelection(filter);
+        resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:3000-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:3000-5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:801-1");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        // get all the complex observations that have at:
+        // - its second field value less or equals to 12.0
+        // - its first field value less or equals to 7.0
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter le1 = ff.lessOrEqual(ff.property("result[1]") , ff.literal(12.0));
+        Filter le2 = ff.lessOrEqual(ff.property("result[0]") , ff.literal(7.0));
+        filter = ff.and(le1, le2);
+        query.setSelection(filter);
+        resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:3000-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:801-1");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+         // get all the complex observations that have at:
+        // - its third field value less or equals to 12.0
+        // - its first field quality flag value equals to 'fade'
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        le1 = ff.lessOrEqual(ff.property("result[4]") , ff.literal(12.0));
+        le2 = ff.equal(ff.property("result[2].color_qual") , ff.literal("bad"));
+        filter = ff.and(le1, le2);
+        query.setSelection(filter);
+        resultIds = omPr.getIdentifiers(query);
+
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:8003-1");
+
+        Assert.assertEquals(expectedIds, resultIds);
     }
 
     @Test

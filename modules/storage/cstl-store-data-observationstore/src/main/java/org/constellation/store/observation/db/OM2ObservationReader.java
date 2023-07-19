@@ -56,7 +56,6 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Offering;
@@ -456,7 +455,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             }
 
             Map<String, Object> properties = new HashMap<>();
-            properties.put("type", getProcedureOMType(procedure, c));
+            final ProcedureInfo pi = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
+            properties.put("type", pi.type);
             final Procedure proc = getProcess(procedure, c);
             final Phenomenon resultPhen;
             final Result result;
@@ -476,12 +476,10 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     resultQuality = new ArrayList<>();
                     result = new MeasureResult(selectedField, null);
                 } else {
-                    resultQuality = buildResultQuality(identifier, procedure, measureId, selectedField, c);
-                    result = getResult(oid, resultModel, measureId, selectedField, c);
-                    final Field mainField = getMainField(procedure, c);
-                    if (FieldType.TIME.equals(mainField.type)) {
-                        // TODO TEST ME
-                        time = getMeasureTimeForProfile(identifier, c, measureId);
+                    resultQuality = buildResultQuality(pi, identifier, measureId, selectedField, c);
+                    result = getResult(pi, oid, resultModel, measureId, selectedField, c);
+                    if ("timeseries".equals(pi.type)) {
+                        time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId);
                     }
                 }
                 omType = getOmTypeFromFieldType(selectedField.type);
@@ -494,7 +492,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     final List<Field> fields = readFields(procedure, false, c);
                     result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
                 } else {
-                    result = getResult(oid, resultModel, measureId, null, c);
+                    result = getResult(pi, oid, resultModel, measureId, null, c);
                 }
             }
             return new Observation(obsID,
@@ -523,19 +521,34 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         // this method can now lead to error but will be removed in a future version of geotk
         try(final Connection c = source.getConnection()) {
             int oid = getOIDFromIdentifier(identifier, c);
-            return getResult(oid, resultModel, null, null, c);
+            if (oid != -1) {
+                ProcedureInfo pi = getPIDFromOID(oid, c).orElseThrow(IllegalArgumentException::new);
+                return getResult(pi, oid, resultModel, null, null, c);
+            } else {
+                throw new DataStoreException("Unexisting observation with identifier: " + identifier);
+            }
         } catch (SQLException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
 
-    private TemporalGeometricPrimitive getMeasureTimeForProfile(String identifier, final Connection c, int measureId) throws SQLException {
-        ProcedureInfo pti = getPIDFromObservation(identifier, c).orElseThrow(IllegalArgumentException::new);
-        FilterSQLRequest query  = buildMesureRequests(pti, null, null, true, false, false);
+    /**
+     * Return the time value (main field) for the specified measure.
+     * Work only for timeseries.
+     * 
+     * @param identifier Observation identifier.
+     * @param c A SQL connection.
+     * @param measureId identifier od the measure.
+     *
+     * @return the time value (main field) for the specified measure.
+     * @throws SQLException
+     */
+    private TemporalGeometricPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId) throws SQLException {
+        FilterSQLRequest query  = buildMesureRequests(pti, null, null, true, false, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
-        query.append(" AND m.\"id\" = " + measureId + " ");
-        try(final SQLResult rs  = query.execute(c)) {
-            while (rs.next()) {
+        query.append(" AND m.\"id\" = ").appendValue(measureId);
+        try (final SQLResult rs  = query.execute(c)) {
+            if (rs.next()) {
                 final Timestamp t = rs.getTimestamp(pti.mainField.name, 0);
                 return buildTime(identifier, t, null);
             }
@@ -546,14 +559,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     /*
     * Not optimal at all. should be merged with buildResult
     */
-    private List<Element> buildResultQuality(final String identifier, final String procedure, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+    private List<Element> buildResultQuality(ProcedureInfo pti, final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
-        //FilterSQLRequest query = buildMesureRequests(pti, selectedField, null, null, true, false, false);
-        // TODO TEST ME
-        FilterSQLRequest query = buildMesureRequests(pti, null, null, true, false, false);
+        FilterSQLRequest query = buildMesureRequests(pti, null, null, true, false, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
