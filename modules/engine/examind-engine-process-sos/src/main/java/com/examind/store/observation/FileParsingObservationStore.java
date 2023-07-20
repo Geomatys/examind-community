@@ -245,11 +245,15 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         // do nothing
     }
 
-    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final Procedure procedure, final String type, final String omType) {
+    protected ProcedureDataset getOrCreateProcedureTree(final ObservationDataset result, final Procedure procedure, final String type, String omType) {
         for (ProcedureDataset tree : result.procedures) {
             if (tree.getId().equals(procedure.getId())) {
                 return tree;
             }
+        }
+        // TODO fix until we create an enum
+        if (omType == null || "timeserie".equals(omType)) {
+            omType = "timeseries";
         }
         ProcedureDataset tree = new ProcedureDataset(procedure.getId(), procedure.getName(), procedure.getDescription(), type, omType, new ArrayList<>(), procedure.getProperties());
         result.procedures.add(tree);

@@ -1365,9 +1365,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         assertTrue(qualityFields.contains("parameter_qc_mod"));
 
         /*
-        * Verify an inserted data
+        * Verify an inserted data (time filter is here juste to test the query)
         */
-        String result = getMeasure(sosWorker, offp.getId(), observedProperty, foi, true);
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, foi, "1950-01-01T00:00:00Z", "2500-01-01T00:00:00Z", true);
         String expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-2-quality.txt");
         Assert.assertEquals(expectedResult, result);
 
@@ -1411,7 +1411,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         /*
         * Verify an inserted data
         */
-        result = getMeasure(sosWorker, offp.getId(), observedProperty, foi, true);
+        result = getMeasure(sosWorker, offp.getId(), observedProperty, foi, "1950-01-01T00:00:00Z", "2500-01-01T00:00:00Z", true);
         expectedResult = getResourceAsString("com/examind/process/sos/bigdata-datablock-values-3-quality.txt");
         Assert.assertEquals(expectedResult, result);
 

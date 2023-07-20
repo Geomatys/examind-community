@@ -36,8 +36,14 @@ import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.LineString;
 import org.geotoolkit.gml.xml.v321.PointType;
+import org.geotoolkit.gml.xml.v321.TimeInstantType;
+import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.ogc.xml.v200.TemporalOpsType;
+import org.geotoolkit.ogc.xml.v200.TimeDuringType;
+import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
 import org.geotoolkit.sampling.xml.SamplingFeature;
 import org.geotoolkit.sos.xml.Capabilities;
 import org.geotoolkit.sos.xml.Contents;
@@ -46,15 +52,12 @@ import org.geotoolkit.sos.xml.v200.GetCapabilitiesType;
 import org.geotoolkit.sos.xml.v200.GetFeatureOfInterestType;
 import org.geotoolkit.sos.xml.v200.GetResultResponseType;
 import org.geotoolkit.sos.xml.v200.GetResultType;
-import org.geotoolkit.sts.GetMultiDatastreams;
 import org.geotoolkit.sts.GetObservations;
 import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArray;
 import org.geotoolkit.sts.json.HistoricalLocation;
-import org.geotoolkit.sts.json.MultiDatastream;
-import org.geotoolkit.sts.json.MultiDatastreamsResponse;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.Thing;
@@ -209,13 +212,23 @@ public class SosHarvesterTestUtils {
         return sb.toString() + '\n';
     }
 
-    public static String getMeasure(SOSworker sosWorker, String offeringId, String observedProperty, String foi) throws CstlServiceException {
+    public static String getMeasure(SOSworker sosWorker, String offeringId, String observedProperty, String foi) throws Exception {
         return getMeasure(sosWorker, offeringId, observedProperty, foi, false);
     }
 
-    public static String getMeasure(SOSworker sosWorker, String offeringId, String observedProperty, String foi, boolean inputColumn) throws CstlServiceException {
+    public static String getMeasure(SOSworker sosWorker, String offeringId, String observedProperty, String foi, boolean inputColumn) throws Exception {
+        return getMeasure(sosWorker, offeringId, observedProperty, foi, null, null, inputColumn);
+    }
+
+    public static String getMeasure(SOSworker sosWorker, String offeringId, String observedProperty, String foi, String timeStart, String timeEnd, boolean inputColumn) throws Exception {
         List<String> fois = foi != null ? Arrays.asList(foi) : null;
-        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offeringId, observedProperty, null, null, fois));
+        List<TemporalOpsType> tFilters = new ArrayList<>();
+        if (timeStart != null && timeEnd != null) {
+            tFilters.add(new TimeDuringType("samplingTime", new TimePeriodType(foi, timeStart, timeEnd)));
+        } else if (timeStart != null) {
+            tFilters.add(new TimeEqualsType("samplingTime", new TimeInstantType("t", timeStart)));
+        }
+        GetResultResponseType gr = (GetResultResponseType) sosWorker.getResult(new GetResultType("2.0.0", "SOS", offeringId, observedProperty, tFilters, null, fois));
         if (inputColumn) {
             return gr.getResultValues().toString().replace("@@", "@@\n");
         } else {
