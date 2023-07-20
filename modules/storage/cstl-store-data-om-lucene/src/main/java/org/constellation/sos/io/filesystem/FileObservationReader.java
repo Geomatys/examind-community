@@ -295,28 +295,6 @@ public class FileObservationReader extends FileObservationHandler implements Obs
     /**
      * {@inheritDoc}
      */
-    @Override
-    public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
-        if (Files.isDirectory(observationDirectory)) {
-            String fileName = identifier.replace(':', 'µ');
-            final Path anyResultFile = observationDirectory.resolve(fileName + '.' + FILE_EXTENSION_JS);
-            if (Files.exists(anyResultFile)) {
-
-                try (InputStream is = Files.newInputStream(anyResultFile)) {
-                    Observation obs = mapper.readValue(is, Observation.class);
-                    return  obs.getResult();
-                } catch (IOException ex) {
-                    throw new DataStoreException("Unable to read The file " + anyResultFile, ex);
-                }
-            }
-            throw new DataStoreException("The file " + anyResultFile + " does not exist");
-        }
-        throw new DataStoreException("The directory " + observationDirectory + " does not exist");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     private boolean existProcedure(final String href) throws DataStoreException {
         if (Files.isDirectory(sensorDirectory)) {
 

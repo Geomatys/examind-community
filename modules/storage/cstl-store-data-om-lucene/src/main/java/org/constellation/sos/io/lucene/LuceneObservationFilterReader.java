@@ -40,6 +40,7 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.ResponseMode;
 import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
+import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.xml.ObservationComparator;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.locationtech.jts.geom.Geometry;
@@ -149,7 +150,8 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
         for (ObservationResult result: results) {
             final Timestamp tBegin = result.beginTime;
             final Timestamp tEnd   = result.endTime;
-            final Object r         =  reader.getResult(result.resultID, resultModel);
+            final Observation obs  =  (Observation) reader.getObservation(result.resultID, resultModel, ResponseMode.INLINE);
+            final Result r         =  obs.getResult();
             if (r instanceof ComplexResult cr) {
                 
                 applyTimeConstraint(tBegin, tEnd, cr, timeFilters);

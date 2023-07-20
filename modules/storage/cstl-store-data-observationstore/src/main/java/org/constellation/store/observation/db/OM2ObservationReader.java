@@ -514,25 +514,6 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
-        // this method can now lead to error but will be removed in a future version of geotk
-        try(final Connection c = source.getConnection()) {
-            int oid = getOIDFromIdentifier(identifier, c);
-            if (oid != -1) {
-                ProcedureInfo pi = getPIDFromOID(oid, c).orElseThrow(IllegalArgumentException::new);
-                return getResult(pi, oid, resultModel, null, null, c);
-            } else {
-                throw new DataStoreException("Unexisting observation with identifier: " + identifier);
-            }
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex.getMessage(), ex);
-        }
-    }
-
-    /**
      * Return the time value (main field) for the specified measure.
      * Work only for timeseries.
      * 

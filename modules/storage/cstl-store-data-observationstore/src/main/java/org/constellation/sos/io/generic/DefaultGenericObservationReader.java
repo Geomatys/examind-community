@@ -550,7 +550,6 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
     /**
      * {@inheritDoc}
      */
-    @Override
     public Result getResult(final String identifier, final QName resultModel) throws DataStoreException {
         try {
             if (resultModel.equals(OBSERVATION_QNAME)) {
