@@ -36,11 +36,18 @@ public class DbField extends Field {
     }
 
     public DbField(Field original, int tableNumber) {
-        // TODO replace by constrcutor in geotk
-        super(original.index, original.type, original.name, original.label, original.description, original.uom, new ArrayList<>());
+        super(original);
         this.tableNumber = tableNumber;
+        this.qualityFields.clear();
         for (Field qualField : original.qualityFields) {
             this.qualityFields.add(new DbField(qualField, tableNumber));
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder(super.toString());
+        sb.append("tableNumber:").append(tableNumber);
+        return sb.toString();
     }
 }

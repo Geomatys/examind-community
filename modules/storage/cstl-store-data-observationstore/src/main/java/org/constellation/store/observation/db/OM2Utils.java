@@ -201,21 +201,4 @@ public class OM2Utils {
         }
         return fields;
     }
-
-    /**
-     * TODO remove when corrected in geotk.
-     */
-    public static List<Field> getPhenomenonsFields(final Phenomenon phen) {
-        final List<Field> results = new ArrayList<>();
-         if (phen instanceof CompositePhenomenon comp) {
-
-            for (int i = 0; i < comp.getComponent().size(); i++) {
-                Phenomenon component = comp.getComponent().get(i);
-                results.add(new Field(i + 2, FieldType.QUANTITY, component.getId(), component.getName(), component.getDefinition(), null));
-            }
-        } else if (phen != null) {
-            results.add(new Field(2, FieldType.QUANTITY, phen.getId(), phen.getName(), phen.getDefinition(), null));
-        }
-        return results;
-    }
 }

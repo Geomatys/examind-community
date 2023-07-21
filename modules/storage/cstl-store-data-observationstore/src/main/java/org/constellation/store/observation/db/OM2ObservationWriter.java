@@ -231,8 +231,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         // look for an conflicted observation
         final Procedure procedure  = observation.getProcedure();
         final String procedureID   = procedure.getId();
-        final String procedureName = procedure.getName();
-        final String procedureDesc = procedure.getDescription();
         final String procedureOMType = (String) procedure.getProperties().getOrDefault("type", "timeseries");
         
         final TemporalObject samplingTime = observation.getSamplingTime();
@@ -312,8 +310,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     insertObs.setNull(5, java.sql.Types.VARCHAR);
                 }
 
-                // TODO use new procedureDataset constructor when geotk is updated
-                final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, procedureOMType, new ArrayList<>(), procedure.getProperties()), null, c);
+                final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedure, null, procedureOMType, new ArrayList<>()), null, c);
                 insertObs.setString(6, procedureID);
                 if (foiID != null) {
                     insertObs.setString(7, foiID);
@@ -1688,7 +1685,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         * Update the new phenomenon of the observation
         */
         List<Field> remainingFields = new ArrayList<>();
-        List<Field> initialFields = getPhenomenonsFields(obsInfo.phenomenon);
+        List<Field> initialFields = OMUtils.getPhenomenonsFields(obsInfo.phenomenon);
         ini:for (Field initialField : initialFields) {
             for (Field rmField : fieldsToRemove) {
                 if (Objects.equals(initialField.name, rmField.name)) {
