@@ -31,12 +31,13 @@ import org.opengis.parameter.*;
 import org.opengis.util.NoSuchIdentifierException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.constellation.util.ParamUtilities;
 
 public class ProcessFromYamlProcess extends AbstractCstlProcess {
 
@@ -57,14 +58,13 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
     protected void execute() throws ProcessException {
         LOGGER.info("executing process from yaml reader");
 
-        final String yamlPath = inputParameters.getValue(ProcessFromYamlProcessDescriptor.YAML_PATH);
+        final Path yamlPath = inputParameters.getValue(ProcessFromYamlProcessDescriptor.YAML_PATH);
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
-        File file = new File(yamlPath);
         try {
             // Retrieve and map config from yaml file.
-            Map configMap = mapper.readValue(file, Map.class);
+            Map configMap = mapper.readValue(yamlPath.toFile(), Map.class);
 
             String factoryName = (String) configMap.get(PROCESS_FACTORY_NAME);
             String processName = (String) configMap.get(PROCESS_NAME_PARAMETER);
@@ -75,55 +75,89 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
             final List<GeneralParameterDescriptor> descriptors = in.getDescriptor().descriptors();
 
             for (GeneralParameterDescriptor genParamDesc : descriptors) {
-                ParameterDescriptor parameterDescriptor = (ParameterDescriptor) genParamDesc;
-
-                final Class valueClass = parameterDescriptor.getValueClass();
-
-                if (configMap.get(parameterDescriptor.getName().getCode()) != null) {
-                    if (valueClass==String.class) {
-                        if (configMap.get(parameterDescriptor.getName().getCode()).getClass()==String.class) {
-                            final String configValue = (String) configMap.get(parameterDescriptor.getName().getCode());
-                            in.parameter(parameterDescriptor.getName().getCode()).setValue(configValue);
-                        } else if (configMap.get(parameterDescriptor.getName().getCode()).getClass() == java.util.ArrayList.class) {
-                            // Little trick to add multiple time the same value to the process.
-                            List<Object> valueList = (List<Object>) configMap.get(parameterDescriptor.getName().getCode());
-                            for (Object value : valueList) {
-                                ParameterValue<String> parameterValue = new DefaultParameterValue(parameterDescriptor);
-                                parameterValue.setValue(value.toString()); // toString here is not redundant as the value might be an Integer for example.
-                                in.values().add(parameterValue);
-                            }
-                        }
-                    } else if (valueClass==ServiceProcessReference.class) {
-                        if (configMap.get(parameterDescriptor.getName().getCode()).getClass()==LinkedHashMap.class) {
-                            LinkedHashMap value = (LinkedHashMap) configMap.get(parameterDescriptor.getName().getCode());
-                            Collection<LinkedHashMap> collection = value.values();
-                            for (LinkedHashMap linkedValue : collection) {
-                                final String type = (String) linkedValue.get("type");
-                                final String identifier = (String) linkedValue.get("identifier");
-                                ServiceComplete service = serviceBusiness.getServiceByIdentifierAndType(type, identifier);
-                                // not null if a service has been found.
-                                if (service != null) {
-                                    ServiceProcessReference serviceProcessReference = new ServiceProcessReference(service.getId(), service.getType(), service.getIdentifier());
-                                    ParameterValue<ServiceProcessReference> parameterValue = new DefaultParameterValue(parameterDescriptor);
-                                    parameterValue.setValue(serviceProcessReference);
-                                    in.values().add(parameterValue);
-                                }
-                            }
-                        }
-                    } else if (valueClass==Boolean.class) {
-                        final Boolean configValue = (Boolean) configMap.get(parameterDescriptor.getName().getCode());
-                        in.parameter(parameterDescriptor.getName().getCode()).setValue(configValue);
-                    }
-                }
+                handleParameter(genParamDesc, configMap, in);
             }
 
             Process process = desc.createProcess(in);
-            process.call();
+            ParameterValueGroup results = process.call();
+            String jsonResults = ParamUtilities.writeParameterJSON(results);
+            outputParameters.getOrCreate(ProcessFromYamlProcessDescriptor.PROCESS_OUTPUT).setValue(jsonResults);
 
         } catch (IOException | NoSuchIdentifierException e) {
             throw new ProcessException("An error occured while executing the ProcessFromYamlProcess", this, e);
         }
+    }
 
-        outputParameters.getOrCreate(ProcessFromYamlProcessDescriptor.PROCESS_OUTPUT).setValue(true);
+    private void handleParameter(GeneralParameterDescriptor genParamDesc, Map configMap, ParameterValueGroup in) throws ProcessException  {
+        final String paramCode  = genParamDesc.getName().getCode();
+        if (genParamDesc instanceof ParameterDescriptor paramDesc) {
+            final Class valueClass = paramDesc.getValueClass();
+            final Object paramValue = configMap.get(paramCode);
+
+            if (paramValue == null) return ;
+            final Class paramClass = paramValue.getClass();
+            if (valueClass == String.class) {
+                if (paramClass == String.class) {
+                    final String configValue = (String) paramValue;
+                    in.parameter(paramCode).setValue(configValue);
+                } else if (List.class.isAssignableFrom(paramClass)) {
+                    // Little trick to add multiple time the same value to the process.
+                    List<Object> valueList = (List<Object>) paramValue;
+                    for (Object value : valueList) {
+                        ParameterValue<String> parameterValue = new DefaultParameterValue(paramDesc);
+                        parameterValue.setValue(value.toString()); // toString here is not redundant as the value might be an Integer for example.
+                        in.values().add(parameterValue);
+                    }
+                }
+            // special case for a know type. TODO hande this generically
+            } else if (valueClass == ServiceProcessReference.class) {
+                if (paramClass == LinkedHashMap.class) {
+                    LinkedHashMap value = (LinkedHashMap) paramValue;
+                    Collection<LinkedHashMap> collection = value.values();
+                    for (LinkedHashMap linkedValue : collection) {
+                        final String type = (String) linkedValue.get("type");
+                        final String identifier = (String) linkedValue.get("identifier");
+                        ServiceComplete service = serviceBusiness.getServiceByIdentifierAndType(type, identifier);
+                        // not null if a service has been found.
+                        if (service != null) {
+                            ServiceProcessReference serviceProcessReference = new ServiceProcessReference(service.getId(), service.getType(), service.getIdentifier());
+                            ParameterValue<ServiceProcessReference> parameterValue = new DefaultParameterValue(paramDesc);
+                            parameterValue.setValue(serviceProcessReference);
+                            in.values().add(parameterValue);
+                        }
+                    }
+                }
+            } else if (valueClass == Boolean.class) {
+                final Boolean configValue = (Boolean) paramValue;
+                in.parameter(paramCode).setValue(configValue);
+            } else {
+                throw new ProcessException("Parameter type not yet handled:" + valueClass.getName(), this);
+            }
+        } else if (genParamDesc instanceof ParameterDescriptorGroup paramDesGrp) {
+            final List<GeneralParameterDescriptor> descriptors = paramDesGrp.descriptors();
+            boolean more = true;
+            int cpt = 0;
+            while (more) {
+                final Object subParamValue;
+                if (configMap.containsKey(paramCode)) {
+                    subParamValue = configMap.get(paramCode);
+                    // only one occurence
+                    more = false;
+                } else {
+                    subParamValue = configMap.get(paramCode+ '_' + cpt);
+                }
+                if (subParamValue instanceof Map subConfigMap) {
+                    ParameterValueGroup subIn  = in.addGroup(paramCode);
+                    for (GeneralParameterDescriptor paramDesc : descriptors) {
+                        handleParameter(paramDesc, subConfigMap, subIn);
+                    }
+                } else if (subParamValue != null) {
+                    throw new ProcessException("Malformed yaml, expecting a group for:" + paramCode, this);
+                } else {
+                    more = false;
+                }
+                cpt++;
+            }
+        }
     }
 }
