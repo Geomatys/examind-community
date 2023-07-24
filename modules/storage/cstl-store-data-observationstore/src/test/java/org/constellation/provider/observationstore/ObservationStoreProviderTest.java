@@ -3385,6 +3385,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             assertEquals("temperature", obs.getObservedProperty().getId());
         }
 
+        long count = omPr.getCount(query);
+        assertEquals(7L, count);
+
         // get all the sensor templates that have at least ONE temperature value equals to 98.5
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
@@ -3395,16 +3398,16 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        Set<String> resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        Set<String> resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(2, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
         Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(2L, count);
 
          // get all the sensor templates that have at least ONE temperature value less or equals to 11.1
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
@@ -3413,10 +3416,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(3, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -3424,6 +3424,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
         Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(3L, count);
 
         // get all the sensor templates that have at least ONE temperature value between 30.0 and  100.0
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
@@ -3433,10 +3436,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(3, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -3445,6 +3445,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
         Assert.assertEquals(expectedIds, resultIds);
 
+        count = omPr.getCount(query);
+        assertEquals(3L, count);
+
         // get all the sensor templates that have at least ONE color value equals to 'blue'
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
         eqRes = ff.equal(ff.property("result") , ff.literal("blue"));
@@ -3452,16 +3455,16 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(2L, count);
 
         // get all the sensor templates that have at least ONE color value equals to 'yellow'
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
@@ -3470,15 +3473,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(1, resultIds.size());
 
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(1L, count);
 
         // get all the sensor templates that have at least ONE color value equals to 'blue'
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("isHot"));
@@ -3487,10 +3490,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -3498,16 +3498,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-2");
         Assert.assertEquals(expectedIds, resultIds);
 
+        count = omPr.getCount(query);
+        assertEquals(2L, count);
 
          // get all the sensor templates that have at least ONE field value less or equals to 4.0
         filter = ff.lessOrEqual(ff.property("result") , ff.literal(4.0));
         query.setSelection(filter);
         results = omPr.getObservations(query);
 
-        resultIds = new HashSet<>();
-        for (Observation p : results) {
-            resultIds.add(p.getName().getCode());
-        }
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(5, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -3518,17 +3517,58 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
 
         Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(5L, count);
+
+        // test pagination
+        query.setLimit(2);
+
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+
+        // test pagination
+        query.setLimit(2);
+        query.setOffset(2);
+
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+
+        // test pagination
+        query.setLimit(2);
+        query.setOffset(4);
+
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+
     }
 
     /**
      * NOT possible yet wait until new geotk version
      */
-    @Ignore
+    @Test
     public void getMeasurementTemplateResult2FilterTest() throws Exception {
 
          // get all the sensor templates that have at least ONE qflag quality field value equals to 'ok'
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
-        Filter filter = ff.lessOrEqual(ff.property("result.qflag") , ff.literal("ok"));
+        Filter filter = ff.equal(ff.property("result.qflag") , ff.literal("ok"));
         query.setSelection(filter);
         List<Observation> results = omPr.getObservations(query);
 
@@ -3536,12 +3576,70 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         for (Observation p : results) {
             resultIds.add(p.getName().getCode());
         }
-        assertEquals(5, resultIds.size());
+        assertEquals(1, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
-        expectedIds.add("TODO");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
 
         Assert.assertEquals(expectedIds, resultIds);
+
+        long count = omPr.getCount(query);
+        assertEquals(1L, count);
+
+        // get all the sensor templates that have at least ONE qres quality field value les or equals to '3.4'
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        filter = ff.lessOrEqual(ff.property("result.qres") , ff.literal(3.4));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(1L, count);
+
+        // get all the sensor templates that have at least ONE qres quality field value greater than '3.5'
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        filter = ff.greater(ff.property("result.qres") , ff.literal(3.5));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(0, resultIds.size());
+
+        count = omPr.getCount(query);
+        assertEquals(0L, count);
+
+        // get all the sensor templates that have at least ONE isHot_qual quality field value equals to 'false'
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        filter = ff.equal(ff.property("result.isHot_qual") , ff.literal(false));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(1L, count);
     }
 
     @Test

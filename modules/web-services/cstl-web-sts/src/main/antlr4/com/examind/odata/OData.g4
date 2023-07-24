@@ -70,7 +70,8 @@ RPAREN : ')';
 
 TEXT :   '\'' ( ESC_SEQ | ~('\'') )* '\'' ;
 INT : DIGIT+ ;
-
+BOOL : 'TRUE' | 'FALSE';
+    
 FLOAT
     :   ('0'..'9')+ '.' ('0'..'9')* EXPONENT?
     |   '.' ('0'..'9')+ EXPONENT?
@@ -157,6 +158,7 @@ expressionFctParam
 
 expressionTerm
 	: TEXT
+        | BOOL
 	| expressionUnary
 	| PROPERTY_NAME
 	| DATE

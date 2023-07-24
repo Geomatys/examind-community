@@ -1,0 +1,20 @@
+{
+    "@iot.count": 1,
+    "value": [{
+            "description": "",
+            "unitOfMeasurement": {},
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_TruthObservation",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [-4.144984627896044, 42.387988581512545]
+            },
+            "phenomenonTime": "1999-12-31T23:00:00Z/2000-01-02T23:00:00Z",
+            "resultTime": "1999-12-31T23:00:00Z/2000-01-02T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:17-2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:17-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:17-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:17-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:17-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:17-2)/Observations"
+        }]
+}

@@ -44,7 +44,6 @@ import org.constellation.dto.service.ServiceStatus;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
-import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -150,7 +149,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=1)
     public void landingPageTest() throws Exception {
         initPool();
         URL getFoiUrl = new URL(getDefaultURL());
@@ -162,7 +160,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=1)
     public void getFeatureOfInterestByIdTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -221,7 +218,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
 
     @Test
-    @Order(order=2)
     public void getFeaturesOfInterestTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -264,7 +260,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=2)
     public void getFeaturesOfInterestFilterTest() throws Exception {
         initPool();
 
@@ -306,7 +301,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=3)
     public void getObservationByIdTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -343,7 +337,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=3)
     public void getObservationByIdQualtityTest() throws Exception {
         initPool();
         
@@ -355,7 +348,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=4)
     public void getObservationByIdMdsTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -391,7 +383,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=4)
     public void getObservationsTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -434,7 +425,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=5)
     public void getDataArrayForDatastreams() throws Exception {
         initPool();
 
@@ -488,7 +478,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=5)
     public void getDataArrayForDatastreamsQuality() throws Exception {
         initPool();
 
@@ -500,7 +489,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=24)
     public void getDataArrayForDatastreamsFiltered() throws Exception {
         initPool();
 
@@ -552,7 +540,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=6)
     public void getDataArrayForMultiDatastreams() throws Exception {
         initPool();
 
@@ -564,7 +551,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=6)
     public void getDataArrayForMultiDatastreamsQuality() throws Exception {
         initPool();
 
@@ -576,7 +562,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=7)
     public void getObservedPropertyById() throws Exception {
         initPool();
 
@@ -612,7 +597,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=8)
     public void getObservedProperties() throws Exception {
         initPool();
 
@@ -655,7 +639,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=8)
     public void getObservedPropertiesFilter() throws Exception {
         initPool();
 
@@ -711,7 +694,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=9)
     public void getObservedPropertiesFilter2() throws Exception {
         initPool();
 
@@ -776,7 +758,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=9)
     public void getDatastreamQualityTest() throws Exception {
         initPool();
 
@@ -788,7 +769,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=2)
     public void getDatastreamFilterTest() throws Exception {
         initPool();
 
@@ -830,6 +810,101 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-property-3-ct.json");
         compareJSON(expResult, result);
     }
+
+    @Test
+    public void getDatastreamFilter2Test() throws Exception {
+        initPool();
+
+        String filter = "ObservedProperty/id eq 'temperature' and Observations/result eq 98.5".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-result.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "ObservedProperty/id eq 'temperature' and Observations/result le 12.1".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-2.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-2-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "Observations/result le 4.0".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-3.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-3-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "Observations/result.qflag eq 'ok'".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "Observations/result.qres le 3.4".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "Observations/result.isHot_qual eq FALSE".replace("'", "%27").replace(" ", "%20");
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-5.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter+ "&$count=true");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-5-ct.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    public void getDatastreamFilter3Test() throws Exception {
+        initPool();
+
+        String filter = "(Observations/properties/result.isHot_qual eq FALSE) and phenomenonTime ge 2000-01-01T00:00:00.000Z".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-result-5.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$count=true&$filter=" + filter);
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-5-ct.json");
+        compareJSON(expResult, result);
+    }
+
 
     @Test
     public void getDatastreamsTest() throws Exception {
@@ -886,7 +961,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=10)
     public void getThingDatastreamFilterTest() throws Exception {
         initPool();
         String filter = "phenomenonTime ge 2000-11-01T00:00:00.000Z and phenomenonTime le 2012-12-23T00:00:00.000Z and (ObservedProperty/id eq 'temperature' or ObservedProperty/id eq 'salinity')".replace("'", "%27").replace(" ", "%20");
@@ -907,7 +981,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=10)
     public void getMultiDatastreamByIdTest() throws Exception {
         initPool();
 
@@ -979,7 +1052,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=11)
     public void getMultiDatastreamsTest() throws Exception {
         initPool();
 
@@ -1060,7 +1132,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=2)
     public void getMultiDatastreamFilterTest() throws Exception {
         initPool();
 
@@ -1102,7 +1173,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=12)
     public void getSensorByIdTest() throws Exception {
         initPool();
 
@@ -1126,7 +1196,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
     public void getSensorsTest() throws Exception {
         initPool();
 
@@ -1169,7 +1238,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=12)
     public void getThingByIdTest() throws Exception {
         initPool();
 
@@ -1268,7 +1336,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=12)
     public void getThingLocationsTest() throws Exception {
         initPool();
 
@@ -1280,7 +1347,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
     public void getThingsTest() throws Exception {
         initPool();
 
@@ -1323,7 +1389,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=13)
     public void getThingsFilterTest() throws Exception {
         initPool();
 
@@ -1367,7 +1432,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=14)
     public void getLocationByIdTest() throws Exception {
         initPool();
 
@@ -1415,7 +1479,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=15)
     public void getLocationThingTest() throws Exception {
         initPool();
 
@@ -1427,7 +1490,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=16)
     public void getLocationsTest() throws Exception {
         initPool();
 
@@ -1470,7 +1532,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=17)
     public void getLocationsGeoFilterTest() throws Exception {
         initPool();
 
@@ -1521,7 +1582,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=18)
     public void getLocationsFilterTest() throws Exception {
         initPool();
 
@@ -1562,7 +1622,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=19)
     public void getLocationsTimeFilterTest() throws Exception {
         initPool();
 
@@ -1596,7 +1655,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=20)
     public void getHistoricalLocationsTest() throws Exception {
         initPool();
 
@@ -1634,7 +1692,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=20)
     public void getHistoricalLocationByIdTest() throws Exception {
         initPool();
 
@@ -1701,7 +1758,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=21)
     public void getHistoricalLocationsTimeTest() throws Exception {
         initPool();
 
@@ -1728,7 +1784,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=22)
     public void getHistoricalLocationsFilterTest() throws Exception {
         initPool();
 
@@ -1789,7 +1844,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=22)
     public void getHistoricalLocationPaginationTest() throws Exception {
         initPool();
         // Creates a valid GetFoi url.
@@ -1820,7 +1874,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=23)
     public void getDataArrayForMultiDatastreamsFiltered() throws Exception {
         initPool();
 
@@ -1884,7 +1937,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=24)
     public void getDataArrayForMultiDatastreamsFiltered2() throws Exception {
         initPool();
 
@@ -1911,7 +1963,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=24)
     public void getDataArrayForMultiDatastreamsFiltered3() throws Exception {
         initPool();
         
@@ -1961,7 +2012,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
     
     @Test
-    @Order(order=23)
     public void getDataArrayForMultiDatastreamsDecimation() throws Exception {
         initPool();
 
@@ -2023,7 +2073,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
     
     @Test
-    @Order(order=24)
     public void getDataArrayForDatastreamsDecimation() throws Exception {
         initPool();
 
@@ -2084,7 +2133,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
     
     @Test
-    @Order(order=25)
     public void listInstanceTest() throws Exception {
         initPool();
         

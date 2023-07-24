@@ -222,7 +222,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY \"procedure\", pd.\"order\" ");
-        sqlRequest = appendPaginationToRequest(sqlRequest);
+
+        if (!hasMeasureFilter) {
+            sqlRequest = appendPaginationToRequest(sqlRequest);
+        }
 
         final List<org.opengis.observation.Observation> observations = new ArrayList<>();
 
@@ -246,8 +249,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String obsID = "obs-" + procedureID;
                 final String name = observationTemplateIdBase + procedureID;
                 final String observedProperty = rs.getString("obsprop");
-                final int phenIndex   = rs.getInt("order");
-                final DbField field   = getFieldByIndex(procedure, phenIndex, true, c);
+                final int fieldIndex  = rs.getInt("order");
+                final DbField field   = getFieldByIndex(procedure, fieldIndex, true, c);
 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
@@ -293,8 +296,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String observationType      = getOmTypeFromFieldType(field.type);
                 MeasureResult result              = new MeasureResult(field, null);
                 final List<Element> resultQuality = buildResultQuality(field, null);
-                Observation observation = new Observation(obsID + '-' + phenIndex,
-                                                          name + '-' + phenIndex,
+                Observation observation = new Observation(obsID + '-' + fieldIndex,
+                                                          name + '-' + fieldIndex,
                                                           null, null,
                                                           observationType,
                                                           proc,
@@ -314,7 +317,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (RuntimeException ex) {
             throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
-        return observations;
+        if (hasMeasureFilter) {
+            return applyPostPagination(observations);
+        } else {
+            return observations;
+        }
     }
 
     private List<org.opengis.observation.Observation> getComplexObservations() throws DataStoreException {

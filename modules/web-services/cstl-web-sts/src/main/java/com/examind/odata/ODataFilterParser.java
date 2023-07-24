@@ -63,6 +63,7 @@ import org.opengis.temporal.TemporalObject;
  */
 public final class ODataFilterParser {
 
+    private static final String RESULT = "result";
     private static final String RESULT_TIME = "resulttime";
     private static final String PHENOMENON_TIME = "phenomenontime";
     private static final String PROPERTIES = "properties";
@@ -204,6 +205,7 @@ public final class ODataFilterParser {
                 case NAME:  return ff.property(getSupportedProperties(tree.getText()));
                 case INT:   return ff.literal(Integer.valueOf(tree.getText()));
                 case FLOAT: return ff.literal(Double.valueOf(tree.getText()));
+                case BOOL:  return ff.literal(Boolean.valueOf(tree.getText()));
                 case DATE: {
 
                     TemporalObject ta = parseTemporalObj(tree.getText());
@@ -454,15 +456,15 @@ public final class ODataFilterParser {
         String property;
         if (properties.length >= 2) {
             String previous = properties[properties.length - 2];
-            String last = properties[properties.length - 1].toLowerCase();
+            String last = properties[properties.length - 1];//.toLowerCase();
             if (last.equals("id")) {
                 property = previous;
-            } else if (last.equals(RESULT_TIME) || last.equals(PHENOMENON_TIME)) {
+            } else if (last.equalsIgnoreCase(RESULT_TIME) || last.equalsIgnoreCase(PHENOMENON_TIME) || last.startsWith(RESULT)) {
                 property = last;
             } else if (previous.equals(PROPERTIES)) {
                 // max 3 level
                 if (properties.length > 2) {
-                    String entity =staToInternalName(properties[properties.length - 3]);
+                    String entity = staToInternalName(properties[properties.length - 3]);
                     return entity + '/' + previous + '/' + last;
                 } else {
                     return previous + '/' + last;
@@ -475,7 +477,7 @@ public final class ODataFilterParser {
         } else {
             throw new ODataParseException("malformed filter propertyName. was expecting something/id or something/result");
         }
-        if ((property.startsWith("result") || property.startsWith(PROPERTIES)) && !property.equalsIgnoreCase(RESULT_TIME)) {
+        if ((property.startsWith(RESULT) || property.startsWith(PROPERTIES)) && !property.equalsIgnoreCase(RESULT_TIME)) {
             return property;
         }
         return staToInternalName(property);

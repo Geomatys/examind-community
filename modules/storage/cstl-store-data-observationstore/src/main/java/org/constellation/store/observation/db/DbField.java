@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db;
 
-import java.util.ArrayList;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 
@@ -38,9 +37,13 @@ public class DbField extends Field {
     public DbField(Field original, int tableNumber) {
         super(original);
         this.tableNumber = tableNumber;
+        // overide quality Fields type
         this.qualityFields.clear();
-        for (Field qualField : original.qualityFields) {
-            this.qualityFields.add(new DbField(qualField, tableNumber));
+        for (Field qField : original.qualityFields) {
+            if (qField instanceof DbField dqField) {
+                tableNumber = dqField.tableNumber;
+            }
+            this.qualityFields.add(new DbField(qField, tableNumber));
         }
     }
 

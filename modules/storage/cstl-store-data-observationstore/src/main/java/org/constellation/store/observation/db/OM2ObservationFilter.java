@@ -33,6 +33,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -41,6 +43,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
@@ -875,7 +878,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (!(filter.getOperand2() instanceof Literal)) {
             throw new ObservationStoreException("Expression is null or not a Literal on result filter");
         }
-        // we expectthe property name to be "result" or "result[index]" eventually followed by .quality_field_name
+        // we expectthe property name to be "result" or "result[fieldIndex]" eventually followed by .quality_field_name
         final String propertyName = ((ValueReference)filter.getOperand1()).getXPath();
         final Literal value = (Literal) filter.getOperand2();
         final String operator = getSQLOperator(filter);
@@ -1027,7 +1030,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * Apply the filters on the measure tables to the SQL measure request and return a cloned version.
      * Those filters can be on one or all the phenomenon fields, or on the main time field in a Timeseries context.
      *
-     * @param offset The index where starts the measure fields.
+     * @param offset The fieldIndex where starts the measure fields.
      * @param pti Procedure informations.
      * @param fields fields list.
      *
@@ -1045,26 +1048,26 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
            /**
-            * there is an issue here in a measurement observations context.
+            * 1) Look for measure filter applying on all result fields.
+            * For each filter we replace it by a filter on each field.
+            *
+            * NB: There is an issue here in a measurement observations context.
             * The filter should be applied on each field separately
             * Actually the filter is apply on each field with a "AND"
             */
-            final String allPhenKeyword = "${allphen";
+            final String allPhenKeyword = "${allphen ";
             List<Param> allPhenParams = single.getParamsByName("allphen");
             for (Param param : allPhenParams) {
                 // it must be one ${allphen ...} for each "allPhen" param
                 if (!single.contains(allPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
-                String measureFilter = single.getRequest();
-                int opos = measureFilter.indexOf(allPhenKeyword);
-                int cpos = measureFilter.indexOf("}", opos + allPhenKeyword.length());
-                String block = measureFilter.substring(opos, cpos + 1);
+                String block = extractAllPhenBlock(single, allPhenKeyword);
                 StringBuilder sb = new StringBuilder();
                 int extraFilter = -1;
                 for (int i = offset; i < fields.size(); i++) {
                     DbField field = (DbField) fields.get(i);
                     if (field.tableNumber == curTable) {
                         if (matchType(param, field)) {
-                            sb.append(" AND (").append(block.replace(allPhenKeyword, "\"" + field.name + "\"").replace('}', ' ')).append(") ");
+                            sb.append(" AND (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
                             extraFilter++;
                         } else {
                             LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.type);
@@ -1081,24 +1084,96 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
             }
 
-            // replace phenomenon index filter by they real field name
+            /**
+            * 2) Look for measure filter applying on all result quality  fields.
+            * 
+            */
+            Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
+            for (int i = offset; i < fields.size(); i++) {
+                DbField field = (DbField) fields.get(i);
+                if (field.tableNumber == curTable) {
+                    for (Field qField : field.qualityFields) {
+                        final String allQPhenKeyword = "${allphen_quality_" + qField.name;
+                        List<Param> allQPhenParams = single.getParamsByName("allphen_quality_" + qField.name);
+                        for (Param qparam : allQPhenParams) {
+                            extraFilter.put(qparam, new AtomicInteger(-1));
+                            // it must be one ${allphen _quality_ ...} for each "allPhen _quality_" param
+                            if (!single.contains(allQPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
+
+                            String block = extractAllPhenBlock(single, allQPhenKeyword);
+                            StringBuilder sb = new StringBuilder();
+                            if (matchType(qparam, qField)) {
+                                sb.append(" AND (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_quality_" + qField.name + "\" ").replace('}', ' ')).append(") ");
+                                extraFilter.get(qparam).incrementAndGet();
+                            } else {
+                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.type);
+                                sb.append(" AND FALSE ");
+                            }
+                            single.replaceFirst(block, sb.toString());
+                        }
+                    }
+                }
+            }
+            for (Entry<Param, AtomicInteger> entry : extraFilter.entrySet()) {
+                if (entry.getValue().intValue() == -1) {
+                    // the filter has been removed, we need to remove the param
+                    single.removeNamedParam(entry.getKey());
+                } else {
+                    single.duplicateNamedParam(entry.getKey(), entry.getValue().intValue());
+                }
+            }
+
+
+            /**
+             * 3) Look for left over unexisting quality field filter.
+             *
+             *  Invalidate query if there are filter on unexisting fields.
+             *  Handle also filter on quality fields.
+             */
+            final String allQPhenKeyword = "${allphen_quality_";
+            while (single.contains(allQPhenKeyword)) {
+                String measureFilter = single.getRequest();
+                int opos = measureFilter.indexOf(allQPhenKeyword);
+                // look for the phen Index
+                int spos = measureFilter.indexOf(" ", opos + allQPhenKeyword.length());
+                String suffix = measureFilter.substring(opos + allQPhenKeyword.length(), spos);
+
+                // will remove eventually multiple params, but its not bad as we want to remove them all
+                single.removeNamedParams("allphen_quality_" + suffix);
+                int cpos = measureFilter.indexOf("}", opos + allQPhenKeyword.length());
+                String block = measureFilter.substring(opos, cpos + 1);
+                single.replaceFirst(block, " AND FALSE  ");
+
+            }
+
+            /**
+             * 2) Look for measure filter applying on specific fields.
+             *
+             *  Replace phenomenon index filter by the real field name.
+             *  Handle also filter on quality fields.
+             */
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
                 int pIndex = (i - offset);
                 treatPhenFilterForField(field, pIndex, single, curTable, null);
             }
 
-            // look for left over out of index phenomenon filter
+            /**
+             * 3) Look for left over out of index result field filter.
+             *
+             *  Invalidate query if there are filter on unexisting fields.
+             *  Handle also filter on quality fields.
+             */
             final String phenKeyword = " AND (\"$phen";
             while (single.contains(phenKeyword)) {
                 String measureFilter = single.getRequest();
                 int opos = measureFilter.indexOf(phenKeyword);
                 // look for the phen Index
                 int spos = measureFilter.indexOf("\"", opos + phenKeyword.length());
-                String pIndex = measureFilter.substring(opos + phenKeyword.length(), spos);
+                String pSuffix = measureFilter.substring(opos + phenKeyword.length(), spos);
 
                 // will remove eventually multiple params, but its not bad as we want to remove them all
-                single.removeNamedParams("phen" + pIndex);
+                single.removeNamedParams("phen" + pSuffix);
                 int cpos = measureFilter.indexOf(")", opos + phenKeyword.length());
                 String block = measureFilter.substring(opos, cpos + 1);
                 single.replaceFirst(block, " AND FALSE  ");
@@ -1110,6 +1185,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return result;
     }
 
+    private String extractAllPhenBlock(SingleFilterSQLRequest request, String keyword) {
+        String measureFilter = request.getRequest();
+        int opos = measureFilter.indexOf(keyword);
+        int cpos = measureFilter.indexOf("}", opos + keyword.length());
+        return measureFilter.substring(opos, cpos + 1);
+    }
+    
     private static boolean matchType(Param param, Field field) {
         //we want to let pass different numbers type
         if (Number.class.isAssignableFrom(param.type) &&
@@ -1222,8 +1304,21 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
                 if (template) {
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        final String index = rs.getString("order");
-                        results.add(observationTemplateIdBase + procedureID + '-' + index);
+                        final int fieldIndex = rs.getInt("order");
+                        if (hasMeasureFilter) {
+                            final DbField field   = getFieldByIndex(procedure, fieldIndex, true, c);
+                            ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
+                            final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, Arrays.asList(field), pti);
+                            MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, null, false, false, true, true);
+                            try (final SQLResult rs2 = measureRequests.execute(c)) {
+                                if (rs2.next()) {
+                                    int count = rs2.getInt(1, field.tableNumber -1);
+                                    // WARNING if we set a proper SQL pagination, this will broke it;
+                                    if (count == 0) continue;
+                                }
+                            }
+                        }
+                        results.add(observationTemplateIdBase + procedureID + '-' + fieldIndex);
                     } else {
                         final String name = observationTemplateIdBase + procedureID;
                         results.add(name);
