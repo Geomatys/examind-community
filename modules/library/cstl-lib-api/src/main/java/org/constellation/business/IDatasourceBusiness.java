@@ -162,6 +162,19 @@ public interface IDatasourceBusiness {
     void recordSelectedPath(Integer id, boolean forceAutoSelection) throws ConstellationException;
 
     /**
+     * Automaticaly select all the paths correspounding, if no path have been already selected.
+     * Use this method in the "rare" case where you don't assign a store/format to the datasource.
+     * 
+     * If the flag forceAutoselection is set, the selection will be completed even if there is already some selected paths.
+     *
+     * @param id A datasource identifier.
+     * @param storeId look for the path matching the specified store.
+     * @param forceAutoSelection if set to {@code true} the selection will be completed even if there is already some selected paths.
+     * @throws org.constellation.exception.ConstellationException
+     */
+    void recordSelectedPath(Integer id, String storeId, boolean forceAutoSelection) throws ConstellationException;
+
+    /**
      * Remove a recorded datasource path from the system.
      *
      * @param id A datasource identifier.

@@ -6,6 +6,7 @@ org.constellation.process.provider.RestartProviderDescriptor
 org.constellation.process.provider.GetConfigProviderDescriptor
 org.constellation.process.data.DatasetStyleLinkerProcessDescriptor
 org.constellation.process.data.ImportDataDescriptor
+org.constellation.process.data.ImportDataAutoDescriptor
 org.constellation.process.metadata.AddMetadataDescriptor
 org.constellation.process.metadata.RemoveMetadataDescriptor
 org.constellation.process.metadata.GetMetadataProcessDescriptor

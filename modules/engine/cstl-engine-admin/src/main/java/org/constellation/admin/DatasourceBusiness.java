@@ -645,7 +645,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         final boolean hidden = true;
         if (ds != null) {
             List<ResourceStoreAnalysisV3> results = new ArrayList<>();
-            recordSelectedPath(ds, false);
+            recordSelectedPath(ds, ds.getStoreId(), false);
             List<DataSourceSelectedPath> selectedPaths = getSelectedPath(ds, Integer.MAX_VALUE);
             for (DataSourceSelectedPath sp : selectedPaths) {
                 ResourceStoreAnalysisV3 rsa = treatDataPath(sp, ds, provConfig, hidden, null, null, null);
@@ -708,10 +708,21 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         // 1. Extract and download files
         final ResourceStore store;
         String errorMessage = null;
-        
+
+        /*
+         * In some cases we will not assign a store to a datasource.
+         * in this case, we will use the provider config store id.
+         */
+        String storeId;
+        if (ds.getStoreId() != null) {
+            storeId = ds.getStoreId();
+        } else {
+            storeId = provConfig.getSubType();
+        }
+
         String newProviderId;
         if (assignedId == null) {
-            newProviderId = ds.getStoreId()+'-'+UUID.randomUUID().toString();
+            newProviderId = storeId + '-' + UUID.randomUUID().toString();
         } else {
             newProviderId = assignedId;
         }
@@ -727,18 +738,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         } else {
             Path p = getDataSourcePath(ds, sp.getPath());
             final Path[] storeFiles;
-            DataStoreProvider dsProvider = DataStores.getProviderById(ds.getStoreId());
+            DataStoreProvider dsProvider = DataStores.getProviderById(storeId);
             if (dsProvider != null) {
                 StorageConnector sc = new StorageConnector(p);
                 try (DataStore dstore = dsProvider.open(sc)) {
                     if (dstore instanceof ResourceOnFileSystem) {
                         storeFiles = ((ResourceOnFileSystem) dstore).getComponentFiles();
                     } else {
-                        LOGGER.log(Level.WARNING, "{0} (TODO: implements ResourceOnFileSystem) Using only selected Path", ds.getStoreId());
+                        LOGGER.log(Level.WARNING, "{0} (TODO: implements ResourceOnFileSystem) Using only selected Path",storeId);
                         storeFiles = new Path[]{p};
                     }
                 } catch (DataStoreException ex) {
-                    LOGGER.log(Level.WARNING, "Error while opening store " + ds.getStoreId() + " on path: " + p.toUri().toString(), ex);
+                    LOGGER.log(Level.WARNING, "Error while opening store " + storeId + " on path: " + p.toUri().toString(), ex);
                     dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
                     return null;
                 } finally {
@@ -749,14 +760,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                     }
                 }
             } else {
-                LOGGER.log(Level.WARNING, "Error provider not found " + ds.getStoreId() + " on path: " + p.toUri().toString());
+                LOGGER.log(Level.WARNING, "Error provider not found " + storeId + " on path: " + p.toUri().toString());
                 dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
                 return null;
             }
 
             final Stream<Path> fileStream = Arrays.stream(storeFiles);
             if (!ds.getReadFromRemote()) {
-                store = downloadStoreFiles(ds.getStoreId(), p, fileStream);
+                store = downloadStoreFiles(storeId, p, fileStream);
             } else {
                 final List<String> usedFiles = fileStream
                         .map(Path::toUri)
@@ -776,7 +787,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         try {
             providerBusiness.createOrUpdateData(prId, datasetId, false, true, owner);
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error while creating data for store " + ds.getStoreId() + ".", ex);
+            LOGGER.log(Level.WARNING, "Error while creating data for store " + storeId + ".", ex);
             errorMessage = ex.getMessage();
         }
 
@@ -790,7 +801,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 datas.add(new ResourceAnalysisV3(brief.getId(), brief.getName(), brief.getType(), bbox));
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Error while listing store data " + ds.getStoreId() + " on path: " + store.file, ex);
+            LOGGER.log(Level.WARNING, "Error while listing store data " + storeId + " on path: " + store.file, ex);
             dsRepository.updatePathStatus(ds.getId(), sp.getPath(), AnalysisState.ERROR.name());
         }
 
@@ -803,7 +814,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             dsRepository.updatePathProvider(ds.getId(), sp.getPath(), prId);
         }
 
-        return new ResourceStoreAnalysisV3(prId, ds.getStoreId(), store.file, store.files, datas, store.indivisible, errorMessage);
+        return new ResourceStoreAnalysisV3(prId, storeId, store.file, store.files, datas, store.indivisible, errorMessage);
     }
 
     /**
@@ -1017,16 +1028,30 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public void recordSelectedPath(Integer id, boolean forceAutocompletion) throws TargetNotFoundException {
         DataSource ds = dsRepository.findById(id);
         if (ds != null) {
-            recordSelectedPath(ds, forceAutocompletion);
+            recordSelectedPath(ds, ds.getStoreId(), forceAutocompletion);
         } else {
             throw new TargetNotFoundException("No datasource identified by:" + id);
         }
     }
 
-    private void recordSelectedPath(DataSource ds, boolean forceAutocompletion) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void recordSelectedPath(Integer id, String storeId, boolean forceAutocompletion) throws TargetNotFoundException {
+        DataSource ds = dsRepository.findById(id);
+        if (ds != null) {
+            recordSelectedPath(ds, storeId, forceAutocompletion);
+        } else {
+            throw new TargetNotFoundException("No datasource identified by:" + id);
+        }
+    }
+
+    private void recordSelectedPath(DataSource ds,String storeId, boolean forceAutocompletion) {
         if (!ds.getType().equals("dynamic_url") && !ds.getType().equals("database")) {
             if (!dsRepository.hasSelectedPath(ds.getId()) || forceAutocompletion) {
-                List<String> storePaths = dsRepository.getPathByStoreAndFormat(ds.getId(), ds.getStoreId(), ds.getFormat(), null);
+                List<String> storePaths = dsRepository.getPathByStoreAndFormat(ds.getId(), storeId, ds.getFormat(), null);
                 for (String dp : storePaths) {
                     if (!dsRepository.existSelectedPath(ds.getId(), dp)) {
                         dsRepository.addSelectedPath(ds.getId(), dp);
