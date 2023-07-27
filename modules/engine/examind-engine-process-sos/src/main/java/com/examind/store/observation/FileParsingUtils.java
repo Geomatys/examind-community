@@ -69,18 +69,18 @@ public class FileParsingUtils {
         return getColumnIndex(columnName, headers, directColumnIndex, ignoreCase);
     }
 
-    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase) {
         return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase, null);
     }
-    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+    public static int getColumnIndex(String columnName, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
         return getColumnIndex(columnName, headers, null, directColumnIndex, ignoreCase, maxIndex);
     }
 
-    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase) {
         return getColumnIndex(columnName, headers, appendIndex, directColumnIndex, ignoreCase, null);
     }
 
-    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+    public static int getColumnIndex(String columnName, String[] headers, List<Integer> appendIndex, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
         if (columnName == null) return -1;
         if (directColumnIndex) {
             return computeMaxValue(Integer.parseInt(columnName), maxIndex);
@@ -116,19 +116,19 @@ public class FileParsingUtils {
         return getColumnIndexes(columnNames, headers, directColumnIndex, ignoreCase);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) {
         return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, null);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
         return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, maxIndex);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) {
         return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, null);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
         List<Integer> results = new ArrayList<>();
         if (directColumnIndex) {
             for (String columnName : columnNames) {
