@@ -1158,7 +1158,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     public String getConceptPrefLabel(final String uriConcept, final String language) {
         try (Connection con = datasource.getConnection();
-             PreparedStatement stmt = con.prepareStatement("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"uri_concept\"=?");) {//NOSONAR
+             PreparedStatement stmt = con.prepareStatement("SELECT \"label\" FROM \"" + schema + "\".\"terme_completion\" WHERE \"uri_concept\"=? AND \"type_terme\" = 'prefLabel'");) {//NOSONAR
             stmt.setString(1, uriConcept);
             String label = null;
             try (ResultSet rs = stmt.executeQuery()) {

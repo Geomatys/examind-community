@@ -569,7 +569,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
             for (ConceptBrief conceptBrief : fullConcept.getNarrowers()) {
                 writeProperty(fullConcept.getUri(), NARROWER_PREDICATE, conceptBrief.getUri(), relationStmt);
                 relationStmt.addBatch();
-                writeProperty(conceptBrief.getUri(), NARROWER_PREDICATE, fullConcept.getUri(), relationStmt);
+                writeProperty(conceptBrief.getUri(), BROADER_PREDICATE, fullConcept.getUri(), relationStmt);
                 relationStmt.addBatch();
             }
             relationStmt.executeBatch();
