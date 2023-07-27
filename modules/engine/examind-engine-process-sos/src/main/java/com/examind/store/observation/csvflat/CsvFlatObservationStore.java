@@ -44,6 +44,7 @@ import static com.examind.store.observation.FileParsingObservationStoreFactory.R
 import static com.examind.store.observation.FileParsingObservationStoreFactory.TYPE_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValues;
+import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservedProperty;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.constellation.exception.ConstellationStoreException;
@@ -189,6 +190,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             String currentFoi                     = null;
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
+            List<MeasureField> qualityFields      = buildQualityFields();
 
             final Map<String, MeasureColumns> measureColumnsMap = new HashMap<>();
 
@@ -231,7 +233,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     currentMainColumns = mainColumns;
                 }
                 MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
-                    return new MeasureColumns(sortedMeasureColumns, new ArrayList<>(), currentMainColumns, cot, qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+                    return new MeasureColumns(sortedMeasureColumns, new ArrayList<>(), currentMainColumns, cot, qualityFields);
                 });
 
 

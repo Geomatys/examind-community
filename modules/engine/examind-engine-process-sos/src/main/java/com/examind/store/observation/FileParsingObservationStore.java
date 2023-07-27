@@ -33,7 +33,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -260,13 +259,13 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         return tree;
     }
 
-    protected static class MeasureColumns {;
+    protected static class MeasureColumns {
         public final String observationType;
         public final boolean isProfile;
         public final List<MeasureField> measureFields;
         public final List<String> mainColumns;
 
-        public MeasureColumns(List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<String> qualityColumns, List<String> qualtityColumnsIds, List<String> qualityColumnsTypes) {
+        public MeasureColumns(List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<MeasureField> qualityFields) {
             this.observationType = observationType;
             this.isProfile = observationType.equals("Profile");
             this.mainColumns = mainColumns;
@@ -279,24 +278,27 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                 if ((!isProfile && j == 0) && k < measureTypes.size()) {
                     type = FieldType.valueOf(measureTypes.get(k));
                 }
-
-                List<MeasureField> qualityFields = new ArrayList<>();
-                for (int i = 0; i < qualityColumns.size(); i++) {
-                    String qName = qualityColumns.get(i);
-                    if (i < qualtityColumnsIds.size()) {
-                        qName = qualtityColumnsIds.get(i);
-                    }
-                    qName = normalizeFieldName(qName);
-                    FieldType qtype = FieldType.TEXT;
-                    if (i < qualityColumnsTypes.size()) {
-                        qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
-                    }
-                    qualityFields.add(new MeasureField(qName, qtype, new ArrayList<>()));
-                }
                 measureFields.add(new MeasureField(mc, type, qualityFields));
             }
         }
     }
+
+    protected List<MeasureField> buildQualityFields() {
+            List<MeasureField> results = new ArrayList<>();
+            for (int i = 0; i < qualityColumns.size(); i++) {
+                String qName = qualityColumns.get(i);
+                if (i < qualityColumnsIds.size()) {
+                    qName = qualityColumnsIds.get(i);
+                }
+                qName = normalizeFieldName(qName);
+                FieldType qtype = FieldType.TEXT;
+                if (i < qualityColumnsTypes.size()) {
+                    qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                }
+                results.add(new MeasureField(qName, qtype, new ArrayList<>()));
+            }
+            return results;
+        }
 
     protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, MeasureColumns measColumns) {
         String key = procedure.getId() + '-' + foiID + '-' + time;

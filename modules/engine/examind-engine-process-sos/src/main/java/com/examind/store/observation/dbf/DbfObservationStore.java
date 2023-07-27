@@ -22,6 +22,7 @@ import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import static com.examind.store.observation.FileParsingUtils.*;
+import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
 import com.examind.store.observation.csv.CsvObservationStoreFactory;
@@ -121,7 +122,8 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
             }
 
-            MeasureColumns measureColumns = new MeasureColumns(measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+            List<MeasureField> qualityFields = buildQualityFields();
+            MeasureColumns measureColumns     = new MeasureColumns(measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityFields);
 
              // final result
             final ObservationDataset result = new ObservationDataset();
