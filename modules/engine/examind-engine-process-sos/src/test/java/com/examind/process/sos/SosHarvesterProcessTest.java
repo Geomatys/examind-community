@@ -51,6 +51,7 @@ import org.geotoolkit.sts.json.UnitOfMeasure;
 import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.v200.DataArrayPropertyType;
 import org.junit.Assert;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.opengis.observation.Observation;
@@ -136,7 +137,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(4, offp.getFeatureOfInterestIds().size());
-        Assert.assertEquals(1, offp.getObservedProperties().size());
+
+        // composite + components
+        Assert.assertEquals(4, offp.getObservedProperties().size());
 
         GetHistoricalLocations hl = new GetHistoricalLocations();
         hl.getExtraFilter().put("procedure", sensorId);
@@ -176,7 +179,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("2018-11-27T15:09:17.000", time.getEndPosition().getValue());
 
         Assert.assertEquals(8, offp.getFeatureOfInterestIds().size());
-        Assert.assertEquals(1, offp.getObservedProperties().size());
+        Assert.assertEquals(4, offp.getObservedProperties().size());
 
         ObservedProperty obsProp1 = getObservedPropertyById(stsWorker, "PSAL (psu)");
         Assert.assertNotNull(obsProp1);
@@ -483,7 +486,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         verifySamplingFeature(fois,  -4.9683, 48.2903);
 
-        String observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
         String foi = offp.getFeatureOfInterestIds().get(0);
 
 
@@ -576,9 +581,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeature(fois,  -4.9683, 48.2903);
 
-        Assert.assertEquals(1, offp.getObservedProperties().size());
-        String observedProperty = offp.getObservedProperties().get(0);
-
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+        
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMP LEVEL0 (degree_Celsius)", "VZMX LEVEL0 (meter)"));
 
         /*
@@ -770,9 +776,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
 
-        Assert.assertEquals(1, offp.getObservedProperties().size());
-
-        String observedProperty = offp.getObservedProperties().get(0);
+        // composite + components
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("height", "width"));
 
@@ -879,7 +886,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeatureLine(fois, 2);
 
-        String observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         /*
         * Verify an inserted data
@@ -921,7 +930,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
         foi = verifySamplingFeature(fois, -6.9, 49.4);
 
-        observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         /*
         * Verify an inserted data
@@ -963,7 +974,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeature(fois, -5.3, 51.2);
 
-        observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         /*
         * Verify an inserted data
@@ -1196,8 +1209,11 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertNotNull(foi);
 
-        //-61.4234,68.2395
-        String observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(5, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+
+        verifyAllObservedProperties(stsWorker, "urn:template:1901290", Arrays.asList("z_value", "30", "35", "66"));
 
         /*
          * Verify an inserted profile
@@ -1238,7 +1254,11 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertNotNull(foi);
 
-        observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+        observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+
+        verifyAllObservedProperties(stsWorker, "urn:template:1901689", Arrays.asList("z_value", "30", "35"));
 
         /*
          * Verify an inserted profile
@@ -1448,8 +1468,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi = verifySamplingFeatureLine(fois, 600);
 
-        Assert.assertEquals(1, offp.getObservedProperties().size());
-        observedProperty = offp.getObservedProperties().get(0); // composite
+        // composite + components
+        Assert.assertEquals(3, offp.getObservedProperties().size());
 
         List<String> observedProperties = getObservedProperties(stsWorker, "urn:template:1801573");
 
@@ -1676,8 +1696,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeatureLine(fois,600);
 
-        Assert.assertEquals(1, offp.getObservedProperties().size());
-        observedProperty = offp.getObservedProperties().get(0); // composite
+        // composite + components
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        observedProperty = null;
+        for (String op : offp.getObservedProperties()) {
+            if (op.startsWith("composite")) observedProperty = op;
+        }
+        assertNotNull(observedProperty);
+        
         List<String> observedProperties = getObservedProperties(stsWorker, "1801573");
 
         Assert.assertEquals(2, observedProperties.size());
@@ -1735,7 +1761,11 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeature(fois, 68.2395, -61.4234);
 
-        observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+        observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+
+        verifyAllObservedProperties(stsWorker, "1901290", Arrays.asList("z_value", "30", "35"));
 
         /*
          * Verify an inserted profile
@@ -1774,8 +1804,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         fois = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         foi  = verifySamplingFeature(fois, -25.92446, 5.92986);
 
-        //-61.4234,68.2395
-        observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+        observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         /*
          * Verify an inserted profile
@@ -1911,8 +1942,10 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
         String foi = verifySamplingFeature(fois,-3.093748, 47.534765);
 
-        Assert.assertEquals(1, offp.getObservedProperties().size());
-        String observedProperty = offp.getObservedProperties().get(0);
+        // comosite + components
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         verifyAllObservedProperties(stsWorker, "urn:surval:25049001", Arrays.asList("7-FLORTOT", "18-FLORTOT", "18-SALI"));
 
@@ -2131,7 +2164,9 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
 
-        String observedProperty = offp.getObservedProperties().get(0);
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
 
         /*
         * Verify an inserted data

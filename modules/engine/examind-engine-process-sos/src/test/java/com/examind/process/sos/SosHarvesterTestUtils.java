@@ -336,4 +336,12 @@ public class SosHarvesterTestUtils {
         Assert.assertEquals(lat, pt1.getCoordinates()[0], 0.001);
         Assert.assertEquals(lon, pt1.getCoordinates()[1], 0.001);
     }
+
+    public static String getCompositePhenomenon(ObservationOffering offp) {
+        String observedProperty = null;
+        for (String op : offp.getObservedProperties()) {
+            if (op.startsWith("composite")) observedProperty = op;
+        }
+        return observedProperty;
+    }
 }

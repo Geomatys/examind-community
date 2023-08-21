@@ -247,7 +247,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         List<ObservationRef> conflictedObservations = isConflicted(c, procedureID, samplingTime, foiID);
         
-        final String phenRef;
+        final Phenomenon phenRef;
         final String observationName;
 
         try (final PreparedStatement insertObs   = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"observations\" VALUES(?,?,?,?,?,?,?)");                  //NOSONAR
@@ -304,8 +304,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     insertObs.setNull(3, java.sql.Types.TIMESTAMP);
                     insertObs.setNull(4, java.sql.Types.TIMESTAMP);
                 }
-                phenRef = writePhenomenon(phenomenon, c, false);
-                insertObs.setString(5, phenRef);
+                writePhenomenon(phenomenon, c, false);
+                phenRef = phenomenon;
+                if (phenRef != null) {
+                    insertObs.setString(5, phenRef.getId());
+                } else {
+                    insertObs.setNull(5, java.sql.Types.VARCHAR);
+                }
 
                 // TODO use new procedureDataset constructor when geotk is updated
                 final ProcedureInfo pi = writeProcedure(new ProcedureDataset(procedureID, procedureName, procedureDesc, null, procedureOMType, new ArrayList<>(), procedure.getProperties()), null, c);
@@ -329,8 +334,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 boolean replacePhen        = false;
                 
                 // write the new phenomenon even if its not actually used in the observation
-                // for a composite, we need to write at least the components
-                String newPhen = writePhenomenon(phenomenon, c, false);
+                // for a composite, we need to write at least the component
+                writePhenomenon(phenomenon, c, false);
+                String newPhen = phenomenon.getId();
 
                 /*
                 * update an existing observation
@@ -391,13 +397,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 if (replacePhen) {
                     List<Field> readFields = readFields(procedureID, true, c);
                     Phenomenon replacingPhen = OMUtils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
-
-                    phenRef = writePhenomenon(replacingPhen, c, false);
-                    updatePhen.setString(1, phenRef);
+                    writePhenomenon(replacingPhen, c, false);
+                    phenRef = replacingPhen;
+                    updatePhen.setString(1, phenRef.getId());
                     updatePhen.setInt(2, modOid);
                     updatePhen.executeUpdate();
                 } else {
-                    phenRef = newPhen;
+                    phenRef = phenomenon;
                 }
 
                 //update observation bounds
@@ -481,8 +487,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private String writePhenomenon(final Phenomenon phenomenon, final Connection c, final boolean partial) throws SQLException {
-        if (phenomenon ==null || phenomenon.getId() == null) return null;
+    private void writePhenomenon(final Phenomenon phenomenon, final Connection c, final boolean partial) throws SQLException {
+        if (phenomenon == null || phenomenon.getId() == null) return;
 
         final String phenomenonId = phenomenon.getId();
         try (final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\", \"partial\" FROM  \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
@@ -565,7 +571,6 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
             }
         }
-        return phenomenonId;
     }
 
     @Override
@@ -784,7 +789,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private void updateOrCreateOffering(final String procedureID, final TemporalObject samplingTime, final String phenoID, final String foiID, final Connection c) throws SQLException {
+    private void updateOrCreateOffering(final String procedureID, final TemporalObject samplingTime, final Phenomenon pheno, final String foiID, final Connection c) throws SQLException {
         final String offeringID;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT * FROM  \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?")) {//NOSONAR
             stmtExist.setString(1, procedureID);
@@ -830,12 +835,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         stmtInsert.executeUpdate();
                     }
 
-                    if (phenoID != null) {
-                        try(final PreparedStatement stmtInsertOP = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
-                            stmtInsertOP.setString(1, offeringID);
-                            stmtInsertOP.setString(2, phenoID);
-                            stmtInsertOP.executeUpdate();
-                        }
+                    if (pheno != null) {
+                        insertPhenomenonInOffering(offeringID, pheno, c);
                     }
 
                     if (foiID != null) {
@@ -914,38 +915,52 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     /*
                      * Phenomenon
                      */
-                    if (phenoID != null) {
-                        try(final PreparedStatement phenoStmt = c.prepareStatement("SELECT \"phenomenon\" FROM  \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=? AND \"phenomenon\"=?")) {//NOSONAR
-                            phenoStmt.setString(1, offeringID);
-                            phenoStmt.setString(2, phenoID);
-                            try(final ResultSet rsp = phenoStmt.executeQuery()) {
-                                if (!rsp.next()) {
-                                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
-                                        stmtInsert.setString(1, offeringID);
-                                        stmtInsert.setString(2, phenoID);
-                                        stmtInsert.executeUpdate();
-                                    }
-                                }
-                            }
-                        }
+                    if (pheno != null) {
+                        insertPhenomenonInOffering(offeringID, pheno, c);
                     }
+
+                    /*
+                    * Feature Of interest
+                    */
+                   if (foiID != null) {
+                       try(final PreparedStatement foiStmt = c.prepareStatement("SELECT \"foi\" FROM  \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\"=? AND \"foi\"=?")) {//NOSONAR
+                           foiStmt.setString(1, offeringID);
+                           foiStmt.setString(2, foiID);
+                           try(final ResultSet rsf = foiStmt.executeQuery()) {
+                               if (!rsf.next()) {
+                                   try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_foi\" VALUES(?,?)")) {//NOSONAR
+                                       stmtInsert.setString(1, offeringID);
+                                       stmtInsert.setString(2, foiID);
+                                       stmtInsert.executeUpdate();
+                                   }
+                               }
+                           }
+                       }
+                   }
                 }
-                /*
-                 * Feature Of interest
-                 */
-                if (foiID != null) {
-                    try(final PreparedStatement foiStmt = c.prepareStatement("SELECT \"foi\" FROM  \"" + schemaPrefix + "om\".\"offering_foi\" WHERE \"id_offering\"=? AND \"foi\"=?")) {//NOSONAR
-                        foiStmt.setString(1, offeringID);
-                        foiStmt.setString(2, foiID);
-                        try(final ResultSet rsf = foiStmt.executeQuery()) {
-                            if (!rsf.next()) {
-                                try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_foi\" VALUES(?,?)")) {//NOSONAR
-                                    stmtInsert.setString(1, offeringID);
-                                    stmtInsert.setString(2, foiID);
-                                    stmtInsert.executeUpdate();
-                                }
-                            }
-                        }
+            }
+        }
+    }
+
+    private void insertPhenomenonInOffering(String offeringID, Phenomenon phen, Connection c) throws SQLException {
+        List<String> phenIds = new ArrayList<>();
+        phenIds.add(phen.getId());
+        // insert also the components for a composite
+        if (phen instanceof CompositePhenomenon cPhen) {
+            for (Phenomenon component : cPhen.getComponent()) {
+                phenIds.add(component.getId());
+            }
+        }
+        try (final PreparedStatement exist = c.prepareStatement("SELECT \"phenomenon\" FROM  \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=? AND \"phenomenon\"=?");
+             final PreparedStatement insert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
+            for (String phenoID : phenIds) {
+                exist.setString(1, offeringID);
+                exist.setString(2, phenoID);
+                try (final ResultSet rs = exist.executeQuery()) {
+                    if (!rs.next()) {
+                        insert.setString(1, offeringID);
+                        insert.setString(2, phenoID);
+                        insert.executeUpdate();
                     }
                 }
             }
