@@ -211,10 +211,10 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         final String sql;
         final String uriValue;
         if (strict) {
-            sql   = "SELECT \"predicat\", \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ?";
+            sql   = "SELECT \"predicat\", \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ? order by \"graphid\"";
             uriValue = uriConcept;
         } else {
-            sql   = "SELECT \"predicat\", \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" LIKE ?";
+            sql   = "SELECT \"predicat\", \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" LIKE ? order by \"graphid\"";
             uriValue = '%' + uriConcept;
         }
         try (PreparedStatement stmt = c.prepareStatement(sql)) {
@@ -236,7 +236,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
             stmt.setString(1, uriConcept);
             stmt.setString(2, predicat);
             try (ResultSet result1 = stmt.executeQuery()) {
-                while (result1.next()) {
+                if (result1.next()) {
                     return removePrefix(result1.getString(1));
                 }
             }

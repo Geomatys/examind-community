@@ -76,47 +76,67 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
         super(datasource, schema, dialect, uri, name, description, languages, defaultLanguage);
     }
 
-    private void writeProperty(final String uriConcept, final String property, final List<? extends Object> conceptList, final Connection connection) throws SQLException {
-        if (conceptList != null) {
-            for (Object o : conceptList) {
-                if (o instanceof Concept c) {
-                    if (c.getAbout() != null) {
-                        writeProperty(uriConcept, property, c.getAbout(), connection);
-                    } else if (c.getResource() != null) {
-                        writeProperty(uriConcept, property, c.getResource(), connection);
-                    } else {
-                        LOGGER.log(Level.WARNING, "About and resource property cannot be null.");
-                    }
-                } else if (o instanceof String s) {
-                    writeProperty(uriConcept, property, s, connection);
-                } else if (o instanceof Boolean) {
-                    writeProperty(uriConcept, property, o.toString(), connection);
-                } else if (o instanceof ConceptBrief fc) {
-                    if (fc.getUri() != null) {
-                        writeProperty(uriConcept, property, fc.getUri(), connection);
-                    } else {
-                        LOGGER.log(Level.WARNING, "Full concept uri property cannot be null.");
-                    }
-                } else if (o != null) {
-                    throw new IllegalArgumentException("Unexpected type for a property:" + o.getClass().getName());
+    protected void writeProperty(final String uriConcept, final String property, final List<? extends Object> values, final Connection connection) throws SQLException {
+        if (values == null) return;
+        for (int i = 0; i < values.size(); i++) {
+            Object o = values.get(i);
+            if (o instanceof Concept c) {
+                if (c.getAbout() != null) {
+                    writeProperty(uriConcept, property, c.getAbout(), connection, i);
+                } else if (c.getResource() != null) {
+                    writeProperty(uriConcept, property, c.getResource(), connection, i);
+                } else {
+                    LOGGER.log(Level.WARNING, "About and resource property cannot be null.");
                 }
+            } else if (o instanceof String s) {
+                writeProperty(uriConcept, property, s, connection, i);
+            } else if (o instanceof Boolean) {
+                writeProperty(uriConcept, property, o.toString(), connection, i);
+            } else if (o instanceof ConceptBrief fc) {
+                if (fc.getUri() != null) {
+                    writeProperty(uriConcept, property, fc.getUri(), connection, i);
+                } else {
+                    LOGGER.log(Level.WARNING, "Full concept uri property cannot be null.");
+                }
+            } else if (o != null) {
+                throw new IllegalArgumentException("Unexpected type for a property:" + o.getClass().getName());
             }
         }
     }
 
     protected void writeProperty(final String uriconcept, final String property, final String value, final Connection connection) throws SQLException {
+        writeProperty(uriconcept, property, value, connection, 0);
+    }
+    
+    protected void writeProperty(final String uriconcept, final String property, final String value, final Connection connection, final int ordinal) throws SQLException {
         if (value == null) {return;}
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, NULL)")) {//NOSONAR
-            writeProperty(uriconcept, property, value, stmt);
+        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" VALUES (?, ?, ?, ?)")) {//NOSONAR
+            writeProperty(uriconcept, property, value, ordinal, stmt);
             stmt.executeUpdate();
         }
     }
 
-    protected void writeProperty(final String uriconcept, final String property, final String value, final PreparedStatement stmt) throws SQLException {
+    protected void writeProperty(final String uriconcept, final String property, final String value, final int ordinal, final PreparedStatement stmt) throws SQLException {
         if (value == null) {return;}
         stmt.setString(1, uriconcept);
         stmt.setString(2, property);
         stmt.setString(3, value);
+        stmt.setInt(4, ordinal);
+    }
+
+    protected void addPropertyBatch(PreparedStatement relationStmt, String uri, String predicate, String value) throws SQLException {
+        if (value == null) {return;}
+        writeProperty(uri, predicate, value, 0, relationStmt);
+        relationStmt.addBatch();
+    }
+
+    protected void addPropertyBatch(PreparedStatement relationStmt, String uri, String predicate, List<String> values) throws SQLException {
+        if (values == null) {return;}
+        for (int i = 0; i < values.size(); i++) {
+            String value = values.get(i);
+            writeProperty(uri, predicate, value, i, relationStmt);
+            relationStmt.addBatch();
+        }
     }
 
     protected void updateProperty(final String uriconcept, final String property, final Object value, final Connection connection) throws SQLException {
@@ -165,7 +185,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                 deleteProperty(uriconcept, property, connection);
             }
         } else {
-            writeProperty(uriconcept, property, stringValue, connection);
+            writeProperty(uriconcept, property, stringValue, connection, 1);
         }
     }
 
@@ -514,7 +534,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
      */
     public void insertConcept(FullConcept fullConcept) {
 
-        String insertRelation = "INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" (uri_concept, predicat, objet) VALUES (?, ?, ?)";
+        String insertRelation = "INSERT INTO \"" + schema + "\".\"" + TABLE_NAME + "\" (\"uri_concept\", \"predicat\", \"objet\", \"graphid\") VALUES (?, ?, ?, ?)";
 
         String insertComplTerm = "INSERT INTO \"" + schema + "\".\"terme_completion\" VALUES (?, ?, ?, ?, ?)";
 
@@ -526,8 +546,7 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
              PreparedStatement lacalTermStmt = con.prepareStatement(insertLocalTerm)) {//NOSONAR
 
             // Type.
-            writeProperty(fullConcept.getUri(), TYPE_PREDICATE, CONCEPT_TYPE, relationStmt);
-            relationStmt.addBatch();
+            addPropertyBatch(relationStmt, fullConcept.getUri(), TYPE_PREDICATE, CONCEPT_TYPE);
 
             if (fullConcept.isTopConcept()) {
                 List<Concept> hierarchyRoots = getHierarchyRoots(null);
@@ -536,10 +555,8 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
                 if (hierarchyRoots.isEmpty()) {
                     String rootUri = UUID.randomUUID().toString();
                     hierarchyRoots.add(new Concept(rootUri));
-                    writeProperty(rootUri, HIERARCHY_ROOT_PREDICATE, "true", relationStmt);
-                    relationStmt.addBatch();
-                    writeProperty(rootUri, TYPE_PREDICATE, CONCEPT_TYPE, relationStmt);
-                    relationStmt.addBatch();
+                    addPropertyBatch(relationStmt, rootUri, HIERARCHY_ROOT_PREDICATE, "true");
+                    addPropertyBatch(relationStmt, rootUri, TYPE_PREDICATE, CONCEPT_TYPE);
                     complTermStmt.setString(1, rootUri);
                     complTermStmt.setString(2, "ROOT");
                     complTermStmt.setString(3, schema);
@@ -550,36 +567,29 @@ public class ThesaurusDatabaseWriter extends ThesaurusDatabase implements Writea
 
                 // Top concept.
                 for (Concept concept : hierarchyRoots) {
-                    writeProperty(concept.getAbout(), HAS_TOP_CONCEPT_PREDICATE, fullConcept.getUri(), relationStmt);
-                    relationStmt.addBatch();
+                    addPropertyBatch(relationStmt, concept.getAbout(), HAS_TOP_CONCEPT_PREDICATE, fullConcept.getUri());
                 }
                 relationStmt.executeBatch();
             } else {
                 // Broaders.
                 for (ConceptBrief conceptBrief : fullConcept.getBroaders()) {
-                    writeProperty(fullConcept.getUri(), BROADER_PREDICATE, conceptBrief.getUri(), relationStmt);
-                    relationStmt.addBatch();
-                    writeProperty(conceptBrief.getUri(), NARROWER_PREDICATE, fullConcept.getUri(), relationStmt);
-                    relationStmt.addBatch();
+                    addPropertyBatch(relationStmt, fullConcept.getUri(), BROADER_PREDICATE, conceptBrief.getUri());
+                    addPropertyBatch(relationStmt, conceptBrief.getUri(), NARROWER_PREDICATE, fullConcept.getUri());
                 }
                 relationStmt.executeBatch();
             }
 
             // Narrowers.
             for (ConceptBrief conceptBrief : fullConcept.getNarrowers()) {
-                writeProperty(fullConcept.getUri(), NARROWER_PREDICATE, conceptBrief.getUri(), relationStmt);
-                relationStmt.addBatch();
-                writeProperty(conceptBrief.getUri(), BROADER_PREDICATE, fullConcept.getUri(), relationStmt);
-                relationStmt.addBatch();
+                addPropertyBatch(relationStmt, fullConcept.getUri(), NARROWER_PREDICATE, conceptBrief.getUri());
+                addPropertyBatch(relationStmt, conceptBrief.getUri(), BROADER_PREDICATE, fullConcept.getUri());
             }
             relationStmt.executeBatch();
 
             // Related.
             for (ConceptBrief conceptBrief : fullConcept.getRelated()) {
-                writeProperty(fullConcept.getUri(), RELATED_PREDICATE, conceptBrief.getUri(), relationStmt);
-                relationStmt.addBatch();
-                writeProperty(conceptBrief.getUri(), RELATED_PREDICATE, fullConcept.getUri(), relationStmt);
-                relationStmt.addBatch();
+                addPropertyBatch(relationStmt, fullConcept.getUri(), RELATED_PREDICATE, conceptBrief.getUri());
+                addPropertyBatch(relationStmt, conceptBrief.getUri(), RELATED_PREDICATE, fullConcept.getUri());
             }
             relationStmt.executeBatch();
 
