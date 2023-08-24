@@ -712,6 +712,18 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
     @Test
     @Order(order=9)
+    public void getObservedPropertiesFilter2() throws Exception {
+        initPool();
+
+        String filter = "(ObservedProperty/id eq 'depth') and (Datastreams/Thing/properties/prop1 eq 'value3') and Datastreams/phenomenonTime ge 2000-11-01T00:00:00.000Z and Datastreams/phenomenonTime le 2030-01-01T23:59:59.999Z".replace("'", "%27").replace(" ", "%20");
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$count=true&$top=0&$filter=" + filter);
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-filter-5-ct.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
     public void getDatastreamByIdTest() throws Exception {
         initPool();
 
