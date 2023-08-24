@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 import org.apache.sis.util.collection.BackingStoreException;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
@@ -85,8 +86,8 @@ import org.springframework.stereotype.Component;
  *
  * @author Guilhem Legal (Geomatys)
  */
-@Component
-public class SensorServiceBusiness {
+@Component("sensorServiceBusiness")
+public class SensorServiceBusiness implements ISensorServiceBusiness {
 
     private static final Logger LOGGER = Logger.getLogger("com.examind.sensor.component");
 
@@ -101,6 +102,7 @@ public class SensorServiceBusiness {
 
     protected final FilterFactory ff = FilterUtilities.FF;
 
+    @Override
     public boolean importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException {
         LOGGER.info("Importing sensor");
 
@@ -154,6 +156,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public boolean removeSensor(final Integer id, final String sensorID) throws ConstellationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -206,6 +209,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public boolean removeAllSensors(final Integer id) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -221,6 +225,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public Collection<String> getSensorIds(final Integer id) throws ConfigurationException {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
@@ -234,6 +239,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public long getSensorCount(final Integer id) throws ConfigurationException {
         if (isDirectProviderMode(id)) {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
@@ -247,6 +253,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID, final boolean decompose) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -266,6 +273,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -284,7 +292,7 @@ public class SensorServiceBusiness {
      *
      * @throws ConfigurationException If the data does not exist, or if the data provider is not an observation one.
      */
-    private ObservationProvider getDataObservationProvider(Integer dataID) throws ConfigurationException {
+    protected ObservationProvider getDataObservationProvider(Integer dataID) throws ConfigurationException {
         final Integer providerId = dataBusiness.getDataProvider(dataID);
         if (providerId == null) throw new TargetNotFoundException("The specified data does not exist");
         final DataProvider dataProvider = DataProviders.getProvider(providerId);
@@ -293,12 +301,9 @@ public class SensorServiceBusiness {
     }
     
     /**
-     * Remove an observation data from all the services in which the data is integrated.
-     * 
-     * @param dataID Data identifier.
-     *
-     * @throws ConstellationException If the data does not exist, or if the data provider is not an observation one.
+     * {@inheritDoc}
      */
+    @Override
     public void removeDataObservationsFromServices(final Integer dataID) throws ConstellationException {
         final ObservationProvider omProvider = getDataObservationProvider(dataID);
         List<Service> services = serviceBusiness.getDataLinkedSensorServices(dataID);
@@ -306,14 +311,9 @@ public class SensorServiceBusiness {
     }
 
     /**
-     * Remove an observation data from a service in which the data is integrated.
-     * however some sensor service share their provider so the removal can occurs on multiple service
-     *
-     * @param sid service identifier.
-     * @param dataID data identifier.
-     * 
-     * @throws ConstellationException  If the data does not exist, or if the data provider is not an observation one.
+     * {@inheritDoc}
      */
+    @Override
     public void removeDataObservationsFromService(final Integer sid, final Integer dataID) throws ConstellationException {
         final ObservationProvider omProvider = getDataObservationProvider(dataID);
         final Integer serviceProviderId = getSensorProviderId(sid, ObservationProvider.class);
@@ -322,6 +322,7 @@ public class SensorServiceBusiness {
     }
 
     private void removeDataObservationsFromServices(final List<Service> services, final ObservationProvider omProvider) throws ConstellationException {
+        final ObservationDataset dataset = omProvider.extractResults(new DatasetQuery());
         // multiple services can use the same provider.
         // so we list the providers linked to the service and then remove the data from them
         Map<String, List<String>> removedSensors = new HashMap<>();
@@ -331,7 +332,6 @@ public class SensorServiceBusiness {
             // 1. perform the removal on the provider
             List<String> removedSensor;
             if (!removedSensors.containsKey(serviceProvider.getId())) {
-                final ObservationDataset dataset = omProvider.extractResults(new DatasetQuery());
                 removedSensor = serviceProvider.removeDataset(dataset);
                 removedSensors.put(serviceProvider.getId(), removedSensor);
             } else {
@@ -346,6 +346,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public void importObservationsFromData(final Integer sid, final Integer dataID) throws ConstellationException {
         final ObservationProvider omProvider = getDataObservationProvider(dataID);
         final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
@@ -372,6 +373,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -386,6 +388,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public Collection<String> getObservedPropertiesIds(Integer id) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -396,6 +399,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public void writeProcedure(final Integer id, final ProcedureDataset procedure) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -405,6 +409,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public String getWKTSensorLocation(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider provider = getSensorProvider(id, ObservationProvider.class);
         try {
@@ -435,6 +440,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile, final boolean includeIdInDatablock) throws ConfigurationException {
         try {
             final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
@@ -451,6 +457,7 @@ public class SensorServiceBusiness {
         }
     }
 
+    @Override
     public Object getSensorMetadata(final Integer id, final String sensorID) throws ConstellationException {
         if (isDirectProviderMode(id)) {
             SensorProvider sp = getSensorProvider(id, SensorProvider.class);
@@ -461,11 +468,12 @@ public class SensorServiceBusiness {
         }
     }
 
-    public Integer generateSensor(final ProcedureDataset process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
+    private Integer generateSensor(final ProcedureDataset process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
         Integer smlId = getSensorProviderId(serviceID, SensorProvider.class);
         return sensorBusiness.generateSensor(process, smlId, parentID, dataID);
     }
 
+    @Override
     public boolean importSensor(Integer id, String sensorID) throws ConstellationException {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getId());
@@ -517,6 +525,7 @@ public class SensorServiceBusiness {
         return true;
     }
 
+    @Override
     public SensorMLTree getServiceSensorMLTree(Integer id) throws ConstellationException {
         if (isDirectProviderMode(id)) {
             SensorProvider sp = getSensorProvider(id, SensorProvider.class);

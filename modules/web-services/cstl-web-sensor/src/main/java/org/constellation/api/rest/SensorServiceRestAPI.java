@@ -18,12 +18,12 @@
  */
 package org.constellation.api.rest;
 
-import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
@@ -58,7 +58,7 @@ public class SensorServiceRestAPI {
     private IServiceBusiness serviceBusiness;
 
     @Autowired
-    private SensorServiceBusiness sensorServiceBusiness;
+    private ISensorServiceBusiness sensorServiceBusiness;
 
     @RequestMapping(value="/SensorService/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity linkSXSProvider(final @PathVariable("id") Integer serviceId, final @PathVariable("providerID") String providerID) throws Exception {

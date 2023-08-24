@@ -49,7 +49,6 @@ import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
-import com.examind.sensor.component.SensorServiceBusiness;
 import static com.examind.store.observation.FileParsingUtils.equalsGeom;
 import java.util.Objects;
 import java.net.URI;
@@ -59,8 +58,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
+import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.business.IServiceBusiness;
-import org.constellation.dto.SensorReference;
 import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.importdata.StoreFormat;
@@ -104,7 +103,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
     private IProviderBusiness providerBusiness;
 
     @Autowired
-    private SensorServiceBusiness sensorServBusiness;
+    private ISensorServiceBusiness sensorServBusiness;
 
     private double progress;
 

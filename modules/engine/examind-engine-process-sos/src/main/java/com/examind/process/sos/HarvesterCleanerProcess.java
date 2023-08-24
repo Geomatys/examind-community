@@ -21,7 +21,6 @@ package com.examind.process.sos;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.DATA_FOLDER;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.STORE_ID;
 import static com.examind.process.sos.HarvesterCleanerDescriptor.OBS_TYPE;
-import com.examind.sensor.component.SensorServiceBusiness;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,9 +28,9 @@ import java.util.logging.Level;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
+import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
-import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.SensorReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.process.AbstractCstlProcess;
@@ -56,7 +55,7 @@ public class HarvesterCleanerProcess extends AbstractCstlProcess {
     private ISensorBusiness sensorBusiness;
     
     @Autowired
-    private SensorServiceBusiness sensorServBusiness;
+    private ISensorServiceBusiness sensorServBusiness;
     
     public HarvesterCleanerProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);

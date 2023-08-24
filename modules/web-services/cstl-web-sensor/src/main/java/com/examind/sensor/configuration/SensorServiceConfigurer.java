@@ -19,8 +19,8 @@
 
 package com.examind.sensor.configuration;
 
-import com.examind.sensor.component.SensorServiceBusiness;
 import java.util.logging.Level;
+import org.constellation.business.ISensorServiceBusiness;
 
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.Instance;
@@ -39,7 +39,7 @@ import org.constellation.ws.ISensorConfigurer;
 public class SensorServiceConfigurer extends OGCConfigurer implements ISensorConfigurer {
 
     @Autowired
-    private SensorServiceBusiness sensorServBusiness;
+    private ISensorServiceBusiness sensorServBusiness;
 
     @Override
     public Instance getInstance(final Integer id, final String lang) throws ConfigurationException {

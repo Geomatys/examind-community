@@ -18,7 +18,6 @@
  */
 package com.examind.process.sos;
 
-import com.examind.sensor.component.SensorServiceBusiness;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +33,7 @@ import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
+import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
@@ -63,7 +63,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     @Autowired
     protected ISensorBusiness sensorBusiness;
     @Autowired
-    protected SensorServiceBusiness sensorServBusiness;
+    protected ISensorServiceBusiness sensorServBusiness;
     @Autowired
     protected IDatasetBusiness datasetBusiness;
 
