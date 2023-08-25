@@ -308,9 +308,14 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest replaceFirst(String text, String replacement) {
         String s = this.sqlRequest.toString();
-        s = StringUtils.replaceOnce(s, text, replacement);
-        this.sqlRequest = new StringBuilder(s);
+        if (s.contains(text)) {
+            s = StringUtils.replaceOnce(s, text, replacement);
+            this.sqlRequest = new StringBuilder(s);
+            return this;
+        }
 
+        // conditional is made to be append after the main request
+        // so if we already replaced we don't replace in conditional
         String cs = this.conditionalRequest.toString();
         cs = StringUtils.replaceOnce(cs, text, replacement);
         this.conditionalRequest = new StringBuilder(cs);

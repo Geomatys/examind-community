@@ -803,7 +803,6 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order=9)
     public void getDatastreamsTest() throws Exception {
         initPool();
 
