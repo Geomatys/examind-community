@@ -1414,6 +1414,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+            secondRequest.replaceAll("op.\"id\"=", "c.\"component\"=");
 
             sqlRequest.join(joins, firstFilter);
 

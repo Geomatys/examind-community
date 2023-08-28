@@ -1094,6 +1094,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+            secondRequest.replaceAll("op.\"id\"=", "c.\"component\"=");
 
             sqlRequest.join(joins, firstFilter);
 
