@@ -134,6 +134,16 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(String.class, null);
 
+    public static final ParameterDescriptor<String> PROCEDURE_NAME = PARAM_BUILDER
+            .addName("procedure_name")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> PROCEDURE_DESC = PARAM_BUILDER
+            .addName("procedure_desc")
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final ParameterDescriptor<String> PROCEDURE_REGEX = PARAM_BUILDER
             .addName("procedure_regex")
             .setRequired(false)
@@ -211,6 +221,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> UOM_COLUMN = PARAM_BUILDER
             .addName("uom_column")
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final ParameterDescriptor<String> UOM_ID = PARAM_BUILDER
+            .addName("uom_id")
             .setRequired(false)
             .create(String.class, null);
 

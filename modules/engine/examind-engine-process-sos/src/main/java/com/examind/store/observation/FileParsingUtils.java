@@ -250,13 +250,15 @@ public class FileParsingUtils {
      *
      * @return {@code true} if the line is considered empty.
      */
-    public static boolean verifyEmptyLine(Object[] line, int lineNumber, Map<Integer, FieldType> typedFields, DateFormat sdf) {
-        for (Entry<Integer, FieldType> field : typedFields.entrySet()) {
-            int i = field.getKey();
+    public static boolean verifyEmptyLine(Object[] line, int lineNumber, Map<Integer, MeasureField> typedFields, DateFormat sdf) {
+        for (Entry<Integer, MeasureField> fieldEntry : typedFields.entrySet()) {
+            int i = fieldEntry.getKey();
+            FieldType ft = fieldEntry.getValue().type;
             try {
                 Object value = line[i];
                 if (value == null) continue;
-                switch(field.getValue()) {
+                switch(ft) {
+
                     case QUANTITY -> {
                          if (value instanceof String strValue) {
                             if ((strValue = strValue.trim()).isEmpty()) continue;
@@ -291,7 +293,7 @@ public class FileParsingUtils {
                
             } catch (NumberFormatException | ParseException | ClassCastException ex) {
                 if (!((String)line[i]).isEmpty()) {
-                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.getValue(), lineNumber, i, line[i]));
+                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", fieldEntry.getValue(), lineNumber, i, line[i]));
                 }
             }
         }

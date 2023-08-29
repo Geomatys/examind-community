@@ -142,6 +142,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(THING_ID);
+        final String procedureName = inputParameters.getValue(THING_NAME);
+        final String procedureDesc = inputParameters.getValue(THING_DESC);
         final String procedureColumn = inputParameters.getValue(THING_COLUMN);
         final String procedureNameColumn = inputParameters.getValue(THING_NAME_COLUMN);
         final String procedureDescColumn = inputParameters.getValue(THING_DESC_COLUMN);
@@ -178,6 +180,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
+        final String uomID       = inputParameters.getValue(UOM_ID);
 
         // prepare the results
         int nbFileInserted = 0;
@@ -299,7 +302,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropFilterColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBSERVATION_TYPE.getName().toString(), observationType);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_ID.getName().toString(), procedureId);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME.getName().toString(), procedureName);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC.getName().toString(), procedureDesc);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_REGEX.getName().toString(), uomRegex);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_ID.getName().toString(), uomID);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);

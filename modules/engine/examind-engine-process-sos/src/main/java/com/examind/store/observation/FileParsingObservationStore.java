@@ -112,8 +112,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected Set<String> obsPropColumns;
 
-    protected final String obsPropId;
-    protected final String obsPropName;
+    protected final List<String> obsPropIds;
+    protected final List<String> obsPropNames;
 
     // timeSeries / trajectory / profiles
     protected final String observationType;
@@ -127,6 +127,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * Act as a prefix else.
      */
     protected final String procedureId;
+    protected final String procedureName;
+    protected final String procedureDesc;
     protected final String procedureColumn;
     protected final String procedureNameColumn;
     protected final String procedureDescColumn;
@@ -174,8 +176,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.noHeader = (boolean) params.parameter(NO_HEADER.getName().toString()).getValue();
         this.directColumnIndex = (boolean) params.parameter(DIRECT_COLUMN_INDEX.getName().toString()).getValue();
         this.laxHeader = (boolean) params.parameter(LAX_HEADER.getName().toString()).getValue();
-        this.obsPropId = (String) params.parameter(OBS_PROP_ID.getName().toString()).getValue();
-        this.obsPropName = (String) params.parameter(OBS_PROP_NAME.getName().toString()).getValue();
+        this.obsPropIds = getMultipleValuesList(params, OBS_PROP_ID.getName().getCode());
+        this.obsPropNames = getMultipleValuesList(params, OBS_PROP_NAME.getName().getCode());
         this.qualityColumns      = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
         this.qualityColumnsTypes = getMultipleValuesList(params, QUALITY_COLUMN_TYPE.getName().getCode());
         this.qualityColumnsIds   = getMultipleValuesList(params, QUALITY_COLUMN_ID.getName().getCode());
@@ -188,6 +190,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         } else {
             this.procedureId = pid;
         }
+        this.procedureName = (String) params.parameter(PROCEDURE_NAME.getName().toString()).getValue();
+        this.procedureDesc = (String) params.parameter(PROCEDURE_DESC.getName().toString()).getValue();
     }
 
     @Override
@@ -481,10 +485,12 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // look for current procedure name
-        final String name = asString(getColumnValue(procNameIndex, line, id));
+        String defaultName = procedureName != null ? procedureName : id;
+        final String name = asString(getColumnValue(procNameIndex, line, defaultName));
 
         // look for current procedure description
-        final String description = asString(getColumnValue(procDescIndex, line, null));
+        String defaultDesc = procedureDesc != null ? procedureDesc : null;
+        final String description = asString(getColumnValue(procDescIndex, line, defaultDesc));
 
         return new Procedure(id, name, description, new HashMap<>());
     }

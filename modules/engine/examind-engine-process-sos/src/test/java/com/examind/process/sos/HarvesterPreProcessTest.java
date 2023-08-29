@@ -218,6 +218,6 @@ public class HarvesterPreProcessTest extends SpringContextTest {
         Assert.assertEquals("DATE (yyyy-mm-ddThh:mi:ssZ)", mainParamExt.getDefaultValue());
 
         // column count
-        Assert.assertEquals(17, mainParamExt.getValidValues().size());
+        Assert.assertEquals(18, mainParamExt.getValidValues().size());
     }
 }

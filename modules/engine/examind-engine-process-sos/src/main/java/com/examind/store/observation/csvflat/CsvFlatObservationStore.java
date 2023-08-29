@@ -97,8 +97,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     private synchronized  Set<String> getObsPropColumns() throws DataStoreException {
         if (!obsPropColumnsLoaded) {
             // special case for hard coded observed property
-            if (obsPropId != null && !obsPropId.isEmpty()) {
-                this.obsPropColumns = Collections.singleton(obsPropId);
+            // in flat mode, only one is accepted
+            if (!obsPropIds.isEmpty()) {
+                this.obsPropColumns = new HashSet(obsPropIds);
             // special case for * measure columns
             // if the store is open with missing mime type we skip this part.
             } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
@@ -359,8 +360,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
      * @return an observed property
      */
     protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex, Map<String, ObservedProperty> cache) {
-        String observedProperty     = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
-        String observedPropertyName = getMultiOrFixedValue(line, obsPropName, obsPropNameColumnIndexes);
+        String fixedId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
+        String fixedName = obsPropNames.isEmpty() ? null : obsPropNames.get(0);
+
+        String observedProperty     = getMultiOrFixedValue(line, fixedId, obsPropColumnIndexes);
+        String observedPropertyName = getMultiOrFixedValue(line, fixedName, obsPropNameColumnIndexes);
         String observedPropertyUOM  = asString(getColumnValue(uomColumnIndex, line, null));
         return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
     }
@@ -391,6 +395,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
             if (procIndex == -1) throw new DataStoreException("Unable to find the procedure column: " + procedureColumn);
+            String fixedObsId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
 
@@ -418,7 +423,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 }
 
                 // checks if row matches the observed properties filter
-                String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+                String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
                 if (!obspropColumns.contains(observedProperty)) {
                     continue;
                 }
@@ -466,6 +471,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            String fixedObsId    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();
@@ -514,7 +520,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                final String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+                final String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
                 
                 // checks if row matches the observed properties wanted
                 if (!obspropColumns.contains(observedProperty)) {

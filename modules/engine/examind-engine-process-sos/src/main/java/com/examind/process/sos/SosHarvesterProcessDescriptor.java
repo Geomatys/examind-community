@@ -134,6 +134,22 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
+    public static final String THING_NAME_NAME = "thing_name";
+    public static final String THING_NAME_DESC = "Assigned thing name";
+    public static final ParameterDescriptor<String> THING_NAME  = PARAM_BUILDER
+            .addName(THING_NAME_NAME)
+            .setRemarks(THING_NAME_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String THING_DESC_NAME = "thing_desc";
+    public static final String THING_DESC_DESC = "Assigned thing description";
+    public static final ParameterDescriptor<String> THING_DESC  = PARAM_BUILDER
+            .addName(THING_DESC_NAME)
+            .setRemarks(THING_DESC_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
     public static final String THING_COLUMN_NAME = "thing_column";
     public static final String THING_COLUMN_DESC = "Extracted thing column";
     public static final ParameterDescriptor<String> THING_COLUMN  = PARAM_BUILDER
@@ -250,11 +266,19 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(String.class, null);
 
-     public static final String UOM_REGEX_NAME = "uom_regex";
+    public static final String UOM_REGEX_NAME = "uom_regex";
     public static final String UOM_REGEX_DESC = "extract uom from uom column applying a regular expression";
     public static final ParameterDescriptor<String> UOM_REGEX = PARAM_BUILDER
             .addName(UOM_REGEX_NAME)
             .setRemarks(UOM_REGEX_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+
+    public static final String UOM_ID_NAME = "uom_id";
+    public static final String UOM_ID_DESC = "assigned uom id";
+    public static final ParameterDescriptor<String> UOM_ID = PARAM_BUILDER
+            .addName(UOM_ID_NAME)
+            .setRemarks(UOM_ID_DESC)
             .setRequired(false)
             .create(String.class, null);
 
@@ -419,8 +443,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(Map.class, null);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, OBS_TYPE,
-                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, REMOVE_PREVIOUS,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_NAME, THING_DESC, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, OBS_TYPE,
+                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID, REMOVE_PREVIOUS,
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER, LAX_HEADER);
 

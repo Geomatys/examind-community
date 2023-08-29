@@ -20,6 +20,7 @@ package com.examind.store.observation.dbf;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_ID;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.MeasureField;
@@ -46,6 +47,7 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -66,9 +68,12 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
     protected final List<String> obsPropColumnsTypes;
 
+    protected final List<String> uomIds;
+
     public DbfObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
         this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
+        this.uomIds = getMultipleValuesList(params, UOM_ID.getName().getCode());
     }
 
     @Override
@@ -113,13 +118,45 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> doubleFields = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
 
-            // special case where there is no header, and a specified observation peorperty identifier
-            ObservedProperty fixedObsProp = null;
-            if (directColumnIndex && noHeader && obsPropId != null) {
-                measureFields.add(obsPropId);
-                fixedObsProp = new ObservedProperty(obsPropId, obsPropName, null);
+            if (noHeader && obsPropIds.size() != obsPropColumns.size()) {
+                throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
+            }
+
+            final Map<Integer, MeasureField> obsPropFields = new LinkedHashMap<>();
+            for (int i = 0; i < obsPropIndexes.size(); i++) {
+                int index = obsPropIndexes.get(i);
+                FieldType ft = FieldType.QUANTITY;
+                if (i < obsPropColumnsTypes.size()) {
+                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                }
+                String fieldName;
+                if (i < obsPropIds.size()) {
+                    fieldName = obsPropIds.get(i);
+                } else {
+                    fieldName = headers[index];
+                }
+                MeasureField mf = new MeasureField(fieldName, ft, new ArrayList<>());
+                obsPropFields.put(index, mf);
+            }
+
+           // special case where there is no header, and a specified observation property identifier
+            List<ObservedProperty> fixedObsProperties = new ArrayList<>();
+            if (!obsPropIds.isEmpty()) {
+                for (int i = 0; i < obsPropIds.size(); i++) {
+                    String obsPropId = obsPropIds.get(i);
+                    measureFields.add(obsPropId);
+                    String obsPropName = obsPropId;
+                    if (obsPropNames.size() > i) {
+                        obsPropName = obsPropNames.get(i);
+                    }
+                    String uom = null;
+                    if (uomIds.size() > i) {
+                        uom = uomIds.get(i);
+                    }
+                    fixedObsProperties.add(new ObservedProperty(obsPropId, obsPropName, uom));
+                }
             }
 
             List<MeasureField> qualityFields = buildQualityFields();
@@ -148,7 +185,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 final Object[] line = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                if (verifyEmptyLine(line, lineNumber, obsPropIndexes)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
@@ -179,9 +216,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
                 ObservationBlock currentBlock = getOrCreateObservationBlock(observationBlock, currentProc, currentFoi, currentTime, measureColumns);
 
-                if (fixedObsProp != null) {
-                    currentBlock.updateObservedProperty(fixedObsProp);
-                }
+                currentBlock.updateObservedProperties(fixedObsProperties);
 
                 /*
                 a- build spatio-temporal information
@@ -226,25 +261,31 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                     continue;
                 }
 
-                if (noHeader && obsPropId == null) {
-                    throw new DataStoreException("In 'noHeader' mode, you must set a fixed observated property id");
-                } else if (noHeader && doubleFields.size() > 1) {
-                    throw new DataStoreException("Multiple observed properties are not yet supported In 'noHeader' mode");
-                }
                 // loop over columns to build measure string
-                for (int i : doubleFields) {
+                for (Map.Entry<Integer, MeasureField> fieldEntry : obsPropFields.entrySet()) {
+                    int index = fieldEntry.getKey();
+                    MeasureField field = fieldEntry.getValue();
+                    if (field.type == null) throw new IllegalStateException("Field type should never be null");
+
                     try {
-                        double measureValue = parseDouble(line[i]);
-                        String fieldName;
-                        if (noHeader) {
-                            fieldName = obsPropId;
+                        final Object measureValue;
+                        if (line[index] == null) {
+                            measureValue = null;
                         } else {
-                            fieldName = headers[i];
+                            measureValue = switch (field.type) {
+                                case BOOLEAN  -> parseBoolean(line[index]);
+                                case QUANTITY -> parseDouble(line[index]);
+                                case TEXT     -> line[index] instanceof String ? line[index] : line[index].toString();
+                                case TIME     -> parseObjectDate(line[index], sdf);
+                            };
                         }
+
                         // TODO quality values
-                        currentBlock.appendValue(mainValue, fieldName, measureValue, lineNumber, new String[0]);
+                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, new String[0]);
                     } catch (ParseException | NumberFormatException ex) {
-                        LOGGER.fine(String.format("Problem reading double value at line %d and column %d", lineNumber, i));
+                        if (!(line[index] instanceof String str && str.isEmpty())) {
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.type.toString(), lineNumber, index, line[index]));
+                        }
                     }
                 }
             }
@@ -300,6 +341,11 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
     @Override
     protected Set<String> extractPhenomenonIds() throws DataStoreException {
+        // special case where the observation property identifiers are specified
+        if (!obsPropIds.isEmpty()) {
+            return new HashSet<>(obsPropIds);
+        }
+
         // TODO verify existence?
         return obsPropColumns;
     }
@@ -327,8 +373,8 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             final List<Integer> doubleFields = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
 
             // special case where there is no header, and a specified observation peorperty identifier
-            if (directColumnIndex && noHeader && obsPropId != null) {
-                measureFields.add(obsPropId);
+            if (directColumnIndex && noHeader && !obsPropIds.isEmpty()) {
+                measureFields.addAll(obsPropIds);
             }
 
             Map<String, ProcedureDataset> result = new HashMap<>();

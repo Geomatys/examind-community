@@ -33,6 +33,7 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
@@ -41,7 +42,9 @@ import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -193,8 +196,11 @@ public class CsvObservationStoreTest {
 
         params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
         params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:3");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().getCode()).setValue("PLATFORM_NAME");
         params.parameter(CsvObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().getCode()).setValue("PLATFORM_DESC");
         params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CsvObservationStoreFactory.UOM_REGEX.getName().getCode()).setValue("\\(([^\\)]+)\\)?");
 
         params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
 
@@ -205,6 +211,14 @@ public class CsvObservationStoreTest {
 
         String sensorId = procedureNames.iterator().next();
         Assert.assertEquals("urn:sensor:3", sensorId);
+
+        List<Process> sensors = store.getProcedures(new ProcedureQuery());
+        Assert.assertEquals(1, sensors.size());
+        Procedure proc = (Procedure) sensors.get(0);
+
+        Assert.assertEquals("urn:sensor:3", proc.getId());
+        Assert.assertEquals("some name", proc.getName());
+        Assert.assertEquals("some description", proc.getDescription());
 
         Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
         Assert.assertTrue(phenomenonNames.contains("TEMP LEVEL0 (degree_Celsius)"));
@@ -224,6 +238,19 @@ public class CsvObservationStoreTest {
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
         Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        Assert.assertEquals(1, results.observations.size());
+        Observation obs = results.observations.get(0);
+        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) obs.getResult();
+
+        Assert.assertEquals(3, cr.getFields().size());
+
+        Field f = cr.getFields().get(1);
+        Assert.assertEquals("degree_Celsius", f.uom);
+
+        f = cr.getFields().get(2);
+        Assert.assertEquals("meter2 second", f.uom);
 
         List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
         Assert.assertEquals(1, procedures.size());
@@ -652,5 +679,99 @@ public class CsvObservationStoreTest {
         tp = (Period) time;
         Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
         Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+    }
+
+    @Test
+    public void csvStoreFixedTSTest() throws Exception {
+
+        CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvObservationStoreFactory.LOCATION).setValue(mooFile.toUri().toString());
+
+        params.parameter(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+        params.parameter(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+
+        params.parameter(CsvObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        params.parameter(CsvObservationStoreFactory.FOI_COLUMN.getName().getCode()).setValue("CONFIG_MISSION_NUMBER");
+        params.parameter(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LATITUDE (degree_north)");
+        params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LONGITUDE (degree_east)");
+
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("TEMP LEVEL0 (degree_Celsius),VEPK LEVEL0 (meter2 second)");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_ID.getName().getCode()).setValue("temperature,velocity");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_NAME.getName().getCode()).setValue("temperature de l'eau,velocité");
+
+        params.parameter(CsvObservationStoreFactory.UOM_ID.getName().getCode()).setValue("°C,m2/s");
+
+
+        params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:fixed");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_NAME.getName().getCode()).setValue("fixed name");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_DESC.getName().getCode()).setValue("fixed platform");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+
+        CsvObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = procedureNames.iterator().next();
+        Assert.assertEquals("urn:sensor:fixed", sensorId);
+
+        List<Process> sensors = store.getProcedures(new ProcedureQuery());
+        Assert.assertEquals(1, sensors.size());
+        Procedure proc = (Procedure) sensors.get(0);
+
+        Assert.assertEquals("urn:sensor:fixed", proc.getId());
+        Assert.assertEquals("fixed name", proc.getName());
+        Assert.assertEquals("fixed platform", proc.getDescription());
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("temperature"));
+        Assert.assertTrue(phenomenonNames.contains("velocity"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Period);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+        Period tp = (Period) time;
+        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        Assert.assertEquals(1, results.observations.size());
+        Observation obs = results.observations.get(0);
+        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) obs.getResult();
+
+        Assert.assertEquals(3, cr.getFields().size());
+
+        Field f = cr.getFields().get(1);
+        Assert.assertEquals("°C", f.uom);
+
+        f = cr.getFields().get(2);
+        Assert.assertEquals("m2/s", f.uom);
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+        Assert.assertEquals(1, procedures.size());
+
+        ProcedureDataset pt = procedures.get(0);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+
+        Assert.assertEquals(pt.fields.size(), 2);
     }
 }

@@ -96,6 +96,12 @@ public class ObservationBlock {
         cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues);
     }
 
+    public void updateObservedProperties(List<ObservedProperty> observedProperties) {
+        for (ObservedProperty op : observedProperties) {
+            cmb.updateObservedProperty(op);
+        }
+    }
+
     public void updateObservedProperty(ObservedProperty observedProperty) {
         cmb.updateObservedProperty(observedProperty);
     }
