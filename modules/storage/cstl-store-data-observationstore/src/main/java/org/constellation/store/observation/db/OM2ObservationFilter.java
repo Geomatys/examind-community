@@ -1029,6 +1029,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         MultiFilterSQLRequest result = new MultiFilterSQLRequest();
         for (int k = 1; k < pti.nbTable + 1; k++) {
             FilterSQLRequest single = sqlMeasureRequest.clone();
+            // $time will be present only for timeseries
+            if ("timeseries".equals(pti.type) || "timeserie".equals(pti.type)) {
+                single.replaceAll("$time", mainField.name);
+            }
             single.replaceAll("$time", mainField.name);
 
            /**
