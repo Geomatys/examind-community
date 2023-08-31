@@ -141,7 +141,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             ================================================================*/
             final List<Integer> doubleFields = new ArrayList<>();
 
-            // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
+            // sometimes in some files, the last columns are empty, and so do not appears in the line
             // so we want to consider a line as imcomplete only if the last index we look for is missing.
             AtomicInteger maxIndex  = new AtomicInteger();
             
@@ -458,7 +458,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             if (!noHeader) {
                 headers = reader.getHeaders();
             }
-            // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
+            // sometimes in some files, the last columns are empty, and so do not appears in the line
             // so we want to consider a line as imcomplete only if the last index we look for is missing.
             final AtomicInteger maxIndex  = new AtomicInteger();
 

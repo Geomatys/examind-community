@@ -275,7 +275,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final List<Parameter> outputs = new ArrayList<>();
 
         outputs.add(new Parameter(OBSERVATION_INSERTED_NAME, Integer.class, OBSERVATION_INSERTED_DESC, OBSERVATION_INSERTED_DESC, 0, 1));
-        outputs.add(new Parameter(FILE_INSERTED_NAME,        Integer.class, FILE_INSERTED_DESC,        FILE_INSERTED_DESC,        0, 1));
+        outputs.add(new Parameter(FILE_INSERTED_COUNT_NAME,        Integer.class, FILE_INSERTED_COUNT_DESC,        FILE_INSERTED_COUNT_DESC,        0, 1));
 
         chain.setOutputs(outputs);
 

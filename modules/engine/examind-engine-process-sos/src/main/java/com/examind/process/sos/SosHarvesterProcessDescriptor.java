@@ -456,13 +456,57 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER, LAX_HEADER, GENERATE_METADATA);
 
-    public static final String FILE_INSERTED_NAME = "files_inserted_count";
-    public static final String FILE_INSERTED_DESC = "Number of files inserted";
-    public static final ParameterDescriptor<Integer> FILE_INSERTED = PARAM_BUILDER
-            .addName(FILE_INSERTED_NAME)
-            .setRemarks(FILE_INSERTED_DESC)
+    public static final String FILE_ALREADY_INSERTED_COUNT_NAME = "files_already_inserted_count";
+    public static final String FILE_ALREADY_INSERTED_COUNT_DESC = "Number of files already inserted";
+    public static final ParameterDescriptor<Integer> FILE_ALREADY_INSERTED_COUNT = PARAM_BUILDER
+            .addName(FILE_ALREADY_INSERTED_COUNT_NAME)
+            .setRemarks(FILE_ALREADY_INSERTED_COUNT_DESC)
             .setRequired(false)
             .create(Integer.class, 0);
+
+    public static final String FILE_ALREADY_INSERTED_NAME = "files_already_inserted";
+    public static final String FILE_ALREADY_INSERTED_DESC = "Name of the files already inserted";
+    public static final ParameterDescriptor<String> FILE_ALREADY_INSERTED = 
+            new ExtendedParameterDescriptor<>(FILE_ALREADY_INSERTED_NAME, FILE_ALREADY_INSERTED_DESC, 0, Integer.MAX_VALUE, String.class, null, null, null);
+
+    public static final String FILE_REMOVED_COUNT_NAME = "files_removed_count";
+    public static final String FILE_REMOVED_COUNT_DESC = "Number of files removed";
+    public static final ParameterDescriptor<Integer> FILE_REMOVED_COUNT = PARAM_BUILDER
+            .addName(FILE_REMOVED_COUNT_NAME)
+            .setRemarks(FILE_REMOVED_COUNT_DESC)
+            .setRequired(false)
+            .create(Integer.class, 0);
+
+    public static final String FILE_REMOVED_NAME = "files_removed";
+    public static final String FILE_REMOVED_DESC = "Name of the files removed";
+    public static final ParameterDescriptor<String> FILE_REMOVED =
+            new ExtendedParameterDescriptor<>(FILE_REMOVED_NAME, FILE_REMOVED_DESC, 0, Integer.MAX_VALUE, String.class, null, null, null);
+
+    public static final String FILE_INSERTED_COUNT_NAME = "files_inserted_count";
+    public static final String FILE_INSERTED_COUNT_DESC = "Number of files inserted";
+    public static final ParameterDescriptor<Integer> FILE_INSERTED_COUNT = PARAM_BUILDER
+            .addName(FILE_INSERTED_COUNT_NAME)
+            .setRemarks(FILE_INSERTED_COUNT_DESC)
+            .setRequired(false)
+            .create(Integer.class, 0);
+
+    public static final String FILE_INSERTED_NAME = "files_inserted";
+    public static final String FILE_INSERTED_DESC = "Name of the files inserted";
+    public static final ParameterDescriptor<String> FILE_INSERTED =
+            new ExtendedParameterDescriptor<>(FILE_INSERTED_NAME, FILE_INSERTED_DESC, 0, Integer.MAX_VALUE, String.class, null, null, null);
+
+    public static final String FILE_ERROR_COUNT_NAME = "files_error_count";
+    public static final String FILE_ERROR_COUNT_DESC = "Number of files in error.";
+    public static final ParameterDescriptor<Integer> FILE_ERROR_COUNT = PARAM_BUILDER
+            .addName(FILE_ERROR_COUNT_NAME)
+            .setRemarks(FILE_ERROR_COUNT_DESC)
+            .setRequired(false)
+            .create(Integer.class, 0);
+
+    public static final String FILE_ERROR_NAME = "files_error";
+    public static final String FILE_ERROR_DESC = "Name of the files in error.";
+    public static final ParameterDescriptor<String> FILE_ERROR =
+        new ExtendedParameterDescriptor<>(FILE_ERROR_NAME, FILE_ERROR_DESC, 0, Integer.MAX_VALUE, String.class, null, null, null);
 
 
     public static final String OBSERVATION_INSERTED_NAME = "observations_inserted_count";
@@ -484,7 +528,11 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     );
 
     public static final ParameterDescriptorGroup OUTPUT_DESC =
-            PARAM_BUILDER.addName("OutputParameters").createGroup(FILE_INSERTED, OBSERVATION_INSERTED, GENERATE_DATA_IDS);
+            PARAM_BUILDER.addName("OutputParameters").createGroup(FILE_ALREADY_INSERTED_COUNT, FILE_ALREADY_INSERTED,
+                                                                FILE_INSERTED_COUNT, FILE_INSERTED,
+                                                                FILE_ERROR_COUNT, FILE_ERROR,
+                                                                FILE_REMOVED_COUNT, FILE_REMOVED,
+                                                                OBSERVATION_INSERTED, GENERATE_DATA_IDS);
 
 
     /** Instance */

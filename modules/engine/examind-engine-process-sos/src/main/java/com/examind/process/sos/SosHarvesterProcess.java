@@ -43,8 +43,6 @@ import org.geotoolkit.process.ProcessException;
 import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.StringUtilities;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
@@ -54,9 +52,11 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.logging.Level;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorServiceBusiness;
@@ -67,6 +67,7 @@ import org.constellation.dto.importdata.StoreFormat;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
+import static org.constellation.process.ProcessUtils.addMultipleValues;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -75,7 +76,6 @@ import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.parameter.GeneralParameterDescriptor;
 import static org.constellation.process.ProcessUtils.getMultipleValues;
 
 /**
@@ -119,15 +119,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         this.progress = 0.0;
 
         /*
-        0- Paramètres fixés
-        =================*/
+        =======================================
+        1- Process parameters extraction.
+        =======================================*/
 
         final String storeId = inputParameters.getValue(STORE_ID);
         final String format = inputParameters.getValue(FORMAT);
-
-        /*
-        1- Récupération des paramètres du process
-        =======================================*/
 
         final String sourceFolderStr = inputParameters.getValue(DATA_FOLDER);
         final String user = inputParameters.getValue(USER);
@@ -135,12 +132,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
         final boolean generateMetadata = inputParameters.getValue(GENERATE_METADATA);
 
-        final List<ServiceProcessReference> services = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(SERVICE_ID.getName().getCode())) {
-                services.add((ServiceProcessReference) ((ParameterValue)param).getValue());
-            }
-        }
+        final List<ServiceProcessReference> services = getMultipleValues(inputParameters, SERVICE_ID);
 
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(THING_ID);
@@ -185,16 +177,23 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String uomID       = inputParameters.getValue(UOM_ID);
 
         // prepare the results
-        int nbFileInserted = 0;
         int nbObsInserted  = 0;
+
+        final List<String> alreadyInsertedFiles = new ArrayList<>();
+        final List<String> insertedFiles = new ArrayList<>();
+        final List<String> removedFiles = new ArrayList<>();
+        final List<String> errorFiles = new ArrayList<>();
+        final List<Integer> integratedData = new ArrayList<>();
 
         if (observationType == null && !storeId.equals("observationCsvFlatFile")) {
             throw new ProcessException("The observation type can't be null except for csvFlat store with type column", this);
         }
 
         /*
-        2- Détermination des données à importer
-        =====================================*/
+        =======================================
+        2- Datasource file creation.
+           The datasource will hold records of the files that has been already integrated.
+        =======================================*/
         final URI dataUri = URI.create(sourceFolderStr);
         
         final int dsId;
@@ -210,7 +209,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 ds.setUsername(user);
                 ds.setPwd(pwd);
                 ds.setFormat(format);
-                ds.setPermanent(Boolean.TRUE);
+                ds.setPermanent(Boolean.TRUE); // TODO maybe always permanent is not a good id.
                 ds.setReadFromRemote(remoteRead);
                 dsId = datasourceBusiness.create(ds);
                 ds = datasourceBusiness.getDatasource(dsId);
@@ -284,15 +283,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             throw new ProcessException("Error occurs during directory browsing", this, e);
         }
 
-
-
-        /*
-        3- Imporation des données et génération des fichiers SensorML
-        ===========================================================*/
+       /*
+        =======================================
+        3- Data integration into examind.
+           create the csv store and their associated data.
+        =======================================*/
 
         // http://localhost:8080/examind/API/internal/datas/store/observationFile
         final DataStoreProvider factory = DataStores.getProviderById(storeId);
-        final List<Integer> dataToIntegrate = new ArrayList<>();
+        final Map<String, Integer> dataFileToIntegrate = new LinkedHashMap<>();
+        int totalNbData = 0;
 
         if (factory != null) {
             final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "observation-store", null);
@@ -362,15 +362,18 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     switch (p.getStatus()) {
                         case "NO_DATA", "ERROR" -> {
                             fireAndLog("No data / Error in file: " + filePath, 0);
+                            errorFiles.add(p.getPath());
                         }
                         case "INTEGRATED", "COMPLETED" -> {
                             fireAndLog("File already integrated for file: " + filePath, 0);
+                            alreadyInsertedFiles.add(p.getPath());
                         }
                         case "REMOVED" -> {
                             fireAndLog("Removing data for file: " + filePath, 0);
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
                             datasourceBusiness.removePath(dsId, p.getPath());
+                            removedFiles.add(filePath);
                         }
                         default -> {
                             // in the case of a null format, meaning that multiple format are accepted.
@@ -394,9 +397,20 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                                 }
                             }
                             fireAndLog("Integrating data file: " + filePath, 0);
-                            dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId, generateMetadata));
-                            nbFileInserted++;
+                            List<Integer> dataIds = integratingDataFile(p, dsId, provConfig, datasetId, generateMetadata);
+                            totalNbData = totalNbData + dataIds.size();
+
+                            // here we are going to assume that only one data is generated for a file (for later simplification).
+                            // this is the case for csv stores. we are going to throw some error if its not te case, but we expect this to never happen
+                            Integer dataId = null;
+                            if (dataIds.size() > 1) {
+                                throw new ProcessException("A csv file produce more than one data, its not supported", this);
+                            } else if (!dataIds.isEmpty()) {
+                                dataId = dataIds.get(0);
+                            }
+                            dataFileToIntegrate.put(filePath, dataId);
                         }
+
                     }
                 }
 
@@ -409,32 +423,77 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         }
 
         /*
-        4- Publication des données correspondant à chaque SensorML sur le service SOS
-        ===========================================================================*/
-        GeneralParameterDescriptor obsInDesc = outputParameters.getDescriptor().descriptor(SosHarvesterProcessDescriptor.GENERATE_DATA_IDS_NAME);
-        try {
-            double byData = 100.0 / dataToIntegrate.size();
-            for (final Integer dataId : dataToIntegrate) {
-
+        =======================================
+        4- Insert each data for each csv file into the sensor services.
+        =======================================*/
+        ConstellationException error = null;
+        final double byData = 100.0 / totalNbData;
+        for (final Entry<String, Integer> fileEntry : dataFileToIntegrate.entrySet()) {
+            final String fileName = fileEntry.getKey();
+            final Integer dataId  = fileEntry.getValue();
+            
+            // the csv file throw no error but produce no data. i don't know if this can happen
+            if (dataId == null) {
+                LOGGER.warning("File:" + fileName + " has produced no data.");
+                errorFiles.add(fileName);
+            } else {
+                try {
                     int currentNbObs = importSensor(services, dataId, byData);
                     nbObsInserted = nbObsInserted + currentNbObs;
-                    
-                    ParameterValue pv = (ParameterValue) obsInDesc.createValue();
-                    pv.setValue(dataId);
-                    outputParameters.values().add(pv);
-            }
 
+                    // add the integrated data id and file to results
+                    insertedFiles.add(fileName);
+                    integratedData.add(dataId);
+                    
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "ERROR while inserting file:" + fileName + " into the sensor services.", ex);
+                    // add the error file name to results
+                    error = ex;
+                    errorFiles.add(fileName);
+                }
+            }
+        }
+
+        /* we throw an error if none file has succeeded insertion:
+         * - There is only one file to insert, and the insertion failed, we throw the recorded error.
+         * - All the files are in error.
+         */
+
+        if (insertedFiles.isEmpty()) {
+            if (errorFiles.size() == 1) {
+                if (error != null) {
+                    throw new ProcessException(error.getMessage(), this, error);
+                // the file as been in error during analyze phase
+                // so we don't have much information to send
+                } else {
+                    throw new ProcessException("File analyze failed", this);
+                }
+            } else if (!errorFiles.isEmpty()) {
+                throw new ProcessException("All the files insertion failed", this);
+            }
+        }
+
+        try {
             // reload service at the end
             for (ServiceProcessReference serv : services) {
                 serviceBusiness.restart(serv.getId());
             }
 
-        } catch (ConfigurationException | ConstellationStoreException ex) {
-            throw new ProcessException(ex.getMessage(), this, ex);
+        } catch (ConstellationException ex) {
+            throw new ProcessException("Error while restarting services", this, ex);
         }
 
+        // set the results
+        addMultipleValues(outputParameters, integratedData, SosHarvesterProcessDescriptor.GENERATE_DATA_IDS);
+        addMultipleValues(outputParameters, errorFiles, SosHarvesterProcessDescriptor.FILE_ERROR);
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_ERROR_COUNT).setValue(errorFiles.size());
+        addMultipleValues(outputParameters, alreadyInsertedFiles, SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED);
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_COUNT).setValue(alreadyInsertedFiles.size());
+        addMultipleValues(outputParameters, insertedFiles, SosHarvesterProcessDescriptor.FILE_INSERTED);
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT).setValue(insertedFiles.size());
+        addMultipleValues(outputParameters, removedFiles, SosHarvesterProcessDescriptor.FILE_REMOVED);
+        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_REMOVED_COUNT).setValue(removedFiles.size());
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
-        outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
 
     private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId, boolean generateMetadata) throws ConstellationException {
@@ -470,7 +529,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return ids;
     }
 
-    private int importSensor(final List<ServiceProcessReference> sosRefs, final int dataId, final double byData) throws ConfigurationException, ConstellationStoreException {
+    private int importSensor(final List<ServiceProcessReference> sosRefs, final int dataId, final double byData) throws ConstellationException {
         Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
         ObservationProvider omProvider;
@@ -484,6 +543,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final double byInsert                       = byData / sosRefs.size();
 
         for (ServiceProcessReference sosRef : sosRefs) {
+            fireAndLog("inserting data " + dataId + " into the service " + sosRef.getName(), byInsert);
+            
             final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
             final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery()));
             final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
@@ -497,28 +558,24 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // import observations
             if (!alreadyInserted) {
-                try {
-                    final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
-                    reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
-                    if (!result.getObservations().isEmpty()) {
-
-                        // generate sensor
-                        for (ProcedureDataset process : result.getProcedures()) {
-                            sensorServBusiness.writeProcedure(sosRef.getId(), process);
-                            Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
-                            sensorBusiness.addSensorToService(sosRef.getId(), sid);
-                        }
-                        result.getObservations().stream().forEach(obs -> ((org.geotoolkit.observation.model.Observation)obs).setName(null));
-
-                        // import in O&M database
-                        List<Phenomenon> modelPhens = result.getPhenomenons().stream().map(phen -> (Phenomenon) phen).toList();
-                        sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), modelPhens);
-                        nbObsTotal = nbObsTotal + result.getObservations().size();
-                        fireAndLog("insertion dans le service " + sosRef.getName(), byInsert);
-                    }
-                } catch (ConstellationStoreException ex) {
-                    LOGGER.warning(ex.getMessage());
+                final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
+                if (result.getObservations().isEmpty()) {
+                    throw new ConstellationException("The data provider did not produce any observations.");
                 }
+                reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
+
+                // generate sensor
+                for (ProcedureDataset process : result.getProcedures()) {
+                    sensorServBusiness.writeProcedure(sosRef.getId(), process);
+                    Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
+                    sensorBusiness.addSensorToService(sosRef.getId(), sid);
+                }
+                result.getObservations().stream().forEach(obs -> ((org.geotoolkit.observation.model.Observation)obs).setName(null));
+
+                // import in O&M database
+                List<Phenomenon> modelPhens = result.getPhenomenons().stream().map(phen -> (Phenomenon) phen).toList();
+                sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), modelPhens);
+                nbObsTotal = nbObsTotal + result.getObservations().size();
                 treated.add(omServiceProvider);
             } else {
                 List<String> ids = listSensorInData(dataId);

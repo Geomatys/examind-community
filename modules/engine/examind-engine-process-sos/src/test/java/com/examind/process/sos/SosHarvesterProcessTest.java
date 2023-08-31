@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2019 Geomatys.
  *
@@ -32,6 +32,7 @@ import static org.constellation.test.utils.TestResourceUtils.getResourceAsString
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import static com.examind.process.sos.SosHarvesterTestUtils.*;
 import java.util.Set;
+import org.constellation.process.ProcessUtils;
 import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -114,7 +115,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        String insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFile);
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -168,7 +175,18 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
          * add a new file to integrate and call again the process
          */
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-2.csv", "argo-profiles-2902402-2.csv");
-        proc.call();
+        proc = desc.createProcess(in);
+        results = proc.call();
+
+        nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+        insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        String alreadyInsertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_NAME).stringValue();
+        int nbAlreadyInserted= (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbAlreadyInserted);
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertEquals("/argo-profiles-2902402-2.csv", insertedFile);
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", alreadyInsertedFile);
 
         offp = getOffering(sosWorker, sensorId);
         Assert.assertNotNull(offp);
@@ -232,7 +250,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_REGEX_NAME).setValue("([\\w\\s]+)");
 
         proc = desc.createProcess(in);
-        proc.call();
+        results = proc.call();
+
+        insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+        
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFile);
 
         Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
 
@@ -345,7 +369,15 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(3, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-2.csv"));
+        Assert.assertTrue(insertedFiles.contains("/tsg-FMLW-3.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -455,7 +487,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -559,7 +597,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
+
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -606,11 +651,11 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         Assert.assertTrue(obj instanceof GetObservationResponseType);
 
-        GetObservationResponseType results = (GetObservationResponseType) obj;
+        GetObservationResponseType goResponse = (GetObservationResponseType) obj;
 
-        Assert.assertTrue(results.getObservationData().get(0).getOMObservation().getResult() instanceof DataArrayPropertyType);
+        Assert.assertTrue(goResponse.getObservationData().get(0).getOMObservation().getResult() instanceof DataArrayPropertyType);
 
-        DataArrayPropertyType daResult = (DataArrayPropertyType) results.getObservationData().get(0).getOMObservation().getResult();
+        DataArrayPropertyType daResult = (DataArrayPropertyType) goResponse.getObservationData().get(0).getOMObservation().getResult();
 
         String value = daResult.getDataArray().getValues();
         Assert.assertEquals(expectedResult, value + '\n');
@@ -664,7 +709,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(2, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/LakeTile_001.dbf"));
+        Assert.assertTrue(insertedFiles.contains("/LakeTile_002.dbf"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -755,7 +807,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(2, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/rivertile_001.dbf"));
+        Assert.assertTrue(insertedFiles.contains("/rivertile_002.dbf"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -851,7 +910,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(2, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/multiplatform-1.csv"));
+        Assert.assertTrue(insertedFiles.contains("/multiplatform-2.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1059,7 +1125,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1178,7 +1250,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(serv2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1345,7 +1424,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(scval2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1571,7 +1657,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/bigdata-1.csv"));
+
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -1904,7 +1997,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(s2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/surval-small.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2042,7 +2141,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(s2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/xdata.xlsx"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2134,7 +2239,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(s2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/test-flat.xlsx"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2239,7 +2350,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(s2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/nohead.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2333,7 +2450,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val2);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/disjoint-1.csv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2388,7 +2511,17 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val2);
 
         proc = desc.createProcess(in);
-        proc.call();
+        results = proc.call();
+
+        nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+        insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        List<String> alreadyInsertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_NAME);
+        int nbAlreadyInserted= (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbAlreadyInserted);
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/disjoint-2.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-1.csv"));
 
         t = getThing(stsWorker, sensorID);
         Assert.assertNotNull(t);
@@ -2432,7 +2565,18 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_TYPE_NAME).setValue("TEXT");
 
         proc = desc.createProcess(in);
-        proc.call();
+        results = proc.call();
+
+        nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+        insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        alreadyInsertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_NAME);
+        nbAlreadyInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(2, nbAlreadyInserted);
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/disjoint-3.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-2.csv"));
+        Assert.assertTrue(alreadyInsertedFiles.contains("/disjoint-1.csv"));
 
         t = getThing(stsWorker, sensorID);
         Assert.assertNotNull(t);
@@ -2515,7 +2659,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val1);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/tabulation.tsv"));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -2607,8 +2757,14 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.values().add(val1);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
-        proc.call();
+        ParameterValueGroup results = proc.call();
 
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/tabulation-flat.tsv"));
+        
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
 
@@ -2647,5 +2803,121 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         int nbMeasure = getNbMeasure(stsWorker, sensorID);
         Assert.assertEquals(2, nbMeasure);
+    }
+
+    /**
+     * the point of this test is to set a file instead of a directory
+     * @throws Exception
+     */
+    @Test
+    public void harvestSingleFileTest() throws Exception {
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:sf";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(mooFile.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("DATE (yyyy-mm-ddThh:mi:ssZ)");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("TEMP LEVEL0 (degree_Celsius)");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val2.setValue("VZMX LEVEL0 (meter)");
+        in.values().add(val2);
+
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/mooring-buoys-time-series-62069.csv"));
+
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        ObservationOffering offp = getOffering(sosWorker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2018-10-30", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-30T12:30:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        List<SamplingFeature> fois  = getFeatureOfInterest(sosWorker, offp.getFeatureOfInterestIds());
+        String foi = verifySamplingFeature(fois,  -4.9683, 48.2903);
+
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMP LEVEL0 (degree_Celsius)", "VZMX LEVEL0 (meter)"));
+
+        /*
+        * Verify an inserted timeSeries
+        */
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, foi);
+        String expectedResult = getResourceAsString("com/examind/process/sos/mooring-datablock-values-2.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        /*
+        * Verify an inserted timeSeries
+        */
+        observedProperty = "VZMX LEVEL0 (meter)";
+        result = getMeasure(sosWorker, offp.getId(), observedProperty, foi);
+        expectedResult = getResourceAsString("com/examind/process/sos/mooring-datablock-values-3.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        Object obj = sosWorker.getObservation(new GetObservationType("2.0.0", offp.getId(), null, Arrays.asList(sensorId), Arrays.asList(observedProperty), new ArrayList<>(), null));
+
+        Assert.assertTrue(obj instanceof GetObservationResponseType);
+
+        GetObservationResponseType goResponse = (GetObservationResponseType) obj;
+
+        Assert.assertTrue(goResponse.getObservationData().get(0).getOMObservation().getResult() instanceof DataArrayPropertyType);
+
+        DataArrayPropertyType daResult = (DataArrayPropertyType) goResponse.getObservationData().get(0).getOMObservation().getResult();
+
+        String value = daResult.getDataArray().getValues();
+        Assert.assertEquals(expectedResult, value + '\n');
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(3020, nbMeasure);
     }
 }

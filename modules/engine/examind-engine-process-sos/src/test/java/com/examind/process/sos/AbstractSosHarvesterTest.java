@@ -78,6 +78,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path argoDirectory;
     protected static Path fmlwDirectory;
     protected static Path mooDirectory;
+    protected static Path mooFile;
     protected static Path multiPlatDirectory;
     protected static Path bigdataDirectory;
     protected static Path survalDirectory;
@@ -93,6 +94,13 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     // DBF dir
     protected static Path ltDirectory;
     protected static Path rtDirectory;
+
+    // error files
+    protected static Path errorHeaderDirectory;
+    protected static Path errorHeaderDirectory_1;
+    protected static Path errorHeaderDirectory_2;
+
+    protected static Path errorHeaderDirectory2;
 
 
     protected static final int ORIGIN_NB_SENSOR = 17;
@@ -130,6 +138,14 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         Files.createDirectories(tsvFlatDirectory);
         xDataFlatDirectory = DATA_DIRECTORY.resolve("xlsx-flat");
         Files.createDirectories(xDataFlatDirectory);
+        errorHeaderDirectory = DATA_DIRECTORY.resolve("error-dir");
+        Files.createDirectories(errorHeaderDirectory);
+        errorHeaderDirectory_1 = errorHeaderDirectory.resolve("error-head-dir1");
+        Files.createDirectories(errorHeaderDirectory_1);
+        errorHeaderDirectory_2 = errorHeaderDirectory.resolve("error-head-dir2");
+        Files.createDirectories(errorHeaderDirectory_2);
+        errorHeaderDirectory2 = DATA_DIRECTORY.resolve("error-dir-2");
+        Files.createDirectories(errorHeaderDirectory2);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
@@ -150,6 +166,12 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         writeResourceDataFile(tsvDirectory, "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
         writeResourceDataFile(tsvFlatDirectory, "com/examind/process/sos/tabulation-flat.tsv", "tabulation-flat.tsv");
         writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/test-flat.xlsx", "test-flat.xlsx");
+        writeResourceDataFile(errorHeaderDirectory_1, "com/examind/process/sos/error-header.csv", "error-header.csv");
+        writeResourceDataFile(errorHeaderDirectory_2, "com/examind/process/sos/error-header.csv", "error-header.csv");
+        writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header.csv", "error-header.csv");
+        writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header-2.csv", "error-header-2.csv");
+
+        mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
     }
 
     protected ServiceComplete sc;

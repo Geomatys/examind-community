@@ -97,21 +97,25 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 headers = reader.getHeaders();
             }
 
+            // sometimes in some files, the last columns are empty, and so do not appears in the line
+            // so we want to consider a line as imcomplete only if the last index we look for is missing.
+            final AtomicInteger maxIndex  = new AtomicInteger();
+            
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
-            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
-            int foiIndex       = getColumnIndex(foiColumn,           headers, directColumnIndex, laxHeader);
-            int procIndex      = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
-            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
-            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader);
+            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int foiIndex       = getColumnIndex(foiColumn,           headers, directColumnIndex, laxHeader, maxIndex);
+            int procIndex      = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader);
-            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
             if (mainIndexes.isEmpty()) {
-                throw new DataStoreException("Unexpected column main:" + mainColumns);
+                throw new DataStoreException("Unable to find main column(s): " + mainColumns);
             }
 
             final List<String> measureFields = new ArrayList<>();
@@ -121,7 +125,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex);
             if (obsPropIndexes.isEmpty()) {
                 throw new DataStoreException("No observed properties columns have been found in the headers: "+ obsPropColumns.stream().collect(Collectors.joining(", ", "[ ", " ]")));
             }
@@ -183,6 +187,14 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             while (it.hasNext()) {
                 lineNumber++;
                 final Object[] line = it.next();
+
+                if (line.length == 0) {
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+                    continue;
+                }
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                 if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
@@ -395,19 +407,23 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             }
             int lineNumber = 1;
 
+            // sometimes in some files, the last columns are empty, and so do not appears in the line
+            // so we want to consider a line as imcomplete only if the last index we look for is missing.
+            final AtomicInteger maxIndex  = new AtomicInteger();
+
             // prepare spatial/time column indices
             final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
             final List<String> measureFields = new ArrayList<>();
             
-            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
-            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
-            int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
-            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
-            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader);
+            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
             // used to fill measure Fields list
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex);
             final Map<Integer, MeasureField> obsPropFields = new HashMap<>();
             for (int i = 0; i < obsPropIndexes.size(); i++) {
                 FieldType ft = FieldType.QUANTITY;
@@ -430,6 +446,14 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             while (it.hasNext()) {
                 lineNumber++;
                 final Object[] line   = it.next();
+
+                if (line.length == 0) {
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+                    continue;
+                }
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
                 if (verifyEmptyLine(line, lineNumber, obsPropFields, sdf)) {
