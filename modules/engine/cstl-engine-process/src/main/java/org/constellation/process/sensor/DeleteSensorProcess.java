@@ -95,7 +95,7 @@ public class DeleteSensorProcess extends AbstractCstlProcess {
         }
         if (sensors.isEmpty()) return;
         final Map<String, ISensorConfigurer> configurerCache = new HashMap<>();
-        float part = 100 / sensors.size();
+        float part = 100f / sensors.size();
         int i = 1;
         try {
             for (Sensor sensor : sensors) {

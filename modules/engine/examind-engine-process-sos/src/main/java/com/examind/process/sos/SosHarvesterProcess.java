@@ -52,6 +52,8 @@ import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
 import static com.examind.store.observation.FileParsingUtils.equalsGeom;
 import java.util.Objects;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -194,7 +196,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         2- Détermination des données à importer
         =====================================*/
         final URI dataUri = URI.create(sourceFolderStr);
-
+        
         final int dsId;
         DataSource ds;
         List<DataSource> dss = datasourceBusiness.search(sourceFolderStr, storeId, format);
@@ -222,6 +224,17 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
             ds   = dss.get(0);
             dsId = ds.getId();
+        }
+
+        // for informations purpose, as for single file we don't have acess to the file name
+        String singleFileName = "";
+        try {
+            Path dataFile = datasourceBusiness.getDatasourcePath(dsId, "/");
+            if (Files.isRegularFile(dataFile)) {
+                singleFileName = dataFile.getFileName().toString();
+            }
+        } catch (ConstellationException ex) {
+            throw new ProcessException("Error while accesing the datasource", this, ex);
         }
 
         // remove previous integration
@@ -345,15 +358,16 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
                 for (final DataSourceSelectedPath p : paths) {
 
+                    String filePath = p.getPath() + singleFileName;
                     switch (p.getStatus()) {
                         case "NO_DATA", "ERROR" -> {
-                            fireAndLog("No data / Error in file: " + p.getPath(), 0);
+                            fireAndLog("No data / Error in file: " + filePath, 0);
                         }
                         case "INTEGRATED", "COMPLETED" -> {
-                            fireAndLog("File already integrated for file: " + p.getPath(), 0);
+                            fireAndLog("File already integrated for file: " + filePath, 0);
                         }
                         case "REMOVED" -> {
-                            fireAndLog("Removing data for file: " + p.getPath(), 0);
+                            fireAndLog("Removing data for file: " + filePath, 0);
                             providerBusiness.removeProvider(p.getProviderId());
                             // TODO full removal
                             datasourceBusiness.removePath(dsId, p.getPath());
@@ -379,7 +393,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                                     continue;
                                 }
                             }
-                            fireAndLog("Integrating data file: " + p.getPath(), 0);
+                            fireAndLog("Integrating data file: " + filePath, 0);
                             dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
                             nbFileInserted++;
                         }

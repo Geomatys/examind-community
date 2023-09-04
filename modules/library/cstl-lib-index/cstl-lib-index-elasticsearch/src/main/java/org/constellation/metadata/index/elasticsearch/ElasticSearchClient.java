@@ -377,6 +377,7 @@ public class ElasticSearchClient {
         return getFieldValues(index, queryJson, query, filter, field, null, keySorted, from, size);
     }
 
+    // TODO return Set?
     public List<String> getFieldValues(final String index, final String queryJson, QueryBuilder query, final QueryBuilder filter,  String field, Entry<String, String> scriptField, SortOrder keySorted, Integer from, Integer size) throws IOException {
         if (field != null && scriptField != null) {
             throw new IllegalArgumentException("Either field or scriptField must be null");
@@ -417,9 +418,6 @@ public class ElasticSearchClient {
         SearchRequest sRequest = new SearchRequest(index);
         sRequest.source(builder);
         final SearchResponse response = client.search(sRequest, RequestOptions.DEFAULT);
-        for (SearchHit hit : response.getHits().getHits()) {
-               hit.toString();
-            }
 
         Terms agg1 = response.getAggregations().get("agg1");
         List<String> results = new ArrayList<>();
