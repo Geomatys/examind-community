@@ -101,6 +101,12 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path errorHeaderDirectory_2;
 
     protected static Path errorHeaderDirectory2;
+    protected static Path errorUnitConvertDirectory;
+    protected static Path errorUnitConvertFile1;
+    protected static Path errorUnitConvertFile2;
+
+    protected static Path warningUomDirectory;
+    protected static Path noLineDirectory;
 
 
     protected static final int ORIGIN_NB_SENSOR = 17;
@@ -146,6 +152,12 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         Files.createDirectories(errorHeaderDirectory_2);
         errorHeaderDirectory2 = DATA_DIRECTORY.resolve("error-dir-2");
         Files.createDirectories(errorHeaderDirectory2);
+        errorUnitConvertDirectory = DATA_DIRECTORY.resolve("error-unit-convert");
+        Files.createDirectories(errorUnitConvertDirectory);
+        warningUomDirectory = DATA_DIRECTORY.resolve("warning-uom");
+        Files.createDirectories(warningUomDirectory);
+        noLineDirectory = DATA_DIRECTORY.resolve("no-valid-line");
+        Files.createDirectories(noLineDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
@@ -170,12 +182,20 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         writeResourceDataFile(errorHeaderDirectory_2, "com/examind/process/sos/error-header.csv", "error-header.csv");
         writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header.csv", "error-header.csv");
         writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header-2.csv", "error-header-2.csv");
+        writeResourceDataFile(errorUnitConvertDirectory, "com/examind/process/sos/unit-convert-error-1.csv", "unit-convert-error-1.csv");
+        writeResourceDataFile(errorUnitConvertDirectory, "com/examind/process/sos/unit-convert-error-2.csv", "unit-convert-error-2.csv");
+        writeResourceDataFile(warningUomDirectory, "com/examind/process/sos/warning-uom.csv", "warning-uom.csv");
+        writeResourceDataFile(noLineDirectory, "com/examind/process/sos/no-valid-lines.csv", "no-valid-lines.csv");
 
         mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
+
+        errorUnitConvertFile1 = errorUnitConvertDirectory.resolve("unit-convert-error-1.csv");
+        errorUnitConvertFile2 = errorUnitConvertDirectory.resolve("unit-convert-error-2.csv");
     }
 
     protected ServiceComplete sc;
     protected ServiceComplete sc2;
+    protected ServiceComplete badService;
 
     @PostConstruct
     public void setUp() throws Exception {
@@ -199,6 +219,10 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
             serviceBusiness.linkServiceAndProvider(sid, pid);
             serviceBusiness.start(sid);
 
+            sid = serviceBusiness.create("sts", "bad", configuration, null, null);
+            // no provider linked
+            serviceBusiness.start(sid);
+
             initialized = true;
         }
 
@@ -209,6 +233,9 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         sc2 = serviceBusiness.getServiceByIdentifierAndType("sts", "default");
         Assert.assertNotNull(sc2);
         sensorServBusiness.removeAllSensors(sc2.getId());
+
+        badService = serviceBusiness.getServiceByIdentifierAndType("sts", "bad");
+        Assert.assertNotNull(sc2);
     }
 
     @AfterClass

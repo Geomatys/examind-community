@@ -42,7 +42,6 @@ import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;

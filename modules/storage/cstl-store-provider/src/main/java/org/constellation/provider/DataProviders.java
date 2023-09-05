@@ -207,17 +207,36 @@ public final class DataProviders extends Static{
      * @throws ConfigurationException If an error occur during the provider or data instanciation.
      */
     public synchronized static Data getProviderData(final int dataId) throws ConfigurationException {
-        final DataRepository repo = SpringHelper.getBean(DataRepository.class)
-                                               .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
-        final org.constellation.dto.Data d = repo.findById(dataId);
-        if (d == null) throw new TargetNotFoundException("No Data for id " + dataId);
-
+        final org.constellation.dto.Data d = getDataFromId(dataId);
         final DataProvider inProvider = DataProviders.getProvider(d.getProviderId());
         try {
             return inProvider.get(d.getNamespace(), d.getName());
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Return a {@link DataProvider} in the specified data.
+     *
+     * @param dataId Data identifier.
+     *
+     * @return The matching {@link DataProvider} or {@code null} if the data is not registered in the datasource.
+     *
+     * @throws TargetNotFoundException If the Data does not exist.
+     * @throws ConfigurationException If an error occur during the provider or data instanciation.
+     */
+    public static DataProvider getProviderForData(final int dataId) throws ConfigurationException {
+        final org.constellation.dto.Data d = getDataFromId(dataId);
+        return DataProviders.getProvider(d.getProviderId());
+    }
+
+    private static org.constellation.dto.Data getDataFromId(final int dataId) throws ConfigurationException {
+        final DataRepository repo = SpringHelper.getBean(DataRepository.class)
+                                               .orElseThrow(() ->  new ConfigurationException("Application context unavailable"));
+        final org.constellation.dto.Data d = repo.findById(dataId);
+        if (d == null) throw new TargetNotFoundException("No Data for id " + dataId);
+        return d;
     }
 
     /**

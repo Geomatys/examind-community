@@ -30,7 +30,6 @@ import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
 import org.constellation.dto.ProviderConfiguration;
-import org.constellation.dto.Sensor;
 import org.constellation.dto.importdata.ResourceStoreAnalysisV3;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConfigurationException;
@@ -46,11 +45,13 @@ import org.geotoolkit.util.StringUtilities;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import static com.examind.process.sos.SosHarvesterProcessDescriptor.*;
+import static com.examind.process.sos.SosHarvesterUtils.*;
 import static com.examind.store.observation.FileParsingUtils.equalsGeom;
 import java.util.Objects;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -62,7 +63,6 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.importdata.FileBean;
-import org.constellation.dto.importdata.ResourceAnalysisV3;
 import org.constellation.dto.importdata.StoreFormat;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
@@ -132,7 +132,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
         final boolean generateMetadata = inputParameters.getValue(GENERATE_METADATA);
 
-        final List<ServiceProcessReference> services = getMultipleValues(inputParameters, SERVICE_ID);
+        final boolean checkFiles = inputParameters.getValue(CHECK_FILE);
+
+        final List<ServiceProcessReference> serviceRefs = getMultipleValues(inputParameters, SERVICE_ID);
 
         final String datasetIdentifier = inputParameters.getValue(DATASET_IDENTIFIER);
         final String procedureId = inputParameters.getValue(THING_ID);
@@ -175,6 +177,38 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
         final String uomID       = inputParameters.getValue(UOM_ID);
+        final int userId         = 1; // always admin for now
+
+        final SosHarvestFileChecker customChecker   = inputParameters.getValue(FILE_CHECKER);
+
+        // verify that the services are correct sensor services
+        Collection<SensorService> services;
+        try {
+            Map<String, SensorService> serviceMap = new HashMap<>();
+            for (ServiceProcessReference serv : serviceRefs) {
+                ObservationProvider serviceOMProvider = getServiceOMProvider(serv.getId(), serviceBusiness);
+                String key = serviceOMProvider.getDatasourceKey();
+                if (!serviceMap.containsKey(key)) {
+                    List<ServiceProcessReference> refs = new ArrayList<>();
+                    refs.add(serv);
+                    serviceMap.put(key, new SensorService(serviceOMProvider, refs));
+                } else {
+                    serviceMap.get(key).services.add(serv);
+                }
+            }
+            services = serviceMap.values();
+        } catch (ConfigurationException ex) {
+            throw new ProcessException("Error while checking sensor service", this, ex);
+        }
+
+        StringBuilder checkReport = new StringBuilder();
+        StringBuilder errorReport = new StringBuilder();
+        Exception error = null;
+        SosHarvestFileChecker checker = null;
+        if (checkFiles) {
+            checker = customChecker != null ? customChecker : new SosHarvestFileChecker();
+            checker.setTargetServices(services);
+        }
 
         // prepare the results
         int nbObsInserted  = 0;
@@ -292,7 +326,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // http://localhost:8080/examind/API/internal/datas/store/observationFile
         final DataStoreProvider factory = DataStores.getProviderById(storeId);
         final Map<String, Integer> dataFileToIntegrate = new LinkedHashMap<>();
-        int totalNbData = 0;
 
         if (factory != null) {
             final DataCustomConfiguration.Type storeParams = DataProviders.buildDatastoreConfiguration(factory, "observation-store", null);
@@ -359,61 +392,65 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 for (final DataSourceSelectedPath p : paths) {
 
                     String filePath = p.getPath() + singleFileName;
-                    switch (p.getStatus()) {
-                        case "NO_DATA", "ERROR" -> {
-                            fireAndLog("No data / Error in file: " + filePath, 0);
-                            errorFiles.add(p.getPath());
-                        }
-                        case "INTEGRATED", "COMPLETED" -> {
-                            fireAndLog("File already integrated for file: " + filePath, 0);
-                            alreadyInsertedFiles.add(p.getPath());
-                        }
-                        case "REMOVED" -> {
-                            fireAndLog("Removing data for file: " + filePath, 0);
-                            providerBusiness.removeProvider(p.getProviderId());
-                            // TODO full removal
-                            datasourceBusiness.removePath(dsId, p.getPath());
-                            removedFiles.add(filePath);
-                        }
-                        default -> {
-                            // in the case of a null format, meaning that multiple format are accepted.
-                            // we need to determine the format of each file
-                            if (format == null) {
-                                boolean formatFound = false;
-                                Optional<FileBean> fb = datasourceBusiness.getAnalyzedPath(dsId, p.getPath());
-                                if (fb.isPresent()) {
-                                    List<StoreFormat> types = fb.get().getTypes();
-                                    for (StoreFormat sf : types) {
-                                        if (storeId.equals(sf.getStore())) {
-                                            provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), sf.getFormat());
-                                            formatFound = true;
-                                            break;
+                    try {
+                        switch (p.getStatus()) {
+                            case "NO_DATA", "ERROR" -> {
+                                fireAndLog("No data / Error in file: " + filePath, 0);
+                                errorFiles.add(filePath);
+                            }
+                            case "INTEGRATED", "COMPLETED" -> {
+                                fireAndLog("File already integrated for file: " + filePath, 0);
+                                alreadyInsertedFiles.add(filePath);
+                            }
+                            case "REMOVED" -> {
+                                fireAndLog("Removing data for file: " + filePath, 0);
+                                providerBusiness.removeProvider(p.getProviderId());
+                                // TODO full removal
+                                datasourceBusiness.removePath(dsId, p.getPath());
+                                removedFiles.add(filePath);
+                            }
+                            default -> {
+                                // in the case of a null format, meaning that multiple format are accepted.
+                                // we need to determine the format of each file
+                                if (format == null) {
+                                    boolean formatFound = false;
+                                    Optional<FileBean> fb = datasourceBusiness.getAnalyzedPath(dsId, p.getPath());
+                                    if (fb.isPresent()) {
+                                        List<StoreFormat> types = fb.get().getTypes();
+                                        for (StoreFormat sf : types) {
+                                            if (storeId.equals(sf.getStore())) {
+                                                provConfig.getParameters().put(FileParsingObservationStoreFactory.FILE_MIME_TYPE.getName().toString(), sf.getFormat());
+                                                formatFound = true;
+                                                break;
+                                            }
                                         }
                                     }
+                                    if (!formatFound) {
+                                        fireWarningOccurred("Unable to determine the format of file:" + p.getPath(), (float) this.progress, null);
+                                        continue;
+                                    }
                                 }
-                                if (!formatFound) {
-                                    fireWarningOccurred("Unable to determine the format of file:" + p.getPath(), (float) this.progress, null);
-                                    continue;
-                                }
-                            }
-                            fireAndLog("Integrating data file: " + filePath, 0);
-                            List<Integer> dataIds = integratingDataFile(p, dsId, provConfig, datasetId, generateMetadata);
-                            totalNbData = totalNbData + dataIds.size();
+                                fireAndLog("Integrating data file: " + filePath, 0);
+                                Integer dataId = integrateDataFile(p, dsId, provConfig, datasetId, userId);
+                                if (dataId != null) {
+                                    dataBusiness.acceptData(dataId, userId, generateMetadata, false);
+                                    dataBusiness.updateDataDataSetId(dataId, datasetId);
+                                    dataFileToIntegrate.put(filePath, dataId);
 
-                            // here we are going to assume that only one data is generated for a file (for later simplification).
-                            // this is the case for csv stores. we are going to throw some error if its not te case, but we expect this to never happen
-                            Integer dataId = null;
-                            if (dataIds.size() > 1) {
-                                throw new ProcessException("A csv file produce more than one data, its not supported", this);
-                            } else if (!dataIds.isEmpty()) {
-                                dataId = dataIds.get(0);
+                                // i don't know if this can really happen
+                                } else {
+                                    throw new ConstellationException("File:" + filePath + " has produced no data.");
+                                }
                             }
-                            dataFileToIntegrate.put(filePath, dataId);
                         }
-
+                    } catch (ConstellationException ex) {
+                        LOGGER.warning("Error while analysing the file:" + ex.getMessage());
+                        if (!errorFiles.contains(filePath)) {
+                             errorFiles.add(filePath);
+                        }
+                        error = new Exception(filePath + ":\n" + ex.getMessage(), ex);;
                     }
                 }
-
             } catch (ConstellationException ex) {
                 LOGGER.warning(ex.getMessage());
                 throw new ProcessException("Error while analysing the files", this, ex);
@@ -426,17 +463,19 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         =======================================
         4- Insert each data for each csv file into the sensor services.
         =======================================*/
-        ConstellationException error = null;
-        final double byData = 100.0 / totalNbData;
+        final double byData = 100.0 / dataFileToIntegrate.size();
         for (final Entry<String, Integer> fileEntry : dataFileToIntegrate.entrySet()) {
             final String fileName = fileEntry.getKey();
             final Integer dataId  = fileEntry.getValue();
-            
-            // the csv file throw no error but produce no data. i don't know if this can happen
-            if (dataId == null) {
-                LOGGER.warning("File:" + fileName + " has produced no data.");
-                errorFiles.add(fileName);
-            } else {
+
+            boolean accept = true;
+            if (checker != null) {
+                checker.clear();
+                accept = checker.checkFile(fileName, dataId);
+                error  = checker.getError();
+                checkReport.append(checker.getReport());
+            }
+            if (accept) {
                 try {
                     int currentNbObs = importSensor(services, dataId, byData);
                     nbObsInserted = nbObsInserted + currentNbObs;
@@ -444,12 +483,30 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     // add the integrated data id and file to results
                     insertedFiles.add(fileName);
                     integratedData.add(dataId);
-                    
+
                 } catch (ConstellationException ex) {
                     LOGGER.log(Level.WARNING, "ERROR while inserting file:" + fileName + " into the sensor services.", ex);
                     // add the error file name to results
-                    error = ex;
+                    error = new Exception(fileName + ":\n" + ex.getMessage(), ex);
                     errorFiles.add(fileName);
+                    try {
+                        dataBusiness.removeData(dataId, false);
+                    } catch(ConstellationException subex) {
+                        LOGGER.log(Level.WARNING, "An exception occurs while removing a sensor data that cause an insertion error", subex);
+                    }
+                }
+            } else {
+                errorFiles.add(fileName);
+                try {
+                    dataBusiness.removeData(dataId, false);
+                } catch(ConstellationException subex) {
+                    LOGGER.log(Level.WARNING, "An exception occurs while removing a sensor data that cause an insertion error", subex);
+                }
+            }
+            if (error != null) {
+                errorReport.append(error.getMessage());
+                if (errorReport.charAt(errorReport.length() -1)  != '\n') {
+                    errorReport.append('\n');
                 }
             }
         }
@@ -459,7 +516,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
          * - All the files are in error.
          */
 
-        if (insertedFiles.isEmpty()) {
+        if (insertedFiles.isEmpty() && alreadyInsertedFiles.isEmpty()) {
             if (errorFiles.size() == 1) {
                 if (error != null) {
                     throw new ProcessException(error.getMessage(), this, error);
@@ -469,14 +526,20 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                     throw new ProcessException("File analyze failed", this);
                 }
             } else if (!errorFiles.isEmpty()) {
-                throw new ProcessException("All the files insertion failed", this);
+                String msg = "All the files insertion failed";
+                if (!errorReport.isEmpty()) {
+                    msg = msg + ":\n" + errorReport.toString();
+                }
+                throw new ProcessException(msg, this);
             }
         }
 
         try {
             // reload service at the end
-            for (ServiceProcessReference serv : services) {
-                serviceBusiness.restart(serv.getId());
+            for (SensorService sserv : services) {
+                for (ServiceProcessReference serv : sserv.services) {
+                    serviceBusiness.restart(serv.getId());
+                }
             }
 
         } catch (ConstellationException ex) {
@@ -494,96 +557,78 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         addMultipleValues(outputParameters, removedFiles, SosHarvesterProcessDescriptor.FILE_REMOVED);
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_REMOVED_COUNT).setValue(removedFiles.size());
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.OBSERVATION_INSERTED).setValue(nbObsInserted);
-    }
-
-    private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId, boolean generateMetadata) throws ConstellationException {
-        List<Integer> dataToIntegrate = new ArrayList<>();
-        int userId = 1;
-        ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, userId);
-        for (ResourceAnalysisV3 resourceStore : store.getResources()) {
-            final Integer dataId = resourceStore.getId();
-            dataBusiness.acceptData(dataId, userId, generateMetadata, false);
-            dataBusiness.updateDataDataSetId(dataId, datasetId);
-            dataBusiness.cacheDataInformation(dataId, false);
-            dataToIntegrate.add(dataId);
+        if (!checkReport.isEmpty()) {
+            outputParameters.getOrCreate(SosHarvesterProcessDescriptor.CHECK_REPORT).setValue(checkReport.toString());
         }
-        return dataToIntegrate;
     }
 
-    private List<String> listSensorInData(final int dataId) throws ConstellationStoreException, ConfigurationException {
+    private Integer integrateDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId, Integer owner) throws ConstellationException {
+        Integer result = null;
+        ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, owner);
 
-        final Integer providerId    = dataBusiness.getDataProvider(dataId);
-        final DataProvider provider = DataProviders.getProvider(providerId);
-        final List<String> ids = new ArrayList<>();
-
-        if (provider instanceof ObservationProvider op) {
-            final List<ProcedureDataset> procedures = op.getProcedureTrees(null);
-
-            // SensorML generation
-            for (final ProcedureDataset process : procedures) {
-                ids.add(process.getId());
-            }
+        // here we are going to assume that only one data is generated for a file (for later simplification).
+        // this is the case for csv stores. we are going to throw some error if its not te case, but we expect this to never happen
+        if (store.getResources().size() > 1) {
+            throw new ConstellationException("A csv file produce more than one data, its not supported");
+        } else if (!store.getResources().isEmpty()) {
+            result = store.getResources().get(0).getId();
         } else {
-            throw new ConfigurationException("none observation store found");
+            return result;
         }
-        return ids;
+        return result;
     }
 
-    private int importSensor(final List<ServiceProcessReference> sosRefs, final int dataId, final double byData) throws ConstellationException {
+    private int importSensor(final Collection<SensorService> services, final int dataId, final double byData) throws ConstellationException {
         Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
-        ObservationProvider omProvider;
+        ObservationProvider csvOmProvider;
         if (provider instanceof ObservationProvider) {
-             omProvider = (ObservationProvider) provider;
+             csvOmProvider = (ObservationProvider) provider;
         } else {
             throw new ConfigurationException("Failure : Available only on Observation provider for now");
         }
         int nbObsTotal                              = 0;
         final List<ObservationProvider> treated     = new ArrayList<>();
-        final double byInsert                       = byData / sosRefs.size();
+        final double byInsert                       = byData / services.size();
 
-        for (ServiceProcessReference sosRef : sosRefs) {
-            fireAndLog("inserting data " + dataId + " into the service " + sosRef.getName(), byInsert);
+        for (SensorService sosRef : services) {
+            fireAndLog("inserting data " + dataId + " into the service sensor provider " + sosRef.provider.getId(), byInsert);
             
-            final ObservationProvider omServiceProvider = getOMProvider(sosRef.getId());
+            final ObservationProvider omServiceProvider = sosRef.provider;
+
+            // import observation dataset into the service provider
             final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery()));
-            final Set<SamplingFeature> existingFois     = new HashSet<>(getFeatureOfInterest(omServiceProvider));
+            final Set<SamplingFeature> existingFois     = new HashSet<>(omServiceProvider.getFeatureOfInterest(new SamplingFeatureQuery()));
 
-            boolean alreadyInserted = false;
-            for (ObservationProvider o : treated) {
-                if (sameObservationProvider(o, omServiceProvider)) {
-                    alreadyInserted = true;
-                }
+            final ObservationDataset result = csvOmProvider.extractResults(new DatasetQuery());
+            if (result.getObservations().isEmpty()) {
+                throw new ConstellationException("The data provider did not produce any observations.");
             }
+            reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
 
-            // import observations
-            if (!alreadyInserted) {
-                final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
-                if (result.getObservations().isEmpty()) {
-                    throw new ConstellationException("The data provider did not produce any observations.");
-                }
-                reuseExistingPhenomenonAndFOI(result, existingPhenomenons, existingFois);
+            // generate sensor
+            final long start = System.currentTimeMillis();
+            final List<Integer> sensorIds = new ArrayList<>();
+            for (ProcedureDataset process : result.getProcedures()) {
+                omServiceProvider.writeProcedure(process);
+                Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
+                sensorIds.add(sid);
+            }
+            result.getObservations().stream().forEach(obs -> ((org.geotoolkit.observation.model.Observation)obs).setName(null));
 
-                // generate sensor
-                for (ProcedureDataset process : result.getProcedures()) {
-                    sensorServBusiness.writeProcedure(sosRef.getId(), process);
-                    Integer sid =  sensorBusiness.generateSensor(process, null, null, dataId);
-                    sensorBusiness.addSensorToService(sosRef.getId(), sid);
-                }
-                result.getObservations().stream().forEach(obs -> ((org.geotoolkit.observation.model.Observation)obs).setName(null));
+            // import observation in the service provider
+            for (Observation obs : result.getObservations()) {
+                omServiceProvider.writeObservation(obs);
+            }
+            LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
 
-                // import in O&M database
-                List<Phenomenon> modelPhens = result.getPhenomenons().stream().map(phen -> (Phenomenon) phen).toList();
-                sensorServBusiness.importObservations(sosRef.getId(), result.getObservations(), modelPhens);
-                nbObsTotal = nbObsTotal + result.getObservations().size();
-                treated.add(omServiceProvider);
-            } else {
-                List<String> ids = listSensorInData(dataId);
-                for (String sensorID : ids) {
-                    final Sensor sensor = sensorBusiness.getSensor(sensorID);
-                    if (sensor != null) {
-                        sensorBusiness.addSensorToService(sosRef.getId(), sensor.getId());
-                    }
+            nbObsTotal = nbObsTotal + result.getObservations().size();
+            treated.add(omServiceProvider);
+
+            for (ServiceProcessReference servRef : sosRef.services) {
+                // link sensors to the service
+                for (Integer sensorID : sensorIds) {
+                    sensorBusiness.addSensorToService(servRef.getId(), sensorID);
                 }
             }
         }
@@ -657,29 +702,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                 throw new IllegalArgumentException("Unexpected observation implementation:" + obs.getClass().getName());
             }
         }
-    }
-
-    private List<SamplingFeature> getFeatureOfInterest(ObservationProvider provider) throws ConstellationStoreException {
-        return provider.getFeatureOfInterest(new SamplingFeatureQuery());
-    }
-
-    protected ObservationProvider getOMProvider(final Integer serviceID) throws ConfigurationException {
-        final List<Integer> providers = serviceBusiness.getLinkedProviders(serviceID);
-        for (Integer providerID : providers) {
-            final DataProvider p = DataProviders.getProvider(providerID);
-            if(p instanceof ObservationProvider){
-                // TODO for now we only take one provider by type
-                return (ObservationProvider) p;
-            }
-        }
-        throw new ConfigurationException("there is no OM provider linked to this ID:" + serviceID);
-    }
-
-    /**
-     * hack method to compare two observation provider on the same datasource (should not be allowed in the future.)
-     */
-    private boolean sameObservationProvider(ObservationProvider op1, ObservationProvider op2) {
-        return Objects.equals(op1.getDatasourceKey(), op2.getDatasourceKey());
     }
 
     private void fireAndLog(final String msg, double progress) {

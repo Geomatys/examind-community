@@ -147,7 +147,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getProcedureDatasets((DatasetQuery) q).stream().map(p -> toDto(p)).toList();
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -161,7 +161,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getHistoricalSensorLocations((HistoricalLocationQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -175,7 +175,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getSensorLocations((LocationQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -189,7 +189,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getHistoricalSensorTimes((HistoricalLocationQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -206,7 +206,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getEntityNames((AbstractObservationQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -220,7 +220,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getPhenomenons((ObservedPropertyQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -247,7 +247,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             Map<String, Geometry> sensorLocations = ((ObservationStore)getMainStore()).getSensorLocations(query);
             return sensorLocations.getOrDefault(sensorID, null);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -263,7 +263,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return null;
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -284,7 +284,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 }
             }
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
         return results;
     }
@@ -334,7 +334,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 ((ObservationStore)getMainStore()).getFilter().refresh();
             }
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -346,7 +346,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).existEntity((IdentifierQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -355,7 +355,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getTemporalBounds();
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -364,7 +364,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getEntityTemporalBounds(new IdentifierQuery(OMEntity.PROCEDURE, sensorID));
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -373,7 +373,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getEntityTemporalBounds(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, fid));
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -382,7 +382,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             ((ObservationStore)getMainStore()).getWriter().removeProcedure(procedureID);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -391,7 +391,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             ((ObservationStore)getMainStore()).getWriter().removeObservation(observationID);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -400,7 +400,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getWriter().removeDataSet(toGeotk(dataset));
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -409,7 +409,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             ((ObservationStore)getMainStore()).getWriter().writeProcedure(toGeotk(procedure));
         } catch (DataStoreException ex) {
-             throw new ConstellationStoreException(ex);
+             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -418,7 +418,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             ((ObservationStore)getMainStore()).getWriter().recordProcedureLocation(procedureId, position);
         } catch (DataStoreException ex) {
-             throw new ConstellationStoreException(ex);
+             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -429,7 +429,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             ((ObservationStore)getMainStore()).getFilter().refresh();
             return oid;
         } catch (DataStoreException ex) {
-             throw new ConstellationStoreException(ex);
+             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -447,7 +447,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             ((ObservationStore)getMainStore()).getWriter().writePhenomenons(obsProps);
             ((ObservationStore)getMainStore()).getFilter().refresh();
         } catch (DataStoreException ex) {
-             throw new ConstellationStoreException(ex);
+             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -461,7 +461,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getFeatureOfInterest((SamplingFeatureQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -470,7 +470,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             return ((ObservationStore)getMainStore()).getTemplate(sensorId);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -484,7 +484,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             }
             return ((ObservationStore)getMainStore()).getObservations((ObservationQuery) q);
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -499,7 +499,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             return ((ObservationStore)getMainStore()).getProcedures((ProcedureQuery) q);
 
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -512,7 +512,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             return ((ObservationStore)getMainStore()).getResults((ResultQuery) q);
 
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -528,7 +528,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             return ((ObservationStore)getMainStore()).getCount((AbstractObservationQuery) q);
 
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
@@ -544,7 +544,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             ObservationDataset results = toDto(((ObservationStore)getMainStore()).getDataset(dq));
             return results;
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 

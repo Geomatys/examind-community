@@ -50,7 +50,7 @@ public class DefaultObservationData extends AbstractData implements ObservationD
             ObservationDataset dataset = oStore.getDataset(new DatasetQuery());
             return dataset.spatialBound.getEnvelope().get();
         } catch (DataStoreException ex) {
-            throw new ConstellationStoreException(ex);
+            throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 

@@ -19,11 +19,18 @@
 package com.examind.process.sos;
 
 import static com.examind.process.sos.AbstractSosHarvesterTest.ORIGIN_NB_SENSOR;
+import static com.examind.process.sos.AbstractSosHarvesterTest.errorHeaderDirectory;
+import static com.examind.process.sos.AbstractSosHarvesterTest.errorHeaderDirectory2;
+import static com.examind.process.sos.AbstractSosHarvesterTest.errorHeaderDirectory_1;
 import static com.examind.process.sos.SosHarvesterTestUtils.getNbOffering;
-import com.examind.sts.core.STSWorker;
+import jakarta.annotation.PostConstruct;
+import java.util.List;
+import java.util.logging.Level;
+import org.constellation.business.IDataBusiness;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
+import org.constellation.test.utils.TestEnvironment;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.process.ProcessFinder;
@@ -31,12 +38,34 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
- * @author Guilhem Legal (Geomatys)
+ * @author guilhem
  */
-public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
+public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
+
+    private static boolean initialized = false;
+
+    private static Integer FEATURE_DATA_ID = null;
+
+    @PostConstruct
+    public void setUpClass2() {
+        if (!initialized) {
+            try {
+                final List<TestEnvironment.DataImport> datas = testResources.createProviders(TestEnvironment.TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas();
+                for (TestEnvironment.DataImport data : datas) {
+                    if (data.name.equals("Bridges")) {
+                        FEATURE_DATA_ID = data.id;
+                    }
+                }
+                initialized = true;
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "error while initializing test", ex);
+            }
+        }
+    }
 
     @Test
     public void harvestCSVSingleErrorHeaderTest() throws Exception {
@@ -44,9 +73,6 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
-        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
-        stsWorker.setServiceUrl("http://localhost/examind/");
-        
         int prev = getNbOffering(sosWorker, 0);
 
         Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
@@ -76,13 +102,18 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         val2.setValue("salinity");
         in.values().add(val2);
 
-        // bad separator
-        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
-        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
+
+        // bad separator
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
+       
+        ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        serv1.setValue(new ServiceProcessReference(sc));
+        in.values().add(serv1);
 
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         ProcessException error = null;
@@ -92,25 +123,13 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
             error = ex;
         }
         Assert.assertNotNull(error);
-        // i don't know why the message is prfixed with the type of the exception
-        Assert.assertEquals("/error-header.csv:" + '\n' +
-                           "Unable to find main column(s): [time]", error.getMessage());
-
-       /*
-        * set an error on the sensor service (no linked provider)
-        */
-       in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(badService));
-
-        proc = desc.createProcess(in);
-        error = null;
-        try {
-            proc.call();
-        } catch (ProcessException ex) {
-            error = ex;
-        }
-        Assert.assertNotNull(error);
-        // i don't know why the message is prfixed with the type of the exception
-        Assert.assertEquals("Error while checking sensor service", error.getMessage());
+        // i don't know why the message is prefixed with the type of the exception
+        Assert.assertEquals("""
+                            /error-header.csv:
+                            Unable to find main column(s): [time]
+                            KO.
+                            
+                            """, error.getMessage());
 
     }
 
@@ -119,9 +138,6 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
 
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
-
-        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
-        stsWorker.setServiceUrl("http://localhost/examind/");
 
         int prev = getNbOffering(sosWorker, 0);
 
@@ -152,19 +168,23 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         val2.setValue("salinity");
         in.values().add(val2);
 
-        // bad separator
-        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
+
+        // bad separator
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
         ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         serv1.setValue(new ServiceProcessReference(sc));
         in.values().add(serv1);
 
         /*
-         * two files (with same name), both failing
+         * two files (with same name)
         */
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(errorHeaderDirectory.toUri().toString());
+
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         Exception error = null;
         try {
@@ -174,12 +194,16 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         }
         Assert.assertNotNull(error);
         Assert.assertEquals("""
-                           All the files insertion failed:
-                           /error-head-dir1/error-header.csv:
-                           Unable to find main column(s): [time]
-                           /error-head-dir2/error-header.csv:
-                           Unable to find main column(s): [time]
-                           """, error.getMessage());
+                            All the files insertion failed:
+                            /error-head-dir1/error-header.csv:
+                            Unable to find main column(s): [time]
+                            KO.
+
+                            /error-head-dir2/error-header.csv:
+                            Unable to find main column(s): [time]
+                            KO.
+
+                            """, error.getMessage());
 
         /*
         * two files but one pass
@@ -192,16 +216,27 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
         String errorFile = results.parameter(SosHarvesterProcessDescriptor.FILE_ERROR_NAME).stringValue();
         int nbError = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ERROR_COUNT_NAME).getValue();
+        String checkReport = results.parameter(SosHarvesterProcessDescriptor.CHECK_REPORT_NAME).stringValue();
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, nbError);
         Assert.assertEquals("/error-header.csv", errorFile);
         Assert.assertEquals("/error-header-2.csv", insertedFile);
+        Assert.assertEquals("""
+                           /error-header-2.csv:
+                           OK.
+
+                           /error-header.csv:
+                           Unable to find main column(s): [time]
+                           KO.
+                            
+                            """, checkReport);
+
     }
 
     @Test
     public void harvestCSVbadUOMConvertTest() throws Exception {
-
+        
         SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
         sosWorker.setServiceUrl("http://localhost/examind/");
 
@@ -232,7 +267,8 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
-
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
+        
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
         in.parameter(SosHarvesterProcessDescriptor.UOM_COLUMN.getName().getCode()).setValue("UNIT");
@@ -264,8 +300,14 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
             error = ex;
         }
         Assert.assertNotNull(error);
-        Assert.assertEquals("/unit-convert-error-2.csv:" + '\n' +
-                           "Error while inserting observation:Error while looking for uom converter °C => m for field: TEMPERATURE",
+        Assert.assertEquals("""
+                            /unit-convert-error-2.csv:
+                            [ERROR] unconvertible Unit Of Measure:
+                             - Sensor urn:sensor:bad-uom-convert
+                            	 - m => °C for property: TEMPERATURE
+                            KO.
+                            
+                            """,
                            error.getMessage());
     }
 
@@ -302,14 +344,15 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
 
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
         in.parameter(SosHarvesterProcessDescriptor.UOM_COLUMN.getName().getCode()).setValue("UNIT");
-        in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
 
         in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
         in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
 
         // first file insertion will set the field unit to '°C'
         // the second will fail because of the field with is 'm'
@@ -327,11 +370,25 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
         String errorFile = results.parameter(SosHarvesterProcessDescriptor.FILE_ERROR_NAME).stringValue();
         int nbError = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ERROR_COUNT_NAME).getValue();
+        String checkReport = results.parameter(SosHarvesterProcessDescriptor.CHECK_REPORT_NAME).stringValue();
 
         Assert.assertEquals(1, nbInserted);
         Assert.assertEquals(1, nbError);
         Assert.assertEquals("/unit-convert-error-2.csv", errorFile);
         Assert.assertEquals("/unit-convert-error-1.csv", insertedFile);
+
+        Assert.assertEquals("""
+                            /unit-convert-error-1.csv:
+                            OK.
+
+                            /unit-convert-error-2.csv:
+                            [ERROR] unconvertible Unit Of Measure:
+                             - Sensor urn:sensor:bad-uom-convert2
+                            	 - m => °C for property: TEMPERATURE
+                            KO.
+
+                            """, checkReport);
+
     }
 
     @Test
@@ -367,6 +424,7 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
         in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
 
         in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
         in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN.getName().getCode()).setValue("BADCOL");
@@ -387,9 +445,168 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
             error = ex;
         }
         Assert.assertNotNull(error);
-        Assert.assertEquals("/unit-convert-error-1.csv:" + '\n' +
-                           "File headers is missing observed properties columns: BADCOL",
+        Assert.assertEquals("""
+                           /unit-convert-error-1.csv:
+                           File headers is missing observed properties columns: BADCOL
+                           KO.
+                           
+                           """,
                            error.getMessage());
     }
 
+    @Test
+    public void harvestCSVFlatWarningTest() throws Exception {
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:warn:1";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(warningUomDirectory.toUri().toString());
+
+         in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFlatFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("TIME");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("TIME");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LAT");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LON");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
+
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+        in.parameter(SosHarvesterProcessDescriptor.UOM_COLUMN.getName().getCode()).setValue("UNIT");
+
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
+      
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+
+        ParameterValueGroup results = proc.call();
+        String insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+        int nbError = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ERROR_COUNT_NAME).getValue();
+        String checkReport = results.parameter(SosHarvesterProcessDescriptor.CHECK_REPORT_NAME).stringValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertEquals(0, nbError);
+        Assert.assertEquals("/warning-uom.csv", insertedFile);
+        Assert.assertEquals("""
+                            /warning-uom.csv:
+                            [WARNING] unparseable Unit Of Measure:
+                             - baduom
+                            OK.
+                            
+                            """, checkReport);
+
+    }
+
+    @Test
+    public void harvestCSVFlatNoLineTest() throws Exception {
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:no-line:1";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(noLineDirectory.toUri().toString());
+
+         in.parameter(SosHarvesterProcessDescriptor.STORE_ID_NAME).setValue("observationCsvFlatFile");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("TIME");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("TIME");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LAT");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LON");
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.CHECK_FILE_NAME).setValue(true);
+
+        in.parameter(SosHarvesterProcessDescriptor.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+        in.parameter(SosHarvesterProcessDescriptor.UOM_COLUMN.getName().getCode()).setValue("UNIT");
+
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(";");
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        Exception error = null;
+        try {
+            proc.call();
+        } catch (ProcessException ex) {
+            error = ex;
+        }
+        Assert.assertNotNull(error);
+        Assert.assertEquals("""
+                           /no-valid-lines.csv:
+                           The data provider did not produce any observations.
+                           KO.
+                           
+                           """,
+                           error.getMessage());
+    }
+
+    @Test
+    public void directCheckerTest() throws Exception {
+
+        SosHarvestFileChecker checker = new SosHarvestFileChecker();
+
+        // unexisting data
+        checker.checkFile("unexisting-file.txt", -1);
+        Assert.assertNotNull(checker.error);
+        Assert.assertEquals("""
+                           unexisting-file.txt:
+                           No Data for id -1
+                           KO.
+                            
+                           """,
+                            checker.report.toString());
+
+        // feature data
+        checker = new SosHarvestFileChecker();
+        checker.checkFile("Bridges.shp", FEATURE_DATA_ID);
+        Assert.assertNotNull(checker.error);
+        Assert.assertEquals("""
+                           Bridges.shp:
+                           The file is not supported by csv observation store
+                           KO.
+
+                           """,
+                            checker.report.toString());
+
+    }
 }

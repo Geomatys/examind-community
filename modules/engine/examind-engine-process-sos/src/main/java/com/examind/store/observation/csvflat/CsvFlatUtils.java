@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
+import org.geotoolkit.util.StringUtilities;
 
 
 /**
@@ -43,16 +43,19 @@ public class CsvFlatUtils {
             
             // read headers
             String[] headers = null;
-
+            // for error infos
+            Set<String> missingHeaders = new HashSet<>(measureCodeColumns);
             // find measureCodeIndex
             if (!noHeader) {
                 headers = reader.getHeaders();
 
                 for (int i = 0; i < headers.length; i++) {
-                    final String header = headers[i];
-
-                    if ((directColumnIndex && measureCodeColumns.contains(Integer.toString(i))) ||
-                        (!directColumnIndex && measureCodeColumns.contains(header))) {
+                    String header = headers[i];
+                    if (directColumnIndex) {
+                        header = Integer.toString(i);
+                    }
+                    if (measureCodeColumns.contains(header)) {
+                        missingHeaders.remove(header);
                         measureCodeIndex.add(i);
                     }
                 }
@@ -64,7 +67,7 @@ public class CsvFlatUtils {
             }
 
             if (measureCodeIndex.size() != measureCodeColumns.size()) {
-                throw new ConstellationStoreException("csv headers does not contains All the Measure Code parameter.");
+                throw new ConstellationStoreException("File headers is missing observed properties columns: " + StringUtilities.toCommaSeparatedValues(missingHeaders));
             }
 
             // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
@@ -96,7 +99,7 @@ public class CsvFlatUtils {
                 for(Integer i : measureCodeIndex) {
                     final String nextCode = asString(line[i]);
                     if (nextCode == null || nextCode.isEmpty()) {
-                        LOGGER.warning("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
+                        LOGGER.fine("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
                         continue line;
                     } else if (Util.containsForbiddenCharacter(nextCode)) {
                         LOGGER.warning("Invalid measure ignored due to invalid character. Value: " + nextCode + " at line " + lineNb + " column " + i);
@@ -111,7 +114,7 @@ public class CsvFlatUtils {
                 if (computed.length() < 64) {
                     storeCode.add(computed);
                 } else {
-                    LOGGER.warning("Invalid measure column value excluded: " + computed);
+                    LOGGER.warning("Invalid measure column value excluded (too long > 64 characters): " + computed);
                 }
             }
             return storeCode;

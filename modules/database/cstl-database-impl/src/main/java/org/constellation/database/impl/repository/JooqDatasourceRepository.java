@@ -48,6 +48,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.constellation.repository.DatasourceRepository;
 import org.jooq.Record;
+import org.jooq.Select;
 import org.jooq.SelectConditionStep;
 import org.springframework.context.annotation.DependsOn;
 
@@ -152,13 +153,17 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
 
     @Override
     public List<DataSourceSelectedPath> getSelectedPath(int id, Integer limit) {
-            SelectConditionStep query = dsl.select()
+            var query = dsl.select()
                   .from(DATASOURCE_SELECTED_PATH)
-                  .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id));
+                  .where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id))
+                  .orderBy(DATASOURCE_SELECTED_PATH.PATH);
+            Select fullQuery;
             if (limit != null) {
-                return convertListToDtoPath(query.limit(limit).fetchInto(DatasourceSelectedPath.class));
+                fullQuery = query.limit(limit);
+            } else {
+                fullQuery = query;
             }
-            return convertListToDtoPath(query.fetchInto(DatasourceSelectedPath.class));
+            return convertListToDtoPath(fullQuery.fetchInto(DatasourceSelectedPath.class));
     }
 
     @Override
