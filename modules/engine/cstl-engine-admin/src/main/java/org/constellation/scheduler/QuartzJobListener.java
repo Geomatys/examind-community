@@ -46,6 +46,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.UUID;
 import org.constellation.api.CstlJobListener;
 import org.constellation.exception.ConstellationException;
+import org.geotoolkit.process.ProcessException;
 import org.geotoolkit.processing.quartz.ProcessJob;
 import org.geotoolkit.processing.quartz.ProcessJobDetail;
 import org.springframework.transaction.TransactionStatus;
@@ -126,6 +127,10 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
             final ProcessJob pj = (ProcessJob) jec.getJobInstance();
             final QuartzTask quartzTask = (QuartzTask) detail.getJobDataMap().get(QuartzJobListener.PROPERTY_TASK);
 
+            // I don't remember why we need this part.
+            // normally it should have been covered by the StateListener#failed()
+            // i guess it is neccessary when a process throw a runtime exception
+            // sdomeone should investigate
             SpringHelper.executeInTransaction(new TransactionCallback<Object>() {
                 @Override
                 public Object doInTransaction(TransactionStatus status) {
@@ -133,7 +138,13 @@ public class QuartzJobListener implements JobListener, CstlJobListener {
 
                     taskEntity.setState(TaskState.FAILED.name());
                     taskEntity.setDateEnd(System.currentTimeMillis());
-                    taskEntity.setMessage(jee.getMessage() + " cause : " + printException(jee));
+                    String message;
+                    if (jee.getCause() instanceof ProcessException pe) {
+                        message = printException(pe);
+                    } else {
+                        message = printException(jee);
+                    }
+                    taskEntity.setMessage(message);
                     try {
                         //update in database
                         processBusiness.updateTask(taskEntity);
