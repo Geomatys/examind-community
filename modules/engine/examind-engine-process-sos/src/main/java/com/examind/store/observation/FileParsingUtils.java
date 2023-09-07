@@ -201,18 +201,15 @@ public class FileParsingUtils {
      * @return {@code true} if the line is considered empty.
      */
     public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<Integer> doubleFields) {
-        boolean empty = true;
         for (int i : doubleFields) {
             try {
                 Object value = line[i];
                 if (value instanceof String strValue) {
                     if ((strValue = strValue.trim()).isEmpty()) continue;
                     parseDouble(strValue);
-                    empty = false;
-                    break;
+                    return false;
                 } else if (value instanceof Number) {
-                    empty = false;
-                    break;
+                    return false;
                 }
             } catch (NumberFormatException | ParseException ex) {
                 if (!((String)line[i]).isEmpty()) {
@@ -220,7 +217,28 @@ public class FileParsingUtils {
                 }
             }
         }
-        return empty;
+        return true;
+    }
+
+    /**
+     * Verify if the line is empty, meaning no measure field is filled.
+     *
+     * @param line parsed CSV line.
+     * @param lineNumber line number in the file (for logging purpose).
+     * @param strFields List of column index where to look for String value.
+     *
+     * @return {@code true} if the line is considered empty.
+     */
+    public static boolean verifyEmptyLineStr(Object[] line, int lineNumber, List<Integer> strFields) {
+        for (int i : strFields) {
+            Object value = line[i];
+            if (value instanceof String strValue && !strValue.isBlank()) {
+                return false;
+            } else if (value != null && !value.toString().isBlank()) {
+               return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -261,7 +279,7 @@ public class FileParsingUtils {
                             if ((strValue = strValue.trim()).isEmpty()) continue;
                             return false;
                         // a toString will be applied
-                        } else if (value != null) {
+                        } else {
                             return false;
                         }
                     }

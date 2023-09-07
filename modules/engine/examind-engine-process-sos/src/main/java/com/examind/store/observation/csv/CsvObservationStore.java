@@ -43,6 +43,7 @@ import static com.examind.store.observation.FileParsingObservationStoreFactory.g
 import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -312,16 +314,32 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             if (!noHeader) {
                 headers = reader.getHeaders();
             }
+            int lineNumber = 1;
+            final AtomicInteger maxIndex  = new AtomicInteger();
+            int procIndex = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            int procIndex = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader);
+            if (procIndex == -1) throw new DataStoreException("Unable to find the procedure column: " + procedureColumn);
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
+                lineNumber++;
                 final Object[] line = it.next();
-                if (procIndex != -1) {
-                    String procId = extractWithRegex(procRegex, asString(line[procIndex]));
-                    result.add(procedureId + procId);
+
+                if (line.length == 0) {
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+                    continue;
                 }
+                // to be perfectly correct we should look for empty measure
+                if (verifyEmptyLineStr(line, lineNumber, Arrays.asList(procIndex))) {
+                    LOGGER.fine("skipping line due to empty procedure column.");
+                    continue;
+                }
+                
+                String procId = extractWithRegex(procRegex, asString(line[procIndex]));
+                result.add(procedureId + procId);
             }
             return result;
         } catch (IOException ex) {

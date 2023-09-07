@@ -157,6 +157,11 @@ public class MeasureBuilder {
 
      public MeasureStringBuilder buildMeasureStringBuilderFromMap() {
        final Set<String> measureColumnFound = getMeasureFromMap();
+       /*
+       * TODO :
+       * 1 - MeasureStringBuilder should not be in geotk-xml-sos but in geotk-observation-store core
+       * 2 - we should be able to build resultArray ouput.
+       */
         MeasureStringBuilder result = new MeasureStringBuilder();
         boolean noneValue = true;
 

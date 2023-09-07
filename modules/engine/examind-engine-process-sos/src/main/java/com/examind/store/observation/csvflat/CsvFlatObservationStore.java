@@ -105,7 +105,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 try {
                     this.obsPropColumns = extractCodes(mimeType, dataFile, csvFlatobsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
                 } catch (ConstellationStoreException ex) {
-                    throw new DataStoreException(ex);
+                    throw new DataStoreException(ex.getMessage(), ex);
                 }
             } else {
                  this.obsPropColumns = obsPropFilterColumns;
@@ -381,33 +381,50 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             if (!noHeader) {
                 headers = reader.getHeaders();
             }
-
+            int lineNumber = 1;
+            final AtomicInteger maxIndex  = new AtomicInteger();
+            
             // prepare procedure/type column indices
-            int procIndex       = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader);
-            int typeColumnIndex = getColumnIndex(typeColumn,      headers, directColumnIndex, laxHeader);
+            int procIndex       = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int typeColumnIndex = getColumnIndex(typeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
+            
+            List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
-            List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader);
+            if (procIndex == -1) throw new DataStoreException("Unable to find the procedure column: " + procedureColumn);
 
             final Iterator<Object[]> it = reader.iterator(!noHeader);
 
             final List<String> obsTypeCodes = getObsTypeCodes();
             while (it.hasNext()) {
+                lineNumber++;
                 final Object[] line = it.next();
-                if (procIndex != -1) {
-                    // checks if row matches the observed data types
-                    if (typeColumnIndex != -1) {
-                        if (!obsTypeCodes.contains(asString(line[typeColumnIndex]))) continue;
-                    }
 
-                    // checks if row matches the observed properties filter
-                    String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
-                    if (!obspropColumns.contains(observedProperty)) {
-                        continue;
-                    }
-
-                    String procId = extractWithRegex(procRegex, asString(line[procIndex]));
-                    result.add(procedureId + procId);
+                if (line.length == 0) {
+                    LOGGER.finer("skipping empty line " + lineNumber);
+                    continue;
+                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
+                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+                    continue;
                 }
+                // to be perfectly correct we should look for empty measure
+                if (verifyEmptyLineStr(line, lineNumber, Arrays.asList(procIndex))) {
+                    LOGGER.fine("skipping line due to empty procedure column.");
+                    continue;
+                }
+
+                // checks if row matches the observed data types
+                if (typeColumnIndex != -1) {
+                    if (!obsTypeCodes.contains(asString(line[typeColumnIndex]))) continue;
+                }
+
+                // checks if row matches the observed properties filter
+                String observedProperty = getMultiOrFixedValue(line, obsPropId, obsPropColumnIndexes);
+                if (!obspropColumns.contains(observedProperty)) {
+                    continue;
+                }
+
+                String procId = extractWithRegex(procRegex, asString(line[procIndex]));
+                result.add(procedureId + procId);
             }
             return result;
 
@@ -467,6 +484,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 } else if (headers != null && line.length < headers.length) {
                     LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+                    continue;
+                }
+
+                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLineStr(line, lineNumber, obsPropColumnIndexes)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
 
