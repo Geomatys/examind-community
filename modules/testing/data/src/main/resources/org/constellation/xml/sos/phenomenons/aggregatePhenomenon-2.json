@@ -4,7 +4,7 @@
     "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
     "description": "the aggregation of temperature depth, and salinity phenomenons",
     "properties": {
-        "prop1": "value3"
+        "phen-category": "elementary"
     },
     "component": [{
             "id": "depth",

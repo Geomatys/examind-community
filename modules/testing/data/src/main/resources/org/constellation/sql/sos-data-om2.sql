@@ -10,10 +10,10 @@ INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('multi-type-phenomenon',  'Multi type phenomenon',             'urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon', 'the aggregation of variable phenomenons type');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('multi-type-phenprofile', 'Multi type phenomenon for Profile', 'urn:ogc:def:phenomenon:GEOM:multi-type-phenprofile', 'the aggregation of variable phenomenons type for profile');
 
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'prop1',  'value1');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'prop2',  'value2');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon-2', 'prop1',  'value3');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                 'prop1',  'value4');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-category',  'physics');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon-2', 'phen-category',  'elementary');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'biological');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-usage',     'studies');
 
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'temperature', 1);
@@ -52,9 +52,9 @@ INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:quality_sensor
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:multi-type',     x'000000000140f207a9e96900384139bf0a15544d08', 27582, 16, NULL, 'system',    'timeseries', 'Sensor multi type', null, 1);
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:17',             x'000000000140f207a9e96900384139bf0a15544d08', 27582, 17, NULL, 'system',    'profile',    'Sensor 17',         null, 3);
 
-INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'prop1',  'value1');
-INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'prop2',  'value2');
-INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:3', 'prop1',  'value3');
+INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'bss-code',         '10972X0137/PONT');
+INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'supervisor-code',   '00ARGLELES');
+INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:3', 'bss-code',         '10972X0137/SER');
 
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',              '2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',              '2000-12-11 00:00:00.0', x'0000000001414721e3e3c47123c1341d38f21784f0', 27582);
@@ -88,9 +88,9 @@ INSERT INTO "om"."sampling_features" VALUES ('station-005', '44499X4517-TRUC',  
 INSERT INTO "om"."sampling_features" VALUES ('station-006', 'cycle1',           'Geology traverse',   NULL,                           x'000000000200000007c03eb604189374bc4060c68f5c28f5c3c03eb5c28f5c28f64060c6872b020c4ac03eb5810624dd2f4060c67ef9db22d1c03eb53f7ced91684060c66e978d4fdfc03eb4bc6a7ef9db4060c645a1cac083c03eb3f7ced916874060c64dd2f1a9fcc03eb3b645a1cac14060c65e353f7cee', 27582);
 
 
-INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'prop1',  'value1');
-INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'prop2',  'value2');
-INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-002', 'prop1',  'value3');
+INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'commune',  'Argeles');
+INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'region',   'Occitanie');
+INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-002', 'commune',  'Beziers');
 
 INSERT INTO "om"."offerings" VALUES ('offering-1',  NULL, 'offering-1',  NULL,                    NULL,                    'urn:ogc:object:sensor:GEOM:1');
 INSERT INTO "om"."offerings" VALUES ('offering-2',  NULL, 'offering-2',  '2000-12-01 00:00:00.0', '2000-12-22 00:00:00.0', 'urn:ogc:object:sensor:GEOM:2');

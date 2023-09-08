@@ -4,8 +4,8 @@
     "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
     "description": "the aggregation of temperature and depth phenomenons",
     "properties": {
-        "prop2": "value2",
-        "prop1": "value1"
+        "phen-usage": "studies",
+        "phen-category": "physics"
     },
     "component": [{
             "id": "depth",

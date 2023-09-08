@@ -1,8 +1,8 @@
 {
     "description": "",
     "properties": {
-        "prop2": "value2",
-        "prop1": "value1",
+        "supervisor-code": "00ARGLELES",
+        "bss-code": "10972X0137/PONT",
         "type": "profile"
     },
     "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"

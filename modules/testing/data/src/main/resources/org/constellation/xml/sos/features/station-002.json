@@ -9,6 +9,6 @@
         "geometry": "POINT (5 10)"
     },
     "properties": {
-        "prop1": "value3"
+        "commune": "Beziers"
     }
 }

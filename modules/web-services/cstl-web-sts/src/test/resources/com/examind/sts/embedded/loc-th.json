@@ -1,32 +1,32 @@
 {
-  "name" : "urn:ogc:object:sensor:GEOM:2",
-  "description" : "",
-  "encodingType" : "application/vnd.geo+json",
-  "location" : {
-    "type" : "Feature",
-    "geometry" : {
-      "type" : "Point",
-      "type" : "Point",
-      "coordinates" : [ -3.9999999934153996, 42.00000000005154 ]
+    "name": "urn:ogc:object:sensor:GEOM:2",
+    "description": "",
+    "encodingType": "application/vnd.geo+json",
+    "location": {
+        "type": "Feature",
+        "geometry": {
+            "type": "Point",
+            "type": "Point",
+            "coordinates": [-3.9999999934153996, 42.00000000005154]
+        },
+        "properties": {}
     },
-    "properties" : { }
-  },
-  "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
-  "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)",
-  "Things" : [ {
-    "description" : "",
-    "name" : "Sensor 2",
-    "properties" : {
-      "prop2": "value2",
-      "prop1": "value1",
-      "type" : "profile"
-    },
-    "@iot.id" : "urn:ogc:object:sensor:GEOM:2",
-    "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
-    "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations",
-    "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Datastreams",
-    "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Locations",
-    "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams"
-  } ],
-  "HistoricalLocations@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
+    "@iot.id": "urn:ogc:object:sensor:GEOM:2",
+    "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)",
+    "Things": [{
+            "description": "",
+            "name": "Sensor 2",
+            "properties": {
+                "supervisor-code": "00ARGLELES",
+                "bss-code": "10972X0137/PONT",
+                "type": "profile"
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Datastreams",
+            "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/Locations",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)/MultiDatastreams"
+        }],
+    "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:2)/HistoricalLocations"
 }

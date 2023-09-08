@@ -26,8 +26,8 @@
             "geometry": "POINT (65400 1731368)"
         },
         "properties": {
-            "prop2": "value2",
-            "prop1": "value1"
+            "region": "Occitanie",
+            "commune": "Argeles"
         }
     },
     "observedProperty": {
@@ -36,7 +36,7 @@
         "description": "the depth in water",
         "definition": "urn:ogc:def:phenomenon:GEOM:depth",
         "properties": {
-            "prop1": "value4"
+            "phen-category": "biological"
         }
     },
     "result": {

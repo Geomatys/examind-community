@@ -13,8 +13,8 @@
     "@iot.id": "station-001",
     "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-001)",
     "properties": {
-        "prop2": "value2",
-        "prop1": "value1"
+        "region": "Occitanie",
+        "commune": "Argeles"
     },
     "Observations": [{
             "phenomenonTime": "1980-03-01T20:52:00Z",

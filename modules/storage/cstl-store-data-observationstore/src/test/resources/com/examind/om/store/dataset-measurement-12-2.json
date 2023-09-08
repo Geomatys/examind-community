@@ -24,8 +24,8 @@
                 "name": "10972X0137-PONT",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1"
+                    "region": "Occitanie",
+                    "commune": "Argeles"
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -74,8 +74,8 @@
                 "name": "10972X0137-PONT",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1"
+                    "region": "Occitanie",
+                    "commune": "Argeles"
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -113,8 +113,8 @@
             "name": "10972X0137-PONT",
             "description": "Point d'eau BSSS",
             "properties": {
-                "prop2": "value2",
-                "prop1": "value1"
+                "region": "Occitanie",
+                "commune": "Argeles"
             },
             "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
             "geometry": {

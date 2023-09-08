@@ -364,8 +364,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1",
+                    "supervisor-code": "00ARGLELES",
+                    "bss-code": "10972X0137/PONT",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -400,8 +400,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1",
+                    "supervisor-code": "00ARGLELES",
+                    "bss-code": "10972X0137/PONT",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -436,8 +436,8 @@
                 "name": "Sensor 2",
                 "description": "",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1",
+                    "supervisor-code": "00ARGLELES",
+                    "bss-code": "10972X0137/PONT",
                     "type": "profile"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
@@ -472,7 +472,7 @@
                 "name": "Sensor 3",
                 "description": "",
                 "properties": {
-                    "prop1": "value3",
+                    "bss-code": "10972X0137/SER",
                     "type": "timeseries"
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:3",

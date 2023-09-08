@@ -288,7 +288,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties equals filter
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -306,7 +306,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'depth')
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("observedProperty/properties/prop1"), ff.literal("value4"));
+        filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -326,7 +326,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:3')
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("procedure/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
         query.setSelection(filter);
         
         resultIds = omPr.getIdentifiers(query);
@@ -475,7 +475,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties filter
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
@@ -491,7 +491,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'depth')
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("observedProperty/properties/prop1"), ff.literal("value4"));
+        filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
@@ -509,7 +509,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:3')
         */
         query = new SamplingFeatureQuery();
-        filter = ff.equal(ff.property("procedure/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
@@ -971,7 +971,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties equals filter
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/phen-category"), ff.literal("physics"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -1020,7 +1020,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:1')
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("procedure/properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/PONT"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         assertEquals(1, resultIds.size());
@@ -1050,7 +1050,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the phenomenon related to 'station-002')
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("featureOfInterest/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
         
@@ -1322,7 +1322,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties filter
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/phen-category"), ff.literal("physics"));
         query.setSelection(filter);
         results = omPr.getPhenomenon(query);
 
@@ -1366,7 +1366,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:1')
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("procedure/properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/PONT"));
         query.setSelection(filter);
         results = omPr.getPhenomenon(query);
 
@@ -1394,7 +1394,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the phenomenon related to 'station-002')
         */
         query = new ObservedPropertyQuery();
-        filter = ff.equal(ff.property("featureOfInterest/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
         results = omPr.getPhenomenon(query);
 
@@ -2040,7 +2040,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties equals filter
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/bss-code"), ff.literal("10972X0137/PONT"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -2058,7 +2058,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'depth')
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("observedProperty/properties/prop1"), ff.literal("value4"));
+        filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -2088,7 +2088,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'station-002')
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("featureOfInterest/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
@@ -2302,7 +2302,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * properties filter
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("properties/prop1"), ff.literal("value1"));
+        filter = ff.equal(ff.property("properties/bss-code"), ff.literal("10972X0137/PONT"));
         query.setSelection(filter);
         results = omPr.getProcedures(query);
 
@@ -2318,7 +2318,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'depth')
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("observedProperty/properties/prop1"), ff.literal("value4"));
+        filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
         query.setSelection(filter);
         results = omPr.getProcedures(query);
 
@@ -2346,7 +2346,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * (the result is all the sensor related to 'station-002')
         */
         query = new ProcedureQuery();
-        filter = ff.equal(ff.property("featureOfInterest/properties/prop1"), ff.literal("value3"));
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
         results = omPr.getProcedures(query);
 

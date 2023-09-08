@@ -24,8 +24,8 @@
                 "name": "10972X0137-PONT",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1"
+                    "region": "Occitanie",
+                    "commune": "Argeles"
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -38,7 +38,7 @@
                 "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
-                    "prop1": "value4"
+                    "phen-category": "biological"
                 },
                 "definition": "urn:ogc:def:phenomenon:GEOM:depth"
             },
@@ -77,8 +77,8 @@
                 "name": "10972X0137-PONT",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1"
+                    "region": "Occitanie",
+                    "commune": "Argeles"
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -91,7 +91,7 @@
                 "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
-                    "prop1": "value4"
+                    "phen-category": "biological"
                 },
                 "definition": "urn:ogc:def:phenomenon:GEOM:depth"
             },
@@ -119,8 +119,8 @@
             "name": "10972X0137-PONT",
             "description": "Point d'eau BSSS",
             "properties": {
-                "prop2": "value2",
-                "prop1": "value1"
+                "region": "Occitanie",
+                "commune": "Argeles"
             },
             "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
             "geometry": {
@@ -133,7 +133,7 @@
             "name": "Depth",
             "description": "the depth in water",
             "properties": {
-                "prop1": "value4"
+                "phen-category": "biological"
             },
             "definition": "urn:ogc:def:phenomenon:GEOM:depth"
         }],

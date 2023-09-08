@@ -1,201 +1,201 @@
 {
-  "spatialBound" : {
-    "dateStart" : 973033200000,
-    "dateEnd" : 975625200000,
-    "minx" : -180.0,
-    "maxx" : 65400.0,
-    "miny" : -90.0,
-    "maxy" : 1731368.0
-  },
-  "observations" : [ {
-    "id" : "obs-3000",
-    "name" : "urn:ogc:object:observation:GEOM:3000",
-    "procedure" : {
-      "id" : "urn:ogc:object:sensor:GEOM:12",
-      "name" : "Sensor 12",
-      "properties" : { }
+    "spatialBound": {
+        "dateStart": 973033200000,
+        "dateEnd": 975625200000,
+        "minx": -180.0,
+        "maxx": 65400.0,
+        "miny": -90.0,
+        "maxy": 1731368.0
     },
-    "samplingTime" : {
-      "id" : "obs-3000-time",
-      "beginning" : {
-        "id" : "obs-3000-st-time",
-        "date" : "2000-11-01T00:00:00.0Z"
-      },
-      "ending" : {
-        "id" : "obs-3000-en-time",
-        "date" : "2000-12-01T00:00:00.0Z"
-      }
-    },
-    "featureOfInterest" : {
-      "id" : "station-001",
-      "name" : "10972X0137-PONT",
-      "description" : "Point d'eau BSSS",
-      "properties" : {
-        "prop2" : "value2",
-        "prop1" : "value1"
-      },
-      "sampledFeatureId" : "urn:-sandre:object:bdrhf:123X",
-      "geometry" : {
-        "crs" : "urn:ogc:def:crs:EPSG:9.9.1:27582",
-        "geometry" : "POINT (65400 1731368)"
-      }
-    },
-    "observedProperty" : {
-      "id" : "aggregatePhenomenon-2",
-      "name" : "Aggregate Phenomenon 2",
-      "description" : "the aggregation of temperature depth, and salinity phenomenons",
-      "properties" : {
-        "prop1" : "value3"
-      },
-      "definition" : "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
-      "component" : [ {
-        "id" : "depth",
-        "name" : "Depth",
-        "description" : "the depth in water",
-        "properties" : {
-          "prop1" : "value4"
-        },
-        "definition" : "urn:ogc:def:phenomenon:GEOM:depth"
-      }, {
-        "id" : "temperature",
-        "name" : "Temperature",
-        "description" : "the temperature in celcius degree",
-        "properties" : { },
-        "definition" : "urn:ogc:def:phenomenon:GEOM:temperature"
-      }, {
-        "id" : "salinity",
-        "name" : "Salinity",
-        "description" : "the salinity in water",
-        "properties" : { },
-        "definition" : "urn:ogc:def:phenomenon:GEOM:salinity"
-      } ]
-    },
-    "result" : {
-      "fields" : [ {
-        "index" : 1,
-        "type" : "TIME",
-        "name" : "Time",
-        "label" : "Time",
-        "description" : "urn:ogc:data:time:iso8601",
-        "qualityFields" : [ ]
-      }, {
-        "index" : 2,
-        "type" : "QUANTITY",
-        "name" : "depth",
-        "label" : "depth",
-        "description" : "urn:ogc:def:phenomenon:GEOM:depth",
-        "uom" : "m",
-        "qualityFields" : [ ]
-      }, {
-        "index" : 3,
-        "type" : "QUANTITY",
-        "name" : "temperature",
-        "label" : "temperature",
-        "description" : "urn:ogc:def:phenomenon:GEOM:temperature",
-        "uom" : "°C",
-        "qualityFields" : [ ]
-      }, {
-        "index" : 4,
-        "type" : "QUANTITY",
-        "name" : "salinity",
-        "label" : "salinity",
-        "description" : "urn:ogc:def:phenomenon:GEOM:salinity",
-        "uom" : "msu",
-        "qualityFields" : [ ]
-      } ],
-      "nbValues" : 3,
-      "textEncodingProperties" : {
-        "tokenSeparator" : ",",
-        "blockSeparator" : "@@",
-        "decimalSeparator" : "."
-      },
-      "values" : "2000-11-01T00:00:00.0,2.3,95.5,4.1@@2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-    },
-    "type" : "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
-    "properties" : {
-      "type" : "timeseries"
-    },
-    "resultQuality" : [ ]
-  } ],
-  "featureOfInterest" : [ {
-    "id" : "station-001",
-    "name" : "10972X0137-PONT",
-    "description" : "Point d'eau BSSS",
-    "properties" : {
-      "prop2" : "value2",
-      "prop1" : "value1"
-    },
-    "sampledFeatureId" : "urn:-sandre:object:bdrhf:123X",
-    "geometry" : {
-      "crs" : "urn:ogc:def:crs:EPSG:9.9.1:27582",
-      "geometry" : "POINT (65400 1731368)"
-    }
-  } ],
-  "phenomenons" : [ {
-    "id" : "aggregatePhenomenon-2",
-    "name" : "Aggregate Phenomenon 2",
-    "description" : "the aggregation of temperature depth, and salinity phenomenons",
-    "properties" : {
-      "prop1" : "value3"
-    },
-    "definition" : "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
-    "component" : [ {
-      "id" : "depth",
-      "name" : "Depth",
-      "description" : "the depth in water",
-      "properties" : {
-        "prop1" : "value4"
-      },
-      "definition" : "urn:ogc:def:phenomenon:GEOM:depth"
-    }, {
-      "id" : "temperature",
-      "name" : "Temperature",
-      "description" : "the temperature in celcius degree",
-      "properties" : { },
-      "definition" : "urn:ogc:def:phenomenon:GEOM:temperature"
-    }, {
-      "id" : "salinity",
-      "name" : "Salinity",
-      "description" : "the salinity in water",
-      "properties" : { },
-      "definition" : "urn:ogc:def:phenomenon:GEOM:salinity"
-    } ]
-  } ],
-  "procedures" : [ {
-    "id" : "urn:ogc:object:sensor:GEOM:12",
-    "name" : "Sensor 12",
-    "properties" : { },
-    "type" : "Component",
-    "omType" : "timeseries",
-    "children" : [ ],
-    "spatialBound" : {
-      "dateStart" : 973033200000,
-      "dateEnd" : 975625200000,
-      "minx" : 65400.0,
-      "maxx" : 65400.0,
-      "miny" : 1731368.0,
-      "maxy" : 1731368.0
-    },
-    "fields" : [ ]
-  } ],
-  "offerings" : [ {
-    "id" : "offering-12",
-    "name" : "offering-12",
-    "properties" : { },
-    "time" : {
-      "id" : "offering-12-time",
-      "beginning" : {
-        "id" : "offering-12-st-time",
-        "date" : "2000-11-01T00:00:00.0Z"
-      },
-      "ending" : {
-        "id" : "offering-12-en-time",
-        "date" : "2000-12-01T00:00:00.0Z"
-      }
-    },
-    "srsNames" : [ ],
-    "procedure" : "urn:ogc:object:sensor:GEOM:12",
-    "featureOfInterestIds" : [ "station-001" ],
-    "observedProperties" : [ "aggregatePhenomenon-2", "depth", "salinity", "temperature" ]
-  } ]
+    "observations": [{
+            "id": "obs-3000",
+            "name": "urn:ogc:object:observation:GEOM:3000",
+            "procedure": {
+                "id": "urn:ogc:object:sensor:GEOM:12",
+                "name": "Sensor 12",
+                "properties": {}
+            },
+            "samplingTime": {
+                "id": "obs-3000-time",
+                "beginning": {
+                    "id": "obs-3000-st-time",
+                    "date": "2000-11-01T00:00:00.0Z"
+                },
+                "ending": {
+                    "id": "obs-3000-en-time",
+                    "date": "2000-12-01T00:00:00.0Z"
+                }
+            },
+            "featureOfInterest": {
+                "id": "station-001",
+                "name": "10972X0137-PONT",
+                "description": "Point d'eau BSSS",
+                "properties": {
+                    "region": "Occitanie",
+                    "commune": "Argeles"
+                },
+                "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+                "geometry": {
+                    "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                    "geometry": "POINT (65400 1731368)"
+                }
+            },
+            "observedProperty": {
+                "id": "aggregatePhenomenon-2",
+                "name": "Aggregate Phenomenon 2",
+                "description": "the aggregation of temperature depth, and salinity phenomenons",
+                "properties": {
+                    "phen-category": "elementary"
+                },
+                "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
+                "component": [{
+                        "id": "depth",
+                        "name": "Depth",
+                        "description": "the depth in water",
+                        "properties": {
+                            "phen-category": "biological"
+                        },
+                        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+                    }, {
+                        "id": "temperature",
+                        "name": "Temperature",
+                        "description": "the temperature in celcius degree",
+                        "properties": {},
+                        "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+                    }, {
+                        "id": "salinity",
+                        "name": "Salinity",
+                        "description": "the salinity in water",
+                        "properties": {},
+                        "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
+                    }]
+            },
+            "result": {
+                "fields": [{
+                        "index": 1,
+                        "type": "TIME",
+                        "name": "Time",
+                        "label": "Time",
+                        "description": "urn:ogc:data:time:iso8601",
+                        "qualityFields": []
+                    }, {
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "depth",
+                        "label": "depth",
+                        "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                        "uom": "m",
+                        "qualityFields": []
+                    }, {
+                        "index": 3,
+                        "type": "QUANTITY",
+                        "name": "temperature",
+                        "label": "temperature",
+                        "description": "urn:ogc:def:phenomenon:GEOM:temperature",
+                        "uom": "°C",
+                        "qualityFields": []
+                    }, {
+                        "index": 4,
+                        "type": "QUANTITY",
+                        "name": "salinity",
+                        "label": "salinity",
+                        "description": "urn:ogc:def:phenomenon:GEOM:salinity",
+                        "uom": "msu",
+                        "qualityFields": []
+                    }],
+                "nbValues": 3,
+                "textEncodingProperties": {
+                    "tokenSeparator": ",",
+                    "blockSeparator": "@@",
+                    "decimalSeparator": "."
+                },
+                "values": "2000-11-01T00:00:00.0,2.3,95.5,4.1@@2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+            },
+            "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+            "properties": {
+                "type": "timeseries"
+            },
+            "resultQuality": []
+        }],
+    "featureOfInterest": [{
+            "id": "station-001",
+            "name": "10972X0137-PONT",
+            "description": "Point d'eau BSSS",
+            "properties": {
+                "region": "Occitanie",
+                "commune": "Argeles"
+            },
+            "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+            "geometry": {
+                "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+                "geometry": "POINT (65400 1731368)"
+            }
+        }],
+    "phenomenons": [{
+            "id": "aggregatePhenomenon-2",
+            "name": "Aggregate Phenomenon 2",
+            "description": "the aggregation of temperature depth, and salinity phenomenons",
+            "properties": {
+                "commune": "Beziers"
+            },
+            "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
+            "component": [{
+                    "id": "depth",
+                    "name": "Depth",
+                    "description": "the depth in water",
+                    "properties": {
+                        "phen-category": "biological"
+                    },
+                    "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+                }, {
+                    "id": "temperature",
+                    "name": "Temperature",
+                    "description": "the temperature in celcius degree",
+                    "properties": {},
+                    "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
+                }, {
+                    "id": "salinity",
+                    "name": "Salinity",
+                    "description": "the salinity in water",
+                    "properties": {},
+                    "definition": "urn:ogc:def:phenomenon:GEOM:salinity"
+                }]
+        }],
+    "procedures": [{
+            "id": "urn:ogc:object:sensor:GEOM:12",
+            "name": "Sensor 12",
+            "properties": {},
+            "type": "Component",
+            "omType": "timeseries",
+            "children": [],
+            "spatialBound": {
+                "dateStart": 973033200000,
+                "dateEnd": 975625200000,
+                "minx": 65400.0,
+                "maxx": 65400.0,
+                "miny": 1731368.0,
+                "maxy": 1731368.0
+            },
+            "fields": []
+        }],
+    "offerings": [{
+            "id": "offering-12",
+            "name": "offering-12",
+            "properties": {},
+            "time": {
+                "id": "offering-12-time",
+                "beginning": {
+                    "id": "offering-12-st-time",
+                    "date": "2000-11-01T00:00:00.0Z"
+                },
+                "ending": {
+                    "id": "offering-12-en-time",
+                    "date": "2000-12-01T00:00:00.0Z"
+                }
+            },
+            "srsNames": [],
+            "procedure": "urn:ogc:object:sensor:GEOM:12",
+            "featureOfInterestIds": ["station-001"],
+            "observedProperties": ["aggregatePhenomenon-2", "depth", "salinity", "temperature"]
+        }]
 }

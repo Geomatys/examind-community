@@ -41,8 +41,8 @@
                 "name": "Aggregate Phenomenon",
                 "description": "the aggregation of temperature and depth phenomenons",
                 "properties": {
-                    "prop2": "value2",
-                    "prop1": "value1"
+                    "region": "Occitanie",
+                    "commune": "Argeles"
                 },
                 "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
                 "component": [{
@@ -50,7 +50,7 @@
                         "name": "Depth",
                         "description": "the depth in water",
                         "properties": {
-                            "prop1": "value4"
+                            "phen-category": "biological"
                         },
                         "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                     }, {
@@ -115,8 +115,8 @@
             "name": "Aggregate Phenomenon",
             "description": "the aggregation of temperature and depth phenomenons",
             "properties": {
-                "prop2": "value2",
-                "prop1": "value1"
+                "region": "Occitanie",
+                "commune": "Argeles"
             },
             "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon",
             "component": [{
@@ -124,7 +124,7 @@
                     "name": "Depth",
                     "description": "the depth in water",
                     "properties": {
-                        "prop1": "value4"
+                        "phen-category": "biological"
                     },
                     "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                 }, {

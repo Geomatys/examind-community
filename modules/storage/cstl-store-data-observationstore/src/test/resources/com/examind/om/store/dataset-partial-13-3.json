@@ -31,7 +31,7 @@
                 "name": "10972X0137-PLOUF",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "prop1": "value3"
+                    "commune": "Beziers"
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -101,7 +101,7 @@
             "name": "10972X0137-PLOUF",
             "description": "Point d'eau BSSS",
             "properties": {
-                "prop1": "value3"
+                "commune": "Beziers"
             },
             "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
             "geometry": {

@@ -15,8 +15,8 @@
             "geometry": "POINT (65400 1731368)"
         },
         "properties": {
-            "prop2": "value2",
-            "prop1": "value1"
+            "region": "Occitanie",
+            "commune": "Argeles"
         }
     },
     "observedProperty": {
