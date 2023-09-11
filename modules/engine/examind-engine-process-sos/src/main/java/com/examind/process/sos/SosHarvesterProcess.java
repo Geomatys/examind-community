@@ -75,7 +75,7 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.ParameterDescriptor;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 
 /**
  * Moissonnage de données de capteur au format csv et publication dans un service SOS
@@ -153,28 +153,28 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String separator = inputParameters.getValue(SEPARATOR);
         final String charQuote = inputParameters.getValue(CHARQUOTE);
-        final List<String> mainColumns = getMultipleValues(MAIN_COLUMN);
-        final List<String> dateColumns = getMultipleValues(DATE_COLUMN);
+        final List<String> mainColumns = getMultipleValues(inputParameters, MAIN_COLUMN);
+        final List<String> dateColumns = getMultipleValues(inputParameters,DATE_COLUMN);
         final String dateFormat = inputParameters.getValue(DATE_FORMAT);
         final String longitudeColumn = inputParameters.getValue(LONGITUDE_COLUMN);
         final String latitudeColumn = inputParameters.getValue(LATITUDE_COLUMN);
         final String foiColumn = inputParameters.getValue(FOI_COLUMN);
         final String observationType = inputParameters.getValue(OBS_TYPE);
         final String zColumn    = inputParameters.getValue(Z_COLUMN);
-        final List<String> qualityColumns = getMultipleValues(QUALITY_COLUMN);
-        final List<String> qualityColumnsIds = getMultipleValues(QUALITY_COLUMN_ID);
-        final List<String> qualityColumnsTypes = getMultipleValues(QUALITY_COLUMN_TYPE);
+        final List<String> qualityColumns = getMultipleValues(inputParameters,QUALITY_COLUMN);
+        final List<String> qualityColumnsIds = getMultipleValues(inputParameters,QUALITY_COLUMN_ID);
+        final List<String> qualityColumnsTypes = getMultipleValues(inputParameters,QUALITY_COLUMN_TYPE);
 
         // csv-flat special
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
         final String obsPropId   = inputParameters.getValue(OBS_PROP_ID);
-        final List<String> obsPropColumns     = getMultipleValues(OBS_PROP_COLUMN);
-        final List<String> obsPropColumnTypes = getMultipleValues(OBS_PROP_COLUMN_TYPE);
+        final List<String> obsPropColumns     = getMultipleValues(inputParameters,OBS_PROP_COLUMN);
+        final List<String> obsPropColumnTypes = getMultipleValues(inputParameters,OBS_PROP_COLUMN_TYPE);
         final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
         final String obsPropName  = inputParameters.getValue(OBS_PROP_NAME);
-        final List<String> ObsPropNameColumns = getMultipleValues(OBS_PROP_NAME_COLUMN);
-        final List<String> obsPropFilterColumns = getMultipleValues(OBS_PROP_COLUMNS_FILTER);
+        final List<String> ObsPropNameColumns = getMultipleValues(inputParameters,OBS_PROP_NAME_COLUMN);
+        final List<String> obsPropFilterColumns = getMultipleValues(inputParameters,OBS_PROP_COLUMNS_FILTER);
 
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
@@ -608,17 +608,4 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         this.progress = this.progress + progress;
         fireProgressing(msg, (float) this.progress, false);
     }
-
-    private List<String> getMultipleValues(ParameterDescriptor<String> desc) {
-        List<String> results = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param instanceof ParameterValue pval) {
-                if (param.getDescriptor().getName().getCode().equals(desc.getName().getCode())) {
-                    results.add(pval.stringValue());
-                }
-            }
-        }
-        return results;
-    }
-
 }

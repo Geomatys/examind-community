@@ -21,13 +21,11 @@ package com.examind.process.test;
 import static com.examind.process.test.PathHandlingDescriptor.*;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import org.apache.sis.parameter.Parameters;
 import org.constellation.process.AbstractCstlProcess;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -44,28 +42,18 @@ public class PathHandlingProcess extends AbstractCstlProcess {
     @Override
     protected void execute() throws ProcessException {
 
-        final List<Path> paths = getValues(inputParameters, PATH_INPUT_NAME);
-        final List<File> files = getValues(inputParameters, FILE_INPUT_NAME);
+        final List<Path> paths = getMultipleValues(inputParameters, PATH_INPUT);
+        final List<File> files = getMultipleValues(inputParameters, FILE_INPUT);
 
         for (Path in : paths) {
-            ParameterValue dm = (ParameterValue) PATH_OUTPUT.createValue();
+            ParameterValue dm = PATH_OUTPUT.createValue();
             dm.setValue(in);
             outputParameters.values().add(dm);
         }
         for (File in : files) {
-            ParameterValue dm = (ParameterValue) FILE_OUTPUT.createValue();
+            ParameterValue dm = FILE_OUTPUT.createValue();
             dm.setValue(in);
             outputParameters.values().add(dm);
         }
-    }
-
-    private List getValues(final Parameters param, final String descCode) {
-        List results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add(((ParameterValue) value).getValue());
-            }
-        }
-        return results;
     }
 }

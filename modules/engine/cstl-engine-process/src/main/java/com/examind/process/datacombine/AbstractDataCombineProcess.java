@@ -23,12 +23,12 @@ import static com.examind.process.datacombine.AbstractDataCombineDescriptor.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.process.DataProcessReference;
 import org.constellation.dto.process.DatasetProcessReference;
 import org.constellation.process.AbstractCstlProcess;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
@@ -56,7 +56,7 @@ public abstract class AbstractDataCombineProcess extends AbstractCstlProcess {
 
     protected List<Integer> getDataIdsToCombine() throws ProcessException {
         DatasetProcessReference dataset  = inputParameters.getValue(DATASET);
-        List<DataProcessReference> datas = (List<DataProcessReference>) getValues(inputParameters, DATA.getName().getCode()).stream().filter(d -> d != null).toList();
+        List<DataProcessReference> datas = (List<DataProcessReference>) getMultipleValues(inputParameters, DATA).stream().filter(d -> d != null).toList();
 
         if (dataset != null && !datas.isEmpty()) {
             throw new ProcessException("Either a list of data, a dataset should be given, not both.", this);
@@ -75,15 +75,5 @@ public abstract class AbstractDataCombineProcess extends AbstractCstlProcess {
         }
 
         return dataIds;
-    }
-
-    private List getValues(final Parameters param, final String descCode) {
-        List results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add(((ParameterValue) value).getValue());
-            }
-        }
-        return results;
     }
 }

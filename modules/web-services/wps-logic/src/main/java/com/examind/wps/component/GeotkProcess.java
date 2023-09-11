@@ -66,6 +66,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.constellation.dto.service.config.wps.Process;
+import org.constellation.process.ProcessUtils;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.JTStoGeometry;
 import org.geotoolkit.ows.xml.BoundingBox;
@@ -107,7 +108,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
 import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
@@ -555,10 +555,9 @@ public class GeotkProcess implements WPSProcess {
         }
 
         //output value object.
-        final List<ParameterValue> values = getValues(result, outputIdCode);
+        final List<Object> values = ProcessUtils.getMultipleValues(result, outputIdCode);
         final List<Object> outputValues = new ArrayList<>();
-        for (ParameterValue value : values ) {
-            Object outputValue = value.getValue();
+        for (Object outputValue : values ) {
             if (outputValue instanceof Geometry) {
                 try {
 
@@ -579,16 +578,6 @@ public class GeotkProcess implements WPSProcess {
             return outputValues.get(0);
         }
         return outputValues;
-    }
-
-    private static List<ParameterValue> getValues(final ParameterValueGroup param, final String descCode) {
-        List<ParameterValue> results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add((ParameterValue) value);
-            }
-        }
-        return results;
     }
 
     @Override
@@ -916,9 +905,8 @@ public class GeotkProcess implements WPSProcess {
 
             if (outputDescriptor instanceof ParameterDescriptor) {
                 //output value object.
-                final List<ParameterValue> values = getValues(result, outputIdCode);
-                for (ParameterValue value : values ) {
-                    final Object outputValue = value.getValue();
+                final List<Object> values = ProcessUtils.getMultipleValues(result, outputIdCode);
+                for (Object outputValue : values ) {
                     if (!progressing || (progressing && outputValue != null)) {
 
                         outputs.add(createDocumentResponseOutput(version, descriptor, (ParameterDescriptor) outputDescriptor, outputsRequest, outputValue, parameters));

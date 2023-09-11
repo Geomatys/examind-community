@@ -18,7 +18,6 @@ package com.examind.process.admin.yamlReader;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.sis.parameter.DefaultParameterValue;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.dto.service.ServiceComplete;
@@ -104,7 +103,7 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
                     // Little trick to add multiple time the same value to the process.
                     List<Object> valueList = (List<Object>) paramValue;
                     for (Object value : valueList) {
-                        ParameterValue<String> parameterValue = new DefaultParameterValue(paramDesc);
+                        ParameterValue<String> parameterValue = paramDesc.createValue();
                         parameterValue.setValue(value.toString()); // toString here is not redundant as the value might be an Integer for example.
                         in.values().add(parameterValue);
                     }
@@ -121,7 +120,7 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
                         // not null if a service has been found.
                         if (service != null) {
                             ServiceProcessReference serviceProcessReference = new ServiceProcessReference(service.getId(), service.getType(), service.getIdentifier());
-                            ParameterValue<ServiceProcessReference> parameterValue = new DefaultParameterValue(paramDesc);
+                            ParameterValue<ServiceProcessReference> parameterValue = paramDesc.createValue();
                             parameterValue.setValue(serviceProcessReference);
                             in.values().add(parameterValue);
                         }

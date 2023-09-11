@@ -19,22 +19,20 @@
 package com.examind.process.test;
 
 import static com.examind.process.test.ParameterGroupDescriptor.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.apache.sis.parameter.Parameters;
 import org.constellation.process.AbstractCstlProcess;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
  * Process used for testing the aprameter group in/out.
- * 
+ *
  * @author Guilhem Legal (Geomatys).
  */
 public class ParameterGroupProcess extends AbstractCstlProcess {
@@ -53,7 +51,7 @@ public class ParameterGroupProcess extends AbstractCstlProcess {
         List<ParameterValueGroup> inputs = inputParameters.groups(IN_TEST_GROUP.getName().getCode());
         for (ParameterValueGroup group : inputs) {
             String key = group.parameter(IN_TITLE.getName().getCode()).stringValue();
-            List<String> values = getValues(group, IN_VALUES.getName().getCode());
+            List<String> values = getMultipleValues(group, IN_VALUES);
             results.put(key, values);
         }
 
@@ -67,19 +65,5 @@ public class ParameterGroupProcess extends AbstractCstlProcess {
             }
         }
 
-    }
-
-    /**
-     * is this method somewhere in some utils?
-     */
-    private List getValues(final ParameterValueGroup pvg, final String descCode) {
-        Parameters param = Parameters.castOrWrap(pvg);
-        List results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add(((ParameterValue) value).getValue());
-            }
-        }
-        return results;
     }
 }

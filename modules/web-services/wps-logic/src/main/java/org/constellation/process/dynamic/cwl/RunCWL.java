@@ -45,11 +45,11 @@ import java.util.logging.Level;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
-import org.apache.sis.parameter.Parameters;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.process.AbstractCstlProcess;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
 import org.opengis.parameter.ParameterValueGroup;
@@ -61,7 +61,6 @@ import org.geotoolkit.metalinker.ResourcesType;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.opengis.parameter.GeneralParameterDescriptor;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
@@ -139,15 +138,15 @@ public class RunCWL extends AbstractCstlProcess {
                 ParameterDescriptor pDesc = (ParameterDescriptor)desc;
 
                 if (pDesc.getValueClass().equals(URI.class)) {
-                    List<ParameterValue> values = getValues(inputParameters, pDesc.getName().getCode());
+                    List<Object> values = getMultipleValues(inputParameters, pDesc);
                     if (values.size() > maxInput) {
                         throw new ProcessException("Too much data input (limit=" + maxInput +")", this);
                     }
                     boolean isArrayIput = isArrayInput(pDesc.getName().getCode(), yaml);
                     if (isArrayIput) {
                         List<Map> complexes = new ArrayList<>();
-                        for (ParameterValue value : values) {
-                            URI arg = (URI) value.getValue();
+                        for (Object value : values) {
+                            URI arg = (URI) value;
 
                             // due to a memory bug in CWL-runner we download File before pass it to CWL
                             List<URI> uris;
@@ -166,7 +165,7 @@ public class RunCWL extends AbstractCstlProcess {
                         }
                         json.put(desc.getName().getCode(), complexes);
                     } else {
-                        URI arg = (URI) values.get(0).getValue();
+                        URI arg = (URI) values.get(0);
 
                         // due to a memory bug in CWL-runner we download File before pass it to CWL
                         List<URI> uris;
@@ -194,16 +193,16 @@ public class RunCWL extends AbstractCstlProcess {
                     }
 
                 } else {
-                    List<ParameterValue> values = getValues(inputParameters, pDesc.getName().getCode());
+                    List<Object> values = getMultipleValues(inputParameters, pDesc);
                     if (pDesc.getMaximumOccurs() > 1) {
                         List<String> literals = new ArrayList<>();
-                        for (ParameterValue value : values) {
-                            String arg = (String) value.getValue();
+                        for (Object value : values) {
+                            String arg = (String) value;
                             literals.add(arg);
                         }
                         json.put(desc.getName().getCode(), literals);
                     } else {
-                        String arg = (String) values.get(0).getValue();
+                        String arg = (String) values.get(0);
                         json.put(desc.getName().getCode(), arg);
                     }
                 }
@@ -338,16 +337,6 @@ public class RunCWL extends AbstractCstlProcess {
             }
         }
 
-    }
-
-    private static List<ParameterValue> getValues(final Parameters param, final String descCode) {
-        List<ParameterValue> results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add((ParameterValue) value);
-            }
-        }
-        return results;
     }
 
     private List<URI> downloadInput(URI uri, Path execDir) throws IOException {

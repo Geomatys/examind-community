@@ -22,13 +22,11 @@ import static com.examind.process.test.MultipleTypeDescriptor.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import org.apache.sis.parameter.Parameters;
 import org.constellation.process.AbstractCstlProcess;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 
@@ -48,7 +46,7 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
 
         final Double[] doubleArray = inputParameters.getValue(DOUBLE_ARRAY_INPUT);
         final double[] doublePrimArray = inputParameters.getValue(DOUBLE_PRIM_ARRAY_INPUT);
-        final List<Double> doubleList  = getValues(inputParameters, DOUBLE_MULTIPLE_INPUT.getName().getCode());
+        final List<Double> doubleList  = getMultipleValues(inputParameters, DOUBLE_MULTIPLE_INPUT);
 
         outputParameters.getOrCreate(DOUBLE_ARRAY_OUTPUT).setValue(doubleArray);
         outputParameters.getOrCreate(DOUBLE_PRIM_ARRAY_OUTPUT).setValue(doublePrimArray);
@@ -61,7 +59,7 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
 
         final Integer[] intArray = inputParameters.getValue(INTEGER_ARRAY_INPUT);
         final int[] intPrimArray = inputParameters.getValue(INTEGER_PRIM_ARRAY_INPUT);
-        final List<Integer> intList  = getValues(inputParameters, INTEGER_MULTIPLE_INPUT.getName().getCode());
+        final List<Integer> intList  = getMultipleValues(inputParameters, INTEGER_MULTIPLE_INPUT);
 
         outputParameters.getOrCreate(INTEGER_ARRAY_OUTPUT).setValue(intArray);
         outputParameters.getOrCreate(INTEGER_PRIM_ARRAY_OUTPUT).setValue(intPrimArray);
@@ -74,7 +72,7 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
 
         final Boolean[] booleanArray = inputParameters.getValue(BOOLEAN_ARRAY_INPUT);
         final boolean[] booleanPrimArray = inputParameters.getValue(BOOLEAN_PRIM_ARRAY_INPUT);
-        final List<Boolean> booleanList  = getValues(inputParameters, BOOLEAN_MULTIPLE_INPUT.getName().getCode());
+        final List<Boolean> booleanList  = getMultipleValues(inputParameters, BOOLEAN_MULTIPLE_INPUT);
 
         outputParameters.getOrCreate(BOOLEAN_ARRAY_OUTPUT).setValue(booleanArray);
         outputParameters.getOrCreate(BOOLEAN_PRIM_ARRAY_OUTPUT).setValue(booleanPrimArray);
@@ -87,7 +85,7 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
 
         final Long[] longArray = inputParameters.getValue(LONG_ARRAY_INPUT);
         final long[] longPrimArray = inputParameters.getValue(LONG_PRIM_ARRAY_INPUT);
-        final List<Long> longList  = getValues(inputParameters, LONG_MULTIPLE_INPUT.getName().getCode());
+        final List<Long> longList  = getMultipleValues(inputParameters, LONG_MULTIPLE_INPUT);
 
         outputParameters.getOrCreate(LONG_ARRAY_OUTPUT).setValue(longArray);
         outputParameters.getOrCreate(LONG_PRIM_ARRAY_OUTPUT).setValue(longPrimArray);
@@ -100,7 +98,7 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
 
         final Character[] charArray = inputParameters.getValue(CHAR_ARRAY_INPUT);
         final char[] charPrimArray = inputParameters.getValue(CHAR_PRIM_ARRAY_INPUT);
-        final List<Character> charList  = getValues(inputParameters, CHAR_MULTIPLE_INPUT.getName().getCode());
+        final List<Character> charList  = getMultipleValues(inputParameters, CHAR_MULTIPLE_INPUT);
 
         outputParameters.getOrCreate(CHAR_ARRAY_OUTPUT).setValue(charArray);
         outputParameters.getOrCreate(CHAR_PRIM_ARRAY_OUTPUT).setValue(charPrimArray);
@@ -125,15 +123,5 @@ public class MultipleTypeProcess extends AbstractCstlProcess {
             outputParameters.getOrCreate(PATH_OUTPUT).setValue(p);
         }
 
-    }
-
-    private List getValues(final Parameters param, final String descCode) {
-        List results = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().getName().getCode().equals(descCode)) {
-                results.add(((ParameterValue) value).getValue());
-            }
-        }
-        return results;
     }
 }

@@ -40,6 +40,7 @@ import org.constellation.exception.ConstellationStoreException;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.process.ChainProcessRetriever;
 import org.constellation.process.ExamindProcessFactory;
+import static org.constellation.process.ProcessUtils.getMultipleValues;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
 import org.geotoolkit.process.ProcessDescriptor;
@@ -52,8 +53,6 @@ import org.geotoolkit.processing.chain.model.ElementProcess;
 import org.geotoolkit.processing.chain.model.Parameter;
 import org.geotoolkit.processing.chain.model.StringMapList;
 import org.geotoolkit.processing.chain.model.StringList;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -85,12 +84,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         final String separator       = inputParameters.getValue(HarvesterPreProcessDescriptor.SEPARATOR);
         final String charquote       = inputParameters.getValue(HarvesterPreProcessDescriptor.CHARQUOTE);
 
-        final List<String> obsPropColumns = new ArrayList<>();
-        for (GeneralParameterValue param : inputParameters.values()) {
-            if (param.getDescriptor().getName().getCode().equals(HarvesterPreProcessDescriptor.OBS_PROP_COLUMN.getName().getCode())) {
-                obsPropColumns.add(((ParameterValue)param).stringValue());
-            }
-        }
+        final List<String> obsPropColumns = getMultipleValues(inputParameters, HarvesterPreProcessDescriptor.OBS_PROP_COLUMN);
 
         final Set<String> codes = new HashSet<>();
 
