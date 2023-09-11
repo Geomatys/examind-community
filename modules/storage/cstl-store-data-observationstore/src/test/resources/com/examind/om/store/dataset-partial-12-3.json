@@ -53,7 +53,7 @@
                         "name": "Depth",
                         "description": "the depth in water",
                         "properties": {
-                            "phen-category": "biological"
+                            "phen-category": ["biological", "organics"]
                         },
                         "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                     }, {
@@ -136,7 +136,7 @@
             "name": "Aggregate Phenomenon 2",
             "description": "the aggregation of temperature depth, and salinity phenomenons",
             "properties": {
-                "commune": "Beziers"
+                "commune": ["Beziers", "Maraussan"]
             },
             "definition": "urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2",
             "component": [{
@@ -144,7 +144,7 @@
                     "name": "Depth",
                     "description": "the depth in water",
                     "properties": {
-                        "phen-category": "biological"
+                        "phen-category": ["biological", "organics"]
                     },
                     "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                 }, {

@@ -36,7 +36,7 @@
         "description": "the depth in water",
         "definition": "urn:ogc:def:phenomenon:GEOM:depth",
         "properties": {
-            "phen-category": "biological"
+            "phen-category": ["biological", "organics"]
         }
     },
     "result": {

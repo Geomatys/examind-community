@@ -13,6 +13,7 @@ INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-category',  'physics');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon-2', 'phen-category',  'elementary');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'biological');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'organics');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-usage',     'studies');
 
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);
@@ -53,8 +54,10 @@ INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:multi-type',  
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:17',             x'000000000140f207a9e96900384139bf0a15544d08', 27582, 17, NULL, 'system',    'profile',    'Sensor 17',         null, 3);
 
 INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'bss-code',         '10972X0137/PONT');
+INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'bss-code',         'BSS10972X0137');
 INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:2', 'supervisor-code',   '00ARGLELES');
 INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:3', 'bss-code',         '10972X0137/SER');
+INSERT INTO "om"."procedures_properties" ("id_procedure", "property_name", "value") VALUES ('urn:ogc:object:sensor:GEOM:3', 'bss-code',         'BSS10972X0137');
 
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',              '2000-12-01 00:00:00.0', x'00000000014147600cde7df17fc13603c2c1e79f50', 27582);
 INSERT INTO "om"."historical_locations" VALUES ('urn:ogc:object:sensor:GEOM:2',              '2000-12-11 00:00:00.0', x'0000000001414721e3e3c47123c1341d38f21784f0', 27582);
@@ -91,6 +94,7 @@ INSERT INTO "om"."sampling_features" VALUES ('station-006', 'cycle1',           
 INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'commune',  'Argeles');
 INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-001', 'region',   'Occitanie');
 INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-002', 'commune',  'Beziers');
+INSERT INTO "om"."sampling_features_properties" ("id_sampling_feature", "property_name", "value") VALUES ('station-002', 'commune',  'Maraussan');
 
 INSERT INTO "om"."offerings" VALUES ('offering-1',  NULL, 'offering-1',  NULL,                    NULL,                    'urn:ogc:object:sensor:GEOM:1');
 INSERT INTO "om"."offerings" VALUES ('offering-2',  NULL, 'offering-2',  '2000-12-01 00:00:00.0', '2000-12-22 00:00:00.0', 'urn:ogc:object:sensor:GEOM:2');

@@ -1108,7 +1108,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1276,7 +1276,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1403,7 +1403,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
 
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
@@ -1592,7 +1592,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getMultiDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1774,7 +1774,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getMultiDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1914,7 +1914,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getMultiDatastreamById(request);
 
         Map<String, Object> obsPropProperties = new HashMap<>();
-        obsPropProperties.put("phen-category", "biological");
+        obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")

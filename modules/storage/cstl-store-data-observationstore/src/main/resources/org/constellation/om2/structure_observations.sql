@@ -4,7 +4,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) NOT NULL
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.4');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.6');
 
 ALTER TABLE "$SCHEMAom"."version" ADD CONSTRAINT version_pk PRIMARY KEY ("number");
 
@@ -62,7 +62,7 @@ CREATE TABLE "$SCHEMAom"."observed_properties" (
 CREATE TABLE "$SCHEMAom"."observed_properties_properties" (
     "id_phenomenon" character varying(200) NOT NULL,
     "property_name" character varying(200) NOT NULL,
-    "value"          character varying(1000)
+    "value"          character varying(1000) NOT NULL
 );
 
 CREATE TABLE "$SCHEMAom"."procedures" (
@@ -81,7 +81,7 @@ CREATE TABLE "$SCHEMAom"."procedures" (
 CREATE TABLE "$SCHEMAom"."procedures_properties" (
     "id_procedure" character varying(200) NOT NULL,
     "property_name" character varying(200) NOT NULL,
-    "value"          character varying(1000)
+    "value"          character varying(1000) NOT NULL
 );
 
 CREATE TABLE "$SCHEMAom"."procedure_descriptions" (
@@ -107,7 +107,7 @@ CREATE TABLE "$SCHEMAom"."sampling_features" (
 CREATE TABLE "$SCHEMAom"."sampling_features_properties" (
     "id_sampling_feature" character varying(200) NOT NULL,
     "property_name"       character varying(200) NOT NULL,
-    "value"               character varying(1000)
+    "value"               character varying(1000) NOT NULL
 );
 
 CREATE TABLE "$SCHEMAom"."historical_locations" (
@@ -145,11 +145,11 @@ ALTER TABLE "$SCHEMAom"."sampling_features" ADD CONSTRAINT sf_pk PRIMARY KEY ("i
 
 ALTER TABLE "$SCHEMAom"."components" ADD CONSTRAINT components_op_pk PRIMARY KEY ("phenomenon", "component");
 
-ALTER TABLE "$SCHEMAom"."observed_properties_properties" ADD CONSTRAINT observed_properties_properties_pk PRIMARY KEY ("id_phenomenon", "property_name");
+ALTER TABLE "$SCHEMAom"."observed_properties_properties" ADD CONSTRAINT observed_properties_properties_pk PRIMARY KEY ("id_phenomenon", "property_name", "value");
 
-ALTER TABLE "$SCHEMAom"."procedures_properties" ADD CONSTRAINT procedures_properties_pk PRIMARY KEY ("id_procedure", "property_name");
+ALTER TABLE "$SCHEMAom"."procedures_properties" ADD CONSTRAINT procedures_properties_pk PRIMARY KEY ("id_procedure", "property_name", "value");
 
-ALTER TABLE "$SCHEMAom"."sampling_features_properties" ADD CONSTRAINT sampling_features_properties_pk PRIMARY KEY ("id_sampling_feature", "property_name");
+ALTER TABLE "$SCHEMAom"."sampling_features_properties" ADD CONSTRAINT sampling_features_properties_pk PRIMARY KEY ("id_sampling_feature", "property_name", "value");
 
 ALTER TABLE "$SCHEMAom"."procedure_descriptions" ADD CONSTRAINT procedure_desc_fk FOREIGN KEY ("procedure") REFERENCES "$SCHEMAom"."procedures"("id");
 

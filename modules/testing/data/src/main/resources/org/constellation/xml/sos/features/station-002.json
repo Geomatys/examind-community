@@ -9,6 +9,6 @@
         "geometry": "POINT (5 10)"
     },
     "properties": {
-        "commune": "Beziers"
+        "commune": ["Beziers", "Maraussan"]
     }
 }

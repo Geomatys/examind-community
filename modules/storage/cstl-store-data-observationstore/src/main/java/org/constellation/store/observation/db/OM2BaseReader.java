@@ -238,7 +238,18 @@ public class OM2BaseReader {
                 while (rs.next()) {
                     String pName = rs.getString("property_name");
                     String pValue = rs.getString("value");
-                    results.put(pName, pValue);
+                    Object prev = results.get(pName);
+                    if (prev instanceof List ls) {
+                        ls.add(pValue);
+                    // transform single value into a list
+                    } else if (prev != null) {
+                        List ls = new ArrayList<>();
+                        ls.add(prev);
+                        ls.add(pValue);
+                        results.put(pName, ls);
+                    } else {
+                        results.put(pName, pValue);
+                    }
                 }
             }
         }

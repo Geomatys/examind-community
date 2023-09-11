@@ -4,7 +4,7 @@
             "description": "",
             "properties": {
                 "supervisor-code": "00ARGLELES",
-                "bss-code": "10972X0137/PONT",
+                "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
                 "type": "profile"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:2",

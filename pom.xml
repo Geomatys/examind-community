@@ -201,18 +201,6 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <!--dependency>
-            <groupId>org.apache.sis.core</groupId>
-            <artifactId>sis-utility</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.sis.core</groupId>
-            <artifactId>sis-metadata</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency-->
         <dependency>
             <groupId>org.apache.sis.non-free</groupId>
             <artifactId>sis-epsg</artifactId>

@@ -34,7 +34,7 @@
       "properties" : { }
     },
     "properties": {
-        "commune": "Beziers"
+        "commune": ["Beziers", "Maraussan"]
     },
     "@iot.id" : "station-002",
     "@iot.selfLink" : "http://localhost:9090/WS/sts/default/v1.1/FeaturesOfInterest(station-002)",

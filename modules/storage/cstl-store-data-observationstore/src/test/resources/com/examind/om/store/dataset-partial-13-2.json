@@ -31,7 +31,7 @@
                 "name": "10972X0137-PLOUF",
                 "description": "Point d'eau BSSS",
                 "properties": {
-                    "commune": "Beziers"
+                    "commune": ["Beziers", "Maraussan"]
                 },
                 "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
                 "geometry": {
@@ -44,7 +44,7 @@
                 "name": "Depth",
                 "description": "the depth in water",
                 "properties": {
-                    "phen-category": "biological"
+                    "phen-category": ["biological", "organics"]
                 },
                 "definition": "urn:ogc:def:phenomenon:GEOM:depth"
             },
@@ -84,7 +84,7 @@
             "name": "10972X0137-PLOUF",
             "description": "Point d'eau BSSS",
             "properties": {
-                "commune": "Beziers"
+                "commune": ["Beziers", "Maraussan"]
             },
             "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
             "geometry": {
@@ -97,7 +97,7 @@
             "name": "Depth",
             "description": "the depth in water",
             "properties": {
-                "phen-category": "biological"
+                "phen-category": ["biological", "organics"]
             },
             "definition": "urn:ogc:def:phenomenon:GEOM:depth"
         }],

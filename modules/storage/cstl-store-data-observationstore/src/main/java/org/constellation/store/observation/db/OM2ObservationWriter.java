@@ -461,10 +461,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         LOGGER.fine(request);
         try (final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             for (Entry<String, Object> entry : properties.entrySet()) {
-                stmt.setString(1, id);
-                stmt.setString(2, entry.getKey());
-                stmt.setString(3,  Objects.toString(entry.getValue()));
-                stmt.addBatch();
+                List<Object> values;
+                if (entry.getValue() instanceof List ls) {
+                    values = ls;
+                } else {
+                    values = Arrays.asList(entry.getValue());
+                }
+                for (Object value : values) {
+                    stmt.setString(1, id);
+                    stmt.setString(2, entry.getKey());
+                    stmt.setString(3,  Objects.toString(value));
+                    stmt.addBatch();
+                }
             }
             stmt.executeBatch();
         }
