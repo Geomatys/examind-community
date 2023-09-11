@@ -45,7 +45,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.elasticsearch.common.Strings;
@@ -60,6 +59,7 @@ import org.geotoolkit.gml.xml.v321.EnvelopeType;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 
@@ -71,8 +71,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 @RunWith(TestRunner.class)
 public class ElasticSearchIndexTest {
 
-    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
-
+    protected static final FilterFactory FF = FilterUtilities.FF;
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata");
 

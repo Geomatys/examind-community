@@ -21,7 +21,7 @@ package org.constellation.wmts.ws;
 import org.constellation.test.SpringContextTest;
 import org.constellation.wmts.core.DefaultWMTSWorker;
 import org.constellation.wmts.core.WMTSWorker;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.admin.SpringHelper;

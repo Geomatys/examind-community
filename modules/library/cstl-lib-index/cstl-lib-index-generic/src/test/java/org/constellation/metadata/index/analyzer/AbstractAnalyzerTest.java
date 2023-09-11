@@ -44,12 +44,12 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.filter.FilterUtilities;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.runner.RunWith;
+import org.opengis.filter.FilterFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -62,7 +62,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringTestRunner.class)
 public abstract class AbstractAnalyzerTest {
 
-    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
+    protected static final FilterFactory FF = FilterUtilities.FF;
 
     protected static final Logger logger = Logger.getLogger("org.constellation.metadata.index.generic");
 

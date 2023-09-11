@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.dto.StyleReference;
@@ -49,6 +48,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.opengis.filter.FilterFactory;
 
 /**
  *
@@ -59,7 +59,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
     private static final String PROCESS_NAME = "service.add_layer";
     private static DataProcessReference COUNTRIES_DATA_REF;
     private static final StyleReference STYLE_DATA_REF = new StyleReference(null, "redBlue", 1, "sld");
-    private static final DefaultFilterFactory FF = FilterUtilities.FF;
+    private static final FilterFactory FF = FilterUtilities.FF;
 
     private List<Integer> providerIds;
 

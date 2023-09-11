@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreProvider;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IInternalMetadataBusiness;
 import org.constellation.test.utils.SpringTestRunner;

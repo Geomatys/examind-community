@@ -40,7 +40,6 @@ import java.util.stream.Stream;
 import javax.measure.Unit;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureQuery;
@@ -96,6 +95,7 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.PropertyType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Expression;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.NilOperator;
 import org.opengis.filter.ValueReference;
 import org.opengis.style.Fill;
@@ -314,7 +314,7 @@ public final class StyleUtilities extends Static {
 
     public static org.opengis.style.Symbolizer createSymbolizer(final String symbolizerType) {
         final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
-        final DefaultFilterFactory FF = GO2Utilities.FILTER_FACTORY;
+        final FilterFactory FF = GO2Utilities.FILTER_FACTORY;
         final org.opengis.style.Symbolizer symbolizer;
         if ("polygon".equals(symbolizerType)) {
             final Stroke stroke = SF.stroke(Color.BLACK, 1);
@@ -446,7 +446,7 @@ public final class StyleUtilities extends Static {
             double maximum = Double.NEGATIVE_INFINITY;
 
             final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-            final DefaultFilterFactory FF = FilterUtilities.FF;
+            final FilterFactory FF = FilterUtilities.FF;
 
             final ValueReference property = FF.property(attribute);
 
@@ -575,7 +575,7 @@ public final class StyleUtilities extends Static {
             * II - Extract all different values.
             */
             final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
-            final DefaultFilterFactory FF = FilterUtilities.FF;
+            final FilterFactory FF = FilterUtilities.FF;
             final ValueReference property = FF.property(attribute);
             final List<Object> differentValues = new ArrayList<>();
 
@@ -660,7 +660,7 @@ public final class StyleUtilities extends Static {
         if (dataRes instanceof FeatureSet fs) {
 
             final Map<Object,Long> mapping = new LinkedHashMap<>();
-            final DefaultFilterFactory FF = FilterUtilities.FF;
+            final FilterFactory FF = FilterUtilities.FF;
             final ValueReference property = FF.property(attribute);
 
             final FeatureQuery query = new FeatureQuery();

@@ -34,7 +34,7 @@ import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.config.wps.Processes;
 import org.constellation.dto.service.config.wps.ProcessFactory;
 import org.constellation.dto.service.config.wxs.GFIParam;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.junit.After;

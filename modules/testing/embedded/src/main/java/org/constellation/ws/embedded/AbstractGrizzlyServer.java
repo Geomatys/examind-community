@@ -92,7 +92,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import static junit.framework.Assert.assertTrue;
 import org.apache.catalina.Context;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
 import org.constellation.business.IUserBusiness;

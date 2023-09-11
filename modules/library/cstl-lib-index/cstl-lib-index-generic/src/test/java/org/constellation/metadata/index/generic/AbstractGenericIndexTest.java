@@ -19,13 +19,13 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.constellation.test.utils.SpringTestRunner;
 import org.geotoolkit.filter.FilterUtilities;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.runner.RunWith;
+import org.opengis.filter.FilterFactory;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -39,7 +39,7 @@ import org.springframework.test.context.ContextConfiguration;
 @RunWith(SpringTestRunner.class)
 public abstract class AbstractGenericIndexTest {
 
-    protected DefaultFilterFactory getFF() {
+    protected FilterFactory getFF() {
         return FilterUtilities.FF;
     }
 

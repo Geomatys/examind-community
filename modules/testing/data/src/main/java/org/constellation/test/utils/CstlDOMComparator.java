@@ -19,7 +19,7 @@
 package org.constellation.test.utils;
 
 import org.apache.sis.internal.util.DefinitionURI;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.util.CharSequences;
 import org.junit.Assert;
 import org.w3c.dom.Node;

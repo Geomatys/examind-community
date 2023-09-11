@@ -30,7 +30,7 @@ import org.constellation.dto.service.config.generic.Where;
 import org.constellation.dto.service.config.generic.Column;
 import org.constellation.dto.service.config.generic.Query;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.contact.AccessConstraint;

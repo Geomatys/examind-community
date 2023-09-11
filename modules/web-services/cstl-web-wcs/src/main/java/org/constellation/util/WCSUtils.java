@@ -36,7 +36,6 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
-import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
@@ -57,6 +56,7 @@ import org.geotoolkit.wcs.xml.v100.IntervalType;
 import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
 import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.filter.Expression;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Literal;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.datum.PixelInCell;
@@ -71,7 +71,7 @@ import org.opengis.style.Symbolizer;
 public final class WCSUtils {
 
     private static final MutableStyleFactory SF = new DefaultStyleFactory();
-    private static final DefaultFilterFactory FF = FilterUtilities.FF;
+    private static final FilterFactory FF = FilterUtilities.FF;
 
     /**
      * The date format to match.

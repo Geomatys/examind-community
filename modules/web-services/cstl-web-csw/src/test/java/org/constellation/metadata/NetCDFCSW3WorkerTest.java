@@ -45,7 +45,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.logging.Level;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.contact.AccessConstraint;

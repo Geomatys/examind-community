@@ -53,7 +53,7 @@ import org.apache.sis.referencing.crs.DefaultVerticalCRS;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.cs.DefaultVerticalCS;
 import org.apache.sis.referencing.datum.DefaultVerticalDatum;
-import org.apache.sis.test.xml.DocumentComparator;
+import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;

@@ -32,16 +32,9 @@
             <artifactId>sis-french-profile</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.sis.core</groupId>
-            <artifactId>sis-utility</artifactId>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-utility</artifactId>
             <type>test-jar</type>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.sis.core</groupId>
-            <artifactId>sis-metadata</artifactId>
-            <type>test-jar</type>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>

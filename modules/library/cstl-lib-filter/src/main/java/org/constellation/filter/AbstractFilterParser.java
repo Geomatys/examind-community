@@ -60,7 +60,6 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.sis.filter.DefaultFilterFactory;
 import static org.constellation.api.CommonConstants.QUERY_CONSTRAINT;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.index.LogicalFilterType;
@@ -80,6 +79,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.OPERATION_NOT_SUPPORTED;
 import org.opengis.filter.BetweenComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -93,7 +93,7 @@ import org.opengis.util.CodeList;
  */
 public abstract class AbstractFilterParser implements FilterParser {
 
-    protected static final DefaultFilterFactory FF = FilterUtilities.FF;
+    protected static final FilterFactory FF = FilterUtilities.FF;
 
     /**
      * use for debugging purpose
