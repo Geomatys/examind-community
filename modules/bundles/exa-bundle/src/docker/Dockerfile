@@ -1,4 +1,4 @@
-FROM tomcat:10.1.10-jdk17-temurin
+FROM tomcat:10.1.13-jre17-temurin
 
 LABEL maintainer "robin.gilh@geomatys.com"                                                                                                                                                                                                   
 LABEL description "Docker image of Examind Community"
