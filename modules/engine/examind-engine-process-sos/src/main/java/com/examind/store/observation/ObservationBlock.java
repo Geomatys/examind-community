@@ -25,9 +25,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ResultMode;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.locationtech.jts.geom.Coordinate;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -83,8 +84,8 @@ public class ObservationBlock {
         return cmb.getUsedMeasureColumns();
     }
 
-    public MeasureStringBuilder getResults() {
-        return cmb.buildMeasureStringBuilderFromMap();
+    public ResultBuilder getResults(ResultMode resultMode) {
+        return cmb.buildMeasureStringBuilderFromMap(resultMode);
     }
 
     public int getResultsCount() {

@@ -954,7 +954,7 @@ public class OM2BaseReader {
                 parser.parseLine(rs, 0);
                 nbValue = nbValue + parser.nbValue;
             }
-            return OMUtils.buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
+            return OMUtils.buildComplexResult(fields, nbValue, values);
         }
     }
 

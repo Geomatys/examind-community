@@ -336,7 +336,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             for (ObservationBlock ob : observationBlock.values()) {
                 final String oid = fileName + '-' + obsCpt;
                 obsCpt++;
-                buildObservation(result, oid, ob, phenomenons, samplingFeatures);
+                buildObservation(result, oid, ob, phenomenons, samplingFeatures, query.getResponseFormat());
             }
             return result;
         } catch (IOException ex) {

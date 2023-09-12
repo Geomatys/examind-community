@@ -50,7 +50,6 @@ import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.AbstractObservationStore;
 import org.geotoolkit.observation.ObservationStore;
-import org.geotoolkit.sos.MeasureStringBuilder;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
@@ -67,9 +66,10 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
-import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
+import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.util.NamesExt;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -339,7 +339,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
 
     protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
-            Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures) {
+            Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
 
         // On extrait les types de mesure trouvées dans la donnée
         Set<MeasureField> measureFields = ob.getUsedFields();
@@ -396,13 +396,14 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-        MeasureStringBuilder msb = ob.getResults();
+        final ResultMode resultMode = "resultArray".equals(responseFormat) ? ResultMode.DATA_ARRAY : ResultMode.CSV;
+        ResultBuilder msb = ob.getResults(resultMode);
         final int currentCount   = ob.getResultsCount();
 
         Map<String, Object> properties = new HashMap<>();
         properties.put("type", ob.observationType);
 
-        ComplexResult resultO = new ComplexResult(fields, DEFAULT_ENCODING, msb.getString(), currentCount);
+        ComplexResult resultO = OMUtils.buildComplexResult(fields, currentCount, msb);
         result.observations.add(new Observation(oid,
                                                 oid,
                                                 null, null,

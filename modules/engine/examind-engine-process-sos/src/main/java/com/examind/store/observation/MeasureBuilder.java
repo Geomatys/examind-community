@@ -34,7 +34,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.geotoolkit.observation.model.FieldType;
-import org.geotoolkit.sos.MeasureStringBuilder;
+import org.geotoolkit.observation.model.ResultMode;
+import org.geotoolkit.observation.model.TextEncoderProperties;
+import org.geotoolkit.observation.result.ResultBuilder;
 
 /**
  *
@@ -155,14 +157,9 @@ public class MeasureBuilder {
         }
     }
 
-     public MeasureStringBuilder buildMeasureStringBuilderFromMap() {
+     public ResultBuilder buildMeasureStringBuilderFromMap(ResultMode resultMode) {
        final Set<String> measureColumnFound = getMeasureFromMap();
-       /*
-       * TODO :
-       * 1 - MeasureStringBuilder should not be in geotk-xml-sos but in geotk-observation-store core
-       * 2 - we should be able to build resultArray ouput.
-       */
-        MeasureStringBuilder result = new MeasureStringBuilder();
+        ResultBuilder result = new ResultBuilder(ResultMode.CSV, TextEncoderProperties.DEFAULT_ENCODING, false);
         boolean noneValue = true;
 
         List<Number> keys = new ArrayList<>(mmb.keySet());
@@ -182,49 +179,31 @@ public class MeasureBuilder {
             }
             
             // write the data line
+            result.newBlock();
             if (isProfile) {
-                result.appendValue((Double)mainValue);
+                result.appendDouble((Double)mainValue);
             } else {
-                result.appendDate((long)mainValue);
+                result.appendTime((long)mainValue);
             }
             for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
                 if (measureColumnFound.contains(measureName)) {
                     final Measure measure = entry2.getValue();
-                    appendValue(result, measure.value);
+                    
+                    result.appendValue(measure.value);
                     for (String qValue : measure.qualityValues) {
-                        result.appendValue(qValue);
+                        result.appendString(qValue);
                     }
                     noneValue = false;
                 }
             }
-            result.closeBlock();
+            result.endBlock();
         }
         if (noneValue) {
-            return new MeasureStringBuilder();
-        } else {
-            return result;
+            result.clear();
         }
+        return result;
     }
-
-     /**
-      * TODO create a method appendValue(Object) in MeasureStringBuilder.
-      */
-     private static void appendValue(MeasureStringBuilder result, Object value) {
-         if (value instanceof Double d) {
-            result.appendValue(d);
-         } else if (value instanceof String s) {
-            result.appendValue(s);
-         } else if (value instanceof Date d) {
-            result.appendDate(d);
-         } else if (value instanceof Boolean b) {
-            result.appendValue(b);
-         } else if (value == null) {
-             result.appendValue((String) null);
-         } else {
-             throw new IllegalArgumentException("Unssuported value type:" + value);
-         }
-     }
 
     public int getMeasureCount() {
         return mmb.size();

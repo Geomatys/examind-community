@@ -84,7 +84,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
     @Override
     public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
-
+        
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -292,7 +292,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             for (ObservationBlock ob : observationBlock.values()) {
                 final String oid = fileName + '-' + obsCpt;
                 obsCpt++;
-                buildObservation(result, oid, ob, phenomenons, samplingFeatures);
+                buildObservation(result, oid, ob, phenomenons, samplingFeatures, query.getResponseFormat());
             }
             return result;
         } catch (IOException ex) {

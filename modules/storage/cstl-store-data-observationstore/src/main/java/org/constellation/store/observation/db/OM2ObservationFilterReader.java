@@ -431,7 +431,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                              */
                             if (separatedMeasure) {
                                 final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
-                                final ComplexResult result = buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
+                                final ComplexResult result = buildComplexResult(fields, nbValue, values);
                                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                                 final String measureID = rs2.getString("id", 0);
                                 final String singleObsID = "obs-" + oid + '-' + measureID;
@@ -462,7 +462,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     */
                     if (!separatedMeasure) {
                         final TemporalGeometricPrimitive time = buildTime(obsID, parser.firstTime, parser.lastTime);
-                        final ComplexResult result = buildComplexResult(fields, nbValue, DEFAULT_ENCODING, values);
+                        final ComplexResult result = buildComplexResult(fields, nbValue, values);
                         final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                         observation = new Observation(obsID,
                                                       name,

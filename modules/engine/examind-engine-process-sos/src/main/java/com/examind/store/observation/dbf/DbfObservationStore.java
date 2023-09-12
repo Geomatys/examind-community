@@ -259,7 +259,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             for (ObservationBlock ob : observationBlock.values()) {
                 final String oid = fileName + '-' + obsCpt;
                 obsCpt++;
-                buildObservation(result, oid, ob, phenomenons, samplingFeatures);
+                buildObservation(result, oid, ob, phenomenons, samplingFeatures, query.getResponseFormat());
             }
             return result;
             

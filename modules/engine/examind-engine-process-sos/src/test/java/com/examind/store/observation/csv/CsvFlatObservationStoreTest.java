@@ -659,9 +659,9 @@ public class CsvFlatObservationStoreTest {
 
         Assert.assertEquals(3, cr.getFields().size());
 
-        String expectedValues = "1980-03-01T21:52:00.000+0100,122.6,13.4@@" +
-                               "1980-03-02T21:52:00.000+0100,,14.1@@" +
-                               "1980-03-03T21:52:00.000+0100,,13.1@@";
+        String expectedValues = "1980-03-01T21:52:00.0,122.6,13.4@@" +
+                               "1980-03-02T21:52:00.0,,14.1@@" +
+                               "1980-03-03T21:52:00.0,,13.1@@";
         Assert.assertEquals(expectedValues, cr.getValues());
 
 
@@ -750,9 +750,9 @@ public class CsvFlatObservationStoreTest {
 
         Assert.assertEquals(3, cr.getFields().size());
 
-        String expectedValues = "1980-03-01T21:52:00.000+0100,122.6,13.4@@" +
-                               "1980-03-02T21:52:00.000+0100,,14.1@@" +
-                               "1980-03-03T21:52:00.000+0100,,13.1@@";
+        String expectedValues = "1980-03-01T21:52:00.0,122.6,13.4@@" +
+                               "1980-03-02T21:52:00.0,,14.1@@" +
+                               "1980-03-03T21:52:00.0,,13.1@@";
         Assert.assertEquals(expectedValues, cr.getValues());
 
         obs = results.observations.get(1);
@@ -761,10 +761,10 @@ public class CsvFlatObservationStoreTest {
 
         Assert.assertEquals(3, cr.getFields().size());
 
-        expectedValues = "1980-03-01T21:52:00.000+0100,126.2,12.1@@" +
-                         "1980-03-02T21:52:00.000+0100,,11.2@@" +
-                         "1980-03-03T21:52:00.000+0100,,15.1@@" +
-                         "1980-03-04T21:52:00.000+0100,123.2,@@";
+        expectedValues = "1980-03-01T21:52:00.0,126.2,12.1@@" +
+                         "1980-03-02T21:52:00.0,,11.2@@" +
+                         "1980-03-03T21:52:00.0,,15.1@@" +
+                         "1980-03-04T21:52:00.0,123.2,@@";
         Assert.assertEquals(expectedValues, cr.getValues());
 
 
