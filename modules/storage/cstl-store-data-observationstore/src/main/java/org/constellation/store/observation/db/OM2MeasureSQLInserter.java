@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
@@ -116,13 +115,12 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
         if (update) LOGGER.info("Inserting measure in update mode");
 
         final TextEncoderProperties encoding = cr.getTextEncodingProperties();
-        final StringTokenizer tokenizer = new StringTokenizer(cr.getValues(), encoding.getBlockSeparator());
+        final String[] blocks = cr.getValues().split(encoding.getBlockSeparator());
         int mid =  update ? getLastMeasureId(c, oid) : 1;
         int sqlCpt = 0;
         try (final Statement stmtSQL = c.createStatement()) {
             Map<Integer, StringBuilder> builders = newInsertBatch();
-            while (tokenizer.hasMoreTokens()) {
-                String block = tokenizer.nextToken().trim();
+            for (String block : blocks) {
                 if (block.isEmpty()) {
                     continue;
                 }

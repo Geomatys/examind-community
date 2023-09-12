@@ -30,11 +30,7 @@ import org.geotoolkit.sml.xml.ComponentProperty;
 import org.geotoolkit.sml.xml.SMLMember;
 import org.geotoolkit.sml.xml.System;
 import org.geotoolkit.sos.xml.SOSMarshallerPool;
-import org.geotoolkit.sos.xml.SOSXmlFactory;
-import org.geotoolkit.swe.xml.AbstractEncoding;
-import org.geotoolkit.swe.xml.TextBlock;
 import org.opengis.observation.Observation;
-import org.opengis.temporal.Period;
 
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
@@ -44,11 +40,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.logging.Logger;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.dto.Sensor;
@@ -77,35 +71,6 @@ public final class SensorUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.sensor.ws");
 
     private SensorUtils() {}
-
-    public static Period extractTimeBounds(final String version, final String brutValues, final AbstractEncoding abstractEncoding) {
-        final String[] result = new String[2];
-        if (abstractEncoding instanceof TextBlock) {
-            final TextBlock encoding        = (TextBlock) abstractEncoding;
-            final StringTokenizer tokenizer = new StringTokenizer(brutValues, encoding.getBlockSeparator());
-            boolean first = true;
-            while (tokenizer.hasMoreTokens()) {
-                final String block = tokenizer.nextToken();
-                final int tokenEnd = block.indexOf(encoding.getTokenSeparator());
-                String samplingTimeValue;
-                if (tokenEnd != -1) {
-                    samplingTimeValue = block.substring(0, block.indexOf(encoding.getTokenSeparator()));
-                // only one field
-                } else {
-                    samplingTimeValue = block;
-                }
-                if (first) {
-                    result[0] = samplingTimeValue;
-                    first = false;
-                } else if (!tokenizer.hasMoreTokens()) {
-                    result[1] = samplingTimeValue;
-                }
-            }
-        } else {
-            LOGGER.warning("unable to parse datablock unknown encoding");
-        }
-        return SOSXmlFactory.buildTimePeriod(version, null, result[0], result[1]);
-    }
 
     public static void removeComponent(final AbstractSensorML sml, final String component) {
         if (sml.getMember() != null)  {

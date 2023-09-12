@@ -31,7 +31,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -64,7 +63,6 @@ import static org.constellation.sos.core.SOSConstants.SOS_FILTER_CAPABILITIES_V2
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_FOI_TYPES;
 import static org.constellation.sos.core.SOSConstants.SUPPORTED_OBS_TYPES;
 import static org.constellation.api.ServiceConstants.*;
-import static com.examind.sensor.ws.SensorUtils.extractTimeBounds;
 import static com.examind.sensor.ws.SensorUtils.isCompleteEnvelope3D;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
@@ -1528,9 +1526,8 @@ public class SOSworker extends SensorWorker {
             count = values.split(separator).length;
 
             // verify the structure
-            final StringTokenizer tokenizer = new StringTokenizer(values, textEnc.getBlockSeparator());
-            while (tokenizer.hasMoreTokens()) {
-                final String block = tokenizer.nextToken();
+            final String[] blocks = values.split(textEnc.getBlockSeparator());
+            for (String block : blocks) {
                 final int nbToken = block.split(textEnc.getTokenSeparator()).length;
                 if (nbToken != structure.getField().size()) {
                     throw new CstlServiceException("ResultValues is empty", INVALID_PARAMETER_VALUE, "resultValues");
@@ -1557,6 +1554,35 @@ public class SOSworker extends SensorWorker {
         LOGGER.log(Level.FINE, "InsertResult processed in {0} ms", (System.currentTimeMillis() - start));
         return result;
     }
+
+    private static Period extractTimeBounds(final String version, final String brutValues, final AbstractEncoding abstractEncoding) {
+        final String[] result = new String[2];
+        if (abstractEncoding instanceof TextBlock encoding) {
+            final String[] blocks = brutValues.split(encoding.getBlockSeparator());
+            boolean first = true;
+            for (int i = 0; i < blocks.length; i++) {
+                final String block = blocks[i];
+                final int tokenEnd = block.indexOf(encoding.getTokenSeparator());
+                String samplingTimeValue;
+                if (tokenEnd != -1) {
+                    samplingTimeValue = block.substring(0, tokenEnd);
+                // only one field
+                } else {
+                    samplingTimeValue = block;
+                }
+                if (first) {
+                    result[0] = samplingTimeValue;
+                    first = false;
+                } else if (i == blocks.length -1) {
+                    result[1] = samplingTimeValue;
+                }
+            }
+        } else {
+            LOGGER.warning("unable to parse datablock unknown encoding");
+        }
+        return SOSXmlFactory.buildTimePeriod(version, null, result[0], result[1]);
+    }
+
 
     public GetResultTemplateResponse getResultTemplate(final GetResultTemplate request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "GetResultTemplate request processing\n");

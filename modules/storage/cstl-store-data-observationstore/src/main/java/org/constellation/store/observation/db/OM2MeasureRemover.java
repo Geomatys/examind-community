@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2ObservationWriter.ObservationInfos;
@@ -118,11 +117,10 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
                 }
 
                 final TextEncoderProperties encoding = cr.getTextEncodingProperties();
-                final StringTokenizer tokenizer      = new StringTokenizer(cr.getValues(), encoding.getBlockSeparator());
+                final String[] blocks               = cr.getValues().split(encoding.getBlockSeparator());
 
                 int rmCount = 0;
-                while (tokenizer.hasMoreTokens()) {
-                    String block = tokenizer.nextToken().trim();
+                for (String block : blocks) {
                     if (block.isEmpty()) {
                         continue;
                     }
