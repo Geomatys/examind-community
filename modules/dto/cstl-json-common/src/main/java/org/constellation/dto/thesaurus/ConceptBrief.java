@@ -58,7 +58,12 @@ public class ConceptBrief implements Serializable {
         return prefLabel;
     }
 
+    public String getPrefLabel(String language) {
+        return prefLabel.get(language);
+    }
+
     public ConceptBrief setPrefLabel(Map<String, String> prefLabel) {
+        if (prefLabel == null) throw new IllegalArgumentException("prefLabel must not be null");
         this.prefLabel = prefLabel;
         return this;
     }
@@ -67,7 +72,12 @@ public class ConceptBrief implements Serializable {
         return altLabels;
     }
 
+    public String[] getAltLabels(String language) {
+        return altLabels.get(language);
+    }
+
     public ConceptBrief setAltLabels(Map<String, String[]> altLabels) {
+        if (prefLabel == null) throw new IllegalArgumentException("altLabels must not be null");
         this.altLabels = altLabels;
         return this;
     }
