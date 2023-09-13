@@ -19,7 +19,6 @@
 package com.examind.process.sos;
 
 import com.examind.sts.core.STSWorker;
-import com.examind.sts.core.temporary.DataArrayResponseExt;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.ogc.xml.v200.TemporalOpsType;
 import org.geotoolkit.ogc.xml.v200.TimeDuringType;
 import org.geotoolkit.ogc.xml.v200.TimeEqualsType;
@@ -57,6 +55,7 @@ import org.geotoolkit.sts.GetObservedProperties;
 import org.geotoolkit.sts.GetObservedPropertyById;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.json.DataArray;
+import org.geotoolkit.sts.json.DataArrayResponse;
 import org.geotoolkit.sts.json.HistoricalLocation;
 import org.geotoolkit.sts.json.ObservedPropertiesResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
@@ -111,7 +110,7 @@ public class SosHarvesterTestUtils {
         request.setResultFormat("dataArray");
         request.getExtraFlag().put("forMDS", "true");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
-        DataArrayResponseExt resp = (DataArrayResponseExt) stsWorker.getObservations(request);
+        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
         Set<String> results = new HashSet<>();
         for (DataArray array : resp.getValue()) {
             int index = array.getComponents().indexOf("resultQuality");
@@ -182,7 +181,7 @@ public class SosHarvesterTestUtils {
         request.setCount(true);
         request.setTop(0);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
-        DataArrayResponseExt resp = (DataArrayResponseExt) stsWorker.getObservations(request);
+        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
         return resp.getIotCount().toBigInteger().intValue();
     }
 
@@ -192,7 +191,7 @@ public class SosHarvesterTestUtils {
         request.getExtraFlag().put("forMDS", "true");
         request.setCount(false);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
-        DataArrayResponseExt resp = (DataArrayResponseExt) stsWorker.getObservations(request);
+        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
         StringBuilder sb = new StringBuilder();
         for (DataArray array : resp.getValue()) {
             for (Object o : array.getDataArray()) {

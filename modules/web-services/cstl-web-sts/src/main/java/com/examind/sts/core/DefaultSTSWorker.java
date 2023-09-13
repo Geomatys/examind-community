@@ -25,7 +25,6 @@ import com.examind.sensor.ws.SensorWorker;
 import static com.examind.sts.core.STSConstants.STS_DEC_EXT;
 import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.*;
-import com.examind.sts.core.temporary.DataArrayResponseExt;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -697,7 +696,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return quality;
     }
 
-    private DataArrayResponseExt buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
+    private DataArrayResponse buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
         DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
         for (Entry<String, List> entry : arrays.entrySet()) {
@@ -707,7 +706,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             List<Object> results = formatSTSArray(sensorId, null, resultArray, single, true);
             result.getDataArray().addAll(results);
         }
-        return new DataArrayResponseExt(Arrays.asList(result), count, nextLink);
+        return new DataArrayResponse(Arrays.asList(result)).iotCount(count).iotNextLink(nextLink);
     }
 
     private DataArrayResponse buildDataArrayFromObservations(AbstractSTSRequest req, List<org.opengis.observation.Observation> obs, BigDecimal count) throws ConstellationStoreException {
@@ -748,7 +747,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (count != null) {
             iotNextLink = computePaginationNextLink(req, null, count.intValue(), "/Observations");
         }
-        return new DataArrayResponseExt(Arrays.asList(result), count, iotNextLink);
+        return new DataArrayResponse(Arrays.asList(result)).iotCount(count).iotNextLink(iotNextLink);
     }
 
     private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean single, boolean idIncluded) {
