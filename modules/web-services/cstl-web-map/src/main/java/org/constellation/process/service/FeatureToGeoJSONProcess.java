@@ -65,19 +65,21 @@ public class FeatureToGeoJSONProcess  extends AbstractCstlProcess {
                 fs = fs.subset(query);
             }
             
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-                 GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(out, fs.getType(), JsonEncoding.UTF8, 4, true);
-                 Stream<Feature> stream = fs.features(false)) {
-                Iterator<Feature> iterator = stream.iterator();
-                featureWriter.writeCollection(new ArrayList<>(), null, null);
-                while (iterator.hasNext()) {
-                    Feature next = iterator.next();
-                    Feature neww = featureWriter.next();
-                    FeatureExt.copy(next, neww, false);
-                    featureWriter.write();
-                }
-                outputParameters.getOrCreate(GEOJSON_OUTPUT).setValue(new String(out.toByteArray()));
+            try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                 try (GeoJSONStreamWriter featureWriter = new GeoJSONStreamWriter(out, fs.getType(), JsonEncoding.UTF8, 4, true);
+                    Stream<Feature> stream = fs.features(false)) {
+                   Iterator<Feature> iterator = stream.iterator();
+                   featureWriter.writeCollection(new ArrayList<>(), null, null);
+                   while (iterator.hasNext()) {
+                       Feature next = iterator.next();
+                       Feature neww = featureWriter.next();
+                       FeatureExt.copy(next, neww, false);
+                       featureWriter.write();
+                   }
+                 }
+                 outputParameters.getOrCreate(GEOJSON_OUTPUT).setValue(new String(out.toByteArray()));
             }
+            
         } catch (DataStoreException | IOException | FeatureStoreRuntimeException ex) {
             throw new ProcessException(ex.getMessage(), this, ex);
         }

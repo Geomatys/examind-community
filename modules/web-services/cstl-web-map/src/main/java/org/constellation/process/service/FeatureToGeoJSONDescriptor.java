@@ -18,8 +18,6 @@
 */
 package org.constellation.process.service;
 
-import com.examind.process.test.NbFeatureDescriptor;
-import com.examind.process.test.NbFeatureProcess;
 import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.process.AbstractCstlProcess;
