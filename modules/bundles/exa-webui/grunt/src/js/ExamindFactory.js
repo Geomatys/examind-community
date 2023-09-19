@@ -2904,7 +2904,7 @@ function Examind($http, url) {
         createMapContext : function(context) {
             return self.request({
                 method: 'POST',
-                url: 'mapcontexts/',
+                url: 'mapcontexts',
                 headers: {'Accept': 'application/json'},
                 data : context
             });
