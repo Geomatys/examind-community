@@ -21,8 +21,10 @@ package org.constellation.admin;
 import org.constellation.business.*;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.Layer;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleBrief;
+import org.constellation.dto.StyledLayer;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -59,7 +61,6 @@ import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.apache.sis.internal.system.DefaultFactories;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.constellation.dto.Layer;
 import org.constellation.dto.service.Service;
 import org.geotoolkit.style.StyleUtilities;
 import org.opengis.sld.StyledLayerDescriptor;
@@ -195,7 +196,7 @@ public class StyleBusiness implements IStyleBusiness {
             final int provider = nameToId(providerId);
 
             final String xmlStyle = writeStyle(sldParser, styleI);
-            
+
             Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
             final Style newStyle = new Style();
             newStyle.setName(styleName);
@@ -686,5 +687,36 @@ public class StyleBusiness implements IStyleBusiness {
         } catch (JAXBException | FactoryException ex) {
             throw new ConstellationException("Error while reading sld.", ex);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws TargetNotFoundException {
+        final Boolean styleFound = styleRepository.existsById(styleId);
+        final Boolean layerFound = layerRepository.existsById(layerId);
+        if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+        if (!layerFound) throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+
+        final StyledLayer styledLayer = styleRepository.getStyledLayer(styleId, layerId);
+        if (styledLayer == null) {
+            throw new TargetNotFoundException("The layer " + layerId + " is not linked to the style + " + styleId + ".");
+        }
+        return styledLayer.getExtraInfo();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void addExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId, final String extraInfo) throws TargetNotFoundException {
+        final Boolean styleFound = styleRepository.existsById(styleId);
+        final Boolean layerFound = layerRepository.existsById(layerId);
+        if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+        if (!layerFound) throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        styleRepository.addExtraInfo(styleId, layerId, extraInfo);
     }
 }

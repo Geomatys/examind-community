@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.StyledLayer;
 
 public interface StyleRepository extends AbstractRepository {
 
@@ -57,7 +58,7 @@ public interface StyleRepository extends AbstractRepository {
     void linkStyleToLayer(int styleId, int layerid);
 
     void unlinkStyleToLayer(int styleId, int layerId);
-    
+
     void unlinkAllStylesFromLayer(int layerId);
 
     List<Integer> getStyleIdsForData(int id);
@@ -69,6 +70,10 @@ public interface StyleRepository extends AbstractRepository {
     public List<StyleReference> fetchByLayerId(int layerId);
 
     void changeSharedProperty(final int id, final boolean shared);
+
+    StyledLayer getStyledLayer(final int styleId, final int layerId);
+
+    void addExtraInfo(final int styleId, final int layerId, final String extraInfo);
 
     Map.Entry<Integer, List<Style>> filterAndGet(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 

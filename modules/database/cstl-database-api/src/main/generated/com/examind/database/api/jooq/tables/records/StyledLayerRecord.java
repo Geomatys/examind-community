@@ -25,8 +25,8 @@ import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
-import org.jooq.Record3;
-import org.jooq.Row3;
+import org.jooq.Record4;
+import org.jooq.Row4;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.styled_layer
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> implements Record3<Integer, Integer, Boolean> {
+public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> implements Record4<Integer, Integer, Boolean, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -85,6 +85,21 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
         return (Boolean) get(2);
     }
 
+    /**
+     * Setter for <code>admin.styled_layer.extra_info</code>.
+     */
+    public StyledLayerRecord setExtraInfo(String value) {
+        set(3, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.styled_layer.extra_info</code>.
+     */
+    public String getExtraInfo() {
+        return (String) get(3);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -95,17 +110,17 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     // -------------------------------------------------------------------------
-    // Record3 type implementation
+    // Record4 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row3<Integer, Integer, Boolean> fieldsRow() {
-        return (Row3) super.fieldsRow();
+    public Row4<Integer, Integer, Boolean, String> fieldsRow() {
+        return (Row4) super.fieldsRow();
     }
 
     @Override
-    public Row3<Integer, Integer, Boolean> valuesRow() {
-        return (Row3) super.valuesRow();
+    public Row4<Integer, Integer, Boolean, String> valuesRow() {
+        return (Row4) super.valuesRow();
     }
 
     @Override
@@ -124,6 +139,11 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
+    public Field<String> field4() {
+        return StyledLayer.STYLED_LAYER.EXTRA_INFO;
+    }
+
+    @Override
     public Integer component1() {
         return getStyle();
     }
@@ -139,6 +159,11 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
+    public String component4() {
+        return getExtraInfo();
+    }
+
+    @Override
     public Integer value1() {
         return getStyle();
     }
@@ -151,6 +176,11 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     @Override
     public Boolean value3() {
         return getIsDefault();
+    }
+
+    @Override
+    public String value4() {
+        return getExtraInfo();
     }
 
     @Override
@@ -172,10 +202,17 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
-    public StyledLayerRecord values(Integer value1, Integer value2, Boolean value3) {
+    public StyledLayerRecord value4(String value) {
+        setExtraInfo(value);
+        return this;
+    }
+
+    @Override
+    public StyledLayerRecord values(Integer value1, Integer value2, Boolean value3, String value4) {
         value1(value1);
         value2(value2);
         value3(value3);
+        value4(value4);
         return this;
     }
 
@@ -193,12 +230,13 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     /**
      * Create a detached, initialised StyledLayerRecord
      */
-    public StyledLayerRecord(Integer style, Integer layer, Boolean isDefault) {
+    public StyledLayerRecord(Integer style, Integer layer, Boolean isDefault, String extraInfo) {
         super(StyledLayer.STYLED_LAYER);
 
         setStyle(style);
         setLayer(layer);
         setIsDefault(isDefault);
+        setExtraInfo(extraInfo);
         resetChangedOnNotNull();
     }
 
@@ -212,6 +250,7 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
             setStyle(value.getStyle());
             setLayer(value.getLayer());
             setIsDefault(value.getIsDefault());
+            setExtraInfo(value.getExtraInfo());
             resetChangedOnNotNull();
         }
     }

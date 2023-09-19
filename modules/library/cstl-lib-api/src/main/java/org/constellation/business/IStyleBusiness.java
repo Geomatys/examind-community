@@ -184,7 +184,7 @@ public interface IStyleBusiness {
     void updateSharedProperty(final List<Integer> ids, final boolean shared) throws ConfigurationException;
 
     void updateSharedProperty(final int id, final boolean shared) throws ConfigurationException;
-    
+
     void unlinkAllFromLayer(int layerId) throws ConfigurationException;
 
     /**
@@ -218,7 +218,7 @@ public interface IStyleBusiness {
 
     /**
      * Read a SLD from either a XML String or from an URL (pointing to an XML file).
-     * 
+     *
      * @param sldSrc A xml source containing a SLD (can be an input stream, an URL, a String, etc).
      * @param sldVersion SLD version of the object.
      *
@@ -249,5 +249,24 @@ public interface IStyleBusiness {
      * @throws ConstellationException If the XML is malformed. If the seVersion is not supported.
      */
     Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException;
+
+    /**
+     * Get the extraInfo from StyledLayer for a Style and a Layer.
+     *
+     * @param styleId The style identifier
+     * @param layerId The layer identifier
+     * @return The extraInfo
+     * @throws TargetNotFoundException If the styleId or the layerId does not exist.
+     */
+    String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws TargetNotFoundException;
+
+    /**
+     * Set the extraInfo in StyledLayer for a Style and a Layer.
+     *
+     * @param styleId The style identifier
+     * @param layerId The layer identifier
+     * @throws TargetNotFoundException If the styleId or the layerId does not exist.
+     */
+    void addExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId, final String extraInfo) throws TargetNotFoundException;
 
 }

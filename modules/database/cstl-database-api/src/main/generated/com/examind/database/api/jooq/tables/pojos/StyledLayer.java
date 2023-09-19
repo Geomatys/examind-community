@@ -35,6 +35,7 @@ public class StyledLayer implements Serializable {
     private Integer style;
     private Integer layer;
     private Boolean isDefault;
+    private String extraInfo;
 
     public StyledLayer() {}
 
@@ -42,16 +43,19 @@ public class StyledLayer implements Serializable {
         this.style = value.style;
         this.layer = value.layer;
         this.isDefault = value.isDefault;
+        this.extraInfo = value.extraInfo;
     }
 
     public StyledLayer(
         Integer style,
         Integer layer,
-        Boolean isDefault
+        Boolean isDefault,
+        String extraInfo
     ) {
         this.style = style;
         this.layer = layer;
         this.isDefault = isDefault;
+        this.extraInfo = extraInfo;
     }
 
     /**
@@ -101,6 +105,21 @@ public class StyledLayer implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.styled_layer.extra_info</code>.
+     */
+    public String getExtraInfo() {
+        return this.extraInfo;
+    }
+
+    /**
+     * Setter for <code>admin.styled_layer.extra_info</code>.
+     */
+    public StyledLayer setExtraInfo(String extraInfo) {
+        this.extraInfo = extraInfo;
+        return this;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -128,6 +147,12 @@ public class StyledLayer implements Serializable {
         }
         else if (!this.isDefault.equals(other.isDefault))
             return false;
+        if (this.extraInfo == null) {
+            if (other.extraInfo != null)
+                return false;
+        }
+        else if (!this.extraInfo.equals(other.extraInfo))
+            return false;
         return true;
     }
 
@@ -138,6 +163,7 @@ public class StyledLayer implements Serializable {
         result = prime * result + ((this.style == null) ? 0 : this.style.hashCode());
         result = prime * result + ((this.layer == null) ? 0 : this.layer.hashCode());
         result = prime * result + ((this.isDefault == null) ? 0 : this.isDefault.hashCode());
+        result = prime * result + ((this.extraInfo == null) ? 0 : this.extraInfo.hashCode());
         return result;
     }
 
@@ -148,6 +174,7 @@ public class StyledLayer implements Serializable {
         sb.append(style);
         sb.append(", ").append(layer);
         sb.append(", ").append(isDefault);
+        sb.append(", ").append(extraInfo);
 
         sb.append(")");
         return sb.toString();

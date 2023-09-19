@@ -23,6 +23,7 @@ import com.examind.database.api.jooq.tables.records.StyledDataRecord;
 import com.examind.database.api.jooq.tables.records.StyledLayerRecord;
 import org.constellation.dto.Style;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.StyledLayer;
 import org.constellation.repository.StyleRepository;
 import org.jooq.*;
 import org.springframework.context.annotation.DependsOn;
@@ -154,7 +155,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
         dsl.delete(STYLED_LAYER).where(STYLED_LAYER.LAYER.eq(layerid).and(STYLED_LAYER.STYLE.eq(styleId))).execute();
 
     }
-    
+
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void unlinkAllStylesFromLayer(int layerId) {
@@ -260,6 +261,19 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
     public void changeSharedProperty(int id, boolean shared) {
         UpdateSetFirstStep<StyleRecord> update = dsl.update(STYLE);
         update.set(STYLE.IS_SHARED, shared).where(STYLE.ID.eq(id)).execute();
+    }
+
+    @Override
+    public StyledLayer getStyledLayer(int styleId, int layerId) {
+       return dsl.select(STYLED_LAYER).from(STYLED_LAYER).where(STYLED_LAYER.LAYER.eq(layerId)).and(STYLED_LAYER.STYLE.eq(styleId))
+                .fetchOneInto(StyledLayer.class);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void addExtraInfo(int styleId, int layerId, String extraInfo) {
+        UpdateConditionStep<StyledLayerRecord> update = dsl.update(STYLED_LAYER).set(STYLED_LAYER.EXTRA_INFO, extraInfo).where(STYLED_LAYER.LAYER.eq(layerId)).and(STYLED_LAYER.STYLE.eq(styleId));
+        update.execute();
     }
 
     /**
