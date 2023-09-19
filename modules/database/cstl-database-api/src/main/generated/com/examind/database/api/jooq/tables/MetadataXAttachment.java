@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.MetadataXAttachmentRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -81,14 +85,16 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
     }
 
     /**
-     * Create an aliased <code>admin.metadata_x_attachment</code> table reference
+     * Create an aliased <code>admin.metadata_x_attachment</code> table
+     * reference
      */
     public MetadataXAttachment(String alias) {
         this(DSL.name(alias), METADATA_X_ATTACHMENT);
     }
 
     /**
-     * Create an aliased <code>admin.metadata_x_attachment</code> table reference
+     * Create an aliased <code>admin.metadata_x_attachment</code> table
+     * reference
      */
     public MetadataXAttachment(Name alias) {
         this(alias, METADATA_X_ATTACHMENT);
@@ -107,7 +113,7 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -116,18 +122,16 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
     }
 
     @Override
-    public List<UniqueKey<MetadataXAttachmentRecord>> getKeys() {
-        return Arrays.<UniqueKey<MetadataXAttachmentRecord>>asList(Keys.METADATA_X_ATTACHMENT_PK);
-    }
-
-    @Override
     public List<ForeignKey<MetadataXAttachmentRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<MetadataXAttachmentRecord, ?>>asList(Keys.METADATA_X_ATTACHMENT__METADATA_ATTACHMENT_CROSS_ID_FK, Keys.METADATA_X_ATTACHMENT__ATTACHMENT_METADATA_CROSS_ID_FK);
+        return Arrays.asList(Keys.METADATA_X_ATTACHMENT__METADATA_ATTACHMENT_CROSS_ID_FK, Keys.METADATA_X_ATTACHMENT__ATTACHMENT_METADATA_CROSS_ID_FK);
     }
 
     private transient Attachment _attachment;
     private transient Metadata _metadata;
 
+    /**
+     * Get the implicit join path to the <code>admin.attachment</code> table.
+     */
     public Attachment attachment() {
         if (_attachment == null)
             _attachment = new Attachment(this, Keys.METADATA_X_ATTACHMENT__METADATA_ATTACHMENT_CROSS_ID_FK);
@@ -135,6 +139,9 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
         return _attachment;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.metadata</code> table.
+     */
     public Metadata metadata() {
         if (_metadata == null)
             _metadata = new Metadata(this, Keys.METADATA_X_ATTACHMENT__ATTACHMENT_METADATA_CROSS_ID_FK);
@@ -150,6 +157,11 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
     @Override
     public MetadataXAttachment as(Name alias) {
         return new MetadataXAttachment(alias, this);
+    }
+
+    @Override
+    public MetadataXAttachment as(Table<?> alias) {
+        return new MetadataXAttachment(alias.getQualifiedName(), this);
     }
 
     /**
@@ -168,6 +180,14 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
         return new MetadataXAttachment(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public MetadataXAttachment rename(Table<?> name) {
+        return new MetadataXAttachment(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -175,5 +195,20 @@ public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
     @Override
     public Row2<Integer, Integer> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

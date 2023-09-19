@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,15 +34,15 @@ public class Datasource implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  type;
-    private String  url;
-    private String  username;
-    private String  pwd;
-    private String  storeId;
+    private String type;
+    private String url;
+    private String username;
+    private String pwd;
+    private String storeId;
     private Boolean readFromRemote;
-    private Long    dateCreation;
-    private String  analysisState;
-    private String  format;
+    private Long dateCreation;
+    private String analysisState;
+    private String format;
     private Boolean permanent;
 
     public Datasource() {}
@@ -63,15 +63,15 @@ public class Datasource implements Serializable {
 
     public Datasource(
         Integer id,
-        String  type,
-        String  url,
-        String  username,
-        String  pwd,
-        String  storeId,
+        String type,
+        String url,
+        String username,
+        String pwd,
+        String storeId,
         Boolean readFromRemote,
-        Long    dateCreation,
-        String  analysisState,
-        String  format,
+        Long dateCreation,
+        String analysisState,
+        String format,
         Boolean permanent
     ) {
         this.id = id;
@@ -258,6 +258,102 @@ public class Datasource implements Serializable {
     public Datasource setPermanent(Boolean permanent) {
         this.permanent = permanent;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Datasource other = (Datasource) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.url == null) {
+            if (other.url != null)
+                return false;
+        }
+        else if (!this.url.equals(other.url))
+            return false;
+        if (this.username == null) {
+            if (other.username != null)
+                return false;
+        }
+        else if (!this.username.equals(other.username))
+            return false;
+        if (this.pwd == null) {
+            if (other.pwd != null)
+                return false;
+        }
+        else if (!this.pwd.equals(other.pwd))
+            return false;
+        if (this.storeId == null) {
+            if (other.storeId != null)
+                return false;
+        }
+        else if (!this.storeId.equals(other.storeId))
+            return false;
+        if (this.readFromRemote == null) {
+            if (other.readFromRemote != null)
+                return false;
+        }
+        else if (!this.readFromRemote.equals(other.readFromRemote))
+            return false;
+        if (this.dateCreation == null) {
+            if (other.dateCreation != null)
+                return false;
+        }
+        else if (!this.dateCreation.equals(other.dateCreation))
+            return false;
+        if (this.analysisState == null) {
+            if (other.analysisState != null)
+                return false;
+        }
+        else if (!this.analysisState.equals(other.analysisState))
+            return false;
+        if (this.format == null) {
+            if (other.format != null)
+                return false;
+        }
+        else if (!this.format.equals(other.format))
+            return false;
+        if (this.permanent == null) {
+            if (other.permanent != null)
+                return false;
+        }
+        else if (!this.permanent.equals(other.permanent))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.url == null) ? 0 : this.url.hashCode());
+        result = prime * result + ((this.username == null) ? 0 : this.username.hashCode());
+        result = prime * result + ((this.pwd == null) ? 0 : this.pwd.hashCode());
+        result = prime * result + ((this.storeId == null) ? 0 : this.storeId.hashCode());
+        result = prime * result + ((this.readFromRemote == null) ? 0 : this.readFromRemote.hashCode());
+        result = prime * result + ((this.dateCreation == null) ? 0 : this.dateCreation.hashCode());
+        result = prime * result + ((this.analysisState == null) ? 0 : this.analysisState.hashCode());
+        result = prime * result + ((this.format == null) ? 0 : this.format.hashCode());
+        result = prime * result + ((this.permanent == null) ? 0 : this.permanent.hashCode());
+        return result;
     }
 
     @Override

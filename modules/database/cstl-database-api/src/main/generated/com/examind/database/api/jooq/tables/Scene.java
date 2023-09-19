@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.SceneRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function20;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row20;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -95,7 +99,7 @@ public class Scene extends TableImpl<SceneRecord> {
     /**
      * The column <code>admin.scene.surface</code>.
      */
-    public final TableField<SceneRecord, Integer[]> SURFACE = createField(DSL.name("surface"), SQLDataType.INTEGER.getArrayDataType(), this, "");
+    public final TableField<SceneRecord, Integer[]> SURFACE = createField(DSL.name("surface"), SQLDataType.INTEGER.array(), this, "");
 
     /**
      * The column <code>admin.scene.surface_parameters</code>.
@@ -197,7 +201,7 @@ public class Scene extends TableImpl<SceneRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -206,18 +210,21 @@ public class Scene extends TableImpl<SceneRecord> {
     }
 
     @Override
-    public List<UniqueKey<SceneRecord>> getKeys() {
-        return Arrays.<UniqueKey<SceneRecord>>asList(Keys.SCENE_PK, Keys.SCENE_NAME_UNIQUE_KEY);
+    public List<UniqueKey<SceneRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.SCENE_NAME_UNIQUE_KEY);
     }
 
     @Override
     public List<ForeignKey<SceneRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<SceneRecord, ?>>asList(Keys.SCENE__SCENE_DATA_FK, Keys.SCENE__SCENE_LAYER_FK);
+        return Arrays.asList(Keys.SCENE__SCENE_DATA_FK, Keys.SCENE__SCENE_LAYER_FK);
     }
 
     private transient Data _data;
     private transient Layer _layer;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.SCENE__SCENE_DATA_FK);
@@ -225,6 +232,9 @@ public class Scene extends TableImpl<SceneRecord> {
         return _data;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.layer</code> table.
+     */
     public Layer layer() {
         if (_layer == null)
             _layer = new Layer(this, Keys.SCENE__SCENE_LAYER_FK);
@@ -240,6 +250,11 @@ public class Scene extends TableImpl<SceneRecord> {
     @Override
     public Scene as(Name alias) {
         return new Scene(alias, this);
+    }
+
+    @Override
+    public Scene as(Table<?> alias) {
+        return new Scene(alias.getQualifiedName(), this);
     }
 
     /**
@@ -258,6 +273,14 @@ public class Scene extends TableImpl<SceneRecord> {
         return new Scene(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Scene rename(Table<?> name) {
+        return new Scene(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row20 type methods
     // -------------------------------------------------------------------------
@@ -265,5 +288,20 @@ public class Scene extends TableImpl<SceneRecord> {
     @Override
     public Row20<Integer, String, Integer, Integer, Integer, String, Integer[], String, Double, String, Long, Integer, Integer, Double, Double, Double, Double, String, String, Double> fieldsRow() {
         return (Row20) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function20<? super Integer, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super String, ? super Integer[], ? super String, ? super Double, ? super String, ? super Long, ? super Integer, ? super Integer, ? super Double, ? super Double, ? super Double, ? super Double, ? super String, ? super String, ? super Double, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function20<? super Integer, ? super String, ? super Integer, ? super Integer, ? super Integer, ? super String, ? super Integer[], ? super String, ? super Double, ? super String, ? super Long, ? super Integer, ? super Integer, ? super Double, ? super Double, ? super Double, ? super Double, ? super String, ? super String, ? super Double, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

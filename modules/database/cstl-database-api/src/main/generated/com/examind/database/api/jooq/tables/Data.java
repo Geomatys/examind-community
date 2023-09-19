@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.DataRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function22;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row22;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -93,17 +97,17 @@ public class Data extends TableImpl<DataRecord> {
     /**
      * The column <code>admin.data.subtype</code>.
      */
-    public final TableField<DataRecord, String> SUBTYPE = createField(DSL.name("subtype"), SQLDataType.VARCHAR(32).nullable(false).defaultValue(DSL.field("''::character varying", SQLDataType.VARCHAR)), this, "");
+    public final TableField<DataRecord, String> SUBTYPE = createField(DSL.name("subtype"), SQLDataType.VARCHAR(32).nullable(false).defaultValue(DSL.field(DSL.raw("''::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>admin.data.included</code>.
      */
-    public final TableField<DataRecord, Boolean> INCLUDED = createField(DSL.name("included"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("true", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> INCLUDED = createField(DSL.name("included"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.sensorable</code>.
      */
-    public final TableField<DataRecord, Boolean> SENSORABLE = createField(DSL.name("sensorable"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> SENSORABLE = createField(DSL.name("sensorable"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.date</code>.
@@ -148,27 +152,27 @@ public class Data extends TableImpl<DataRecord> {
     /**
      * The column <code>admin.data.hidden</code>.
      */
-    public final TableField<DataRecord, Boolean> HIDDEN = createField(DSL.name("hidden"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> HIDDEN = createField(DSL.name("hidden"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.cached_info</code>.
      */
-    public final TableField<DataRecord, Boolean> CACHED_INFO = createField(DSL.name("cached_info"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> CACHED_INFO = createField(DSL.name("cached_info"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.has_time</code>.
      */
-    public final TableField<DataRecord, Boolean> HAS_TIME = createField(DSL.name("has_time"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> HAS_TIME = createField(DSL.name("has_time"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.has_elevation</code>.
      */
-    public final TableField<DataRecord, Boolean> HAS_ELEVATION = createField(DSL.name("has_elevation"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> HAS_ELEVATION = createField(DSL.name("has_elevation"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.has_dim</code>.
      */
-    public final TableField<DataRecord, Boolean> HAS_DIM = createField(DSL.name("has_dim"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DataRecord, Boolean> HAS_DIM = createField(DSL.name("has_dim"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.data.crs</code>.
@@ -210,12 +214,12 @@ public class Data extends TableImpl<DataRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.DATA_OWNER_IDX, Indexes.DATA_PROVIDER_IDX);
+        return Arrays.asList(Indexes.DATA_OWNER_IDX, Indexes.DATA_PROVIDER_IDX);
     }
 
     @Override
@@ -229,19 +233,17 @@ public class Data extends TableImpl<DataRecord> {
     }
 
     @Override
-    public List<UniqueKey<DataRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataRecord>>asList(Keys.DATA_PK);
-    }
-
-    @Override
     public List<ForeignKey<DataRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DataRecord, ?>>asList(Keys.DATA__DATA_PROVIDER_FK, Keys.DATA__DATA_OWNER_FK, Keys.DATA__DATA_DATASET_ID_FK);
+        return Arrays.asList(Keys.DATA__DATA_PROVIDER_FK, Keys.DATA__DATA_OWNER_FK, Keys.DATA__DATA_DATASET_ID_FK);
     }
 
     private transient Provider _provider;
     private transient CstlUser _cstlUser;
     private transient Dataset _dataset;
 
+    /**
+     * Get the implicit join path to the <code>admin.provider</code> table.
+     */
     public Provider provider() {
         if (_provider == null)
             _provider = new Provider(this, Keys.DATA__DATA_PROVIDER_FK);
@@ -249,6 +251,9 @@ public class Data extends TableImpl<DataRecord> {
         return _provider;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.DATA__DATA_OWNER_FK);
@@ -256,6 +261,9 @@ public class Data extends TableImpl<DataRecord> {
         return _cstlUser;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.dataset</code> table.
+     */
     public Dataset dataset() {
         if (_dataset == null)
             _dataset = new Dataset(this, Keys.DATA__DATA_DATASET_ID_FK);
@@ -271,6 +279,11 @@ public class Data extends TableImpl<DataRecord> {
     @Override
     public Data as(Name alias) {
         return new Data(alias, this);
+    }
+
+    @Override
+    public Data as(Table<?> alias) {
+        return new Data(alias.getQualifiedName(), this);
     }
 
     /**
@@ -289,6 +302,14 @@ public class Data extends TableImpl<DataRecord> {
         return new Data(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Data rename(Table<?> name) {
+        return new Data(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row22 type methods
     // -------------------------------------------------------------------------
@@ -296,5 +317,20 @@ public class Data extends TableImpl<DataRecord> {
     @Override
     public Row22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> fieldsRow() {
         return (Row22) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function22<? super Integer, ? super String, ? super String, ? super Integer, ? super String, ? super String, ? super Boolean, ? super Boolean, ? super Long, ? super Integer, ? super String, ? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Boolean, ? super Boolean, ? super Boolean, ? super Boolean, ? super Boolean, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function22<? super Integer, ? super String, ? super String, ? super Integer, ? super String, ? super String, ? super Boolean, ? super Boolean, ? super Long, ? super Integer, ? super String, ? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Boolean, ? super Boolean, ? super Boolean, ? super Boolean, ? super Boolean, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

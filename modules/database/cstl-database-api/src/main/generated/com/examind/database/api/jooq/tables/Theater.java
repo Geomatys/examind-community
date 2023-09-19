@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,14 +25,18 @@ import com.examind.database.api.jooq.tables.records.TheaterRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function5;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row5;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -123,7 +127,7 @@ public class Theater extends TableImpl<TheaterRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -137,18 +141,21 @@ public class Theater extends TableImpl<TheaterRecord> {
     }
 
     @Override
-    public List<UniqueKey<TheaterRecord>> getKeys() {
-        return Arrays.<UniqueKey<TheaterRecord>>asList(Keys.THEATER_PK, Keys.THEATER_NAME_UNIQUE_KEY);
+    public List<UniqueKey<TheaterRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.THEATER_NAME_UNIQUE_KEY);
     }
 
     @Override
     public List<ForeignKey<TheaterRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<TheaterRecord, ?>>asList(Keys.THEATER__THEATER_LAYER_FK, Keys.THEATER__THEATER_DATA_FK);
+        return Arrays.asList(Keys.THEATER__THEATER_LAYER_FK, Keys.THEATER__THEATER_DATA_FK);
     }
 
     private transient Data _data;
     private transient Layer _layer;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.THEATER__THEATER_LAYER_FK);
@@ -156,6 +163,9 @@ public class Theater extends TableImpl<TheaterRecord> {
         return _data;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.layer</code> table.
+     */
     public Layer layer() {
         if (_layer == null)
             _layer = new Layer(this, Keys.THEATER__THEATER_DATA_FK);
@@ -171,6 +181,11 @@ public class Theater extends TableImpl<TheaterRecord> {
     @Override
     public Theater as(Name alias) {
         return new Theater(alias, this);
+    }
+
+    @Override
+    public Theater as(Table<?> alias) {
+        return new Theater(alias.getQualifiedName(), this);
     }
 
     /**
@@ -189,6 +204,14 @@ public class Theater extends TableImpl<TheaterRecord> {
         return new Theater(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Theater rename(Table<?> name) {
+        return new Theater(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row5 type methods
     // -------------------------------------------------------------------------
@@ -196,5 +219,20 @@ public class Theater extends TableImpl<TheaterRecord> {
     @Override
     public Row5<Integer, String, Integer, Integer, String> fieldsRow() {
         return (Row5) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function5<? super Integer, ? super String, ? super Integer, ? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super Integer, ? super String, ? super Integer, ? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,14 +25,18 @@ import com.examind.database.api.jooq.tables.records.CstlUserRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function18;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row18;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -188,7 +192,7 @@ public class CstlUser extends TableImpl<CstlUserRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -202,8 +206,8 @@ public class CstlUser extends TableImpl<CstlUserRecord> {
     }
 
     @Override
-    public List<UniqueKey<CstlUserRecord>> getKeys() {
-        return Arrays.<UniqueKey<CstlUserRecord>>asList(Keys.USER_PK, Keys.CSTL_USER_LOGIN_KEY, Keys.CSTL_USER_EMAIL_KEY, Keys.CSTL_USER_FORGOT_PASSWORD_UUID_KEY);
+    public List<UniqueKey<CstlUserRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.CSTL_USER_LOGIN_KEY, Keys.CSTL_USER_EMAIL_KEY, Keys.CSTL_USER_FORGOT_PASSWORD_UUID_KEY);
     }
 
     @Override
@@ -214,6 +218,11 @@ public class CstlUser extends TableImpl<CstlUserRecord> {
     @Override
     public CstlUser as(Name alias) {
         return new CstlUser(alias, this);
+    }
+
+    @Override
+    public CstlUser as(Table<?> alias) {
+        return new CstlUser(alias.getQualifiedName(), this);
     }
 
     /**
@@ -232,6 +241,14 @@ public class CstlUser extends TableImpl<CstlUserRecord> {
         return new CstlUser(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public CstlUser rename(Table<?> name) {
+        return new CstlUser(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row18 type methods
     // -------------------------------------------------------------------------
@@ -239,5 +256,20 @@ public class CstlUser extends TableImpl<CstlUserRecord> {
     @Override
     public Row18<Integer, String, String, String, String, String, Boolean, String, String, String, String, String, String, String, String, String, String, String> fieldsRow() {
         return (Row18) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function18<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Boolean, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function18<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Boolean, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

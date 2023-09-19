@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.LayerRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function10;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row10;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -150,12 +154,12 @@ public class Layer extends TableImpl<LayerRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.LAYER_ALIAS_SERVICE_IDX, Indexes.LAYER_DATA_IDX, Indexes.LAYER_NAME_SERVICE_IDX, Indexes.LAYER_OWNER_IDX, Indexes.LAYER_SERVICE_IDX);
+        return Arrays.asList(Indexes.LAYER_ALIAS_SERVICE_IDX, Indexes.LAYER_DATA_IDX, Indexes.LAYER_NAME_SERVICE_IDX, Indexes.LAYER_OWNER_IDX, Indexes.LAYER_SERVICE_IDX);
     }
 
     @Override
@@ -169,19 +173,22 @@ public class Layer extends TableImpl<LayerRecord> {
     }
 
     @Override
-    public List<UniqueKey<LayerRecord>> getKeys() {
-        return Arrays.<UniqueKey<LayerRecord>>asList(Keys.LAYER_PK, Keys.LAYER_NAME_UQ, Keys.LAYER_UNIQUE_ALIAS);
+    public List<UniqueKey<LayerRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.LAYER_NAME_UQ, Keys.LAYER_UNIQUE_ALIAS);
     }
 
     @Override
     public List<ForeignKey<LayerRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<LayerRecord, ?>>asList(Keys.LAYER__LAYER_SERVICE_FK, Keys.LAYER__LAYER_DATA_FK, Keys.LAYER__LAYER_OWNER_FK);
+        return Arrays.asList(Keys.LAYER__LAYER_SERVICE_FK, Keys.LAYER__LAYER_DATA_FK, Keys.LAYER__LAYER_OWNER_FK);
     }
 
     private transient Service _service;
     private transient Data _data;
     private transient CstlUser _cstlUser;
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.LAYER__LAYER_SERVICE_FK);
@@ -189,6 +196,9 @@ public class Layer extends TableImpl<LayerRecord> {
         return _service;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.LAYER__LAYER_DATA_FK);
@@ -196,6 +206,9 @@ public class Layer extends TableImpl<LayerRecord> {
         return _data;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.LAYER__LAYER_OWNER_FK);
@@ -211,6 +224,11 @@ public class Layer extends TableImpl<LayerRecord> {
     @Override
     public Layer as(Name alias) {
         return new Layer(alias, this);
+    }
+
+    @Override
+    public Layer as(Table<?> alias) {
+        return new Layer(alias.getQualifiedName(), this);
     }
 
     /**
@@ -229,6 +247,14 @@ public class Layer extends TableImpl<LayerRecord> {
         return new Layer(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Layer rename(Table<?> name) {
+        return new Layer(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row10 type methods
     // -------------------------------------------------------------------------
@@ -236,5 +262,20 @@ public class Layer extends TableImpl<LayerRecord> {
     @Override
     public Row10<Integer, String, String, String, Integer, Integer, Long, String, Integer, String> fieldsRow() {
         return (Row10) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function10<? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super Long, ? super String, ? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Integer, ? super Long, ? super String, ? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

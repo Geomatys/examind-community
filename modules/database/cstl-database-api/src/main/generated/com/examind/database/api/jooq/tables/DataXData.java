@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.DataXDataRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -107,7 +111,7 @@ public class DataXData extends TableImpl<DataXDataRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -116,18 +120,17 @@ public class DataXData extends TableImpl<DataXDataRecord> {
     }
 
     @Override
-    public List<UniqueKey<DataXDataRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataXDataRecord>>asList(Keys.DATA_X_DATA_PK);
-    }
-
-    @Override
     public List<ForeignKey<DataXDataRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DataXDataRecord, ?>>asList(Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK, Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK2);
+        return Arrays.asList(Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK, Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK2);
     }
 
     private transient Data _dataXDataCrossIdFk;
     private transient Data _dataXDataCrossIdFk2;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table, via the
+     * <code>data_x_data_cross_id_fk</code> key.
+     */
     public Data dataXDataCrossIdFk() {
         if (_dataXDataCrossIdFk == null)
             _dataXDataCrossIdFk = new Data(this, Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK);
@@ -135,6 +138,10 @@ public class DataXData extends TableImpl<DataXDataRecord> {
         return _dataXDataCrossIdFk;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table, via the
+     * <code>data_x_data_cross_id_fk2</code> key.
+     */
     public Data dataXDataCrossIdFk2() {
         if (_dataXDataCrossIdFk2 == null)
             _dataXDataCrossIdFk2 = new Data(this, Keys.DATA_X_DATA__DATA_X_DATA_CROSS_ID_FK2);
@@ -150,6 +157,11 @@ public class DataXData extends TableImpl<DataXDataRecord> {
     @Override
     public DataXData as(Name alias) {
         return new DataXData(alias, this);
+    }
+
+    @Override
+    public DataXData as(Table<?> alias) {
+        return new DataXData(alias.getQualifiedName(), this);
     }
 
     /**
@@ -168,6 +180,14 @@ public class DataXData extends TableImpl<DataXDataRecord> {
         return new DataXData(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DataXData rename(Table<?> name) {
+        return new DataXData(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -175,5 +195,20 @@ public class DataXData extends TableImpl<DataXDataRecord> {
     @Override
     public Row2<Integer, Integer> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

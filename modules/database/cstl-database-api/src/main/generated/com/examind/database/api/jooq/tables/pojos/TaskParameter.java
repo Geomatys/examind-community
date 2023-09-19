@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -35,14 +35,14 @@ public class TaskParameter implements Serializable {
 
     private Integer id;
     private Integer owner;
-    private String  name;
-    private Long    date;
-    private String  processAuthority;
-    private String  processCode;
-    private String  inputs;
-    private String  trigger;
-    private String  triggerType;
-    private String  type;
+    private String name;
+    private Long date;
+    private String processAuthority;
+    private String processCode;
+    private String inputs;
+    private String trigger;
+    private String triggerType;
+    private String type;
 
     public TaskParameter() {}
 
@@ -62,14 +62,14 @@ public class TaskParameter implements Serializable {
     public TaskParameter(
         Integer id,
         Integer owner,
-        String  name,
-        Long    date,
-        String  processAuthority,
-        String  processCode,
-        String  inputs,
-        String  trigger,
-        String  triggerType,
-        String  type
+        String name,
+        Long date,
+        String processAuthority,
+        String processCode,
+        String inputs,
+        String trigger,
+        String triggerType,
+        String type
     ) {
         this.id = id;
         this.owner = owner;
@@ -241,6 +241,95 @@ public class TaskParameter implements Serializable {
     public TaskParameter setType(String type) {
         this.type = type;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final TaskParameter other = (TaskParameter) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!this.name.equals(other.name))
+            return false;
+        if (this.date == null) {
+            if (other.date != null)
+                return false;
+        }
+        else if (!this.date.equals(other.date))
+            return false;
+        if (this.processAuthority == null) {
+            if (other.processAuthority != null)
+                return false;
+        }
+        else if (!this.processAuthority.equals(other.processAuthority))
+            return false;
+        if (this.processCode == null) {
+            if (other.processCode != null)
+                return false;
+        }
+        else if (!this.processCode.equals(other.processCode))
+            return false;
+        if (this.inputs == null) {
+            if (other.inputs != null)
+                return false;
+        }
+        else if (!this.inputs.equals(other.inputs))
+            return false;
+        if (this.trigger == null) {
+            if (other.trigger != null)
+                return false;
+        }
+        else if (!this.trigger.equals(other.trigger))
+            return false;
+        if (this.triggerType == null) {
+            if (other.triggerType != null)
+                return false;
+        }
+        else if (!this.triggerType.equals(other.triggerType))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.date == null) ? 0 : this.date.hashCode());
+        result = prime * result + ((this.processAuthority == null) ? 0 : this.processAuthority.hashCode());
+        result = prime * result + ((this.processCode == null) ? 0 : this.processCode.hashCode());
+        result = prime * result + ((this.inputs == null) ? 0 : this.inputs.hashCode());
+        result = prime * result + ((this.trigger == null) ? 0 : this.trigger.hashCode());
+        result = prime * result + ((this.triggerType == null) ? 0 : this.triggerType.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        return result;
     }
 
     @Override

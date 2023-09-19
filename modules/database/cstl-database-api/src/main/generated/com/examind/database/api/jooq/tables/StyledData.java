@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.StyledDataRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -109,12 +113,12 @@ public class StyledData extends TableImpl<StyledDataRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.STYLED_DATA_DATA_IDX, Indexes.STYLED_DATA_STYLE_IDX);
+        return Arrays.asList(Indexes.STYLED_DATA_DATA_IDX, Indexes.STYLED_DATA_STYLE_IDX);
     }
 
     @Override
@@ -123,18 +127,16 @@ public class StyledData extends TableImpl<StyledDataRecord> {
     }
 
     @Override
-    public List<UniqueKey<StyledDataRecord>> getKeys() {
-        return Arrays.<UniqueKey<StyledDataRecord>>asList(Keys.STYLED_DATA_PK);
-    }
-
-    @Override
     public List<ForeignKey<StyledDataRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<StyledDataRecord, ?>>asList(Keys.STYLED_DATA__STYLED_DATA_STYLE_FK, Keys.STYLED_DATA__STYLED_DATA_DATA_FK);
+        return Arrays.asList(Keys.STYLED_DATA__STYLED_DATA_STYLE_FK, Keys.STYLED_DATA__STYLED_DATA_DATA_FK);
     }
 
     private transient Style _style;
     private transient Data _data;
 
+    /**
+     * Get the implicit join path to the <code>admin.style</code> table.
+     */
     public Style style() {
         if (_style == null)
             _style = new Style(this, Keys.STYLED_DATA__STYLED_DATA_STYLE_FK);
@@ -142,6 +144,9 @@ public class StyledData extends TableImpl<StyledDataRecord> {
         return _style;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.STYLED_DATA__STYLED_DATA_DATA_FK);
@@ -157,6 +162,11 @@ public class StyledData extends TableImpl<StyledDataRecord> {
     @Override
     public StyledData as(Name alias) {
         return new StyledData(alias, this);
+    }
+
+    @Override
+    public StyledData as(Table<?> alias) {
+        return new StyledData(alias.getQualifiedName(), this);
     }
 
     /**
@@ -175,6 +185,14 @@ public class StyledData extends TableImpl<StyledDataRecord> {
         return new StyledData(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public StyledData rename(Table<?> name) {
+        return new StyledData(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -182,5 +200,20 @@ public class StyledData extends TableImpl<StyledDataRecord> {
     @Override
     public Row2<Integer, Integer> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

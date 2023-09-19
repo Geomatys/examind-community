@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Permission;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -202,5 +202,20 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
         setId(id);
         setName(name);
         setDescription(description);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised PermissionRecord
+     */
+    public PermissionRecord(com.examind.database.api.jooq.tables.pojos.Permission value) {
+        super(Permission.PERMISSION);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setDescription(value.getDescription());
+            resetChangedOnNotNull();
+        }
     }
 }

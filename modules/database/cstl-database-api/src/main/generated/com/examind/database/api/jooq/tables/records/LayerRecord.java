@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Layer;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -471,5 +471,27 @@ public class LayerRecord extends UpdatableRecordImpl<LayerRecord> implements Rec
         setConfig(config);
         setOwner(owner);
         setTitle(title);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised LayerRecord
+     */
+    public LayerRecord(com.examind.database.api.jooq.tables.pojos.Layer value) {
+        super(Layer.LAYER);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setNamespace(value.getNamespace());
+            setAlias(value.getAlias());
+            setService(value.getService());
+            setData(value.getData());
+            setDate(value.getDate());
+            setConfig(value.getConfig());
+            setOwner(value.getOwner());
+            setTitle(value.getTitle());
+            resetChangedOnNotNull();
+        }
     }
 }

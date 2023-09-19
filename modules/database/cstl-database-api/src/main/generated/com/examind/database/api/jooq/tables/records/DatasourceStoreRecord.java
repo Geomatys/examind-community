@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DatasourceStore;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record3;
@@ -201,5 +201,20 @@ public class DatasourceStoreRecord extends UpdatableRecordImpl<DatasourceStoreRe
         setDatasourceId(datasourceId);
         setStore(store);
         setType(type);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DatasourceStoreRecord
+     */
+    public DatasourceStoreRecord(com.examind.database.api.jooq.tables.pojos.DatasourceStore value) {
+        super(DatasourceStore.DATASOURCE_STORE);
+
+        if (value != null) {
+            setDatasourceId(value.getDatasourceId());
+            setStore(value.getStore());
+            setType(value.getType());
+            resetChangedOnNotNull();
+        }
     }
 }

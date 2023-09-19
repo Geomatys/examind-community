@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.ThesaurusLanguageRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -107,7 +111,7 @@ public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -116,17 +120,15 @@ public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
     }
 
     @Override
-    public List<UniqueKey<ThesaurusLanguageRecord>> getKeys() {
-        return Arrays.<UniqueKey<ThesaurusLanguageRecord>>asList(Keys.THESAURUS_LANGUAGE_PK);
-    }
-
-    @Override
     public List<ForeignKey<ThesaurusLanguageRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ThesaurusLanguageRecord, ?>>asList(Keys.THESAURUS_LANGUAGE__THESAURUS_LANGUAGE_FK);
+        return Arrays.asList(Keys.THESAURUS_LANGUAGE__THESAURUS_LANGUAGE_FK);
     }
 
     private transient Thesaurus _thesaurus;
 
+    /**
+     * Get the implicit join path to the <code>admin.thesaurus</code> table.
+     */
     public Thesaurus thesaurus() {
         if (_thesaurus == null)
             _thesaurus = new Thesaurus(this, Keys.THESAURUS_LANGUAGE__THESAURUS_LANGUAGE_FK);
@@ -142,6 +144,11 @@ public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
     @Override
     public ThesaurusLanguage as(Name alias) {
         return new ThesaurusLanguage(alias, this);
+    }
+
+    @Override
+    public ThesaurusLanguage as(Table<?> alias) {
+        return new ThesaurusLanguage(alias.getQualifiedName(), this);
     }
 
     /**
@@ -160,6 +167,14 @@ public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
         return new ThesaurusLanguage(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ThesaurusLanguage rename(Table<?> name) {
+        return new ThesaurusLanguage(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -167,5 +182,20 @@ public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
     @Override
     public Row2<Integer, String> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

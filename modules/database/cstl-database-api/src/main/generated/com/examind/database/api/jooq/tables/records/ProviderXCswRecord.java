@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ProviderXCsw;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -199,5 +199,20 @@ public class ProviderXCswRecord extends UpdatableRecordImpl<ProviderXCswRecord> 
         setCswId(cswId);
         setProviderId(providerId);
         setAllMetadata(allMetadata);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ProviderXCswRecord
+     */
+    public ProviderXCswRecord(com.examind.database.api.jooq.tables.pojos.ProviderXCsw value) {
+        super(ProviderXCsw.PROVIDER_X_CSW);
+
+        if (value != null) {
+            setCswId(value.getCswId());
+            setProviderId(value.getProviderId());
+            setAllMetadata(value.getAllMetadata());
+            resetChangedOnNotNull();
+        }
     }
 }

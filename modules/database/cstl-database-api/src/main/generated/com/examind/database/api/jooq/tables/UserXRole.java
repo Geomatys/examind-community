@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.UserXRoleRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -109,12 +113,12 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.USER_X_ROLE_ROLE_IDX, Indexes.USER_X_ROLE_USER_ID_IDX);
+        return Arrays.asList(Indexes.USER_X_ROLE_ROLE_IDX, Indexes.USER_X_ROLE_USER_ID_IDX);
     }
 
     @Override
@@ -123,18 +127,16 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
     }
 
     @Override
-    public List<UniqueKey<UserXRoleRecord>> getKeys() {
-        return Arrays.<UniqueKey<UserXRoleRecord>>asList(Keys.USER_X_ROLE_PK);
-    }
-
-    @Override
     public List<ForeignKey<UserXRoleRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<UserXRoleRecord, ?>>asList(Keys.USER_X_ROLE__USER_X_ROLE_USER_ID_FK, Keys.USER_X_ROLE__USER_X_ROLE_ROLE_FK);
+        return Arrays.asList(Keys.USER_X_ROLE__USER_X_ROLE_USER_ID_FK, Keys.USER_X_ROLE__USER_X_ROLE_ROLE_FK);
     }
 
     private transient CstlUser _cstlUser;
     private transient Role _role;
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.USER_X_ROLE__USER_X_ROLE_USER_ID_FK);
@@ -142,6 +144,9 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
         return _cstlUser;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.role</code> table.
+     */
     public Role role() {
         if (_role == null)
             _role = new Role(this, Keys.USER_X_ROLE__USER_X_ROLE_ROLE_FK);
@@ -157,6 +162,11 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
     @Override
     public UserXRole as(Name alias) {
         return new UserXRole(alias, this);
+    }
+
+    @Override
+    public UserXRole as(Table<?> alias) {
+        return new UserXRole(alias.getQualifiedName(), this);
     }
 
     /**
@@ -175,6 +185,14 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
         return new UserXRole(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public UserXRole rename(Table<?> name) {
+        return new UserXRole(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -182,5 +200,20 @@ public class UserXRole extends TableImpl<UserXRoleRecord> {
     @Override
     public Row2<Integer, String> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

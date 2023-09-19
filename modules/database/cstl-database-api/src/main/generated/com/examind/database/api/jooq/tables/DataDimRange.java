@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.DataDimRangeRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function6;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row6;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -127,7 +131,7 @@ public class DataDimRange extends TableImpl<DataDimRangeRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -136,17 +140,15 @@ public class DataDimRange extends TableImpl<DataDimRangeRecord> {
     }
 
     @Override
-    public List<UniqueKey<DataDimRangeRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataDimRangeRecord>>asList(Keys.DATA_DIM_RANGE_PK);
-    }
-
-    @Override
     public List<ForeignKey<DataDimRangeRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DataDimRangeRecord, ?>>asList(Keys.DATA_DIM_RANGE__DATA_DIM_RANGE_DATA_FK);
+        return Arrays.asList(Keys.DATA_DIM_RANGE__DATA_DIM_RANGE_DATA_FK);
     }
 
     private transient Data _data;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.DATA_DIM_RANGE__DATA_DIM_RANGE_DATA_FK);
@@ -162,6 +164,11 @@ public class DataDimRange extends TableImpl<DataDimRangeRecord> {
     @Override
     public DataDimRange as(Name alias) {
         return new DataDimRange(alias, this);
+    }
+
+    @Override
+    public DataDimRange as(Table<?> alias) {
+        return new DataDimRange(alias.getQualifiedName(), this);
     }
 
     /**
@@ -180,6 +187,14 @@ public class DataDimRange extends TableImpl<DataDimRangeRecord> {
         return new DataDimRange(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DataDimRange rename(Table<?> name) {
+        return new DataDimRange(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row6 type methods
     // -------------------------------------------------------------------------
@@ -187,5 +202,20 @@ public class DataDimRange extends TableImpl<DataDimRangeRecord> {
     @Override
     public Row6<Integer, Integer, Double, Double, String, String> fieldsRow() {
         return (Row6) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function6<? super Integer, ? super Integer, ? super Double, ? super Double, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super Integer, ? super Double, ? super Double, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

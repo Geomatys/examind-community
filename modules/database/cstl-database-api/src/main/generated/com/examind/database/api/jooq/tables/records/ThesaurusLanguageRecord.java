@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ThesaurusLanguage;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -162,5 +162,19 @@ public class ThesaurusLanguageRecord extends UpdatableRecordImpl<ThesaurusLangua
 
         setThesaurusId(thesaurusId);
         setLanguage(language);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ThesaurusLanguageRecord
+     */
+    public ThesaurusLanguageRecord(com.examind.database.api.jooq.tables.pojos.ThesaurusLanguage value) {
+        super(ThesaurusLanguage.THESAURUS_LANGUAGE);
+
+        if (value != null) {
+            setThesaurusId(value.getThesaurusId());
+            setLanguage(value.getLanguage());
+            resetChangedOnNotNull();
+        }
     }
 }

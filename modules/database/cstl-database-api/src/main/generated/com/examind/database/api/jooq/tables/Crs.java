@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.CrsRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -109,12 +113,12 @@ public class Crs extends TableImpl<CrsRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.CRS_DATAID_IDX);
+        return Arrays.asList(Indexes.CRS_DATAID_IDX);
     }
 
     @Override
@@ -123,17 +127,15 @@ public class Crs extends TableImpl<CrsRecord> {
     }
 
     @Override
-    public List<UniqueKey<CrsRecord>> getKeys() {
-        return Arrays.<UniqueKey<CrsRecord>>asList(Keys.CRS_PK);
-    }
-
-    @Override
     public List<ForeignKey<CrsRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<CrsRecord, ?>>asList(Keys.CRS__CRS_DATAID_FK);
+        return Arrays.asList(Keys.CRS__CRS_DATAID_FK);
     }
 
     private transient Data _data;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.CRS__CRS_DATAID_FK);
@@ -149,6 +151,11 @@ public class Crs extends TableImpl<CrsRecord> {
     @Override
     public Crs as(Name alias) {
         return new Crs(alias, this);
+    }
+
+    @Override
+    public Crs as(Table<?> alias) {
+        return new Crs(alias.getQualifiedName(), this);
     }
 
     /**
@@ -167,6 +174,14 @@ public class Crs extends TableImpl<CrsRecord> {
         return new Crs(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Crs rename(Table<?> name) {
+        return new Crs(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -174,5 +189,20 @@ public class Crs extends TableImpl<CrsRecord> {
     @Override
     public Row2<Integer, String> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

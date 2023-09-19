@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -33,10 +33,10 @@ public class DatasourcePath implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer datasourceId;
-    private String  path;
-    private String  name;
+    private String path;
+    private String name;
     private Boolean folder;
-    private String  parentPath;
+    private String parentPath;
     private Integer size;
 
     public DatasourcePath() {}
@@ -52,10 +52,10 @@ public class DatasourcePath implements Serializable {
 
     public DatasourcePath(
         Integer datasourceId,
-        String  path,
-        String  name,
+        String path,
+        String name,
         Boolean folder,
-        String  parentPath,
+        String parentPath,
         Integer size
     ) {
         this.datasourceId = datasourceId;
@@ -159,6 +159,67 @@ public class DatasourcePath implements Serializable {
     public DatasourcePath setSize(Integer size) {
         this.size = size;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final DatasourcePath other = (DatasourcePath) obj;
+        if (this.datasourceId == null) {
+            if (other.datasourceId != null)
+                return false;
+        }
+        else if (!this.datasourceId.equals(other.datasourceId))
+            return false;
+        if (this.path == null) {
+            if (other.path != null)
+                return false;
+        }
+        else if (!this.path.equals(other.path))
+            return false;
+        if (this.name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!this.name.equals(other.name))
+            return false;
+        if (this.folder == null) {
+            if (other.folder != null)
+                return false;
+        }
+        else if (!this.folder.equals(other.folder))
+            return false;
+        if (this.parentPath == null) {
+            if (other.parentPath != null)
+                return false;
+        }
+        else if (!this.parentPath.equals(other.parentPath))
+            return false;
+        if (this.size == null) {
+            if (other.size != null)
+                return false;
+        }
+        else if (!this.size.equals(other.size))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.datasourceId == null) ? 0 : this.datasourceId.hashCode());
+        result = prime * result + ((this.path == null) ? 0 : this.path.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.folder == null) ? 0 : this.folder.hashCode());
+        result = prime * result + ((this.parentPath == null) ? 0 : this.parentPath.hashCode());
+        result = prime * result + ((this.size == null) ? 0 : this.size.hashCode());
+        return result;
     }
 
     @Override

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.CstlUser;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -787,5 +787,35 @@ public class CstlUserRecord extends UpdatableRecordImpl<CstlUserRecord> implemen
         setCivility(civility);
         setTitle(title);
         setLocale(locale);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised CstlUserRecord
+     */
+    public CstlUserRecord(com.examind.database.api.jooq.tables.pojos.CstlUser value) {
+        super(CstlUser.CSTL_USER);
+
+        if (value != null) {
+            setId(value.getId());
+            setLogin(value.getLogin());
+            setPassword(value.getPassword());
+            setFirstname(value.getFirstname());
+            setLastname(value.getLastname());
+            setEmail(value.getEmail());
+            setActive(value.getActive());
+            setAvatar(value.getAvatar());
+            setZip(value.getZip());
+            setCity(value.getCity());
+            setCountry(value.getCountry());
+            setPhone(value.getPhone());
+            setForgotPasswordUuid(value.getForgotPasswordUuid());
+            setAddress(value.getAddress());
+            setAdditionalAddress(value.getAdditionalAddress());
+            setCivility(value.getCivility());
+            setTitle(value.getTitle());
+            setLocale(value.getLocale());
+            resetChangedOnNotNull();
+        }
     }
 }

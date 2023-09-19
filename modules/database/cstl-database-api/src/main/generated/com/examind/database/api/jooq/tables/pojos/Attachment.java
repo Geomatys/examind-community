@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.Arrays;
 
 
 /**
@@ -33,9 +34,9 @@ public class Attachment implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private byte[]  content;
-    private String  uri;
-    private String  filename;
+    private byte[] content;
+    private String uri;
+    private String filename;
 
     public Attachment() {}
 
@@ -48,9 +49,9 @@ public class Attachment implements Serializable {
 
     public Attachment(
         Integer id,
-        byte[]  content,
-        String  uri,
-        String  filename
+        byte[] content,
+        String uri,
+        String filename
     ) {
         this.id = id;
         this.content = content;
@@ -118,6 +119,53 @@ public class Attachment implements Serializable {
     public Attachment setFilename(String filename) {
         this.filename = filename;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Attachment other = (Attachment) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.content == null) {
+            if (other.content != null)
+                return false;
+        }
+        else if (!Arrays.equals(this.content, other.content))
+            return false;
+        if (this.uri == null) {
+            if (other.uri != null)
+                return false;
+        }
+        else if (!this.uri.equals(other.uri))
+            return false;
+        if (this.filename == null) {
+            if (other.filename != null)
+                return false;
+        }
+        else if (!this.filename.equals(other.filename))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.content == null) ? 0 : Arrays.hashCode(this.content));
+        result = prime * result + ((this.uri == null) ? 0 : this.uri.hashCode());
+        result = prime * result + ((this.filename == null) ? 0 : this.filename.hashCode());
+        return result;
     }
 
     @Override

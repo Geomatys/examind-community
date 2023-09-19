@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DataElevations;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -161,5 +161,19 @@ public class DataElevationsRecord extends UpdatableRecordImpl<DataElevationsReco
 
         setDataId(dataId);
         setElevation(elevation);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DataElevationsRecord
+     */
+    public DataElevationsRecord(com.examind.database.api.jooq.tables.pojos.DataElevations value) {
+        super(DataElevations.DATA_ELEVATIONS);
+
+        if (value != null) {
+            setDataId(value.getDataId());
+            setElevation(value.getElevation());
+            resetChangedOnNotNull();
+        }
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,15 +25,19 @@ import com.examind.database.api.jooq.tables.records.InternalMetadataRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function3;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row3;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -114,7 +118,7 @@ public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -128,17 +132,15 @@ public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
     }
 
     @Override
-    public List<UniqueKey<InternalMetadataRecord>> getKeys() {
-        return Arrays.<UniqueKey<InternalMetadataRecord>>asList(Keys.INTERNAL_METADATA_PK);
-    }
-
-    @Override
     public List<ForeignKey<InternalMetadataRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<InternalMetadataRecord, ?>>asList(Keys.INTERNAL_METADATA__INTERNAL_METADATA_ID_FK);
+        return Arrays.asList(Keys.INTERNAL_METADATA__INTERNAL_METADATA_ID_FK);
     }
 
     private transient Metadata _metadata;
 
+    /**
+     * Get the implicit join path to the <code>admin.metadata</code> table.
+     */
     public Metadata metadata() {
         if (_metadata == null)
             _metadata = new Metadata(this, Keys.INTERNAL_METADATA__INTERNAL_METADATA_ID_FK);
@@ -154,6 +156,11 @@ public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
     @Override
     public InternalMetadata as(Name alias) {
         return new InternalMetadata(alias, this);
+    }
+
+    @Override
+    public InternalMetadata as(Table<?> alias) {
+        return new InternalMetadata(alias.getQualifiedName(), this);
     }
 
     /**
@@ -172,6 +179,14 @@ public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
         return new InternalMetadata(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public InternalMetadata rename(Table<?> name) {
+        return new InternalMetadata(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row3 type methods
     // -------------------------------------------------------------------------
@@ -179,5 +194,20 @@ public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
     @Override
     public Row3<Integer, String, String> fieldsRow() {
         return (Row3) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

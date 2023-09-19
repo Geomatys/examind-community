@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -80,6 +80,39 @@ public class MetadataXCsw implements Serializable {
     public MetadataXCsw setCswId(Integer cswId) {
         this.cswId = cswId;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final MetadataXCsw other = (MetadataXCsw) obj;
+        if (this.metadataId == null) {
+            if (other.metadataId != null)
+                return false;
+        }
+        else if (!this.metadataId.equals(other.metadataId))
+            return false;
+        if (this.cswId == null) {
+            if (other.cswId != null)
+                return false;
+        }
+        else if (!this.cswId.equals(other.cswId))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.metadataId == null) ? 0 : this.metadataId.hashCode());
+        result = prime * result + ((this.cswId == null) ? 0 : this.cswId.hashCode());
+        return result;
     }
 
     @Override

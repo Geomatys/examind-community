@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -33,9 +33,9 @@ public class ChainProcess implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  auth;
-    private String  code;
-    private String  config;
+    private String auth;
+    private String code;
+    private String config;
 
     public ChainProcess() {}
 
@@ -48,9 +48,9 @@ public class ChainProcess implements Serializable {
 
     public ChainProcess(
         Integer id,
-        String  auth,
-        String  code,
-        String  config
+        String auth,
+        String code,
+        String config
     ) {
         this.id = id;
         this.auth = auth;
@@ -118,6 +118,53 @@ public class ChainProcess implements Serializable {
     public ChainProcess setConfig(String config) {
         this.config = config;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ChainProcess other = (ChainProcess) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.auth == null) {
+            if (other.auth != null)
+                return false;
+        }
+        else if (!this.auth.equals(other.auth))
+            return false;
+        if (this.code == null) {
+            if (other.code != null)
+                return false;
+        }
+        else if (!this.code.equals(other.code))
+            return false;
+        if (this.config == null) {
+            if (other.config != null)
+                return false;
+        }
+        else if (!this.config.equals(other.config))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.auth == null) ? 0 : this.auth.hashCode());
+        result = prime * result + ((this.code == null) ? 0 : this.code.hashCode());
+        result = prime * result + ((this.config == null) ? 0 : this.config.hashCode());
+        return result;
     }
 
     @Override

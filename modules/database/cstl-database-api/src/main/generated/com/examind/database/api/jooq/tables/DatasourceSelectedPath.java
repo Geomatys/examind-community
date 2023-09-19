@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,14 +25,18 @@ import com.examind.database.api.jooq.tables.records.DatasourceSelectedPathRecord
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function4;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -76,12 +80,12 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     /**
      * The column <code>admin.datasource_selected_path.status</code>.
      */
-    public final TableField<DatasourceSelectedPathRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field("'PENDING'::character varying", SQLDataType.VARCHAR)), this, "");
+    public final TableField<DatasourceSelectedPathRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field(DSL.raw("'PENDING'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>admin.datasource_selected_path.provider_id</code>.
      */
-    public final TableField<DatasourceSelectedPathRecord, Integer> PROVIDER_ID = createField(DSL.name("provider_id"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field("'-1'::integer", SQLDataType.INTEGER)), this, "");
+    public final TableField<DatasourceSelectedPathRecord, Integer> PROVIDER_ID = createField(DSL.name("provider_id"), SQLDataType.INTEGER.nullable(false).defaultValue(DSL.field(DSL.raw("'-1'::integer"), SQLDataType.INTEGER)), this, "");
 
     private DatasourceSelectedPath(Name alias, Table<DatasourceSelectedPathRecord> aliased) {
         this(alias, aliased, null);
@@ -92,14 +96,16 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     }
 
     /**
-     * Create an aliased <code>admin.datasource_selected_path</code> table reference
+     * Create an aliased <code>admin.datasource_selected_path</code> table
+     * reference
      */
     public DatasourceSelectedPath(String alias) {
         this(DSL.name(alias), DATASOURCE_SELECTED_PATH);
     }
 
     /**
-     * Create an aliased <code>admin.datasource_selected_path</code> table reference
+     * Create an aliased <code>admin.datasource_selected_path</code> table
+     * reference
      */
     public DatasourceSelectedPath(Name alias) {
         this(alias, DATASOURCE_SELECTED_PATH);
@@ -118,7 +124,7 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -127,17 +133,15 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     }
 
     @Override
-    public List<UniqueKey<DatasourceSelectedPathRecord>> getKeys() {
-        return Arrays.<UniqueKey<DatasourceSelectedPathRecord>>asList(Keys.DATASOURCE_SELECTED_PATH_PK);
-    }
-
-    @Override
     public List<ForeignKey<DatasourceSelectedPathRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DatasourceSelectedPathRecord, ?>>asList(Keys.DATASOURCE_SELECTED_PATH__DATASOURCE_SELECTED_PATH_DATASOURCE_ID_FK);
+        return Arrays.asList(Keys.DATASOURCE_SELECTED_PATH__DATASOURCE_SELECTED_PATH_DATASOURCE_ID_FK);
     }
 
     private transient Datasource _datasource;
 
+    /**
+     * Get the implicit join path to the <code>admin.datasource</code> table.
+     */
     public Datasource datasource() {
         if (_datasource == null)
             _datasource = new Datasource(this, Keys.DATASOURCE_SELECTED_PATH__DATASOURCE_SELECTED_PATH_DATASOURCE_ID_FK);
@@ -153,6 +157,11 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     @Override
     public DatasourceSelectedPath as(Name alias) {
         return new DatasourceSelectedPath(alias, this);
+    }
+
+    @Override
+    public DatasourceSelectedPath as(Table<?> alias) {
+        return new DatasourceSelectedPath(alias.getQualifiedName(), this);
     }
 
     /**
@@ -171,6 +180,14 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
         return new DatasourceSelectedPath(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DatasourceSelectedPath rename(Table<?> name) {
+        return new DatasourceSelectedPath(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -178,5 +195,20 @@ public class DatasourceSelectedPath extends TableImpl<DatasourceSelectedPathReco
     @Override
     public Row4<Integer, String, String, Integer> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super Integer, ? super String, ? super String, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super String, ? super String, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

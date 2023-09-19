@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -80,6 +80,39 @@ public class SensoredData implements Serializable {
     public SensoredData setData(Integer data) {
         this.data = data;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final SensoredData other = (SensoredData) obj;
+        if (this.sensor == null) {
+            if (other.sensor != null)
+                return false;
+        }
+        else if (!this.sensor.equals(other.sensor))
+            return false;
+        if (this.data == null) {
+            if (other.data != null)
+                return false;
+        }
+        else if (!this.data.equals(other.data))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.sensor == null) ? 0 : this.sensor.hashCode());
+        result = prime * result + ((this.data == null) ? 0 : this.data.hashCode());
+        return result;
     }
 
     @Override

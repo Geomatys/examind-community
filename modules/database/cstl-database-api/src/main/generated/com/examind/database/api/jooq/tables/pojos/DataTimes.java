@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -33,7 +33,7 @@ public class DataTimes implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer dataId;
-    private Long    date;
+    private Long date;
 
     public DataTimes() {}
 
@@ -44,7 +44,7 @@ public class DataTimes implements Serializable {
 
     public DataTimes(
         Integer dataId,
-        Long    date
+        Long date
     ) {
         this.dataId = dataId;
         this.date = date;
@@ -80,6 +80,39 @@ public class DataTimes implements Serializable {
     public DataTimes setDate(Long date) {
         this.date = date;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final DataTimes other = (DataTimes) obj;
+        if (this.dataId == null) {
+            if (other.dataId != null)
+                return false;
+        }
+        else if (!this.dataId.equals(other.dataId))
+            return false;
+        if (this.date == null) {
+            if (other.date != null)
+                return false;
+        }
+        else if (!this.date.equals(other.date))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.dataId == null) ? 0 : this.dataId.hashCode());
+        result = prime * result + ((this.date == null) ? 0 : this.date.hashCode());
+        return result;
     }
 
     @Override

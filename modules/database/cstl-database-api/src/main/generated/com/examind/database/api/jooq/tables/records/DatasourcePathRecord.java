@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DatasourcePath;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -316,5 +316,23 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
         setFolder(folder);
         setParentPath(parentPath);
         setSize(size);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DatasourcePathRecord
+     */
+    public DatasourcePathRecord(com.examind.database.api.jooq.tables.pojos.DatasourcePath value) {
+        super(DatasourcePath.DATASOURCE_PATH);
+
+        if (value != null) {
+            setDatasourceId(value.getDatasourceId());
+            setPath(value.getPath());
+            setName(value.getName());
+            setFolder(value.getFolder());
+            setParentPath(value.getParentPath());
+            setSize(value.getSize());
+            resetChangedOnNotNull();
+        }
     }
 }

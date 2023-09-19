@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.MetadataBbox;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record5;
@@ -277,5 +277,22 @@ public class MetadataBboxRecord extends UpdatableRecordImpl<MetadataBboxRecord> 
         setWest(west);
         setNorth(north);
         setSouth(south);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised MetadataBboxRecord
+     */
+    public MetadataBboxRecord(com.examind.database.api.jooq.tables.pojos.MetadataBbox value) {
+        super(MetadataBbox.METADATA_BBOX);
+
+        if (value != null) {
+            setMetadataId(value.getMetadataId());
+            setEast(value.getEast());
+            setWest(value.getWest());
+            setNorth(value.getNorth());
+            setSouth(value.getSouth());
+            resetChangedOnNotNull();
+        }
     }
 }

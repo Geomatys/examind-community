@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,7 +34,7 @@ public class ThesaurusLanguage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer thesaurusId;
-    private String  language;
+    private String language;
 
     public ThesaurusLanguage() {}
 
@@ -45,7 +45,7 @@ public class ThesaurusLanguage implements Serializable {
 
     public ThesaurusLanguage(
         Integer thesaurusId,
-        String  language
+        String language
     ) {
         this.thesaurusId = thesaurusId;
         this.language = language;
@@ -82,6 +82,39 @@ public class ThesaurusLanguage implements Serializable {
     public ThesaurusLanguage setLanguage(String language) {
         this.language = language;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ThesaurusLanguage other = (ThesaurusLanguage) obj;
+        if (this.thesaurusId == null) {
+            if (other.thesaurusId != null)
+                return false;
+        }
+        else if (!this.thesaurusId.equals(other.thesaurusId))
+            return false;
+        if (this.language == null) {
+            if (other.language != null)
+                return false;
+        }
+        else if (!this.language.equals(other.language))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.thesaurusId == null) ? 0 : this.thesaurusId.hashCode());
+        result = prime * result + ((this.language == null) ? 0 : this.language.hashCode());
+        return result;
     }
 
     @Override

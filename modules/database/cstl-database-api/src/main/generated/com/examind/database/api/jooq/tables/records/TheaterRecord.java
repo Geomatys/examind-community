@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Theater;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -278,5 +278,22 @@ public class TheaterRecord extends UpdatableRecordImpl<TheaterRecord> implements
         setDataId(dataId);
         setLayerId(layerId);
         setType(type);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised TheaterRecord
+     */
+    public TheaterRecord(com.examind.database.api.jooq.tables.pojos.Theater value) {
+        super(Theater.THEATER);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setDataId(value.getDataId());
+            setLayerId(value.getLayerId());
+            setType(value.getType());
+            resetChangedOnNotNull();
+        }
     }
 }

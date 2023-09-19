@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Data;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -930,5 +930,39 @@ public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Recor
         setHasElevation(hasElevation);
         setHasDim(hasDim);
         setCrs(crs);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DataRecord
+     */
+    public DataRecord(com.examind.database.api.jooq.tables.pojos.Data value) {
+        super(Data.DATA);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setNamespace(value.getNamespace());
+            setProvider(value.getProvider());
+            setType(value.getType());
+            setSubtype(value.getSubtype());
+            setIncluded(value.getIncluded());
+            setSensorable(value.getSensorable());
+            setDate(value.getDate());
+            setOwner(value.getOwner());
+            setMetadata(value.getMetadata());
+            setDatasetId(value.getDatasetId());
+            setFeatureCatalog(value.getFeatureCatalog());
+            setStatsResult(value.getStatsResult());
+            setRendered(value.getRendered());
+            setStatsState(value.getStatsState());
+            setHidden(value.getHidden());
+            setCachedInfo(value.getCachedInfo());
+            setHasTime(value.getHasTime());
+            setHasElevation(value.getHasElevation());
+            setHasDim(value.getHasDim());
+            setCrs(value.getCrs());
+            resetChangedOnNotNull();
+        }
     }
 }

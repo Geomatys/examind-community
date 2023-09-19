@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.SensorRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function11;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row11;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -155,12 +159,12 @@ public class Sensor extends TableImpl<SensorRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SENSOR_IDENTIFIER_IDX, Indexes.SENSOR_IDENTIFIER_OWNER, Indexes.SENSOR_PARENT_IDX);
+        return Arrays.asList(Indexes.SENSOR_IDENTIFIER_IDX, Indexes.SENSOR_IDENTIFIER_OWNER, Indexes.SENSOR_PARENT_IDX);
     }
 
     @Override
@@ -174,19 +178,22 @@ public class Sensor extends TableImpl<SensorRecord> {
     }
 
     @Override
-    public List<UniqueKey<SensorRecord>> getKeys() {
-        return Arrays.<UniqueKey<SensorRecord>>asList(Keys.SENSOR_PK, Keys.SENSOR_ID_UQ);
+    public List<UniqueKey<SensorRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.SENSOR_ID_UQ);
     }
 
     @Override
     public List<ForeignKey<SensorRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<SensorRecord, ?>>asList(Keys.SENSOR__SENSOR_PARENT_FK, Keys.SENSOR__SENSOR_OWNER_FK, Keys.SENSOR__SENSOR_PROVIDER_ID_FK);
+        return Arrays.asList(Keys.SENSOR__SENSOR_PARENT_FK, Keys.SENSOR__SENSOR_OWNER_FK, Keys.SENSOR__SENSOR_PROVIDER_ID_FK);
     }
 
     private transient Sensor _sensor;
     private transient CstlUser _cstlUser;
     private transient Provider _provider;
 
+    /**
+     * Get the implicit join path to the <code>admin.sensor</code> table.
+     */
     public Sensor sensor() {
         if (_sensor == null)
             _sensor = new Sensor(this, Keys.SENSOR__SENSOR_PARENT_FK);
@@ -194,6 +201,9 @@ public class Sensor extends TableImpl<SensorRecord> {
         return _sensor;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.SENSOR__SENSOR_OWNER_FK);
@@ -201,6 +211,9 @@ public class Sensor extends TableImpl<SensorRecord> {
         return _cstlUser;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.provider</code> table.
+     */
     public Provider provider() {
         if (_provider == null)
             _provider = new Provider(this, Keys.SENSOR__SENSOR_PROVIDER_ID_FK);
@@ -216,6 +229,11 @@ public class Sensor extends TableImpl<SensorRecord> {
     @Override
     public Sensor as(Name alias) {
         return new Sensor(alias, this);
+    }
+
+    @Override
+    public Sensor as(Table<?> alias) {
+        return new Sensor(alias.getQualifiedName(), this);
     }
 
     /**
@@ -234,6 +252,14 @@ public class Sensor extends TableImpl<SensorRecord> {
         return new Sensor(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Sensor rename(Table<?> name) {
+        return new Sensor(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row11 type methods
     // -------------------------------------------------------------------------
@@ -241,5 +267,20 @@ public class Sensor extends TableImpl<SensorRecord> {
     @Override
     public Row11<Integer, String, String, String, Integer, Long, Integer, String, String, String, String> fieldsRow() {
         return (Row11) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function11<? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function11<? super Integer, ? super String, ? super String, ? super String, ? super Integer, ? super Long, ? super Integer, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

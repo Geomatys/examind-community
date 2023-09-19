@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ServiceDetails;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -239,5 +239,21 @@ public class ServiceDetailsRecord extends UpdatableRecordImpl<ServiceDetailsReco
         setLang(lang);
         setContent(content);
         setDefaultLang(defaultLang);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ServiceDetailsRecord
+     */
+    public ServiceDetailsRecord(com.examind.database.api.jooq.tables.pojos.ServiceDetails value) {
+        super(ServiceDetails.SERVICE_DETAILS);
+
+        if (value != null) {
+            setId(value.getId());
+            setLang(value.getLang());
+            setContent(value.getContent());
+            setDefaultLang(value.getDefaultLang());
+            resetChangedOnNotNull();
+        }
     }
 }

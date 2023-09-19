@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -23,15 +23,17 @@ import com.examind.database.api.jooq.Admin;
 import com.examind.database.api.jooq.Keys;
 import com.examind.database.api.jooq.tables.records.PropertyRecord;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -107,17 +109,12 @@ public class Property extends TableImpl<PropertyRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public UniqueKey<PropertyRecord> getPrimaryKey() {
         return Keys.PROPERTY_PK;
-    }
-
-    @Override
-    public List<UniqueKey<PropertyRecord>> getKeys() {
-        return Arrays.<UniqueKey<PropertyRecord>>asList(Keys.PROPERTY_PK);
     }
 
     @Override
@@ -128,6 +125,11 @@ public class Property extends TableImpl<PropertyRecord> {
     @Override
     public Property as(Name alias) {
         return new Property(alias, this);
+    }
+
+    @Override
+    public Property as(Table<?> alias) {
+        return new Property(alias.getQualifiedName(), this);
     }
 
     /**
@@ -146,6 +148,14 @@ public class Property extends TableImpl<PropertyRecord> {
         return new Property(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Property rename(Table<?> name) {
+        return new Property(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -153,5 +163,20 @@ public class Property extends TableImpl<PropertyRecord> {
     @Override
     public Row2<String, String> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

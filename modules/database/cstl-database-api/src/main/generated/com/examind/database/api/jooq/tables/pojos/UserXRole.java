@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,7 +34,7 @@ public class UserXRole implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer userId;
-    private String  role;
+    private String role;
 
     public UserXRole() {}
 
@@ -45,7 +45,7 @@ public class UserXRole implements Serializable {
 
     public UserXRole(
         Integer userId,
-        String  role
+        String role
     ) {
         this.userId = userId;
         this.role = role;
@@ -82,6 +82,39 @@ public class UserXRole implements Serializable {
     public UserXRole setRole(String role) {
         this.role = role;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final UserXRole other = (UserXRole) obj;
+        if (this.userId == null) {
+            if (other.userId != null)
+                return false;
+        }
+        else if (!this.userId.equals(other.userId))
+            return false;
+        if (this.role == null) {
+            if (other.role != null)
+                return false;
+        }
+        else if (!this.role.equals(other.role))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.userId == null) ? 0 : this.userId.hashCode());
+        result = prime * result + ((this.role == null) ? 0 : this.role.hashCode());
+        return result;
     }
 
     @Override

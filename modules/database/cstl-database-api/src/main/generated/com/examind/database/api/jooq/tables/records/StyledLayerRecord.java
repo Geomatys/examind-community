@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.StyledLayer;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -199,5 +199,20 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
         setStyle(style);
         setLayer(layer);
         setIsDefault(isDefault);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised StyledLayerRecord
+     */
+    public StyledLayerRecord(com.examind.database.api.jooq.tables.pojos.StyledLayer value) {
+        super(StyledLayer.STYLED_LAYER);
+
+        if (value != null) {
+            setStyle(value.getStyle());
+            setLayer(value.getLayer());
+            setIsDefault(value.getIsDefault());
+            resetChangedOnNotNull();
+        }
     }
 }

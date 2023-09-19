@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.StyleRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function8;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row8;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -103,7 +107,7 @@ public class Style extends TableImpl<StyleRecord> {
     /**
      * The column <code>admin.style.is_shared</code>.
      */
-    public final TableField<StyleRecord, Boolean> IS_SHARED = createField(DSL.name("is_shared"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<StyleRecord, Boolean> IS_SHARED = createField(DSL.name("is_shared"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     private Style(Name alias, Table<StyleRecord> aliased) {
         this(alias, aliased, null);
@@ -140,12 +144,12 @@ public class Style extends TableImpl<StyleRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.STYLE_OWNER_IDX, Indexes.STYLE_PROVIDER_IDX);
+        return Arrays.asList(Indexes.STYLE_OWNER_IDX, Indexes.STYLE_PROVIDER_IDX);
     }
 
     @Override
@@ -159,17 +163,20 @@ public class Style extends TableImpl<StyleRecord> {
     }
 
     @Override
-    public List<UniqueKey<StyleRecord>> getKeys() {
-        return Arrays.<UniqueKey<StyleRecord>>asList(Keys.STYLE_PK, Keys.STYLE_NAME_PROVIDER_UQ);
+    public List<UniqueKey<StyleRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.STYLE_NAME_PROVIDER_UQ);
     }
 
     @Override
     public List<ForeignKey<StyleRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<StyleRecord, ?>>asList(Keys.STYLE__STYLE_OWNER_FK);
+        return Arrays.asList(Keys.STYLE__STYLE_OWNER_FK);
     }
 
     private transient CstlUser _cstlUser;
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.STYLE__STYLE_OWNER_FK);
@@ -185,6 +192,11 @@ public class Style extends TableImpl<StyleRecord> {
     @Override
     public Style as(Name alias) {
         return new Style(alias, this);
+    }
+
+    @Override
+    public Style as(Table<?> alias) {
+        return new Style(alias.getQualifiedName(), this);
     }
 
     /**
@@ -203,6 +215,14 @@ public class Style extends TableImpl<StyleRecord> {
         return new Style(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Style rename(Table<?> name) {
+        return new Style(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row8 type methods
     // -------------------------------------------------------------------------
@@ -210,5 +230,20 @@ public class Style extends TableImpl<StyleRecord> {
     @Override
     public Row8<Integer, String, Integer, String, Long, String, Integer, Boolean> fieldsRow() {
         return (Row8) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function8<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

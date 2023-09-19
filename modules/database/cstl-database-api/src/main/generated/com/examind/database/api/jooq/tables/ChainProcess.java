@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.ChainProcessRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function4;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -120,12 +124,12 @@ public class ChainProcess extends TableImpl<ChainProcessRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.CHAIN_PROCESS_IDX);
+        return Arrays.asList(Indexes.CHAIN_PROCESS_IDX);
     }
 
     @Override
@@ -139,11 +143,6 @@ public class ChainProcess extends TableImpl<ChainProcessRecord> {
     }
 
     @Override
-    public List<UniqueKey<ChainProcessRecord>> getKeys() {
-        return Arrays.<UniqueKey<ChainProcessRecord>>asList(Keys.CHAIN_PROCESS_PK);
-    }
-
-    @Override
     public ChainProcess as(String alias) {
         return new ChainProcess(DSL.name(alias), this);
     }
@@ -151,6 +150,11 @@ public class ChainProcess extends TableImpl<ChainProcessRecord> {
     @Override
     public ChainProcess as(Name alias) {
         return new ChainProcess(alias, this);
+    }
+
+    @Override
+    public ChainProcess as(Table<?> alias) {
+        return new ChainProcess(alias.getQualifiedName(), this);
     }
 
     /**
@@ -169,6 +173,14 @@ public class ChainProcess extends TableImpl<ChainProcessRecord> {
         return new ChainProcess(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ChainProcess rename(Table<?> name) {
+        return new ChainProcess(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -176,5 +188,20 @@ public class ChainProcess extends TableImpl<ChainProcessRecord> {
     @Override
     public Row4<Integer, String, String, String> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super Integer, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

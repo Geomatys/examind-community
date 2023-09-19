@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DataEnvelope;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -239,5 +239,21 @@ public class DataEnvelopeRecord extends UpdatableRecordImpl<DataEnvelopeRecord> 
         setDimension(dimension);
         setMin(min);
         setMax(max);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DataEnvelopeRecord
+     */
+    public DataEnvelopeRecord(com.examind.database.api.jooq.tables.pojos.DataEnvelope value) {
+        super(DataEnvelope.DATA_ENVELOPE);
+
+        if (value != null) {
+            setDataId(value.getDataId());
+            setDimension(value.getDimension());
+            setMin(value.getMin());
+            setMax(value.getMax());
+            resetChangedOnNotNull();
+        }
     }
 }

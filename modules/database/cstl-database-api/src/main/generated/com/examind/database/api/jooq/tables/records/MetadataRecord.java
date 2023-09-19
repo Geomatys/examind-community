@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Metadata;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Record1;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -454,5 +454,41 @@ public class MetadataRecord extends UpdatableRecordImpl<MetadataRecord> {
         setType(type);
         setIsShared(isShared);
         setIsHidden(isHidden);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised MetadataRecord
+     */
+    public MetadataRecord(com.examind.database.api.jooq.tables.pojos.Metadata value) {
+        super(Metadata.METADATA);
+
+        if (value != null) {
+            setId(value.getId());
+            setMetadataId(value.getMetadataId());
+            setDataId(value.getDataId());
+            setDatasetId(value.getDatasetId());
+            setServiceId(value.getServiceId());
+            setMdCompletion(value.getMdCompletion());
+            setOwner(value.getOwner());
+            setDatestamp(value.getDatestamp());
+            setDateCreation(value.getDateCreation());
+            setTitle(value.getTitle());
+            setProfile(value.getProfile());
+            setParentIdentifier(value.getParentIdentifier());
+            setIsValidated(value.getIsValidated());
+            setIsPublished(value.getIsPublished());
+            setLevel(value.getLevel());
+            setResume(value.getResume());
+            setValidationRequired(value.getValidationRequired());
+            setValidatedState(value.getValidatedState());
+            setComment(value.getComment());
+            setProviderId(value.getProviderId());
+            setMapContextId(value.getMapContextId());
+            setType(value.getType());
+            setIsShared(value.getIsShared());
+            setIsHidden(value.getIsHidden());
+            resetChangedOnNotNull();
+        }
     }
 }

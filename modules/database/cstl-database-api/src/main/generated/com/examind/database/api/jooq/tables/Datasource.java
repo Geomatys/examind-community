@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -23,16 +23,18 @@ import com.examind.database.api.jooq.Admin;
 import com.examind.database.api.jooq.Keys;
 import com.examind.database.api.jooq.tables.records.DatasourceRecord;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function11;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row11;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -96,7 +98,7 @@ public class Datasource extends TableImpl<DatasourceRecord> {
     /**
      * The column <code>admin.datasource.read_from_remote</code>.
      */
-    public final TableField<DatasourceRecord, Boolean> READ_FROM_REMOTE = createField(DSL.name("read_from_remote"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DatasourceRecord, Boolean> READ_FROM_REMOTE = createField(DSL.name("read_from_remote"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.datasource.date_creation</code>.
@@ -116,7 +118,7 @@ public class Datasource extends TableImpl<DatasourceRecord> {
     /**
      * The column <code>admin.datasource.permanent</code>.
      */
-    public final TableField<DatasourceRecord, Boolean> PERMANENT = createField(DSL.name("permanent"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<DatasourceRecord, Boolean> PERMANENT = createField(DSL.name("permanent"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     private Datasource(Name alias, Table<DatasourceRecord> aliased) {
         this(alias, aliased, null);
@@ -153,7 +155,7 @@ public class Datasource extends TableImpl<DatasourceRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -167,11 +169,6 @@ public class Datasource extends TableImpl<DatasourceRecord> {
     }
 
     @Override
-    public List<UniqueKey<DatasourceRecord>> getKeys() {
-        return Arrays.<UniqueKey<DatasourceRecord>>asList(Keys.DATASOURCE_PK);
-    }
-
-    @Override
     public Datasource as(String alias) {
         return new Datasource(DSL.name(alias), this);
     }
@@ -179,6 +176,11 @@ public class Datasource extends TableImpl<DatasourceRecord> {
     @Override
     public Datasource as(Name alias) {
         return new Datasource(alias, this);
+    }
+
+    @Override
+    public Datasource as(Table<?> alias) {
+        return new Datasource(alias.getQualifiedName(), this);
     }
 
     /**
@@ -197,6 +199,14 @@ public class Datasource extends TableImpl<DatasourceRecord> {
         return new Datasource(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Datasource rename(Table<?> name) {
+        return new Datasource(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row11 type methods
     // -------------------------------------------------------------------------
@@ -204,5 +214,20 @@ public class Datasource extends TableImpl<DatasourceRecord> {
     @Override
     public Row11<Integer, String, String, String, String, String, Boolean, Long, String, String, Boolean> fieldsRow() {
         return (Row11) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function11<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Boolean, ? super Long, ? super String, ? super String, ? super Boolean, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function11<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super String, ? super Boolean, ? super Long, ? super String, ? super String, ? super Boolean, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

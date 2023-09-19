@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.ServiceExtraConfigRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function3;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row3;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -114,12 +118,12 @@ public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SERVICE_EXTRA_CONFIG_ID_IDX);
+        return Arrays.asList(Indexes.SERVICE_EXTRA_CONFIG_ID_IDX);
     }
 
     @Override
@@ -128,17 +132,15 @@ public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
     }
 
     @Override
-    public List<UniqueKey<ServiceExtraConfigRecord>> getKeys() {
-        return Arrays.<UniqueKey<ServiceExtraConfigRecord>>asList(Keys.SERVICE_EXTRA_CONFIG_PK);
-    }
-
-    @Override
     public List<ForeignKey<ServiceExtraConfigRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ServiceExtraConfigRecord, ?>>asList(Keys.SERVICE_EXTRA_CONFIG__SERVICE_EXTRA_CONFIG_SERVICE_ID_FK);
+        return Arrays.asList(Keys.SERVICE_EXTRA_CONFIG__SERVICE_EXTRA_CONFIG_SERVICE_ID_FK);
     }
 
     private transient Service _service;
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.SERVICE_EXTRA_CONFIG__SERVICE_EXTRA_CONFIG_SERVICE_ID_FK);
@@ -154,6 +156,11 @@ public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
     @Override
     public ServiceExtraConfig as(Name alias) {
         return new ServiceExtraConfig(alias, this);
+    }
+
+    @Override
+    public ServiceExtraConfig as(Table<?> alias) {
+        return new ServiceExtraConfig(alias.getQualifiedName(), this);
     }
 
     /**
@@ -172,6 +179,14 @@ public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
         return new ServiceExtraConfig(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ServiceExtraConfig rename(Table<?> name) {
+        return new ServiceExtraConfig(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row3 type methods
     // -------------------------------------------------------------------------
@@ -179,5 +194,20 @@ public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
     @Override
     public Row3<Integer, String, String> fieldsRow() {
         return (Row3) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

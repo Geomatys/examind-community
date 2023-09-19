@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Style;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -395,5 +395,25 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
         setBody(body);
         setOwner(owner);
         setIsShared(isShared);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised StyleRecord
+     */
+    public StyleRecord(com.examind.database.api.jooq.tables.pojos.Style value) {
+        super(Style.STYLE);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setProvider(value.getProvider());
+            setType(value.getType());
+            setDate(value.getDate());
+            setBody(value.getBody());
+            setOwner(value.getOwner());
+            setIsShared(value.getIsShared());
+            resetChangedOnNotNull();
+        }
     }
 }

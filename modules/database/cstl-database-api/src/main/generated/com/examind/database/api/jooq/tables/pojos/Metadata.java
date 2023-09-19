@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,27 +34,27 @@ public class Metadata implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  metadataId;
+    private String metadataId;
     private Integer dataId;
     private Integer datasetId;
     private Integer serviceId;
     private Integer mdCompletion;
     private Integer owner;
-    private Long    datestamp;
-    private Long    dateCreation;
-    private String  title;
-    private String  profile;
+    private Long datestamp;
+    private Long dateCreation;
+    private String title;
+    private String profile;
     private Integer parentIdentifier;
     private Boolean isValidated;
     private Boolean isPublished;
-    private String  level;
-    private String  resume;
-    private String  validationRequired;
-    private String  validatedState;
-    private String  comment;
+    private String level;
+    private String resume;
+    private String validationRequired;
+    private String validatedState;
+    private String comment;
     private Integer providerId;
     private Integer mapContextId;
-    private String  type;
+    private String type;
     private Boolean isShared;
     private Boolean isHidden;
 
@@ -89,27 +89,27 @@ public class Metadata implements Serializable {
 
     public Metadata(
         Integer id,
-        String  metadataId,
+        String metadataId,
         Integer dataId,
         Integer datasetId,
         Integer serviceId,
         Integer mdCompletion,
         Integer owner,
-        Long    datestamp,
-        Long    dateCreation,
-        String  title,
-        String  profile,
+        Long datestamp,
+        Long dateCreation,
+        String title,
+        String profile,
         Integer parentIdentifier,
         Boolean isValidated,
         Boolean isPublished,
-        String  level,
-        String  resume,
-        String  validationRequired,
-        String  validatedState,
-        String  comment,
+        String level,
+        String resume,
+        String validationRequired,
+        String validatedState,
+        String comment,
         Integer providerId,
         Integer mapContextId,
-        String  type,
+        String type,
         Boolean isShared,
         Boolean isHidden
     ) {
@@ -505,6 +505,193 @@ public class Metadata implements Serializable {
     public Metadata setIsHidden(Boolean isHidden) {
         this.isHidden = isHidden;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Metadata other = (Metadata) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.metadataId == null) {
+            if (other.metadataId != null)
+                return false;
+        }
+        else if (!this.metadataId.equals(other.metadataId))
+            return false;
+        if (this.dataId == null) {
+            if (other.dataId != null)
+                return false;
+        }
+        else if (!this.dataId.equals(other.dataId))
+            return false;
+        if (this.datasetId == null) {
+            if (other.datasetId != null)
+                return false;
+        }
+        else if (!this.datasetId.equals(other.datasetId))
+            return false;
+        if (this.serviceId == null) {
+            if (other.serviceId != null)
+                return false;
+        }
+        else if (!this.serviceId.equals(other.serviceId))
+            return false;
+        if (this.mdCompletion == null) {
+            if (other.mdCompletion != null)
+                return false;
+        }
+        else if (!this.mdCompletion.equals(other.mdCompletion))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.datestamp == null) {
+            if (other.datestamp != null)
+                return false;
+        }
+        else if (!this.datestamp.equals(other.datestamp))
+            return false;
+        if (this.dateCreation == null) {
+            if (other.dateCreation != null)
+                return false;
+        }
+        else if (!this.dateCreation.equals(other.dateCreation))
+            return false;
+        if (this.title == null) {
+            if (other.title != null)
+                return false;
+        }
+        else if (!this.title.equals(other.title))
+            return false;
+        if (this.profile == null) {
+            if (other.profile != null)
+                return false;
+        }
+        else if (!this.profile.equals(other.profile))
+            return false;
+        if (this.parentIdentifier == null) {
+            if (other.parentIdentifier != null)
+                return false;
+        }
+        else if (!this.parentIdentifier.equals(other.parentIdentifier))
+            return false;
+        if (this.isValidated == null) {
+            if (other.isValidated != null)
+                return false;
+        }
+        else if (!this.isValidated.equals(other.isValidated))
+            return false;
+        if (this.isPublished == null) {
+            if (other.isPublished != null)
+                return false;
+        }
+        else if (!this.isPublished.equals(other.isPublished))
+            return false;
+        if (this.level == null) {
+            if (other.level != null)
+                return false;
+        }
+        else if (!this.level.equals(other.level))
+            return false;
+        if (this.resume == null) {
+            if (other.resume != null)
+                return false;
+        }
+        else if (!this.resume.equals(other.resume))
+            return false;
+        if (this.validationRequired == null) {
+            if (other.validationRequired != null)
+                return false;
+        }
+        else if (!this.validationRequired.equals(other.validationRequired))
+            return false;
+        if (this.validatedState == null) {
+            if (other.validatedState != null)
+                return false;
+        }
+        else if (!this.validatedState.equals(other.validatedState))
+            return false;
+        if (this.comment == null) {
+            if (other.comment != null)
+                return false;
+        }
+        else if (!this.comment.equals(other.comment))
+            return false;
+        if (this.providerId == null) {
+            if (other.providerId != null)
+                return false;
+        }
+        else if (!this.providerId.equals(other.providerId))
+            return false;
+        if (this.mapContextId == null) {
+            if (other.mapContextId != null)
+                return false;
+        }
+        else if (!this.mapContextId.equals(other.mapContextId))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.isShared == null) {
+            if (other.isShared != null)
+                return false;
+        }
+        else if (!this.isShared.equals(other.isShared))
+            return false;
+        if (this.isHidden == null) {
+            if (other.isHidden != null)
+                return false;
+        }
+        else if (!this.isHidden.equals(other.isHidden))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.metadataId == null) ? 0 : this.metadataId.hashCode());
+        result = prime * result + ((this.dataId == null) ? 0 : this.dataId.hashCode());
+        result = prime * result + ((this.datasetId == null) ? 0 : this.datasetId.hashCode());
+        result = prime * result + ((this.serviceId == null) ? 0 : this.serviceId.hashCode());
+        result = prime * result + ((this.mdCompletion == null) ? 0 : this.mdCompletion.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.datestamp == null) ? 0 : this.datestamp.hashCode());
+        result = prime * result + ((this.dateCreation == null) ? 0 : this.dateCreation.hashCode());
+        result = prime * result + ((this.title == null) ? 0 : this.title.hashCode());
+        result = prime * result + ((this.profile == null) ? 0 : this.profile.hashCode());
+        result = prime * result + ((this.parentIdentifier == null) ? 0 : this.parentIdentifier.hashCode());
+        result = prime * result + ((this.isValidated == null) ? 0 : this.isValidated.hashCode());
+        result = prime * result + ((this.isPublished == null) ? 0 : this.isPublished.hashCode());
+        result = prime * result + ((this.level == null) ? 0 : this.level.hashCode());
+        result = prime * result + ((this.resume == null) ? 0 : this.resume.hashCode());
+        result = prime * result + ((this.validationRequired == null) ? 0 : this.validationRequired.hashCode());
+        result = prime * result + ((this.validatedState == null) ? 0 : this.validatedState.hashCode());
+        result = prime * result + ((this.comment == null) ? 0 : this.comment.hashCode());
+        result = prime * result + ((this.providerId == null) ? 0 : this.providerId.hashCode());
+        result = prime * result + ((this.mapContextId == null) ? 0 : this.mapContextId.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.isShared == null) ? 0 : this.isShared.hashCode());
+        result = prime * result + ((this.isHidden == null) ? 0 : this.isHidden.hashCode());
+        return result;
     }
 
     @Override

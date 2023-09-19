@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.DatasetRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function6;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row6;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -130,12 +134,12 @@ public class Dataset extends TableImpl<DatasetRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.DATASET_OWNER_IDX);
+        return Arrays.asList(Indexes.DATASET_OWNER_IDX);
     }
 
     @Override
@@ -149,17 +153,15 @@ public class Dataset extends TableImpl<DatasetRecord> {
     }
 
     @Override
-    public List<UniqueKey<DatasetRecord>> getKeys() {
-        return Arrays.<UniqueKey<DatasetRecord>>asList(Keys.DATASET_PK);
-    }
-
-    @Override
     public List<ForeignKey<DatasetRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DatasetRecord, ?>>asList(Keys.DATASET__DATASET_OWNER_FK);
+        return Arrays.asList(Keys.DATASET__DATASET_OWNER_FK);
     }
 
     private transient CstlUser _cstlUser;
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.DATASET__DATASET_OWNER_FK);
@@ -175,6 +177,11 @@ public class Dataset extends TableImpl<DatasetRecord> {
     @Override
     public Dataset as(Name alias) {
         return new Dataset(alias, this);
+    }
+
+    @Override
+    public Dataset as(Table<?> alias) {
+        return new Dataset(alias.getQualifiedName(), this);
     }
 
     /**
@@ -193,6 +200,14 @@ public class Dataset extends TableImpl<DatasetRecord> {
         return new Dataset(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Dataset rename(Table<?> name) {
+        return new Dataset(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row6 type methods
     // -------------------------------------------------------------------------
@@ -200,5 +215,20 @@ public class Dataset extends TableImpl<DatasetRecord> {
     @Override
     public Row6<Integer, String, Integer, Long, String, String> fieldsRow() {
         return (Row6) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function6<? super Integer, ? super String, ? super Integer, ? super Long, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super String, ? super Integer, ? super Long, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

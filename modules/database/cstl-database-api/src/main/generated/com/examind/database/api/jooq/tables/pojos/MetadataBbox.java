@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -33,10 +33,10 @@ public class MetadataBbox implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer metadataId;
-    private Double  east;
-    private Double  west;
-    private Double  north;
-    private Double  south;
+    private Double east;
+    private Double west;
+    private Double north;
+    private Double south;
 
     public MetadataBbox() {}
 
@@ -50,10 +50,10 @@ public class MetadataBbox implements Serializable {
 
     public MetadataBbox(
         Integer metadataId,
-        Double  east,
-        Double  west,
-        Double  north,
-        Double  south
+        Double east,
+        Double west,
+        Double north,
+        Double south
     ) {
         this.metadataId = metadataId;
         this.east = east;
@@ -140,6 +140,60 @@ public class MetadataBbox implements Serializable {
     public MetadataBbox setSouth(Double south) {
         this.south = south;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final MetadataBbox other = (MetadataBbox) obj;
+        if (this.metadataId == null) {
+            if (other.metadataId != null)
+                return false;
+        }
+        else if (!this.metadataId.equals(other.metadataId))
+            return false;
+        if (this.east == null) {
+            if (other.east != null)
+                return false;
+        }
+        else if (!this.east.equals(other.east))
+            return false;
+        if (this.west == null) {
+            if (other.west != null)
+                return false;
+        }
+        else if (!this.west.equals(other.west))
+            return false;
+        if (this.north == null) {
+            if (other.north != null)
+                return false;
+        }
+        else if (!this.north.equals(other.north))
+            return false;
+        if (this.south == null) {
+            if (other.south != null)
+                return false;
+        }
+        else if (!this.south.equals(other.south))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.metadataId == null) ? 0 : this.metadataId.hashCode());
+        result = prime * result + ((this.east == null) ? 0 : this.east.hashCode());
+        result = prime * result + ((this.west == null) ? 0 : this.west.hashCode());
+        result = prime * result + ((this.north == null) ? 0 : this.north.hashCode());
+        result = prime * result + ((this.south == null) ? 0 : this.south.hashCode());
+        return result;
     }
 
     @Override

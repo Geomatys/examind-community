@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DataDimRange;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -318,5 +318,23 @@ public class DataDimRangeRecord extends UpdatableRecordImpl<DataDimRangeRecord> 
         setMax(max);
         setUnit(unit);
         setUnitSymbol(unitSymbol);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DataDimRangeRecord
+     */
+    public DataDimRangeRecord(com.examind.database.api.jooq.tables.pojos.DataDimRange value) {
+        super(DataDimRange.DATA_DIM_RANGE);
+
+        if (value != null) {
+            setDataId(value.getDataId());
+            setDimension(value.getDimension());
+            setMin(value.getMin());
+            setMax(value.getMax());
+            setUnit(value.getUnit());
+            setUnitSymbol(value.getUnitSymbol());
+            resetChangedOnNotNull();
+        }
     }
 }

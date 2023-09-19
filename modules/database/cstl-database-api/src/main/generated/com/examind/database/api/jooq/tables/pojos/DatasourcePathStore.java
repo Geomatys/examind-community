@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,9 +34,9 @@ public class DatasourcePathStore implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer datasourceId;
-    private String  path;
-    private String  store;
-    private String  type;
+    private String path;
+    private String store;
+    private String type;
 
     public DatasourcePathStore() {}
 
@@ -49,9 +49,9 @@ public class DatasourcePathStore implements Serializable {
 
     public DatasourcePathStore(
         Integer datasourceId,
-        String  path,
-        String  store,
-        String  type
+        String path,
+        String store,
+        String type
     ) {
         this.datasourceId = datasourceId;
         this.path = path;
@@ -122,6 +122,53 @@ public class DatasourcePathStore implements Serializable {
     public DatasourcePathStore setType(String type) {
         this.type = type;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final DatasourcePathStore other = (DatasourcePathStore) obj;
+        if (this.datasourceId == null) {
+            if (other.datasourceId != null)
+                return false;
+        }
+        else if (!this.datasourceId.equals(other.datasourceId))
+            return false;
+        if (this.path == null) {
+            if (other.path != null)
+                return false;
+        }
+        else if (!this.path.equals(other.path))
+            return false;
+        if (this.store == null) {
+            if (other.store != null)
+                return false;
+        }
+        else if (!this.store.equals(other.store))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.datasourceId == null) ? 0 : this.datasourceId.hashCode());
+        result = prime * result + ((this.path == null) ? 0 : this.path.hashCode());
+        result = prime * result + ((this.store == null) ? 0 : this.store.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        return result;
     }
 
     @Override

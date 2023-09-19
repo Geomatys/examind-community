@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.SensorXSosRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -107,7 +111,7 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -116,18 +120,16 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
     }
 
     @Override
-    public List<UniqueKey<SensorXSosRecord>> getKeys() {
-        return Arrays.<UniqueKey<SensorXSosRecord>>asList(Keys.SENSOR_X_SOS_PK);
-    }
-
-    @Override
     public List<ForeignKey<SensorXSosRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<SensorXSosRecord, ?>>asList(Keys.SENSOR_X_SOS__SENSOR_SOS_CROSS_ID_FK, Keys.SENSOR_X_SOS__SOS_SENSOR_CROSS_ID_FK);
+        return Arrays.asList(Keys.SENSOR_X_SOS__SENSOR_SOS_CROSS_ID_FK, Keys.SENSOR_X_SOS__SOS_SENSOR_CROSS_ID_FK);
     }
 
     private transient Sensor _sensor;
     private transient Service _service;
 
+    /**
+     * Get the implicit join path to the <code>admin.sensor</code> table.
+     */
     public Sensor sensor() {
         if (_sensor == null)
             _sensor = new Sensor(this, Keys.SENSOR_X_SOS__SENSOR_SOS_CROSS_ID_FK);
@@ -135,6 +137,9 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
         return _sensor;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.SENSOR_X_SOS__SOS_SENSOR_CROSS_ID_FK);
@@ -150,6 +155,11 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
     @Override
     public SensorXSos as(Name alias) {
         return new SensorXSos(alias, this);
+    }
+
+    @Override
+    public SensorXSos as(Table<?> alias) {
+        return new SensorXSos(alias.getQualifiedName(), this);
     }
 
     /**
@@ -168,6 +178,14 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
         return new SensorXSos(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public SensorXSos rename(Table<?> name) {
+        return new SensorXSos(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -175,5 +193,20 @@ public class SensorXSos extends TableImpl<SensorXSosRecord> {
     @Override
     public Row2<Integer, Integer> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,8 +34,8 @@ public class ServiceExtraConfig implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  filename;
-    private String  content;
+    private String filename;
+    private String content;
 
     public ServiceExtraConfig() {}
 
@@ -47,8 +47,8 @@ public class ServiceExtraConfig implements Serializable {
 
     public ServiceExtraConfig(
         Integer id,
-        String  filename,
-        String  content
+        String filename,
+        String content
     ) {
         this.id = id;
         this.filename = filename;
@@ -101,6 +101,46 @@ public class ServiceExtraConfig implements Serializable {
     public ServiceExtraConfig setContent(String content) {
         this.content = content;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final ServiceExtraConfig other = (ServiceExtraConfig) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.filename == null) {
+            if (other.filename != null)
+                return false;
+        }
+        else if (!this.filename.equals(other.filename))
+            return false;
+        if (this.content == null) {
+            if (other.content != null)
+                return false;
+        }
+        else if (!this.content.equals(other.content))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.filename == null) ? 0 : this.filename.hashCode());
+        result = prime * result + ((this.content == null) ? 0 : this.content.hashCode());
+        return result;
     }
 
     @Override

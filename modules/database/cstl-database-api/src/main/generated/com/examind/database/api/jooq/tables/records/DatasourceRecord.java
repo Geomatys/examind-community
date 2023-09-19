@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Datasource;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -510,5 +510,28 @@ public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> impl
         setAnalysisState(analysisState);
         setFormat(format);
         setPermanent(permanent);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DatasourceRecord
+     */
+    public DatasourceRecord(com.examind.database.api.jooq.tables.pojos.Datasource value) {
+        super(Datasource.DATASOURCE);
+
+        if (value != null) {
+            setId(value.getId());
+            setType(value.getType());
+            setUrl(value.getUrl());
+            setUsername(value.getUsername());
+            setPwd(value.getPwd());
+            setStoreId(value.getStoreId());
+            setReadFromRemote(value.getReadFromRemote());
+            setDateCreation(value.getDateCreation());
+            setAnalysisState(value.getAnalysisState());
+            setFormat(value.getFormat());
+            setPermanent(value.getPermanent());
+            resetChangedOnNotNull();
+        }
     }
 }

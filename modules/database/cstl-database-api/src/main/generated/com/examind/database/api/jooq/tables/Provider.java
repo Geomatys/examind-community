@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,15 +26,19 @@ import com.examind.database.api.jooq.tables.records.ProviderRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function6;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row6;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -130,12 +134,12 @@ public class Provider extends TableImpl<ProviderRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.PROVIDER_IDENTIFIER_IDX, Indexes.PROVIDER_OWNER_IDX);
+        return Arrays.asList(Indexes.PROVIDER_IDENTIFIER_IDX, Indexes.PROVIDER_OWNER_IDX);
     }
 
     @Override
@@ -149,17 +153,20 @@ public class Provider extends TableImpl<ProviderRecord> {
     }
 
     @Override
-    public List<UniqueKey<ProviderRecord>> getKeys() {
-        return Arrays.<UniqueKey<ProviderRecord>>asList(Keys.PROVIDER_PK, Keys.SQL140711122144190);
+    public List<UniqueKey<ProviderRecord>> getUniqueKeys() {
+        return Arrays.asList(Keys.SQL140711122144190);
     }
 
     @Override
     public List<ForeignKey<ProviderRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ProviderRecord, ?>>asList(Keys.PROVIDER__PROVIDER_OWNER_FK);
+        return Arrays.asList(Keys.PROVIDER__PROVIDER_OWNER_FK);
     }
 
     private transient CstlUser _cstlUser;
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.PROVIDER__PROVIDER_OWNER_FK);
@@ -175,6 +182,11 @@ public class Provider extends TableImpl<ProviderRecord> {
     @Override
     public Provider as(Name alias) {
         return new Provider(alias, this);
+    }
+
+    @Override
+    public Provider as(Table<?> alias) {
+        return new Provider(alias.getQualifiedName(), this);
     }
 
     /**
@@ -193,6 +205,14 @@ public class Provider extends TableImpl<ProviderRecord> {
         return new Provider(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Provider rename(Table<?> name) {
+        return new Provider(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row6 type methods
     // -------------------------------------------------------------------------
@@ -200,5 +220,20 @@ public class Provider extends TableImpl<ProviderRecord> {
     @Override
     public Row6<Integer, String, String, String, String, Integer> fieldsRow() {
         return (Row6) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function6<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super String, ? super String, ? super String, ? super String, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -23,16 +23,18 @@ import com.examind.database.api.jooq.Admin;
 import com.examind.database.api.jooq.Keys;
 import com.examind.database.api.jooq.tables.records.ThesaurusRecord;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function9;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row9;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -91,7 +93,7 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
     /**
      * The column <code>admin.thesaurus.state</code>.
      */
-    public final TableField<ThesaurusRecord, Boolean> STATE = createField(DSL.name("state"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("true", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<ThesaurusRecord, Boolean> STATE = createField(DSL.name("state"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.thesaurus.defaultlang</code>.
@@ -143,7 +145,7 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -157,11 +159,6 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
     }
 
     @Override
-    public List<UniqueKey<ThesaurusRecord>> getKeys() {
-        return Arrays.<UniqueKey<ThesaurusRecord>>asList(Keys.THESAURUS_PK);
-    }
-
-    @Override
     public Thesaurus as(String alias) {
         return new Thesaurus(DSL.name(alias), this);
     }
@@ -169,6 +166,11 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
     @Override
     public Thesaurus as(Name alias) {
         return new Thesaurus(alias, this);
+    }
+
+    @Override
+    public Thesaurus as(Table<?> alias) {
+        return new Thesaurus(alias.getQualifiedName(), this);
     }
 
     /**
@@ -187,6 +189,14 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
         return new Thesaurus(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Thesaurus rename(Table<?> name) {
+        return new Thesaurus(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row9 type methods
     // -------------------------------------------------------------------------
@@ -194,5 +204,20 @@ public class Thesaurus extends TableImpl<ThesaurusRecord> {
     @Override
     public Row9<Integer, String, String, String, Long, Boolean, String, String, String> fieldsRow() {
         return (Row9) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function9<? super Integer, ? super String, ? super String, ? super String, ? super Long, ? super Boolean, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super Integer, ? super String, ? super String, ? super String, ? super Long, ? super Boolean, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

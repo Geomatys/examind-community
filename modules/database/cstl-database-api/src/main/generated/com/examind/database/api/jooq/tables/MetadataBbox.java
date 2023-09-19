@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.MetadataBboxRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function5;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row5;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -122,7 +126,7 @@ public class MetadataBbox extends TableImpl<MetadataBboxRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -131,17 +135,15 @@ public class MetadataBbox extends TableImpl<MetadataBboxRecord> {
     }
 
     @Override
-    public List<UniqueKey<MetadataBboxRecord>> getKeys() {
-        return Arrays.<UniqueKey<MetadataBboxRecord>>asList(Keys.METADATA_BBOX_PK);
-    }
-
-    @Override
     public List<ForeignKey<MetadataBboxRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<MetadataBboxRecord, ?>>asList(Keys.METADATA_BBOX__BBOX_METADATA_FK);
+        return Arrays.asList(Keys.METADATA_BBOX__BBOX_METADATA_FK);
     }
 
     private transient Metadata _metadata;
 
+    /**
+     * Get the implicit join path to the <code>admin.metadata</code> table.
+     */
     public Metadata metadata() {
         if (_metadata == null)
             _metadata = new Metadata(this, Keys.METADATA_BBOX__BBOX_METADATA_FK);
@@ -157,6 +159,11 @@ public class MetadataBbox extends TableImpl<MetadataBboxRecord> {
     @Override
     public MetadataBbox as(Name alias) {
         return new MetadataBbox(alias, this);
+    }
+
+    @Override
+    public MetadataBbox as(Table<?> alias) {
+        return new MetadataBbox(alias.getQualifiedName(), this);
     }
 
     /**
@@ -175,6 +182,14 @@ public class MetadataBbox extends TableImpl<MetadataBboxRecord> {
         return new MetadataBbox(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public MetadataBbox rename(Table<?> name) {
+        return new MetadataBbox(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row5 type methods
     // -------------------------------------------------------------------------
@@ -182,5 +197,20 @@ public class MetadataBbox extends TableImpl<MetadataBboxRecord> {
     @Override
     public Row5<Integer, Double, Double, Double, Double> fieldsRow() {
         return (Row5) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function5<? super Integer, ? super Double, ? super Double, ? super Double, ? super Double, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function5<? super Integer, ? super Double, ? super Double, ? super Double, ? super Double, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

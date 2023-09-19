@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,10 +34,10 @@ public class Provider implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  identifier;
-    private String  type;
-    private String  impl;
-    private String  config;
+    private String identifier;
+    private String type;
+    private String impl;
+    private String config;
     private Integer owner;
 
     public Provider() {}
@@ -53,10 +53,10 @@ public class Provider implements Serializable {
 
     public Provider(
         Integer id,
-        String  identifier,
-        String  type,
-        String  impl,
-        String  config,
+        String identifier,
+        String type,
+        String impl,
+        String config,
         Integer owner
     ) {
         this.id = id;
@@ -162,6 +162,67 @@ public class Provider implements Serializable {
     public Provider setOwner(Integer owner) {
         this.owner = owner;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Provider other = (Provider) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.identifier == null) {
+            if (other.identifier != null)
+                return false;
+        }
+        else if (!this.identifier.equals(other.identifier))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.impl == null) {
+            if (other.impl != null)
+                return false;
+        }
+        else if (!this.impl.equals(other.impl))
+            return false;
+        if (this.config == null) {
+            if (other.config != null)
+                return false;
+        }
+        else if (!this.config.equals(other.config))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.identifier == null) ? 0 : this.identifier.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.impl == null) ? 0 : this.impl.hashCode());
+        result = prime * result + ((this.config == null) ? 0 : this.config.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        return result;
     }
 
     @Override

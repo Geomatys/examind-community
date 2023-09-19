@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.DataTimesRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -107,7 +111,7 @@ public class DataTimes extends TableImpl<DataTimesRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -116,17 +120,15 @@ public class DataTimes extends TableImpl<DataTimesRecord> {
     }
 
     @Override
-    public List<UniqueKey<DataTimesRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataTimesRecord>>asList(Keys.DATA_TIMES_PK);
-    }
-
-    @Override
     public List<ForeignKey<DataTimesRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DataTimesRecord, ?>>asList(Keys.DATA_TIMES__DATA_TIMES_DATA_FK);
+        return Arrays.asList(Keys.DATA_TIMES__DATA_TIMES_DATA_FK);
     }
 
     private transient Data _data;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.DATA_TIMES__DATA_TIMES_DATA_FK);
@@ -142,6 +144,11 @@ public class DataTimes extends TableImpl<DataTimesRecord> {
     @Override
     public DataTimes as(Name alias) {
         return new DataTimes(alias, this);
+    }
+
+    @Override
+    public DataTimes as(Table<?> alias) {
+        return new DataTimes(alias.getQualifiedName(), this);
     }
 
     /**
@@ -160,6 +167,14 @@ public class DataTimes extends TableImpl<DataTimesRecord> {
         return new DataTimes(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DataTimes rename(Table<?> name) {
+        return new DataTimes(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -167,5 +182,20 @@ public class DataTimes extends TableImpl<DataTimesRecord> {
     @Override
     public Row2<Integer, Long> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Long, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Long, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

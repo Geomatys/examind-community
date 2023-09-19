@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.MetadataXAttachment;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -160,5 +160,19 @@ public class MetadataXAttachmentRecord extends UpdatableRecordImpl<MetadataXAtta
 
         setAttachementId(attachementId);
         setMetadataId(metadataId);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised MetadataXAttachmentRecord
+     */
+    public MetadataXAttachmentRecord(com.examind.database.api.jooq.tables.pojos.MetadataXAttachment value) {
+        super(MetadataXAttachment.METADATA_X_ATTACHMENT);
+
+        if (value != null) {
+            setAttachementId(value.getAttachementId());
+            setMetadataId(value.getMetadataId());
+            resetChangedOnNotNull();
+        }
     }
 }

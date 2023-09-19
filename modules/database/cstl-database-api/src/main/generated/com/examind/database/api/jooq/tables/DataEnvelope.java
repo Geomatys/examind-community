@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.DataEnvelopeRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function4;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -117,7 +121,7 @@ public class DataEnvelope extends TableImpl<DataEnvelopeRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -126,17 +130,15 @@ public class DataEnvelope extends TableImpl<DataEnvelopeRecord> {
     }
 
     @Override
-    public List<UniqueKey<DataEnvelopeRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataEnvelopeRecord>>asList(Keys.DATA_ENVELOPE_PK);
-    }
-
-    @Override
     public List<ForeignKey<DataEnvelopeRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DataEnvelopeRecord, ?>>asList(Keys.DATA_ENVELOPE__DATA_ENVELOPE_DATA_FK);
+        return Arrays.asList(Keys.DATA_ENVELOPE__DATA_ENVELOPE_DATA_FK);
     }
 
     private transient Data _data;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.DATA_ENVELOPE__DATA_ENVELOPE_DATA_FK);
@@ -152,6 +154,11 @@ public class DataEnvelope extends TableImpl<DataEnvelopeRecord> {
     @Override
     public DataEnvelope as(Name alias) {
         return new DataEnvelope(alias, this);
+    }
+
+    @Override
+    public DataEnvelope as(Table<?> alias) {
+        return new DataEnvelope(alias.getQualifiedName(), this);
     }
 
     /**
@@ -170,6 +177,14 @@ public class DataEnvelope extends TableImpl<DataEnvelopeRecord> {
         return new DataEnvelope(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DataEnvelope rename(Table<?> name) {
+        return new DataEnvelope(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -177,5 +192,20 @@ public class DataEnvelope extends TableImpl<DataEnvelopeRecord> {
     @Override
     public Row4<Integer, Integer, Double, Double> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super Integer, ? super Integer, ? super Double, ? super Double, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super Integer, ? super Double, ? super Double, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

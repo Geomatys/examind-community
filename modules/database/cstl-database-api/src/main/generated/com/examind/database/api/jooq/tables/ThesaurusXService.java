@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.ThesaurusXServiceRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function2;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row2;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -106,17 +110,20 @@ public class ThesaurusXService extends TableImpl<ThesaurusXServiceRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<ForeignKey<ThesaurusXServiceRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ThesaurusXServiceRecord, ?>>asList(Keys.THESAURUS_X_SERVICE__SERVICE_THESAURUS_CROSS_ID_FK, Keys.THESAURUS_X_SERVICE__THESAURUS_SERVICE_CROSS_ID_FK);
+        return Arrays.asList(Keys.THESAURUS_X_SERVICE__SERVICE_THESAURUS_CROSS_ID_FK, Keys.THESAURUS_X_SERVICE__THESAURUS_SERVICE_CROSS_ID_FK);
     }
 
     private transient Service _service;
     private transient Thesaurus _thesaurus;
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.THESAURUS_X_SERVICE__SERVICE_THESAURUS_CROSS_ID_FK);
@@ -124,6 +131,9 @@ public class ThesaurusXService extends TableImpl<ThesaurusXServiceRecord> {
         return _service;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.thesaurus</code> table.
+     */
     public Thesaurus thesaurus() {
         if (_thesaurus == null)
             _thesaurus = new Thesaurus(this, Keys.THESAURUS_X_SERVICE__THESAURUS_SERVICE_CROSS_ID_FK);
@@ -139,6 +149,11 @@ public class ThesaurusXService extends TableImpl<ThesaurusXServiceRecord> {
     @Override
     public ThesaurusXService as(Name alias) {
         return new ThesaurusXService(alias, this);
+    }
+
+    @Override
+    public ThesaurusXService as(Table<?> alias) {
+        return new ThesaurusXService(alias.getQualifiedName(), this);
     }
 
     /**
@@ -157,6 +172,14 @@ public class ThesaurusXService extends TableImpl<ThesaurusXServiceRecord> {
         return new ThesaurusXService(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ThesaurusXService rename(Table<?> name) {
+        return new ThesaurusXService(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row2 type methods
     // -------------------------------------------------------------------------
@@ -164,5 +187,20 @@ public class ThesaurusXService extends TableImpl<ThesaurusXServiceRecord> {
     @Override
     public Row2<Integer, Integer> fieldsRow() {
         return (Row2) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function2<? super Integer, ? super Integer, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

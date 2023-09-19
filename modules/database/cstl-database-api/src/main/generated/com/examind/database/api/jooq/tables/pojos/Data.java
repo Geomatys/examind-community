@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,27 +34,27 @@ public class Data implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  name;
-    private String  namespace;
+    private String name;
+    private String namespace;
     private Integer provider;
-    private String  type;
-    private String  subtype;
+    private String type;
+    private String subtype;
     private Boolean included;
     private Boolean sensorable;
-    private Long    date;
+    private Long date;
     private Integer owner;
-    private String  metadata;
+    private String metadata;
     private Integer datasetId;
-    private String  featureCatalog;
-    private String  statsResult;
+    private String featureCatalog;
+    private String statsResult;
     private Boolean rendered;
-    private String  statsState;
+    private String statsState;
     private Boolean hidden;
     private Boolean cachedInfo;
     private Boolean hasTime;
     private Boolean hasElevation;
     private Boolean hasDim;
-    private String  crs;
+    private String crs;
 
     public Data() {}
 
@@ -85,27 +85,27 @@ public class Data implements Serializable {
 
     public Data(
         Integer id,
-        String  name,
-        String  namespace,
+        String name,
+        String namespace,
         Integer provider,
-        String  type,
-        String  subtype,
+        String type,
+        String subtype,
         Boolean included,
         Boolean sensorable,
-        Long    date,
+        Long date,
         Integer owner,
-        String  metadata,
+        String metadata,
         Integer datasetId,
-        String  featureCatalog,
-        String  statsResult,
+        String featureCatalog,
+        String statsResult,
         Boolean rendered,
-        String  statsState,
+        String statsState,
         Boolean hidden,
         Boolean cachedInfo,
         Boolean hasTime,
         Boolean hasElevation,
         Boolean hasDim,
-        String  crs
+        String crs
     ) {
         this.id = id;
         this.name = name;
@@ -469,6 +469,179 @@ public class Data implements Serializable {
     public Data setCrs(String crs) {
         this.crs = crs;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Data other = (Data) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!this.name.equals(other.name))
+            return false;
+        if (this.namespace == null) {
+            if (other.namespace != null)
+                return false;
+        }
+        else if (!this.namespace.equals(other.namespace))
+            return false;
+        if (this.provider == null) {
+            if (other.provider != null)
+                return false;
+        }
+        else if (!this.provider.equals(other.provider))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.subtype == null) {
+            if (other.subtype != null)
+                return false;
+        }
+        else if (!this.subtype.equals(other.subtype))
+            return false;
+        if (this.included == null) {
+            if (other.included != null)
+                return false;
+        }
+        else if (!this.included.equals(other.included))
+            return false;
+        if (this.sensorable == null) {
+            if (other.sensorable != null)
+                return false;
+        }
+        else if (!this.sensorable.equals(other.sensorable))
+            return false;
+        if (this.date == null) {
+            if (other.date != null)
+                return false;
+        }
+        else if (!this.date.equals(other.date))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.metadata == null) {
+            if (other.metadata != null)
+                return false;
+        }
+        else if (!this.metadata.equals(other.metadata))
+            return false;
+        if (this.datasetId == null) {
+            if (other.datasetId != null)
+                return false;
+        }
+        else if (!this.datasetId.equals(other.datasetId))
+            return false;
+        if (this.featureCatalog == null) {
+            if (other.featureCatalog != null)
+                return false;
+        }
+        else if (!this.featureCatalog.equals(other.featureCatalog))
+            return false;
+        if (this.statsResult == null) {
+            if (other.statsResult != null)
+                return false;
+        }
+        else if (!this.statsResult.equals(other.statsResult))
+            return false;
+        if (this.rendered == null) {
+            if (other.rendered != null)
+                return false;
+        }
+        else if (!this.rendered.equals(other.rendered))
+            return false;
+        if (this.statsState == null) {
+            if (other.statsState != null)
+                return false;
+        }
+        else if (!this.statsState.equals(other.statsState))
+            return false;
+        if (this.hidden == null) {
+            if (other.hidden != null)
+                return false;
+        }
+        else if (!this.hidden.equals(other.hidden))
+            return false;
+        if (this.cachedInfo == null) {
+            if (other.cachedInfo != null)
+                return false;
+        }
+        else if (!this.cachedInfo.equals(other.cachedInfo))
+            return false;
+        if (this.hasTime == null) {
+            if (other.hasTime != null)
+                return false;
+        }
+        else if (!this.hasTime.equals(other.hasTime))
+            return false;
+        if (this.hasElevation == null) {
+            if (other.hasElevation != null)
+                return false;
+        }
+        else if (!this.hasElevation.equals(other.hasElevation))
+            return false;
+        if (this.hasDim == null) {
+            if (other.hasDim != null)
+                return false;
+        }
+        else if (!this.hasDim.equals(other.hasDim))
+            return false;
+        if (this.crs == null) {
+            if (other.crs != null)
+                return false;
+        }
+        else if (!this.crs.equals(other.crs))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.namespace == null) ? 0 : this.namespace.hashCode());
+        result = prime * result + ((this.provider == null) ? 0 : this.provider.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.subtype == null) ? 0 : this.subtype.hashCode());
+        result = prime * result + ((this.included == null) ? 0 : this.included.hashCode());
+        result = prime * result + ((this.sensorable == null) ? 0 : this.sensorable.hashCode());
+        result = prime * result + ((this.date == null) ? 0 : this.date.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.metadata == null) ? 0 : this.metadata.hashCode());
+        result = prime * result + ((this.datasetId == null) ? 0 : this.datasetId.hashCode());
+        result = prime * result + ((this.featureCatalog == null) ? 0 : this.featureCatalog.hashCode());
+        result = prime * result + ((this.statsResult == null) ? 0 : this.statsResult.hashCode());
+        result = prime * result + ((this.rendered == null) ? 0 : this.rendered.hashCode());
+        result = prime * result + ((this.statsState == null) ? 0 : this.statsState.hashCode());
+        result = prime * result + ((this.hidden == null) ? 0 : this.hidden.hashCode());
+        result = prime * result + ((this.cachedInfo == null) ? 0 : this.cachedInfo.hashCode());
+        result = prime * result + ((this.hasTime == null) ? 0 : this.hasTime.hashCode());
+        result = prime * result + ((this.hasElevation == null) ? 0 : this.hasElevation.hashCode());
+        result = prime * result + ((this.hasDim == null) ? 0 : this.hasDim.hashCode());
+        result = prime * result + ((this.crs == null) ? 0 : this.crs.hashCode());
+        return result;
     }
 
     @Override

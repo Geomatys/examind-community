@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ProviderXSos;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record3;
@@ -189,5 +189,20 @@ public class ProviderXSosRecord extends TableRecordImpl<ProviderXSosRecord> impl
         setSosId(sosId);
         setProviderId(providerId);
         setAllSensor(allSensor);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ProviderXSosRecord
+     */
+    public ProviderXSosRecord(com.examind.database.api.jooq.tables.pojos.ProviderXSos value) {
+        super(ProviderXSos.PROVIDER_X_SOS);
+
+        if (value != null) {
+            setSosId(value.getSosId());
+            setProviderId(value.getProviderId());
+            setAllSensor(value.getAllSensor());
+            resetChangedOnNotNull();
+        }
     }
 }

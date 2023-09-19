@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -125,17 +125,17 @@ public class Metadata extends TableImpl<MetadataRecord> {
     /**
      * The column <code>admin.metadata.is_validated</code>.
      */
-    public final TableField<MetadataRecord, Boolean> IS_VALIDATED = createField(DSL.name("is_validated"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<MetadataRecord, Boolean> IS_VALIDATED = createField(DSL.name("is_validated"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.metadata.is_published</code>.
      */
-    public final TableField<MetadataRecord, Boolean> IS_PUBLISHED = createField(DSL.name("is_published"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<MetadataRecord, Boolean> IS_PUBLISHED = createField(DSL.name("is_published"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.metadata.level</code>.
      */
-    public final TableField<MetadataRecord, String> LEVEL = createField(DSL.name("level"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field("'NONE'::character varying", SQLDataType.VARCHAR)), this, "");
+    public final TableField<MetadataRecord, String> LEVEL = createField(DSL.name("level"), SQLDataType.VARCHAR(50).nullable(false).defaultValue(DSL.field(DSL.raw("'NONE'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>admin.metadata.resume</code>.
@@ -145,7 +145,7 @@ public class Metadata extends TableImpl<MetadataRecord> {
     /**
      * The column <code>admin.metadata.validation_required</code>.
      */
-    public final TableField<MetadataRecord, String> VALIDATION_REQUIRED = createField(DSL.name("validation_required"), SQLDataType.VARCHAR(10).nullable(false).defaultValue(DSL.field("'NONE'::character varying", SQLDataType.VARCHAR)), this, "");
+    public final TableField<MetadataRecord, String> VALIDATION_REQUIRED = createField(DSL.name("validation_required"), SQLDataType.VARCHAR(10).nullable(false).defaultValue(DSL.field(DSL.raw("'NONE'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>admin.metadata.validated_state</code>.
@@ -170,17 +170,17 @@ public class Metadata extends TableImpl<MetadataRecord> {
     /**
      * The column <code>admin.metadata.type</code>.
      */
-    public final TableField<MetadataRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field("'DOC'::character varying", SQLDataType.VARCHAR)), this, "");
+    public final TableField<MetadataRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.field(DSL.raw("'DOC'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     /**
      * The column <code>admin.metadata.is_shared</code>.
      */
-    public final TableField<MetadataRecord, Boolean> IS_SHARED = createField(DSL.name("is_shared"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<MetadataRecord, Boolean> IS_SHARED = createField(DSL.name("is_shared"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>admin.metadata.is_hidden</code>.
      */
-    public final TableField<MetadataRecord, Boolean> IS_HIDDEN = createField(DSL.name("is_hidden"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<MetadataRecord, Boolean> IS_HIDDEN = createField(DSL.name("is_hidden"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     private Metadata(Name alias, Table<MetadataRecord> aliased) {
         this(alias, aliased, null);
@@ -217,7 +217,7 @@ public class Metadata extends TableImpl<MetadataRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -231,13 +231,8 @@ public class Metadata extends TableImpl<MetadataRecord> {
     }
 
     @Override
-    public List<UniqueKey<MetadataRecord>> getKeys() {
-        return Arrays.<UniqueKey<MetadataRecord>>asList(Keys.METADATA_PK);
-    }
-
-    @Override
     public List<ForeignKey<MetadataRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<MetadataRecord, ?>>asList(Keys.METADATA__METADATA_DATA_FK, Keys.METADATA__METADATA_DATASET_FK, Keys.METADATA__METADATA_SERVICE_FK, Keys.METADATA__METADATA_OWNER_FK, Keys.METADATA__METADATA_PROVIDER_ID_FK, Keys.METADATA__MAP_CONTEXT_ID_FK);
+        return Arrays.asList(Keys.METADATA__METADATA_DATA_FK, Keys.METADATA__METADATA_DATASET_FK, Keys.METADATA__METADATA_SERVICE_FK, Keys.METADATA__METADATA_OWNER_FK, Keys.METADATA__METADATA_PROVIDER_ID_FK, Keys.METADATA__MAP_CONTEXT_ID_FK);
     }
 
     private transient Data _data;
@@ -247,6 +242,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
     private transient Provider _provider;
     private transient Mapcontext _mapcontext;
 
+    /**
+     * Get the implicit join path to the <code>admin.data</code> table.
+     */
     public Data data() {
         if (_data == null)
             _data = new Data(this, Keys.METADATA__METADATA_DATA_FK);
@@ -254,6 +252,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return _data;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.dataset</code> table.
+     */
     public Dataset dataset() {
         if (_dataset == null)
             _dataset = new Dataset(this, Keys.METADATA__METADATA_DATASET_FK);
@@ -261,6 +262,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return _dataset;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.METADATA__METADATA_SERVICE_FK);
@@ -268,6 +272,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return _service;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.METADATA__METADATA_OWNER_FK);
@@ -275,6 +282,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return _cstlUser;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.provider</code> table.
+     */
     public Provider provider() {
         if (_provider == null)
             _provider = new Provider(this, Keys.METADATA__METADATA_PROVIDER_ID_FK);
@@ -282,6 +292,9 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return _provider;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.mapcontext</code> table.
+     */
     public Mapcontext mapcontext() {
         if (_mapcontext == null)
             _mapcontext = new Mapcontext(this, Keys.METADATA__MAP_CONTEXT_ID_FK);
@@ -299,6 +312,11 @@ public class Metadata extends TableImpl<MetadataRecord> {
         return new Metadata(alias, this);
     }
 
+    @Override
+    public Metadata as(Table<?> alias) {
+        return new Metadata(alias.getQualifiedName(), this);
+    }
+
     /**
      * Rename this table
      */
@@ -313,5 +331,13 @@ public class Metadata extends TableImpl<MetadataRecord> {
     @Override
     public Metadata rename(Name name) {
         return new Metadata(name, null);
+    }
+
+    /**
+     * Rename this table
+     */
+    @Override
+    public Metadata rename(Table<?> name) {
+        return new Metadata(name.getQualifiedName(), null);
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.DataTimes;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -161,5 +161,19 @@ public class DataTimesRecord extends UpdatableRecordImpl<DataTimesRecord> implem
 
         setDataId(dataId);
         setDate(date);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised DataTimesRecord
+     */
+    public DataTimesRecord(com.examind.database.api.jooq.tables.pojos.DataTimes value) {
+        super(DataTimes.DATA_TIMES);
+
+        if (value != null) {
+            setDataId(value.getDataId());
+            setDate(value.getDate());
+            resetChangedOnNotNull();
+        }
     }
 }

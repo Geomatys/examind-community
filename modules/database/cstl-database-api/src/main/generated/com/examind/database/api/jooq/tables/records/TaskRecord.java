@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Task;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -471,5 +471,27 @@ public class TaskRecord extends UpdatableRecordImpl<TaskRecord> implements Recor
         setTaskParameterId(taskParameterId);
         setProgress(progress);
         setTaskOutput(taskOutput);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised TaskRecord
+     */
+    public TaskRecord(com.examind.database.api.jooq.tables.pojos.Task value) {
+        super(Task.TASK);
+
+        if (value != null) {
+            setIdentifier(value.getIdentifier());
+            setState(value.getState());
+            setType(value.getType());
+            setDateStart(value.getDateStart());
+            setDateEnd(value.getDateEnd());
+            setOwner(value.getOwner());
+            setMessage(value.getMessage());
+            setTaskParameterId(value.getTaskParameterId());
+            setProgress(value.getProgress());
+            setTaskOutput(value.getTaskOutput());
+            resetChangedOnNotNull();
+        }
     }
 }

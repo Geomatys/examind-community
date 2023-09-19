@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.Scene;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -855,5 +855,37 @@ public class SceneRecord extends UpdatableRecordImpl<SceneRecord> implements Rec
         setTime(time);
         setExtras(extras);
         setVectorSimplifyFactor(vectorSimplifyFactor);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised SceneRecord
+     */
+    public SceneRecord(com.examind.database.api.jooq.tables.pojos.Scene value) {
+        super(Scene.SCENE);
+
+        if (value != null) {
+            setId(value.getId());
+            setName(value.getName());
+            setMapContextId(value.getMapContextId());
+            setDataId(value.getDataId());
+            setLayerId(value.getLayerId());
+            setType(value.getType());
+            setSurface(value.getSurface());
+            setSurfaceParameters(value.getSurfaceParameters());
+            setSurfaceFactor(value.getSurfaceFactor());
+            setStatus(value.getStatus());
+            setCreationDate(value.getCreationDate());
+            setMinLod(value.getMinLod());
+            setMaxLod(value.getMaxLod());
+            setBboxMinx(value.getBboxMinx());
+            setBboxMiny(value.getBboxMiny());
+            setBboxMaxx(value.getBboxMaxx());
+            setBboxMaxy(value.getBboxMaxy());
+            setTime(value.getTime());
+            setExtras(value.getExtras());
+            setVectorSimplifyFactor(value.getVectorSimplifyFactor());
+            resetChangedOnNotNull();
+        }
     }
 }

@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,9 +19,9 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
 
-import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 
 /**
@@ -34,8 +34,8 @@ public class DataEnvelope implements Serializable {
 
     private Integer dataId;
     private Integer dimension;
-    private Double  min;
-    private Double  max;
+    private Double min;
+    private Double max;
 
     public DataEnvelope() {}
 
@@ -49,8 +49,8 @@ public class DataEnvelope implements Serializable {
     public DataEnvelope(
         Integer dataId,
         Integer dimension,
-        Double  min,
-        Double  max
+        Double min,
+        Double max
     ) {
         this.dataId = dataId;
         this.dimension = dimension;
@@ -120,6 +120,53 @@ public class DataEnvelope implements Serializable {
     public DataEnvelope setMax(Double max) {
         this.max = max;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final DataEnvelope other = (DataEnvelope) obj;
+        if (this.dataId == null) {
+            if (other.dataId != null)
+                return false;
+        }
+        else if (!this.dataId.equals(other.dataId))
+            return false;
+        if (this.dimension == null) {
+            if (other.dimension != null)
+                return false;
+        }
+        else if (!this.dimension.equals(other.dimension))
+            return false;
+        if (this.min == null) {
+            if (other.min != null)
+                return false;
+        }
+        else if (!this.min.equals(other.min))
+            return false;
+        if (this.max == null) {
+            if (other.max != null)
+                return false;
+        }
+        else if (!this.max.equals(other.max))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.dataId == null) ? 0 : this.dataId.hashCode());
+        result = prime * result + ((this.dimension == null) ? 0 : this.dimension.hashCode());
+        result = prime * result + ((this.min == null) ? 0 : this.min.hashCode());
+        result = prime * result + ((this.max == null) ? 0 : this.max.hashCode());
+        return result;
     }
 
     @Override

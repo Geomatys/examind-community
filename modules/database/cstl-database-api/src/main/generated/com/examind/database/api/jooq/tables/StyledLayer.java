@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.StyledLayerRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function3;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row3;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -114,12 +118,12 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.STYLED_LAYER_LAYER_IDX, Indexes.STYLED_LAYER_STYLE_IDX);
+        return Arrays.asList(Indexes.STYLED_LAYER_LAYER_IDX, Indexes.STYLED_LAYER_STYLE_IDX);
     }
 
     @Override
@@ -128,18 +132,16 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
     }
 
     @Override
-    public List<UniqueKey<StyledLayerRecord>> getKeys() {
-        return Arrays.<UniqueKey<StyledLayerRecord>>asList(Keys.STYLED_LAYER_PK);
-    }
-
-    @Override
     public List<ForeignKey<StyledLayerRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<StyledLayerRecord, ?>>asList(Keys.STYLED_LAYER__STYLED_LAYER_STYLE_FK, Keys.STYLED_LAYER__STYLED_LAYER_LAYER_FK);
+        return Arrays.asList(Keys.STYLED_LAYER__STYLED_LAYER_STYLE_FK, Keys.STYLED_LAYER__STYLED_LAYER_LAYER_FK);
     }
 
     private transient Style _style;
     private transient Layer _layer;
 
+    /**
+     * Get the implicit join path to the <code>admin.style</code> table.
+     */
     public Style style() {
         if (_style == null)
             _style = new Style(this, Keys.STYLED_LAYER__STYLED_LAYER_STYLE_FK);
@@ -147,6 +149,9 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
         return _style;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.layer</code> table.
+     */
     public Layer layer() {
         if (_layer == null)
             _layer = new Layer(this, Keys.STYLED_LAYER__STYLED_LAYER_LAYER_FK);
@@ -162,6 +167,11 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
     @Override
     public StyledLayer as(Name alias) {
         return new StyledLayer(alias, this);
+    }
+
+    @Override
+    public StyledLayer as(Table<?> alias) {
+        return new StyledLayer(alias.getQualifiedName(), this);
     }
 
     /**
@@ -180,6 +190,14 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
         return new StyledLayer(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public StyledLayer rename(Table<?> name) {
+        return new StyledLayer(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row3 type methods
     // -------------------------------------------------------------------------
@@ -187,5 +205,20 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
     @Override
     public Row3<Integer, Integer, Boolean> fieldsRow() {
         return (Row3) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function3<? super Integer, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

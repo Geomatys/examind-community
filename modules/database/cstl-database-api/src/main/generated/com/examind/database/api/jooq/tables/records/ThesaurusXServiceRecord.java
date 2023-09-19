@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,7 +21,7 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ThesaurusXService;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -151,5 +151,19 @@ public class ThesaurusXServiceRecord extends TableRecordImpl<ThesaurusXServiceRe
 
         setServiceId(serviceId);
         setThesaurusId(thesaurusId);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ThesaurusXServiceRecord
+     */
+    public ThesaurusXServiceRecord(com.examind.database.api.jooq.tables.pojos.ThesaurusXService value) {
+        super(ThesaurusXService.THESAURUS_X_SERVICE);
+
+        if (value != null) {
+            setServiceId(value.getServiceId());
+            setThesaurusId(value.getThesaurusId());
+            resetChangedOnNotNull();
+        }
     }
 }

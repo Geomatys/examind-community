@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.ServiceDetailsRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function4;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -119,12 +123,12 @@ public class ServiceDetails extends TableImpl<ServiceDetailsRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.SERVICE_DETAILS_ID_IDX);
+        return Arrays.asList(Indexes.SERVICE_DETAILS_ID_IDX);
     }
 
     @Override
@@ -133,17 +137,15 @@ public class ServiceDetails extends TableImpl<ServiceDetailsRecord> {
     }
 
     @Override
-    public List<UniqueKey<ServiceDetailsRecord>> getKeys() {
-        return Arrays.<UniqueKey<ServiceDetailsRecord>>asList(Keys.SERVICE_DETAILS_PK);
-    }
-
-    @Override
     public List<ForeignKey<ServiceDetailsRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ServiceDetailsRecord, ?>>asList(Keys.SERVICE_DETAILS__SERVICE_DETAILS_SERVICE_ID_FK);
+        return Arrays.asList(Keys.SERVICE_DETAILS__SERVICE_DETAILS_SERVICE_ID_FK);
     }
 
     private transient Service _service;
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.SERVICE_DETAILS__SERVICE_DETAILS_SERVICE_ID_FK);
@@ -159,6 +161,11 @@ public class ServiceDetails extends TableImpl<ServiceDetailsRecord> {
     @Override
     public ServiceDetails as(Name alias) {
         return new ServiceDetails(alias, this);
+    }
+
+    @Override
+    public ServiceDetails as(Table<?> alias) {
+        return new ServiceDetails(alias.getQualifiedName(), this);
     }
 
     /**
@@ -177,6 +184,14 @@ public class ServiceDetails extends TableImpl<ServiceDetailsRecord> {
         return new ServiceDetails(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ServiceDetails rename(Table<?> name) {
+        return new ServiceDetails(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -184,5 +199,20 @@ public class ServiceDetails extends TableImpl<ServiceDetailsRecord> {
     @Override
     public Row4<Integer, String, String, Boolean> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super Integer, ? super String, ? super String, ? super Boolean, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super String, ? super String, ? super Boolean, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

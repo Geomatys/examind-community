@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,14 +25,18 @@ import com.examind.database.api.jooq.tables.records.InternalSensorRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function3;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row3;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -113,7 +117,7 @@ public class InternalSensor extends TableImpl<InternalSensorRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -127,17 +131,15 @@ public class InternalSensor extends TableImpl<InternalSensorRecord> {
     }
 
     @Override
-    public List<UniqueKey<InternalSensorRecord>> getKeys() {
-        return Arrays.<UniqueKey<InternalSensorRecord>>asList(Keys.INTERNAL_SENSOR_PK);
-    }
-
-    @Override
     public List<ForeignKey<InternalSensorRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<InternalSensorRecord, ?>>asList(Keys.INTERNAL_SENSOR__INTERNAL_SENSOR_ID_FK);
+        return Arrays.asList(Keys.INTERNAL_SENSOR__INTERNAL_SENSOR_ID_FK);
     }
 
     private transient Sensor _sensor;
 
+    /**
+     * Get the implicit join path to the <code>admin.sensor</code> table.
+     */
     public Sensor sensor() {
         if (_sensor == null)
             _sensor = new Sensor(this, Keys.INTERNAL_SENSOR__INTERNAL_SENSOR_ID_FK);
@@ -153,6 +155,11 @@ public class InternalSensor extends TableImpl<InternalSensorRecord> {
     @Override
     public InternalSensor as(Name alias) {
         return new InternalSensor(alias, this);
+    }
+
+    @Override
+    public InternalSensor as(Table<?> alias) {
+        return new InternalSensor(alias.getQualifiedName(), this);
     }
 
     /**
@@ -171,6 +178,14 @@ public class InternalSensor extends TableImpl<InternalSensorRecord> {
         return new InternalSensor(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public InternalSensor rename(Table<?> name) {
+        return new InternalSensor(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row3 type methods
     // -------------------------------------------------------------------------
@@ -178,5 +193,20 @@ public class InternalSensor extends TableImpl<InternalSensorRecord> {
     @Override
     public Row3<Integer, String, String> fieldsRow() {
         return (Row3) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

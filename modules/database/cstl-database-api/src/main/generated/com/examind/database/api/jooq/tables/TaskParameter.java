@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,16 +26,20 @@ import com.examind.database.api.jooq.tables.records.TaskParameterRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function10;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row10;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -151,12 +155,12 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.TASK_PARAMETER_IDX);
+        return Arrays.asList(Indexes.TASK_PARAMETER_IDX);
     }
 
     @Override
@@ -170,11 +174,6 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
     }
 
     @Override
-    public List<UniqueKey<TaskParameterRecord>> getKeys() {
-        return Arrays.<UniqueKey<TaskParameterRecord>>asList(Keys.TASK_PARAMETER_PK);
-    }
-
-    @Override
     public TaskParameter as(String alias) {
         return new TaskParameter(DSL.name(alias), this);
     }
@@ -182,6 +181,11 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
     @Override
     public TaskParameter as(Name alias) {
         return new TaskParameter(alias, this);
+    }
+
+    @Override
+    public TaskParameter as(Table<?> alias) {
+        return new TaskParameter(alias.getQualifiedName(), this);
     }
 
     /**
@@ -200,6 +204,14 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
         return new TaskParameter(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public TaskParameter rename(Table<?> name) {
+        return new TaskParameter(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row10 type methods
     // -------------------------------------------------------------------------
@@ -207,5 +219,20 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
     @Override
     public Row10<Integer, Integer, String, Long, String, String, String, String, String, String> fieldsRow() {
         return (Row10) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function10<? super Integer, ? super Integer, ? super String, ? super Long, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super Integer, ? super Integer, ? super String, ? super Long, ? super String, ? super String, ? super String, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

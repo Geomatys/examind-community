@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,16 +34,16 @@ public class Sensor implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  identifier;
-    private String  type;
-    private String  parent;
+    private String identifier;
+    private String type;
+    private String parent;
     private Integer owner;
-    private Long    date;
+    private Long date;
     private Integer providerId;
-    private String  profile;
-    private String  omType;
-    private String  name;
-    private String  description;
+    private String profile;
+    private String omType;
+    private String name;
+    private String description;
 
     public Sensor() {}
 
@@ -63,16 +63,16 @@ public class Sensor implements Serializable {
 
     public Sensor(
         Integer id,
-        String  identifier,
-        String  type,
-        String  parent,
+        String identifier,
+        String type,
+        String parent,
         Integer owner,
-        Long    date,
+        Long date,
         Integer providerId,
-        String  profile,
-        String  omType,
-        String  name,
-        String  description
+        String profile,
+        String omType,
+        String name,
+        String description
     ) {
         this.id = id;
         this.identifier = identifier;
@@ -259,6 +259,102 @@ public class Sensor implements Serializable {
     public Sensor setDescription(String description) {
         this.description = description;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Sensor other = (Sensor) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.identifier == null) {
+            if (other.identifier != null)
+                return false;
+        }
+        else if (!this.identifier.equals(other.identifier))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.parent == null) {
+            if (other.parent != null)
+                return false;
+        }
+        else if (!this.parent.equals(other.parent))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.date == null) {
+            if (other.date != null)
+                return false;
+        }
+        else if (!this.date.equals(other.date))
+            return false;
+        if (this.providerId == null) {
+            if (other.providerId != null)
+                return false;
+        }
+        else if (!this.providerId.equals(other.providerId))
+            return false;
+        if (this.profile == null) {
+            if (other.profile != null)
+                return false;
+        }
+        else if (!this.profile.equals(other.profile))
+            return false;
+        if (this.omType == null) {
+            if (other.omType != null)
+                return false;
+        }
+        else if (!this.omType.equals(other.omType))
+            return false;
+        if (this.name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!this.name.equals(other.name))
+            return false;
+        if (this.description == null) {
+            if (other.description != null)
+                return false;
+        }
+        else if (!this.description.equals(other.description))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.identifier == null) ? 0 : this.identifier.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.parent == null) ? 0 : this.parent.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.date == null) ? 0 : this.date.hashCode());
+        result = prime * result + ((this.providerId == null) ? 0 : this.providerId.hashCode());
+        result = prime * result + ((this.profile == null) ? 0 : this.profile.hashCode());
+        result = prime * result + ((this.omType == null) ? 0 : this.omType.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.description == null) ? 0 : this.description.hashCode());
+        return result;
     }
 
     @Override

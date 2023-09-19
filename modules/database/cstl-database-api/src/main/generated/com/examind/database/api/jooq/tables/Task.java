@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -26,14 +26,18 @@ import com.examind.database.api.jooq.tables.records.TaskRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function10;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row10;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -149,12 +153,12 @@ public class Task extends TableImpl<TaskRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.<Index>asList(Indexes.TASK_OWNER_IDX);
+        return Arrays.asList(Indexes.TASK_OWNER_IDX);
     }
 
     @Override
@@ -163,18 +167,16 @@ public class Task extends TableImpl<TaskRecord> {
     }
 
     @Override
-    public List<UniqueKey<TaskRecord>> getKeys() {
-        return Arrays.<UniqueKey<TaskRecord>>asList(Keys.TASK_PK);
-    }
-
-    @Override
     public List<ForeignKey<TaskRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<TaskRecord, ?>>asList(Keys.TASK__TASK_OWNER_FK, Keys.TASK__TASK_TASK_PARAMETER_ID_FK);
+        return Arrays.asList(Keys.TASK__TASK_OWNER_FK, Keys.TASK__TASK_TASK_PARAMETER_ID_FK);
     }
 
     private transient CstlUser _cstlUser;
     private transient TaskParameter _taskParameter;
 
+    /**
+     * Get the implicit join path to the <code>admin.cstl_user</code> table.
+     */
     public CstlUser cstlUser() {
         if (_cstlUser == null)
             _cstlUser = new CstlUser(this, Keys.TASK__TASK_OWNER_FK);
@@ -182,6 +184,10 @@ public class Task extends TableImpl<TaskRecord> {
         return _cstlUser;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.task_parameter</code>
+     * table.
+     */
     public TaskParameter taskParameter() {
         if (_taskParameter == null)
             _taskParameter = new TaskParameter(this, Keys.TASK__TASK_TASK_PARAMETER_ID_FK);
@@ -197,6 +203,11 @@ public class Task extends TableImpl<TaskRecord> {
     @Override
     public Task as(Name alias) {
         return new Task(alias, this);
+    }
+
+    @Override
+    public Task as(Table<?> alias) {
+        return new Task(alias.getQualifiedName(), this);
     }
 
     /**
@@ -215,6 +226,14 @@ public class Task extends TableImpl<TaskRecord> {
         return new Task(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public Task rename(Table<?> name) {
+        return new Task(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row10 type methods
     // -------------------------------------------------------------------------
@@ -222,5 +241,20 @@ public class Task extends TableImpl<TaskRecord> {
     @Override
     public Row10<String, String, String, Long, Long, Integer, String, Integer, Double, String> fieldsRow() {
         return (Row10) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function10<? super String, ? super String, ? super String, ? super Long, ? super Long, ? super Integer, ? super String, ? super Integer, ? super Double, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function10<? super String, ? super String, ? super String, ? super Long, ? super Long, ? super Integer, ? super String, ? super Integer, ? super Double, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

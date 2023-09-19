@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,13 +25,17 @@ import com.examind.database.api.jooq.tables.records.ProviderXSosRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function3;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row3;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -74,7 +78,7 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
     /**
      * The column <code>admin.provider_x_sos.all_sensor</code>.
      */
-    public final TableField<ProviderXSosRecord, Boolean> ALL_SENSOR = createField(DSL.name("all_sensor"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field("true", SQLDataType.BOOLEAN)), this, "");
+    public final TableField<ProviderXSosRecord, Boolean> ALL_SENSOR = createField(DSL.name("all_sensor"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("true"), SQLDataType.BOOLEAN)), this, "");
 
     private ProviderXSos(Name alias, Table<ProviderXSosRecord> aliased) {
         this(alias, aliased, null);
@@ -111,17 +115,20 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
     public List<ForeignKey<ProviderXSosRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ProviderXSosRecord, ?>>asList(Keys.PROVIDER_X_SOS__SOS_PROVIDER_CROSS_ID_FK, Keys.PROVIDER_X_SOS__PROVIDER_SOS_CROSS_ID_FK);
+        return Arrays.asList(Keys.PROVIDER_X_SOS__SOS_PROVIDER_CROSS_ID_FK, Keys.PROVIDER_X_SOS__PROVIDER_SOS_CROSS_ID_FK);
     }
 
     private transient Service _service;
     private transient Provider _provider;
 
+    /**
+     * Get the implicit join path to the <code>admin.service</code> table.
+     */
     public Service service() {
         if (_service == null)
             _service = new Service(this, Keys.PROVIDER_X_SOS__SOS_PROVIDER_CROSS_ID_FK);
@@ -129,6 +136,9 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
         return _service;
     }
 
+    /**
+     * Get the implicit join path to the <code>admin.provider</code> table.
+     */
     public Provider provider() {
         if (_provider == null)
             _provider = new Provider(this, Keys.PROVIDER_X_SOS__PROVIDER_SOS_CROSS_ID_FK);
@@ -144,6 +154,11 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
     @Override
     public ProviderXSos as(Name alias) {
         return new ProviderXSos(alias, this);
+    }
+
+    @Override
+    public ProviderXSos as(Table<?> alias) {
+        return new ProviderXSos(alias.getQualifiedName(), this);
     }
 
     /**
@@ -162,6 +177,14 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
         return new ProviderXSos(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public ProviderXSos rename(Table<?> name) {
+        return new ProviderXSos(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row3 type methods
     // -------------------------------------------------------------------------
@@ -169,5 +192,20 @@ public class ProviderXSos extends TableImpl<ProviderXSosRecord> {
     @Override
     public Row3<Integer, Integer, Boolean> fieldsRow() {
         return (Row3) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function3<? super Integer, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function3<? super Integer, ? super Integer, ? super Boolean, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

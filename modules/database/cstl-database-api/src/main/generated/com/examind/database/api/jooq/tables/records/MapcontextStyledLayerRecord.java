@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.MapcontextStyledLayer;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
@@ -162,7 +162,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
      */
     public MapcontextStyledLayerRecord setExternalLayerExtent(String value) {
         set(8, value);
@@ -170,7 +171,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
      */
     @Size(max = 512)
     public String getExternalLayerExtent() {
@@ -178,7 +180,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_service_url</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_service_url</code>.
      */
     public MapcontextStyledLayerRecord setExternalServiceUrl(String value) {
         set(9, value);
@@ -186,7 +189,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_service_url</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_service_url</code>.
      */
     @Size(max = 512)
     public String getExternalServiceUrl() {
@@ -194,7 +198,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_service_version</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_service_version</code>.
      */
     public MapcontextStyledLayerRecord setExternalServiceVersion(String value) {
         set(10, value);
@@ -202,7 +207,8 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_service_version</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_service_version</code>.
      */
     @Size(max = 32)
     public String getExternalServiceVersion() {
@@ -661,5 +667,32 @@ public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextS
         setIswms(iswms);
         setDataId(dataId);
         setQuery(query);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised MapcontextStyledLayerRecord
+     */
+    public MapcontextStyledLayerRecord(com.examind.database.api.jooq.tables.pojos.MapcontextStyledLayer value) {
+        super(MapcontextStyledLayer.MAPCONTEXT_STYLED_LAYER);
+
+        if (value != null) {
+            setId(value.getId());
+            setMapcontextId(value.getMapcontextId());
+            setLayerId(value.getLayerId());
+            setStyleId(value.getStyleId());
+            setLayerOrder(value.getLayerOrder());
+            setLayerOpacity(value.getLayerOpacity());
+            setLayerVisible(value.getLayerVisible());
+            setExternalLayer(value.getExternalLayer());
+            setExternalLayerExtent(value.getExternalLayerExtent());
+            setExternalServiceUrl(value.getExternalServiceUrl());
+            setExternalServiceVersion(value.getExternalServiceVersion());
+            setExternalStyle(value.getExternalStyle());
+            setIswms(value.getIswms());
+            setDataId(value.getDataId());
+            setQuery(value.getQuery());
+            resetChangedOnNotNull();
+        }
     }
 }

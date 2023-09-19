@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -34,11 +34,11 @@ public class Style implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Integer id;
-    private String  name;
+    private String name;
     private Integer provider;
-    private String  type;
-    private Long    date;
-    private String  body;
+    private String type;
+    private Long date;
+    private String body;
     private Integer owner;
     private Boolean isShared;
 
@@ -57,11 +57,11 @@ public class Style implements Serializable {
 
     public Style(
         Integer id,
-        String  name,
+        String name,
         Integer provider,
-        String  type,
-        Long    date,
-        String  body,
+        String type,
+        Long date,
+        String body,
         Integer owner,
         Boolean isShared
     ) {
@@ -200,6 +200,81 @@ public class Style implements Serializable {
     public Style setIsShared(Boolean isShared) {
         this.isShared = isShared;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Style other = (Style) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.name == null) {
+            if (other.name != null)
+                return false;
+        }
+        else if (!this.name.equals(other.name))
+            return false;
+        if (this.provider == null) {
+            if (other.provider != null)
+                return false;
+        }
+        else if (!this.provider.equals(other.provider))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.date == null) {
+            if (other.date != null)
+                return false;
+        }
+        else if (!this.date.equals(other.date))
+            return false;
+        if (this.body == null) {
+            if (other.body != null)
+                return false;
+        }
+        else if (!this.body.equals(other.body))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.isShared == null) {
+            if (other.isShared != null)
+                return false;
+        }
+        else if (!this.isShared.equals(other.isShared))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+        result = prime * result + ((this.provider == null) ? 0 : this.provider.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.date == null) ? 0 : this.date.hashCode());
+        result = prime * result + ((this.body == null) ? 0 : this.body.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.isShared == null) ? 0 : this.isShared.hashCode());
+        return result;
     }
 
     @Override

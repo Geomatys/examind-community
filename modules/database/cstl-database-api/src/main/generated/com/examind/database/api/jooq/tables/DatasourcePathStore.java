@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -25,14 +25,18 @@ import com.examind.database.api.jooq.tables.records.DatasourcePathStoreRecord;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 
 import org.constellation.database.model.jooq.util.StringBinding;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Function4;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Records;
 import org.jooq.Row4;
 import org.jooq.Schema;
+import org.jooq.SelectField;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
@@ -92,14 +96,16 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
     }
 
     /**
-     * Create an aliased <code>admin.datasource_path_store</code> table reference
+     * Create an aliased <code>admin.datasource_path_store</code> table
+     * reference
      */
     public DatasourcePathStore(String alias) {
         this(DSL.name(alias), DATASOURCE_PATH_STORE);
     }
 
     /**
-     * Create an aliased <code>admin.datasource_path_store</code> table reference
+     * Create an aliased <code>admin.datasource_path_store</code> table
+     * reference
      */
     public DatasourcePathStore(Name alias) {
         this(alias, DATASOURCE_PATH_STORE);
@@ -118,7 +124,7 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
 
     @Override
     public Schema getSchema() {
-        return Admin.ADMIN;
+        return aliased() ? null : Admin.ADMIN;
     }
 
     @Override
@@ -127,17 +133,16 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
     }
 
     @Override
-    public List<UniqueKey<DatasourcePathStoreRecord>> getKeys() {
-        return Arrays.<UniqueKey<DatasourcePathStoreRecord>>asList(Keys.DATASOURCE_PATH_STORE_PK);
-    }
-
-    @Override
     public List<ForeignKey<DatasourcePathStoreRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<DatasourcePathStoreRecord, ?>>asList(Keys.DATASOURCE_PATH_STORE__DATASOURCE_PATH_STORE_PATH_FK);
+        return Arrays.asList(Keys.DATASOURCE_PATH_STORE__DATASOURCE_PATH_STORE_PATH_FK);
     }
 
     private transient DatasourcePath _datasourcePath;
 
+    /**
+     * Get the implicit join path to the <code>admin.datasource_path</code>
+     * table.
+     */
     public DatasourcePath datasourcePath() {
         if (_datasourcePath == null)
             _datasourcePath = new DatasourcePath(this, Keys.DATASOURCE_PATH_STORE__DATASOURCE_PATH_STORE_PATH_FK);
@@ -153,6 +158,11 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
     @Override
     public DatasourcePathStore as(Name alias) {
         return new DatasourcePathStore(alias, this);
+    }
+
+    @Override
+    public DatasourcePathStore as(Table<?> alias) {
+        return new DatasourcePathStore(alias.getQualifiedName(), this);
     }
 
     /**
@@ -171,6 +181,14 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
         return new DatasourcePathStore(name, null);
     }
 
+    /**
+     * Rename this table
+     */
+    @Override
+    public DatasourcePathStore rename(Table<?> name) {
+        return new DatasourcePathStore(name.getQualifiedName(), null);
+    }
+
     // -------------------------------------------------------------------------
     // Row4 type methods
     // -------------------------------------------------------------------------
@@ -178,5 +196,20 @@ public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
     @Override
     public Row4<Integer, String, String, String> fieldsRow() {
         return (Row4) super.fieldsRow();
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
+     */
+    public <U> SelectField<U> mapping(Function4<? super Integer, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(Records.mapping(from));
+    }
+
+    /**
+     * Convenience mapping calling {@link SelectField#convertFrom(Class,
+     * Function)}.
+     */
+    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super String, ? super String, ? super String, ? extends U> from) {
+        return convertFrom(toType, Records.mapping(from));
     }
 }

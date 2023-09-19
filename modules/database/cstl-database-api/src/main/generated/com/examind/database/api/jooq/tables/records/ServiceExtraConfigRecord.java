@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -21,8 +21,8 @@ package com.examind.database.api.jooq.tables.records;
 
 import com.examind.database.api.jooq.tables.ServiceExtraConfig;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record2;
@@ -201,5 +201,20 @@ public class ServiceExtraConfigRecord extends UpdatableRecordImpl<ServiceExtraCo
         setId(id);
         setFilename(filename);
         setContent(content);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised ServiceExtraConfigRecord
+     */
+    public ServiceExtraConfigRecord(com.examind.database.api.jooq.tables.pojos.ServiceExtraConfig value) {
+        super(ServiceExtraConfig.SERVICE_EXTRA_CONFIG);
+
+        if (value != null) {
+            setId(value.getId());
+            setFilename(value.getFilename());
+            setContent(value.getContent());
+            resetChangedOnNotNull();
+        }
     }
 }

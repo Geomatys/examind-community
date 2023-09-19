@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -40,14 +40,14 @@ public class MapcontextStyledLayer implements Serializable {
     private Integer layerOrder;
     private Integer layerOpacity;
     private Boolean layerVisible;
-    private String  externalLayer;
-    private String  externalLayerExtent;
-    private String  externalServiceUrl;
-    private String  externalServiceVersion;
-    private String  externalStyle;
+    private String externalLayer;
+    private String externalLayerExtent;
+    private String externalServiceUrl;
+    private String externalServiceVersion;
+    private String externalStyle;
     private Boolean iswms;
     private Integer dataId;
-    private String  query;
+    private String query;
 
     public MapcontextStyledLayer() {}
 
@@ -77,14 +77,14 @@ public class MapcontextStyledLayer implements Serializable {
         Integer layerOrder,
         Integer layerOpacity,
         Boolean layerVisible,
-        String  externalLayer,
-        String  externalLayerExtent,
-        String  externalServiceUrl,
-        String  externalServiceVersion,
-        String  externalStyle,
+        String externalLayer,
+        String externalLayerExtent,
+        String externalServiceUrl,
+        String externalServiceVersion,
+        String externalStyle,
         Boolean iswms,
         Integer dataId,
-        String  query
+        String query
     ) {
         this.id = id;
         this.mapcontextId = mapcontextId;
@@ -226,7 +226,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
      */
     @Size(max = 512)
     public String getExternalLayerExtent() {
@@ -234,7 +235,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_layer_extent</code>.
      */
     public MapcontextStyledLayer setExternalLayerExtent(String externalLayerExtent) {
         this.externalLayerExtent = externalLayerExtent;
@@ -242,7 +244,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_service_url</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_service_url</code>.
      */
     @Size(max = 512)
     public String getExternalServiceUrl() {
@@ -250,7 +253,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_service_url</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_service_url</code>.
      */
     public MapcontextStyledLayer setExternalServiceUrl(String externalServiceUrl) {
         this.externalServiceUrl = externalServiceUrl;
@@ -258,7 +262,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Getter for <code>admin.mapcontext_styled_layer.external_service_version</code>.
+     * Getter for
+     * <code>admin.mapcontext_styled_layer.external_service_version</code>.
      */
     @Size(max = 32)
     public String getExternalServiceVersion() {
@@ -266,7 +271,8 @@ public class MapcontextStyledLayer implements Serializable {
     }
 
     /**
-     * Setter for <code>admin.mapcontext_styled_layer.external_service_version</code>.
+     * Setter for
+     * <code>admin.mapcontext_styled_layer.external_service_version</code>.
      */
     public MapcontextStyledLayer setExternalServiceVersion(String externalServiceVersion) {
         this.externalServiceVersion = externalServiceVersion;
@@ -333,6 +339,130 @@ public class MapcontextStyledLayer implements Serializable {
     public MapcontextStyledLayer setQuery(String query) {
         this.query = query;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final MapcontextStyledLayer other = (MapcontextStyledLayer) obj;
+        if (this.id == null) {
+            if (other.id != null)
+                return false;
+        }
+        else if (!this.id.equals(other.id))
+            return false;
+        if (this.mapcontextId == null) {
+            if (other.mapcontextId != null)
+                return false;
+        }
+        else if (!this.mapcontextId.equals(other.mapcontextId))
+            return false;
+        if (this.layerId == null) {
+            if (other.layerId != null)
+                return false;
+        }
+        else if (!this.layerId.equals(other.layerId))
+            return false;
+        if (this.styleId == null) {
+            if (other.styleId != null)
+                return false;
+        }
+        else if (!this.styleId.equals(other.styleId))
+            return false;
+        if (this.layerOrder == null) {
+            if (other.layerOrder != null)
+                return false;
+        }
+        else if (!this.layerOrder.equals(other.layerOrder))
+            return false;
+        if (this.layerOpacity == null) {
+            if (other.layerOpacity != null)
+                return false;
+        }
+        else if (!this.layerOpacity.equals(other.layerOpacity))
+            return false;
+        if (this.layerVisible == null) {
+            if (other.layerVisible != null)
+                return false;
+        }
+        else if (!this.layerVisible.equals(other.layerVisible))
+            return false;
+        if (this.externalLayer == null) {
+            if (other.externalLayer != null)
+                return false;
+        }
+        else if (!this.externalLayer.equals(other.externalLayer))
+            return false;
+        if (this.externalLayerExtent == null) {
+            if (other.externalLayerExtent != null)
+                return false;
+        }
+        else if (!this.externalLayerExtent.equals(other.externalLayerExtent))
+            return false;
+        if (this.externalServiceUrl == null) {
+            if (other.externalServiceUrl != null)
+                return false;
+        }
+        else if (!this.externalServiceUrl.equals(other.externalServiceUrl))
+            return false;
+        if (this.externalServiceVersion == null) {
+            if (other.externalServiceVersion != null)
+                return false;
+        }
+        else if (!this.externalServiceVersion.equals(other.externalServiceVersion))
+            return false;
+        if (this.externalStyle == null) {
+            if (other.externalStyle != null)
+                return false;
+        }
+        else if (!this.externalStyle.equals(other.externalStyle))
+            return false;
+        if (this.iswms == null) {
+            if (other.iswms != null)
+                return false;
+        }
+        else if (!this.iswms.equals(other.iswms))
+            return false;
+        if (this.dataId == null) {
+            if (other.dataId != null)
+                return false;
+        }
+        else if (!this.dataId.equals(other.dataId))
+            return false;
+        if (this.query == null) {
+            if (other.query != null)
+                return false;
+        }
+        else if (!this.query.equals(other.query))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
+        result = prime * result + ((this.mapcontextId == null) ? 0 : this.mapcontextId.hashCode());
+        result = prime * result + ((this.layerId == null) ? 0 : this.layerId.hashCode());
+        result = prime * result + ((this.styleId == null) ? 0 : this.styleId.hashCode());
+        result = prime * result + ((this.layerOrder == null) ? 0 : this.layerOrder.hashCode());
+        result = prime * result + ((this.layerOpacity == null) ? 0 : this.layerOpacity.hashCode());
+        result = prime * result + ((this.layerVisible == null) ? 0 : this.layerVisible.hashCode());
+        result = prime * result + ((this.externalLayer == null) ? 0 : this.externalLayer.hashCode());
+        result = prime * result + ((this.externalLayerExtent == null) ? 0 : this.externalLayerExtent.hashCode());
+        result = prime * result + ((this.externalServiceUrl == null) ? 0 : this.externalServiceUrl.hashCode());
+        result = prime * result + ((this.externalServiceVersion == null) ? 0 : this.externalServiceVersion.hashCode());
+        result = prime * result + ((this.externalStyle == null) ? 0 : this.externalStyle.hashCode());
+        result = prime * result + ((this.iswms == null) ? 0 : this.iswms.hashCode());
+        result = prime * result + ((this.dataId == null) ? 0 : this.dataId.hashCode());
+        result = prime * result + ((this.query == null) ? 0 : this.query.hashCode());
+        return result;
     }
 
     @Override

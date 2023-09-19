@@ -4,7 +4,7 @@
  * 
  *  Copyright 2022 Geomatys.
  * 
- *  Licensed under the Apache License, Version 2.0 (    the "License");
+ *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
  * 
@@ -19,10 +19,10 @@
 package com.examind.database.api.jooq.tables.pojos;
 
 
-import java.io.Serializable;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 
 /**
@@ -33,16 +33,16 @@ public class Task implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String  identifier;
-    private String  state;
-    private String  type;
-    private Long    dateStart;
-    private Long    dateEnd;
+    private String identifier;
+    private String state;
+    private String type;
+    private Long dateStart;
+    private Long dateEnd;
     private Integer owner;
-    private String  message;
+    private String message;
     private Integer taskParameterId;
-    private Double  progress;
-    private String  taskOutput;
+    private Double progress;
+    private String taskOutput;
 
     public Task() {}
 
@@ -60,16 +60,16 @@ public class Task implements Serializable {
     }
 
     public Task(
-        String  identifier,
-        String  state,
-        String  type,
-        Long    dateStart,
-        Long    dateEnd,
+        String identifier,
+        String state,
+        String type,
+        Long dateStart,
+        Long dateEnd,
         Integer owner,
-        String  message,
+        String message,
         Integer taskParameterId,
-        Double  progress,
-        String  taskOutput
+        Double progress,
+        String taskOutput
     ) {
         this.identifier = identifier;
         this.state = state;
@@ -238,6 +238,95 @@ public class Task implements Serializable {
     public Task setTaskOutput(String taskOutput) {
         this.taskOutput = taskOutput;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        final Task other = (Task) obj;
+        if (this.identifier == null) {
+            if (other.identifier != null)
+                return false;
+        }
+        else if (!this.identifier.equals(other.identifier))
+            return false;
+        if (this.state == null) {
+            if (other.state != null)
+                return false;
+        }
+        else if (!this.state.equals(other.state))
+            return false;
+        if (this.type == null) {
+            if (other.type != null)
+                return false;
+        }
+        else if (!this.type.equals(other.type))
+            return false;
+        if (this.dateStart == null) {
+            if (other.dateStart != null)
+                return false;
+        }
+        else if (!this.dateStart.equals(other.dateStart))
+            return false;
+        if (this.dateEnd == null) {
+            if (other.dateEnd != null)
+                return false;
+        }
+        else if (!this.dateEnd.equals(other.dateEnd))
+            return false;
+        if (this.owner == null) {
+            if (other.owner != null)
+                return false;
+        }
+        else if (!this.owner.equals(other.owner))
+            return false;
+        if (this.message == null) {
+            if (other.message != null)
+                return false;
+        }
+        else if (!this.message.equals(other.message))
+            return false;
+        if (this.taskParameterId == null) {
+            if (other.taskParameterId != null)
+                return false;
+        }
+        else if (!this.taskParameterId.equals(other.taskParameterId))
+            return false;
+        if (this.progress == null) {
+            if (other.progress != null)
+                return false;
+        }
+        else if (!this.progress.equals(other.progress))
+            return false;
+        if (this.taskOutput == null) {
+            if (other.taskOutput != null)
+                return false;
+        }
+        else if (!this.taskOutput.equals(other.taskOutput))
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((this.identifier == null) ? 0 : this.identifier.hashCode());
+        result = prime * result + ((this.state == null) ? 0 : this.state.hashCode());
+        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.dateStart == null) ? 0 : this.dateStart.hashCode());
+        result = prime * result + ((this.dateEnd == null) ? 0 : this.dateEnd.hashCode());
+        result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
+        result = prime * result + ((this.message == null) ? 0 : this.message.hashCode());
+        result = prime * result + ((this.taskParameterId == null) ? 0 : this.taskParameterId.hashCode());
+        result = prime * result + ((this.progress == null) ? 0 : this.progress.hashCode());
+        result = prime * result + ((this.taskOutput == null) ? 0 : this.taskOutput.hashCode());
+        return result;
     }
 
     @Override
