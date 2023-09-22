@@ -26,6 +26,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,38 +63,38 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
 
     public static final String CONCEPT_TYPE = "http://www.w3.org/2004/02/skos/core#Concept";
 
-    protected static final String LABEL_TYPE               = "label";
-    protected static final String ALT_LABEL_TYPE           = "altLabel";
-    protected static final String DEFINITION_LABEL_TYPE    = "definition";
-    protected static final String PREF_LABEL_TYPE          = "prefLabel";
-    protected static final String SCOPE_NOTE_TYPE          = "scopeNote";
-    protected static final String HISTORY_NOTE_TYPE        = "historyNote";
-    protected static final String EXAMPLE_TYPE             = "example";
+    public static final String LABEL_TYPE               = "label";
+    public static final String ALT_LABEL_TYPE           = "altLabel";
+    public static final String DEFINITION_LABEL_TYPE    = "definition";
+    public static final String PREF_LABEL_TYPE          = "prefLabel";
+    public static final String SCOPE_NOTE_TYPE          = "scopeNote";
+    public static final String HISTORY_NOTE_TYPE        = "historyNote";
+    public static final String EXAMPLE_TYPE             = "example";
 
 
-    protected static final String TYPE_PREDICATE              = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-    protected static final String VALUE_PREDICATE             = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value";
-    protected static final String CHANGE_NOTE_PREDICATE       = "http://www.w3.org/2004/02/skos/core#changeNote";
-    protected static final String BROADER_PREDICATE           = "http://www.w3.org/2004/02/skos/core#broader";
-    protected static final String HAS_TOP_CONCEPT_PREDICATE   = "http://www.w3.org/2004/02/skos/core#hasTopConcept";
-    protected static final String NARROWER_PREDICATE          = "http://www.w3.org/2004/02/skos/core#narrower";
-    protected static final String RELATED_PREDICATE           = "http://www.w3.org/2004/02/skos/core#related";
-    protected static final String NARROWER_TRANS_PREDICATE    = "http://www.w3.org/2004/02/skos/core#narrowerTransitive";
-    protected static final String EXTERNAL_ID_PREDICATE       = "http://www.w3.org/2004/02/skos/core#externalID";
-    protected static final String HIERARCHY_ROOT_TY_PREDICATE = "http://semantic-web.at/ontologies/csw.owl#hierarchyRootType";
-    protected static final String HIERARCHY_ROOT_PREDICATE    = "http://semantic-web.at/ontologies/csw.owl#hierarchyRoot";
-    protected static final String CREATOR_PREDICATE           = "http://purl.org/dc/elements/1.1/creator";
-    protected static final String DATE_PREDICATE              = "http://purl.org/dc/elements/1.1/date";
-    protected static final String LANGUAGE_PREDICATE          = "http://purl.org/dc/elements/1.1/language";
-    protected static final String DESCRIPTION_PREDICATE       = "http://purl.org/dc/elements/1.1/description";
-    protected static final String CONTRIBUTOR_PREDICATE       = "http://purl.org/dc/elements/1.1/contributor";
-    protected static final String RIGHTS_PREDICATE            = "http://purl.org/dc/elements/1.1/rights";
-    protected static final String TITLE_PREDICATE             = "http://purl.org/dc/elements/1.1/title";
-    protected static final String SUBJECT_PREDICATE           = "http://purl.org/dc/elements/1.1/subject";
-    protected static final String ISSUED_PREDICATE            = "http://purl.org/dc/terms/issued";
-    protected static final String MODIFIED_PREDICATE          = "http://purl.org/dc/terms/modified";
-    protected static final String HAS_VERSION_PREDICATE       = "http://purl.org/dc/terms/hasVersion";
-    protected static final String NAME_PREDICATE              = "http://xmlns.com/foaf/0.1/name";
+    public static final String TYPE_PREDICATE              = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    public static final String VALUE_PREDICATE             = "http://www.w3.org/1999/02/22-rdf-syntax-ns#value";
+    public static final String CHANGE_NOTE_PREDICATE       = "http://www.w3.org/2004/02/skos/core#changeNote";
+    public static final String BROADER_PREDICATE           = "http://www.w3.org/2004/02/skos/core#broader";
+    public static final String HAS_TOP_CONCEPT_PREDICATE   = "http://www.w3.org/2004/02/skos/core#hasTopConcept";
+    public static final String NARROWER_PREDICATE          = "http://www.w3.org/2004/02/skos/core#narrower";
+    public static final String RELATED_PREDICATE           = "http://www.w3.org/2004/02/skos/core#related";
+    public static final String NARROWER_TRANS_PREDICATE    = "http://www.w3.org/2004/02/skos/core#narrowerTransitive";
+    public static final String EXTERNAL_ID_PREDICATE       = "http://www.w3.org/2004/02/skos/core#externalID";
+    public static final String HIERARCHY_ROOT_TY_PREDICATE = "http://semantic-web.at/ontologies/csw.owl#hierarchyRootType";
+    public static final String HIERARCHY_ROOT_PREDICATE    = "http://semantic-web.at/ontologies/csw.owl#hierarchyRoot";
+    public static final String CREATOR_PREDICATE           = "http://purl.org/dc/elements/1.1/creator";
+    public static final String DATE_PREDICATE              = "http://purl.org/dc/elements/1.1/date";
+    public static final String LANGUAGE_PREDICATE          = "http://purl.org/dc/elements/1.1/language";
+    public static final String DESCRIPTION_PREDICATE       = "http://purl.org/dc/elements/1.1/description";
+    public static final String CONTRIBUTOR_PREDICATE       = "http://purl.org/dc/elements/1.1/contributor";
+    public static final String RIGHTS_PREDICATE            = "http://purl.org/dc/elements/1.1/rights";
+    public static final String TITLE_PREDICATE             = "http://purl.org/dc/elements/1.1/title";
+    public static final String SUBJECT_PREDICATE           = "http://purl.org/dc/elements/1.1/subject";
+    public static final String ISSUED_PREDICATE            = "http://purl.org/dc/terms/issued";
+    public static final String MODIFIED_PREDICATE          = "http://purl.org/dc/terms/modified";
+    public static final String HAS_VERSION_PREDICATE       = "http://purl.org/dc/terms/hasVersion";
+    public static final String NAME_PREDICATE              = "http://xmlns.com/foaf/0.1/name";
 
 
 
@@ -836,6 +838,137 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 concept.addHasTopConcept(c);
             }
         }
+    }
+
+    protected List<String> readMultipleConceptProperty(final String uriConcept, final String predicat, final Connection c) throws SQLException {
+        final String sql = "SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ? and \"predicat\" = ? order by \"graphid\"";
+        List<String> result;
+        try (PreparedStatement stmt = c.prepareStatement(sql)) {
+            stmt.setString(1, uriConcept);
+            stmt.setString(2, predicat);
+            try (ResultSet result1 = stmt.executeQuery()) {
+                result = new ArrayList<>();
+                while (result1.next()) {
+                    result.add(removePrefix(result1.getString(1)));
+                }
+            }
+        }
+        return result;
+    }
+
+    protected List<Concept> readMultipleConceptPropertyBrief(final String uriConcept, final String predicat, final Connection c) throws SQLException {
+        final String sql = "SELECT \"objet\" FROM \"" + schema + "\".\"" + TABLE_NAME + "\" WHERE \"uri_concept\" = ? and \"predicat\" = ? order by \"graphid\"";
+        List<Concept> result;
+        try (PreparedStatement stmt = c.prepareStatement(sql)) {
+            stmt.setString(1, uriConcept);
+            stmt.setString(2, predicat);
+            try (ResultSet result1 = stmt.executeQuery()) {
+                result = new ArrayList<>();
+                while (result1.next()) {
+                    final Concept ct = new Concept();
+                    ct.setResource(removePrefix(result1.getString(1)));
+                    result.add(ct);
+                }
+            }
+        }
+        return result;
+    }
+
+    protected Concept readPartialConcept(final String uriConcept, final Connection con, List<String> customProperties) throws SQLException {
+        if (uriConcept == null) return null;
+
+        // will return a concept only with uri/prefLabel
+        if (customProperties == null) {
+            customProperties = Collections.EMPTY_LIST;
+        }
+
+        // hack to avoid the confusion with the LIKE operator when uriconcept is an integer
+        boolean strict = true;
+        try {
+            Integer.valueOf(uriConcept);
+        } catch (NumberFormatException ex) {
+            strict = false;
+        }
+
+       List<Value> prefLabels = getMultiLingualTerm(uriConcept,   PREF_LABEL_TYPE,  strict, COMPLETION, con, null);
+
+       // empty prefLabels mean that the concept does not exist
+       if (prefLabels.isEmpty()) return null;
+
+       final Concept concept = buildEmptyConcept(removePrefix(uriConcept));
+       concept.setPrefLabel(prefLabels);
+
+        for (String customProperty : customProperties) {
+            // multiple properties case
+            if (BROADER_PREDICATE.equals(customProperty)) {
+                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
+                concept.setBroader(objet);
+                continue;
+            } else if (HAS_TOP_CONCEPT_PREDICATE.equals(customProperty)) {
+                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
+                concept.setHasTopConcept(objet);
+                continue;
+            } else if (NARROWER_PREDICATE.equals(customProperty)) {
+                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
+                concept.setNarrower(objet);
+                continue;
+            } else if (RELATED_PREDICATE.equals(customProperty)) {
+                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
+                concept.setRelated(objet);
+                continue;
+            } else if (NARROWER_TRANS_PREDICATE.equals(customProperty)) {
+                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
+                concept.setNarrowerTransitive(objet);
+                continue;
+            } else if (LANGUAGE_PREDICATE.equals(customProperty)) {
+                List<String> objet = readMultipleConceptProperty(uriConcept, customProperty, con);
+                concept.setLanguage(objet);
+                continue;
+            }
+
+            String objet = readConceptProperty(uriConcept, customProperty, con);
+            if (TYPE_PREDICATE.equals(customProperty)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.setType(c);
+            } else if (VALUE_PREDICATE.equals(customProperty)) {
+                concept.setValue(objet);
+            } else if (CHANGE_NOTE_PREDICATE.equals(customProperty)) {
+                concept.setChangeNote(objet);
+            } else if (EXTERNAL_ID_PREDICATE.equals(customProperty)) {
+                concept.setExternalID(objet);
+            } else if (HIERARCHY_ROOT_TY_PREDICATE.equals(customProperty)) {
+                final Concept c = new Concept();
+                c.setResource(objet);
+                concept.setHierarchyRootType(c);
+            } else if (HIERARCHY_ROOT_PREDICATE.equals(customProperty)) {
+                final boolean value = Boolean.parseBoolean(objet);
+                concept.setHierarchyRoot(value);
+            } else if (CREATOR_PREDICATE.equals(customProperty)) {
+                concept.setCreator(objet);
+            } else if (DATE_PREDICATE.equals(customProperty)) {
+                concept.setDate(objet);
+            } else if (DESCRIPTION_PREDICATE.equals(customProperty)) {
+                concept.setDescription(objet);
+            } else if (CONTRIBUTOR_PREDICATE.equals(customProperty)) {
+                concept.setContributor(objet);
+            } else if (RIGHTS_PREDICATE.equals(customProperty)) {
+                concept.setRights(objet);
+            } else if (TITLE_PREDICATE.equals(customProperty)) {
+                concept.setTitle(objet);
+            } else if (SUBJECT_PREDICATE.equals(customProperty)) {
+                concept.setSubject(objet);
+            } else if (ISSUED_PREDICATE.equals(customProperty)) {
+                concept.setIssued(objet);
+            } else if (MODIFIED_PREDICATE.equals(customProperty)) {
+                concept.setModified(objet);
+            } else if (HAS_VERSION_PREDICATE.equals(customProperty)) {
+                concept.setHasVersion(objet);
+            } else if (NAME_PREDICATE.equals(customProperty)) {
+                concept.setName(objet);
+            }
+        }
+        return concept;
     }
 
     @Override
