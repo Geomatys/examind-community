@@ -57,6 +57,8 @@ public interface StyleRepository extends AbstractRepository {
 
     void linkStyleToLayer(int styleId, int layerid);
 
+    void setDefaultStyleToLayer(int styleId, int layerId);
+
     void unlinkStyleToLayer(int styleId, int layerId);
 
     void unlinkAllStylesFromLayer(int layerId);

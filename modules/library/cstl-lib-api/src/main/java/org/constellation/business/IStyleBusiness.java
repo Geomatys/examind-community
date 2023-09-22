@@ -122,6 +122,8 @@ public interface IStyleBusiness {
 
     void unlinkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
+    void setDefaultStyleToLayer(int styleId, int layerId) throws ConfigurationException;
+
     /**
      * Creates a new style into a style provider instance.
      *

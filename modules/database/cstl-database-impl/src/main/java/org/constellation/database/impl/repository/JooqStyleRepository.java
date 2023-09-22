@@ -139,6 +139,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
         }
     }
 
+    @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public void setDefaultStyleToLayer(int styleId, int layerId) {
         StyledLayerRecord styledLayerRecord = dsl.select().from(STYLED_LAYER).where(STYLED_LAYER.LAYER.eq(layerId)).and(STYLED_LAYER.IS_DEFAULT.eq(true)).fetchOneInto(StyledLayerRecord.class);

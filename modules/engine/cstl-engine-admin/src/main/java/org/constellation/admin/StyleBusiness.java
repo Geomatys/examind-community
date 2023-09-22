@@ -381,6 +381,20 @@ public class StyleBusiness implements IStyleBusiness {
         }
     }
 
+    @Override
+    @Transactional
+    public void setDefaultStyleToLayer(int styleId, int layerId) throws ConfigurationException {
+        Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            final boolean styleFound = styleRepository.existsById(styleId);
+            if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+            styleRepository.setDefaultStyleToLayer(styleId, layerId);
+            clearServiceCache(l.getService());
+        } else {
+            throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
