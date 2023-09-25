@@ -79,7 +79,7 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
 
             Process process = desc.createProcess(in);
             ParameterValueGroup results = process.call();
-            String jsonResults = ParamUtilities.writeParameterJSON(results);
+            String jsonResults = ParamUtilities.writeParameterJSON(results, true);
             outputParameters.getOrCreate(ProcessFromYamlProcessDescriptor.PROCESS_OUTPUT).setValue(jsonResults);
 
         } catch (IOException | NoSuchIdentifierException e) {

@@ -26,31 +26,18 @@ import org.apache.sis.util.Static;
 import org.constellation.util.json.ParameterDescriptorJSONSerializer;
 import org.constellation.util.json.ParameterValueJSONDeserializer;
 import org.constellation.util.json.ParameterValueJSONSerializer;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.xml.parameter.ParameterValueReader;
 import org.geotoolkit.xml.parameter.ParameterValueWriter;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptorGroup;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMSource;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
-import org.geotoolkit.util.DomUtilities;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -83,47 +70,6 @@ public final class ParamUtilities extends Static {
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
         return readParameterInternal(xml, descriptor);
     }
-
-    /**
-     * FIXME this is a temporary fix for Geotk migration of Examind for backward compatibility of namespace.
-     *
-     *
-     * Convenient method to acquire a DOM document from an input.
-     * This is provided as a convenient method, use the default JRE classes so it may
-     * not be the faster parsing method.
-     */
-    private static Document read(final Object input) throws ParserConfigurationException, SAXException, IOException {
-        final Document document;
-        try (InputStream stream = toInputStream(input)) {
-            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            NodeUtilities.secureFactory(factory);//NOSONAR
-            //This is the fix to treat namespace backward compatibility
-            factory.setNamespaceAware(true);
-            final DocumentBuilder constructeur = factory.newDocumentBuilder();
-            document = constructeur.parse(stream);
-        }
-        return document;
-    }
-
-    /**
-     * Convert an object source to a stream.
-     */
-    private static InputStream toInputStream(final Object input) throws FileNotFoundException, IOException{
-
-        //special case when input object is document itelf
-        if (input instanceof String) {
-            try {
-                //try to open it as a path
-                final URL url = new URL((String) input);
-            } catch (MalformedURLException ex) {
-                //consider it's the document itself
-                return new ByteArrayInputStream(input.toString().getBytes());
-            }
-        }
-
-        return IOUtilities.open(input);
-    }
-
 
     private static GeneralParameterValue readParameterInternal(final Object input,
                                                       final GeneralParameterDescriptor descriptor) throws IOException {
@@ -169,12 +115,28 @@ public final class ParamUtilities extends Static {
      * @throws org.apache.sis.util.NullArgumentException if {@code parameter} is {@code null}
      */
     public static String writeParameterJSON(GeneralParameterValue parameter) throws JsonProcessingException {
+        return writeParameterJSON(parameter, false);
+    }
+
+    /**
+     * Serialize a ParameterValueGroup into a JSON String.
+     * @param parameter ParameterValueGroup
+     * @param prettyPrint The json will be pretty writen.
+     * @return JSON String.
+     * @throws JsonProcessingException
+     * @throws org.apache.sis.util.NullArgumentException if {@code parameter} is {@code null}
+     */
+    public static String writeParameterJSON(GeneralParameterValue parameter, boolean prettyPrint) throws JsonProcessingException {
         ArgumentChecks.ensureNonNull("parameter", parameter);
         final ObjectMapper mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
         module.addSerializer(GeneralParameterValue.class, new ParameterValueJSONSerializer()); //custom serializer
         mapper.registerModule(module);
-        return mapper.writeValueAsString(parameter);
+        if (prettyPrint) {
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(parameter);
+        } else {
+            return mapper.writeValueAsString(parameter);
+        }
     }
 
     /**
@@ -203,6 +165,18 @@ public final class ParamUtilities extends Static {
      * @throws org.apache.sis.util.NullArgumentException if {@code descriptor} is {@code null}
      */
     public static String writeParameterDescriptorJSON(GeneralParameterDescriptor descriptor) throws JsonProcessingException {
+        return writeParameterDescriptorJSON(descriptor, false);
+    }
+
+    /**
+     * Serialize a GeneralParameterDescriptor into a JSON String.
+     * @param descriptor GeneralParameterDescriptor.
+     * @param prettyPrint The json will be pretty writen.
+     * @return JSON String.
+     * @throws JsonProcessingException
+     * @throws org.apache.sis.util.NullArgumentException if {@code descriptor} is {@code null}
+     */
+    public static String writeParameterDescriptorJSON(GeneralParameterDescriptor descriptor, boolean prettyPrint) throws JsonProcessingException {
         ArgumentChecks.ensureNonNull("descriptor", descriptor);
         final ObjectMapper mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
