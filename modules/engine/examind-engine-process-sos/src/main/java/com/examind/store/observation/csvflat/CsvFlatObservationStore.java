@@ -447,9 +447,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
     @Override
     public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
-        // pre-load the obsProp colmuns has we don't want to open twice the file
+        // pre-load the obsProp columns has we don't want to open twice the file
         // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
-        final Set<String> obspropColumns = getObsPropColumns();
+        final Set<String> obspropColumnFilters = getObsPropColumns();
 
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
@@ -461,16 +461,22 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             // sometimes in some files, the last columns are empty, and so do not appears in the line
             // so we want to consider a line as imcomplete only if the last index we look for is missing.
             final AtomicInteger maxIndex  = new AtomicInteger();
+            final List<Integer> doubleFields = new ArrayList<>();
 
             final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
-            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
-            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
             int procedureIndex   = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
             int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+
+            int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+
+            // for line validation
+            int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+
             String fixedObsId    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
             final List<String> obsTypeCodes   = getObsTypeCodes();
@@ -493,8 +499,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     continue;
                 }
 
-                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                // verify that the line is not empty (meaning the observed property is not empty)
                 if (verifyEmptyLineStr(line, lineNumber, obsPropColumnIndexes)) {
+                    LOGGER.fine("skipping line due to none expected variable present.");
+                    continue;
+                }
+
+                // verify that the line is not empty (meaning that not all of the measure value selected are empty)
+                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
@@ -523,12 +535,17 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 final String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
                 
                 // checks if row matches the observed properties wanted
-                if (!obspropColumns.contains(observedProperty)) {
+                if (!obspropColumnFilters.contains(observedProperty)) {
                     continue;
                 }
 
                 if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, obspropColumns, null));
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, new ArrayList<>(), null));
+                }
+
+                // add used field
+                if (!currentPTree.fields.contains(observedProperty)) {
+                    currentPTree.fields.add(observedProperty);
                 }
 
                 // update temporal interval

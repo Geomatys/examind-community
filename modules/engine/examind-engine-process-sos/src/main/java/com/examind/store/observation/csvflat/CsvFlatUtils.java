@@ -36,16 +36,16 @@ import org.geotoolkit.util.StringUtilities;
 public class CsvFlatUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csvflat");
 
-    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> measureCodeColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException {
+    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> ObservedPropertiesColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException {
         try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, quoteChar)) {
 
-            List<Integer> measureCodeIndex = new ArrayList<>();
+            List<Integer> obsPropIndex = new ArrayList<>();
             
             // read headers
             String[] headers = null;
             // for error infos
-            Set<String> missingHeaders = new HashSet<>(measureCodeColumns);
-            // find measureCodeIndex
+            Set<String> missingHeaders = new HashSet<>(ObservedPropertiesColumns);
+            // find obsPropIndex
             if (!noHeader) {
                 headers = reader.getHeaders();
 
@@ -54,26 +54,26 @@ public class CsvFlatUtils {
                     if (directColumnIndex) {
                         header = Integer.toString(i);
                     }
-                    if (measureCodeColumns.contains(header)) {
+                    if (ObservedPropertiesColumns.contains(header)) {
                         missingHeaders.remove(header);
-                        measureCodeIndex.add(i);
+                        obsPropIndex.add(i);
                     }
                 }
             } else {
                 // implying direct column index
-                for (String i : measureCodeColumns) {
-                    measureCodeIndex.add(Integer.valueOf(i));
+                for (String i : ObservedPropertiesColumns) {
+                    obsPropIndex.add(Integer.valueOf(i));
                 }
             }
 
-            if (measureCodeIndex.size() != measureCodeColumns.size()) {
+            if (obsPropIndex.size() != ObservedPropertiesColumns.size()) {
                 throw new ConstellationStoreException("File headers is missing observed properties columns: " + StringUtilities.toCommaSeparatedValues(missingHeaders));
             }
 
             // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
             // so we want to consider a line as imcomplete only if the last index we look for is missing.
             int maxIndex  = -1;
-            for  (Integer i : measureCodeIndex) {
+            for  (Integer i : obsPropIndex) {
                 if (maxIndex < i) {
                     maxIndex = i;
                 }
@@ -96,7 +96,7 @@ public class CsvFlatUtils {
                 
                 String computed = "";
                 boolean first = true;
-                for(Integer i : measureCodeIndex) {
+                for(Integer i : obsPropIndex) {
                     final String nextCode = asString(line[i]);
                     if (nextCode == null || nextCode.isEmpty()) {
                         LOGGER.fine("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
