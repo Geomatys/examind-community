@@ -44,7 +44,7 @@ public class TimeScaleResultDecimator extends ResultDecimator {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
         int cpt = 0;
-        while (rs.nextOnField(procedure.mainField.name)) {
+        while (rs.nextOnField("step")) {
             values.newBlock();
             for (int i = 0; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
