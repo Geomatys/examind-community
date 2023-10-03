@@ -19,7 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 
@@ -45,6 +44,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.Util;
@@ -71,6 +71,7 @@ import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.result.ResultBuilder;
+import org.locationtech.jts.io.WKTReader;
 
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -83,7 +84,7 @@ import org.opengis.util.FactoryException;
  */
 public class OM2BaseReader {
 
-    protected final boolean isPostgres;
+    protected final OMSQLDialect dialect;
     
     protected final boolean timescaleDB;
 
@@ -125,8 +126,8 @@ public class OM2BaseReader {
 
     protected Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final boolean isPostgres, final boolean timescaleDB) throws DataStoreException {
-        this.isPostgres = isPostgres;
+    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final OMSQLDialect dialect, final boolean timescaleDB) throws DataStoreException {
+        this.dialect = dialect;
         this.timescaleDB = timescaleDB;
         this.phenomenonIdBase = (String) properties.getOrDefault(PHENOMENON_ID_BASE_NAME, "");
         this.sensorIdBase = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
@@ -147,7 +148,7 @@ public class OM2BaseReader {
         this.phenomenonIdBase          = that.phenomenonIdBase;
         this.observationTemplateIdBase = that.observationTemplateIdBase;
         this.sensorIdBase              = that.sensorIdBase;
-        this.isPostgres                = that.isPostgres;
+        this.dialect                   = that.dialect;
         this.observationIdBase         = that.observationIdBase;
         this.schemaPrefix              = that.schemaPrefix;
         this.cacheEnabled              = that.cacheEnabled;
@@ -178,32 +179,30 @@ public class OM2BaseReader {
             final String name;
             final String description;
             final String sampledFeature;
-            final byte[] b;
+            final org.locationtech.jts.geom.Geometry geom;
             final int srid;
             final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
-            try (final PreparedStatement stmt = (isPostgres) ?
-                c.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?") ://NOSONAR
-                c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
+            final String query = switch(dialect) {
+                case POSTGRES -> "SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?";
+                case DUCKDB   -> "SELECT \"id\", \"name\", \"description\", \"sampledfeature\", ST_AsText(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?";
+                case DERBY    -> "SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?";
+            };
+            try (final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
                 stmt.setString(1, id);
                 try (final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        name = rs.getString(2);
-                        description = rs.getString(3);
-                        sampledFeature = rs.getString(4);
-                        b = rs.getBytes(5);
-                        srid = rs.getInt(6);
+                        name = rs.getString("name");
+                        description = rs.getString("description");
+                        sampledFeature = rs.getString("sampledfeature");
+                        geom = readGeom(rs, "shape");
+                        srid = rs.getInt("crs");
                     } else {
                         return null;
                     }
                 }
-                final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                final Geometry geom;
-                if (b != null) {
-                    WKBReader reader = new WKBReader();
-                    geom = reader.read(b);
+                if (geom != null) {
+                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, crs);
-                } else {
-                    geom = null;
                 }
                 final SamplingFeature sf = new SamplingFeature(id, name, description, properties, sampledFeature, geom);
                 if (cacheEnabled) {
@@ -215,6 +214,45 @@ public class OM2BaseReader {
         } catch (ParseException | FactoryException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
+    }
+
+    protected org.locationtech.jts.geom.Geometry readGeom(SQLResult rs, String colName) throws SQLException, ParseException {
+        org.locationtech.jts.geom.Geometry geom = null;
+        // duck db driver does not support a lot of bytes handling. TODO, look for future driver improvement
+        if (dialect.equals(OMSQLDialect.DUCKDB)) {
+           String s = rs.getString(colName);
+            if (s != null) {
+                WKTReader reader = new WKTReader();
+                geom = reader.read(s);
+            }
+        } else {
+            final byte[] b = rs.getBytes(colName);
+            if (b != null) {
+                WKBReader reader = new WKBReader();
+                geom = reader.read(b);
+            }
+        }
+        return geom;
+    }
+
+
+     protected org.locationtech.jts.geom.Geometry readGeom(ResultSet rs, String colName) throws SQLException, ParseException {
+        org.locationtech.jts.geom.Geometry geom = null;
+        // duck db driver does not support a lot of bytes handling. TODO, look for future driver improvement
+        if (dialect.equals(OMSQLDialect.DUCKDB)) {
+           String s = rs.getString(colName);
+            if (s != null) {
+                WKTReader reader = new WKTReader();
+                geom = reader.read(s);
+            }
+        } else {
+            final byte[] b = rs.getBytes(colName);
+            if (b != null) {
+                WKBReader reader = new WKBReader();
+                geom = reader.read(b);
+            }
+        }
+        return geom;
     }
 
     /**

@@ -34,10 +34,9 @@ public abstract class AbstractSensorLocationDecimator extends SensorLocationProc
 
     protected final Map<Object, long[]> times;
 
-    public AbstractSensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times) {
-        super(envelopeFilter);
+    public AbstractSensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+        super(envelopeFilter, dialect);
         this.nbCell = width;
         this.times = times;
     }
-
 }

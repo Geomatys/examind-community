@@ -19,6 +19,7 @@ package org.constellation.store.observation.db;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.business.IDatasourceBusiness;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
@@ -88,7 +90,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     protected final boolean timescaleDB;
     protected final int maxFieldByTable;
 
-    protected final boolean isPostgres;
+    protected final OMSQLDialect dialect;
 
     public SOSDatabaseObservationStore(final ParameterValueGroup params) throws DataStoreException {
         super(Parameters.castOrWrap(params));
@@ -128,7 +130,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             }
             source =  candidate;
 
-            isPostgres = driver.startsWith("org.postgresql");
+            dialect = OMSQLDialect.valueOf(((String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue()).toUpperCase());
             timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();
@@ -148,6 +150,13 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             // Test if the connection is valid
             try(final Connection c = this.source.getConnection()) {
                 // TODO: add a validation test here (query db metadata ?)
+                
+                if (dialect.equals(OMSQLDialect.DUCKDB)) {
+                    try (Statement loadExt = c.createStatement()) {
+                        loadExt.execute("INSTALL spatial");
+                        loadExt.execute("LOAD spatial");
+                    }
+                }
             } catch (SQLException ex) {
                 throw new DataStoreException(ex);
             }
@@ -179,8 +188,8 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized Collection<? extends Resource> components() throws DataStoreException {
         if (featureSets == null) {
             featureSets = new ArrayList<>();
-            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSamplingFeatureFeatureType(), source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SAMPLING_FEATURE));
-            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(),          source, isPostgres, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSamplingFeatureFeatureType(), source, dialect, schemaPrefix, SensorFeatureSet.ReaderType.SAMPLING_FEATURE));
+            featureSets.add(new SensorFeatureSet(this, OMFeatureTypes.buildSensorFeatureType(),          source, dialect, schemaPrefix, SensorFeatureSet.ReaderType.SENSOR_FEATURE));
         }
         return featureSets;
     }
@@ -202,7 +211,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationReader getReader() throws DataStoreException {
         if (reader == null) {
             final Map<String,Object> properties = getBasicProperties();
-            reader = new OM2ObservationReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            reader = new OM2ObservationReader(source, dialect, schemaPrefix, properties, timescaleDB);
         }
         return reader;
     }
@@ -214,7 +223,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationWriter getWriter() throws DataStoreException {
         if (writer == null) {
             final Map<String,Object> properties = getBasicProperties();
-            writer = new OM2ObservationWriter(source, isPostgres, schemaPrefix, properties, timescaleDB, maxFieldByTable);
+            writer = new OM2ObservationWriter(source, dialect, schemaPrefix, properties, timescaleDB, maxFieldByTable);
         }
         return writer;
     }
@@ -226,7 +235,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationFilterReader getFilter() throws DataStoreException {
         if (filter == null) {
             final Map<String,Object> properties = getBasicProperties();
-            filter = new OM2ObservationFilterReader(source, isPostgres, schemaPrefix, properties, timescaleDB);
+            filter = new OM2ObservationFilterReader(source, dialect, schemaPrefix, properties, timescaleDB);
         }
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }
@@ -240,22 +249,24 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     private boolean buildDatasource() throws DataStoreException {
         try {
             if (OM2DatabaseCreator.validConnection(source)) {
-                if (OM2DatabaseCreator.isPostgisInstalled(source, true)) {
-                    if (!OM2DatabaseCreator.structurePresent(source, schemaPrefix)) {
-                        OM2DatabaseCreator.createObservationDatabase(source, true, null, schemaPrefix);
-                        return true;
-                    } else {
-                        boolean updated = OM2DatabaseCreator.updateStructure(source, schemaPrefix, true);
-                        if (updated) {
-                            LOGGER.info("OM2 structure already present (updated)");
-                        } else {
-                            LOGGER.info("OM2 structure already present");
-                        }
-                    }
+
+                if (dialect.equals(POSTGRES) && !OM2DatabaseCreator.isPostgisInstalled(source)) {
+                    LOGGER.warning("Missing Postgis extension.");
+                    return false;
+                }
+                if (!OM2DatabaseCreator.structurePresent(source, schemaPrefix)) {
+                    OM2DatabaseCreator.createObservationDatabase(source, dialect, schemaPrefix);
                     return true;
                 } else {
-                    LOGGER.warning("Missing Postgis extension.");
+                    boolean updated = OM2DatabaseCreator.updateStructure(source, schemaPrefix, dialect);
+                    if (updated) {
+                        LOGGER.info("OM2 structure already present (updated)");
+                    } else {
+                        LOGGER.info("OM2 structure already present");
+                    }
                 }
+                return true;
+                
             } else {
                 LOGGER.warning("unable to connect OM datasource");
             }

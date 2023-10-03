@@ -41,7 +41,11 @@ import java.util.logging.Logger;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.store.observation.db.OM2Utils;
+import org.constellation.store.observation.db.OMSQLDialect;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 import org.geotoolkit.feature.FeatureExt;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.referencing.operation.TransformException;
 
 /**
@@ -62,20 +66,22 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
 
     protected final String schemaPrefix;
 
+    protected final OMSQLDialect dialect;
+
     @SuppressWarnings("squid:S2095")
-    public OM2SensorFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
+    public OM2SensorFeatureReader(Connection cnx, OMSQLDialect dialect, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         this.type = type;
         this.cnx = cnx;
         if (Util.containsForbiddenCharacter(schemaPrefix)) {
             throw new DataStoreException("Invalid schema prefix value");
         }
         this.schemaPrefix = schemaPrefix;
-        final PreparedStatement stmtAll;
-        if (isPostgres) {
-            stmtAll = cnx.prepareStatement("SELECT \"id\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
-        } else {
-            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
-        }
+        this.dialect = dialect;
+        final PreparedStatement stmtAll = switch(dialect) {
+            case POSTGRES -> cnx.prepareStatement("SELECT \"id\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
+            case DUCKDB   -> cnx.prepareStatement("SELECT \"id\", ST_AsText(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
+            default       -> cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\"");//NOSONAR
+        };
         result = stmtAll.executeQuery();
     }
 
@@ -125,23 +131,29 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
         current = type.newInstance();
         final String id = result.getString("id");
         current.setPropertyValue(AttributeConvention.IDENTIFIER_PROPERTY.toString(), id);
-        final byte[] b = result.getBytes("shape");
-        Geometry geom;
-        if (b != null) {
-            WKBReader reader = new WKBReader();
-            geom = reader.read(b);
-            if (geom != null) {
-                JTS.setCRS(geom, currentCRS);
+        Geometry geom = null;
+        if (dialect.equals(DUCKDB)) {
+            String s = result.getString("shape");
+            if (s != null) {
+                WKTReader reader = new WKTReader();
+                geom = reader.read(s);
             }
+        } else {
+            byte[] b = result.getBytes("shape");
+            if (b != null) {
+                WKBReader reader = new WKBReader();
+                geom = reader.read(b);
+            }
+        }
+        if (geom != null) {
+            JTS.setCRS(geom, currentCRS);
             if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
                 try {
-                    geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
+                    geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
                 } catch (TransformException ex) {
                     throw new ConstellationStoreException(ex);
                 }
             }
-        } else {
-            geom = null;
         }
         current.setPropertyValue(OMFeatureTypes.SENSOR_ATT_ID.toString(), id);
         current.setPropertyValue(OMFeatureTypes.SENSOR_ATT_POSITION.toString(),geom);

@@ -21,7 +21,6 @@ package org.constellation.store.observation.db;
 
 import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -81,8 +80,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         super(omFilter);
     }
 
-    public OM2ObservationFilterReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(source, isPostgres, schemaPrefix, properties, timescaleDB);
+    public OM2ObservationFilterReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(source, dialect, schemaPrefix, properties, timescaleDB);
     }
 
     @Override
@@ -142,7 +141,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest.append(" ORDER BY \"procedure\" ");
+        sqlRequest.append(" ORDER BY o.\"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
         final List<org.opengis.observation.Observation> observations = new ArrayList<>();
@@ -222,7 +221,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest.append(" ORDER BY \"procedure\", pd.\"order\" ");
+        sqlRequest.append(" ORDER BY o.\"procedure\", pd.\"order\" ");
 
         if (!hasMeasureFilter) {
             sqlRequest = appendPaginationToRequest(sqlRequest);
@@ -1024,28 +1023,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String desc = rs.getString("description");
                 final String sf = rs.getString("sampledfeature");
                 final int srid = rs.getInt("crs");
-                final byte[] b = rs.getBytes("shape");
-                final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                final org.locationtech.jts.geom.Geometry geom;
-                if (b != null) {
-                    WKBReader reader = new WKBReader();
-                    geom = reader.read(b);
+                final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "shape");
+                if (geom != null) {
+                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, crs);
-                } else {
-                    geom = null;
                 }
                 final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
                 features.add(new SamplingFeature(id, name, desc, properties, sf, geom));
             }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        } catch (FactoryException ex) {
-            LOGGER.log(Level.WARNING, "FactoryException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a Factory Exception:" + ex.getMessage(), ex);
-        } catch (ParseException ex) {
-            LOGGER.log(Level.WARNING, "ParseException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a Parse Exception:" + ex.getMessage(), ex);
+        } catch (SQLException | FactoryException | ParseException ex) {
+            LOGGER.log(Level.WARNING, "Exception while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("Error while reading feature of interests.", ex);
         }
         return features;
     }
@@ -1192,7 +1180,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
-        sqlRequest.append(" ORDER BY \"id\"");
+        sqlRequest.append(" ORDER BY pr.\"id\"");
 
         boolean applyPostPagination = true;
         if (spaFilter == null) {
@@ -1207,13 +1195,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             while (rs.next()) {
                 try {
                     final String procedure = rs.getString("id");
-                    final byte[] b = rs.getBytes(2);
-                    final int srid = rs.getInt(3);
-                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                    final org.locationtech.jts.geom.Geometry geom;
-                    if (b != null) {
-                        WKBReader reader = new WKBReader();
-                        geom             = reader.read(b);
+                    final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
+                    if (geom != null) {
+                        final int srid = rs.getInt(3);
+                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                         JTS.setCRS(geom, crs);
                     } else {
                         continue;
@@ -1260,14 +1245,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
 
-            SensorLocationProcessor processor = new SensorLocationProcessor(envelopeFilter);
+            SensorLocationProcessor processor = new SensorLocationProcessor(envelopeFilter, dialect);
             return processor.processLocations(rs);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
@@ -1308,7 +1293,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
-                SensorLocationProcessor processor = new SensorLocationDecimator(envelopeFilter, nbCell, times);
+                SensorLocationProcessor processor = new SensorLocationDecimator(envelopeFilter, nbCell, times, dialect);
                 return processor.processLocations(rs);
             }
         } catch (SQLException ex) {
@@ -1344,7 +1329,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
-                final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, nbCell, times);
+                final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, nbCell, times, dialect);
                 return processor.processLocations(rs);
             }
         } catch (SQLException ex) {
@@ -1372,7 +1357,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         Map<String, Set<Date>> times = new LinkedHashMap<>();

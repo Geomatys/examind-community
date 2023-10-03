@@ -35,6 +35,8 @@ import java.util.Set;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
+import static org.constellation.store.observation.db.OMSQLDialect.*;
+import org.constellation.util.SQLBatch;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.TextEncoderProperties;
@@ -45,16 +47,16 @@ import org.geotoolkit.observation.model.TextEncoderProperties;
  */
 public class OM2MeasureSQLInserter extends OM2MeasureHandler {
 
-    private final boolean isPostgres;
+    private final OMSQLDialect dialect;
     private final List<InsertDbField> fields;
 
     // calculated
     private final Map<Integer, String> insertRequests;
 
-    public OM2MeasureSQLInserter(final ProcedureInfo pi, final String schemaPrefix, final boolean isPostgres, final List<InsertDbField> fields) throws DataStoreException {
+    public OM2MeasureSQLInserter(final ProcedureInfo pi, final String schemaPrefix, final OMSQLDialect dialect, final List<InsertDbField> fields) throws DataStoreException {
         super(pi, schemaPrefix);
         this.fields = flatFields(fields);
-        this.isPostgres = isPostgres;
+        this.dialect = dialect;
         this.insertRequests = buildInsertRequests();
     }
 
@@ -113,7 +115,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
         }
         return results;
     }
-    
+
     /**
      * Insert a data values block into the measure table.
      *
@@ -136,6 +138,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
         int mid =  update ? getLastMeasureId(c, oid) : 1;
         int sqlCpt = 0;
         try (final Statement stmtSQL = c.createStatement()) {
+            SQLBatch sqlBatch = new SQLBatch(stmtSQL, dialect.supportBatch);
             Map<Integer, StringBuilder> builders = newInsertBatch();
             for (String block : blocks) {
                 if (block.isEmpty()) {
@@ -164,7 +167,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                             if (rs.next()) {
                                 List<String> upSqls = buildUpdateLines(rs.getInt(1), oid, fieldValues);
                                 for (String upSql : upSqls) {
-                                    stmtSQL.addBatch(upSql);
+                                    sqlBatch.addBatch(upSql);
                                 }
                                 continue;
                             } else {
@@ -180,7 +183,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                 if (sqlCpt > 99) {
                     endBatch(builders);
                     for (StringBuilder builder : builders.values()) {
-                        stmtSQL.addBatch(builder.toString());
+                        sqlBatch.addBatch(builder.toString());
                     }
                     sqlCpt = 0;
                     builders = newInsertBatch();
@@ -189,10 +192,10 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             if (sqlCpt > 0) {
                 endBatch(builders);
                 for (StringBuilder builder : builders.values()) {
-                    stmtSQL.addBatch(builder.toString());
+                    sqlBatch.addBatch(builder.toString());
                 }
             }
-            stmtSQL.executeBatch();
+            sqlBatch.executeBatch();
         }
     }
 
@@ -242,10 +245,10 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             }
             case BOOLEAN -> {
                 boolean parsed = Boolean.parseBoolean(value);
-                if (isPostgres) {
-                    value = Boolean.toString(parsed);
-                } else {
+                if (dialect.equals(DERBY)) {
                     value = parsed ? "1" : "0";
+                } else {
+                    value = Boolean.toString(parsed);
                 }
             }
             case QUANTITY -> {
@@ -346,7 +349,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             StringBuilder sql = builder.getValue();
             sql.setCharAt(sql.length() - 1, ' ');
             sql.append(" WHERE \"id\" = ").append(mid).append(" AND \"id_observation\" = ").append(oid);
-            if (isPostgres) {
+            if (dialect.equals(POSTGRES)) {
                 sql.append(';');
             }
             results.add(sql.toString());
@@ -362,7 +365,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
     private void endBatch(Map<Integer, StringBuilder> builders) {
         for (StringBuilder builder : builders.values()) {
             builder.setCharAt(builder.length() - 2, ' ');
-            if (isPostgres) {
+            if (dialect.equals(POSTGRES)) {
                 builder.setCharAt(builder.length() - 1, ';');
             } else {
                 builder.setCharAt(builder.length() - 1, ' ');

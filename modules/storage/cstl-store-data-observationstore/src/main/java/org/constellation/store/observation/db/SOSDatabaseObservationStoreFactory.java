@@ -59,7 +59,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
      * Parameter for database type (postgres, derby, ...)
      */
     public static final ParameterDescriptor<String> SGBDTYPE =
-             BUILDER.addName("sgbdtype").setRequired(false).createEnumerated(String.class, new String[]{"derby","postgres"}, "derby");
+             BUILDER.addName("sgbdtype").setRequired(false).createEnumerated(String.class, new String[]{"derby","duckdb","postgres"}, "derby");
 
     /**
      * Parameter for database url for derby database

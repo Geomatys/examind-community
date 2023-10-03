@@ -18,6 +18,7 @@
  */
 package org.constellation.util;
 
+import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -129,7 +130,7 @@ public class SQLResult implements AutoCloseable {
 
     public String getString(String fieldName) throws SQLException {
         if (rss.size() > 1) {
-            throw new IllegalArgumentException("getFieldValue called on a multiple resultSet call getInt(fieldName, resultSetIndex)");
+            throw new IllegalArgumentException("getFieldValue called on a multiple resultSet call getString(fieldName, resultSetIndex)");
         }
         return rss.get(0).getString(fieldName);
     }
@@ -140,6 +141,28 @@ public class SQLResult implements AutoCloseable {
 
     public String getString(String fieldName, int resultSetIndex) throws SQLException {
         return rss.get(resultSetIndex).getString(fieldName);
+    }
+
+    public Blob getBlob(int fieldIndex) throws SQLException {
+        if (rss.size() > 1) {
+            throw new IllegalArgumentException("getFieldValue called on a multiple resultSet call getBlob(fieldIndex, resultSetIndex)");
+        }
+        return rss.get(0).getBlob(fieldIndex);
+    }
+
+    public Blob getBlob(String fieldName) throws SQLException {
+        if (rss.size() > 1) {
+            throw new IllegalArgumentException("getFieldValue called on a multiple resultSet call getBlob(fieldName, resultSetIndex)");
+        }
+        return rss.get(0).getBlob(fieldName);
+    }
+
+    public Blob getBlob(int fieldIndex, int resultSetIndex) throws SQLException {
+        return rss.get(resultSetIndex).getBlob(fieldIndex);
+    }
+
+    public Blob getBlob(String fieldName, int resultSetIndex) throws SQLException {
+        return rss.get(resultSetIndex).getBlob(fieldName);
     }
 
     public int getInt(int fieldIndex) throws SQLException {

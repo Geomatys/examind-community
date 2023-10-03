@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
+import java.io.IOException;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -46,8 +47,8 @@ import org.opengis.util.FactoryException;
  */
 public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
 
-    public SensorLocationDecimatorV2(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times) {
-        super(envelopeFilter, width, times);
+    public SensorLocationDecimatorV2(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+        super(envelopeFilter, width, times, dialect);
     }
 
     @Override
@@ -80,12 +81,10 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                 }
                 prevProc = procedure;
 
-                final byte[] b = rs.getBytes(3);
-                final int srid = rs.getInt(4);
-                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
-                org.locationtech.jts.geom.Geometry geom;
-                if (b != null) {
-                    geom = reader.read(b);
+                org.locationtech.jts.geom.Geometry geom = readGeom(rs, 3);
+                if (geom != null) {
+                    final int srid = rs.getInt(4);
+                    final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, currentCRS);
                     // reproject geom to envelope CRS if needed
                     if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {

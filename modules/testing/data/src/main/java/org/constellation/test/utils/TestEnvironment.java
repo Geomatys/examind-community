@@ -238,6 +238,8 @@ public class TestEnvironment {
          */
         public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
         public static final TestResource OM2_DB_NO_DATA = new TestResource(null, TestEnvironment::createOM2DatabaseProviderNoData);
+        public static final TestResource OM2_DB_DUCK = new TestResource(null,  TestEnvironment::createOM2DatabaseDDBProviderNoData);
+
 
         public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
         public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/config/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
@@ -802,21 +804,28 @@ public class TestEnvironment {
         }
     }
 
-    private static String buildDerbyOM2Database(String providerIdentifier, boolean withData) throws Exception {
-        /*
-         you can pass in file mode for debugging purpose
-        final String url = "jdbc:derby:/tmp/" + providerIdentifier + ".derby";
-        System.out.println("DERBY URL:" + url);*/
-
-        final String url = "jdbc:derby:memory:" + providerIdentifier;
-        final DataSource ds = SQLUtilities.getDataSource(url + ";create=true");
+    private static String buildEmbeddedOM2Database(String providerIdentifier, boolean withData, boolean ddb) throws Exception {
+        final String url;
+        String urlSuffix = "";
+        String fileSuffix = "";
+        if (ddb) {
+            url = "jdbc:duckdb:";
+            fileSuffix = "_ddb";
+        }else {
+            /* you can pass in file mode for debugging purpose
+               final String url = "jdbc:derby:/tmp/" + providerIdentifier + ".derby";
+               System.out.println("DERBY URL:" + url);*/
+            url = "jdbc:derby:memory:" + providerIdentifier;
+            urlSuffix = ";create=true";
+        }
+        final DataSource ds = SQLUtilities.getDataSource(url + urlSuffix);
         try (final Connection con = ds.getConnection()) {
             final DerbySqlScriptRunner sr = new DerbySqlScriptRunner(con);
-            String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations.sql"));
+            String sql = IOUtilities.toString(Util.getResourceAsStream("org/constellation/om2/structure_observations" + fileSuffix + ".sql"));
             sql = sql.replace("$SCHEMA", "");
             sr.run(sql);
             if (withData) {
-                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2.sql"));
+                sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2" + fileSuffix + ".sql"));
             }
         }
         return url;
@@ -840,17 +849,21 @@ public class TestEnvironment {
     }
 
     private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, true);
+        return createOM2DatabaseProvider(providerBusiness, p, true, false);
     }
 
     private static Integer createOM2DatabaseProviderNoData(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, false);
+        return createOM2DatabaseProvider(providerBusiness, p, false, false);
     }
 
-    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData) {
+    private static Integer createOM2DatabaseDDBProviderNoData(IProviderBusiness providerBusiness, Path p) {
+        return createOM2DatabaseProvider(providerBusiness, p, false, true);
+    }
+
+    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData, boolean ddb) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildDerbyOM2Database(providerIdentifier, withData);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -858,7 +871,7 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
 
             final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
-            config.parameter("sgbdtype").setValue("derby");
+            config.parameter("sgbdtype").setValue(ddb ? "duckdb" : "derby");
             config.parameter("derbyurl").setValue(url);
             config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
@@ -875,7 +888,7 @@ public class TestEnvironment {
     private static DataStore createOM2DatabaseStore(Path p) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildDerbyOM2Database(providerIdentifier, true);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -900,7 +913,7 @@ public class TestEnvironment {
         try {
             final String providerIdentifier = "omGenericDBSrc-" + UUID.randomUUID().toString();
 
-            final String url = buildDerbyOM2Database(providerIdentifier, true);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
 
             MarshallerPool pool = GenericDatabaseMarshallerPool.getInstance();
             Unmarshaller unmarshaller = pool.acquireUnmarshaller();

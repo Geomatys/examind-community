@@ -30,14 +30,17 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.storage.event.StoreListeners;
+import org.constellation.store.observation.db.OMSQLDialect;
+import static org.constellation.store.observation.db.OMSQLDialect.DERBY;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 import org.constellation.util.Util;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.FilterUtilities;
 import static org.geotoolkit.observation.feature.OMFeatureTypes.*;
-import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.locationtech.jts.io.WKBWriter;
+import org.locationtech.jts.io.WKTWriter;
 import org.opengis.feature.Feature;
 import org.opengis.filter.ResourceId;
 
@@ -51,21 +54,26 @@ public class OM2SamplingFeatureWriter implements OM2FeatureWriter {
     private final Connection cnx;
     private final String schemaPrefix;
     private final String idBase;
+    protected final OMSQLDialect dialect;
 
-    public OM2SamplingFeatureWriter(Connection cnx, final String schemaPrefix, final String idBase) throws SQLException, DataStoreException {
+    public OM2SamplingFeatureWriter(Connection cnx, final String schemaPrefix, final String idBase, final OMSQLDialect dialect) throws SQLException, DataStoreException {
         this.cnx = cnx;
         if (Util.containsForbiddenCharacter(schemaPrefix)) {
             throw new DataStoreException("Invalid schema prefix value");
         }
         this.schemaPrefix = schemaPrefix;
         this.idBase = idBase;
+        this.dialect = dialect;
     }
 
     @Override
     public List<ResourceId> add(Iterator<? extends Feature> features) throws DataStoreException {
         final List<ResourceId> result = new ArrayList<>();
-
-        try (PreparedStatement stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)")) {
+        final String geomField = switch(dialect) {
+            case POSTGRES, DERBY  -> "?";
+            case DUCKDB           -> "ST_GeomFromText(cast (? as varchar))";
+        };
+        try (PreparedStatement stmtWrite = cnx.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?," + geomField + ",?)")) {
 
             while (features.hasNext()) {
                 final Feature feature = features.next();
@@ -85,9 +93,16 @@ public class OM2SamplingFeatureWriter implements OM2FeatureWriter {
                         .map(org.locationtech.jts.geom.Geometry.class::cast);
                 if (geometry.isPresent()) {
                     final org.locationtech.jts.geom.Geometry geom = geometry.get();
-                    WKBWriter writer = new WKBWriter();
                     final int SRID = geom.getSRID();
-                    stmtWrite.setBytes(5, writer.write(geom));
+                    if (dialect.equals(OMSQLDialect.DUCKDB)) {
+                        WKTWriter writer = new WKTWriter();
+                        String wkt = writer.write(geom);
+                        stmtWrite.setString(5,  wkt);
+                    } else {
+                        final WKBWriter writer = new WKBWriter();
+                        byte[] bytes = writer.write(geom);
+                        stmtWrite.setBytes(5, bytes);
+                    }
                     stmtWrite.setInt(6, SRID);
                 } else {
                     stmtWrite.setNull(5, java.sql.Types.VARBINARY);

@@ -28,16 +28,17 @@ public class SOSDatabaseParamsUtils {
     
     public static String getDriverClassName(final ParameterValueGroup params){
         final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
-        if (type.equals("derby")) {
-            return "org.apache.derby.jdbc.EmbeddedDriver";
-        } else {
-            return "org.postgresql.Driver";
-        }
+        return switch (type) {
+            case "derby"    ->  "org.apache.derby.jdbc.EmbeddedDriver";
+            case "duckdb"   ->  "org.duckdb.DuckDBDriver";
+            case "postgres" ->  "org.postgresql.Driver";
+            default -> throw new IllegalArgumentException("Unexpected sgbd type:" + type);
+        };
     }
 
     public static String getJDBCUrl(final ParameterValueGroup params) throws IOException {
         final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
-        if (type.equals("derby")) {
+        if (type.equals("derby") || type.equals("duckdb")) {
             final String derbyURL = (String) params.parameter(SOSDatabaseObservationStoreFactory.DERBYURL.getName().toString()).getValue();
             return derbyURL;
         } else {
@@ -50,7 +51,7 @@ public class SOSDatabaseParamsUtils {
 
     public static String getHirokuUrl(final ParameterValueGroup params) throws IOException {
         final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
-        if (type.equals("derby")) {
+        if (type.equals("derby") || type.equals("duckdb")) {
             // i don't know if its possible to build an hiroku url for derby
             return null;
         } else {

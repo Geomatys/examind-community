@@ -21,7 +21,6 @@ package org.constellation.store.observation.db;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -47,6 +46,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.JTS;
@@ -83,8 +84,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     protected final DataSource source;
 
-    public OM2ObservationReader(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(properties, schemaPrefix, false, isPostgres, timescaleDB);
+    public OM2ObservationReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(properties, schemaPrefix, false, dialect, timescaleDB);
         this.source = source;
         try {
             // try if the connection is valid
@@ -258,32 +259,32 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     public Geometry getSensorLocation(final String sensorID) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
 
-            final byte[] b;
+            final String query = switch(dialect) {
+                case POSTGRES -> "SELECT st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?";
+                case DUCKDB   -> "SELECT ST_AsText(\"shape\")  as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?";
+                default       -> "SELECT \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?";
+            };
+            final Geometry geom;
             final int srid;
-            try(final PreparedStatement stmt = (isPostgres) ?
-                    c.prepareStatement("SELECT st_asBinary(\"shape\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?") ://NOSONAR
-                    c.prepareStatement("SELECT \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+            try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
                 stmt.setString(1, sensorID);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        b = rs.getBytes(1);
+                        geom = readGeom(rs, "shape");
                         srid = rs.getInt(2);
                     } else {
                         return null;
                     }
                 }
             }
-            final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-            final Geometry geom;
-            if (b != null) {
-                WKBReader reader = new WKBReader();
-                geom             = reader.read(b);
+            if (geom != null) {
+                final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                 JTS.setCRS(geom, crs);
             } else {
                 return null;
             }
             return geom;
-        } catch (SQLException | FactoryException  | ParseException ex) {
+        } catch (SQLException | FactoryException | ParseException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
     }
@@ -291,32 +292,30 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public Map<Date, Geometry> getSensorLocations(final String sensorID) throws DataStoreException {
         final Map<Date, Geometry> results = new HashMap<>();
-        try(final Connection c = source.getConnection()) {
+        final String query = switch(dialect) {
+                case POSTGRES -> "SELECT \"time\", st_asBinary(\"location\") as \"location\", \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?";
+                case DUCKDB   -> "SELECT \"time\", ST_AsText(\"location\") as \"location\", \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?";
+                default       -> "SELECT \"time\", \"location\", \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?";
+            };
+        try (final Connection c = source.getConnection();
+             final PreparedStatement stmt = c.prepareStatement(query)) { //NOSONAR
 
-            try(final PreparedStatement stmt = (isPostgres) ?
-                    c.prepareStatement("SELECT \"time\", st_asBinary(\"location\"), \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?") ://NOSONAR
-                    c.prepareStatement("SELECT \"time\", \"location\", \"crs\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=?")) {//NOSONAR
-                stmt.setString(1, sensorID);
-                try(final ResultSet rs = stmt.executeQuery()) {
-                    while (rs.next()) {
-                        final Date d = new Date(rs.getTimestamp(1).getTime());
-                        final byte[] b = rs.getBytes(2);
-                        final int srid = rs.getInt(3);
+            stmt.setString(1, sensorID);
+            try(final ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    final Date d = new Date(rs.getTimestamp(1).getTime());
+                    final Geometry geom = readGeom(rs, "location");
+                    if (geom != null) {
+                        final int srid = rs.getInt("crs");
                         final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                        final Geometry geom;
-                        if (b != null) {
-                            WKBReader reader = new WKBReader();
-                            geom             = reader.read(b);
-                            JTS.setCRS(geom, crs);
-                        } else {
-                            return null;
-                        }
-                        results.put(d, geom);
+                        JTS.setCRS(geom, crs);
+                    } else {
+                        return null;
                     }
+                    results.put(d, geom);
                 }
             }
-
-        } catch (SQLException | FactoryException  | ParseException ex) {
+        } catch (SQLException | FactoryException | ParseException ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }
         return results;

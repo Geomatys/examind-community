@@ -2,7 +2,7 @@
  *    Examind community - An open source and standard compliant SDI
  *    https://community.examind.com/fr
  *
- * Copyright 2022 Geomatys.
+ * Copyright 2023 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,14 @@ import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.AbstractObservationStoreProviderWriteTest.omPr;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderWriteTest extends AbstractObservationStoreProviderWriteTest {
+public class ObservationStoreProviderWriteDDBTest extends AbstractObservationStoreProviderWriteTest {
 
      private static boolean initialized = false;
 
@@ -42,7 +43,7 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
             providerBusiness.removeAll();
 
             final TestEnvironment.TestResources testResource = initDataDirectory();
-            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB_NO_DATA, providerBusiness, null).id;
+            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB_DUCK, providerBusiness, null).id;
 
             omPr = (ObservationProvider) DataProviders.getProvider(omPid);
             initialized = true;
@@ -50,7 +51,7 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
     }
 
 
-    public ObservationStoreProviderWriteTest() {
+    public ObservationStoreProviderWriteDDBTest() {
         super("");
     }
 
@@ -64,6 +65,7 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
     @Override
     public void writeObservationMultiTableTest() throws Exception {
         super.writeObservationMultiTableTest();
+
     }
 
     @Test
@@ -84,7 +86,13 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
         super.writeExtendObservationTest();
     }
 
-    @Test
+    /**
+     * Update of column with a foreign key is not supported:
+     * see: https://github.com/duckdb/duckdb/issues/3265
+     * 
+     * @throws Exception
+     */
+    @Ignore
     @Override
     public void writeTableExtendObservationTest() throws Exception {
         super.writeTableExtendObservationTest();
@@ -114,19 +122,37 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
         super.writeOverlappingInstantObservationTest();
     }
 
-    @Test
+    /**
+     * Update of column with a foreign key is not supported:
+     * see: https://github.com/duckdb/duckdb/issues/3265
+     *
+     * @throws Exception
+     */
+    @Ignore
     @Override
     public void writeOverlappingInstantPhenChangeObservationTest() throws Exception {
         super.writeOverlappingInstantPhenChangeObservationTest();
     }
 
-    @Test
+    /**
+     * Update of column with a foreign key is not supported:
+     * see: https://github.com/duckdb/duckdb/issues/3265
+     *
+     * @throws Exception
+     */
+    @Ignore
     @Override
     public void writeIntersectingInstantPhenChangeObservationTest() throws Exception {
         super.writeIntersectingInstantPhenChangeObservationTest();
     }
 
-    @Test
+    /**
+     * Update of column with a foreign key is not supported:
+     * see: https://github.com/duckdb/duckdb/issues/3265
+     *
+     * @throws Exception
+     */
+    @Ignore
     @Override
     public void writeExtend2ObservationTest() throws Exception {
         super.writeExtend2ObservationTest();

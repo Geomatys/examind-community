@@ -22,7 +22,6 @@ import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.ScriptRunner;
 
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.constellation.store.observation.db.OMSQLDialect.*;
 import org.geotoolkit.nio.IOUtilities;
 
 /**
@@ -44,14 +44,15 @@ public class OM2DatabaseCreator {
     private final static String LAST_VERSION = "1.1.6";
 
     /**
-     * Fill a new PostgreSQL database with the O&amp;M model.
+     * Fill a new database with the O&amp;M model.
      *
-     * @param dataSource A postgreSQL dataSource.
+     * @param dataSource A sql dataSource.
+     * @param dialect The sgbd type.
      *
      * @throws SQLException if an error occurs while filling the database.
      * @throws IllegalArgumentException if the dataSource is null.
      */
-    public static void createObservationDatabase(final DataSource dataSource, final boolean isPostgres, final File postgisInstall, String schemaPrefix) throws SQLException, IOException {
+    public static void createObservationDatabase(final DataSource dataSource, final OMSQLDialect dialect, String schemaPrefix) throws SQLException, IOException {
         if (dataSource == null) {
             throw new IllegalArgumentException("The DataSource is null");
         }
@@ -63,10 +64,10 @@ public class OM2DatabaseCreator {
         try(final Connection con  = dataSource.getConnection()) {
 
             final ScriptRunner sr = new ScriptRunner(con);
-            if (isPostgres) {
-                execute("org/constellation/om2/structure_observations_pg.sql", sr, schemaPrefix);
-            } else {
-                execute("org/constellation/om2/structure_observations.sql", sr, schemaPrefix);
+            switch (dialect) {
+                case POSTGRES -> execute("org/constellation/om2/structure_observations_pg.sql", sr, schemaPrefix);
+                case DERBY    -> execute("org/constellation/om2/structure_observations.sql", sr, schemaPrefix);
+                case DUCKDB   -> execute("org/constellation/om2/structure_observations_ddb.sql", sr, schemaPrefix);
             }
             LOGGER.info("O&M 2 database created");
 
@@ -97,8 +98,7 @@ public class OM2DatabaseCreator {
         return false;
     }
 
-    public static boolean isPostgisInstalled(final DataSource source, boolean isPostgres) {
-        if (!isPostgres) return true;
+    public static boolean isPostgisInstalled(final DataSource source) {
         if (source != null) {
             try (final Connection con = source.getConnection();
                  final Statement stmt = con.createStatement()) {
@@ -145,7 +145,7 @@ public class OM2DatabaseCreator {
         }
     }
 
-    public static boolean updateStructure(final DataSource source, final String schemaPrefix, final boolean isPostgres) {
+    public static boolean updateStructure(final DataSource source, final String schemaPrefix, final OMSQLDialect dialect) {
         if (source != null) {
             try (final Connection con = source.getConnection()) {
 
@@ -156,7 +156,7 @@ public class OM2DatabaseCreator {
                         case "1.0.0": execute("org/constellation/om2/update/update101.sql", sr, schemaPrefix);
                         case "1.0.1": execute("org/constellation/om2/update/update102.sql", sr, schemaPrefix);
                         case "1.0.2": execute("org/constellation/om2/update/update103.sql", sr, schemaPrefix);
-                        case "1.0.3": if (isPostgres) {
+                        case "1.0.3": if (dialect.equals(POSTGRES)) {
                                         execute("org/constellation/om2/update/update104_pg.sql", sr, schemaPrefix);
                                       } else {
                                         execute("org/constellation/om2/update/update104.sql", sr, schemaPrefix);

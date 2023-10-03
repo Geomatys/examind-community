@@ -41,6 +41,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.sis.storage.WritableFeatureSet;
+import org.constellation.store.observation.db.OMSQLDialect;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.opengis.filter.ResourceId;
 
@@ -51,7 +52,7 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
     private final ObservationStore store;
     private final DataSource source;
 
-    private final boolean isPostgres;
+    private final OMSQLDialect dialect;
     private final String schemaPrefix;
     private final ReaderType readerType;
 
@@ -60,12 +61,12 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
         SENSOR_FEATURE;
     }
 
-    public SensorFeatureSet(ObservationStore originator, FeatureType type, DataSource source, boolean isPostgres, String schemaPrefix, ReaderType readerType) {
+    public SensorFeatureSet(ObservationStore originator, FeatureType type, DataSource source, OMSQLDialect dialect, String schemaPrefix, ReaderType readerType) {
         super(null, false);
         this.type = type;
         this.store = originator;
         this.source = source;
-        this.isPostgres = isPostgres;
+        this.dialect = dialect;
         this.schemaPrefix = schemaPrefix;
         this.readerType = readerType;
     }
@@ -76,8 +77,8 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
             //read a first feature to find the crs
             try (CloseableIterator<Feature> reader =
                 switch (readerType) {
-                    case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), isPostgres, type, schemaPrefix);
-                    case SENSOR_FEATURE ->  new OM2SensorFeatureReader(source.getConnection(), isPostgres, type, schemaPrefix);
+                    case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), dialect, type, schemaPrefix);
+                    case SENSOR_FEATURE ->  new OM2SensorFeatureReader(source.getConnection(), dialect, type, schemaPrefix);
                 }) {
                 if (reader.hasNext()) {
                     type = reader.next().getType();
@@ -101,8 +102,8 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
         try {
             final CloseableIterator<Feature> reader =
             switch (readerType) {
-                case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), isPostgres, sft, schemaPrefix);
-                case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), isPostgres, sft, schemaPrefix);
+                case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
+                case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
             };
             final Spliterator<Feature> spliterator = Spliterators.spliteratorUnknownSize(reader, Spliterator.ORDERED);
             final Stream<Feature> stream = StreamSupport.stream(spliterator, false);
@@ -116,8 +117,8 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
     public void add(Iterator<? extends Feature> features) throws DataStoreException {
         final FeatureType sft = getType();
         try (OM2FeatureWriter writer = switch (readerType) {
-                case SAMPLING_FEATURE -> new OM2SamplingFeatureWriter(source.getConnection(), schemaPrefix, "sampling-point");
-                case SENSOR_FEATURE   -> new OM2SensorFeatureWriter(source.getConnection(), schemaPrefix, "");
+                case SAMPLING_FEATURE -> new OM2SamplingFeatureWriter(source.getConnection(), schemaPrefix, "sampling-point", dialect);
+                case SENSOR_FEATURE   -> new OM2SensorFeatureWriter(source.getConnection(), schemaPrefix, "", dialect);
             }) {
             List<ResourceId> results = writer.add(features);
             for (ResourceId rid: results) {
@@ -135,8 +136,8 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
         final FeatureType sft = getType();
         boolean match = false;
         try (CloseableIterator<Feature> reader = switch (readerType) {
-                case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), isPostgres, sft, schemaPrefix);
-                case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), isPostgres, sft, schemaPrefix);
+                case SAMPLING_FEATURE -> new OM2SamplingFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
+                case SENSOR_FEATURE   -> new OM2SensorFeatureReader(source.getConnection(), dialect, sft, schemaPrefix);
             }) {
             while (reader.hasNext()) {
                 Feature feature = reader.next();

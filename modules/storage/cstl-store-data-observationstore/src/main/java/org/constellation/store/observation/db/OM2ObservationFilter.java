@@ -34,7 +34,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -44,12 +43,14 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
+import static org.constellation.store.observation.db.OMSQLDialect.*;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
@@ -71,7 +72,6 @@ import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
@@ -159,8 +159,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    public OM2ObservationFilter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(properties, schemaPrefix, true, isPostgres, timescaleDB);
+    public OM2ObservationFilter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
+        super(properties, schemaPrefix, true, dialect, timescaleDB);
         this.source     = source;
         resultModel     = null;
         try {
@@ -231,7 +231,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
             template = true;
         } else {
-            sqlRequest = new SingleFilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", \"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
+            sqlRequest = new SingleFilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", o.\"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
             sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
             firstFilter = false;
         }
@@ -257,12 +257,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetFeatureOfInterest() {
         firstFilter = true;
-        String geomColum;
-        if (isPostgres) {
-            geomColum = "st_asBinary(\"shape\") as \"shape\"";
-        } else {
-            geomColum = "\"shape\"";
-        }
+        String geomColum = switch(dialect) {
+            case POSTGRES     -> "st_asBinary(\"shape\") as \"shape\"";
+            case DERBY,DUCKDB -> "\"shape\"";
+        };
         sqlRequest = new SingleFilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
         obsJoin = false;
@@ -291,12 +289,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     private void initFilterGetLocations() throws DataStoreException {
-        String geomColum;
-        if (isPostgres) {
-            geomColum = "st_asBinary(\"shape\") as \"location\"";
-        } else {
-            geomColum = "\"shape\"";
-        }
+        String geomColum = switch(dialect) {
+            case POSTGRES -> "st_asBinary(\"shape\") as \"location\"";
+            case DUCKDB   -> "ST_AsText(\"shape\") as \"location\"";
+            default       -> "\"shape\" as \"location\"";
+        };
         sqlRequest = new SingleFilterSQLRequest("SELECT pr.\"id\", ")
                 .append(geomColum).append(", pr.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"procedures\" pr WHERE ");
@@ -305,12 +302,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetHistoricalLocations(HistoricalLocationQuery query) throws DataStoreException {
         this.decimationSize = query.getDecimationSize();
-        String geomColum;
-        if (isPostgres) {
-            geomColum = "st_asBinary(\"location\") as \"location\"";
-        } else {
-            geomColum = "\"location\"";
-        }
+        String geomColum = switch(dialect) {
+            case POSTGRES -> "st_asBinary(\"location\") as \"location\"";
+            case DUCKDB   -> "ST_AsText(\"location\") as \"location\"";
+            default       -> "\"location\"";
+        };
         sqlRequest = new SingleFilterSQLRequest("SELECT hl.\"procedure\", hl.\"time\", ")
                 .append(geomColum).append(", hl.\"crs\" FROM \"")
                 .append(schemaPrefix).append("om\".\"historical_locations\" hl WHERE ");
@@ -1267,7 +1263,38 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    private List<String> filterObservation() throws DataStoreException {
+    /**
+     * Used for either entity identifier listing or enytity count.
+     * Just reduce the memory usage by not storing a list of identifiers.
+     */
+    private class CountOrIdentifiers {
+        private List<String> identifiers = new ArrayList<>();
+        private int count = 0;
+
+        private final boolean forCount;
+
+        public CountOrIdentifiers(boolean forCount) {
+            this.forCount = forCount;
+        }
+        
+        public void add(String identifier) {
+            if (forCount) {
+                count++;
+            } else {
+                identifiers.add(identifier);
+            }
+        }
+
+        private void applyPostPagination(Function<List, List> postPaginationFct) {
+            // post pagination make no sense for a count request
+            if (!forCount) {
+                identifiers = postPaginationFct.apply(identifiers);
+            }
+        }
+    }
+
+    private CountOrIdentifiers filterObservation(boolean forCount) throws DataStoreException {
+        final CountOrIdentifiers results  = new CountOrIdentifiers(forCount);
         List<TableJoin> joins = new ArrayList<>();
         if (phenPropJoin) {
             String joinColumn;
@@ -1286,28 +1313,29 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", " sfp.\"id_sampling_feature\" = o.\"foi\""));
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest.append(" ORDER BY \"procedure\"");
+        if (!forCount) {
+            sqlRequest.append(" ORDER BY o.\"procedure\"");
+        }
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
         }
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
              final SQLResult rs = sqlRequest.execute(c)) {
-            final List<String> results       = new ArrayList<>();
             while (rs.next()) {
-                final String procedure       = rs.getString("procedure");
+                final String procedure = rs.getString("procedure");
                 final String procedureID;
                 if (procedure.startsWith(sensorIdBase)) {
-                    procedureID      = procedure.substring(sensorIdBase.length());
+                    procedureID = procedure.substring(sensorIdBase.length());
                 } else {
-                    procedureID      = procedure;
+                    procedureID = procedure;
                 }
                 if (template) {
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         final int fieldIndex = rs.getInt("order");
                         if (hasMeasureFilter) {
-                            final DbField field   = getFieldByIndex(procedure, fieldIndex, true, c);
-                            ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
+                            final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
+                            final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
                             final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, Arrays.asList(field), pti);
                             MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, null, false, false, true, true);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
@@ -1375,14 +1403,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 }
             }
             // TODO make a real pagination
-            return applyPostPagination(results);
+            results.applyPostPagination(this::applyPostPagination);
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
             throw new DataStoreException("the service has throw a SQL Exception.");
         }
+        return results;
     }
 
-    private List<String> filterSensorLocations() throws DataStoreException {
+    private CountOrIdentifiers filterSensorLocations(boolean forCount) throws DataStoreException {
+        CountOrIdentifiers results = new CountOrIdentifiers(forCount);
         List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
@@ -1394,8 +1424,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (envelopeFilter != null) {
             spaFilter = JTS.toGeometry(envelopeFilter);
         }
-        sqlRequest.append(" ORDER BY \"id\"");
-
+        if (!forCount) {
+            sqlRequest.append(" ORDER BY \"id\"");
+        }
         boolean applyPostPagination = true;
         if (spaFilter == null) {
             applyPostPagination = false;
@@ -1403,7 +1434,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
 
         LOGGER.fine(sqlRequest.toString());
-        List<String> locations            = new ArrayList<>();
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
@@ -1412,13 +1442,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     
                      // exclude from spatial filter (will be removed when postgis filter will be set in request)
                     if (spaFilter != null) {
-                        final byte[] b = rs.getBytes(2);
-                        final int srid = rs.getInt(3);
-                        final CoordinateReferenceSystem crs= OM2Utils.parsePostgisCRS(srid);
-                        final org.locationtech.jts.geom.Geometry geom;
-                        if (b != null) {
-                            WKBReader reader = new WKBReader();
-                            geom             = reader.read(b);
+                        final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
+                        if (geom != null) {
+                            final int srid = rs.getInt(3);
+                            final CoordinateReferenceSystem crs= OM2Utils.parsePostgisCRS(srid);
                             JTS.setCRS(geom, crs);
                         } else {
                             continue;
@@ -1429,9 +1456,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         }
                     }
                     // can it happen? if so the pagination will be broken
-                    if (!locations.contains(procedure)) {
-                        locations.add(procedure);
+                    // we temporarly throw an exception to see if this happen. if not remove this "IF"
+                    if (results.identifiers.contains(procedure)) {
+                        throw new IllegalArgumentException("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
                     }
+                    results.add(procedure);
                 } catch (FactoryException | ParseException ex) {
                     throw new DataStoreException(ex);
                 }
@@ -1441,9 +1470,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
         if (applyPostPagination) {
-            locations = applyPostPagination(locations);
+            results.applyPostPagination(this::applyPostPagination);
         }
-        return locations;
+        return results;
     }
 
     private List<String> filterHistoricalSensorLocations() throws DataStoreException {
@@ -1487,13 +1516,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final long time = rs.getTimestamp("time").getTime();
 
                     if (envelopeFilter != null) {
-                        final byte[] b = rs.getBytes(3);
-                        final int srid = rs.getInt(4);
-                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                        final org.locationtech.jts.geom.Geometry geom;
-                        if (b != null) {
-                            WKBReader reader = new WKBReader();
-                            geom             = reader.read(b);
+                        final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
+                        if (geom != null) {
+                            final int srid = rs.getInt(4);
+                            final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                             JTS.setCRS(geom, crs);
                         } else {
                             continue;
@@ -1503,11 +1529,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             continue;
                         }
                     }
+                    final String hlid = procedure + "-" + time;
 
                     // can it happen? if so the pagination will be broken
-                    String hlid = procedure + "-" + time;
+                    // we temporarly throw an exception to see if this happen. if not remove this "IF"
+                    if (results.contains(hlid)) {
+                        throw new IllegalArgumentException("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+                    }
                     results.add(hlid);
-                    
+
                 } catch (FactoryException | ParseException ex) {
                     throw new DataStoreException(ex);
                 }
@@ -1665,8 +1695,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(); break;
             case PROCEDURE:           request = getProcedureRequest(); break;
             case OFFERING:            request = getOfferingRequest(); break;
-            case OBSERVATION:         return new LinkedHashSet(filterObservation());
-            case LOCATION:            return new LinkedHashSet(filterSensorLocations());
+            case OBSERVATION:         return new LinkedHashSet(filterObservation(false).identifiers);
+            case LOCATION:            return new LinkedHashSet(filterSensorLocations(false).identifiers);
             case HISTORICAL_LOCATION: return new LinkedHashSet(filterHistoricalSensorLocations());
             case RESULT:              throw new DataStoreException("not implemented yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
@@ -1701,9 +1731,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case PROCEDURE:           request = getProcedureRequest(); break;
             case OFFERING:            request = getOfferingRequest(); break;
             case HISTORICAL_LOCATION: request = getHistoricalLocationRequest();break;
-            case OBSERVATION:         return filterObservation().size();
+            case OBSERVATION:         return filterObservation(true).count;
             case RESULT:              return filterResult().size();
-            case LOCATION:            return filterSensorLocations().size();
+            case LOCATION:            return filterSensorLocations(true).count;
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 
@@ -1749,13 +1779,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     protected FilterSQLRequest appendPaginationToRequest(FilterSQLRequest request) {
-        if (isPostgres) {
+        if (dialect.equals(POSTGRES)) {
             if (limit != null && limit > 0) {
                 request.append(" LIMIT ").append(Long.toString(limit));
             }
             if (offset != null && offset > 0) {
                 request.append(" OFFSET ").append(Long.toString(offset));
             }
+        // TODO verify if this is suported by duckdb
         } else {
             if (offset != null && offset > 0) {
                 request.append(" OFFSET ").append(Long.toString(offset)).append(" ROWS ");
@@ -1832,6 +1863,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     protected List applyPostPagination(List full) {
+        if (offset == null && limit == null) return full;
+        
         int from = 0;
         if (offset != null) {
             from = offset.intValue();

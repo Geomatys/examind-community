@@ -48,7 +48,11 @@ import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
+import static org.constellation.store.observation.db.OMSQLDialect.DERBY;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.PreparedSQLBatch;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.Util;
@@ -68,6 +72,8 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.model.TextEncoderProperties;
+import org.locationtech.jts.io.WKBWriter;
+import org.locationtech.jts.io.WKTWriter;
 import org.opengis.temporal.RelativePosition;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -90,7 +96,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * Build a new Observation writer for the given data source.
      *
      * @param source Data source on the database.
-     * @param isPostgres {@code True} if the database is a postgresql db, {@code false} otherwise.
+     * @param dialect SGBD dialect.
      * @param schemaPrefix Prefix for the database schemas.
      * @param properties
      * @param timescaleDB {@code True} if the database has the TimescaleDB extension available.
@@ -98,8 +104,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      *
      * @throws org.apache.sis.storage.DataStoreException
      */
-    public OM2ObservationWriter(final DataSource source, final boolean isPostgres, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB, final int maxFieldByTable) throws DataStoreException {
-        super(properties, schemaPrefix, false, isPostgres, timescaleDB);
+    public OM2ObservationWriter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB, final int maxFieldByTable) throws DataStoreException {
+        super(properties, schemaPrefix, false, dialect, timescaleDB);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
@@ -460,6 +466,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         final String request = "INSERT into \"" + schemaPrefix + "om\".\"" + tableName + "\" VALUES (?,?,?)";
         LOGGER.fine(request);
         try (final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            PreparedSQLBatch stmtBatch = new PreparedSQLBatch(stmt, dialect.supportBatch);
             for (Entry<String, Object> entry : properties.entrySet()) {
                 List<Object> values;
                 if (entry.getValue() instanceof List ls) {
@@ -468,13 +475,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     values = Arrays.asList(entry.getValue());
                 }
                 for (Object value : values) {
-                    stmt.setString(1, id);
-                    stmt.setString(2, entry.getKey());
-                    stmt.setString(3,  Objects.toString(value));
-                    stmt.addBatch();
+                    stmtBatch.setString(1, id);
+                    stmtBatch.setString(2, entry.getKey());
+                    stmtBatch.setString(3,  Objects.toString(value));
+                    stmtBatch.addBatch();
                 }
             }
-            stmt.executeBatch();
+            stmtBatch.executeBatch();
         }
     }
 
@@ -587,8 +594,25 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
+    private void setGeometry(PreparedStatement stmt, Geometry geom, int index) throws SQLException {
+        if (dialect.equals(OMSQLDialect.DUCKDB)) {
+            WKTWriter writer = new WKTWriter();
+            String wkt = writer.write(geom);
+            stmt.setString(index,  wkt);
+        } else {
+            final WKBWriter writer = new WKBWriter();
+            byte[] bytes = writer.write(geom);
+            stmt.setBytes(index, bytes);
+        }
+    }
+
     private ProcedureInfo writeProcedure(final ProcedureDataset procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
         final String procedureID = procedure.getId();
+        final String geomField = switch(dialect) {
+            case POSTGRES, DERBY  -> "?";
+            case DUCKDB           -> "ST_GeomFromText(cast (? as varchar))";
+        };
+
         int pid;
         int nbTable;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
@@ -609,7 +633,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         nbTable++;
                     }
 
-                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
+                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?," + geomField + ",?,?,?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, procedureID);
                         Geometry position = procedure.spatialBound.getLastGeometry();
                         if (position != null) {
@@ -617,7 +641,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             if (srid == 0) {
                                 srid = 4326;
                             }
-                            stmtInsert.setBytes(2, getGeometryBytes(position));
+                            setGeometry(stmtInsert, position, 2);
                             stmtInsert.setInt(3, srid);
                         } else {
                             stmtInsert.setNull(2, java.sql.Types.BINARY);
@@ -657,7 +681,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
 
                     // write locations
-                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
+                    try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?," + geomField + ",?)")) {//NOSONAR
                         for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
                             insertHistoricalLocation(stmtInsert, procedureID, entry);
                         }
@@ -669,7 +693,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     * Update historical locations, add new ones if not already recorded (do not remove disappeared ones)
                     */
                     try(final PreparedStatement stmtHlExist  = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=? AND \"time\"=?");//NOSONAR
-                        final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
+                        final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?," + geomField + ",?)")) {//NOSONAR
                         stmtHlExist.setString(1, procedureID);
                         // write new locations
                         for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
@@ -702,12 +726,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         stmtInsert.setString(1, procedureId);
         stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
         if (entry.getValue() != null) {
-            Geometry pt = entry.getValue();
-            int srid = pt.getSRID();
+            Geometry geom = entry.getValue();
+            int srid = geom.getSRID();
             if (srid == 0) {
                 srid = 4326;
             }
-            stmtInsert.setBytes(3, getGeometryBytes(pt));
+            setGeometry(stmtInsert, geom, 3);
             stmtInsert.setInt(4, srid);
         } else {
             stmtInsert.setNull(3, java.sql.Types.BINARY);
@@ -722,7 +746,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             stmtExist.setString(1, foi.getId());
             try (final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
-                    try (final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?,?,?)")) {//NOSONAR
+                    final String geomField = switch(dialect) {
+                        case POSTGRES, DERBY  -> "?";
+                        case DUCKDB           -> "ST_GeomFromText(cast (? as varchar))";
+                    };
+                    try (final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"sampling_features\" VALUES(?,?,?,?," + geomField + ",?)")) {//NOSONAR
                         stmtInsert.setString(1, foi.getId());
                         stmtInsert.setString(2, foi.getName());
                         stmtInsert.setString(3, foi.getDescription());
@@ -731,10 +759,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else {
                             stmtInsert.setNull(4, java.sql.Types.VARCHAR);
                         }
-                        if (foi.getGeometry() != null) {
-                            final Geometry geom = foi.getGeometry();
+                        final Geometry geom = foi.getGeometry();
+                        if (geom != null) {
                             final int SRID = geom.getSRID();
-                            stmtInsert.setBytes(5, getGeometryBytes(foi.getGeometry()));
+                            setGeometry(stmtInsert, geom, 5);
                             stmtInsert.setInt(6, SRID);
                         } else {
                             stmtInsert.setNull(5, java.sql.Types.VARBINARY);
@@ -787,7 +815,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final String values          = cr.getValues();
             if (values != null && !values.isEmpty()) {
                 final List<InsertDbField> dbFields = completeDbField(pi.procedureId, fields, c);
-                OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(pi, schemaPrefix, isPostgres, dbFields);
+                OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(pi, schemaPrefix, dialect, dbFields);
                 msi.fillMesureTable(c, oid, cr, update);
             }
         } else if (result != null) {
@@ -1078,20 +1106,23 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public synchronized void recordProcedureLocation(final String physicalID, final Geometry position) throws DataStoreException {
-        if (position != null) {
-            try(final Connection c     = source.getConnection();
-                PreparedStatement ps   = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=?, \"crs\"=? WHERE \"id\"=?")) {//NOSONAR
-                ps.setString(3, physicalID);
-                int srid = position.getSRID();
-                if (srid == 0) {
-                    srid = 4326;
-                }
-                ps.setBytes(1, getGeometryBytes(position));
-                ps.setInt(2, srid);
-                ps.execute();
-            } catch (SQLException e) {
-                throw new DataStoreException(e.getMessage(), e);
+        if (position == null) return;
+        final String query = switch(dialect) {
+            case POSTGRES, DERBY -> "UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=?, \"crs\"=? WHERE \"id\"=?";
+            case DUCKDB          -> "UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"shape\"=ST_GeomFromText(?), \"crs\"=? WHERE \"id\"=?";
+        };
+        try (final Connection c    = source.getConnection();
+            PreparedStatement ps   = c.prepareStatement(query)) {//NOSONAR
+            ps.setString(3, physicalID);
+            int srid = position.getSRID();
+            if (srid == 0) {
+                srid = 4326;
             }
+            setGeometry(ps, position, 1);
+            ps.setInt(2, srid);
+            ps.execute();
+        } catch (SQLException e) {
+            throw new DataStoreException(e.getMessage(), e);
         }
     }
 
@@ -1739,10 +1770,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private boolean measureTableExist(final int pid) throws SQLException {
+    private boolean measureTableExist(final int pid, Connection c) throws SQLException {
         final String tableName = "mesure" + pid;
-        try (final Connection c = source.getConnection();
-             final Statement stmt = c.createStatement();
+        try (final Statement stmt = c.createStatement();
              final ResultSet rs = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\"")) {//NOSONAR
             // if no exception this mean that the table exist
             return true;
@@ -1787,7 +1817,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 columnName = field.name;
             }
             StringBuilder sb = new StringBuilder("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD \"" + columnName + "\" ");
-            sb.append(field.getSQLType(isPostgres, false));
+
+            // TODO verify. for now we use the same datatype for postgres and duckdb
+            sb.append(field.getSQLType(!dialect.equals(OMSQLDialect.DERBY), false));
             sqls.add(sb.toString());
         }
     }
@@ -1799,9 +1831,17 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         public TableCreation(int tableNum, String baseTableName, boolean fillObs) {
             super(tableNum, baseTableName);
-            this.sql = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
-                                                 + "\"id_observation\" integer NOT NULL,"
-                                                 + "\"id\"             integer NOT NULL,");
+            // duck db does not allow to create a foreign key across different schemas, so we can't add it.
+            // TODO look for duckdb improvement
+            if (dialect.equals(DUCKDB)) {
+                this.sql = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
+                                                     + "\"id_observation\" integer NOT NULL,"
+                                                     + "\"id\"             integer NOT NULL,");
+            } else {
+                this.sql = new StringBuilder("CREATE TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\"("
+                                                     + "\"id_observation\" integer NOT NULL REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\"),"
+                                                     + "\"id\"             integer NOT NULL,");
+            }
             this.fillObservations = fillObs;
         }
 
@@ -1817,11 +1857,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 columnName = field.name;
             }
 
-            sql.append('"').append(columnName).append("\" ").append(field.getSQLType(isPostgres, isMain && timescaleDB));
+            // TODO verify. for now we use the same datatype for postgres and duckdb
+            sql.append('"').append(columnName).append("\" ").append(field.getSQLType(!dialect.equals(OMSQLDialect.DERBY), isMain && timescaleDB));
             // main field should not be null (timescaledb compatibility)
             if (isMain) {
                 mainField = field;
-                sql.append(" NOT NULL");
             }
             sql.append(",");
         }
@@ -1844,7 +1884,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         /**
          * Look for table existence.
          */
-        final boolean exist = measureTableExist(pi.pid);
+        final boolean exist = measureTableExist(pi.pid, c);
         if (!exist) {
             oldfields   = new ArrayList<>();
             firstField  = true;
@@ -1903,21 +1943,19 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             for (TableStatement ts : tablesStmt.values()) {
                 
                 if (ts instanceof TableCreation tc) {
-                    String tableName = tc.tableName;
                     StringBuilder tableStsmt = tc.sql;
-                    // close statement
-                    tableStsmt.setCharAt(tableStsmt.length() - 1, ' ');
-                    tableStsmt.append(")");
-
-                    stmt.executeUpdate(tableStsmt.toString());
 
                     String mainFieldPk = "";
                     if (tc.mainField != null) {
                         mainFieldPk = ", \"" + tc.mainField.name + "\"";
                     }
-                    // main field should not be in the primary phenId (timescaledb compatibility)
-                    stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_pk PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")");//NOSONAR
-                    stmt.executeUpdate("ALTER TABLE \"" + schemaPrefix + "mesures\".\"" + tableName + "\" ADD CONSTRAINT " + tableName + "_obs_fk FOREIGN KEY (\"id_observation\") REFERENCES \"" + schemaPrefix + "om\".\"observations\"(\"id\")");//NOSONAR
+                    String primaryKey = "PRIMARY KEY (\"id_observation\", \"id\"" + mainFieldPk + ")";
+
+                    // close statement
+                    tableStsmt.append(primaryKey);
+                    tableStsmt.append(")");
+
+                    stmt.executeUpdate(tableStsmt.toString());
 
                     //only for timeseries for now
                     if (timescaleDB && tc.mainField != null && FieldType.TIME.equals(tc.mainField.type)) {
@@ -1928,7 +1966,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     if (tc.fillObservations) {
                         ResultSet rs = stmt.executeQuery("SELECT \"id_observation\", \"id\" FROM \"" + schemaPrefix + "mesures\".\"" + tc.baseTableName + "\"");
 
-                        try (final PreparedStatement stmtBatch = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tc.tableName + "\" (\"id_observation\", \"id\") VALUES(?,?)")) {
+                        try (final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + tc.tableName + "\" (\"id_observation\", \"id\") VALUES(?,?)")) {
+                            PreparedSQLBatch stmtBatch = new PreparedSQLBatch(stmtInsert, dialect.supportBatch);
                             while (rs.next()) {
                                 stmtBatch.setInt(1, rs.getInt(1));
                                 stmtBatch.setInt(2, rs.getInt(2));

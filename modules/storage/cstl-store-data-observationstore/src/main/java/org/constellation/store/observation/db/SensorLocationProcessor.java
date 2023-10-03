@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -33,6 +32,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
@@ -44,9 +44,11 @@ import org.opengis.util.FactoryException;
 public class SensorLocationProcessor {
 
     protected final GeneralEnvelope envelopeFilter;
+    protected final OMSQLDialect dialect;
 
-    public SensorLocationProcessor(GeneralEnvelope envelopeFilter) {
+    public SensorLocationProcessor(GeneralEnvelope envelopeFilter, OMSQLDialect dialect) {
         this.envelopeFilter = envelopeFilter;
+        this.dialect = dialect;
     }
 
     public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
@@ -63,13 +65,11 @@ public class SensorLocationProcessor {
             try {
                 final String procedure = rs.getString("procedure");
                 final Date time = new Date(rs.getTimestamp("time").getTime());
-                final byte[] b = rs.getBytes(3);
-                final int srid = rs.getInt(4);
-                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
-                org.locationtech.jts.geom.Geometry geom;
-                if (b != null) {
-                    WKBReader reader = new WKBReader();
-                    geom             = reader.read(b);
+                org.locationtech.jts.geom.Geometry geom = readGeom(rs, 3);
+                
+                if (geom != null) {
+                    final int srid = rs.getInt(4);
+                    final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, currentCRS);
                     // reproject geom to envelope CRS if needed
                     if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {
@@ -101,5 +101,24 @@ public class SensorLocationProcessor {
             }
         }
         return locations;
+    }
+
+    protected org.locationtech.jts.geom.Geometry readGeom(SQLResult rs, int index) throws SQLException, ParseException {
+        org.locationtech.jts.geom.Geometry geom = null;
+        // duck db driver does not support a lot of bytes handling. TODO, look for future driver improvement
+        if (dialect.equals(OMSQLDialect.DUCKDB)) {
+           String s = rs.getString(index);
+            if (s != null) {
+                WKTReader reader = new WKTReader();
+                geom = reader.read(s);
+            }
+        } else {
+            final byte[] b = rs.getBytes(index);
+            if (b != null) {
+                WKBReader reader = new WKBReader();
+                geom = reader.read(b);
+            }
+        }
+        return geom;
     }
 }

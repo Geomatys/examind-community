@@ -33,12 +33,16 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.store.observation.db.OM2Utils;
+import org.constellation.store.observation.db.OMSQLDialect;
+import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
 import org.constellation.util.Util;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.storage.feature.FeatureStoreRuntimeException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.util.collection.CloseableIterator;
+import org.locationtech.jts.io.WKTReader;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -62,20 +66,22 @@ public class OM2SamplingFeatureReader implements CloseableIterator<Feature> {
 
     protected final String schemaPrefix;
 
+    protected final OMSQLDialect dialect;
+
     @SuppressWarnings("squid:S2095")
-    public OM2SamplingFeatureReader(Connection cnx, boolean isPostgres, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
+    public OM2SamplingFeatureReader(Connection cnx, OMSQLDialect dialect, final FeatureType type, final String schemaPrefix) throws SQLException, DataStoreException {
         this.type = type;
         this.cnx = cnx;
         if (Util.containsForbiddenCharacter(schemaPrefix)) {
             throw new DataStoreException("Invalid schema prefix value");
         }
         this.schemaPrefix = schemaPrefix;
-        final PreparedStatement stmtAll;
-        if (isPostgres) {
-            stmtAll = cnx.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
-        } else {
-            stmtAll = cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
-        }
+        this.dialect = dialect;
+        final PreparedStatement stmtAll = switch(dialect) {
+            case POSTGRES -> cnx.prepareStatement("SELECT \"id\", \"name\", \"description\", \"sampledfeature\", st_asBinary(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
+            case DUCKDB   -> cnx.prepareStatement("SELECT  \"id\", \"name\", \"description\", \"sampledfeature\", ST_AsText(\"shape\") as \"shape\", \"crs\" FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
+            default       -> cnx.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"sampling_features\"");//NOSONAR
+        };
         result = stmtAll.executeQuery();
 
     }
@@ -126,23 +132,29 @@ public class OM2SamplingFeatureReader implements CloseableIterator<Feature> {
         current = type.newInstance();
         final String id = result.getString("id");
         current.setPropertyValue(AttributeConvention.IDENTIFIER_PROPERTY.toString(), id);
-        final byte[] b = result.getBytes("shape");
-        Geometry geom;
-        if (b != null) {
-            WKBReader reader = new WKBReader();
-            geom = reader.read(b);
-            if (geom != null) {
-                JTS.setCRS(geom, currentCRS);
-            }
-            if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
-                try {
-                    geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
-                } catch (TransformException ex) {
-                    throw new ConstellationStoreException(ex);
-                }
+        Geometry geom = null;
+        if (dialect.equals(DUCKDB)) {
+            String s = result.getString("shape");
+            if (s != null) {
+                WKTReader reader = new WKTReader();
+                geom = reader.read(s);
             }
         } else {
-            geom = null;
+            byte[] b = result.getBytes("shape");
+            if (b != null) {
+                WKBReader reader = new WKBReader();
+                geom = reader.read(b);
+            }
+        }
+        if (geom != null) {
+            JTS.setCRS(geom, currentCRS);
+        }
+        if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
+            try {
+                geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
+            } catch (TransformException ex) {
+                throw new ConstellationStoreException(ex);
+            }
         }
         current.setPropertyValue(OMFeatureTypes.SF_ATT_DESC.toString(),result.getString("description"));
         current.setPropertyValue(OMFeatureTypes.SF_ATT_NAME.toString(),result.getString("name"));

@@ -35,8 +35,6 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.WKBWriter;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -91,11 +89,6 @@ public class OM2Utils {
 
         // the multiple observations which overlaps the whole period
         sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
-    }
-
-    public static byte[] getGeometryBytes(Geometry pt) {
-        final WKBWriter writer = new WKBWriter();
-        return writer.write(pt);
     }
 
     public static List<InsertDbField> flatFields(List<InsertDbField> fields) {

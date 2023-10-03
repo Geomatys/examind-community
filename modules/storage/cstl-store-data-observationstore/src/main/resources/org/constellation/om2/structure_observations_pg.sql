@@ -19,17 +19,6 @@ CREATE TABLE "$SCHEMAom"."observations" (
     "foi"               character varying(200)
 );
 
-CREATE TABLE "$SCHEMAom"."mesures" (
-    "id_observation"    integer NOT NULL,
-    "id"                integer NOT NULL,
-    "time"              timestamp,
-    "value"             character varying(100),
-    "uom"               character varying(100),
-    "field_type"        character varying(30),
-    "field_name"        character varying(100),
-    "field_definition"  character varying(200)
-);
-
 CREATE TABLE "$SCHEMAom"."offerings" (
     "identifier"       character varying(100) NOT NULL,
     "description"      character varying(200),
@@ -127,8 +116,6 @@ CREATE TABLE "$SCHEMAom"."components" (
 
 ALTER TABLE "$SCHEMAom"."observations" ADD CONSTRAINT observation_pk PRIMARY KEY ("id");
 
-ALTER TABLE "$SCHEMAom"."mesures" ADD CONSTRAINT mesure_pk PRIMARY KEY ("id_observation", "id");
-
 ALTER TABLE "$SCHEMAom"."offerings" ADD CONSTRAINT offering_pk PRIMARY KEY ("identifier");
 
 ALTER TABLE "$SCHEMAom"."offering_observed_properties" ADD CONSTRAINT offering_op_pk PRIMARY KEY ("id_offering", "phenomenon");
@@ -158,8 +145,6 @@ ALTER TABLE "$SCHEMAom"."observations" ADD CONSTRAINT observation_op_fk FOREIGN 
 ALTER TABLE "$SCHEMAom"."observations" ADD CONSTRAINT observation_procedure_fk FOREIGN KEY ("procedure") REFERENCES "$SCHEMAom"."procedures"("id");
 
 ALTER TABLE "$SCHEMAom"."observations" ADD CONSTRAINT observation_foi_fk FOREIGN KEY ("foi") REFERENCES "$SCHEMAom"."sampling_features"("id");
-
-ALTER TABLE "$SCHEMAom"."mesures" ADD CONSTRAINT mesure_obs_fk FOREIGN KEY ("id_observation") REFERENCES "$SCHEMAom"."observations"("id");
 
 ALTER TABLE "$SCHEMAom"."offerings" ADD CONSTRAINT offering_procedure_fk FOREIGN KEY ("procedure") REFERENCES "$SCHEMAom"."procedures"("id");
 

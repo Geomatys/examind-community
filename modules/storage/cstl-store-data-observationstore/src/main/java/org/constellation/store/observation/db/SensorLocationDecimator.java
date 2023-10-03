@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import java.sql.ResultSet;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,8 +49,8 @@ import org.opengis.util.FactoryException;
  */
 public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
-    public SensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times) {
-        super(envelopeFilter, width, times);
+    public SensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+        super(envelopeFilter, width, times, dialect);
     }
 
     @Override
@@ -117,12 +117,10 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
                 }
                 prevProc = procedure;
 
-                final byte[] b = rs.getBytes(3);
-                final int srid = rs.getInt(4);
-                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
-                org.locationtech.jts.geom.Geometry geom;
-                if (b != null) {
-                    geom = reader.read(b);
+                org.locationtech.jts.geom.Geometry geom = readGeom(rs, 3);
+                if (geom != null) {
+                    final int srid = rs.getInt(4);
+                    final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, currentCRS);
                     if (!(geom instanceof Point)) {
                         LOGGER.warning("Geometry is not a point. excluded from decimation");
