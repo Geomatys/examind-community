@@ -1062,9 +1062,21 @@ public class DataBusiness implements IDataBusiness {
         return dataPRef;
     }
 
+    /**
+     * {@inheritDoc }
+     */
     @Override
     @Transactional
-    public DataBrief acceptData(int id, int owner, boolean hidden) throws ConstellationException {
+    public DataBrief acceptData(int id, Integer owner, boolean hidden) throws ConstellationException {
+        return acceptData(id, owner, true, hidden);
+    }
+
+    /**
+     * {@inheritDoc }
+     */
+    @Override
+    @Transactional
+    public DataBrief acceptData(int id, Integer owner, boolean generateMetadata, boolean hidden) throws ConstellationException {
         Data data = dataRepository.findById(id);
         String dataType = data.getType();
 
@@ -1072,7 +1084,9 @@ public class DataBusiness implements IDataBusiness {
         updateDataHidden(id, hidden);
 
         // 2. change the ownership of the data
-        updateDataOwner(id, owner);
+        if (owner != null) {
+            updateDataOwner(id, owner);
+        }
 
         /* deactivated
 
@@ -1087,15 +1101,17 @@ public class DataBusiness implements IDataBusiness {
         }*/
 
         // 4. Initialize the default metadata.
-        initDataMetadata(data.getId(), hidden);
+        if (generateMetadata) {
+            initDataMetadata(data.getId(), hidden);
 
-        // 5. if enable and for vector data, we generate feature catalog metadata
-        boolean generateFeatCat = Application.getBooleanProperty(AppProperty.GENERATE_FEATURE_CATALOG, true);
-        if ("vector".equalsIgnoreCase(dataType) && generateFeatCat) {
-            FeatureCatalogue fc = ISO19110Builder.createCatalogueForData(data.getProviderId(), new QName(data.getNamespace(), data.getName()));
-            Integer intProviderID = metadataBusiness.getDefaultInternalProviderID();
-            if (intProviderID != null) {
-                metadataBusiness.updateMetadata(fc.getId(), fc, data.getId(), null, null, owner, intProviderID, "DOC", null, hidden);
+            // if enable and for vector data, we generate feature catalog metadata
+            boolean generateFeatCat = Application.getBooleanProperty(AppProperty.GENERATE_FEATURE_CATALOG, true);
+            if ("vector".equalsIgnoreCase(dataType) && generateFeatCat) {
+                FeatureCatalogue fc = ISO19110Builder.createCatalogueForData(data.getProviderId(), new QName(data.getNamespace(), data.getName()));
+                Integer intProviderID = metadataBusiness.getDefaultInternalProviderID();
+                if (intProviderID != null) {
+                    metadataBusiness.updateMetadata(fc.getId(), fc, data.getId(), null, null, owner, intProviderID, "DOC", null, hidden);
+                }
             }
         }
         return getDataBrief(id, true, true);
@@ -1103,7 +1119,7 @@ public class DataBusiness implements IDataBusiness {
 
     @Override
     @Transactional
-    public Map<String, List> acceptDatas(List<Integer> ids, int owner, boolean hidden) throws ConstellationException {
+    public Map<String, List> acceptDatas(List<Integer> ids, Integer owner, boolean hidden) throws ConstellationException {
         Map<String, List> results = new HashMap<>();
         results.put("accepted", new ArrayList<>());
         results.put("refused", new ArrayList<>());

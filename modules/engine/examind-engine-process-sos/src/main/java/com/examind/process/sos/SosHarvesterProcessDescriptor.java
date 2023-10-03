@@ -442,11 +442,19 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRequired(false)
             .create(Map.class, null);
 
+    public static final String GENERATE_METADATA_NAME = "generate_metadata";
+    public static final String GENERATE_METADATA_DESC = "Generate a metadata for each imported file.";
+    public static final ParameterDescriptor<Boolean> GENERATE_METADATA = PARAM_BUILDER
+            .addName(GENERATE_METADATA_NAME)
+            .setRemarks(GENERATE_METADATA_DESC)
+            .setRequired(false)
+            .create(Boolean.class, true);
+
     public static final ParameterDescriptorGroup INPUT_DESC =
             PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_NAME, THING_DESC, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, OBS_TYPE,
                     SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID, REMOVE_PREVIOUS,
                     STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
-                    NO_HEADER, LAX_HEADER);
+                    NO_HEADER, LAX_HEADER, GENERATE_METADATA);
 
     public static final String FILE_INSERTED_NAME = "files_inserted_count";
     public static final String FILE_INSERTED_DESC = "Number of files inserted";

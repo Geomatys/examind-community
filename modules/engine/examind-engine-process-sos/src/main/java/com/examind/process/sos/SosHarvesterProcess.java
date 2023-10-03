@@ -134,6 +134,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String user = inputParameters.getValue(USER);
         final String pwd  = inputParameters.getValue(PWD);
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
+        final boolean generateMetadata = inputParameters.getValue(GENERATE_METADATA);
 
         final List<ServiceProcessReference> services = new ArrayList<>();
         for (GeneralParameterValue param : inputParameters.values()) {
@@ -394,7 +395,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
                                 }
                             }
                             fireAndLog("Integrating data file: " + filePath, 0);
-                            dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId));
+                            dataToIntegrate.addAll(integratingDataFile(p, dsId, provConfig, datasetId, generateMetadata));
                             nbFileInserted++;
                         }
                     }
@@ -437,12 +438,12 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         outputParameters.getOrCreate(SosHarvesterProcessDescriptor.FILE_INSERTED).setValue(nbFileInserted);
     }
 
-    private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId) throws ConstellationException {
+    private List<Integer> integratingDataFile(DataSourceSelectedPath p, Integer dsid, ProviderConfiguration provConfig, Integer datasetId, boolean generateMetadata) throws ConstellationException {
         List<Integer> dataToIntegrate = new ArrayList<>();
         int userId = 1;
         ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, userId);
         for (ResourceAnalysisV3 resourceStore : store.getResources()) {
-            final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, false);
+            final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, generateMetadata, false);
             dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
             dataToIntegrate.add(acceptData.getId());
         }

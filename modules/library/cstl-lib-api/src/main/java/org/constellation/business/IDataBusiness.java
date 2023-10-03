@@ -342,9 +342,40 @@ public interface IDataBusiness {
 
     Map.Entry<Integer, List<DataBrief>> filterAndGetBrief(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 
-    DataBrief acceptData(int id, int owner, boolean hidden) throws ConstellationException;
+    /**
+     * Finish the integration of a data in the system.
+     *
+     * @param id Identifier of the data to integrate.
+     * @param owner If set, the data will change the owner to the supplied one.
+     * @param hidden set the new hidden status of the data.
+     *
+     * @return A databrief description of the data.
+     * @throws ConstellationException
+     */
+    DataBrief acceptData(int id, Integer owner, boolean hidden) throws ConstellationException;
 
-    Map<String, List> acceptDatas(List<Integer> ids, int owner, boolean hidden) throws ConstellationException;
+    /**
+     * Finish the integration of a data in the system.
+     *
+     * @param id Identifier of the data to integrate.
+     * @param owner If set, the data will change the owner to the supplied one.
+     * @param generateMetadata if set, a new metadata will be generated for the data.
+     * @param hidden set the new hidden status of the data.
+     *
+     * @return A databrief description of the data.
+     * @throws ConstellationException
+     */
+    DataBrief acceptData(int id, Integer owner, boolean generateMetadata, boolean hidden) throws ConstellationException;
+
+    /**
+     *
+     * @param ids
+     * @param owner
+     * @param hidden
+     * @return
+     * @throws ConstellationException
+     */
+    Map<String, List> acceptDatas(List<Integer> ids, Integer owner, boolean hidden) throws ConstellationException;
 
     /**
      * Return the original data envelope, if it has been stored into the database.
