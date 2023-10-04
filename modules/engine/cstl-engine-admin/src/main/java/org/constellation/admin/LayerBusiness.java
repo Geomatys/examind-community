@@ -37,6 +37,7 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IServiceBusiness;
+import org.constellation.business.IStyleBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.Data;
@@ -75,6 +76,8 @@ public class LayerBusiness implements ILayerBusiness {
     protected IUserBusiness userBusiness;
     @Autowired
     protected StyleRepository styleRepository;
+    @Autowired
+    protected IStyleBusiness styleBusiness;
     @Autowired
     protected LayerRepository layerRepository;
     @Autowired
@@ -134,7 +137,8 @@ public class LayerBusiness implements ILayerBusiness {
 
             int layerID = layerRepository.create(layer);
             for (int styleID : styleRepository.getStyleIdsForData(dataId)) {
-                styleRepository.linkStyleToLayer(styleID, layerID);
+                // StyleBusiness instead of StyleRepository to use the method overriden in other projects.
+                styleBusiness.linkToLayer(styleID, layerID);
             }
 
             //clear cache event
