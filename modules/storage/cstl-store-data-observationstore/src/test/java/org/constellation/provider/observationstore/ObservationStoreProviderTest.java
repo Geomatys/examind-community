@@ -1679,6 +1679,43 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:2-976489200000");
         Assert.assertEquals(expectedIds, resultIds);
+
+        /**
+         * decimation
+         * TODO: i did not verified the correctness of the results
+         */
+        query = new HistoricalLocationQuery();
+        filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setSelection(filter);
+        query.setDecimationSize(10);
+
+        results = omPr.getHistoricalLocation(query);
+
+        assertTrue(results.containsKey("urn:ogc:object:sensor:GEOM:2"));
+        assertEquals(3, results.get("urn:ogc:object:sensor:GEOM:2").size());
+
+        assertEquals(1, results.size());
+        assertEquals(3, countElementInMap(results));
+
+        resultIds = getHistoricalLocationIds(results);
+        assertEquals(3, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2-975715920000");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2-976441680000");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2-977348880000");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        /**
+         * find all with decimation
+         * TODO: i did not verified the correctness of the results
+         */
+        query = new HistoricalLocationQuery();
+        query.setDecimationSize(10);
+        results = omPr.getHistoricalLocation(query);
+
+        assertEquals(15, results.size());
+        assertEquals(21, countElementInMap(results));
     }
 
     @Test

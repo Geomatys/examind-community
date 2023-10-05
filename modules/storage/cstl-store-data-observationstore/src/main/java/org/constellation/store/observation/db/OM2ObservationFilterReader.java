@@ -923,11 +923,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      *  - the step value
      */
     private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
-        boolean profile = "profile".equals(currentProcedure.type);
         boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
+        Boolean profile = getLoc ? null : "profile".equals(currentProcedure.type);
         if (getLoc) {
-            request.replaceFirst("SELECT hl.\"procedure\", hl.\"time\", st_asBinary(\"location\") as \"location\", hl.\"crs\" ",
-                                 "SELECT MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
+            request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
             request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
 
         } else {
@@ -1292,11 +1291,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @throws DataStoreException
      */
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations() throws DataStoreException {
-        FilterSQLRequest stepRequest = sqlRequest.clone();
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        FilterSQLRequest stepRequest = sqlRequest.clone();
+        sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
         int nbCell = decimationSize;
@@ -1330,11 +1329,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @throws DataStoreException
      */
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocationsV2(int decimSize) throws DataStoreException {
-        FilterSQLRequest stepRequest = sqlRequest.clone();
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }
-        sqlRequest.append(" ORDER BY \"procedure\", \"time\"");
+        FilterSQLRequest stepRequest = sqlRequest.clone();
+        sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
         int nbCell = decimationSize;
