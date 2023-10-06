@@ -137,6 +137,14 @@ public interface IStyleBusiness {
     Integer createStyle(String providerId, org.opengis.style.Style style) throws ConfigurationException;
 
     /**
+     * Return the @{@link StyleBrief} object for a given style id.
+     *
+     * @param id The style identifier.
+     * @return The {@link StyleBrief}.
+     */
+    StyleBrief getStyleBrief(final int id) throws TargetNotFoundException;
+
+    /**
      * Returns the list of available styles as {@link StyleBrief} object.
      *
      * @param type Style type (VECTOR / COVERAGE)

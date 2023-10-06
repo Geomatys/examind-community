@@ -215,6 +215,19 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
+    public  StyleBrief getStyleBrief(final int styleId) throws TargetNotFoundException {
+        final Style style = styleRepository.findById(styleId);
+        if (style == null) {
+            throw new TargetNotFoundException("Style with id" + styleId + " not found.");
+        }
+
+        return convertToBrief(style);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public List<StyleBrief> getAvailableStyles(final String type) throws ConstellationException {
         return getAvailableStyles(null, type);
     }
