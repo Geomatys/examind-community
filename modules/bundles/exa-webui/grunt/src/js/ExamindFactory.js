@@ -2971,7 +2971,7 @@ function Examind($http, url) {
         getExternalMapLayers : function(url,version) {
             return self.request({
                 method: 'POST',
-                url: 'internal/mapcontexts/external/capabilities/layers/'+version+'/',
+                url: 'internal/mapcontexts/external/capabilities/layers/'+version,
                 headers: {'Accept': 'application/json',
                     'Content-Type':'text/plain;charset=UTF-8'},
                 data: url
