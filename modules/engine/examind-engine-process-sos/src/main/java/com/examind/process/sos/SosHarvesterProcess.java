@@ -444,8 +444,10 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, userId);
         for (ResourceAnalysisV3 resourceStore : store.getResources()) {
             final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, generateMetadata, false);
-            dataBusiness.updateDataDataSetId(acceptData.getId(), datasetId);
-            dataToIntegrate.add(acceptData.getId());
+            final Integer dataId       = acceptData.getId();
+            dataBusiness.updateDataDataSetId(dataId, datasetId);
+            dataBusiness.cacheDataInformation(dataId, false);
+            dataToIntegrate.add(dataId);
         }
         return dataToIntegrate;
     }
