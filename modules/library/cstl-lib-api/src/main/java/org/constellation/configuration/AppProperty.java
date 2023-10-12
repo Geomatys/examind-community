@@ -48,7 +48,7 @@ public enum AppProperty {
     /**
      * Maximum pool size for EPSG database.
      * If not specified, default implementation size will be used (10).
-     * 
+     *
      * If the epsg database is the same as the main database and epsg.database.separated.pool is set to {@code true},
      * this parameter will be ignored.
      */
@@ -131,7 +131,7 @@ public enum AppProperty {
     CSTL_IMPORT_EMPTY("cstl.import.empty", false, Boolean.class),
 
     CSTL_IMPORT_CUSTOM("cstl.import.custom", false, Boolean.class),
-    
+
     EXA_CACHE_DATA_INFO("exa.cache.data.info", false, Boolean.class),
     /**
      * Seed used to generate token
@@ -157,6 +157,11 @@ public enum AppProperty {
      * If disable, may cause errors on style creation dashboard
      */
     DATA_AUTO_ANALYSE("data.auto.analyse", false, Boolean.class),
+
+    /**
+     * Flag that automatically enable or disable the attribute activateStats on StyledLayer when linking a style to layer.
+     */
+    LAYER_ACTIVATE_STATISTICS("layer.activate.statistics", false, Boolean.class),
 
     ES_CLUSTER_NAME("es.cluster.name", false, String.class),
 
@@ -236,9 +241,9 @@ public enum AppProperty {
     EXA_CLIENT_SECRET("exa.client.secret"),
 
     EXA_METADATA_VALIDATION_REQUIRE_LEVEL("exa.metadata.validation.require.level", false, Boolean.class),
-    
+
     EXA_WPS_AUTHENTICATED_URLS("exa.wps.authenticated.urls", true, List.class),
-    
+
     EXA_ALLOWED_FS_PATH("exa.allowed.fs.path", false, List.class),
 
     EXA_ENABLE_BASIC_AUTH("examind.enable.basic.auth", false, Boolean.class),

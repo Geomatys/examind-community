@@ -18,6 +18,8 @@
  */
 package org.constellation.repository;
 
+import org.constellation.dto.StyledLayer;
+
 import java.util.List;
 
 
@@ -27,4 +29,16 @@ import java.util.List;
 public interface StyledLayerRepository {
 
     List<Integer> findByLayer(int layerId);
+
+    List<StyledLayer> findByStyleId(int styleId);
+
+    StyledLayer findByStyleAndLayer(int styleId, int layerId);
+
+    List<StyledLayer> findStatisticLess();
+
+    void updateStatistics(int styleId, int layerId, String statsResult, String statsState);
+
+    void updateActivateStats(int styleId, int layerId, boolean activateStats);
+
+    boolean getActivateStats(final int styleId, final int layerId);
 }

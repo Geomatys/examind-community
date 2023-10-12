@@ -120,6 +120,7 @@ public interface IStyleBusiness {
 
     void linkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
+    void updateActivateStatsForLayerAndStyle(final int styleId, final int layerId, final boolean activateStats) throws TargetNotFoundException;
     void unlinkToLayer(final int styleId, final int layerId) throws ConfigurationException;
 
     void setDefaultStyleToLayer(int styleId, int layerId) throws ConfigurationException;

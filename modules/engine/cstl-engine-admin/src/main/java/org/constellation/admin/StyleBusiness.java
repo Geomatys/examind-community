@@ -19,6 +19,8 @@
 package org.constellation.admin;
 
 import org.constellation.business.*;
+import org.constellation.configuration.AppProperty;
+import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
@@ -97,6 +99,9 @@ public class StyleBusiness implements IStyleBusiness {
 
     @Autowired
     private IClusterBusiness clusterBusiness;
+
+    @Autowired
+    private StyledLayerRepository styledLayerRepository;
 
     @Autowired
     private org.constellation.security.SecurityManager securityManager;
@@ -361,6 +366,16 @@ public class StyleBusiness implements IStyleBusiness {
             s.setType(getTypeFromMutableStyle((MutableStyle) style));
             s.setName(styleName);
             styleRepository.update(s);
+
+            // Force statistics and state to null for each StyledLayer linked to this style.
+            // The cron on @LayerStatisticsJob will recompute the statistics for each layer.
+            List<StyledLayer> styledLayers = styledLayerRepository.findByStyleId(id);
+            for (StyledLayer styledLayer : styledLayers) {
+                if (styledLayer.getActivateStats()) {
+                    final Integer layer = styledLayer.getLayer();
+                    styledLayerRepository.updateStatistics(id, layer, null, null);
+                }
+            }
         } else {
             throw new TargetNotFoundException("Style with identifier \"" + id + "\" does not exist.");
         }
@@ -374,6 +389,23 @@ public class StyleBusiness implements IStyleBusiness {
             final boolean styleFound = styleRepository.existsById(styleId);
             if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
             styleRepository.linkStyleToLayer(styleId, layerId);
+            if (Application.getBooleanProperty(AppProperty.LAYER_ACTIVATE_STATISTICS, Boolean.TRUE)) {
+                styledLayerRepository.updateActivateStats(styleId, layerId, true);
+            }
+            clearServiceCache(l.getService());
+        } else {
+            throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateActivateStatsForLayerAndStyle(final int styleId, final int layerId, final boolean activateStats) throws TargetNotFoundException {
+        Layer l = layerRepository.findById(layerId);
+        if (l != null) {
+            final boolean styleFound = styleRepository.existsById(styleId);
+            if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
+            styledLayerRepository.updateActivateStats(styleId, layerId, activateStats);
             clearServiceCache(l.getService());
         } else {
             throw new TargetNotFoundException("Layer " + layerId + " can't be found from database.");
