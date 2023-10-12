@@ -118,7 +118,7 @@ function Examind($http, url) {
         setTokenRefreshURL : function(url) {
              window.localStorage.setItem('cstlRefreshURL', url);
         },
-        
+
         /**
          * Get refresh token url.
          *
@@ -227,7 +227,7 @@ function Examind($http, url) {
                 data: contact
                 });
         },
-        
+
         /**
          * Get configuration properties.
          *
@@ -239,7 +239,7 @@ function Examind($http, url) {
                 url: 'admin/properties'
                 });
         },
-        
+
         /**
          * Get configuration property.
          *
@@ -251,7 +251,7 @@ function Examind($http, url) {
                 url: 'admin/property/' + key
                 });
         },
-        
+
         /**
          * update configuration property.
          *
@@ -2280,7 +2280,7 @@ function Examind($http, url) {
                 data: layer
             });
         },
-        
+
         /**
          * Update a layer.
          *
@@ -2323,6 +2323,20 @@ function Examind($http, url) {
         },
 
         /**
+         * Update activateStats for layer style.
+         *
+         * @returns {Promise}
+         */
+        updateActivateStatsLayerStyle : function(params) {
+            return self.request({
+                method: 'POST',
+                url: 'MAP/layer/style/activatestats',
+                headers: {'Accept': 'application/json'},
+                data: params
+            });
+        },
+
+        /**
          * Remove layer style.
          *
          * @returns {Promise}
@@ -2335,7 +2349,7 @@ function Examind($http, url) {
                 data: params
             });
         },
-        
+
         isAvailableAlias : function (serviceId, alias) {
             return self.request({
                 method: 'GET',
@@ -2485,7 +2499,7 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
-        
+
         /**
          * Add the specified records in a csw service.
          *
@@ -2512,7 +2526,7 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
-        
+
          /**
          * Remove the specified records from csw service.
          *
@@ -2999,7 +3013,7 @@ function Examind($http, url) {
                     url: 'mapcontexts/' + contextId + '/pyramid?crs=' + crs + '&layerName=' + layerName
             });
         },
-        
+
         getMapContextData : function (contextId) {
             return self.request({
             method: 'GET',

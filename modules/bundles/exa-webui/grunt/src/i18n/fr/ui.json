@@ -840,6 +840,8 @@
   "label.sensor.system": "Système de capteurs",
   "label.south": "Sud",
   "label.south.first.letter": "S",
+  "layer.style.activate.statistics": "Activer le calcul des statistiques",
+  "layer.style.deactivate.statistics": "Désactiver le calcul des statistiques",
   "label.success": "Succès",
   "label.symbols": "Symboles",
   "label.title": "Titre",

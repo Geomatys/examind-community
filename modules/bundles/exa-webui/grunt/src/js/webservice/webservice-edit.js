@@ -39,7 +39,7 @@ angular.module('cstl-webservice-edit', [
         $scope.tagText = '';
         $scope.type = $routeParams.type;
         $scope.cstlUrl = window.localStorage.getItem('cstlUrl');
-        
+
         // default initialization. will be overidden later
         $scope.url = $scope.cstlUrl + "WS/" + $routeParams.type + "/" + $routeParams.id;
         $scope.urlBoxSize = Math.min($scope.url.length,100);
@@ -128,7 +128,7 @@ angular.module('cstl-webservice-edit', [
         $scope.initScope = function() {
             Examind.ogcServices.get($scope.type, $routeParams.id, $scope.getCurrentLang()).then(function (service) {
                 $scope.service = service.data;
-                
+
                 if ($scope.service.baseUrl) {
                     $scope.url = $scope.service.baseUrl;
                     $scope.urlBoxSize = Math.min($scope.url.length,100);
@@ -163,7 +163,7 @@ angular.module('cstl-webservice-edit', [
                         $scope.layers = sensors.data.children;
 
                     }, function() { Growl('error','Error','Unable to list sensors'); });
-                } else if ($scope.type !== 'wps') {    
+                } else if ($scope.type !== 'wps') {
                     Examind.ogcServices.getConfig($scope.type, $routeParams.id).then(function(response) {
                         $scope.config = response.data;
                     });
@@ -717,6 +717,11 @@ angular.module('cstl-webservice-edit', [
             StyleSharedService.unlinkStyle($scope,styleProvider, styleId, styleName, layerProvider, layerId,layerName, $scope.selected);
         };
 
+        $scope.selectedActivateStats = function (style, layerId) {
+            style.activateStats = !style.activateStats;
+            StyleSharedService.selectActivateStats(style, layerId, style.activateStats);
+        };
+
         $scope.truncate = function(small, text){
             if(text) {
                 if (window.innerWidth >= 1200) {
@@ -785,7 +790,7 @@ angular.module('cstl-webservice-edit', [
     })
     .controller('LayerInfoModalController', function($scope, $modalInstance,Examind,Growl,
                                                      serviceId,serviceType,serviceIdentifier,selectedLayer){
-        $scope.serviceId = serviceId;                 
+        $scope.serviceId = serviceId;
         $scope.serviceType = serviceType;
         $scope.serviceIdentifier = serviceIdentifier;
         $scope.selectedLayer = selectedLayer;
@@ -815,12 +820,12 @@ angular.module('cstl-webservice-edit', [
                 }
             );
         };
-        
+
         $scope.checkAlias = function () {
             $scope.errors.nameEmpty   = false;
             $scope.errors.nameInuse   = false;
             $scope.errors.nameInvalid = false;
-            
+
             if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
                 $scope.errors.nameEmpty = true;
                 return false;
@@ -848,7 +853,7 @@ angular.module('cstl-webservice-edit', [
             "alias": layer.alias,
             "title": layer.title
         };
-        
+
         $scope.errors = {
             nameErr: false
         };
@@ -862,12 +867,12 @@ angular.module('cstl-webservice-edit', [
             $scope.layer.title = $scope.layerForm.title;
             $modalInstance.close();
         };
-        
+
         $scope.checkAlias = function () {
             $scope.errors.nameEmpty   = false;
             $scope.errors.nameInuse   = false;
             $scope.errors.nameInvalid = false;
-                
+
             if (!$scope.layerForm.alias || $scope.layerForm.alias === '') {
                 $scope.errors.nameEmpty = true;
                 return false;
@@ -1257,7 +1262,7 @@ angular.module('cstl-webservice-edit', [
         $scope.wrap = {};
 
         $scope.wrap.nbbypage = 5;
-        
+
         /**
          * function to add data to service
          */
@@ -1995,9 +2000,9 @@ angular.module('cstl-webservice-edit', [
          * To fix angular bug with nested scope.
          */
         $scope.wrap = {};
-        
+
         $scope.wrap.nbbypage = 5;
-        
+
         $scope.clickFilter = function(ordType){
             $scope.wrap.ordertype = ordType;
             $scope.wrap.orderreverse = !$scope.wrap.orderreverse;

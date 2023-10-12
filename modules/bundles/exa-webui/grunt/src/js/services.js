@@ -420,6 +420,17 @@ angular.module('cstl-services', ['webui-config','webui-utils','cstl-restapi','ex
                 }
             },
 
+            selectActivateStats : function (style, layerId, activateStats) {
+                console.log(style.id, " : ", layerId, " : ", activateStats);
+                Examind.map.updateActivateStatsLayerStyle({layerId: layerId, styleId: style.id, activateStats: activateStats}).then(
+                    function() {
+                    }, function() {
+                        style.activateStats = !activateStats;
+                        Growl('error','Error','Unable to update activateStats for style ' + style.id + ' with layer '+ layerId);
+                    }
+                );
+            },
+
             showStyleCreate : function(scope) {
                 var modal = $modal.open({
                     templateUrl: 'views/style/modalStyleCreate.html',

@@ -786,6 +786,12 @@
                                                             class="btn btn-small btn-block-assos btn-block-assos-style">
                                                         <i class="glyphicon glyphicon-trash"></i>
                                                     </button>
+                                                    <button type="button" class="btn btn-small btn-block-assos" tooltip-placement="bottom"
+                                                            tooltip-html-unsafe="{{style.activateStats ? 'layer.style.deactivate.statistics' : 'layer.style.activate.statistics' | translate }}"
+                                                            ng-click="selectedActivateStats(style, selected.id)">
+                                                        <i class="glyphicon glyphicon-stats"
+                                                           ng-class="{'glyphicon-style-stats-activated': style.activateStats, 'glyphicon-style-stats-deactivated': !style.activateStats}"></i>
+                                                    </button>
                                                     <span title="{{style.name}}">{{style.name}}</span>
                                                 </div>
                                             </div>

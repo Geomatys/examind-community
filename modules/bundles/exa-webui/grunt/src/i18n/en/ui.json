@@ -832,6 +832,8 @@
   "label.sensor.system": "Sensors system",
   "label.south": "South",
   "label.south.first.letter": "S",
+  "layer.style.activate.statistics": "Activate the statistics calculation",
+  "layer.style.deactivate.statistics": "Deactivate the statistics calculation",
   "label.success": "Success",
   "label.symbols": " Symbols",
   "label.title": "Title",
