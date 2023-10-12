@@ -36,6 +36,8 @@ public class StyledLayer implements Serializable {
     private Integer layer;
     private Boolean isDefault;
     private String extraInfo;
+    private String statsState;
+    private Boolean activateStats;
 
     public StyledLayer() {}
 
@@ -44,18 +46,24 @@ public class StyledLayer implements Serializable {
         this.layer = value.layer;
         this.isDefault = value.isDefault;
         this.extraInfo = value.extraInfo;
+        this.statsState = value.statsState;
+        this.activateStats = value.activateStats;
     }
 
     public StyledLayer(
         Integer style,
         Integer layer,
         Boolean isDefault,
-        String extraInfo
+        String extraInfo,
+        String statsState,
+        Boolean activateStats
     ) {
         this.style = style;
         this.layer = layer;
         this.isDefault = isDefault;
         this.extraInfo = extraInfo;
+        this.statsState = statsState;
+        this.activateStats = activateStats;
     }
 
     /**
@@ -120,6 +128,36 @@ public class StyledLayer implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.styled_layer.stats_state</code>.
+     */
+    public String getStatsState() {
+        return this.statsState;
+    }
+
+    /**
+     * Setter for <code>admin.styled_layer.stats_state</code>.
+     */
+    public StyledLayer setStatsState(String statsState) {
+        this.statsState = statsState;
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.styled_layer.activate_stats</code>.
+     */
+    public Boolean getActivateStats() {
+        return this.activateStats;
+    }
+
+    /**
+     * Setter for <code>admin.styled_layer.activate_stats</code>.
+     */
+    public StyledLayer setActivateStats(Boolean activateStats) {
+        this.activateStats = activateStats;
+        return this;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -153,6 +191,18 @@ public class StyledLayer implements Serializable {
         }
         else if (!this.extraInfo.equals(other.extraInfo))
             return false;
+        if (this.statsState == null) {
+            if (other.statsState != null)
+                return false;
+        }
+        else if (!this.statsState.equals(other.statsState))
+            return false;
+        if (this.activateStats == null) {
+            if (other.activateStats != null)
+                return false;
+        }
+        else if (!this.activateStats.equals(other.activateStats))
+            return false;
         return true;
     }
 
@@ -164,6 +214,8 @@ public class StyledLayer implements Serializable {
         result = prime * result + ((this.layer == null) ? 0 : this.layer.hashCode());
         result = prime * result + ((this.isDefault == null) ? 0 : this.isDefault.hashCode());
         result = prime * result + ((this.extraInfo == null) ? 0 : this.extraInfo.hashCode());
+        result = prime * result + ((this.statsState == null) ? 0 : this.statsState.hashCode());
+        result = prime * result + ((this.activateStats == null) ? 0 : this.activateStats.hashCode());
         return result;
     }
 
@@ -175,6 +227,8 @@ public class StyledLayer implements Serializable {
         sb.append(", ").append(layer);
         sb.append(", ").append(isDefault);
         sb.append(", ").append(extraInfo);
+        sb.append(", ").append(statsState);
+        sb.append(", ").append(activateStats);
 
         sb.append(")");
         return sb.toString();

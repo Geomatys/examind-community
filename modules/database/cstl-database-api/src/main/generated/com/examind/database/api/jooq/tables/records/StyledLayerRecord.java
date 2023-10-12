@@ -25,8 +25,8 @@ import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
 import org.jooq.Record2;
-import org.jooq.Record4;
-import org.jooq.Row4;
+import org.jooq.Record6;
+import org.jooq.Row6;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.styled_layer
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> implements Record4<Integer, Integer, Boolean, String> {
+public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> implements Record6<Integer, Integer, Boolean, String, String, Boolean> {
 
     private static final long serialVersionUID = 1L;
 
@@ -100,6 +100,36 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
         return (String) get(3);
     }
 
+    /**
+     * Setter for <code>admin.styled_layer.stats_state</code>.
+     */
+    public StyledLayerRecord setStatsState(String value) {
+        set(4, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.styled_layer.stats_state</code>.
+     */
+    public String getStatsState() {
+        return (String) get(4);
+    }
+
+    /**
+     * Setter for <code>admin.styled_layer.activate_stats</code>.
+     */
+    public StyledLayerRecord setActivateStats(Boolean value) {
+        set(5, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.styled_layer.activate_stats</code>.
+     */
+    public Boolean getActivateStats() {
+        return (Boolean) get(5);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -110,17 +140,17 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     // -------------------------------------------------------------------------
-    // Record4 type implementation
+    // Record6 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Integer, Integer, Boolean, String> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row6<Integer, Integer, Boolean, String, String, Boolean> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 
     @Override
-    public Row4<Integer, Integer, Boolean, String> valuesRow() {
-        return (Row4) super.valuesRow();
+    public Row6<Integer, Integer, Boolean, String, String, Boolean> valuesRow() {
+        return (Row6) super.valuesRow();
     }
 
     @Override
@@ -144,6 +174,16 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
+    public Field<String> field5() {
+        return StyledLayer.STYLED_LAYER.STATS_STATE;
+    }
+
+    @Override
+    public Field<Boolean> field6() {
+        return StyledLayer.STYLED_LAYER.ACTIVATE_STATS;
+    }
+
+    @Override
     public Integer component1() {
         return getStyle();
     }
@@ -164,6 +204,16 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
+    public String component5() {
+        return getStatsState();
+    }
+
+    @Override
+    public Boolean component6() {
+        return getActivateStats();
+    }
+
+    @Override
     public Integer value1() {
         return getStyle();
     }
@@ -181,6 +231,16 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     @Override
     public String value4() {
         return getExtraInfo();
+    }
+
+    @Override
+    public String value5() {
+        return getStatsState();
+    }
+
+    @Override
+    public Boolean value6() {
+        return getActivateStats();
     }
 
     @Override
@@ -208,11 +268,25 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     }
 
     @Override
-    public StyledLayerRecord values(Integer value1, Integer value2, Boolean value3, String value4) {
+    public StyledLayerRecord value5(String value) {
+        setStatsState(value);
+        return this;
+    }
+
+    @Override
+    public StyledLayerRecord value6(Boolean value) {
+        setActivateStats(value);
+        return this;
+    }
+
+    @Override
+    public StyledLayerRecord values(Integer value1, Integer value2, Boolean value3, String value4, String value5, Boolean value6) {
         value1(value1);
         value2(value2);
         value3(value3);
         value4(value4);
+        value5(value5);
+        value6(value6);
         return this;
     }
 
@@ -230,13 +304,15 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
     /**
      * Create a detached, initialised StyledLayerRecord
      */
-    public StyledLayerRecord(Integer style, Integer layer, Boolean isDefault, String extraInfo) {
+    public StyledLayerRecord(Integer style, Integer layer, Boolean isDefault, String extraInfo, String statsState, Boolean activateStats) {
         super(StyledLayer.STYLED_LAYER);
 
         setStyle(style);
         setLayer(layer);
         setIsDefault(isDefault);
         setExtraInfo(extraInfo);
+        setStatsState(statsState);
+        setActivateStats(activateStats);
         resetChangedOnNotNull();
     }
 
@@ -251,6 +327,8 @@ public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> im
             setLayer(value.getLayer());
             setIsDefault(value.getIsDefault());
             setExtraInfo(value.getExtraInfo());
+            setStatsState(value.getStatsState());
+            setActivateStats(value.getActivateStats());
             resetChangedOnNotNull();
         }
     }

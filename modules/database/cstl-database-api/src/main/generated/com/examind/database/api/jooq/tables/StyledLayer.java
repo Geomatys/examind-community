@@ -30,12 +30,12 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function4;
+import org.jooq.Function6;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row4;
+import org.jooq.Row6;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -87,6 +87,16 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
      * The column <code>admin.styled_layer.extra_info</code>.
      */
     public final TableField<StyledLayerRecord, String> EXTRA_INFO = createField(DSL.name("extra_info"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>admin.styled_layer.stats_state</code>.
+     */
+    public final TableField<StyledLayerRecord, String> STATS_STATE = createField(DSL.name("stats_state"), SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>admin.styled_layer.activate_stats</code>.
+     */
+    public final TableField<StyledLayerRecord, Boolean> ACTIVATE_STATS = createField(DSL.name("activate_stats"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
 
     private StyledLayer(Name alias, Table<StyledLayerRecord> aliased) {
         this(alias, aliased, null);
@@ -204,18 +214,18 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row4 type methods
+    // Row6 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row4<Integer, Integer, Boolean, String> fieldsRow() {
-        return (Row4) super.fieldsRow();
+    public Row6<Integer, Integer, Boolean, String, String, Boolean> fieldsRow() {
+        return (Row6) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function4<? super Integer, ? super Integer, ? super Boolean, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function6<? super Integer, ? super Integer, ? super Boolean, ? super String, ? super String, ? super Boolean, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -223,7 +233,7 @@ public class StyledLayer extends TableImpl<StyledLayerRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function4<? super Integer, ? super Integer, ? super Boolean, ? super String, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super Integer, ? super Boolean, ? super String, ? super String, ? super Boolean, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
