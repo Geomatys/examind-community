@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import org.constellation.dto.Data;
 import org.constellation.dto.Layer;
 import org.constellation.dto.StyleBrief;
+import org.constellation.dto.StyledLayerBrief;
 
 /**
  * @author Cédric Briançon (Geomatys)
@@ -37,11 +38,11 @@ public class LayerSummary extends org.constellation.dto.Layer {
     private String type;
     private String subtype;
     private String owner;
-    private List<StyleBrief> targetStyle;
+    private List<StyledLayerBrief> targetStyle;
 
     public LayerSummary() {}
 
-    public LayerSummary(final Layer layer, final Data db, final String owner, final List<StyleBrief> targetStyles) {
+    public LayerSummary(final Layer layer, final Data db, final String owner, final List<StyledLayerBrief> targetStyles) {
         super(layer);
         this.type = db.getType();
         this.subtype = db.getSubtype();
@@ -51,7 +52,7 @@ public class LayerSummary extends org.constellation.dto.Layer {
 
     public LayerSummary(final Integer id, final QName name, final String alias, final Integer serviceID,
             final Integer dataID, final Date date, final String config, final Integer ownerId, final String title,
-            final String dataType, final String dataSubType, final String dataOwner, final List<StyleBrief> targetStyles) {
+            final String dataType, final String dataSubType, final String dataOwner, final List<StyledLayerBrief> targetStyles) {
         super(id, name, alias, serviceID, dataID, date, config, ownerId,  title);
         this.type = dataType;
         this.subtype = dataSubType;
@@ -83,7 +84,7 @@ public class LayerSummary extends org.constellation.dto.Layer {
         this.owner = owner;
     }
 
-    public List<StyleBrief> getTargetStyle() {
+    public List<StyledLayerBrief> getTargetStyle() {
         return targetStyle;
     }
 
@@ -94,7 +95,7 @@ public class LayerSummary extends org.constellation.dto.Layer {
         return null;
     }
 
-    public void setTargetStyle(List<StyleBrief> targetStyle) {
+    public void setTargetStyle(List<StyledLayerBrief> targetStyle) {
         this.targetStyle = targetStyle;
     }
 

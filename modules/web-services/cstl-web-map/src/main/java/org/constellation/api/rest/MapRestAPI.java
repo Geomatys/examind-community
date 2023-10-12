@@ -35,6 +35,7 @@ import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationRuntimeException;
+import org.constellation.repository.StyledLayerRepository;
 import org.constellation.security.SecurityManager;
 import org.constellation.util.Util;
 import org.geotoolkit.ows.xml.v110.BoundingBoxType;
@@ -87,6 +88,9 @@ public class MapRestAPI extends AbstractRestAPI {
 
     @Autowired
     private IServiceBusiness serviceBusiness;
+
+    @Autowired
+    private StyledLayerRepository styledLayerRepository;
 
     /**
      * Extracts and returns the list of {@link LayerConfig}s available on a "map" service.
@@ -159,8 +163,12 @@ public class MapRestAPI extends AbstractRestAPI {
                 final String owner = userBusiness.findById(db.getOwnerId())
                         .map(CstlUser::getLogin)
                         .orElse(null);
-                List<StyleBrief> layerStyleBrief = Util.convertRefIntoStylesBrief(lay.getStyles());
-                sumLayers.add(new LayerSummary(lay, db, owner, layerStyleBrief));
+                List<StyledLayerBrief> layerStyleBriefs = Util.convertRefIntoStyledLayerBrief(lay.getStyles());
+                for (StyledLayerBrief styledLayerBrief : layerStyleBriefs) {
+                    boolean activateStats = styledLayerRepository.getActivateStats(styledLayerBrief.getId(), lay.getId());
+                    styledLayerBrief.setActivateStats(activateStats);
+                }
+                sumLayers.add(new LayerSummary(lay, db, owner, layerStyleBriefs));
             }
             return new ResponseEntity(sumLayers, OK);
         } catch(Exception ex){
@@ -225,6 +233,17 @@ public class MapRestAPI extends AbstractRestAPI {
     public ResponseEntity updateLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier, final @RequestBody LayerStyleUpdate params) {
         try {
             styleBusiness.linkToLayer(params.getStyleId(), params.getLayerId());
+            return new ResponseEntity(OK);
+        } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    @RequestMapping(value="/MAP/layer/style/activatestats",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
+    public ResponseEntity updateActivateStatsForLayerAndStyle(final @RequestBody LayerStyleUpdate params) {
+        try {
+            styleBusiness.updateActivateStatsForLayerAndStyle(params.getStyleId(), params.getLayerId(), params.getActivateStats());
             return new ResponseEntity(OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

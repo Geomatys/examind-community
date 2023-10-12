@@ -48,8 +48,8 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.dto.StyleBrief;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.StyledLayerBrief;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.geotoolkit.nio.IOUtilities;
@@ -272,11 +272,11 @@ public final class Util {
         return null;
     }
 
-    public static List<StyleBrief> convertRefIntoStylesBrief(final List<StyleReference> refs) {
-        final List<StyleBrief> briefs = new ArrayList<>();
+    public static List<StyledLayerBrief> convertRefIntoStyledLayerBrief(final List<StyleReference> refs) {
+        final List<StyledLayerBrief> briefs = new ArrayList<>();
         if (refs != null) {
             for (final StyleReference ref: refs) {
-                final StyleBrief styleToAdd = new StyleBrief();
+                final StyledLayerBrief styleToAdd = new StyledLayerBrief();
                 styleToAdd.setProvider(ref.getProviderIdentifier());
                 styleToAdd.setProviderId(ref.getProviderId());
                 final String styleName = ref.getName();

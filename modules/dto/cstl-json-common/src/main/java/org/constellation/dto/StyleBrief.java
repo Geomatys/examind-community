@@ -35,7 +35,7 @@ import java.util.List;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public final class StyleBrief extends Style implements Serializable {
+public class StyleBrief extends Style implements Serializable {
 
     private String provider;
     private String title;

@@ -22,6 +22,7 @@ public class LayerStyleUpdate {
 
     private int layerId;
     private int styleId;
+    private boolean activateStats;
 
     public int getLayerId() {
         return layerId;
@@ -37,5 +38,13 @@ public class LayerStyleUpdate {
 
     public void setStyleId(int styleId) {
         this.styleId = styleId;
+    }
+
+    public boolean getActivateStats() {
+        return activateStats;
+    }
+
+    public void setActivateStats(boolean activateStats) {
+        this.activateStats = activateStats;
     }
 }
