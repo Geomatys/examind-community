@@ -315,25 +315,56 @@ angular.module('cstl-webservice-create', [
         };
 
         function createProviders() {
-            Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData,
-            {
-                type: "observation-store",
-                subType: "observationSOSDatabase",
-                parameters: {
-                    port: self.guiConfig.port,
-                    host: self.guiConfig.url,
-                    database: self.guiConfig.name,
-                    user: self.guiConfig.user,
-                    password: self.guiConfig.password,
-                    'schema-prefix':self.guiConfig.schema,
-                    timescaledb: self.guiConfig.timescaledb,
-                    sgbdtype: 'postgres',
-                    'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
-                    'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
-                    'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                    'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
-                }
-            }).then(function() {
+            var body;
+            if (self.guiConfig.className === 'org.postgresql.Driver') {
+                body = {
+                        type: "observation-store",
+                        subType: "observationSOSDatabase",
+                        parameters: {
+                            port: self.guiConfig.port,
+                            host: self.guiConfig.url,
+                            database: self.guiConfig.name,
+                            user: self.guiConfig.user,
+                            password: self.guiConfig.password,
+                            'schema-prefix':self.guiConfig.schema,
+                            timescaledb: self.guiConfig.timescaledb,
+                            sgbdtype: 'postgres',
+                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
+                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
+                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                        }
+                    };
+            } else if (self.guiConfig.className === 'org.duckdb.DuckDBDriver') {
+                body = {
+                        type: "observation-store",
+                        subType: "observationSOSDatabase",
+                        parameters: {
+                            derbyurl: self.guiConfig.url,
+                            'schema-prefix':self.guiConfig.schema,
+                            sgbdtype: 'duckdb',
+                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
+                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
+                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                        }
+                    };
+            } else if (self.guiConfig.className === 'org.apache.derby.jdbc.EmbeddedDriver') {
+                body = {
+                        type: "observation-store",
+                        subType: "observationSOSDatabase",
+                        parameters: {
+                            derbyurl: self.guiConfig.url,
+                            'schema-prefix':self.guiConfig.schema,
+                            sgbdtype: 'derby',
+                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
+                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
+                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                        }
+                    };
+            }
+            Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData, body).then(function() {
                  createSensorProvider();
             }, function() {
                 Growl('error','Error','Unable to create OM2 provider');

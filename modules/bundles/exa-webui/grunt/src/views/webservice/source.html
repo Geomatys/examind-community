@@ -276,78 +276,114 @@
                                         style="margin-bottom:10px;"
                                         ng-model="wsChooseCtrl.guiConfig.className">
                                     <option value="org.postgresql.Driver">PostgreSQL</option>
+                                    <option value="org.apache.derby.jdbc.EmbeddedDriver">Derby</option>
+                                    <option value="org.duckdb.DuckDBDriver">DuckDb</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.url">Database URL</label>
-                            <div class="col-sm-11">
-                                <input type="text" class="form-control"
-                                       name="dbHost" required
-                                       ng-model="wsChooseCtrl.guiConfig.url"/>
-                            </div>
-                            <div class="btn-lg tooltipicon">
-                                <span class="glyphicon glyphicon-info-sign"
-                                      tooltip data-placement="bottom"
-                                      title="{{'tooltip.service.source.url' | translate }}"></span>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.port">Database port</label>
-                            <div class="col-sm-11">
-                                <input type="text" class="form-control"
-                                       name="dbPort" required
-                                       ng-model="wsChooseCtrl.guiConfig.port"/>
-                            </div>
-                            <div class="btn-lg tooltipicon">
-                                <span class="glyphicon glyphicon-info-sign"
-                                      tooltip data-placement="bottom"
-                                      title="{{'tooltip.service.create.port' | translate }}"></span>
+                        <div ng-if="wsChooseCtrl.guiConfig.className === 'org.apache.derby.jdbc.EmbeddedDriver'">
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.url">Database URL</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbHost" required
+                                           ng-model="wsChooseCtrl.guiConfig.url"/>
+                                </div>
+                                <div class="btn-lg tooltipicon">
+                                    <span class="glyphicon glyphicon-info-sign"
+                                          tooltip data-placement="bottom"
+                                          title="{{'tooltip.service.source.url.derby' | translate }}"></span>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.name">Database name</label>
-                            <div class="col-sm-11">
-                                <input type="text" class="form-control"
-                                       name="dbName" required
-                                       ng-model="wsChooseCtrl.guiConfig.name"/>
+                        <div ng-if="wsChooseCtrl.guiConfig.className === 'org.duckdb.DuckDBDriver'">
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.url">Database URL</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbHost" required
+                                           ng-model="wsChooseCtrl.guiConfig.url"/>
+                                </div>
+                                <div class="btn-lg tooltipicon">
+                                    <span class="glyphicon glyphicon-info-sign"
+                                          tooltip data-placement="bottom"
+                                          title="{{'tooltip.service.source.url.duckdb' | translate }}"></span>
+                                </div>
                             </div>
                         </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.username">User name</label>
-                            <div class="col-sm-11">
-                                <input type="text" class="form-control"
-                                       name="dbUserName" required
-                                       ng-model="wsChooseCtrl.guiConfig.user"/>
+                        <div ng-if="wsChooseCtrl.guiConfig.className === 'org.postgresql.Driver'">
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.host">Database Host</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbHost" required
+                                           ng-model="wsChooseCtrl.guiConfig.url"/>
+                                </div>
+                                <div class="btn-lg tooltipicon">
+                                    <span class="glyphicon glyphicon-info-sign"
+                                          tooltip data-placement="bottom"
+                                          title="{{'tooltip.service.source.host' | translate }}"></span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.password">Password</label>
-                            <div class="col-sm-11">
-                                <input type="password" class="form-control"
-                                       name="dbUserPassword" required
-                                       ng-model="wsChooseCtrl.guiConfig.password"/>
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.port">Database port</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbPort" required
+                                           ng-model="wsChooseCtrl.guiConfig.port"/>
+                                </div>
+                                <div class="btn-lg tooltipicon">
+                                    <span class="glyphicon glyphicon-info-sign"
+                                          tooltip data-placement="bottom"
+                                          title="{{'tooltip.service.create.port' | translate }}"></span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group row">
-                            <label class="col-sm-12 control-label new-service-form-label"
-                                   translate="service.config.source.database.schema">Schema prefix</label>
-                            <div class="col-sm-11">
-                                <input type="text" class="form-control"
-                                       name="dbSchema" required
-                                       ng-model="wsChooseCtrl.guiConfig.schema"/>
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.name">Database name</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbName" required
+                                           ng-model="wsChooseCtrl.guiConfig.name"/>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox inline">
-                                <input type="checkbox"
-                                       ng-model="wsChooseCtrl.guiConfig.timescaledb"/>
-                                <span translate="service.config.source.timescaledb">Timescaledb</span>
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.username">User name</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbUserName" required
+                                           ng-model="wsChooseCtrl.guiConfig.user"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.password">Password</label>
+                                <div class="col-sm-11">
+                                    <input type="password" class="form-control"
+                                           name="dbUserPassword" required
+                                           ng-model="wsChooseCtrl.guiConfig.password"/>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-12 control-label new-service-form-label"
+                                       translate="service.config.source.database.schema">Schema prefix</label>
+                                <div class="col-sm-11">
+                                    <input type="text" class="form-control"
+                                           name="dbSchema" required
+                                           ng-model="wsChooseCtrl.guiConfig.schema"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox inline">
+                                    <input type="checkbox"
+                                           ng-model="wsChooseCtrl.guiConfig.timescaledb"/>
+                                    <span translate="service.config.source.timescaledb">Timescaledb</span>
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">

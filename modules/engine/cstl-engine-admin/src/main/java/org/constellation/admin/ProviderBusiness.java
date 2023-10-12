@@ -489,16 +489,21 @@ public class ProviderBusiness implements IProviderBusiness {
                     final ParameterValueGroup dbObsParams = sources.groups("choice").get(0).addGroup("SOSDBParameters");
                     dbObsParams.parameter("sgbdtype").setValue(inParams.get("sgbdtype"));
                     dbObsParams.parameter("host").setValue(inParams.get("host"));
-                    dbObsParams.parameter("port").setValue(Integer.parseInt(inParams.get("port")));
+                    if (inParams.get("port") != null) {
+                        dbObsParams.parameter("port").setValue(Integer.parseInt(inParams.get("port")));
+                    }
                     dbObsParams.parameter("database").setValue(inParams.get("database"));
                     dbObsParams.parameter("user").setValue(inParams.get("user"));
                     dbObsParams.parameter("password").setValue(inParams.get("password"));
                     dbObsParams.parameter("schema-prefix").setValue(inParams.get("schema-prefix"));
-                    dbObsParams.parameter("timescaledb").setValue(Boolean.parseBoolean(inParams.get("timescaledb")));
+                    if (inParams.get("timescaledb") != null) {
+                        dbObsParams.parameter("timescaledb").setValue(Boolean.parseBoolean(inParams.get("timescaledb")));
+                    }
                     dbObsParams.parameter("phenomenon-id-base").setValue(inParams.get("phenomenon-id-base"));
                     dbObsParams.parameter("observation-template-id-base").setValue(inParams.get("observation-template-id-base"));
                     dbObsParams.parameter("observation-id-base").setValue(inParams.get("observation-id-base"));
                     dbObsParams.parameter("sensor-id-base").setValue(inParams.get("sensor-id-base"));
+                    dbObsParams.parameter("derbyurl").setValue(inParams.get("derbyurl"));
                     break;
             }
         }else if("filesensor".equals(subType)){
