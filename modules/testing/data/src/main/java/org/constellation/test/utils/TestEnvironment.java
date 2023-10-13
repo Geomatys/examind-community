@@ -228,6 +228,8 @@ public class TestEnvironment {
 
         public static final TestResource SHAPEFILES = new TestResource("org/constellation/data/shapefiles", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore, TestEnvironment::createShapefileProviders);
 
+        public static final TestResource STATISTICS_SHAPEFILES = new TestResource("org/constellation/data/shapefiles/statistics", TestEnvironment::createShapefileProvider, TestEnvironment::createShapefileStore, TestEnvironment::createShapefileProviders);
+
         /**
          * Observation and mesurement provider.
          *

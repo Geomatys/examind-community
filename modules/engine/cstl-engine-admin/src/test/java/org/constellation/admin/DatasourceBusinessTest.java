@@ -104,7 +104,7 @@ public class DatasourceBusinessTest extends AbstractBusinessTest {
         datasourceBusiness.recordSelectedPath(ds.getId(), false);
 
         List<DataSourceSelectedPath> paths = datasourceBusiness.getSelectedPath(ds.getId(), Integer.MAX_VALUE);
-        Assert.assertEquals(14, paths.size());
+        Assert.assertEquals(15, paths.size());
     }
 
     @Test

@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns6:UserStyle xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:ns3="http://www.opengis.net/gml" xmlns:ns4="http://www.opengis.net/se" xmlns:ns5="http://www.w3.org/1999/xlink" xmlns:ns6="http://www.opengis.net/sld" xmlns:ns7="http://www.opengis.net/ogc" xmlns:ns8="http://geotoolkit.org">
+  <ns4:Name>Med_KBA_Tunisia-sld</ns4:Name>
+  <ns4:Description>
+    <ns4:Title></ns4:Title>
+    <ns4:Abstract></ns4:Abstract>
+  </ns4:Description>
+  <ns6:IsDefault>false</ns6:IsDefault>
+  <ns4:FeatureTypeStyle>
+    <ns4:Description>
+      <ns4:Title></ns4:Title>
+      <ns4:Abstract></ns4:Abstract>
+    </ns4:Description>
+    <ns4:Rule>
+      <ns4:Name>PWA.4</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>4</ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns7:Filter>
+        <ns7:PropertyIsEqualTo>
+          <ns7:PropertyName>PWA_Val</ns7:PropertyName>
+          <ns7:Literal>4</ns7:Literal>
+        </ns7:PropertyIsEqualTo>
+      </ns7:Filter>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:PolygonSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>polygon</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Fill>
+          <ns4:SvgParameter name="fill">
+            <ns7:Literal>#F50707</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="fill-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Fill>
+        <ns4:Stroke>
+          <ns4:SvgParameter name="stroke">
+            <ns7:Literal>#000000</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dashoffset">
+            <ns7:Literal>0.0</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linecap">
+            <ns7:Literal>square</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linejoin">
+            <ns7:Literal>bevel</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-width">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Stroke>
+        <ns4:Displacement>
+          <ns4:DisplacementX>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:DisplacementX>
+          <ns4:DisplacementY>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:DisplacementY>
+        </ns4:Displacement>
+        <ns4:PerpendicularOffset>
+          <ns7:Literal>0.0</ns7:Literal>
+        </ns4:PerpendicularOffset>
+      </ns4:PolygonSymbolizer>
+      <ns4:LineSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>line</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Stroke>
+          <ns4:SvgParameter name="stroke">
+            <ns7:Literal>#000000</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dashoffset">
+            <ns7:Literal>0.0</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linecap">
+            <ns7:Literal>square</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linejoin">
+            <ns7:Literal>bevel</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-width">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Stroke>
+        <ns4:PerpendicularOffset>
+          <ns7:Literal>0.0</ns7:Literal>
+        </ns4:PerpendicularOffset>
+      </ns4:LineSymbolizer>
+    </ns4:Rule>
+    <ns4:Rule>
+      <ns4:Name>PWA.9</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>9</ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns7:Filter>
+        <ns7:PropertyIsEqualTo>
+          <ns7:PropertyName>PWA_Val</ns7:PropertyName>
+          <ns7:Literal>9</ns7:Literal>
+        </ns7:PropertyIsEqualTo>
+      </ns7:Filter>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:PolygonSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>polygon</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Fill>
+          <ns4:SvgParameter name="fill">
+            <ns7:Literal>#44E92C</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="fill-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Fill>
+        <ns4:Stroke>
+          <ns4:SvgParameter name="stroke">
+            <ns7:Literal>#E24141</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dashoffset">
+            <ns7:Literal>0.0</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linecap">
+            <ns7:Literal>square</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linejoin">
+            <ns7:Literal>bevel</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-width">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Stroke>
+        <ns4:Displacement>
+          <ns4:DisplacementX>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:DisplacementX>
+          <ns4:DisplacementY>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:DisplacementY>
+        </ns4:Displacement>
+        <ns4:PerpendicularOffset>
+          <ns7:Literal>0.0</ns7:Literal>
+        </ns4:PerpendicularOffset>
+      </ns4:PolygonSymbolizer>
+      <ns4:PointSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>symbol point</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Graphic>
+          <ns4:Mark>
+            <ns4:WellKnownName>circle</ns4:WellKnownName>
+            <ns4:Fill>
+              <ns4:SvgParameter name="fill">
+<ns7:Literal>#808080</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="fill-opacity">
+<ns7:Literal>0.7</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Fill>
+            <ns4:Stroke>
+              <ns4:SvgParameter name="stroke">
+<ns7:Literal>#000000</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-dashoffset">
+<ns7:Literal>0.0</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linecap">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linejoin">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-width">
+<ns7:Literal>1.0</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Stroke>
+          </ns4:Mark>
+          <ns4:Opacity>
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:Opacity>
+          <ns4:Size>
+            <ns7:Literal>15</ns7:Literal>
+          </ns4:Size>
+          <ns4:Rotation>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:Rotation>
+          <ns4:AnchorPoint>
+            <ns4:AnchorPointX>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointX>
+            <ns4:AnchorPointY>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointY>
+          </ns4:AnchorPoint>
+          <ns4:Displacement>
+            <ns4:DisplacementX>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementX>
+            <ns4:DisplacementY>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementY>
+          </ns4:Displacement>
+        </ns4:Graphic>
+      </ns4:PointSymbolizer>
+    </ns4:Rule>
+    <ns4:Rule>
+      <ns4:Name>PAW.6</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>6</ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns7:Filter>
+        <ns7:PropertyIsEqualTo>
+          <ns7:PropertyName>PWA_Val</ns7:PropertyName>
+          <ns7:Literal>6</ns7:Literal>
+        </ns7:PropertyIsEqualTo>
+      </ns7:Filter>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:PointSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>symbol point</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Graphic>
+          <ns4:Mark>
+            <ns4:WellKnownName>circle</ns4:WellKnownName>
+            <ns4:Fill>
+              <ns4:SvgParameter name="fill">
+<ns7:Literal>#EB62F1</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="fill-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Fill>
+            <ns4:Stroke>
+              <ns4:SvgParameter name="stroke">
+<ns7:Literal>#4A44E7</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-dashoffset">
+<ns7:Literal>0.0</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linecap">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linejoin">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-width">
+<ns7:Literal>1.0</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Stroke>
+          </ns4:Mark>
+          <ns4:Opacity>
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:Opacity>
+          <ns4:Size>
+            <ns7:Literal>15</ns7:Literal>
+          </ns4:Size>
+          <ns4:Rotation>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:Rotation>
+          <ns4:AnchorPoint>
+            <ns4:AnchorPointX>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointX>
+            <ns4:AnchorPointY>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointY>
+          </ns4:AnchorPoint>
+          <ns4:Displacement>
+            <ns4:DisplacementX>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementX>
+            <ns4:DisplacementY>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementY>
+          </ns4:Displacement>
+        </ns4:Graphic>
+      </ns4:PointSymbolizer>
+      <ns4:PointSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>symbol point</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Graphic>
+          <ns4:Mark>
+            <ns4:WellKnownName>circle</ns4:WellKnownName>
+            <ns4:Fill>
+              <ns4:SvgParameter name="fill">
+<ns7:Literal>#808080</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="fill-opacity">
+<ns7:Literal>0.7</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Fill>
+            <ns4:Stroke>
+              <ns4:SvgParameter name="stroke">
+<ns7:Literal>#000000</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-dashoffset">
+<ns7:Literal>0.0</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linecap">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linejoin">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-width">
+<ns7:Literal>1.0</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Stroke>
+          </ns4:Mark>
+          <ns4:Opacity>
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:Opacity>
+          <ns4:Size>
+            <ns7:Literal>15</ns7:Literal>
+          </ns4:Size>
+          <ns4:Rotation>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:Rotation>
+          <ns4:AnchorPoint>
+            <ns4:AnchorPointX>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointX>
+            <ns4:AnchorPointY>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointY>
+          </ns4:AnchorPoint>
+          <ns4:Displacement>
+            <ns4:DisplacementX>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementX>
+            <ns4:DisplacementY>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementY>
+          </ns4:Displacement>
+        </ns4:Graphic>
+      </ns4:PointSymbolizer>
+    </ns4:Rule>
+    <ns4:Rule>
+      <ns4:Name>PWA.10</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>10</ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns7:Filter>
+        <ns7:PropertyIsEqualTo>
+          <ns7:PropertyName>PWA_Val</ns7:PropertyName>
+          <ns7:Literal>10</ns7:Literal>
+        </ns7:PropertyIsEqualTo>
+      </ns7:Filter>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:LineSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>line</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Stroke>
+          <ns4:SvgParameter name="stroke">
+            <ns7:Literal>#F23535</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-dashoffset">
+            <ns7:Literal>0.0</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linecap">
+            <ns7:Literal>square</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-linejoin">
+            <ns7:Literal>bevel</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="stroke-width">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Stroke>
+        <ns4:PerpendicularOffset>
+          <ns7:Literal>0.0</ns7:Literal>
+        </ns4:PerpendicularOffset>
+      </ns4:LineSymbolizer>
+      <ns4:PointSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>symbol point</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Graphic>
+          <ns4:Mark>
+            <ns4:WellKnownName>triangle</ns4:WellKnownName>
+            <ns4:Fill>
+              <ns4:SvgParameter name="fill">
+<ns7:Literal>#31D1BC</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="fill-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Fill>
+            <ns4:Stroke>
+              <ns4:SvgParameter name="stroke">
+<ns7:Literal>#1CBBD4</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-dashoffset">
+<ns7:Literal>0.0</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linecap">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-linejoin">
+<ns7:Literal>round</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-opacity">
+<ns7:Literal>1</ns7:Literal>
+              </ns4:SvgParameter>
+              <ns4:SvgParameter name="stroke-width">
+<ns7:Literal>1.0</ns7:Literal>
+              </ns4:SvgParameter>
+            </ns4:Stroke>
+          </ns4:Mark>
+          <ns4:Opacity>
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:Opacity>
+          <ns4:Size>
+            <ns7:Literal>15</ns7:Literal>
+          </ns4:Size>
+          <ns4:Rotation>
+            <ns7:Literal>0</ns7:Literal>
+          </ns4:Rotation>
+          <ns4:AnchorPoint>
+            <ns4:AnchorPointX>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointX>
+            <ns4:AnchorPointY>
+              <ns7:Literal>0.5</ns7:Literal>
+            </ns4:AnchorPointY>
+          </ns4:AnchorPoint>
+          <ns4:Displacement>
+            <ns4:DisplacementX>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementX>
+            <ns4:DisplacementY>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:DisplacementY>
+          </ns4:Displacement>
+        </ns4:Graphic>
+      </ns4:PointSymbolizer>
+    </ns4:Rule>
+    <ns4:Rule>
+      <ns4:Name>PWA.25</ns4:Name>
+      <ns4:Description>
+        <ns4:Title>25</ns4:Title>
+        <ns4:Abstract></ns4:Abstract>
+      </ns4:Description>
+      <ns7:Filter>
+        <ns7:PropertyIsEqualTo>
+          <ns7:PropertyName>PWA_Val</ns7:PropertyName>
+          <ns7:Literal>25</ns7:Literal>
+        </ns7:PropertyIsEqualTo>
+      </ns7:Filter>
+      <ns4:MinScaleDenominator>0.0</ns4:MinScaleDenominator>
+      <ns4:MaxScaleDenominator>5.0E9</ns4:MaxScaleDenominator>
+      <ns4:TextSymbolizer uom="http://www.opengeospatial.org/se/units/pixel">
+        <ns4:Name>text</ns4:Name>
+        <ns4:Description>
+          <ns4:Title></ns4:Title>
+          <ns4:Abstract></ns4:Abstract>
+        </ns4:Description>
+        <ns4:Label>
+          <ns7:PropertyName>NatName</ns7:PropertyName>
+        </ns4:Label>
+        <ns4:Font>
+          <ns4:SvgParameter name="font-family">
+            <ns7:Literal>Arial</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="font-size">
+            <ns7:Literal>12</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="font-style">
+            <ns7:Literal>normal</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="font-weight">
+            <ns7:Literal>normal</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Font>
+        <ns4:LabelPlacement>
+          <ns4:PointPlacement>
+            <ns4:AnchorPoint>
+              <ns4:AnchorPointX>
+<ns7:Literal>0.5</ns7:Literal>
+              </ns4:AnchorPointX>
+              <ns4:AnchorPointY>
+<ns7:Literal>0.5</ns7:Literal>
+              </ns4:AnchorPointY>
+            </ns4:AnchorPoint>
+            <ns4:Displacement>
+              <ns4:DisplacementX>
+<ns7:Literal>0</ns7:Literal>
+              </ns4:DisplacementX>
+              <ns4:DisplacementY>
+<ns7:Literal>0</ns7:Literal>
+              </ns4:DisplacementY>
+            </ns4:Displacement>
+            <ns4:Rotation>
+              <ns7:Literal>0</ns7:Literal>
+            </ns4:Rotation>
+          </ns4:PointPlacement>
+        </ns4:LabelPlacement>
+        <ns4:Halo>
+          <ns4:Radius>
+            <ns7:Literal>1.0</ns7:Literal>
+          </ns4:Radius>
+          <ns4:Fill>
+            <ns4:SvgParameter name="fill">
+              <ns7:Literal>#FFFFFF</ns7:Literal>
+            </ns4:SvgParameter>
+            <ns4:SvgParameter name="fill-opacity">
+              <ns7:Literal>1</ns7:Literal>
+            </ns4:SvgParameter>
+          </ns4:Fill>
+        </ns4:Halo>
+        <ns4:Fill>
+          <ns4:SvgParameter name="fill">
+            <ns7:Literal>#000000</ns7:Literal>
+          </ns4:SvgParameter>
+          <ns4:SvgParameter name="fill-opacity">
+            <ns7:Literal>1</ns7:Literal>
+          </ns4:SvgParameter>
+        </ns4:Fill>
+      </ns4:TextSymbolizer>
+    </ns4:Rule>
+  </ns4:FeatureTypeStyle>
+</ns6:UserStyle>

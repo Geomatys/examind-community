@@ -389,7 +389,7 @@ public class StyleBusiness implements IStyleBusiness {
             final boolean styleFound = styleRepository.existsById(styleId);
             if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
             styleRepository.linkStyleToLayer(styleId, layerId);
-            if (Application.getBooleanProperty(AppProperty.LAYER_ACTIVATE_STATISTICS, Boolean.TRUE)) {
+            if (Application.getBooleanProperty(AppProperty.LAYER_ACTIVATE_STATISTICS, Boolean.FALSE)) {
                 styledLayerRepository.updateActivateStats(styleId, layerId, true);
             }
             clearServiceCache(l.getService());

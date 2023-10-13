@@ -164,7 +164,7 @@ public class LayerStatisticsUtils {
         }
     }
 
-    static ObjectMapper getMapper() {
+    public static ObjectMapper getMapper() {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
