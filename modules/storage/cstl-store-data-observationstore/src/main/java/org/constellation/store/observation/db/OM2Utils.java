@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,14 +26,12 @@ import java.util.List;
 import java.util.Objects;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -200,5 +199,33 @@ public class OM2Utils {
             throw new IllegalArgumentException("Unxexpected result type in observation");
         }
         return fields;
+    }
+
+    public static String getTimeScalePeriod(long millisecond) throws SQLException {
+        if (millisecond > Integer.MAX_VALUE) {
+            long second = millisecond / 1000;
+            if (second > Integer.MAX_VALUE) {
+                long minute = second / 60;
+                if (minute > Integer.MAX_VALUE) {
+                    long hour = minute / 60;
+                    if (hour > Integer.MAX_VALUE) {
+                        long day = hour / 24;
+                        if (day > Integer.MAX_VALUE) {
+                            long week = day / 7;
+                            if (week > Integer.MAX_VALUE) {
+                                // we stop it for now has with month its start to be variable
+                                throw new SQLException("Interval is too high to be set has an integer field: " + millisecond + " ms");
+                            }
+                            return Long.toString(week) + " weeks";
+                        }
+                        return Long.toString(day) + " days";
+                    }
+                    return Long.toString(hour) + " hours";
+                }
+                return Long.toString(minute) + " minutes";
+            }
+            return Long.toString(second) + " s";
+        }
+        return Long.toString(millisecond) + " ms";
     }
 }

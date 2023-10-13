@@ -18,7 +18,6 @@
  */
 package org.constellation.util;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -86,6 +85,8 @@ public class SQLResult implements AutoCloseable {
      * @return
      */
     public boolean nextOnField(String field) throws SQLException {
+        if (rss.size() == 1) return rss.get(0).next();
+        
         for (ResultSet rs : rss) {
             // if one is false, we eliminate the result
             if (!rs.next()) return false;

@@ -66,19 +66,17 @@ public class TimeScaleResultDecimator extends ResultDecimator {
                         continue;
                     }
                 }
-                String value;
                 switch (field.type) {
                     case TIME:
                         Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                         values.appendTime(t);
                         break;
                     case QUANTITY:
-                        value = rs.getString(fieldName, rsIndex); // we need to kown if the value is null (rs.getDouble return 0 if so).
-                        Double d = Double.NaN;
-                        if (value != null && !value.isEmpty()) {
-                            d = rs.getDouble(fieldName, rsIndex);
+                        double dvalue = rs.getDouble(fieldName, rsIndex);
+                        if (rs.wasNull(rsIndex)) {
+                            dvalue = Double.NaN;
                         }
-                        values.appendDouble(d);
+                        values.appendDouble(dvalue);
                         break;
                     default:
                         values.appendString(rs.getString(fieldName, rsIndex));

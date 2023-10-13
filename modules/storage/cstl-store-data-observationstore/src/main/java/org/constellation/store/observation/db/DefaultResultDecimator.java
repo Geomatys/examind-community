@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
@@ -62,8 +61,7 @@ public class DefaultResultDecimator extends ResultDecimator {
         Integer prevObs = null;
         Date t = null;
         AtomicInteger cpt = new AtomicInteger();
-        String mainFieldName = procedure.mainField.name;
-        while (rs.nextOnField(mainFieldName)) {
+        while (rs.nextOnField(procedure.mainField.name)) {
             Integer currentObs;
             if (profile) {
                 currentObs = rs.getInt("oid", 0);
@@ -82,7 +80,7 @@ public class DefaultResultDecimator extends ResultDecimator {
             }
             prevObs = currentObs;
 
-            final long currentMainValue = extractMainValue(procedure.mainField, rs.getString(mainFieldName, 0));
+            final long currentMainValue = extractMainValue(procedure.mainField, rs);
             if (currentMainValue > (start + step)) {
                 appendValue(t, cpt, mapValues);
 
@@ -111,8 +109,10 @@ public class DefaultResultDecimator extends ResultDecimator {
                     // already extracted
                     
                 } else {
-                    String value = rs.getString(field.name, rsIndex);
-                    mapValues.addToMapVal(currentMainValue, field.name, value);
+                    double value = rs.getDouble(field.name, rsIndex);
+                    if (!rs.wasNull(rsIndex)) {
+                        mapValues.addToMapVal(currentMainValue, field.name, value);
+                    }
                 }
             }
         }
@@ -145,8 +145,7 @@ public class DefaultResultDecimator extends ResultDecimator {
 
         }
 
-        private void addToMapVal(final Long main, final String field, final String value) {
-            if (value == null || value.isEmpty()) return;
+        private void addToMapVal(final Long main, final String field, final double current) {
 
             mainValues.add(main);
             
@@ -154,16 +153,11 @@ public class DefaultResultDecimator extends ResultDecimator {
             if (previous == null) throw new IllegalArgumentException("Unknown field: "+field);
             final double minPrevious = previous[0];
             final double maxPrevious = previous[1];
-            try {
-                final double current = Double.parseDouble(value);
-                if (current > maxPrevious) {
-                    previous[1] = current;
-                }
-                if (current < minPrevious) {
-                    previous[0] = current;
-                }
-            } catch (NumberFormatException ex) {
-                LOGGER.log(Level.FINER, "unable to parse value: {0}. Reason: {1}", new Object[] {value, ex.getMessage()});
+            if (current > maxPrevious) {
+                previous[1] = current;
+            }
+            if (current < minPrevious) {
+                previous[0] = current;
             }
         }
 
@@ -252,17 +246,16 @@ public class DefaultResultDecimator extends ResultDecimator {
         values.endBlock();
     }
 
-    private long extractMainValue(Field field, String value) {
+    private long extractMainValue(Field field, SQLResult rs) throws SQLException {
         if (FieldType.TIME.equals(field.type)) {
-            final Timestamp currentTime = Timestamp.valueOf(value);
+            final Timestamp currentTime = rs.getTimestamp(field.name, 0);
             return currentTime.getTime();
         } else if (FieldType.QUANTITY.equals(field.type)) {
-            if (value != null && !value.isEmpty()) {
-                final double d = Double.parseDouble(value);
+                final double d = rs.getDouble(field.name, 0);
                 return (long) d;
-            }
+        } else {
+            throw new IllegalArgumentException("Main field should be time or quantity type :" + field);
         }
-        throw new IllegalArgumentException("Main value is null or empty:" + value + " for main field:" + field);
     }
 
 }

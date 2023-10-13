@@ -40,6 +40,7 @@ import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.store.observation.db.OM2Utils.getTimeScalePeriod;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
@@ -867,11 +868,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
 
             StringBuilder select  = new StringBuilder();
-            select.append("time_bucket('").append(step);
             if (profile) {
-                select.append("', \"");
+                // need review for integer overflow
+                select.append("time_bucket('").append(step).append("', \"");
             } else {
-                select.append(" ms', \"");
+                select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
             }
             select.append(mainField.name).append("\") AS step");
             for (int i = offset; i < fields.size(); i++) {
