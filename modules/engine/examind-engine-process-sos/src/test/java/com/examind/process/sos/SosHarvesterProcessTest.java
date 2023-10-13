@@ -105,7 +105,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
 
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
         in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
-        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
         
         ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
         scval1.setValue(new ServiceProcessReference(sc));
@@ -117,11 +117,12 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         org.geotoolkit.process.Process proc = desc.createProcess(in);
         ParameterValueGroup results = proc.call();
 
-        String insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
         int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbInserted);
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFile);
+        Assert.assertEquals(1, insertedFiles.size());
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFiles.get(0));
 
         // verify that the dataset has been created
         Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
@@ -175,18 +176,21 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
          * add a new file to integrate and call again the process
          */
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-2.csv", "argo-profiles-2902402-2.csv");
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
         proc = desc.createProcess(in);
         results = proc.call();
 
         nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
-        insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
-        String alreadyInsertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_NAME).stringValue();
+        insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        List<String> alreadyInsertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_NAME);
         int nbAlreadyInserted= (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_ALREADY_INSERTED_COUNT_NAME).getValue();
 
         Assert.assertEquals(1, nbAlreadyInserted);
         Assert.assertEquals(1, nbInserted);
-        Assert.assertEquals("/argo-profiles-2902402-2.csv", insertedFile);
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", alreadyInsertedFile);
+        Assert.assertEquals(1, insertedFiles.size());
+        Assert.assertEquals("/argo-profiles-2902402-2.csv", insertedFiles.get(0));
+        Assert.assertEquals(1, alreadyInsertedFiles.size());
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", alreadyInsertedFiles.get(0));
 
         offp = getOffering(sosWorker, sensorId);
         Assert.assertNotNull(offp);
@@ -218,7 +222,7 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         * Verify an inserted profile
         */
         String result = getMeasure(sosWorker, offp.getId(), observedProperty, foi);
-        String expectedResult = getResourceAsString("com/examind/process/sos/argo-datablock-values.txt");
+        String expectedResult = getResourceAsString("com/examind/process/sos/argo-datablock-values.txt").replace("\n", "") + "\n";;
         Assert.assertEquals(expectedResult, result);
 
         hl = new GetHistoricalLocations();
@@ -252,11 +256,12 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         proc = desc.createProcess(in);
         results = proc.call();
 
-        insertedFile = results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_NAME).stringValue();
+        insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
         nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
         
         Assert.assertEquals(1, nbInserted);
-        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFile);
+        Assert.assertEquals(1, insertedFiles.size());
+        Assert.assertEquals("/argo-profiles-2902402-1.csv", insertedFiles.get(0));
 
         Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
 
@@ -291,6 +296,225 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         verifySamplingFeature(fois,  "252",  -6.581, 44.01);
         verifySamplingFeature(fois,  "253",  -6.256, 43.959);
         verifySamplingFeature(fois,  "254",  -6.035, 44.031);
+
+        obsProp1 = getObservedPropertyById(stsWorker, "PSAL");
+        Assert.assertNotNull(obsProp1);
+        Assert.assertEquals("PSAL", obsProp1.getIotId());
+        Assert.assertEquals("PSAL", obsProp1.getName());
+        Assert.assertEquals("", obsProp1.getDescription());
+
+        obsProp2 = getObservedPropertyById(stsWorker, "TEMP");
+        Assert.assertNotNull(obsProp2);
+        Assert.assertEquals("TEMP", obsProp2.getIotId());
+        Assert.assertEquals("TEMP", obsProp2.getName());
+        Assert.assertEquals("", obsProp2.getDescription());
+
+        MultiDatastream mds = stsWorker.getMultiDatastreamById(new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:" + sensorId));
+        Assert.assertNotNull(mds);
+
+        assertTrue(mds.getUnitOfMeasurement() instanceof List);
+
+        List listUom = (List) mds.getUnitOfMeasurement();
+
+        Assert.assertEquals(3, listUom.size());
+
+        List<String> expectedUoms = Arrays.asList("decibar", "psu", "degree_Celsius");
+        for (Object uomObj : listUom) {
+            assertTrue(uomObj instanceof UnitOfMeasure);
+            UnitOfMeasure uom = (UnitOfMeasure) uomObj;
+            String uomName = uom.getName();
+            Assert.assertNotNull(uomName);
+            Assert.assertTrue("unexpected uom:" + uomName, expectedUoms.contains(uomName));
+        }
+    }
+
+    @Test
+    public void harvestCSVProfileNoFOITest() throws Exception {
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:1";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(argoDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("DATE (YYYY-MM-DDTHH:MI:SSZ)");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("PRES (decibar)");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        in.parameter(SosHarvesterProcessDescriptor.FOI_COLUMN_NAME).setValue("CONFIG_MISSION_NUMBER");
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("LATITUDE (degree_north)");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("LONGITUDE (degree_east)");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("TEMP (degree_Celsius)");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val2.setValue("PSAL (psu)");
+        in.values().add(val2);
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Profile");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+
+        in.parameter(SosHarvesterProcessDescriptor.GENERATE_FOI_NAME).setValue(false);
+
+        ParameterValue scval1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval1.setValue(new ServiceProcessReference(sc));
+        in.values().add(scval1);
+        ParameterValue scval2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        scval2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(scval2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        proc.call();
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        Thing t = getThing(stsWorker, sensorId);
+        Assert.assertNotNull(t);
+        Assert.assertEquals(sensorId, t.getName());
+        Assert.assertEquals("", t.getDescription());
+
+        ObservationOffering offp = getOffering(sosWorker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
+
+        Assert.assertTrue(offp.getFeatureOfInterestIds().isEmpty());
+
+        // composite + components
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+
+        GetHistoricalLocations hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        HistoricalLocationsResponse response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(4, response.getValue().size());
+
+        HistoricalLocation loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, "2018-11-02T07:10:52Z", -6.81, 44.06);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1609, nbMeasure);
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("TEMP (degree_Celsius)", "PSAL (psu)", "PRES (decibar)"));
+
+        /*
+         * add a new file to integrate and call again the process
+         */
+        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-2.csv", "argo-profiles-2902402-2.csv");
+        proc.call();
+
+        offp = getOffering(sosWorker, sensorId);
+        Assert.assertNotNull(offp);
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-27T15:09:17.000", time.getEndPosition().getValue());
+
+        Assert.assertTrue(offp.getFeatureOfInterestIds().isEmpty());
+        Assert.assertEquals(4, offp.getObservedProperties().size());
+
+        ObservedProperty obsProp1 = getObservedPropertyById(stsWorker, "PSAL (psu)");
+        Assert.assertNotNull(obsProp1);
+        Assert.assertEquals("PSAL (psu)", obsProp1.getIotId());
+        Assert.assertEquals("PSAL (psu)", obsProp1.getName());
+        Assert.assertEquals("", obsProp1.getDescription());
+
+        ObservedProperty obsProp2 = getObservedPropertyById(stsWorker, "TEMP (degree_Celsius)");
+        Assert.assertNotNull(obsProp2);
+        Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getIotId());
+        Assert.assertEquals("TEMP (degree_Celsius)", obsProp2.getName());
+        Assert.assertEquals("", obsProp2.getDescription());
+
+        String observedProperty = "PSAL (psu)";
+
+        /*
+        * Verify inserted profiles (all at once)
+        */
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, null);
+        String expectedResult = getResourceAsString("com/examind/process/sos/argo-datablock-values-no-foi.txt").replace("\n", "") + "\n";
+        Assert.assertEquals(expectedResult, result);
+
+        hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(8, response.getValue().size());
+
+        loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, "2018-11-02T07:10:52Z", -6.81, 44.06);
+
+        HistoricalLocation loc2 = response.getValue().get(1);
+        verifyHistoricalLocation(loc2, "2018-11-05T22:03:31Z", -6.581, 44.01);
+
+        HistoricalLocation loc8 = response.getValue().get(7);
+        verifyHistoricalLocation(loc8, "2018-11-27T15:09:17Z", -5.04, 44.154);
+
+        nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(3209, nbMeasure);
+
+        /*
+         * remove the new file and reinsert with REMOVE PREVIOUS and uom/obsprop regex extraction
+         */
+        Path p = argoDirectory.resolve("argo-profiles-2902402-2.csv");
+        Files.delete(p);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.UOM_REGEX_NAME).setValue("\\(([^\\)]+)\\)?");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_REGEX_NAME).setValue("([\\w\\s]+)");
+
+        proc = desc.createProcess(in);
+        proc.call();
+
+        Assert.assertNotNull(sensorBusiness.getSensor(sensorId));
+
+        offp = getOffering(sosWorker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("2018-11-02T07:10:52.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("2018-11-13T03:55:49.000", time.getEndPosition().getValue());
+
+        Assert.assertTrue(offp.getFeatureOfInterestIds().isEmpty());
+
+        hl = new GetHistoricalLocations();
+        hl.getExtraFilter().put("procedure", sensorId);
+        hl.getExpand().add("Locations");
+        response = stsWorker.getHistoricalLocations(hl);
+
+        Assert.assertEquals(4, response.getValue().size());
+
+        loc1 = response.getValue().get(0);
+        verifyHistoricalLocation(loc1, "2018-11-02T07:10:52Z", -6.81, 44.06);
+
+        nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(1609, nbMeasure);
 
         obsProp1 = getObservedPropertyById(stsWorker, "PSAL");
         Assert.assertNotNull(obsProp1);

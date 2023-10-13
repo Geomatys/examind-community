@@ -143,6 +143,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final boolean directColumnIndex;
 
     protected final boolean laxHeader;
+    protected final boolean computeFoi;
 
     protected static final GeometryFactory GF = new GeometryFactory();
 
@@ -154,6 +155,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.delimiter = sep != null ? sep : 0;
         Character qc =  Parameters.castOrWrap(params).getValue(CHARQUOTE);
         this.quotechar = qc != null ? qc : 0;
+        this.computeFoi = (boolean) params.parameter(COMPUTE_FOI.getName().toString()).getValue();
 
         this.mainColumns = getMultipleValuesList(params, MAIN_COLUMN.getName().toString());
         this.dateColumns = getMultipleValuesList(params, DATE_COLUMN.getName().toString());
@@ -378,18 +380,20 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // Get existing or create a new feature of interest
-        final SamplingFeature sp;
-        if (ob.featureID == null) {
-            ob.featureID = "foi-" + UUID.randomUUID();
-            // for unamed foi, we look for equals existing foi
-            sp = buildFOIByGeom(ob.featureID, ob.getPositions(), samplingFeatures);
-        } else {
-            final Geometry geom = buildGeom(ob.getPositions());
-            sp = new SamplingFeature(ob.featureID, null, null, null, ob.featureID, geom);
-        }
-        
-        if (!samplingFeatures.contains(sp)) {
-            samplingFeatures.add(sp);
+        SamplingFeature sp = null;
+        if (computeFoi) {
+            if (ob.featureID == null) {
+                ob.featureID = "foi-" + UUID.randomUUID();
+                // for unamed foi, we look for equals existing foi
+                sp = buildFOIByGeom(ob.featureID, ob.getPositions(), samplingFeatures);
+            } else {
+                final Geometry geom = buildGeom(ob.getPositions());
+                sp = new SamplingFeature(ob.featureID, null, null, null, ob.featureID, geom);
+            }
+
+            if (!samplingFeatures.contains(sp)) {
+                samplingFeatures.add(sp);
+            }
         }
 
         switch (ob.observationType) {
@@ -419,7 +423,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                                                 null,
                                                 resultO,
                                                 properties));
-        result.featureOfInterest.add(sp);
+        if (sp != null && !result.featureOfInterest.contains(sp)) {
+            result.featureOfInterest.add(sp);
+        }
 
         if (!result.phenomenons.contains(phenomenon)) {
             result.phenomenons.add(phenomenon);

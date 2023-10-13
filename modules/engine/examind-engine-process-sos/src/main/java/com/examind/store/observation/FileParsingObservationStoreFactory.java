@@ -254,6 +254,11 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .setRequired(false)
             .create(Boolean.class, false);
 
+    public static final ParameterDescriptor<Boolean> COMPUTE_FOI = PARAM_BUILDER
+            .addName("compute_foi")
+            .setRequired(false)
+            .create(Boolean.class, true);
+
     @Override
     public DataStore open(StorageConnector sc) throws DataStoreException {
         GeneralParameterDescriptor desc;

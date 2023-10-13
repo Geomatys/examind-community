@@ -66,7 +66,6 @@ import org.constellation.dto.importdata.FileBean;
 import org.constellation.dto.importdata.StoreFormat;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
-import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.process.ProcessUtils.addMultipleValues;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.model.CompositePhenomenon;
@@ -131,6 +130,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String pwd  = inputParameters.getValue(PWD);
         final boolean remoteRead = inputParameters.getValue(REMOTE_READ);
         final boolean generateMetadata = inputParameters.getValue(GENERATE_METADATA);
+        final boolean generateFoi = inputParameters.getValue(GENERATE_FOI);
 
         final boolean checkFiles = inputParameters.getValue(CHECK_FILE);
 
@@ -373,14 +373,15 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.DIRECT_COLUMN_INDEX.getName().toString(), Boolean.toString(directColumnIndex));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.NO_HEADER.getName().toString(), Boolean.toString(noHeader));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.LAX_HEADER.getName().toString(), Boolean.toString(laxHeader));
-            
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.COMPUTE_FOI.getName().toString(), Boolean.toString(generateFoi));
+
             final Map<String, Object> extraStoreParams = inputParameters.getValue(EXTRA_STORE_PARAMETERS);
             if (extraStoreParams != null) {
                 for (Entry<String, Object> extraStoreParam : extraStoreParams.entrySet()) {
                     provConfig.getParameters().put(extraStoreParam.getKey(), extraStoreParam.getValue().toString());
                 }
             }
-            
+
             try {
                 Integer datasetId = datasetBusiness.getDatasetId(datasetIdentifier);
                 if (datasetId == null)  {
@@ -477,7 +478,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             }
             if (accept) {
                 try {
-                    int currentNbObs = importSensor(services, dataId, byData);
+                    int currentNbObs = importSensor(services, dataId, byData, generateFoi);
                     nbObsInserted = nbObsInserted + currentNbObs;
 
                     // add the integrated data id and file to results
@@ -578,7 +579,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         return result;
     }
 
-    private int importSensor(final Collection<SensorService> services, final int dataId, final double byData) throws ConstellationException {
+    private int importSensor(final Collection<SensorService> services, final int dataId, final double byData, boolean generateFoi) throws ConstellationException {
         Integer providerId = dataBusiness.getDataProvider(dataId);
         final DataProvider provider = DataProviders.getProvider(providerId);
         ObservationProvider csvOmProvider;
@@ -598,7 +599,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
             // import observation dataset into the service provider
             final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery()));
-            final Set<SamplingFeature> existingFois     = new HashSet<>(omServiceProvider.getFeatureOfInterest(new SamplingFeatureQuery()));
+            final Set<SamplingFeature> existingFois     = generateFoi ? new HashSet<>(omServiceProvider.getFeatureOfInterest(new SamplingFeatureQuery())) : new HashSet<>();
 
             final ObservationDataset result = csvOmProvider.extractResults(new DatasetQuery());
             if (result.getObservations().isEmpty()) {
