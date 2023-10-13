@@ -37,6 +37,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.constellation.util.ParamUtilities;
+import org.geotoolkit.processing.ForwardProcessListener;
 
 public class ProcessFromYamlProcess extends AbstractCstlProcess {
 
@@ -78,6 +79,7 @@ public class ProcessFromYamlProcess extends AbstractCstlProcess {
             }
 
             Process process = desc.createProcess(in);
+            process.addListener(new ForwardProcessListener(this, 0, 100));
             ParameterValueGroup results = process.call();
             String jsonResults = ParamUtilities.writeParameterJSON(results, true);
             outputParameters.getOrCreate(ProcessFromYamlProcessDescriptor.PROCESS_OUTPUT).setValue(jsonResults);
