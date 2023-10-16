@@ -1067,8 +1067,8 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public DataBrief acceptData(int id, Integer owner, boolean hidden) throws ConstellationException {
-        return acceptData(id, owner, true, hidden);
+    public void acceptData(int id, Integer owner, boolean hidden) throws ConstellationException {
+        acceptData(id, owner, true, hidden);
     }
 
     /**
@@ -1076,7 +1076,7 @@ public class DataBusiness implements IDataBusiness {
      */
     @Override
     @Transactional
-    public DataBrief acceptData(int id, Integer owner, boolean generateMetadata, boolean hidden) throws ConstellationException {
+    public void acceptData(int id, Integer owner, boolean generateMetadata, boolean hidden) throws ConstellationException {
         Data data = dataRepository.findById(id);
         String dataType = data.getType();
 
@@ -1114,25 +1114,19 @@ public class DataBusiness implements IDataBusiness {
                 }
             }
         }
-        return getDataBrief(id, true, true);
     }
 
     @Override
     @Transactional
-    public Map<String, List> acceptDatas(List<Integer> ids, Integer owner, boolean hidden) throws ConstellationException {
-        Map<String, List> results = new HashMap<>();
-        results.put("accepted", new ArrayList<>());
-        results.put("refused", new ArrayList<>());
-
+    public void acceptDatas(List<Integer> ids, Integer owner, boolean hidden) throws ConstellationException {
         for (Integer id : ids) {
             try {
-                results.get("accepted").add(acceptData(id, owner, hidden));
+                acceptData(id, owner, hidden);
             } catch (Exception ex) {
-                results.get("refused").add(id);
-                LOGGER.log(Level.INFO, ex.getMessage(), ex);
+                // keep legacy behavior. we dont stop if one data accept fails.
+                LOGGER.log(Level.WARNING, ex.getMessage(), ex);
             }
         }
-        return results;
     }
 
     @Override

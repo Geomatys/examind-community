@@ -137,7 +137,9 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity acceptData(@PathVariable Integer dataId, @RequestParam(name="hidden", required = false, defaultValue = "false") Boolean hidden, HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            return new ResponseEntity(dataBusiness.acceptData(dataId, userId, hidden), OK);
+            dataBusiness.acceptData(dataId, userId, hidden);
+            DataBrief brief = dataBusiness.getDataBrief(dataId, true, true);
+            return new ResponseEntity(brief, OK);
 
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
@@ -149,7 +151,21 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity acceptDatas(@RequestBody List<Integer> dataIds, @RequestParam(name="hidden", required = false, defaultValue = "false") Boolean hidden, HttpServletRequest req) {
         try {
             final int userId = assertAuthentificated(req);
-            return new ResponseEntity(dataBusiness.acceptDatas(dataIds, userId, hidden), OK);
+            Map<String, List> results = new HashMap<>();
+            results.put("accepted", new ArrayList<>());
+            results.put("refused", new ArrayList<>());
+
+            for (Integer id : dataIds) {
+                try {
+                    dataBusiness.acceptData(id, userId, hidden);
+                    DataBrief brief = dataBusiness.getDataBrief(id, true, true);
+                    results.get("accepted").add(brief);
+                } catch (Exception ex) {
+                    results.get("refused").add(id);
+                    LOGGER.log(Level.INFO, ex.getMessage(), ex);
+                }
+            }
+            return new ResponseEntity(results, OK);
 
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

@@ -145,9 +145,10 @@ public class ImportData extends AbstractCstlProcess {
                          styleBusiness.linkToData(styleId, dataId);
                      }
                      try {
-                        DataBrief brief = dataBusiness.acceptData(dataId, userId, false);
+                        dataBusiness.acceptData(dataId, userId, false);
 
                         if (modelId != null) {
+                           DataBrief brief = dataBusiness.getDataBrief(dataId, false, true);
                            List<MetadataLightBrief> metadatas = brief.getMetadatas();
                            for (MetadataLightBrief metadata : metadatas) {
                                final Object dataObj  = metadataBusiness.getMetadata(metadata.getId());
@@ -161,7 +162,7 @@ public class ImportData extends AbstractCstlProcess {
 
                                    final MetadataMerger merger = new MetadataMerger(Locale.FRENCH);
                                    merger.copy(modelMeta, dataMeta);
-                                   metadataBusiness.updateMetadata(dataMeta.getFileIdentifier(), dataMeta, brief.getId(), null, null, userId, null, "DOC");
+                                   metadataBusiness.updateMetadata(dataMeta.getFileIdentifier(), dataMeta, dataId, null, null, userId, null, "DOC");
                                }
                            }
                         }

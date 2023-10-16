@@ -26,7 +26,6 @@ import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.ISensorBusiness;
-import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataCustomConfiguration;
 import org.constellation.dto.DataSource;
 import org.constellation.dto.DataSourceSelectedPath;
@@ -443,8 +442,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         int userId = 1;
         ResourceStoreAnalysisV3 store = datasourceBusiness.treatDataPath(p, dsid, provConfig, true, datasetId, userId);
         for (ResourceAnalysisV3 resourceStore : store.getResources()) {
-            final DataBrief acceptData = dataBusiness.acceptData(resourceStore.getId(), userId, generateMetadata, false);
-            final Integer dataId       = acceptData.getId();
+            final Integer dataId = resourceStore.getId();
+            dataBusiness.acceptData(dataId, userId, generateMetadata, false);
             dataBusiness.updateDataDataSetId(dataId, datasetId);
             dataBusiness.cacheDataInformation(dataId, false);
             dataToIntegrate.add(dataId);
