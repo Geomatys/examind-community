@@ -39,6 +39,7 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.measure.Range;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
 import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.cs.AxesConvention;
@@ -90,7 +91,7 @@ import org.constellation.configuration.Application;
 import org.constellation.dto.DimensionRange;
 import static org.constellation.map.core.WMSConstant.KEY_PROPERTYNAME;
 import static org.constellation.map.core.WMSConstant.NO_TRANSPARENT_FORMAT;
-import org.constellation.map.util.DimensionDef;
+import org.constellation.util.DimensionDef;
 import org.constellation.map.util.MapUtils;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.constellation.map.util.MapUtils.transformJAXBFilter;
@@ -126,7 +127,6 @@ import static org.geotoolkit.wms.xml.WmsXmlFactory.createOnlineResource;
 import static org.geotoolkit.wms.xml.WmsXmlFactory.createStyle;
 import org.geotoolkit.wms.xml.v130.Capability;
 import org.opengis.filter.Filter;
-import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -134,7 +134,6 @@ import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.util.FactoryException;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
@@ -605,9 +604,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
             if (layer.hasFilterAndDimension()) {
                 final FeatureSet fs = fdata.getOrigin();
-                final List<DimensionDef> dims = layer.getDimensiondefinition();
+                final List<DimensionDef<?, ?, ?>> dims = layer.getAdditionalDimensions();
                 for (DimensionDef ddef : dims) {
-                    final Collection<Range> collRefs = getDimensionRange(fs, ddef.lower, ddef.upper);
+                    final Collection<Range> collRefs = getDimensionRange(fs, ddef.lower(), ddef.upper());
 
                     // Transform it to a set in order to filter same values
                     final Set<Range> refs = new HashSet<>();
@@ -621,9 +620,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     }
 
                     final String sortedValues = printValues(refs);
-                    final String unitSymbol = ddef.crs.getCoordinateSystem().getAxis(0).getUnit().toString();
+                    final String unitSymbol = ddef.crs().getCoordinateSystem().getAxis(0).getUnit().toString();
                     final String unit = unitSymbol;
-                    final String axisName = ddef.crs.getCoordinateSystem().getAxis(0).getName().getCode();
+                    final String axisName = ddef.crs().getCoordinateSystem().getAxis(0).getName().getCode();
                     final String defaut = "";
 
                     final AbstractDimension adim = (queryVersion.equals(ServiceDef.WMS_1_1_1_SLD.version.toString())) ?
@@ -814,7 +813,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final Map<String, Object> extraParams = getFI.getParameters();
         
         // Build additional filters
-        List<Filter> extraFilters = extractAdditionalFilters(getFI, layersCache);
+        List<Filter> extraFilters = extractAdditionalFilters(getFI);
 
         final SceneDef sdef = new SceneDef();
 
@@ -1045,7 +1044,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final Map<String, Object> extraParams = getMap.getParameters();
         
         // Build additional filters
-        List<Filter> extraFilters = extractAdditionalFilters(getMap, layersCache);
+        List<Filter> extraFilters = extractAdditionalFilters(getMap);
 
         final SceneDef sdef = new SceneDef();
         sdef.extensions().add(mapPortrayal.getExtension());
@@ -1127,7 +1126,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return A filter list.
      * @throws CstlServiceException If an error occurs in filter parsing.
      */
-    private List<Filter> extractAdditionalFilters(GetMap getMap, List<LayerCache> layersCache) throws CstlServiceException {
+    private List<Filter> extractAdditionalFilters(GetMap getMap) throws CstlServiceException {
         // Build additional filters
         List<Filter> extraFilters = new ArrayList<>();
 
@@ -1152,14 +1151,6 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
         }
 
-        // add time filters
-        // TODO aggragate filters
-        for (LayerCache layer: layersCache) {
-            List<ValueReference> tDims = layer.getTimeDimension();
-            List<Date> times = getMap.getTime();
-            Filter tFilter = MapUtils.buildTimeFilter(times, tDims);
-            extraFilters.add(tFilter);
-        }
         return extraFilters;
     }
 
@@ -1231,6 +1222,10 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                     }
                 }
             }
+
+            // HACK: If input layers are feature data with elevation, they might not provide vertical CRS.
+            // The API / extra-dimension system must be reworked.
+            if ((vertical[0] != null || vertical[1] != null) && vCrs == null) vCrs = CommonCRS.Vertical.MEAN_SEA_LEVEL.crs();
 
             // generate view envelope with 2D, time and vertical values.
             // TODO add other dimensions (see CSTL-1245).

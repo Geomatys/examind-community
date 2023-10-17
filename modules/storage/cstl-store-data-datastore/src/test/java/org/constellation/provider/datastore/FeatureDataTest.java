@@ -49,11 +49,11 @@ public class FeatureDataTest {
 
         Resource r = store.findResource("Countries");
         Assert.assertTrue(r instanceof FeatureSet);
-        countries = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null, null, null, null, null);
+        countries = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
 
         r = store.findResource("city");
         Assert.assertTrue(r instanceof FeatureSet);
-        city = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null, null, null, null, null);
+        city = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
     }
 
     @Test

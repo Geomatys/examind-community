@@ -18,8 +18,6 @@
  */
 package org.constellation.provider.observationstore;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 import org.apache.sis.portrayal.MapItem;
 import org.apache.sis.portrayal.MapLayer;
@@ -37,7 +35,6 @@ import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
-import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.style.Style;
 import org.opengis.util.GenericName;
@@ -96,18 +93,6 @@ public class FeatureSetObservationData extends AbstractData<FeatureSet> implemen
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex);
         }
-    }
-
-    @Override
-    public List<ValueReference> getTimeDimension() {
-        // TODO implement?
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public List<ValueReference> getElevationDimension() {
-        // TODO implement?
-        return Collections.EMPTY_LIST;
     }
 
     @Override

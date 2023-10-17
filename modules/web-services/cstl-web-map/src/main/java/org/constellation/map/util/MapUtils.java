@@ -36,10 +36,11 @@ import org.constellation.ws.CstlServiceException;
 import static org.geotoolkit.filter.FilterUtilities.FF;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.sld.xml.StyleXmlIO;
+import org.opengis.feature.Feature;
+import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Literal;
 import org.opengis.filter.SortProperty;
-import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
@@ -186,7 +187,7 @@ public class MapUtils {
                 .collect(Collectors.toList());
     }
 
-    public static Filter buildTimeFilter(List<Date> times, List<ValueReference> tDims) {
+    public static Filter buildTimeFilter(List<Date> times, List<Expression<Feature, Date>> tDims) {
         ArgumentChecks.ensureNonNull("times", times);
         ArgumentChecks.ensureNonNull("tDims", tDims);
 
@@ -200,8 +201,8 @@ public class MapUtils {
 
             // features with period including the filter time.
             } else if (tDims.size() == 2) {
-                ValueReference st = tDims.get(0);
-                ValueReference en = tDims.get(1);
+                Expression<Feature, Date> st = tDims.get(0);
+                Expression<Feature, Date> en = tDims.get(1);
                 Literal literal = FF.literal(singleTime);
                 Filter start =
                 FF.or(FF.before(st, literal),
@@ -220,7 +221,7 @@ public class MapUtils {
 
             //  features with time attribute included in the filter period.
             if (tDims.size() == 1) {
-                ValueReference is = tDims.get(0);
+                Expression<Feature, Date> is = tDims.get(0);
                 Filter start =
                 FF.or(FF.after(is,   FF.literal(startTime)),
                       FF.tequals(is, FF.literal(startTime)));
@@ -231,8 +232,8 @@ public class MapUtils {
 
                 return FF.and(start, end);
             } else if (tDims.size() == 2) {
-                ValueReference st = tDims.get(0);
-                ValueReference en = tDims.get(1);
+                Expression<Feature, Date> st = tDims.get(0);
+                Expression<Feature, Date> en = tDims.get(1);
 
                 // 1. feature with period included in the filter period
                 Filter start1 =

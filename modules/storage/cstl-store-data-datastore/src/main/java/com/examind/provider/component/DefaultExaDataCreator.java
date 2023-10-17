@@ -58,7 +58,7 @@ public class DefaultExaDataCreator implements ExaDataCreator {
         } else if (rs instanceof GridCoverageResource) {
             return new DefaultCoverageData(targetName, (GridCoverageResource) rs, store);
         } else if (rs instanceof FeatureSet){
-            return new DefaultFeatureData(targetName, store, (FeatureSet) rs, null, null, null, null, version);
+            return new DefaultFeatureData(targetName, store, (FeatureSet) rs, version);
         } else {
             LOGGER.log(Level.WARNING, "Unexpected resource class for creating Provider Data:{0}", rs.getClass().getName());
             return new DefaultOtherData(targetName, rs, store);

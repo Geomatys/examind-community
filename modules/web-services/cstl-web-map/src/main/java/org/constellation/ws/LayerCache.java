@@ -18,6 +18,7 @@
  */
 package org.constellation.ws;
 
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -32,15 +33,21 @@ import java.util.logging.Logger;
 import org.apache.sis.cql.CQL;
 import javax.xml.namespace.QName;
 import org.apache.sis.cql.CQLException;
+import org.apache.sis.feature.builder.AttributeTypeBuilder;
+import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.Envelopes;
+import org.apache.sis.internal.feature.FeatureExpression;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultEngineeringCRS;
+import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 import org.apache.sis.referencing.cs.AbstractCS;
 import org.apache.sis.referencing.cs.DefaultCoordinateSystemAxis;
 import org.apache.sis.referencing.datum.DefaultEngineeringDatum;
+import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.storage.FeatureSet;
 import org.apache.sis.util.Utilities;
 import org.constellation.admin.SpringHelper;
 import org.constellation.api.DataType;
@@ -54,19 +61,23 @@ import org.constellation.dto.service.config.wxs.DimensionDefinition;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.map.util.DimensionDef;
+import org.constellation.util.DimensionDef;
 import org.constellation.provider.Data;
 import org.constellation.map.util.DtoToOGCFilterTransformer;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.FeatureData;
 import org.geotoolkit.filter.FilterFactoryImpl;
 import static org.geotoolkit.filter.FilterUtilities.FF;
+
+import org.opengis.feature.FeatureType;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Filter;
-import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.SingleCRS;
+import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.datum.EngineeringDatum;
@@ -75,6 +86,8 @@ import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Note about thread-safety: This object is <em>NOT</em> thread-safe.
+ * It is user responsibility to synchronize accesses if (s)he uses it in a multi-threaded environment.
  *
  * @author Guilhem Legal (Geomatys)
  */
@@ -85,11 +98,13 @@ public class LayerCache {
     private final NameInProvider nip;
     private final QName name;
     private final List<StyleReference> styles;
-    private final Data data;
+    private final Data<?> data;
     private final LayerConfig configuration;
 
     @Autowired
     private IDataBusiness dataBusiness;
+
+    private ExtraDimensions layerAdditionalDimensions;
 
     public LayerCache(final NameInProvider nip, QName name, Data d, List<StyleReference> styles, final LayerConfig configuration) {
         SpringHelper.injectDependencies(this);
@@ -134,8 +149,6 @@ public class LayerCache {
 
     /**
      * @return The native envelope.
-     * 
-     * @throws ConstellationStoreException
      */
     public Envelope getEnvelope() throws ConstellationStoreException {
         if (envelope == null) {
@@ -153,8 +166,6 @@ public class LayerCache {
      * Return a reprojected data envelope.
      * 
      * @param crs A coordinate referenceSystem
-     * @return
-     * @throws ConstellationStoreException
      */
     public Envelope getEnvelope(CoordinateReferenceSystem crs) throws ConstellationStoreException {
         if (envelope != null && Utilities.equalsIgnoreMetadata(envelope.getCoordinateReferenceSystem(), crs)) {
@@ -192,8 +203,8 @@ public class LayerCache {
                     CoordinateReferenceSystem[] crss = new CoordinateReferenceSystem[nbExtraDim + 1];
                     crss[0] = dataCRS;
                     for (int i = 0; i < nbExtraDim; i++) {
-                        DimensionDef dd = getDimensionDef(configuration.getDimensions().get(i));
-                        crss[i+1] = dd.crs;
+                        var dd = getDimensionDef(configuration.getDimensions().get(i));
+                        crss[i+1] = dd.crs();
                     }
                     dataCRS = CRS.compound(crss);
                 } catch (CQLException | FactoryException ex) {
@@ -290,11 +301,12 @@ public class LayerCache {
         return dims;
     }
 
-    public List<ValueReference> getTimeDimension() {
-        if (data instanceof FeatureData featdata) {
-            return featdata.getTimeDimension();
-        }
-        return new ArrayList<>();
+    public Optional<DimensionDef<TemporalCRS, ?, ?>> getTimeDimension() {
+        return Optional.ofNullable(getOrCreateAdditionalDimensions().temporal);
+    }
+
+    public Optional<DimensionDef<VerticalCRS, ?, ?>> getElevationDimension() {
+        return Optional.ofNullable(getOrCreateAdditionalDimensions().vertical);
     }
 
     public Double[] getResolution() throws ConstellationStoreException {
@@ -310,42 +322,104 @@ public class LayerCache {
     public boolean hasFilterAndDimension() {
         return configuration != null && (configuration.getFilter() != null || !configuration.getDimensions().isEmpty());
     }
-    
+
+    /**
+     * Try to get back data type.
+     *
+     * @return {@link Optional#empty()} if the {@link #getData() layer data} is not a {@link FeatureSet vector dataset},
+     *         or if an error occurs (errors are silenced).
+     *         Otherwise, the  {@link FeatureType feature type} declared by {@link #getData() layer data}.
+     */
+    public Optional<FeatureType> getFeatureType() {
+        if (getData() != null && getData().getOrigin() instanceof FeatureSet fs) {
+            try {
+                return Optional.of(fs.getType());
+            } catch (DataStoreException | RuntimeException e) {
+                LOGGER.log(Level.WARNING, "Cannot get feature type from feature data", e);
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public Optional<Filter> getLayerFilter(Envelope env, Filter extraFilter) {
         final List<Filter> filters = new ArrayList<>();
         if (extraFilter != null) {
             filters.add(extraFilter);
         }
         if (configuration != null) {
-            if (configuration.getFilter() != null) {
+            final org.constellation.dto.Filter confFilter = configuration.getFilter();
+            if (confFilter != null) {
                 try {
-                    filters.add(new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(configuration.getFilter()));
+                    filters.add(new DtoToOGCFilterTransformer(new FilterFactoryImpl()).visitFilter(confFilter));
                 } catch (FactoryException e) {
                     LOGGER.log(Level.WARNING, "Error while transforming layer custom filter", e);
                 }
             }
-            if (!configuration.getDimensions().isEmpty() && env != null) {
-                for (DimensionDefinition ddef : configuration.getDimensions()) {
-                    try {
-                        final DimensionDef def = getDimensionDef(ddef);
-                        final Envelope dimEnv;
-                        try {
-                            dimEnv = Envelopes.transform(env, def.crs);
-                        } catch (TransformException ex) {
-                            LOGGER.log(Level.FINER, "Error while reprojecting the envelope to dimension CRS.", ex);
-                            continue;
-                        }
+        }
 
-                        final Filter dimFilter = FF.and(
-                                FF.lessOrEqual(FF.literal(dimEnv.getMinimum(0)), def.lower),
-                                FF.greaterOrEqual(FF.literal(dimEnv.getMaximum(0)), def.upper));
-                        filters.add(dimFilter);
-                    } catch (CQLException ex) {
-                        LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
+        if (env != null) {
+            final List<DimensionDef<?, ?, ?>> dimensions = getAdditionalDimensions();
+            if (!dimensions.isEmpty()) {
+                for (var def : dimensions) {
+                    final Envelope dimEnv;
+                    try {
+                        dimEnv = Envelopes.transform(env, def.crs());
+                    } catch (TransformException ex) {
+                        LOGGER.log(Level.FINER, "Error while reprojecting the envelope to dimension CRS.", ex);
+                        continue;
                     }
+
+                    assert dimEnv.getDimension() == 1 : "Layer dimension filter work only one dimension at a time";
+
+                    final double dimEnvMin = dimEnv.getMinimum(0);
+                    final double dimEnvMax = dimEnv.getMaximum(0);
+                    Expression<?, ?> dimMin = FF.literal(dimEnvMin);
+                    Expression<?, ?> dimMax = FF.literal(dimEnvMax);
+
+                    /**
+                     * Workaround: Special analysis / optimization for temporal dimension.
+                     * To allow native handling (and therefore potential optimization) of time filter,
+                     * we try to express time boundaries in data native time representation.
+                     * Note that, currently, this fix is very brittle and might not work anymore due to:
+                     *  - the lack of homogeneity in FeatureSet time handling
+                     *  - the complexity of the filter engine
+                     *  - The lack of review on the temporal part of filter/expression
+                     *
+                     * IMPORTANT: Different datastores might manage time differently.
+                     *            Before modifying below logic,
+                     *            try to test it at least against a PostGIS table with a date or timestamp field.
+                     */
+                    if (def.crs() instanceof TemporalCRS tcrs && def.lower() instanceof FeatureExpression<?,?> fe) {
+                        final Class<?> dimValueType = getFeatureType()
+                                .map(type -> fe.expectedType(type, new FeatureTypeBuilder().setName("tmp")) instanceof AttributeTypeBuilder att ? att.getValueClass() : null)
+                                .orElse(fe.getValueClass());
+                        final boolean isTemporal = Temporal.class.isAssignableFrom(dimValueType);
+                        final boolean isDate = Date.class.isAssignableFrom(dimValueType);
+                        if (isTemporal || isDate) {
+                            final DefaultTemporalCRS dtcrs = DefaultTemporalCRS.castOrCopy(tcrs);
+                            if (isDate) {
+                                dimMin = FF.literal(dtcrs.toDate(dimEnvMin));
+                                dimMax = FF.literal(dtcrs.toDate(dimEnvMax));
+                            } else if (isTemporal) {
+                                var instantMin = dtcrs.toInstant(dimEnvMin);
+                                var instantMax = dtcrs.toInstant(dimEnvMax);
+                                dimMin = FF.literal(instantMin).toValueType(dimValueType);
+                                dimMax = FF.literal(instantMax).toValueType(dimValueType);
+                            }
+                        }
+                    }
+
+                    // Define intersection with dimension values
+                    final Filter dimFilter = FF.and(
+                            FF.lessOrEqual(dimMin, def.upper()),
+                            FF.greaterOrEqual(dimMax, def.lower())
+                    );
+                    filters.add(dimFilter);
                 }
             }
         }
+
         return filters.stream().reduce(FF::and);
     }
 
@@ -387,25 +461,44 @@ public class LayerCache {
         return results;
     }
 
-    public List<DimensionDef> getDimensiondefinition() {
-        final List<DimensionDef> results = new ArrayList<>();
+    public List<DimensionDef<?, ?, ?>> getAdditionalDimensions() {
+        return getOrCreateAdditionalDimensions().all();
+    }
+
+    private ExtraDimensions getOrCreateAdditionalDimensions() {
+        if (layerAdditionalDimensions != null) return layerAdditionalDimensions;
+        final List<DimensionDef<?, ?, ?>> results = new ArrayList<>();
+        DimensionDef<TemporalCRS, ?, ?> timeDim = null; DimensionDef<VerticalCRS, ?, ?> elevationDim = null;
         if (configuration != null && !configuration.getDimensions().isEmpty()) {
             for (DimensionDefinition ddef : configuration.getDimensions()) {
                 try {
-                    results.add(getDimensionDef(ddef));
+                    final DimensionDef<?, ?, ?> dim = getDimensionDef(ddef);
+                    if (timeDim == null && dim.crs() instanceof TemporalCRS) timeDim = (DimensionDef<TemporalCRS, ?, ?>) dim;
+                    else if (elevationDim == null && dim.crs() instanceof VerticalCRS) elevationDim = (DimensionDef<VerticalCRS, ?, ?>) dim;
+                    else results.add(dim);
                 } catch (CQLException ex) {
                     LOGGER.log(Level.WARNING, "Error while building a dimension filter.", ex);
                 }
             }
         }
-        return results;
+
+        if (timeDim == null && data instanceof FeatureData fd) {
+            timeDim = fd.getTimeDimension().orElse(null);
+        }
+
+        if (elevationDim == null && data instanceof FeatureData fd) {
+            elevationDim = fd.getElevationDimension().orElse(null);
+        }
+
+        layerAdditionalDimensions = new ExtraDimensions(timeDim, elevationDim, results);
+        return layerAdditionalDimensions;
     }
 
-    private static DimensionDef getDimensionDef(DimensionDefinition ddef) throws CQLException {
+    private static DimensionDef<?, ?, ?> getDimensionDef(DimensionDefinition ddef) throws CQLException {
         final String crsname = ddef.getCrs();
-        final Expression lower = CQL.parseExpression(ddef.getLower());
-        final Expression upper = CQL.parseExpression(ddef.getUpper());
-        final CoordinateReferenceSystem dimCrs;
+        var lower = CQL.parseExpression(ddef.getLower());
+        var upper = CQL.parseExpression(ddef.getUpper());
+        final SingleCRS dimCrs;
 
         if ("elevation".equalsIgnoreCase(crsname)) {
             dimCrs = CommonCRS.Vertical.ELLIPSOIDAL.crs();
@@ -418,5 +511,17 @@ public class LayerCache {
             dimCrs = new DefaultEngineeringCRS(Collections.singletonMap("name", crsname), customDatum, customCs);
         }
         return new DimensionDef(dimCrs, lower, upper);
+    }
+
+    private record ExtraDimensions(DimensionDef<TemporalCRS, ?, ?> temporal,
+                                   DimensionDef<VerticalCRS, ?, ?> vertical,
+                                   List<DimensionDef<?, ?, ?>> others) {
+        public List<DimensionDef<?, ?, ?>> all() {
+            final List<DimensionDef<?, ?, ?>> dims = new ArrayList<>();
+            if (vertical != null) dims.add(vertical);
+            if (temporal != null) dims.add(temporal);
+            if (others != null && !others.isEmpty()) dims.addAll(others);
+            return dims;
+        }
     }
 }
