@@ -18,15 +18,11 @@
  */
 package org.constellation.admin;
 
+import org.constellation.api.DataType;
 import org.constellation.business.*;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
-import org.constellation.dto.CstlUser;
-import org.constellation.dto.DataBrief;
-import org.constellation.dto.Layer;
-import org.constellation.dto.Style;
-import org.constellation.dto.StyleBrief;
-import org.constellation.dto.StyledLayer;
+import org.constellation.dto.*;
 import org.constellation.dto.service.config.wxs.LayerSummary;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -390,7 +386,19 @@ public class StyleBusiness implements IStyleBusiness {
             if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
             styleRepository.linkStyleToLayer(styleId, layerId);
             if (Application.getBooleanProperty(AppProperty.LAYER_ACTIVATE_STATISTICS, Boolean.FALSE)) {
-                styledLayerRepository.updateActivateStats(styleId, layerId, true);
+                final Data data = dataRepository.findById(l.getDataId());
+                if (data == null) {
+                    LOGGER.warning("Data " + l.getDataId() + " can't be found from database." +
+                            "\n Can't activate statistics computation for layer " + layerId + " with style " + styleId);
+                } else {
+                    if ((DataType.VECTOR.equals(data.getType()) || DataType.COVERAGE.equals(data.getType()))) {
+                        // check Service type
+                        final Service service = serviceRepository.findById(l.getService());
+                        if ("wms".equalsIgnoreCase(service.getType())) {
+                            styledLayerRepository.updateActivateStats(styleId, layerId, true);
+                        }
+                    }
+                }
             }
             clearServiceCache(l.getService());
         } else {
@@ -762,6 +770,9 @@ public class StyleBusiness implements IStyleBusiness {
         final StyledLayer styledLayer = styleRepository.getStyledLayer(styleId, layerId);
         if (styledLayer == null) {
             throw new TargetNotFoundException("The layer " + layerId + " is not linked to the style + " + styleId + ".");
+        }
+        if (!styledLayer.getActivateStats()) {
+            throw new TargetNotFoundException("The statistics computation is not activated for layer " + layerId + " with style + " + styleId + ".");
         }
         return styledLayer.getExtraInfo();
     }

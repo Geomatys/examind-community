@@ -1,24 +1,23 @@
 package org.constellation.webservice.map.component;
 
 import org.apache.sis.storage.FeatureSet;
-import org.apache.sis.storage.Resource;
 import org.constellation.admin.SpringHelper;
+import org.constellation.api.DataType;
 import org.constellation.business.ILayerStatisticsJob;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
-import org.constellation.dto.Data;
-import org.constellation.dto.Layer;
-import org.constellation.dto.ProviderBrief;
-import org.constellation.dto.StyledLayer;
+import org.constellation.dto.*;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.map.layerstats.LayerStatisticsUtils;
 import org.constellation.provider.DataProviders;
+import org.constellation.provider.FeatureData;
 import org.constellation.repository.*;
 import org.opengis.style.Style;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
@@ -90,9 +89,6 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
                             styledLayerRepository.updateStatistics(styleId, layerId, null, null);
                         }
                     });
-                    if (activateStats) {
-                        styledLayerWithoutStats.put(styleId, layerId);
-                    }
                 }
             }
 
@@ -109,6 +105,7 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
     }
 
     @Override
+    @Async
     public void asyncUpdateStyledLayerStatistics(int styleId, int layerId) {
         updateStyledLayerStatistics(styleId, layerId);
     }
@@ -132,7 +129,7 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
                 throw new TargetNotFoundException("Service not found by id : " + serviceId);
             }
             final String type = service.getType();
-            if (("wms".equalsIgnoreCase(type) || "wmts".equalsIgnoreCase(type)) &&
+            if ("wms".equalsIgnoreCase(type) &&
                     styledLayer.getActivateStats() &&
                     styledLayer.getExtraInfo() == null &&
                     styledLayer.getStatsState() == null) {
@@ -140,21 +137,21 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
                 LOGGER.log(Level.INFO, "Start computing statistics for styleId " + styleId + " and layerId " + layerId + ".");
                 styledLayer.setStatsState(STATE_PENDING);
 
-                final Data data = dataRepository.findById(layer.getDataId());
-                final ProviderBrief provider = providerRepository.findOne(data.getProviderId());
-                if (provider != null) {
-                    final org.constellation.provider.Data dataP = DataProviders.getProviderData(provider.getId(), data.getNamespace(), data.getName());
+                final Integer dataId = layer.getDataId();
+                final Data data = dataRepository.findById(dataId);
 
-                    final Resource dataPOrigin = dataP.getOrigin();
-                    if (dataPOrigin instanceof FeatureSet featureSet) {
+                // TODO add COVERAGE once added to LayerStatisticsUtils.
+                if (DataType.VECTOR.name().equals(data.getType())) {
+                    final org.constellation.provider.Data dataP = DataProviders.getProviderData(dataId);
+
+                    if (dataP instanceof FeatureData fd) {
+                        final FeatureSet featureSet = fd.getOrigin();
                         final Style style = styleBusiness.getStyle(styleId);
                         final String stats = LayerStatisticsUtils.computeStatisticsForLayerWithStyle(featureSet, style);
                         styledLayer.setStatsState(STATE_COMPLETED);
                         styledLayer.setExtraInfo(stats);
                         updateLayer(styledLayer);
                     }
-                } else {
-                    throw new ConfigurationException("Provider has been removed before the end of statistic computation");
                 }
             }
         } catch (Exception e) {
@@ -164,7 +161,6 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
             StyledLayer lastStyledLayer = styledLayerRepository.findByStyleAndLayer(styleId, layerId);
             if (lastStyledLayer != null && !lastStyledLayer.getStatsState().equals(STATE_ERROR)) {
                 styledLayer.setStatsState(STATE_ERROR);
-                //styledLayer.setExtraInfo(Exceptions.formatStackTrace(e));
                 updateLayer(styledLayer);
             }
         }

@@ -8,6 +8,7 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.*;
 import org.constellation.dto.contact.Details;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.constellation.map.layerstats.LayerStatistics;
 import org.constellation.repository.StyleRepository;
 import org.constellation.repository.StyledLayerRepository;
@@ -58,7 +59,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
     @Autowired
     private StyleRepository styleRepository;
     @Autowired
-    private LayerStatisticsJob layerStatisticsJob;
+    private ILayerStatisticsJob layerStatisticsJob;
 
     private static boolean initialized = false;
 
@@ -95,7 +96,6 @@ public class LayerStatisticsJobTest extends SpringContextTest {
             styleBusiness.deleteAll();
             providerBusiness.removeAll();
             datasourceBusiness.deleteAll();
-            initialized = true;
 
             // Add style to database
             final Path stylePath = DATA_DIRECTORY.resolve("Med_KBA_Tunisia-sld.xml");
@@ -130,6 +130,8 @@ public class LayerStatisticsJobTest extends SpringContextTest {
             Assert.assertEquals(layerStylesIds.get(0).getId(), styleId);
 
             styledLayerRepository.updateActivateStats(styleId, layerId, true);
+
+            initialized = true;
         } else {
             styleBusiness.updateStyle(styleId, style);
             styleBusiness.updateActivateStatsForLayerAndStyle(styleId, layerId, true);
@@ -247,13 +249,17 @@ public class LayerStatisticsJobTest extends SpringContextTest {
     }
 
     @Test
-    public void statisticsDeactivateStatisticsTest() throws ConstellationException {
+    public void statisticsDeactivateStatisticsTest() {
         styledLayerRepository.updateActivateStats(styleId, layerId, false);
 
-        final String extraInfo = styleBusiness.getExtraInfoForStyleAndLayer(styleId, layerId);
-        layerStatisticsJob.syncUpdateStyledLayerStatistics(styleId, layerId);
+        boolean error = false;
+        try {
+            styleBusiness.getExtraInfoForStyleAndLayer(styleId, layerId);
+        } catch (TargetNotFoundException e) {
+            error = true;
+        }
 
-        Assert.assertNull(extraInfo);
+        Assert.assertTrue(error);
     }
 }
 

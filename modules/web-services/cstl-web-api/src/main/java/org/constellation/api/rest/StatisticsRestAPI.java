@@ -56,7 +56,7 @@ public class StatisticsRestAPI extends AbstractRestAPI{
     @RequestMapping(value= "/statistics/{serviceType}/{serviceIdentifier}/{layerName}/{styleName}",method=GET, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity getStatistics(@PathVariable String serviceType, @PathVariable String serviceIdentifier, @PathVariable String layerName, @PathVariable String styleName) {
         try {
-            if (!"wms".equalsIgnoreCase(serviceType) && !"wmts".equalsIgnoreCase(serviceType)) {
+            if (!"wms".equalsIgnoreCase(serviceType)) {
                 throw new IllegalArgumentException("Service type not supported : " + serviceType);
             }
             final Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, serviceIdentifier);
@@ -69,9 +69,7 @@ public class StatisticsRestAPI extends AbstractRestAPI{
                 throw new TargetNotFoundException("Unable to find layer with alias " + layerName + " in " + serviceType + " service " + serviceIdentifier);
             }
             final String statistics = styleBusiness.getExtraInfoForStyleAndLayer(styleId, nameInProvider.layerId);
-            if (statistics == null) {
-                throw new TargetNotFoundException("Unable to find statistics for layer " + layerName + " with style " + styleName);
-            }
+
             return new ResponseEntity(statistics, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

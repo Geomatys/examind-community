@@ -176,9 +176,11 @@ public class LayerStatisticsUtils {
         totalCount.incrementAndGet();
 
         final Object[] valueAndType = getGeom(feature);
-        final Object typeo = valueAndType[1];
+        if (valueAndType == null) return;
 
+        final Object typeo = valueAndType[1];
         if (typeo == null) return;
+
         GeomType type = (GeomType) typeo;
         Object value = valueAndType[0];
         switch (type) {

@@ -61,7 +61,8 @@ public class JooqStyledLayerRepository extends AbstractJooqRespository<StyledLay
     public List<org.constellation.dto.StyledLayer> findStatisticLess() {
         return dsl.select(STYLED_LAYER)
                 .from(STYLED_LAYER)
-                .where(STYLED_LAYER.EXTRA_INFO.isNull().or(STYLED_LAYER.EXTRA_INFO.equal("")))
+                .where((STYLED_LAYER.EXTRA_INFO.isNull().or(STYLED_LAYER.EXTRA_INFO.equal("")))
+                        .and(STYLED_LAYER.ACTIVATE_STATS.eq(true)))
                 .fetchInto(org.constellation.dto.StyledLayer.class);
     }
 
