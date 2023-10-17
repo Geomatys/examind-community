@@ -51,6 +51,9 @@
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
         <argLine></argLine>
+
+        <!-- TEMPORARY HACK: remove this once geomatys-bom is fixed -->
+        <jimfs.version>1.3.0</jimfs.version>
     </properties>
 
     <!--
