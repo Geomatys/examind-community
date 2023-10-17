@@ -2,3 +2,4 @@ com.examind.process.admin.renderedpyramid.PyramidProcess
 com.examind.process.admin.yamlReader.ProcessFromYamlProcessDescriptor
 com.examind.process.datacombine.AggregatedCoverageDescriptor
 com.examind.process.datacombine.FeatureToHeatMapDescriptor
+com.examind.process.admin.DefineFeatureDataDimensionsProcess$Descriptor

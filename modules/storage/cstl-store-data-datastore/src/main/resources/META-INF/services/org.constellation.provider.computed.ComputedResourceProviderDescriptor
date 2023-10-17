@@ -1,2 +1,3 @@
 org.constellation.provider.computed.AggregatedCoverageProviderDescriptor
 org.constellation.provider.computed.HeatMapCoverageProviderDescriptor
+org.constellation.provider.computed.VectorAggregationWithExtraDimensionsProviderDescriptor
