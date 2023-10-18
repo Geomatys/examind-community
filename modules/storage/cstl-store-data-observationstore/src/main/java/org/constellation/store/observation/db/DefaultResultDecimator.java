@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -26,14 +27,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.OMEntity;
 
 /**
  *
@@ -43,17 +47,47 @@ public class DefaultResultDecimator extends ResultDecimator {
 
     private static final SimpleDateFormat debugSDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-    private final Map<Object, long[]> times;
+    private Map<Object, long[]> times = null;
 
-    public DefaultResultDecimator(List<Field> fields, boolean profile, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure, final Map<Object, long[]> times) {
-        super(fields, includeId, width, fieldFilters, procedure);
-        this.times = times;
+    public DefaultResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters,  boolean includeTimeInProfile, ProcedureInfo procedure) {
+        // as this algorithm may produce two point by cell, we cut the size in 2
+        super(fields, includeId, width / 2, fieldFilters, includeTimeInProfile, procedure);
     }
+
+    @Override
+    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+
+        final FilterSQLRequest fieldRequest = sqlRequest.clone();
+        times = OM2Utils.getMainFieldStep(fieldRequest, c, width, OMEntity.RESULT, procedure);
+
+        StringBuilder select  = new StringBuilder("m.*");
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
+        if (profile) {
+            select.append(", o.\"id\" as oid ");
+            if (includeTimeInProfile) {
+                select.append(", o.\"time_begin\" ");
+            }
+            orderBy.append(" o.\"time_begin\", ");
+        }
+        
+        // always order by main field
+        orderBy.append("\"").append(procedure.mainField.name).append("\"");
+        sqlRequest.replaceFirst("m.*", select.toString());
+        sqlRequest.append(orderBy.toString());
+
+        if (firstFilter) {
+            sqlRequest.replaceFirst("WHERE", "");
+        }
+    }
+
 
     @Override
     public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
+        }
+        if (times == null) {
+            throw new DataStoreException("computeRequest(...) must be called before processing the results");
         }
         StepValues mapValues = null;
         long start = -1;
@@ -61,6 +95,7 @@ public class DefaultResultDecimator extends ResultDecimator {
         Integer prevObs = null;
         Date t = null;
         AtomicInteger cpt = new AtomicInteger();
+        AtomicBoolean first = new AtomicBoolean(true);
         while (rs.nextOnField(procedure.mainField.name)) {
             Integer currentObs;
             if (profile) {
@@ -71,9 +106,10 @@ public class DefaultResultDecimator extends ResultDecimator {
             if (!currentObs.equals(prevObs)) {
                 if (prevObs != null) {
                     // append the last values
-                    appendValue(t, cpt, mapValues);
+                    appendValue(t, cpt, mapValues, first, true);
                 }
 
+                first.set(true);
                 step = times.get(currentObs)[1];
                 start = times.get(currentObs)[0];
                 mapValues = new StepValues(start, step, fields, profile);
@@ -82,7 +118,7 @@ public class DefaultResultDecimator extends ResultDecimator {
 
             final long currentMainValue = extractMainValue(procedure.mainField, rs);
             if (currentMainValue > (start + step)) {
-                appendValue(t, cpt, mapValues);
+                appendValue(t, cpt, mapValues, first, false);
 
                 // move to the next closest step
                 if (step > 0) {
@@ -118,7 +154,7 @@ public class DefaultResultDecimator extends ResultDecimator {
         }
 
         // append the last values
-        appendValue(t, cpt, mapValues);
+        appendValue(t, cpt, mapValues, first, true);
     }
 
     private class StepValues {
@@ -187,7 +223,7 @@ public class DefaultResultDecimator extends ResultDecimator {
 
     }
 
-    private void appendValue(Date t, AtomicInteger cpt, StepValues sv) throws DataStoreException {
+    private void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last) throws DataStoreException {
         if (sv == null) {
             return;
         }
@@ -197,16 +233,27 @@ public class DefaultResultDecimator extends ResultDecimator {
             appendValue(t, cpt.getAndIncrement(), sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0);
 
         // if min and max are equals we only write one value in the middle of the step.
-        } else if (sv.minMaxEquals()) {
+        } else if (sv.minMaxEquals() && !(first.get() || last)) {
             appendValue(t, cpt.getAndIncrement(), sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0);
 
-        // else we write the minimum value at the start of the step, and the max, at the end of the step.
-        } else {
-            //min
+        // special case where we have only one value in the series, main value has not been recorded
+        } else if (first.get() && last) {
             appendValue(t, cpt.getAndIncrement(), sv.start, sv.mapValues, Double.MAX_VALUE, 0);
+
+        // else we write the minimum value at the 1/3 of the step, and the max, at the 2/3 of the step.
+        } else {
+            // we want to keep the first main value in order to keep the full bounds
+            long minVal = (first.get()) ? sv.start : sv.start + (sv.step / 3L);
+
+            // we want to keep the last main value in order to keep the full bounds
+            long maxVal = (last) ? sv.start + sv.step : sv.start + 2*(sv.step / 3L);
+
+            //min
+            appendValue(t, cpt.getAndIncrement(), minVal, sv.mapValues, Double.MAX_VALUE, 0);
             //max
-            appendValue(t, cpt.getAndIncrement(), sv.start + sv.step, sv.mapValues, -Double.MAX_VALUE, 1);
+            appendValue(t, cpt.getAndIncrement(), maxVal, sv.mapValues, -Double.MAX_VALUE, 1);
         }
+        first.set(false);
     }
 
     private void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index) throws DataStoreException {

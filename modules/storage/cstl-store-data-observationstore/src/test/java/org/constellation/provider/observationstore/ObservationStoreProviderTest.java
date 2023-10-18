@@ -4485,14 +4485,13 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
-        expectedResult =  "2007-05-01T03:56:00.0,6.56@@"
-                        + "2007-05-01T05:50:00.0,6.56@@"
-                        + "2007-05-01T07:44:00.0,6.56@@"
-                        + "2007-05-01T09:38:00.0,6.56@@"
-                        + "2007-05-01T11:32:00.0,6.56@@"
+        expectedResult =  "2007-05-01T02:59:00.0,6.56@@"
+                        + "2007-05-01T05:31:00.0,6.56@@"
+                        + "2007-05-01T08:41:00.0,6.56@@"
+                        + "2007-05-01T12:29:00.0,6.56@@"
                         + "2007-05-01T17:59:00.0,6.56@@"
-                        + "2007-05-01T19:08:00.0,6.55@@"
-                        + "2007-05-01T21:02:00.0,6.55@@";
+                        + "2007-05-01T19:27:00.0,6.55@@"
+                        + "2007-05-01T21:59:00.0,6.55@@";
 
         assertEquals(expectedResult, result);
 
@@ -4527,14 +4526,13 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = omPr.getResults(query);
         assertTrue(result instanceof String);
 
-        expectedResult =  "urn:ogc:object:sensor:GEOM:3-dec-0,2007-05-01T03:56:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-1,2007-05-01T05:50:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-2,2007-05-01T07:44:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-3,2007-05-01T09:38:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-4,2007-05-01T11:32:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-5,2007-05-01T17:59:00.0,6.56@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-6,2007-05-01T19:08:00.0,6.55@@"
-                        + "urn:ogc:object:sensor:GEOM:3-dec-7,2007-05-01T21:02:00.0,6.55@@";
+        expectedResult =  "urn:ogc:object:sensor:GEOM:3-dec-0,2007-05-01T02:59:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-1,2007-05-01T05:31:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-2,2007-05-01T08:41:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-3,2007-05-01T12:29:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-4,2007-05-01T17:59:00.0,6.56@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-5,2007-05-01T19:27:00.0,6.55@@"
+                        + "urn:ogc:object:sensor:GEOM:3-dec-6,2007-05-01T21:59:00.0,6.55@@";
 
         assertEquals(expectedResult, result);
 
@@ -4675,10 +4673,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         // here the decimated results are not the same because of the gaps between the values
-        expectedResult = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                         "2009-05-10T20:12:00.0,5.9,1.5,1.0@@"  +
-                         "2010-07-25T05:48:00.0,8.9,78.5,3.0@@" +
-                         "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2008-12-15T00:00:00.0,5.9,1.5,1.0@@"
+                        + "2009-10-04T15:24:00.0,8.9,78.5,3.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -4725,9 +4723,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         // here the decimated results are not the same because of the gaps between the values
-        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "2009-01-19T10:13:48.0,7.8,14.5,1.0@@" +
-                          "2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2008-10-01T09:57:44.0,7.8,14.5,1.0@@"
+                        + "2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -4754,9 +4752,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         // here the decimated results are not the same because of the gaps between the values
-        expectedResult =  "urn:ogc:object:sensor:GEOM:12-dec-0,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "urn:ogc:object:sensor:GEOM:12-dec-1,2009-01-19T10:13:48.0,7.8,14.5,1.0@@" +
-                          "urn:ogc:object:sensor:GEOM:12-dec-2,2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
+        expectedResult =  "urn:ogc:object:sensor:GEOM:12-dec-0,2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "urn:ogc:object:sensor:GEOM:12-dec-1,2008-10-01T09:57:44.0,7.8,14.5,1.0@@"
+                        + "urn:ogc:object:sensor:GEOM:12-dec-2,2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
 
         assertEquals(expectedResult, result);
     }
@@ -4784,8 +4782,8 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "2009-05-10T20:12:00.0,5.9,1.5,1.0@@" +
-                          "2010-07-25T05:48:00.0,8.9,78.5,3.0@@" +
+                          "2008-12-15T00:00:00.0,5.9,1.5,1.0@@" +
+                          "2009-10-04T15:24:00.0,8.9,78.5,3.0@@" +
                           "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
 
         assertEquals(expectedResult, result);
@@ -4953,8 +4951,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         expectedResult =  "12,18.5@@"
-                        + "87,21.2@@"
-                        + "96,23.9@@"
+                        + "112,23.9@@"
                         + "192,26.2@@"
                         + "384,31.4@@"
                         + "768,35.1@@"
@@ -4969,13 +4966,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,12,18.5@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-1,87,21.2@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-2,96,23.9@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-3,192,26.2@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-4,384,31.4@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-5,768,35.1@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-6,12,18.5@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-7,12,18.5@@";
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,112,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,192,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,384,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,768,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,12,18.5@@";
 
         assertEquals(expectedResult, result);
 
@@ -4986,8 +4982,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         expectedResult =  "2000-12-01T00:00:00.0,12,18.5@@"
-                        + "2000-12-01T00:00:00.0,87,21.2@@"
-                        + "2000-12-01T00:00:00.0,96,23.9@@"
+                        + "2000-12-01T00:00:00.0,112,23.9@@"
                         + "2000-12-01T00:00:00.0,192,26.2@@"
                         + "2000-12-01T00:00:00.0,384,31.4@@"
                         + "2000-12-01T00:00:00.0,768,35.1@@"
@@ -5003,13 +4998,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertTrue(result instanceof String);
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,12,18.5@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,87,21.2@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-2,2000-12-01T00:00:00.0,96,23.9@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,192,26.2@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-01T00:00:00.0,384,31.4@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-01T00:00:00.0,768,35.1@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-11T00:00:00.0,12,18.5@@"
-                        + "urn:ogc:object:sensor:GEOM:2-dec-7,2000-12-22T00:00:00.0,12,18.5@@";
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,112,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,2000-12-01T00:00:00.0,192,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,384,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-01T00:00:00.0,768,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-11T00:00:00.0,12,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-22T00:00:00.0,12,18.5@@";
 
         assertEquals(expectedResult, result);
     }

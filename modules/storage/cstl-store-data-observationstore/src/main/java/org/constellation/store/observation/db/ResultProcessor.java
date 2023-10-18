@@ -18,12 +18,14 @@
  */
 package org.constellation.store.observation.db;
 
+import java.sql.Connection;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
@@ -42,15 +44,17 @@ public class ResultProcessor {
     protected final List<Field> fields;
     protected final boolean profile;
     protected final boolean includeId;
+    protected final boolean includeTimeInProfile;
     protected final boolean includeQuality;
     protected final ProcedureInfo procedure;
     protected final int mainFieldIndex;
 
-    public ResultProcessor(List<Field> fields, boolean profile, boolean includeId, boolean includeQuality, ProcedureInfo procedure) {
+    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeTimeInProfile, ProcedureInfo procedure) {
         this.fields = fields;
-        this.profile = profile;
+        this.profile = "profile".equals(procedure.type);
         this.includeId = includeId;
         this.includeQuality = includeQuality;
+        this.includeTimeInProfile = includeTimeInProfile;
         this.procedure = procedure;
         this.mainFieldIndex = fields.indexOf(procedure.mainField);
     }
@@ -70,6 +74,30 @@ public class ResultProcessor {
         return values;
     }
 
+    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+        StringBuilder select  = new StringBuilder("m.*");
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
+        if (profile) {
+            select.append(", o.\"id\" as oid ");
+            if (includeTimeInProfile) {
+                select.append(", o.\"time_begin\" ");
+            }
+            orderBy.append(" o.\"time_begin\", ");
+        }
+        if (includeId) {
+            select.append(", o.\"identifier\" ");
+        }
+        // always order by main field
+        orderBy.append("\"").append(procedure.mainField.name).append("\"");
+        
+        sqlRequest.replaceFirst("m.*", select.toString());
+        sqlRequest.append(orderBy.toString());
+
+        if (firstFilter) {
+            sqlRequest.replaceFirst("WHERE", "");
+        }
+    }
+    
     public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");

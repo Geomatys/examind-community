@@ -32,8 +32,8 @@ public abstract class ResultDecimator extends ResultProcessor {
 
     protected List<Integer> fieldFilters;
 
-    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure) {
-        super(fields, "profile".equals(procedure.type), includeId, false, procedure);
+    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
+        super(fields, includeId, false, includeTimeInProfile, procedure);
         this.width = width;
         this.fieldFilters = fieldFilters;
     }

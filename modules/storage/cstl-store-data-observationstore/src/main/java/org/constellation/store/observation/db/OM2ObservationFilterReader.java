@@ -23,7 +23,6 @@ import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,7 +38,6 @@ import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
-import static org.constellation.store.observation.db.OM2Utils.getTimeScalePeriod;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
@@ -665,37 +663,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         boolean includeTimeForProfile      = !countRequest && this.includeTimeForProfile;
         final boolean profile              = "profile".equals(currentProcedure.type);
         final boolean profileWithTime      = profile && includeTimeForProfile;
-        if (decimationSize != null && !countRequest) {
-            if (timescaleDB) {
-                return getDecimatedResultsTimeScale();
-            } else {
-                return getDecimatedResults();
-            }
-        }
         try (final Connection c = source.getConnection()) {
             /**
              *  1) build field list.
              */
-            final List<Field> fields;
-            if (!currentFields.isEmpty()) {
-                fields = new ArrayList<>();
-                fields.add(currentProcedure.mainField);
-                
-                List<Field> phenFields = new ArrayList<>();
-                for (String f : currentFields) {
-                    final Field field = getProcedureField(currentProcedure.procedureId, f, c);
-                    if (field != null && !fields.contains(field)) {
-                        phenFields.add(field);
-                    }
-                }
-                // add proper order to fields
-                List<Field> allfields = readFields(currentProcedure.procedureId, c);
-                phenFields = reOrderFields(allfields, phenFields);
-                fields.addAll(phenFields);
-
-            } else {
-                fields = readFields(currentProcedure.procedureId, c);
+            final List<Field> fields    = new ArrayList<>();
+            final List<Field> allfields = readFields(currentProcedure.procedureId, c);
+            fields.add(allfields.get(0));
+            for (int i = 1; i < allfields.size(); i++) {
+                Field f = allfields.get(i);
+                 if (isIncludedField(f.name, f.description, f.index)) {
+                     fields.add(f);
+                 }
             }
+
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
                 fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
@@ -708,32 +689,42 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, fields, currentProcedure);
+            int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
             sqlRequest.append(measureFilter);
-            
-            StringBuilder select  = new StringBuilder("m.*");
-            if (profile) {
-                select.append(", o.\"id\" as oid ");
-            }
-            if (profileWithTime) {
-                select.append(", o.\"time_begin\" ");
-            }
-            if (includeIDInDataBlock) {
-                select.append(", o.\"identifier\" ");
-            }
-            sqlRequest.replaceFirst("m.*", select.toString());
-            sqlRequest.append(" ORDER BY o.\"time_begin\", \"").append(currentProcedure.mainField.name).append("\"");
 
-            if (firstFilter) {
-                sqlRequest = sqlRequest.replaceFirst("WHERE", "");
+            ResultProcessor processor;
+            if (decimationSize != null && !countRequest) {
+                if (timescaleDB) {
+                    /**
+                    * for a single field we use specific timescale function
+                    * asap_smooth / lttb
+                    */
+                   if ((fields.size() - fieldOffset) == 1) {
+                       processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+
+                   /**
+                    * otherwise we use time bucket method.
+                    * This methods seems not to be so fast with very large group of data.
+                    */
+                   } else {
+                       processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+                   }
+                } else {
+                    /**
+                     * default java bucket decimation
+                     */
+                    processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+                }
+            } else {
+                processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure);
             }
+            processor.computeRequest(sqlRequest, fieldOffset, firstFilter, c);
             LOGGER.fine(sqlRequest.toString());
 
             /**
              * 3) Extract results.
              */
-            ResultProcessor processor = new ResultProcessor(fields, profile, includeIDInDataBlock, includeQualityFields, currentProcedure);
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
             try (final SQLResult rs = sqlRequest.execute(c)) {
                 processor.processResults(rs);
@@ -747,247 +738,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        }
-    }
-
-    private Object getDecimatedResults() throws DataStoreException {
-        final boolean profile = "profile".equals(currentProcedure.type);
-        final boolean profileWithTime = profile && includeTimeForProfile;
-        try (final Connection c = source.getConnection()) {
-
-            /**
-             *  1) build field list.
-             */
-            final List<Field> fields    = new ArrayList<>();
-            final List<Field> allfields = readFields(currentProcedure.procedureId, c);
-            fields.add(allfields.get(0));
-            for (int i = 1; i < allfields.size(); i++) {
-                Field f = allfields.get(i);
-                 if (isIncludedField(f.name, f.description, f.index)) {
-                     fields.add(f);
-                 }
-            }
-
-            // add the time for profile in the dataBlock if requested
-            if (profileWithTime) {
-                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
-            }
-            // add the result id in the dataBlock if requested
-            if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
-            }
-
-            /**
-             *  2) complete SQL request.
-             */
-            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, fields, currentProcedure);
-            sqlRequest.append(measureFilter);
-            
-            final FilterSQLRequest fieldRequest = sqlRequest.clone();
-            
-            sqlRequest.append(" ORDER BY  o.\"time_begin\", ").append("\"" + currentProcedure.mainField.name + "\"");
-            StringBuilder select  = new StringBuilder("m.*");
-            if (profile) {
-                select.append(", o.\"id\" as oid ");
-            }
-            if (profileWithTime) {
-                select.append(", o.\"time_begin\" ");
-            }
-            if (includeIDInDataBlock) {
-                select.append(", o.\"identifier\" ");
-            }
-            sqlRequest.replaceFirst("m.*", select.toString());
-            LOGGER.fine(sqlRequest.toString());
-            
-            /**
-             * 3) Extract results.
-             */
-            final Map<Object, long[]> times = getMainFieldStep(fieldRequest, currentProcedure.mainField, c, decimationSize);
-            ResultProcessor processor = new DefaultResultDecimator(fields, profile, includeIDInDataBlock, decimationSize, fieldFilters, currentProcedure, times);
-            ResultBuilder values = processor.initResultBuilder(responseFormat, false);
-
-            try (final SQLResult rs = sqlRequest.execute(c)) {
-                processor.processResults(rs);
-            }
-            switch (values.getMode()) {
-                case DATA_ARRAY:  return values.getDataArray();
-                case CSV:         return values.getStringValues();
-                default: throw new IllegalArgumentException("Unexpected result mode");
-            }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage(), ex);
-        }
-    }
-
-    private Object getDecimatedResultsTimeScale() throws DataStoreException {
-        final boolean profile = "profile".equals(currentProcedure.type);
-        final boolean profileWithTime = profile && includeTimeForProfile;
-        try(final Connection c = source.getConnection()) {
-
-            /**
-             *  1) build field list.
-             */
-            final List<Field> fields    = new ArrayList<>();
-            final List<Field> allfields = readFields(currentProcedure.procedureId, c);
-            fields.add(allfields.get(0));
-            for (int i = 1; i < allfields.size(); i++) {
-                Field f = allfields.get(i);
-                 if (isIncludedField(f.name, f.description, f.index)) {
-                     fields.add(f);
-                 }
-            }
-            final Field mainField = currentProcedure.mainField;
-            // add the time for profile in the dataBlock if requested
-            if (profileWithTime) {
-                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
-            }
-            // add the result id in the dataBlock if requested
-            if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
-            }
-            
-            /**
-             *  2) complete SQL request.
-             */
-            int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(offset, fields, currentProcedure);
-            // TODO the measure filter is not used ? need testing
-
-            // calculate step
-            final Map<Object, long[]> times = getMainFieldStep(sqlRequest.clone(), mainField, c, decimationSize);
-            final long step;
-            if (profile) {
-                // choose the first step
-                // (may be replaced by one request by observation, maybe by looking if the step is uniform)
-                step = times.values().iterator().next()[1];
-            } else {
-                step = times.get(1)[1];
-            }
-
-            StringBuilder select  = new StringBuilder();
-            if (profile) {
-                // need review for integer overflow
-                select.append("time_bucket('").append(step).append("', \"");
-            } else {
-                select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
-            }
-            select.append(mainField.name).append("\") AS step");
-            for (int i = offset; i < fields.size(); i++) {
-                 select.append(", avg(\"").append(fields.get(i).name).append("\") AS \"").append(fields.get(i).name).append("\"");
-            }
-            if (profile) {
-                select.append(", o.\"id\" as \"oid\" ");
-            }
-            if (profileWithTime) {
-                select.append(", o.\"time_begin\" ");
-            }
-            sqlRequest.replaceFirst("m.*", select.toString());
-            if (profile) {
-                sqlRequest.append(" GROUP BY step, \"oid\" ORDER BY \"oid\", step");
-            } else {
-                sqlRequest.append(" GROUP BY step ORDER BY step");
-            }
-            LOGGER.fine(sqlRequest.toString());
-
-            /**
-             * 3) Extract results.
-             */
-            ResultProcessor processor = new TimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, currentProcedure);
-            ResultBuilder values = processor.initResultBuilder(responseFormat, false);
-            try (final SQLResult rs = sqlRequest.execute(c)) {
-                processor.processResults(rs);
-            }
-            switch (values.getMode()) {
-                case DATA_ARRAY:  return values.getDataArray();
-                case CSV:         return values.getStringValues();
-                default: throw new IllegalArgumentException("Unexpected result mode");
-            }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a SQL Exception", ex);
-        }
-    }
-
-    /**
-     * extract the main field (time or other for profile observation) span and determine a step regarding the width parameter.
-     *
-     * return a Map with in the keys :
-     *  - the procedure id for location retrieval
-     *  - the observation id for profiles sensor.
-     *  - a fixed value "1" for non profiles sensor (as in time series all observation are merged).
-     *
-     * and in the values, an array of a fixed size of 2 containing :
-     *  - the mnimal value
-     *  - the step value
-     */
-    private Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Field mainField, final Connection c, final int width) throws SQLException {
-        boolean getLoc = OMEntity.HISTORICAL_LOCATION.equals(objectType);
-        Boolean profile = getLoc ? null : "profile".equals(currentProcedure.type);
-        if (getLoc) {
-            request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
-            request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
-
-        } else {
-            if (profile) {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
-                request.append(" group by o.\"id\" order by o.\"id\"");
-            } else {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
-            }
-        }
-        LOGGER.fine(request.toString());
-        try (final SQLResult rs = request.execute(c)) {
-            Map<Object, long[]> results = new LinkedHashMap<>();
-            while (rs.next()) {
-                final long[] result = {-1L, -1L};
-                if (FieldType.TIME.equals(mainField.type)) {
-                    final Timestamp minT = rs.getTimestamp(1, 0);
-                    final Timestamp maxT = rs.getTimestamp(2, 0);
-                    if (minT != null && maxT != null) {
-                        final long min = minT.getTime();
-                        final long max = maxT.getTime();
-                        result[0] = min;
-                        long step = (max - min) / width;
-                        /* step should always be positive
-                        if (step <= 0) {
-                            step = 1;
-                        }*/
-                        result[1] = step;
-                    }
-                } else if (FieldType.QUANTITY.equals(mainField.type)) {
-                    final Double minT = rs.getDouble(1, 0);
-                    final Double maxT = rs.getDouble(2, 0);
-                    final long min    = minT.longValue();
-                    final long max    = maxT.longValue();
-                    result[0] = min;
-                    long step = (max - min) / width;
-                    /* step should always be positive
-                    if (step <= 0) {
-                        step = 1;
-                    }*/
-                    result[1] = step;
-
-                } else {
-                    throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
-                }
-                final Object key;
-                if (getLoc) {
-                    key = rs.getString(3);
-                } else {
-                    if (profile) {
-                        key = rs.getInt(3);
-                    } else {
-                        key = 1; // single in time series
-                    }
-                }
-                results.put(key, result);
-            }
-            return results;
-        } catch (SQLException ex) {
-            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", request.toString());
-            throw ex;
         }
     }
 
@@ -1289,7 +1039,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
-            final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
+            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
 
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
@@ -1326,7 +1076,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
-            final Map<Object, long[]> times = getMainFieldStep(stepRequest, DEFAULT_TIME_FIELD, c, nbCell);
+            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
                 final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, nbCell, times, dialect);

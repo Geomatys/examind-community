@@ -18,21 +18,30 @@
  */
 package org.constellation.store.observation.db;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
+import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -46,6 +55,10 @@ import org.opengis.util.FactoryException;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2Utils {
+
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
+
+    private static Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
     public static Timestamp getInstantTimestamp(Instant inst) {
         if (inst != null && inst.getDate() != null) {
@@ -220,5 +233,87 @@ public class OM2Utils {
             return Long.toString(second) + " s";
         }
         return Long.toString(millisecond) + " ms";
+    }
+
+    /**
+     * extract the main field (time or other for profile observation) span and determine a step regarding the width parameter.
+     *
+     * return a Map with in the keys :
+     *  - the procedure id for location retrieval
+     *  - the observation id for profiles sensor.
+     *  - a fixed value "1" for non profiles sensor (as in time series all observation are merged).
+     *
+     * and in the values, an array of a fixed size of 2 containing :
+     *  - the mnimal value
+     *  - the step value
+     */
+    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
+        final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
+        final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
+        final Boolean profile = getLoc ? null : "profile".equals(proc.type);
+        if (getLoc) {
+            request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
+            request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
+
+        } else {
+            if (profile) {
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
+                request.append(" group by o.\"id\" order by o.\"id\"");
+            } else {
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
+            }
+        }
+        LOGGER.fine(request.toString());
+        try (final SQLResult rs = request.execute(c)) {
+            Map<Object, long[]> results = new LinkedHashMap<>();
+            while (rs.next()) {
+                final long[] result = {-1L, -1L};
+                if (FieldType.TIME.equals(mainField.type)) {
+                    final Timestamp minT = rs.getTimestamp(1, 0);
+                    final Timestamp maxT = rs.getTimestamp(2, 0);
+                    if (minT != null && maxT != null) {
+                        final long min = minT.getTime();
+                        final long max = maxT.getTime();
+                        result[0] = min;
+                        long step = (max - min) / width;
+                        /* step should always be positive
+                        if (step <= 0) {
+                            step = 1;
+                        }*/
+                        result[1] = step;
+                    }
+                } else if (FieldType.QUANTITY.equals(mainField.type)) {
+                    final Double minT = rs.getDouble(1, 0);
+                    final Double maxT = rs.getDouble(2, 0);
+                    final long min    = minT.longValue();
+                    final long max    = maxT.longValue();
+                    result[0] = min;
+                    long step = (max - min) / width;
+                    /* step should always be positive
+                    if (step <= 0) {
+                        step = 1;
+                    }*/
+                    result[1] = step;
+
+                } else {
+                    throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
+                }
+                final Object key;
+                if (getLoc) {
+                    key = rs.getString(3);
+                } else {
+                    if (profile) {
+                        key = rs.getInt(3);
+                    } else {
+                        key = 1; // single in time series
+                    }
+                }
+                results.put(key, result);
+            }
+            return results;
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", request.toString());
+            throw ex;
+        }
     }
 }

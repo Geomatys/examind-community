@@ -32,10 +32,10 @@ import org.geotoolkit.observation.model.FieldType;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class TimeScaleResultDecimator extends ResultDecimator {
+public abstract class TimeScaleResultDecimator extends ResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, procedure);
+    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
+        super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
     }
 
     @Override
@@ -67,20 +67,20 @@ public class TimeScaleResultDecimator extends ResultDecimator {
                     }
                 }
                 switch (field.type) {
-                    case TIME:
+                    case TIME -> {
                         Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                         values.appendTime(t);
-                        break;
-                    case QUANTITY:
+                    }
+                    case QUANTITY -> {
                         double dvalue = rs.getDouble(fieldName, rsIndex);
                         if (rs.wasNull(rsIndex)) {
                             dvalue = Double.NaN;
                         }
                         values.appendDouble(dvalue);
-                        break;
-                    default:
+                    }
+                    default-> {
                         values.appendString(rs.getString(fieldName, rsIndex));
-                        break;
+                    }
                 }
             }
             values.endBlock();
