@@ -732,10 +732,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 } catch (NumberFormatException ex) {}
                             }
                             if (existProcedure(sensorIdBase + procedureID)) {
-                                procSb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
-                            } else {
-                                procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                                procedureID = sensorIdBase + procedureID;
                             }
+                            
+                            // avoid to join with observation in a getResult context
+                            if (currentProcedure == null || !currentProcedure.procedureId.equals(procedureID)) {
+                                procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                                obsJoin = true;
+                            }
+                            
                         } else if (oid.startsWith(observationIdBase)) {
                             String[] component = oid.split("-");
                             if (component.length == 3) {
@@ -747,24 +752,31 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 measureIdFilters.add(Integer.valueOf(component[1]));
                             }
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                            obsJoin = true;
                         } else {
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                            obsJoin = true;
                         }
                     }
-                    obsJoin = true;
                 }
-                procSb.deleteLastChar(3);
+                if (!procSb.isEmpty()) procSb.deleteLastChar(3);
+                if (!fieldSb.isEmpty()) fieldSb.deleteLastChar(3);
+
+                if (!procSb.isEmpty()) {
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(procSb).append(") ");
+                    } else {
+                        sqlRequest.append(procSb);
+                        firstFilter = false;
+                    }
+                }
                 if (!fieldSb.isEmpty()) {
-                    fieldSb.deleteLastChar(3);
-                }
-                if (!firstFilter) {
-                    sqlRequest.append(" AND( ").append(procSb).append(") ");
-                } else {
-                    sqlRequest.append(procSb);
-                    firstFilter = false;
-                }
-                if (!fieldSb.isEmpty()) {
-                    sqlRequest.append(" AND( ").append(fieldSb).append(") ");
+                    if (!firstFilter) {
+                        sqlRequest.append(" AND( ").append(fieldSb).append(") ");
+                    } else {
+                        sqlRequest.append(fieldSb);
+                        firstFilter = false;
+                    }
                 }
             }
         }
