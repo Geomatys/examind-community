@@ -246,10 +246,25 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.decimationSize        = query.getDecimationSize();
 
         this.firstFilter = false;
-        try(final Connection c = source.getConnection()) {
+        try (final Connection c = source.getConnection()) {
             currentProcedure = getPIDFromProcedure(query.getProcedure(), c).orElseThrow(() -> new DataStoreException("Unexisting procedure:" + query.getProcedure()));
-            sqlRequest = buildMesureRequests(currentProcedure, null, null, true, false, false, false);
-            sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure.procedureId).append(" ");
+
+            final boolean decimate = decimationSize != null && !"count".equals(responseFormat);
+            /*
+             * As an optimization, we try to avoid to join the observation table if possible.
+             * mandatory case to join the table:
+             *
+             *  - profile procedure (because of time)
+             *  - include id in un-decimated extraction (debatable, but like this for now)
+             *  - some filter has been set on observation table (obsJoin flag will be set as true later in this case)
+             */
+            obsJoin = "profile".equals(currentProcedure.type) || !decimate && includeIDInDataBlock;
+
+            // sqlRequest = buildMesureRequests(currentProcedure, null, null, true, false, false, false);
+           // sqlRequest.append(" AND \"procedure\"=").appendValue(currentProcedure.procedureId).append(" ");
+           sqlRequest = new SingleFilterSQLRequest();
+
+
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
         }
@@ -363,6 +378,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         firstFilter = false;
                     }
                 }
+            } else if (RESULT.equals(objectType) ) {
+                // procedure is already known
+                // the filter will eventually be set at results extraction
             } else {
                 final String columnName;
                 if (HISTORICAL_LOCATION.equals(objectType)) {
@@ -741,47 +759,54 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         // we get the property name (not used for now)
         // String XPath = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
+        if (time instanceof Literal lit && !(time instanceof TemporalGeometricPrimitive)) {
+            time = lit.getValue();
+        }
+
         TemporalOperatorName type = tFilter.getOperatorType();
         String currentOMType = currentProcedure != null ? currentProcedure.type : null;
-
+        boolean skipforResult = false;
         final String tableAlias;
         if (objectType == OMEntity.OFFERING) {
             tableAlias = "off";
         } else if (objectType == OMEntity.HISTORICAL_LOCATION) {
             tableAlias = "hl";
+        } else if (objectType == OMEntity.RESULT) {
+            tableAlias = "o";
+            skipforResult = !obsJoin;
         } else {
             tableAlias = "o";
             obsJoin = true;
         }
-
-        if (firstFilter) {
-            sqlRequest.append(" ( ");
-            firstFilter = false;
-        } else {
-            sqlRequest.append("AND ( ");
-        }
+        FilterSQLRequest timeRequest = new SingleFilterSQLRequest();
 
         if (type == TemporalOperatorName.EQUALS) {
 
-            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
-                time = ((Literal)time).getValue();
-            }
             if (time instanceof Period tp) {
                 final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
                 final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
 
-                // we request directly a multiple observation or a period observation (one measure during a period)
-                sqlRequest.append(" ").append(tableAlias).append(".\"time_begin\"=").appendValue(begin).append(" AND ");
-                sqlRequest.append(" ").append(tableAlias).append(".\"time_end\"=").appendValue(end).append(") ");
+                // historical can't have a period as time value
+                if (objectType == OMEntity.HISTORICAL_LOCATION) {
+                     throw new ObservationStoreException("TM_Equals operation require timeInstant for historical location!", INVALID_PARAMETER_VALUE, EVENT_TIME);
+                } else {
+                    // force the join with observation table.
+                    if (objectType == OMEntity.RESULT) obsJoin = true;
+                    
+                    // we request directly a multiple observation or a period observation (one measure during a period)
+                    timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"=").appendValue(begin).append(" AND ");
+                    timeRequest.append(" ").append(tableAlias).append(".\"time_end\"=").appendValue(end).append(" ");
+                }
             // if the temporal object is a timeInstant
             } else if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
                 
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                    sqlRequest.append(" ").append(tableAlias).append(".\"time\"=").appendValue(position).append(") ");
+                    timeRequest.append(" ").append(tableAlias).append(".\"time\"=").appendValue(position);
                 } else {
-                    OM2Utils.addtimeDuringSQLFilter(sqlRequest, ti, tableAlias);
-                    sqlRequest.append(" ) ");
+                    if (!skipforResult) {
+                        OM2Utils.addtimeDuringSQLFilter(timeRequest, ti, tableAlias);
+                    }
                     
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
@@ -794,16 +819,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
         } else if (type == TemporalOperatorName.BEFORE) {
-            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
-                time = ((Literal)time).getValue();
-            }
+            
             // for the operation before the temporal object must be an timeInstant
             if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
+                
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                    sqlRequest.append(" \"time\"<=").appendValue(position).append(")");
+                    timeRequest.append(" \"time\"<=").appendValue(position);
                 } else {
-                    sqlRequest.append(" ").append(tableAlias).append(".\"time_begin\"<=").appendValue(position).append(")");
+                    if (!skipforResult) {
+                        timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"<=").appendValue(position);
+                    }
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\"<=", conditional).appendValue(position, conditional).append(")", conditional);
@@ -815,16 +841,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
         } else if (type == TemporalOperatorName.AFTER) {
-            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
-                time = ((Literal)time).getValue();
-            }
+            
             // for the operation after the temporal object must be an timeInstant
             if (time instanceof Instant ti) {
                 final Timestamp position = new Timestamp(ti.getDate().getTime());
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                    sqlRequest.append(" \"time\">=").appendValue(position).append(")");
+                    timeRequest.append(" \"time\">=").appendValue(position);
                 } else {
-                    sqlRequest.append("(").append(tableAlias).append(".\"time_end\">=").appendValue(position).append(") OR (").append(tableAlias).append(".\"time_end\" IS NULL AND ").append(tableAlias).append(".\"time_begin\" >=").appendValue(position).append("))");
+                    if (!skipforResult) {
+                        timeRequest.append("(").append(tableAlias).append(".\"time_end\">=").appendValue(position);
+                        timeRequest.append(") OR (");
+                        timeRequest.append(tableAlias).append(".\"time_end\" IS NULL AND ").append(tableAlias).append(".\"time_begin\" >=").appendValue(position).append(")");
+                    }
+                    
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
                         sqlMeasureRequest.append(" AND (\"$time\">=", conditional).appendValue(position, conditional).append(")", conditional);
@@ -836,17 +865,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
         } else if (type == TemporalOperatorName.DURING) {
-            if (time instanceof Literal && !(time instanceof TemporalGeometricPrimitive)) {
-                time = ((Literal)time).getValue();
-            }
+            
             if (time instanceof Period tp) {
                 final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
                 final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                    sqlRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end).append(")");
+                    timeRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end);
                 } else {
-                    OM2Utils.addtimeDuringSQLFilter(sqlRequest, tp, tableAlias);
-                    sqlRequest.append(" ) ");
+                    if (!skipforResult) {
+                        OM2Utils.addtimeDuringSQLFilter(timeRequest, tp, tableAlias);
+                    }
 
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
@@ -860,6 +888,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
         } else {
             throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
+        }
+
+        if (!timeRequest.isEmpty()) {
+            if (firstFilter) {
+                sqlRequest.append(" ( ").append(timeRequest).append(" ) ");
+                firstFilter = false;
+            } else {
+                sqlRequest.append("AND ( ").append(timeRequest).append(" ) ");
+            }
         }
     }
 

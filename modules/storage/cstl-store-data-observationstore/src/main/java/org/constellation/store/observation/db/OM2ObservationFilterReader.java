@@ -659,10 +659,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (ResponseMode.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
-        final boolean countRequest         = "count".equals(responseFormat);
-        boolean includeTimeForProfile      = !countRequest && this.includeTimeForProfile;
-        final boolean profile              = "profile".equals(currentProcedure.type);
-        final boolean profileWithTime      = profile && includeTimeForProfile;
+        final boolean countRequest          = "count".equals(responseFormat);
+        final boolean includeTimeForProfile = !countRequest && this.includeTimeForProfile;
+        final boolean decimate              = !countRequest && decimationSize != null;
+        final boolean profile               = "profile".equals(currentProcedure.type);
+        final boolean profileWithTime       = profile && includeTimeForProfile;
+       
+        FilterSQLRequest measureRequest    = null;
         try (final Connection c = source.getConnection()) {
             /**
              *  1) build field list.
@@ -691,10 +694,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              */
             int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
             FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
-            sqlRequest.append(measureFilter);
 
+            measureRequest = buildMesureRequests(currentProcedure, measureFilter, null, obsJoin, false, false, false);
+            measureRequest.append(sqlRequest);
+            
             ResultProcessor processor;
-            if (decimationSize != null && !countRequest) {
+            if (decimate) {
                 if (timescaleDB) {
                     /**
                     * for a single field we use specific timescale function
@@ -719,14 +724,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure);
             }
-            processor.computeRequest(sqlRequest, fieldOffset, firstFilter, c);
-            LOGGER.fine(sqlRequest.toString());
+            processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);
+            LOGGER.fine(measureRequest.toString());
 
             /**
              * 3) Extract results.
              */
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
-            try (final SQLResult rs = sqlRequest.execute(c)) {
+            try (final SQLResult rs = measureRequest.execute(c)) {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
@@ -736,7 +741,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequest != null ? measureRequest.toString() : "NO SQL QUERY");
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
     }

@@ -76,6 +76,8 @@ public interface FilterSQLRequest {
 
     SQLResult execute(Connection c) throws SQLException;
 
+    boolean isEmpty();
+
     public static class TableJoin {
         public final String tablename;
         public final String joinStmt;

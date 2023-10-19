@@ -123,6 +123,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return this;
     }
 
+    @Override
     public boolean isEmpty() {
         return this.sqlRequest.length() == 0;
     }

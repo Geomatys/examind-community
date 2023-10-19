@@ -196,6 +196,14 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
+    public boolean isEmpty() {
+        for (FilterSQLRequest request : requests) {
+            if (!request.isEmpty()) return false;
+        }
+        return true;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < requests.size(); i++) {

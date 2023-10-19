@@ -40,6 +40,7 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.Offering;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
@@ -71,7 +72,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -1661,7 +1661,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         /**
-         * time filter
+         * time filter during
          */
         query = new HistoricalLocationQuery();
         procFilter = ff.resourceId("urn:ogc:object:sensor:GEOM:2");
@@ -1679,6 +1679,23 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:2-976489200000");
         Assert.assertEquals(expectedIds, resultIds);
+
+        /**
+         * time filter equals period (error)
+         */
+        query = new HistoricalLocationQuery();
+        procFilter = ff.resourceId("urn:ogc:object:sensor:GEOM:2");
+        tFilter = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildPeriod("2000-12-10T11:47:00Z", "2000-12-19T11:47:00Z")));
+        filter = ff.and(procFilter, tFilter);
+        query.setSelection(filter);
+
+        boolean exThrow = false;
+        try {
+            omPr.getHistoricalLocation(query);
+        } catch (ConstellationStoreException ex) {
+            exThrow = true;
+        }
+        assertTrue(exThrow);
 
         /**
          * decimation
@@ -4388,6 +4405,25 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(expectedResult, result);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        BinaryComparisonOperator procf = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:12"));
+        TemporalOperator tequals = ff.tequals(ff.property("phenomenonTime"), ff.literal(buildPeriod("2000-12-01T00:00:00Z", "2012-12-22T00:00:00Z")));
+        filter = ff.and(procf, tequals);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        result = getResultValues(results.get(0));
+
+        expectedResult =
+                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         query.setSelection(filter);
         query.setSeparatedProfileObservation(false);
@@ -4479,6 +4515,18 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                                 + "2007-05-01T21:59:00.0,6.55@@";
 
         assertEquals(expectedResult, result);
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", "count");
+        result = omPr.getResults(query);
+
+        assertTrue(result instanceof Integer);
+        assertEquals((Integer)15, (Integer) result);
+
+        /** NOT WORKING for now
+            results = omPr.getCount(query, new HashMap<>());
+
+            System.out.println(results);
+        */
 
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setDecimationSize(10);
@@ -4682,7 +4730,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 12 no decimation with filter on result component
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
-        BinaryComparisonOperator filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
+        Filter filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
         result = omPr.getResults(query);
         assertTrue(result instanceof String);
@@ -4743,7 +4791,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(expectedResult, result);
 
-        // sensor 8 with decimation with filter on result component  + id
+        // sensor 12 with decimation with filter on result component  + id
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
@@ -4757,6 +4805,39 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "urn:ogc:object:sensor:GEOM:12-dec-2,2009-12-15T14:02:00.0,8.9,78.5,2.0@@";
 
         assertEquals(expectedResult, result);
+
+         // sensor 12 no decimation with time filter + id
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setIncludeIdInDataBlock(true);
+        filter = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2005-01-01T00:00:00Z")));
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        expectedResult = "urn:ogc:object:observation:GEOM:3000-2,2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-5,2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 12 with decimation with time filter + id
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setIncludeIdInDataBlock(true);
+        filter = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2005-01-01T00:00:00Z")));
+        query.setDecimationSize(10);
+        query.setSelection(filter);
+        result = omPr.getResults(query);
+        assertTrue(result instanceof String);
+
+        // here the decimated results are not the same because of the gaps between the values
+        expectedResult =  "urn:ogc:object:sensor:GEOM:12-dec-0,2009-12-01T14:00:00.0,5.9,1.5,1.0@@"
+                        + "urn:ogc:object:sensor:GEOM:12-dec-1,2010-04-29T11:32:00.0,8.9,78.5,3.0@@"
+                        + "urn:ogc:object:sensor:GEOM:12-dec-2,2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+
     }
 
     @Test
@@ -5006,46 +5087,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-22T00:00:00.0,12,18.5@@";
 
         assertEquals(expectedResult, result);
-    }
-
-    @Test
-    public void getResultTest() throws Exception {
-        assertNotNull(omPr);
-
-        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
-
-        Object results = omPr.getResults(query);
-
-        String expected = "2007-05-01T02:59:00.0,6.56@@"
-                        + "2007-05-01T03:59:00.0,6.56@@"
-                        + "2007-05-01T04:59:00.0,6.56@@"
-                        + "2007-05-01T05:59:00.0,6.56@@"
-                        + "2007-05-01T06:59:00.0,6.56@@"
-                        + "2007-05-01T07:59:00.0,6.56@@"
-                        + "2007-05-01T08:59:00.0,6.56@@"
-                        + "2007-05-01T09:59:00.0,6.56@@"
-                        + "2007-05-01T10:59:00.0,6.56@@"
-                        + "2007-05-01T11:59:00.0,6.56@@"
-                        + "2007-05-01T17:59:00.0,6.56@@"
-                        + "2007-05-01T18:59:00.0,6.55@@"
-                        + "2007-05-01T19:59:00.0,6.55@@"
-                        + "2007-05-01T20:59:00.0,6.55@@"
-                        + "2007-05-01T21:59:00.0,6.55@@";
-
-        assertTrue(results instanceof String);
-        assertEquals(expected, (String) results);
-
-        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", "count");
-        results = omPr.getResults(query);
-
-        assertTrue(results instanceof Integer);
-        assertEquals((Integer)15, (Integer) results);
-
-        /** NOT WORKING for now
-            results = omPr.getCount(query, new HashMap<>());
-
-            System.out.println(results);
-        */
     }
 
     private static String getPhenomenonId(Observation o) {
