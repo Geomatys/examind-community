@@ -805,7 +805,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (procDescJoin) {
             // in this case no composite will appears in the results. so no need for an SQL union later
             noCompositePhenomenon = false;
-            sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
+            if (!obsJoin) {
+                sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
+            }
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
@@ -841,7 +843,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.join(joins, firstFilter);
         }
 
-        if (procDescJoin) {
+        if (procDescJoin && !obsJoin) {
             sqlRequest.append(" ORDER BY \"order\"");
         } else {
             sqlRequest.append(" ORDER BY \"id\"");

@@ -534,19 +534,22 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     @Override
     public void setObservationIds(List<String> ids) {
         if (!ids.isEmpty()) {
-            boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
-            if (getPhen) {
+            if (OMEntity.OBSERVED_PROPERTY.equals(objectType)) {
                 final SingleFilterSQLRequest procSb  = new SingleFilterSQLRequest();
                 final SingleFilterSQLRequest fieldSb = new SingleFilterSQLRequest();
                /*
                 * in phenomenon mode 2 possibility :
-                *   1) look for for observation for a template:
-                *       - <template base> - <proc id>
-                *       - <template base> - <proc id> - <field id>
-                *   2) look for observation by id:
+                *   1) look properties for observation for a template:
+                *       - <template base> <proc id>
+                *       - <template base> <proc id> - <field id>
+                *
+                *   2) look properties for observation by id:
+                *       - <observation base> <observation id>
+                *       - <observation base> <observation id> - <measure id>
+                *       - <observation base> <observation id> - <field id> - <measure id>
+                *
+                *   3) look for a template for an observation id:
                 *       - <observation id>
-                *       - <observation id> - <measure id>
-                *       - <observation id> - <field id> - <measure id>
                 */
                 for (String oid : ids) {
                     if (oid.contains(observationTemplateIdBase)) {
@@ -591,25 +594,35 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 procDescJoin = true;
                             }
                         }
-                        
 
-                    // we need to join with the proc!
                     } else if (oid.startsWith(observationIdBase)) {
                         String[] component = oid.split("-");
                         if (component.length == 3) {
                             oid = component[0];
-                            fieldFilters.add(Integer.valueOf(component[1]));
-                            int fieldId = Integer.parseInt(component[2]);
+                            int fieldId = Integer.parseInt(component[1]);
+                            fieldFilters.add(fieldId);
                             fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                            procDescJoin = true;
+
+                            // mid is not really used in that case we should look for existence and none emptiness but it will be costly
+                            int mid = Integer.parseInt(component[2]);
+                            measureIdFilters.add(mid);
+                            
+
                         } else if (component.length == 2) {
                             oid = component[0];
-                            int fieldId = Integer.parseInt(component[2]);
-                            fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                           
+                            // mid is not really used in that case we should look for existence and none emptiness but it will be costly
+                            int mid = Integer.parseInt(component[1]);
+                            measureIdFilters.add(mid);
                         }
-                        // ?? what to do with oid ?
+                        procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                        obsJoin = true;
                     } else {
-                        // ?? what to do with oid ?
+                        procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
+                        obsJoin = true;
                     }
+                    
                 }
                 if (!procSb.isEmpty()) {
                     procSb.deleteLastChar(3);
@@ -636,12 +649,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                /*
                 * in template mode 2 possibility :
                 *   1) look for for a template by id:
-                *       - <template base> - <proc id>
-                *       - <template base> - <proc id> - <field id>
+                *       - <template base> <proc id>
+                *       - <template base> <proc id> - <field id>
+                *
                 *   2) look for a template for an observation id:
+                *       - <observation base> <observation id>
+                *       - <observation base> <observation id> - <measure id>
+                *       - <observation base> <observation id> - <field id> - <measure id>
+                *
+                *   3) look for a template for an observation id:
                 *       - <observation id>
-                *       - <observation id> - <field id>
-                *       - <observation id> - <field id> - <measure id>
                 */
                 if (template) {
                     for (String oid : ids) {
@@ -658,6 +675,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                         procedureID = tmpProcedureID;
                                         fieldFilters.add(fieldIdentifier);
                                         fieldSb.append("(pd.\"order\"=").appendValue(fieldIdentifier).append(") OR");
+                                        procDescJoin = true;
                                     }
                                 } catch (NumberFormatException ex) {}
                             }
@@ -673,27 +691,28 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 int fieldId = Integer.parseInt(component[1]);
                                 fieldFilters.add(fieldId);
                                 fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                                procDescJoin = true;
                                 measureIdFilters.add(Integer.valueOf(component[2]));
                             } else if (component.length == 2) {
                                 oid = component[0];
-                                int fieldId = Integer.parseInt(component[1]);
-                                fieldFilters.add(fieldId);
-                                fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
+                                measureIdFilters.add(Integer.valueOf(component[1]));
                             }
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         } else {
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         }
                     }
+                    obsJoin = true;
+
                /*
                 * in observations mode 2 possibility :
                 *   1) look for for observation for a template:
                 *       - <template base> - <proc id>
                 *       - <template base> - <proc id> - <field id>
                 *   2) look for observation by id:
-                *       - <observation id>
-                *       - <observation id> - <measure id>
-                *       - <observation id> - <field id> - <measure id>
+                *       - <observation base> <observation id>
+                *       - <observation base> <observation id> - <measure id>
+                *       - <observation base> <observation id> - <field id> - <measure id>
                 */
                 } else {
                     for (String oid : ids) {
@@ -732,6 +751,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         }
                     }
+                    obsJoin = true;
                 }
                 procSb.deleteLastChar(3);
                 if (!fieldSb.isEmpty()) {
@@ -746,7 +766,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 if (!fieldSb.isEmpty()) {
                     sqlRequest.append(" AND( ").append(fieldSb).append(") ");
                 }
-                obsJoin = true;
             }
         }
     }

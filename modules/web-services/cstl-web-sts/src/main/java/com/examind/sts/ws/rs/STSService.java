@@ -703,6 +703,26 @@ public class STSService extends OGCWebService<STSWorker> {
         return new ResponseEntity(HttpStatus.NOT_FOUND);
     }
 
+    @RequestMapping(path = "Observations({id:[^\\)]+})/Datastreams/ObservedProperties", method = RequestMethod.GET)
+    public ResponseEntity getObservedPropertyForObservation(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
+        putServiceIdParam(serviceId);
+        id = removeQuote(id);
+        putParam("id", id);
+        final Worker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker, req.getPathInfo());
+                request.getExtraFilter().put("observationId", id);
+                return treatIncomingRequest(request).getResponseEntity(response);
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, null, worker).getResponseEntity(response);
+            } finally {
+                clearKvpMap();
+            }
+        }
+        return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
+
     @RequestMapping(path = "Datastreams({id:[^\\)]+})/Observations", method = RequestMethod.GET)
     public ResponseEntity getObservationForDataStream(@PathVariable("serviceId") String serviceId, @PathVariable("id") String id, HttpServletRequest req, HttpServletResponse response) throws CstlServiceException {
         putServiceIdParam(serviceId);

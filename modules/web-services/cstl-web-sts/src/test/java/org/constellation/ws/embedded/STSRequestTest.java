@@ -316,6 +316,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/obs-exp.json");
         compareJSON(expResult, result);
 
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)?$expand=FeaturesOfInterest,Datastreams/ObservedProperties");
+        
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-exp2.json");
+        compareJSON(expResult, result);
+
         getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)?$select=phenomenonTime,result");
 
         result = getStringResponse(getFoiUrl) + "\n";
@@ -421,6 +427,32 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
         expResult = expResult.replace("\"{count}\"", "238");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    public void getObservedPropertyForObservation() throws Exception {
+        initPool();
+        
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-2-1)/Datastreams/ObservedProperties");
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:304-1)/Datastreams/ObservedProperties");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property.json");
+        compareJSON(expResult, result);
+
+        // not working because of the composite => TODO
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-2-1)/Datastreams/ObservedProperties");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
+        compareJSON(expResult, result);
+
+        getFoiUrl = new URL(getDefaultURL() + "/Observations(urn:ogc:object:observation:GEOM:801-1)/Datastreams/ObservedProperties");
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property2.json");
         compareJSON(expResult, result);
     }
 
