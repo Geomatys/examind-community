@@ -46,8 +46,8 @@ public class OM2MeasureFieldRemover extends OM2MeasureHandler {
      // calculated
     private final Collection<String> emptyFieldRequests;
 
-    public OM2MeasureFieldRemover(ObservationInfos obsInfo, String schemaPrefix, final List<InsertDbField> fields) throws DataStoreException {
-        super(obsInfo.pi, schemaPrefix);
+    public OM2MeasureFieldRemover(ObservationInfos obsInfo, String schemaPrefix, final OMSQLDialect dialect, final List<InsertDbField> fields) throws DataStoreException {
+        super(obsInfo.pi, schemaPrefix, dialect);
         this.fields = fields;
         this.obsInfo = obsInfo;
         this.emptyFieldRequests = buildEmptyRequests();

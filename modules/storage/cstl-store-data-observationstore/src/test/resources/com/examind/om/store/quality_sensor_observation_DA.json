@@ -1,0 +1,78 @@
+{
+    "id": "obs-6001",
+    "name": "urn:ogc:object:observation:GEOM:6001",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:quality_sensor",
+        "name": "Sensor quality",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "time-6001",
+        "beginning": {
+            "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
+            "date": "1980-03-01T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
+            "date": "1984-03-01T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "region": "Occitanie",
+            "commune": "Argeles"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "Depth",
+        "description": "the depth in water",
+        "properties": {
+            "phen-category": ["biological", "organics"]
+        },
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m",
+                "qualityFields": [{
+                        "index": 2,
+                        "type": "TEXT",
+                        "name": "qflag",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_flag",
+                        "qualityFields": []
+                    }, {
+                        "index": 2,
+                        "type": "QUANTITY",
+                        "name": "qres",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_result",
+                        "qualityFields": []
+                    }]
+            }],
+        "nbValues": 5,
+        "dataArray": [[320791920000, 6.56, "ok", 3.1], [352327920000, 6.56, "ko", 3.2], [383863920000, 6.56, "ok", 3.3], [415399920000, 6.56, "ko", 3.4], [447022320000, 6.56, "ok", 3.5]]
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

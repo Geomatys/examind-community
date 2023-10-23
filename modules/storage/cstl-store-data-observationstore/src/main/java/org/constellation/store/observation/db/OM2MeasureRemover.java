@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2ObservationWriter.ObservationInfos;
+import org.constellation.store.observation.db.ResultValuesIterator.DataLine;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -49,8 +49,8 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
     // calculated
     private final Collection<String> deleteRequests;
 
-    public OM2MeasureRemover(ObservationInfos obsInfo, String schemaPrefix) {
-        super(obsInfo.pi, schemaPrefix);
+    public OM2MeasureRemover(ObservationInfos obsInfo, String schemaPrefix, final OMSQLDialect dialect) {
+        super(obsInfo.pi, schemaPrefix, dialect);
         this.obsInfo = obsInfo;
         this.deleteRequests = buildDeleteRequests();
     }
@@ -99,8 +99,6 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
                     }
                 }
             } else if (obs.getResult() instanceof ComplexResult cr) {
-                // do we need to handle dataObject mode?
-                if (cr.getValues() == null) throw new UnsupportedOperationException("Not supported for now. or never");
 
                 Timestamp boundBegin;
                 Timestamp boundEnd;
@@ -116,24 +114,13 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
                     throw new IllegalArgumentException("A time filter must be supplied");
                 }
 
-                final TextEncoderProperties encoding = cr.getTextEncodingProperties();
-                final String[] blocks               = cr.getValues().split(encoding.getBlockSeparator());
+                final ResultValuesIterator vi = new ResultValuesIterator(cr, dialect);
+                final List<DataLine> blocks = vi.getDataLines();
 
                 int rmCount = 0;
-                for (String block : blocks) {
-                    if (block.isEmpty()) {
-                        continue;
-                    }
-                    final String timeValue = block.substring(0, block.indexOf(encoding.getTokenSeparator()));
-
-                    Date d = null;
-                    try {
-                        d = dateParser.parseToDate(timeValue);
-                    } catch (NumberFormatException ex) {
-                        LOGGER.log(Level.FINER, "unable to parse the value: {0}", timeValue);
-                    }
+                for (DataLine block : blocks) {
+                    Date d = block.getMainValue();
                     if (d == null) {
-                        LOGGER.log(Level.WARNING, "unable to parse the value: {0}", timeValue);
                         continue;
                     }
                     final Timestamp t = new Timestamp(d.getTime());

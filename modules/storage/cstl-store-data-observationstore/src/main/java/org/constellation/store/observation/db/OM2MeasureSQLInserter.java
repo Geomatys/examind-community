@@ -23,8 +23,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,9 +35,9 @@ import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
 import static org.constellation.store.observation.db.OMSQLDialect.*;
 import org.constellation.util.SQLBatch;
+import org.constellation.store.observation.db.ResultValuesIterator.DataLine;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
-import org.geotoolkit.observation.model.TextEncoderProperties;
 
 /**
  *
@@ -47,16 +45,14 @@ import org.geotoolkit.observation.model.TextEncoderProperties;
  */
 public class OM2MeasureSQLInserter extends OM2MeasureHandler {
 
-    private final OMSQLDialect dialect;
     private final List<InsertDbField> fields;
 
     // calculated
     private final Map<Integer, String> insertRequests;
 
     public OM2MeasureSQLInserter(final ProcedureInfo pi, final String schemaPrefix, final OMSQLDialect dialect, final List<InsertDbField> fields) throws DataStoreException {
-        super(pi, schemaPrefix);
+        super(pi, schemaPrefix, dialect);
         this.fields = flatFields(fields);
-        this.dialect = dialect;
         this.insertRequests = buildInsertRequests();
     }
 
@@ -128,33 +124,19 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      * @throws DataStoreException
      */
     public void fillMesureTable(final Connection c, final int oid, final ComplexResult cr, boolean update) throws SQLException, DataStoreException {
-         // do we need to handle dataObject mode?
-        if (cr.getValues() == null) throw new UnsupportedOperationException("Not supported for now. or never");
+         ResultValuesIterator vi = new ResultValuesIterator(cr, dialect);
 
         if (update) LOGGER.info("Inserting measure in update mode");
 
-        final TextEncoderProperties encoding = cr.getTextEncodingProperties();
-        final String[] blocks = cr.getValues().split(encoding.getBlockSeparator());
+        final List<DataLine> blocks = vi.getDataLines();
         int mid =  update ? getLastMeasureId(c, oid) : 1;
         int sqlCpt = 0;
         try (final Statement stmtSQL = c.createStatement()) {
             SQLBatch sqlBatch = new SQLBatch(stmtSQL, dialect.supportBatch);
             Map<Integer, StringBuilder> builders = newInsertBatch();
-            for (String block : blocks) {
-                if (block.isEmpty()) {
-                    continue;
-                }
+            for (DataLine block : blocks) {
 
-                List<Entry<InsertDbField, String>> fieldValues = new ArrayList<>();
-                for (int i = 0; i < fields.size(); i++) {
-                    final InsertDbField field      = fields.get(i);
-                    final boolean lastTokenInBlock = (i == fields.size() - 1);
-                    final String[] nextToken       = extractNextValue(block, field, lastTokenInBlock, encoding);
-                    final String value             = nextToken[0];
-                    block                          = nextToken[1];
-
-                    fieldValues.add(new AbstractMap.SimpleEntry<>(field, value));
-                }
+                List<Entry<InsertDbField, String>> fieldValues = block.extractValues(fields);
 
                 // look for an existing line to update
                 if (update) {
@@ -197,69 +179,6 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             }
             sqlBatch.executeBatch();
         }
-    }
-
-    /**
-     * Extract the next value for a field in a String block.
-     *
-     * @param block A line correspounding to a single mesure.
-     * @param field the current field to extract.
-     * @param lastTokenInBlock if set t true, it means that the block contain the entire last value.
-     * @param encoding text encoding infos.
-     *
-     * @return A string array of a fixed value of 2. The first String is the value (quoted or not depeding on field type).
-     *         The second String id the remaining block to parse.
-     * @throws DataStoreException Ifthe block is malformed, if a timestamp has a bad format, or if the text value contains forbidden character.
-     */
-    private String[] extractNextValue(String block, InsertDbField field, boolean lastTokenInBlock, final TextEncoderProperties encoding) throws DataStoreException {
-        String value;
-        if (lastTokenInBlock) {
-            value = block;
-        } else {
-            int separator = block.indexOf(encoding.getTokenSeparator());
-            if (separator != -1) {
-                value = block.substring(0, separator);
-                block = block.substring(separator + 1);
-            } else {
-                throw new DataStoreException("Bad encoding for datablock, unable to find the token separator:" + encoding.getTokenSeparator() + "in the block.");
-            }
-        }
-
-        switch (field.type) {
-            case TIME -> {
-                //format time
-                if (value != null && !(value = value.trim()).isEmpty()) {
-                     try {
-                        final long millis = dateParser.parseToMillis(value);
-                        value = "'" + new Timestamp(millis).toString() + "'";
-                    } catch (IllegalArgumentException ex) {
-                        throw new DataStoreException("Bad format of timestamp for:" + value);
-                    }
-                }
-            }
-            case TEXT -> {
-                if (Util.containsForbiddenCharacter(value)) {
-                    throw new DataStoreException("Invalid value inserted");
-                }
-                value = "'" + value + "'";
-            }
-            case BOOLEAN -> {
-                boolean parsed = Boolean.parseBoolean(value);
-                if (dialect.equals(DERBY)) {
-                    value = parsed ? "1" : "0";
-                } else {
-                    value = Boolean.toString(parsed);
-                }
-            }
-            case QUANTITY -> {
-               if (value != null && !(value = value.trim()).isEmpty()) {
-                   Double d = Double.valueOf(value);
-                   d = (Double) field.convertValue(d);
-                   value = Double.toString(d);
-               }
-            }
-        }
-        return new String[] {value, block};
     }
 
     /**

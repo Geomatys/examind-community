@@ -1,0 +1,176 @@
+{
+    "id": "obs-90001",
+    "name": "urn:ogc:object:observation:GEOM:90091",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_extend_sensor",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "time-90001",
+        "beginning": {
+            "id": "c5362f98-802f-47b6-a86b-34708faab9ee-time",
+            "date": "2000-01-01T01:00:00.0Z"
+        },
+        "ending": {
+            "id": "56f7ca85-a2ca-4f18-a4ba-bde0081c0a4f-time",
+            "date": "2000-01-01T02:00:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "region": "Occitanie",
+            "commune": "Argeles"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "mega-phen-MTE",
+        "name": "mega-phen-MTE",
+        "properties": {},
+        "definition": "mega-phen-MTE",
+        "component": [{
+                "id": "f1",
+                "name": "f1",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f1"
+            }, {
+                "id": "f2",
+                "name": "f2",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f2"
+            }, {
+                "id": "f3",
+                "name": "f3",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f3"
+            }, {
+                "id": "f4",
+                "name": "f4",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f4"
+            }, {
+                "id": "f5",
+                "name": "f5",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f5"
+            }, {
+                "id": "f6",
+                "name": "f6",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f6"
+            }, {
+                "id": "f7",
+                "name": "f7",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f7"
+            }, {
+                "id": "f8",
+                "name": "f8",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f8"
+            }, {
+                "id": "f9",
+                "name": "f9",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f9"
+            }, {
+                "id": "f10",
+                "name": "f10",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:f10"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "f1",
+                "description": "urn:ogc:def:phenomenon:GEOM:f1",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 3,
+                "type": "QUANTITY",
+                "name": "f2",
+                "description": "urn:ogc:def:phenomenon:GEOM:f2",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 4,
+                "type": "QUANTITY",
+                "name": "f3",
+                "description": "urn:ogc:def:phenomenon:GEOM:f3",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 5,
+                "type": "QUANTITY",
+                "name": "f4",
+                "description": "urn:ogc:def:phenomenon:GEOM:f4",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 6,
+                "type": "QUANTITY",
+                "name": "f5",
+                "description": "urn:ogc:def:phenomenon:GEOM:f5",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 7,
+                "type": "QUANTITY",
+                "name": "f6",
+                "description": "urn:ogc:def:phenomenon:GEOM:f6",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 8,
+                "type": "QUANTITY",
+                "name": "f7",
+                "description": "urn:ogc:def:phenomenon:GEOM:f7",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 9,
+                "type": "QUANTITY",
+                "name": "f8",
+                "description": "urn:ogc:def:phenomenon:GEOM:f8",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 10,
+                "type": "QUANTITY",
+                "name": "f9",
+                "description": "urn:ogc:def:phenomenon:GEOM:f9",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 11,
+                "type": "QUANTITY",
+                "name": "f10",
+                "description": "urn:ogc:def:phenomenon:GEOM:f10",
+                "uom": "m",
+                "qualityFields": []
+            }],
+        "nbValues": 2,
+        "dataArray": [[946684800000, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0], [946688400000, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]]
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

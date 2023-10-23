@@ -1,0 +1,55 @@
+{
+    "id": "obs-8002",
+    "name": "urn:ogc:object:observation:GEOM:8002",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:extend2_sensor",
+        "name": "Sensor extended",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "time-8002",
+        "date": "1980-03-03T21:52:00.0Z"
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "region": "Occitanie",
+            "commune": "Argeles"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth-TEXT",
+        "name": "depth-TEXT",
+        "properties": {},
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth-TEXT"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "TEXT",
+                "name": "depth-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth-TEXT",
+                "qualityFields": []
+            }],
+        "nbValues": 1,
+        "dataArray": [[320964720000, "depth-3"]]
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

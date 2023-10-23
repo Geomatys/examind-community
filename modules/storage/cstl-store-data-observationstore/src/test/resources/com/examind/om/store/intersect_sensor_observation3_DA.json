@@ -1,0 +1,110 @@
+{
+    "id": "obs-901",
+    "name": "urn:ogc:object:observation:GEOM:901",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:intersect_sensor",
+        "name": "Sensor extended",
+        "properties": {}
+    },
+    "samplingTime": {
+        "id": "obs-901-time",
+        "beginning": {
+            "id": "obs-901-st-time",
+            "date": "1980-03-02T21:52:00.0Z"
+        },
+        "ending": {
+            "id": "obs-901-en-time",
+            "date": "1980-03-03T21:52:00.0Z"
+        }
+    },
+    "featureOfInterest": {
+        "id": "station-001",
+        "name": "10972X0137-PONT",
+        "description": "Point d'eau BSSS",
+        "properties": {
+            "region": "Occitanie",
+            "commune": "Argeles"
+        },
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:EPSG:9.9.1:27582",
+            "geometry": "POINT (65400 1731368)"
+        }
+    },
+    "observedProperty": {
+        "id": "sal-temp-depth-turb-TEXT",
+        "name": "urn:ogc:object:sensor:GEOM:sal-temp-depth-turb-TEXT",
+        "properties": {},
+        "definition": "urn:ogc:object:sensor:GEOM:sal-temp-depth-turb-TEXT",
+        "component": [{
+                "id": "salinity-TEXT",
+                "name": "salinity-TEXT",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:salinity-TEXT"
+            }, {
+                "id": "temperature-TEXT",
+                "name": "temperature-TEXT",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:temperature-TEXT"
+            }, {
+                "id": "depth-TEXT",
+                "name": "depth-TEXT",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:depth-TEXT"
+            }, {
+                "id": "turbidity-TEXT",
+                "name": "turbidity-TEXT",
+                "properties": {},
+                "definition": "urn:ogc:def:phenomenon:GEOM:turbidity-TEXT"
+            }]
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "label": "Time",
+                "description": "urn:ogc:data:time:iso8601",
+                "qualityFields": []
+            }, {
+                "index": 2,
+                "type": "TEXT",
+                "name": "salinity-TEXT",
+                "label": "salinity-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:salinity-TEXT",
+                "uom": "psu",
+                "qualityFields": []
+            }, {
+                "index": 3,
+                "type": "TEXT",
+                "name": "temperature-TEXT",
+                "label": "temperature-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:temperature-TEXT",
+                "uom": "°C",
+                "qualityFields": []
+            }, {
+                "index": 4,
+                "type": "TEXT",
+                "name": "depth-TEXT",
+                "label": "depth-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth-TEXT",
+                "uom": "m",
+                "qualityFields": []
+            }, {
+                "index": 5,
+                "type": "TEXT",
+                "name": "turbidity-TEXT",
+                "label": "turbidity-TEXT",
+                "description": "urn:ogc:def:phenomenon:GEOM:turbidity-TEXT",
+                "uom": "m3/S",
+                "qualityFields": []
+            }],
+        "nbValues": 3,
+        "dataArray": [[320878320000, "sal-2-md", "temp-2-md", "depth-2", "turb-2"], [320885520000, "sal-2.5", "temp-2.5", "depth-2.5", "turb-2.5"], [320964720000, "sal-3", "temp-3-md", "depth-3-md", "turb-3"]]
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

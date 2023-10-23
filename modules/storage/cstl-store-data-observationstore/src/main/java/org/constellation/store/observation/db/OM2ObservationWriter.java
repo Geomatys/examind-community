@@ -434,21 +434,29 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
+    /**
+     * is this still relevant???
+     * 
+     * @param procedureID
+     * @param result
+     */
     private void emitResultOnBus(String procedureID, Object result) {
         if (result instanceof ComplexResult cr){
             OM2ResultEventDTO resultEvent = new OM2ResultEventDTO();
             final TextEncoderProperties encoding = cr.getTextEncodingProperties();
-            resultEvent.setBlockSeparator(encoding.getBlockSeparator());
-            resultEvent.setDecimalSeparator(encoding.getDecimalSeparator());
-            resultEvent.setTokenSeparator(encoding.getTokenSeparator());
-            resultEvent.setValues(cr.getValues());
-            List<String> headers = new ArrayList<>();
-            for (Field field : cr.getFields()) {
-                headers.add(field.name);
+            if (encoding != null) {
+                resultEvent.setBlockSeparator(encoding.getBlockSeparator());
+                resultEvent.setDecimalSeparator(encoding.getDecimalSeparator());
+                resultEvent.setTokenSeparator(encoding.getTokenSeparator());
+                resultEvent.setValues(cr.getValues());
+                List<String> headers = new ArrayList<>();
+                for (Field field : cr.getFields()) {
+                    headers.add(field.name);
+                }
+                resultEvent.setHeaders(headers);
+                resultEvent.setProcedureID(procedureID);
+                SpringHelper.sendEvent(resultEvent);
             }
-            resultEvent.setHeaders(headers);
-            resultEvent.setProcedureID(procedureID);
-            SpringHelper.sendEvent(resultEvent);
         }
     }
 
@@ -812,8 +820,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             final List<Field> fields = cr.getFields();
             buildMeasureTable(pi, fields, c);
 
-            final String values          = cr.getValues();
-            if (values != null && !values.isEmpty()) {
+            if (cr.getNbValues() != null && cr.getNbValues() > 0) {
                 final List<InsertDbField> dbFields = completeDbField(pi.procedureId, fields, c);
                 OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(pi, schemaPrefix, dialect, dbFields);
                 msi.fillMesureTable(c, oid, cr, update);
@@ -1233,7 +1240,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                             final List<Field> fields                 = getMeasureFields(obs);
                             final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
-                            OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, fieldsToRemove);
+                            OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c);
                             
                             int nbRemoved = removeEmptyMeasures(cdt, c);
@@ -1251,7 +1258,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         // case 2.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
                         // so we remove all the measure line that match the main field
                         if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
-                            OM2MeasureRemover remover = new OM2MeasureRemover(cdt, schemaPrefix);
+                            OM2MeasureRemover remover = new OM2MeasureRemover(cdt, schemaPrefix, dialect);
                             remover.removeMeasures(c, obs);
                             boolean rmo = removeObservationIfEmpty(cdt, c);
                             if (!rmo) {
@@ -1269,7 +1276,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
                             final List<Field> fields                 = getMeasureFields(obs);
                             final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
-                            OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, fieldsToRemove);
+                            OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c, obs);
 
                             removeEmptyMeasures(cdt, c);

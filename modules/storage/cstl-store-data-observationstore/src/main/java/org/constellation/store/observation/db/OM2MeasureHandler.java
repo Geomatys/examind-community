@@ -20,7 +20,6 @@ package org.constellation.store.observation.db;
 
 import java.util.logging.Logger;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
-import org.geotoolkit.temporal.object.ISODateParser;
 
 /**
  * Base class for handling measure results.
@@ -33,15 +32,15 @@ public abstract class OM2MeasureHandler {
 
     protected final ProcedureInfo pi;
     protected final String schemaPrefix;
-
-    protected final ISODateParser dateParser = new ISODateParser();
+    protected final OMSQLDialect dialect;
 
     // calculated first measure table name
     protected final String baseTableName;
 
-    public OM2MeasureHandler(ProcedureInfo pi, String schemaPrefix) {
+    public OM2MeasureHandler(ProcedureInfo pi, String schemaPrefix, final OMSQLDialect dialect) {
         this.pi = pi;
         this.schemaPrefix = schemaPrefix;
         this.baseTableName = "mesure" + pi.pid;
+        this.dialect = dialect;
     }
 }

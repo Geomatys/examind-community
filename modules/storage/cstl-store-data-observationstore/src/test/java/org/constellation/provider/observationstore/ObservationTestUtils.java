@@ -18,10 +18,13 @@
  */
 package org.constellation.provider.observationstore;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import org.geotoolkit.observation.OMUtils;
@@ -217,5 +220,15 @@ public class ObservationTestUtils {
         assertEquals(result.getResult(), expected.getResult());
 
         assertEquals(result, expected);
+    }
+
+    public static void toDataArrayAndPrint(ObjectMapper mapper, Observation obs) throws IOException {
+        ComplexResult o = (ComplexResult) obs.getResult();
+        List<Object> dataArray = OMUtils.toDataArray(o);
+        ComplexResult n = new ComplexResult(o.getFields(), dataArray, o.getNbValues());
+        obs.setResult(n);
+
+        mapper.writeValue(System.out, obs);
+
     }
 }
