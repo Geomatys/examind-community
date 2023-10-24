@@ -66,9 +66,23 @@ public class HeatMapResource implements GridCoverageResource {
     private final DirectPosition2D median;
     private final Algorithm algorithm;
 
+    /**
+     * Boolean value indicating if it is expected only the position's pixel to be increment without neighbouring
+     * consideration.
+     */
+    private final boolean pixelOnly;
+
     private final Cache<CoordinateReferenceSystem, ComputationParameters> parameterCache = new Cache<>(2,5, true);
 
     /**
+     *
+     *
+     *  Particular case:
+     *  ----------------
+     *  User can use a simplified version of the heatmap by using 0 value for both distanceX and distanceY input
+     *  parameters.
+     *  In such a case, each position of the{@link PointCloudResource#points}will increment by 1 the value of it's associated pixel without neighbouring  consideration.
+     *
      * @param tilingDimension : the dimension to be used to define the tiles of the computed image, if null a single tile will be used.
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function
      * @param distanceY       : distance on the 2nd direction (y) to be used to compute the gaussian function
@@ -81,6 +95,7 @@ public class HeatMapResource implements GridCoverageResource {
         this.tilingDimension = tilingDimension;
         this.distanceX = distanceX;
         this.distanceY = distanceY;
+        this.pixelOnly = distanceX == 0 && distanceY == 0;
         this.envelope = pointCloud.getEnvelope();
         defaultGridGeometry = envelope
                 .map(envelope -> new GridGeometry(new GridExtent(256L, 256L), envelope, GridOrientation.DISPLAY))
@@ -161,38 +176,42 @@ public class HeatMapResource implements GridCoverageResource {
             }
 
             final MathTransform gridCornerToPointCRS = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CORNER), coverageToPointCRS);
-            final MathTransform pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER),coverageToPointCRS).inverse();
+            final MathTransform pointCrsToGridCenter = MathTransforms.concatenate(imageToGridTranslation, domain.getGridToCRS(PixelInCell.CELL_CENTER), coverageToPointCRS).inverse();
+            final HeatMapImage image;
 
-            //TODO IMPORTANT cache record by renderCRS
-            final double distancePixelX, distancePixelY;
-            {
+            if (pixelOnly) {
+                image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, 0, 0, algorithm);
+            } else {
+                final double distancePixelX, distancePixelY;
+                {
 
-                 final Envelope env = domain.getEnvelope();
-                    if (env == null) throw new UnsupportedOperationException("Unable to estimate the influence of points in pixels form domain without envelope.");
-                if (cachedParameters == null) {
-                    final Matrix derivative = pointCrsToGridCenter.derivative(median);
-                    if (derivative != null) {
-                        distancePixelX = Math.abs(distanceX * derivative.getElement(posX, posX));
-                        distancePixelY = Math.abs(distanceY * derivative.getElement(posY, posY));
+                    final Envelope env = domain.getEnvelope();
+                    if (env == null)
+                        throw new UnsupportedOperationException("Unable to estimate the influence of points in pixels form domain without envelope.");
+                    if (cachedParameters == null) {
+                        final Matrix derivative = pointCrsToGridCenter.derivative(median);
+                        if (derivative != null) {
+                            distancePixelX = Math.abs(distanceX * derivative.getElement(posX, posX));
+                            distancePixelY = Math.abs(distanceY * derivative.getElement(posY, posY));
+                        } else {
+                            throw new UnsupportedOperationException("Unable to estimate the number of pixels for heatmap computation on in the given grid : " + domain);
+                        }
+                        final double spanX = env.getSpan(posX), spanY = env.getSpan(posY), gridSpanX = extent.getSize(posX), gridSpanY = extent.getSize(posY),
+                                ratioX = distancePixelX * spanX / gridSpanX,
+                                ratioY = distancePixelY * spanY / gridSpanY;
+                        cachedParameters = new ComputationParameters(coverageToPointCRS, new DistancesForExtent(distancePixelX, distancePixelY, spanX, spanY, gridSpanX, gridSpanY, ratioX, ratioY));
+                        parameterCache.putIfAbsent(domainCRS, cachedParameters);
                     } else {
-                        throw new UnsupportedOperationException("Unable to estimate the number of pixels for heatmap computation on in the given grid : "+domain);
-                    }
-                    final double spanX = env.getSpan(posX), spanY=env.getSpan(posY), gridSpanX = extent.getSize(posX), gridSpanY = extent.getSize(posY),
-                            ratioX = distancePixelX *  spanX / gridSpanX,
-                            ratioY = distancePixelY *  spanY / gridSpanY;
-                    cachedParameters = new ComputationParameters(coverageToPointCRS, new DistancesForExtent(distancePixelX, distancePixelY, spanX, spanY,gridSpanX, gridSpanY, ratioX, ratioY));
-                    parameterCache.putIfAbsent(domainCRS, cachedParameters);
-                } else {
-                    var record = cachedParameters.distancesForExtent;
-                    final double spanX = env.getSpan(posX) , spanY = env.getSpan(posY), gridSpanX =  extent.getSize(posX), gridSpanY = extent.getSize(posY);
-                    distancePixelX = spanX == record.spanX && gridSpanX == record.gridSpanX? record.distX : Math.abs(record.ratioX * gridSpanX  / spanX);
-                    distancePixelY = spanY == record.spanY && gridSpanY == record.gridSpanY? record.distY : Math.abs(record.ratioY * gridSpanY /  spanY);
+                        var record = cachedParameters.distancesForExtent;
+                        final double spanX = env.getSpan(posX), spanY = env.getSpan(posY), gridSpanX = extent.getSize(posX), gridSpanY = extent.getSize(posY);
+                        distancePixelX = spanX == record.spanX && gridSpanX == record.gridSpanX ? record.distX : Math.abs(record.ratioX * gridSpanX / spanX);
+                        distancePixelY = spanY == record.spanY && gridSpanY == record.gridSpanY ? record.distY : Math.abs(record.ratioY * gridSpanY / spanY);
 
-                    //TODO replace with less precision losses?
+                    }
                 }
+                image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, Math.max(distancePixelX, 1), Math.max(distancePixelY, 1), algorithm);
             }
 
-            final HeatMapImage image = new HeatMapImage(imageDim, tilingDimension == null ? imageDim : tilingDimension, pointCloudSource, pointCrsToGridCenter, gridCornerToPointCRS, Math.max(distancePixelX, 1), Math.max(distancePixelY, 1), algorithm);
             return new GridCoverage2D(domain, getSampleDimensions(), image);
 
         } catch (TransformException e) {

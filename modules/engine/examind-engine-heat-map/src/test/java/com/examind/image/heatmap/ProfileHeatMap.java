@@ -2,6 +2,7 @@ package com.examind.image.heatmap;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.function.UnaryOperator;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
@@ -69,10 +70,10 @@ public class ProfileHeatMap {
             throw new BackingStoreException(e);
         }
     }
-    public static PointCloudResource loadAIS(String password, String table, Instant start, Instant end) {
+    public static PointCloudResource loadAIS(String host, String port, String password, String table, Instant start, Instant end) {
 
         final HikariConfig dbConf = new HikariConfig();
-        dbConf.setJdbcUrl("jdbc:postgresql://192.168.20.13:32345/movingdata_ng");
+        dbConf.setJdbcUrl("jdbc:postgresql://"+host+":"+port+"/movingdata_ng");
         dbConf.setUsername("geouser");
         dbConf.setPassword(password);
         // WARNING: AUTO-COMMIT MUST BE DEACTIVATED TO ALLOW RESULT STREAMING !!!
@@ -400,11 +401,9 @@ public class ProfileHeatMap {
         return new FeatureSetAsPointsCloud(dataset, false);
     }
 
-    public static void main(String[] args) throws Exception {
 
-        final var envelope = new Envelope2D(CRS_84, -180, -80, 360, 160);
+    static void profilePointCloud(final PointCloudResource points, final Envelope envelope, final float distanceX,  final float distanceY, final UnaryOperator<Double> valueToColor) throws DataStoreException {
         System.out.println("Envelope :" + envelope);
-        final float distanceX = 0.25f, distanceY = 0.25f;
         System.out.println("Distances :" + distanceX);
         final Dimension tileSize = new Dimension(2048, 1024);
         final double[] line = IntStream.range(0, tileSize.width).mapToDouble(it -> 32767).toArray();
@@ -422,25 +421,18 @@ public class ProfileHeatMap {
 //            for (HeatMapImage.Algorithm algo : HeatMapImage.Algorithm.values()) {
 
         final var algo = HeatMapImage.Algorithm.GAUSSIAN_MASK;
-                System.out.println("\n------------- Test with Algo : " + algo + "\n-------------");
-
-
-        final PointCloudResource points = loadAIS(args[0], args[1], Instant.parse(args[2]), Instant.parse(args[3]));
-        System.out.println("Statement : SELECT longitude, latitude FROM \"" + args[1] + "\"\nWHERE \"timestamp\" between '" + args[2] + "' and '" + args[3] + "'");
-//        final PointCloudResource points = loadElephants();
-//        System.out.println("Données éléphants de mer: ");
+        System.out.println("\n------------- Test with Algo : " + algo + "\n-------------");
 
         {
             var startCount = System.nanoTime();
             System.out.println("Nombre de données : " + points.points(envelope, false).count());
             System.out.println("Count in " + (System.nanoTime() - startCount) / 1e9 + " s");
         }
-//        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);
-        var targetGrid = new GridGeometry(new GridExtent(tileSize.width*4, tileSize.height*4), envelope, GridOrientation.DISPLAY);
+        var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);
+//        var targetGrid = new GridGeometry(new GridExtent(tileSize.width*4, tileSize.height*4), envelope, GridOrientation.DISPLAY);
         //TODO debug following commented code with wraparound problem with elephantdemer data
 //        var targetGrid = new GridGeometry(new GridExtent(tileSize.width, tileSize.height), envelope, GridOrientation.DISPLAY);
 
-        var colorRatio = 10_000d;
 
         // WARNING: Tiled images fail with AIS database, I do not know why...
         var heat = new HeatMapResource(points, tileSize, distanceX, distanceY, algo);
@@ -458,7 +450,7 @@ public class ProfileHeatMap {
                     var tile = rendering.getTile(x, y);
                     var samples = tile.getPixels(tile.getMinX(), tile.getMinY(), tile.getWidth(), tile.getHeight(), (double[]) null);
                     for (var sample : samples) if (Math.abs(sample) > 1e-9) valueStats.accept(sample);
-                    final int[] integerSamples = Arrays.stream(samples).mapToInt(value -> (int) XMath.clamp(value * colorRatio, 0, 65535)).toArray();
+                    final int[] integerSamples = Arrays.stream(samples).mapToInt(value ->  (int) XMath.clamp(valueToColor.apply(value), 0, 65535)).toArray();
                     buffer.getRaster().setPixels(tile.getMinX(), tile.getMinY(), tile.getWidth(), tile.getHeight(), integerSamples);
 
                     // draw tile border
@@ -468,11 +460,41 @@ public class ProfileHeatMap {
                     stats.accept(System.nanoTime() - tileStart);
                 }
             }
-
             System.out.println("Rendered in " + (System.nanoTime() - start) / 1e9 + " s");
-            System.out.printf("Statistics per tile:%n->%s%n->%s%n", stats, valueStats);
+//            System.out.printf("Statistics per tile:%n->%s%n->%s%n", stats, valueStats);
         }
 //            }
 //        }
+    }
+
+    /**
+     args[0] -> "192.168.20.14";
+     args[1] -> "32345";
+     */
+    public static void main(String[] args) throws Exception {
+
+        final String host = args[0];
+        final String port = args[1];
+
+        final PointCloudResource points = loadAIS(host, port, args[2], args[3], Instant.parse(args[4]), Instant.parse(args[5]));
+        System.out.println("Statement : SELECT longitude, latitude FROM \"" + args[3] + "\"\nWHERE \"timestamp\" between '" + args[4] + "' and '" + args[5] + "'");
+//        final PointCloudResource points = loadElephants();
+//        System.out.println("Données éléphants de mer: ");
+
+
+        final var env = new Envelope2D(CRS_84, -180, -80, 360, 160);
+
+        // base version :
+        //----------------
+        final float distanceX = 0.25f, distanceY = 0.25f;
+
+        // Simplified version :
+        //----------------------
+//        final float distanceX = 0, distanceY = 0;
+
+        final double estimatedMax = 91.797834;
+        var colorRatio = 65535d/estimatedMax;
+
+        profilePointCloud(points,env, distanceX, distanceY, v -> colorRatio*v);
     }
 }

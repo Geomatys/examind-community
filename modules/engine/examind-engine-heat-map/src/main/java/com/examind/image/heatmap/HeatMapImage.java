@@ -69,11 +69,23 @@ public final class HeatMapImage extends ComputedImage {
     private final double a = 1;
 
     private final DistanceOp op;
+    /**
+     * Boolean value indicating if it is expected only the position's pixel to be increment without neighbouring
+     * consideration.
+     */
+    private final boolean pixelOnly;
 
     /**
-     * TODO
-     *  @param imageDimension  : not null, dimension in pixel of the computed image
+     * HeatMapImage using input algorithm strategy from the input {@link PointCloudResource}.
      *
+     *
+     *  Particular case:
+     *  ----------------
+     *  User can use a simplified version of the heatmap by using 0 value for both distanceX and distanceY input
+     *  parameters.
+     *  In such a case, each position of the{@link PointCloudResource#points}will increment by 1 the value of it's associated pixel without neighbouring  consideration.
+     *
+     * @param imageDimension  : not null, dimension in pixel of the computed image
      * @param tilingDimension : not null, the dimension to be used to define the tiles of the computed image.
      * @param dataSource      : points source to be used to compute the heatMap.
      * @param distanceX       : distance on the 1st direction (x) to be used to compute the gaussian function. THe distance is in **pixels**
@@ -92,10 +104,19 @@ public final class HeatMapImage extends ComputedImage {
         this.gridCornerToDataCRS = gridCornerToDataCrs;
         this.dataCRSToGridCenter = dataCrsToGridCenter;
 
-        this.distanceX = distanceX;
-        this.distanceXx2 = this.distanceX*2;
-        this.distanceY = distanceY;
-        this.distanceYx2 = this.distanceY*2;
+        this.pixelOnly = distanceX == 0 && distanceY == 0;
+
+        if (!pixelOnly) {
+            this.distanceX = distanceX;
+            this.distanceXx2 = this.distanceX * 2;
+            this.distanceY = distanceY;
+            this.distanceYx2 = this.distanceY * 2;
+        } else {
+            this.distanceX = 0;
+            this.distanceXx2 = 0;
+            this.distanceY = 0;
+            this.distanceYx2 = 0;
+        }
 
         /*
          * Result of following algo's application is multiplied by the default amplitude HeatMapImage#A.
@@ -114,37 +135,68 @@ public final class HeatMapImage extends ComputedImage {
      */
     @Override
     protected Raster computeTile(int tileX, int tileY, WritableRaster previous) throws Exception {
-        final int startXPixel =  this.getMinX() + Math.multiplyExact((tileX - getMinTileX()), getTileWidth());
-        final int startYPixel =  this.getMinY() + Math.multiplyExact((tileY - getMinTileY()), getTileHeight());
+        final int startXPixel = this.getMinX() + Math.multiplyExact((tileX - getMinTileX()), getTileWidth());
+        final int startYPixel = this.getMinY() + Math.multiplyExact((tileY - getMinTileY()), getTileHeight());
 
-        final Envelope2D imageGrid = new Envelope2D(null, startXPixel - distanceX, startYPixel - distanceY, tilingDimension.width + distanceX * 2, tilingDimension.height + distanceY * 2);
-        var roi = Envelopes.transform(this.gridCornerToDataCRS, imageGrid);
-        roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
         if (previous != null) {
             Logger.getLogger(Loggers.APPLICATION).log(Level.FINE, "Reuse of previous raster not implemented yet in HeatMapImage.class");
         }
 
-
-        try (final Stream<double[]> points = this.dataSource.batch(roi, false, BATCH_SIZE)) {
+        if (pixelOnly) {
             var data = new double[getTileWidth() * getTileHeight()];
-            points.forEach(geoPts -> {
-                final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk
-                if (nbValues < 2) return;
+            var roi = Envelopes.transform(this.gridCornerToDataCRS, new Envelope2D(null, startXPixel, startYPixel, tilingDimension.width, tilingDimension.height));
+            roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
+            int batch_size = 60_000_000;
+            try (var stream = this.dataSource.batch(roi, false, batch_size)) {
+                stream.forEach(geoPts -> {
+                    final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk
+                    if (nbValues < 2) return;
 
-                var packedPts = new double[nbValues];
-                try {
-                    dataCRSToGridCenter.transform(geoPts, 0, packedPts, 0, nbValues / 2);
-                } catch (TransformException e) {
-                    throw new BackingStoreException("Cannot project data points in image space", e);
-                }
+                    var packedPts = new double[nbValues];
+                    try {
+                        dataCRSToGridCenter.transform(geoPts, 0, packedPts, 0, nbValues / 2);
+                    } catch (TransformException e) {
+                        throw new BackingStoreException("Cannot project data points in image space", e);
+                    }
 
-                for (int i = 0; i < packedPts.length; i += 2) {
-                    writeGridPoint(packedPts[i], packedPts[i + 1], data, startXPixel, startYPixel);
-                }
-            });
-
+                    for (int i = 0; i < packedPts.length; i += 2) {
+                        final int x = Math.max((int) Math.floor(packedPts[i]), startXPixel);
+                        final int y = Math.max((int) Math.floor(packedPts[i + 1]), startYPixel);
+                        data[(y - startYPixel) * tilingDimension.width + (x - startXPixel)] += 1;
+                    }
+                });
+            }
             final DataBufferDouble db = new DataBufferDouble(data, data.length);
             return WritableRaster.createWritableRaster(getSampleModel(), db, new Point(startXPixel, startYPixel));
+
+
+        } else {
+            final Envelope2D imageGrid = new Envelope2D(null, startXPixel - distanceX, startYPixel - distanceY, tilingDimension.width + distanceX * 2, tilingDimension.height + distanceY * 2);
+            var roi = Envelopes.transform(this.gridCornerToDataCRS, imageGrid);
+            roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
+
+
+            try (final Stream<double[]> points = this.dataSource.batch(roi, false, BATCH_SIZE)) {
+                var data = new double[getTileWidth() * getTileHeight()];
+                points.forEach(geoPts -> {
+                    final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk
+                    if (nbValues < 2) return;
+
+                    var packedPts = new double[nbValues];
+                    try {
+                        dataCRSToGridCenter.transform(geoPts, 0, packedPts, 0, nbValues / 2);
+                    } catch (TransformException e) {
+                        throw new BackingStoreException("Cannot project data points in image space", e);
+                    }
+
+                    for (int i = 0; i < packedPts.length; i += 2) {
+                        writeGridPoint(packedPts[i], packedPts[i + 1], data, startXPixel, startYPixel);
+                    }
+                });
+
+                final DataBufferDouble db = new DataBufferDouble(data, data.length);
+                return WritableRaster.createWritableRaster(getSampleModel(), db, new Point(startXPixel, startYPixel));
+            }
         }
     }
 
