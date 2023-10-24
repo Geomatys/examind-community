@@ -70,6 +70,10 @@ public class StatisticsRestAPI extends AbstractRestAPI{
             }
             final String statistics = styleBusiness.getExtraInfoForStyleAndLayer(styleId, nameInProvider.layerId);
 
+            if (statistics == null) {
+                throw new TargetNotFoundException("The statistics are null for layer " + layerName + " with style " + styleName);
+            }
+
             return new ResponseEntity(statistics, OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

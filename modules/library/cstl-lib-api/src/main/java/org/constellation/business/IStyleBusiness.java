@@ -269,7 +269,7 @@ public interface IStyleBusiness {
      * @return The extraInfo
      * @throws TargetNotFoundException If the styleId or the layerId does not exist.
      */
-    String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws TargetNotFoundException;
+    String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws ConstellationException;
 
     /**
      * Set the extraInfo in StyledLayer for a Style and a Layer.

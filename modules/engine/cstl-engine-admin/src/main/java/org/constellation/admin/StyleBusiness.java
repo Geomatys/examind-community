@@ -19,6 +19,7 @@
 package org.constellation.admin;
 
 import org.constellation.api.DataType;
+import org.constellation.api.StatisticState;
 import org.constellation.business.*;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
@@ -391,7 +392,7 @@ public class StyleBusiness implements IStyleBusiness {
                     LOGGER.warning("Data " + l.getDataId() + " can't be found from database." +
                             "\n Can't activate statistics computation for layer " + layerId + " with style " + styleId);
                 } else {
-                    if ((DataType.VECTOR.equals(data.getType()) || DataType.COVERAGE.equals(data.getType()))) {
+                    if ((DataType.VECTOR.name().equals(data.getType()) || DataType.COVERAGE.name().equals(data.getType()))) {
                         // check Service type
                         final Service service = serviceRepository.findById(l.getService());
                         if ("wms".equalsIgnoreCase(service.getType())) {
@@ -761,7 +762,7 @@ public class StyleBusiness implements IStyleBusiness {
      */
     @Override
     @Transactional
-    public String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws TargetNotFoundException {
+    public String getExtraInfoForStyleAndLayer(final Integer styleId, final Integer layerId) throws ConstellationException {
         final Boolean styleFound = styleRepository.existsById(styleId);
         final Boolean layerFound = layerRepository.existsById(layerId);
         if (!styleFound) throw new TargetNotFoundException("Style " + styleId + " can't be found from database.");
@@ -772,7 +773,15 @@ public class StyleBusiness implements IStyleBusiness {
             throw new TargetNotFoundException("The layer " + layerId + " is not linked to the style + " + styleId + ".");
         }
         if (!styledLayer.getActivateStats()) {
-            throw new TargetNotFoundException("The statistics computation is not activated for layer " + layerId + " with style + " + styleId + ".");
+            throw new ConstellationException("The statistics computation is not activated for layer " + layerId + " with style + " + styleId + ".");
+        }
+        final String statsState = styledLayer.getStatsState();
+        if (statsState == null ) {
+            throw new ConstellationException("The statistics have not been computed yet for layer " + layerId + " with style + " + styleId + ".");
+        }
+        if (!StatisticState.STATE_COMPLETED.equals(statsState)) {
+            throw new ConstellationException("The statistics computation has not been performed for layer " + layerId + " with style + " + styleId + "." +
+                    "\nThe status is " + statsState);
         }
         return styledLayer.getExtraInfo();
     }

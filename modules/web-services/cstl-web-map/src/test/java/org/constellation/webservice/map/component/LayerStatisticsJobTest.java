@@ -255,7 +255,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
         boolean error = false;
         try {
             styleBusiness.getExtraInfoForStyleAndLayer(styleId, layerId);
-        } catch (TargetNotFoundException e) {
+        } catch (ConstellationException e) {
             error = true;
         }
 
