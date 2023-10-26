@@ -76,6 +76,12 @@
             <artifactId>cstl-store-data-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <!-- for sensor API -->
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-observation-store</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.geotoolkit</groupId>

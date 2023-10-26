@@ -28,9 +28,7 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.FactoryException;
-
-
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
+import static org.constellation.provider.computed.AggregateUtils.createFixedIdentifier;
 
 public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderDescriptor {
 

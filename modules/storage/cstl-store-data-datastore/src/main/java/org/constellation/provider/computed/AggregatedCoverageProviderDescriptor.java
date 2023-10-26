@@ -23,7 +23,7 @@ import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.constellation.provider.DataProviderFactory;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
+import static org.constellation.provider.computed.AggregateUtils.createFixedIdentifier;
 
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
 import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;

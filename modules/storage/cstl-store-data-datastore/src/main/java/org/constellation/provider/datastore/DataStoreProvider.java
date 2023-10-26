@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.StampedLock;
 import java.util.logging.Level;
@@ -48,7 +47,6 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.IllegalNameException;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
@@ -189,9 +187,7 @@ public class DataStoreProvider extends AbstractDataProvider {
     public boolean isSensorAffectable() {
         try (Session session = storage.read()) {
             final DataStore store = session.handle().store;
-            if (store instanceof ObservationStore) {
-                return true;
-            } else if (store instanceof ResourceOnFileSystem) {
+            if (store instanceof ResourceOnFileSystem) {
                 final ResourceOnFileSystem dfStore = (ResourceOnFileSystem) store;
                 final Path[] files = dfStore.getComponentFiles();
                 if (files.length > 0) {

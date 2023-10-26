@@ -20,6 +20,7 @@ package org.constellation.provider.computed;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.admin.SpringHelper;
@@ -32,6 +33,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource.Mode;
+import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 
@@ -40,6 +42,13 @@ import org.opengis.referencing.operation.TransformException;
  * @author Guilhem Legal (Geomatys)
  */
 public class AggregateUtils {
+    
+    public static ParameterDescriptor<String> createFixedIdentifier(String idValue) {
+        return new ParameterBuilder()
+                    .addName("identifier")
+                    .setRequired(true)
+                    .createEnumerated(String.class, new String[]{idValue}, idValue);
+    }
 
     public static Data<?> getData(DataRepository repo, int dataId) throws ConfigurationException {
         final org.constellation.dto.Data d = repo.findById(dataId);
