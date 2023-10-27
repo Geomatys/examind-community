@@ -18,7 +18,9 @@
  */
 package org.constellation.data.sensor;
 
+import java.net.URI;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
@@ -52,7 +54,8 @@ public class FileSystemSensorStore extends AbstractSensorStore implements Resour
     public FileSystemSensorStore(ParameterValueGroup source) {
         super(source);
         try {
-            final Path dataDirectory = (Path) source.parameter(FileSystemSensorStoreFactory.DATA_DIRECTORY_DESCRIPTOR.getName().getCode()).getValue();
+            final URI dataUri = (URI) source.parameter(FileSystemSensorStoreFactory.DATA_DIRECTORY_DESCRIPTOR.getName().getCode()).getValue();
+            final Path dataDirectory = Paths.get(dataUri);
             this.reader = new FileSensorReader(dataDirectory, new HashMap<>());
             this.writer = new FileSensorWriter(dataDirectory, new HashMap<>());
         } catch (DataStoreException ex) {

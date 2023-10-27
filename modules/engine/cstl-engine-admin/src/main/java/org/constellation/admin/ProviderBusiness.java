@@ -504,7 +504,7 @@ public class ProviderBusiness implements IProviderBusiness {
         }else if("filesensor".equals(subType)){
 
             final ParameterValueGroup sensParams = sources.groups("choice").get(0).addGroup("FileSensorParameters");
-            sensParams.parameter("data_directory").setValue(Paths.get(URI.create(inParams.get("data_directory"))));
+            sensParams.parameter("data_directory").setValue(URI.create(inParams.get("data_directory")));
         }
 
         if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType) || "observationCsvFlatFile".equals(subType)){

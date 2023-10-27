@@ -18,6 +18,7 @@
  */
 package org.constellation.data.sensor;
 
+import java.net.URI;
 import java.nio.file.Path;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
@@ -55,8 +56,8 @@ public class FileSystemSensorStoreFactory extends DataStoreProvider {
                     .setRequired(true)
                     .createEnumerated(String.class, new String[]{NAME}, NAME);
 
-    public static final ParameterDescriptor<Path> DATA_DIRECTORY_DESCRIPTOR = new ParameterBuilder().addName("data_directory")
-            .setRemarks("Directory where are stored the sensorML files").setRequired(true).create(Path.class, null);
+    public static final ParameterDescriptor<URI> DATA_DIRECTORY_DESCRIPTOR = new ParameterBuilder().addName("data_directory")
+            .setRemarks("Directory where are stored the sensorML files").setRequired(true).create(URI.class, null);
 
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
