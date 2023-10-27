@@ -58,6 +58,10 @@ public class LayerContext extends AbstractConfigurationObject {
 
     }
 
+    public LayerContext(List<GetFeatureInfoCfg> getFeatureInfoCfgs) {
+        this.getFeatureInfoCfgs = getFeatureInfoCfgs;
+    }
+
     /**
      * @return the layers
      */

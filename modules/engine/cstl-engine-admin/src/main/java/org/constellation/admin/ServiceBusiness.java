@@ -675,15 +675,13 @@ public class ServiceBusiness implements IServiceBusiness {
 
     @Override
     public Object getDefaultConfiguration(final String serviceType) {
-        switch(serviceType.toLowerCase()) {
-            case "csw": return new Automatic();
-            case "wps": return new ProcessContext(new Processes(true));
-            case "sos": return new SOSConfiguration();
+        return switch(serviceType.toLowerCase()) {
+            case "csw" ->  new Automatic();
+            case "wps" -> new ProcessContext(new Processes(true));
+            case "sos", "sts" -> new SOSConfiguration();
             // other case assume WXS
-            default: final LayerContext configuration = new LayerContext();
-                    configuration.setGetFeatureInfoCfgs(createGenericConfiguration());
-                    return configuration;
-        }
+            default -> new LayerContext(createGenericConfiguration());
+        };
     }
 
     /**
