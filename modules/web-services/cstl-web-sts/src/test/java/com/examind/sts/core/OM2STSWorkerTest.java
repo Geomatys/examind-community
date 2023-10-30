@@ -140,8 +140,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("sts", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, omPid);
-                serviceBusiness.linkServiceAndProvider(sid, smlPid);
+                serviceBusiness.linkServiceAndSensorProvider(sid, omPid, true);
+                serviceBusiness.linkServiceAndSensorProvider(sid, smlPid, true);
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
                 sensors.stream().forEach((sensor) -> {

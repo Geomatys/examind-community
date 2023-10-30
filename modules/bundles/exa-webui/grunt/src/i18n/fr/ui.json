@@ -1232,6 +1232,8 @@
   "service.config.source.sts.title": "Données de capteurs (STS)",
   "service.config.source.transactional": "Transactionnel",
   "service.config.source.transactionalLabel": "Rendre le service transactionnel",
+  "service.config.source.directprovider": "Pas de gestion des capteurs par Examind",
+  "service.config.source.generatesensor": "Générer les capteurs a partir de la base existante",
   "service.config.source.partial": "Laisser l'utilisateur ajouter manuellement les fiches dans le service",
   "service.config.source.onlyPublished": "Exposer uniquement les fiches qui ont un état publié dans la base",
   "service.config.source.collection": "Le service ajoute des liens de recherche de granule pour chaque métadonnée (OpenSearch)",

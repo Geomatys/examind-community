@@ -1060,10 +1060,22 @@ function Examind($http, url) {
          *
          * @returns {Promise}
          */
-        linkSensorProvider : function(id, providerID) {
+        linkSensorProvider : function(id, providerID, fullLink) {
             return self.request({
                 method: 'GET',
-                 url: 'SensorService/' + id + '/link/' + providerID
+                 url: 'SensorService/' + id + '/link/' + providerID + '?fullLink=' + fullLink
+                });
+        },
+        
+        /**
+         * Generate existing sensor for a sensor service.
+         *
+         * @returns {Promise}
+         */
+        generateSensorFromOMProvider : function(id) {
+            return self.request({
+                method: 'PUT',
+                 url: 'SensorService/' + id + '/sensors/generate'
                 });
         },
 

@@ -251,7 +251,9 @@ angular.module('cstl-webservice-create', [
             'cswEsURL':'',
             'cswDataDirectory':'',
             'cswIndexType':'lucene-node',
-            'createData':false
+            'createData':false,
+            'generateSensor': false,
+            'directProvider':false
         };
 
         self.initSource = function() {
@@ -271,7 +273,10 @@ angular.module('cstl-webservice-create', [
             } else if (self.type === 'sos' || self.type === 'sts') {
                 self.source = {
                     'type':'SOSConfiguration',
-                    'profile': 'discovery'
+                    'profile': 'discovery',
+                    'parameters' : {
+                        "directProvider" : "false"
+                    }
                 };
             } else if (self.type === 'wfs') {
                 Examind.ogcServices.getConfig(self.type, self.id).then(function(response) {
@@ -293,6 +298,9 @@ angular.module('cstl-webservice-create', [
                 }
                 self.source.indexType = self.guiConfig.cswIndexType;
 
+            }
+            if (self.type === 'sos' || self.type === 'sts') {
+                self.source.parameters.directProvider = self.guiConfig.directProvider;
             }
             if (self.guiConfig.transactional) {
                 if (self.type === 'sos' || self.type === 'csw' || self.type === 'sts') {
@@ -370,37 +378,44 @@ angular.module('cstl-webservice-create', [
                 Growl('error','Error','Unable to create OM2 provider');
             });
         }
+        
         function createSensorProvider() {
-            var sensorProviderJson = {
-                type: "sensor-store",
-                subType: "cstlsensor",
-                parameters: {
-                    identifier: 'cstlsensor'
-                }
-            };
-            if(self.guiConfig.enableDirectory) {
-                sensorProviderJson.subType = "filesensor";
-                sensorProviderJson.parameters = {
-                    data_directory: self.guiConfig.dataDirectory
+            if (self.guiConfig.enableDirectory) {
+                var sensorProviderJson = {
+                    type: "sensor-store",
+                    subType: "filesensor",
+                    parameters: {
+                        data_directory: self.guiConfig.dataDirectory
+                    }
                 };
+                var sensorProviderId = self.id + '-' + self.type +'-sensor';
+                Examind.providers.create(sensorProviderId, true, sensorProviderJson).then(
+                    function() {
+                        linkProviders(sensorProviderId, true);
+                    }, function() {
+                        Growl('error','Error','Unable to create SML provider');
+                    }
+                );
+            } else {
+                linkProviders('default-internal-sensor', false);
             }
-            Examind.providers.create(self.id + '-' + self.type +'-sensor', false, sensorProviderJson).then(
-                function() {
-                    linkProvider();
-                }, function() {
-                    Growl('error','Error','Unable to create SML provider');
-                }
-            );
         }
-        function linkProvider() {
-            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId, self.id + '-' + self.type +'-sensor').then(
+        
+        function linkProviders(sensorProviderId, sensorFullLink) {
+            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId, sensorProviderId, sensorFullLink).then(
             function() {},
             function() {
                 Growl('error','Error','Unable to link SML provider');
             });
-            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId,  self.id + '-' + self.type + '-om').then(
+            Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId,  self.id + '-' + self.type + '-om', true).then(
             function() {
-                 //buildOmDatasource();
+                 if (self.guiConfig.generateSensor) {
+                    Examind.sensorServices.generateSensorFromOMProvider(webserviceFactory.serviceId).then(
+                    function() {},
+                    function() {
+                        Growl('error','Error','Unable to generate sensors');
+                    });
+                 }
             },
             function() {
                 Growl('error','Error','Unable to link O&M provider');

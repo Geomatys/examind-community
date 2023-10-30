@@ -350,6 +350,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
     @Override
     public void importObservationsFromData(final Integer sid, final Integer dataID) throws ConstellationException {
         final ObservationProvider omProvider = getDataObservationProvider(dataID);
+        final Integer smlId = getSensorProviderId(sid, SensorProvider.class);
         final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
 
         // import in O&M database
@@ -357,7 +358,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
 
         // SensorML generation
         for (ProcedureDataset process : result.getProcedures()) {
-            generateSensor(process, sid, null, dataID);
+            sensorBusiness.generateSensor(process, smlId, null, dataID);
             updateSensorLocation(sid, process);
         }
     }
@@ -467,6 +468,9 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Object getSensorMetadata(final Integer id, final String sensorID) throws ConstellationException {
         if (isDirectProviderMode(id)) {
@@ -478,14 +482,28 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         }
     }
 
-    private Integer generateSensor(final ProcedureDataset process, Integer serviceID, final String parentID, final Integer dataID) throws ConfigurationException {
-        Integer smlId = getSensorProviderId(serviceID, SensorProvider.class);
-        return sensorBusiness.generateSensor(process, smlId, parentID, dataID);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void generateSensorFromOMProvider(Integer id) throws ConstellationException {
+        ObservationProvider omProvider = getSensorProvider(id, ObservationProvider.class);
+        Integer smlPid = getSensorProviderId(id, SensorProvider.class);
+        final List<ProcedureDataset> procedures = omProvider.getProcedureTrees(new DatasetQuery());
+        for (ProcedureDataset process : procedures) {
+            writeProcedure(id, process);
+            Integer sid =  sensorBusiness.generateSensor(process, smlPid, null, null);
+            sensorBusiness.addSensorToService(id, sid);
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean importSensor(Integer id, String sensorID) throws ConstellationException {
         final Sensor sensor               = sensorBusiness.getSensor(sensorID);
+        if (sensor == null) throw new TargetNotFoundException("unable to fina a sensor with id: " + sensorID);
         final List<Sensor> sensorChildren = sensorBusiness.getChildren(sensor.getId());
         final Collection<String> previous = getSensorIds(id);
         final List<String> sensorIds      = new ArrayList<>();
@@ -535,17 +553,24 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public SensorMLTree getServiceSensorMLTree(Integer id) throws ConstellationException {
         if (isDirectProviderMode(id)) {
-            SensorProvider sp = getSensorProvider(id, SensorProvider.class);
-            Integer sid       = getSensorProviderId(id, SensorProvider.class);
-            List<SensorMLTree> ss = sp.getKeys().stream()
-                                .map(gn -> getData(sp, gn))
-                                .map(sd -> SensorUtils.getSensorFromData(sd, sid))
-                                .map(s -> new SensorMLTree(s))
-                                .collect(Collectors.toList());
-            return SensorMLTree.buildTree(ss, true);
+            try {
+                SensorProvider sp = getSensorProvider(id, SensorProvider.class);
+                Integer sid       = getSensorProviderId(id, SensorProvider.class);
+                List<SensorMLTree> ss = sp.getKeys().stream()
+                                    .map(gn -> getData(sp, gn))
+                                    .map(sd -> SensorUtils.getSensorFromData(sd, sid))
+                                    .map(s -> new SensorMLTree(s))
+                                    .collect(Collectors.toList());
+                return SensorMLTree.buildTree(ss, true);
+            } catch (BackingStoreException ex) {
+                throw (ConstellationException) ex.getCause();
+            }
         } else {
             return sensorBusiness.getServiceSensorMLTree(id);
         }
@@ -559,7 +584,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         try {
             return (SensorData)sp.get(gn);
         } catch (ConstellationStoreException ex) {
-            throw new BackingStoreException("Unable to get sensor data:" + gn);
+            throw new BackingStoreException("Unable to get sensor data:" + gn, ex);
         }
     }
 

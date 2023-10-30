@@ -1124,6 +1124,8 @@
   "service.config.source.sts.title": "Sensors (STS)",
   "service.config.source.transactional": "Transactional",
   "service.config.source.transactionalLabel": "Make the service transactional",
+  "service.config.source.directprovider": "No Examind sensor handling",
+  "service.config.source.generatesensor": "Generate sensors from existing datasource",
   "service.config.source.partial": "Let the user to manually add metadata into the service",
   "service.config.source.onlyPublished": "Expose only the records that have a status published in the database",
   "service.config.source.collection": "The service will add granule search link on each record (OpenSearch)",

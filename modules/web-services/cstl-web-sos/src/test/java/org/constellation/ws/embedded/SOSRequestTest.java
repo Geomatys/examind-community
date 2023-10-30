@@ -111,8 +111,8 @@ public class SOSRequestTest extends AbstractGrizzlyServer {
                 sosconf.setProfile(TRANSACTIONAL);
 
                 Integer sid = serviceBusiness.create("sos", "default", sosconf, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, omPid);
-                serviceBusiness.linkServiceAndProvider(sid, smlPid);
+                serviceBusiness.linkServiceAndSensorProvider(sid, omPid, true);
+                serviceBusiness.linkServiceAndSensorProvider(sid, smlPid, true);
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
                 sensors.stream().forEach((sensor) -> {

@@ -212,11 +212,11 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
             configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
             Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-            serviceBusiness.linkServiceAndProvider(sid, pid);
+            serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
             serviceBusiness.start(sid);
 
             sid = serviceBusiness.create("sts", "default", configuration, null, null);
-            serviceBusiness.linkServiceAndProvider(sid, pid);
+            serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
             serviceBusiness.start(sid);
 
             sid = serviceBusiness.create("sts", "bad", configuration, null, null);

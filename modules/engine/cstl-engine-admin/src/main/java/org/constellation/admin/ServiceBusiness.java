@@ -283,8 +283,13 @@ public class ServiceBusiness implements IServiceBusiness {
             List<Integer> linkedProviders = serviceRepository.getLinkedSensorProviders(id, null);
             serviceRepository.removelinkedSensorProviders(id);
             serviceRepository.removelinkedSensors(id);
+
+            // we don't want to remove the default internal sensor provider, because its shared by many services
+            Integer dpid = providerBusiness.getIDFromIdentifier("default-internal-sensor");
             for (Integer linkedProviderID : linkedProviders) {
-                providerBusiness.removeProvider(linkedProviderID);
+                if (!linkedProviderID.equals(dpid)) {
+                    providerBusiness.removeProvider(linkedProviderID);
+                }
             }
         }
 
@@ -625,9 +630,9 @@ public class ServiceBusiness implements IServiceBusiness {
      */
     @Override
     @Transactional
-    public void linkServiceAndProvider(Integer serviceID, Integer providerID) {
+    public void linkServiceAndSensorProvider(Integer serviceID, Integer providerID, boolean fullLink) {
         if (serviceID != null && providerID != null) {
-            serviceRepository.linkSensorProvider(serviceID, providerID, true);
+            serviceRepository.linkSensorProvider(serviceID, providerID, fullLink);
         }
     }
 

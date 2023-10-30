@@ -110,8 +110,8 @@ public class STSRequestTest extends AbstractGrizzlyServer {
                 sosconf.setProfile(TRANSACTIONAL);
 
                 Integer defId = serviceBusiness.create("sts", "default", sosconf, null, null);
-                serviceBusiness.linkServiceAndProvider(defId, smlPid);
-                serviceBusiness.linkServiceAndProvider(defId, omPid);
+                serviceBusiness.linkServiceAndSensorProvider(defId, smlPid, true);
+                serviceBusiness.linkServiceAndSensorProvider(defId, omPid, true);
                 List<Sensor> sensors = sensorBusiness.getByProviderId(smlPid);
                 sensors.stream().forEach((sensor) -> {
                     try {

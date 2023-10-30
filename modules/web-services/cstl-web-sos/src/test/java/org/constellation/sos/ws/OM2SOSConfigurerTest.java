@@ -61,8 +61,8 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 int sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, omPrId);
-                serviceBusiness.linkServiceAndProvider(sid, senPrId);
+                serviceBusiness.linkServiceAndSensorProvider(sid, omPrId, true);
+                serviceBusiness.linkServiceAndSensorProvider(sid, senPrId, true);
 
                 List<Sensor> sensors = sensorBusiness.getByProviderId(senPrId);
                 sensors.stream().forEach((sensor) -> {

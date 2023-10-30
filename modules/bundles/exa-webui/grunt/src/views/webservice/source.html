@@ -374,7 +374,7 @@
                                        translate="service.config.source.database.schema">Schema prefix</label>
                                 <div class="col-sm-11">
                                     <input type="text" class="form-control"
-                                           name="dbSchema" required
+                                           name="dbSchema"
                                            ng-model="wsChooseCtrl.guiConfig.schema"/>
                                 </div>
                             </div>
@@ -391,6 +391,22 @@
                                 <input type="checkbox"
                                        ng-model="wsChooseCtrl.guiConfig.transactional"/>
                                 <span translate="service.config.source.transactional">Transactional</span>
+                            </div>
+                        </div>
+                        <!-- for now we have no reason to allow to set this mode
+                        <div class="form-group">
+                            <div class="checkbox inline">
+                                <input type="checkbox"
+                                       ng-model="wsChooseCtrl.guiConfig.directProvider"/>
+                                <span translate="service.config.source.directprovider">Direct provider</span>
+                            </div>
+                        </div>
+                        -->
+                        <div class="form-group">
+                            <div class="checkbox inline">
+                                <input type="checkbox"
+                                       ng-model="wsChooseCtrl.guiConfig.generateSensor"/>
+                                <span translate="service.config.source.generatesensor">Generate sensor</span>
                             </div>
                         </div>
                         <div class="form-group row">

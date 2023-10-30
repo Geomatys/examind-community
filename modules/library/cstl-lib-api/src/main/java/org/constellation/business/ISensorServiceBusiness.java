@@ -38,6 +38,16 @@ public interface ISensorServiceBusiness {
 
     boolean importSensor(final Integer serviceID, final Path sensorFile, final String type) throws ConfigurationException;
 
+    /**
+     * Remove a sensor from the specified service.
+     * If the sensor is no longer used by the observation provider (meaning that the observation provider is shared by different service),
+     * the osbervation data will be removed from the provder.
+     *
+     * @param id Sensor service id.
+     * @param sensorID sensor identifier.
+     * 
+     * @return {@code true} if the sensor has been removed.
+     */
     boolean removeSensor(final Integer id, final String sensorID) throws ConstellationException;
 
     boolean removeAllSensors(final Integer id) throws ConfigurationException;
@@ -82,9 +92,42 @@ public interface ISensorServiceBusiness {
 
     Object getResultsCsv(final Integer id, final String sensorID, final List<String> observedProperties, final List<String> foi, final Date start, final Date end, final Integer width, final String resultFormat, final boolean timeforProfile, final boolean includeIdInDatablock) throws ConfigurationException;
 
+    /**
+     * Return the sensor metadata of the specified sensor (in the specified service).
+     * This method exist because some sensor services are in "DirectProvider" mode,
+     * meaning that their sensor are nor registered in examind.
+     * In ither case this method will only call sensorBusiness.getSensorMetadata(sensorID).
+     *
+     * @param id Service id.
+     * @param sensorID Sensor identifier.
+     *
+     * @return A sensor metada Object (like SensorML).
+     */
     Object getSensorMetadata(final Integer id, final String sensorID) throws ConstellationException;
 
+    /**
+     * Import an existing examind sensor into the observation provider linked to the specified service.
+     * All the observations linked to this sensor will be integrated into the service observation provider.
+     *
+     * @param id Sensor service id.
+     * @param sensorID existing sensor identifier.
+     * 
+     * @return {@code true} if the sensor has been integrated.
+     */
     boolean importSensor(Integer id, String sensorID) throws ConstellationException;
 
+    /**
+     * Generate existing sensors from observation provider and insert them into the sensor provider.
+     *
+     * @param id Sensor service ID.
+     */
+    void generateSensorFromOMProvider(Integer id) throws ConstellationException;
+
+    /**
+     * Return a tree view of the service sensors.
+     *
+     * @param id Sensor service ID.
+     * @return A sensor tree view.
+     */
     SensorMLTree getServiceSensorMLTree(Integer id) throws ConstellationException;
 }

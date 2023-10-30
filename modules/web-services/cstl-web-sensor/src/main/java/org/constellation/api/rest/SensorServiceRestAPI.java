@@ -21,6 +21,8 @@ package org.constellation.api.rest;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorServiceBusiness;
@@ -29,6 +31,7 @@ import org.constellation.dto.AcknowlegementType;
 import org.constellation.dto.service.config.sos.ObservationFilter;
 import org.constellation.dto.SimpleValue;
 import org.constellation.exception.ConstellationException;
+import org.constellation.exception.TargetNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
@@ -42,6 +45,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -50,6 +54,8 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 public class SensorServiceRestAPI {
+
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
     @Autowired
     private IProviderBusiness providerBusiness;
@@ -61,10 +67,30 @@ public class SensorServiceRestAPI {
     private ISensorServiceBusiness sensorServiceBusiness;
 
     @RequestMapping(value="/SensorService/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity linkSXSProvider(final @PathVariable("id") Integer serviceId, final @PathVariable("providerID") String providerID) throws Exception {
+    public ResponseEntity linkSXSProvider(final @PathVariable("id") Integer serviceId, final @PathVariable("providerID") String providerID,
+            @RequestParam(name = "fullLink", defaultValue = "true") boolean fullLink) throws Exception {
         final Integer providerId = providerBusiness.getIDFromIdentifier(providerID);
-        serviceBusiness.linkServiceAndProvider(serviceId, providerId);
+        if (providerID == null) {
+            return new ResponseEntity(AcknowlegementType.failure("Unable to find the provider"), OK);
+        }
+        try {
+            serviceBusiness.ensureExistingInstance(serviceId);
+        } catch (TargetNotFoundException ex) {
+            return new ResponseEntity(AcknowlegementType.failure("Unable to find the service"), OK);
+        }
+        serviceBusiness.linkServiceAndSensorProvider(serviceId, providerId, fullLink);
         return new ResponseEntity(AcknowlegementType.success("Provider correctly linked"), OK);
+    }
+
+    @RequestMapping(value="/SensorService/{id}/sensors/generate", method = PUT, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity importSensorMetadata(final @PathVariable("id") Integer serviceId) throws Exception {
+        try {
+            sensorServiceBusiness.generateSensorFromOMProvider(serviceId);
+            return new ResponseEntity(new AcknowlegementType("Success", "The sensors have been generated."), OK);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Error while generating sensor from OM provider", ex);
+            return new ResponseEntity(AcknowlegementType.failure(ex.getMessage()), OK);
+        }
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = PUT, produces = APPLICATION_JSON_VALUE)

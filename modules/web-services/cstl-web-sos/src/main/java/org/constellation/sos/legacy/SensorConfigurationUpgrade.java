@@ -134,7 +134,7 @@ public class SensorConfigurationUpgrade {
                             }
                         }
 
-                        serviceBusiness.linkServiceAndProvider(id, providerID);
+                        serviceBusiness.linkServiceAndSensorProvider(id, providerID, true);
                         config.clearSMLDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override
@@ -202,7 +202,7 @@ public class SensorConfigurationUpgrade {
                             providerID = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
                         }
 
-                        serviceBusiness.linkServiceAndProvider(id, providerID);
+                        serviceBusiness.linkServiceAndSensorProvider(id, providerID, true);
                         config.clearOMDeprecatedAttibute();
                         SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
                             @Override

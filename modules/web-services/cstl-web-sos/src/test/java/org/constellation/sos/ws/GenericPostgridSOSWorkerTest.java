@@ -60,7 +60,7 @@ public class GenericPostgridSOSWorkerTest extends SOSWorkerTest {
                 configuration.getParameters().put(TRANSACTION_SECURIZED, "false");
 
                 Integer sid = serviceBusiness.create("sos", "default", configuration, null, null);
-                serviceBusiness.linkServiceAndProvider(sid, pid);
+                serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
 
                 init();
                 initWorker();

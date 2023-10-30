@@ -343,10 +343,11 @@ public interface IServiceBusiness {
     /**
      * Link a service and a provider
      *
-     * @param serviceID Service identifier.
-     * @param providerID Provider identifier
+     * @param serviceID Service identifier (must be a sensor service like STA or SOS).
+     * @param providerID Provider identifier (must be a sensor/observation provider)
+     * @param fullLink
      */
-    void linkServiceAndProvider(final Integer serviceID, final Integer providerID);
+    void linkServiceAndSensorProvider(final Integer serviceID, final Integer providerID, boolean fullLink);
 
     List<Integer> getCSWLinkedProviders(final String serviceID);
 
