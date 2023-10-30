@@ -1,4 +1,4 @@
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import java.util.Arrays;
 import org.apache.sis.parameter.ParameterBuilder;

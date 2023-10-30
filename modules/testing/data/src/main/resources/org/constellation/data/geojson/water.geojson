@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "where": "sea",
+        "when": "2023-01-01T12:00:00Z",
+        "elevation": 0
+      },
+      "geometry": {
+        "coordinates": [
+          3.959261162933359,
+          43.20420017094739
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "where": "swamp",
+        "when": "2023-01-02T12:00:00Z",
+        "elevation": 0
+      },
+      "geometry": {
+        "coordinates": [
+          3.6152415725359504,
+          43.40800024083586
+        ],
+        "type": "Point"
+      }
+    }
+  ]
+}

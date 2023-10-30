@@ -23,6 +23,7 @@
         <module>examind-engine-process-sos</module>
         <module>examind-engine-oauth2</module>
         <module>examind-engine-heat-map</module>
+        <module>examind-engine-computed-data</module>
     </modules>
 
 </project>

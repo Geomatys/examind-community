@@ -284,6 +284,22 @@ public class TestEnvironment {
          */
         public static final TestResource JSON_FEATURE_COLLECTION = new TestResource("org/constellation/ws/embedded/json/featureCollection.json", TestEnvironment::createGeoJsonProvider);
 
+        /**
+         * GEOJSON file provider.
+         *
+         * data :
+         * - land
+         */
+        public static final TestResource JSON_LAND = new TestResource("org/constellation/data/geojson/land.geojson", TestEnvironment::createGeoJsonProvider);
+
+        /**
+         * GEOJSON file provider.
+         *
+         * data :
+         * - water
+         */
+        public static final TestResource JSON_WATER = new TestResource("org/constellation/data/geojson/water.geojson", TestEnvironment::createGeoJsonProvider);
+
         protected final String path;
 
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
@@ -509,7 +525,7 @@ public class TestEnvironment {
 
     public static ProviderImport createAggregateProvider(IProviderBusiness providerBusiness, String dataName, List<Integer> dataIds, Integer datasetId) throws ConstellationException {
         try {
-            String providerIdentifier = "aggSrc" + UUID.randomUUID().toString();
+            String providerIdentifier = "aggCovSrc" + UUID.randomUUID().toString();
             final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
             final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
             source.parameter("id").setValue(providerIdentifier);
@@ -525,6 +541,37 @@ public class TestEnvironment {
             config.parameter("DataName").setValue(dataName);
             config.parameter("ResultCRS").setValue("EPSG:4326");
             config.parameter("mode").setValue("ORDER");
+
+            int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
+            int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
+            List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
+                       .collect(Collectors.toList());
+            return new ProviderImport(pid, dsId, datas);
+        } catch (Exception ex) {
+            throw new ConstellationException(ex);
+        }
+    }
+
+    public static ProviderImport createVectorAggregationProvider(IProviderBusiness providerBusiness, String dataName, List<Integer> dataIds, Integer datasetId) throws ConstellationException {
+        try {
+            String providerIdentifier = "vectAggSrc" + UUID.randomUUID().toString();
+            final DataProviderFactory factory = DataProviders.getFactory("computed-resource");
+            final ParameterValueGroup source  = factory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice =  ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
+            final ParameterValueGroup config = choice.addGroup("vector-aggregation-with-extra-dimensions");
+
+            config.parameter("DataName").setValue(dataName);
+
+            for (Integer dataId : dataIds) {
+                ParameterValueGroup configuration = config.addGroup("configuration");
+                configuration.parameter("data").setValue(dataId);
+                ParameterValueGroup temporal = configuration.addGroup("temporal-dimension");
+                temporal.parameter("start-expression").setValue("when");
+                ParameterValueGroup vertical = configuration.addGroup("vertical-dimension");
+                vertical.parameter("start-expression").setValue("elevation");
+            }
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);

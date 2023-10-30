@@ -166,6 +166,12 @@
         </dependency>
         <dependency>
             <groupId>com.examind.community</groupId>
+            <artifactId>examind-engine-computed-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
             <artifactId>cstl-store-metadatainternal</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

@@ -1,0 +1,3 @@
+com.examind.provider.computed.AggregatedCoverageProviderDescriptor
+com.examind.provider.computed.HeatMapCoverageProviderDescriptor
+com.examind.provider.computed.VectorAggregationWithExtraDimensionsProviderDescriptor

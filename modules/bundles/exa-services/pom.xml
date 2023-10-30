@@ -224,6 +224,11 @@
             <artifactId>exa-store-data-sql</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>examind-engine-computed-data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.sis.non-free</groupId>

@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import com.examind.image.heatmap.HeatMapImage;
 import org.apache.sis.parameter.ParameterBuilder;
@@ -28,7 +28,7 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.FactoryException;
-import static org.constellation.provider.computed.AggregateUtils.createFixedIdentifier;
+import static com.examind.provider.computed.AggregateUtils.createFixedIdentifier;
 
 public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderDescriptor {
 

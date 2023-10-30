@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "where": "land",
+        "when": "2023-01-01T12:00:00Z",
+        "elevation": 10
+      },
+      "geometry": {
+        "coordinates": [
+          3.7353295409953375,
+          43.860536447947425
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "where": "coast",
+        "when": "2023-01-02T12:00:00Z",
+        "elevation": 10
+      },
+      "geometry": {
+        "coordinates": [
+          3.828661400649338,
+          43.5498027346747
+        ],
+        "type": "Point"
+      }
+    }
+  ]
+}

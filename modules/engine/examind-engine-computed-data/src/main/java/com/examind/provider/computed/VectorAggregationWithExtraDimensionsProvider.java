@@ -1,4 +1,4 @@
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -52,8 +52,8 @@ import org.opengis.util.GenericName;
 import org.opengis.util.LocalName;
 
 import static java.util.function.UnaryOperator.identity;
-import static org.constellation.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME;
-import static org.constellation.provider.computed.VectorAggregationWithExtraDimensionsProviderDescriptor.*;
+import static com.examind.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME;
+import static com.examind.provider.computed.VectorAggregationWithExtraDimensionsProviderDescriptor.*;
 
 public class VectorAggregationWithExtraDimensionsProvider extends ComputedResourceProvider {
 

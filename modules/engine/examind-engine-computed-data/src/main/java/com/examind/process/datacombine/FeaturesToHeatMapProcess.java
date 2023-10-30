@@ -18,6 +18,8 @@
  */
 package com.examind.process.datacombine;
 
+import com.examind.process.admin.AdminProcessDescriptor;
+import com.examind.process.admin.AdminProcessRegistry;
 import org.constellation.api.ProviderType;
 import org.constellation.dto.process.DatasetProcessReference;
 import org.constellation.provider.DataProviderFactory;
@@ -33,14 +35,48 @@ import org.opengis.parameter.ParameterValueGroup;
 import java.util.List;
 import java.util.UUID;
 
-import static com.examind.process.datacombine.AbstractDataCombineDescriptor.*;
-import static com.examind.process.datacombine.FeatureToHeatMapDescriptor.*;
-
+import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.util.SimpleInternationalString;
+import org.constellation.process.AbstractCstlProcess;
+import org.constellation.process.AbstractCstlProcessDescriptor;
+import org.opengis.util.InternationalString;
+import static com.examind.process.datacombine.AbstractDataCombineDescriptor.TARGET_DATASET;
+import static com.examind.process.datacombine.AbstractDataCombineDescriptor.DATA;
+import com.examind.provider.computed.HeatMapCoverageProviderDescriptor;
+import static com.examind.provider.computed.HeatMapCoverageProviderDescriptor.*;
 
 /**
  * Based on {@link AggregatedCoverageProcess}
  */
 public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
+    
+    public static final String NAME = "HeatMap coverage";
+    private static final InternationalString DESCRIPTION = new SimpleInternationalString("Combine featureFet data in a heatmap");
+
+    public static final ParameterDescriptorGroup INPUT;
+    public static final ParameterDescriptorGroup OUTPUT;
+
+    static {
+        final ParameterBuilder builder = new ParameterBuilder();
+        builder.setRequired(true);
+        INPUT = builder.addName("input")
+                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM);
+
+        OUTPUT = builder.addName("output")
+                .createGroup();
+    }
+
+    public static class Descriptor extends AbstractCstlProcessDescriptor implements AdminProcessDescriptor {
+
+        public Descriptor() {
+            super(NAME, AdminProcessRegistry.IDENTIFICATION, DESCRIPTION, INPUT, OUTPUT);
+        }
+
+        @Override
+        protected AbstractCstlProcess buildProcess(ParameterValueGroup input) {
+            return new FeaturesToHeatMapProcess(this, input);
+        }
+    }
 
     public FeaturesToHeatMapProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc, input);
@@ -68,21 +104,21 @@ public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
             //---------------------------------------------
             final String dataName = inputParameters.getMandatoryValue(DATA_NAME);
 
-            final ParameterValueGroup config = choice.addGroup("HeatMapCoverageProvider");
-            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor("data_ids");
+            final ParameterValueGroup config = choice.addGroup(HeatMapCoverageProviderDescriptor.NAME);
+            final GeneralParameterDescriptor dataIdsDesc = config.getDescriptor().descriptor(DATA_IDS.getName().getCode());
             for (Integer dataId : dataIds) {
                 ParameterValue p = (ParameterValue) dataIdsDesc.createValue();
                 p.setValue(dataId);
                 config.values().add(p);
             }
-            config.parameter("DataName").setValue(dataName);
+            config.parameter(DATA_NAME.getName().getCode()).setValue(dataName);
             //---------------------------------------------
 
-            config.parameter("tiling.x").setValue(tilingDimX);
-            config.parameter("tiling.y").setValue(tilingDimY);
-            config.parameter("distance.x").setValue(distanceX);
-            config.parameter("distance.y").setValue(distanceY);
-            config.parameter("algorithm").setValue(algo);
+            config.parameter(TILING_DIMENSION_X.getName().getCode()).setValue(tilingDimX);
+            config.parameter(TILING_DIMENSION_Y.getName().getCode()).setValue(tilingDimY);
+            config.parameter(DISTANCE_X.getName().getCode()).setValue(distanceX);
+            config.parameter(DISTANCE_Y.getName().getCode()).setValue(distanceY);
+            config.parameter(ALGORITHM.getName().getCode()).setValue(algo);
 
             int pid = providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "computed-resource", source);
             providerBusiness.createOrUpdateData(pid, dataset.getId(), true, false, null);

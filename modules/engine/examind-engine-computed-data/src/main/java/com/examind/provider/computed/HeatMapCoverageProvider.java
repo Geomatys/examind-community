@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import com.examind.image.heatmap.FeatureSetAsPointsCloud;
 import com.examind.image.heatmap.HeatMapImage;
@@ -39,9 +39,8 @@ import org.opengis.util.FactoryException;
 
 import java.awt.*;
 import java.util.logging.Level;
-import static org.constellation.provider.computed.AggregateUtils.getData;
-
-import static org.constellation.provider.computed.HeatMapCoverageProviderDescriptor.*;
+import static com.examind.provider.computed.AggregateUtils.getData;
+import static com.examind.provider.computed.HeatMapCoverageProviderDescriptor.*;
 
 
 /**

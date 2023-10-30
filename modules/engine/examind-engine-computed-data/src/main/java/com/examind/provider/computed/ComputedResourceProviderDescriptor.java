@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2020 Geomatys.
  *
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import org.apache.sis.parameter.ParameterBuilder;
 import org.constellation.provider.DataProviderFactory;

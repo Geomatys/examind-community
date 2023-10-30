@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2020 Geomatys.
  *
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.provider.computed;
+package com.examind.provider.computed;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DefaultCoverageData;
-import static org.constellation.provider.computed.AggregateUtils.getData;
+import static com.examind.provider.computed.AggregateUtils.getData;
 
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.referencing.ReferencingUtilities;
@@ -50,7 +50,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
-import static org.constellation.provider.computed.AggregatedCoverageProviderDescriptor.*;
+import static com.examind.provider.computed.AggregatedCoverageProviderDescriptor.*;
 
 /**
  *

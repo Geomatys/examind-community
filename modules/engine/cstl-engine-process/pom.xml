@@ -41,11 +41,6 @@
             <artifactId>cstl-store-provider</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.examind.community</groupId>
-            <artifactId>cstl-store-data-datastore</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         
         <!-- for pyramid process -->
         <dependency>

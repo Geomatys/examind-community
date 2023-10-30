@@ -44,9 +44,6 @@ import org.geotoolkit.wfs.xml.v110.TransactionSummaryType;
 import org.geotoolkit.wfs.xml.v110.WFSCapabilitiesType;
 import org.geotoolkit.wfs.xml.v200.*;
 import org.geotoolkit.xsd.xml.v2001.Schema;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
@@ -69,6 +66,7 @@ import org.constellation.dto.service.ServiceStatus;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
 import org.constellation.test.utils.TestDatabaseHandler;
+import org.constellation.test.utils.TestEnvironment;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.constellation.test.utils.TestEnvironment.TestResources;
@@ -138,6 +136,8 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     private static final String WFS_GETFEATURE_JSON2 = "service=WFS&version=2.0.0&request=GetFeature&typenames=SamplingPoint&outputFormat=application/json&srsName=epsg:3857&count=2";
 
     private static final String WFS_GETFEATURE_JSON3 = "service=WFS&version=2.0.0&request=GetFeature&typenames=Bridges&outputFormat=application/json&srsName=epsg:3857&count=2";
+
+    private static final String WFS_GETFEATURE_JSON4 = "service=WFS&version=2.0.0&request=GetFeature&typenames=aggFeat&outputFormat=application/json&srsName=epsg:4326";
 
     private static final String WFS_GETFEATURE_CITE1 = "service=WFS&version=1.1.0&request=GetFeature&typename=sf:PrimitiveGeoFeature&namespace=xmlns%28sf=http://cite.opengeospatial.org/gmlsf%29&filter=%3Cogc:Filter%20xmlns:gml=%22http://www.opengis.net/gml%22%20xmlns:ogc=%22http://www.opengis.net/ogc%22%3E%3Cogc:PropertyIsEqualTo%3E%3Cogc:PropertyName%3E//gml:description%3C/ogc:PropertyName%3E%3Cogc:Literal%3Edescription-f008%3C/ogc:Literal%3E%3C/ogc:PropertyIsEqualTo%3E%3C/ogc:Filter%3E";
 
@@ -217,6 +217,12 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
                 // for aliased layer
                 DataImport d23 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
+
+                // for aggregated feature test
+                DataImport d24 = testResource.createProvider(TestResource.JSON_LAND, providerBusiness, null).datas.get(0);
+                DataImport d25 = testResource.createProvider(TestResource.JSON_WATER, providerBusiness, null).datas.get(0);
+
+                datas.addAll(TestEnvironment.createVectorAggregationProvider(providerBusiness, "aggFeat", Arrays.asList(d24.id, d25.id), null).datas);
 
                 final LayerContext config = new LayerContext();
                 config.getCustomParameters().put(TRANSACTION_SECURIZED, "false");
@@ -1844,7 +1850,6 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         URL getfeatsUrl= new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON);
         String result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
-        assertTrue(isJSONValid(result));
         String expected = getStringFromFile("org/constellation/wfs/json/collection-v1.json");
         expected = expected.replaceAll("\\s+", "");
         assertEquals(expected, result);
@@ -1853,7 +1858,6 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON2);
         result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
-        assertTrue(isJSONValid(result));
         expected = getStringFromFile("org/constellation/wfs/json/collection-v2.json");
         expected = expected.replaceAll("\\s+", "");
         assertEquals(expected, result);
@@ -1862,8 +1866,15 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON3);
         result = getStringResponse(getfeatsUrl.openConnection());
         result = result.replaceAll("\\s+", "");
-        assertTrue(isJSONValid(result));
         expected = getStringFromFile("org/constellation/wfs/json/collection2.json");
+        expected = expected.replaceAll("\\s+", "");
+        assertEquals(expected, result);
+
+        //for WFS 2.0.0 aggregated features
+        getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_JSON4);
+        result = getStringResponse(getfeatsUrl.openConnection());
+        result = result.replaceAll("\\s+", "");
+        expected = getStringFromFile("org/constellation/wfs/json/aggregated.json");
         expected = expected.replaceAll("\\s+", "");
         assertEquals(expected, result);
     }
@@ -1883,9 +1894,9 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("2.0.0", "1.1.0");
-        instances.add(new Instance(1, "default", "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 18, ServiceStatus.STARTED, "null/wfs/default"));
-        instances.add(new Instance(2, "test1",   "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 14, ServiceStatus.STARTED, "null/wfs/test1"));
-        instances.add(new Instance(3, "test",    "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 17, ServiceStatus.STARTED, "null/wfs/test"));
+        instances.add(new Instance(1, "default", "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 19, ServiceStatus.STARTED, "null/wfs/default"));
+        instances.add(new Instance(2, "test1",   "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 15, ServiceStatus.STARTED, "null/wfs/test1"));
+        instances.add(new Instance(3, "test",    "Web Feature Service (Constellation)", "Features provided by constellation SDI server.", "wfs", versions, 18, ServiceStatus.STARTED, "null/wfs/test"));
         
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
@@ -1929,22 +1940,6 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         result = result.replaceAll("EPSG:9.7:", "epsg::");
         String expected = getStringFromFile("org/constellation/wfs/xml/bridgeCollection-2v2.xml");
         domCompare(result, expected);
-    }
-
-    private boolean isJSONValid(String test) {
-        try {
-            new JSONObject(test);
-        } catch (JSONException ex) {
-            // e.g. in case JSONArray is valid as well...
-            LOGGER.log(Level.WARNING,ex.getLocalizedMessage(),ex);
-            try {
-                new JSONArray(test);
-            } catch (JSONException ex1) {
-                LOGGER.log(Level.WARNING,ex1.getLocalizedMessage(),ex1);
-                return false;
-            }
-        }
-        return true;
     }
 
     protected static void domCompare(final Object actual, String expected) throws Exception {

@@ -1,0 +1,64 @@
+{
+  "type" : "FeatureCollection",
+  "features" : [ {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 43.8605, 3.7353 ]
+    },
+    "properties" : {
+      "elevation" : 10,
+      "where" : "land",
+      "when" : "2023-01-01T12:00:00Z",
+      "exa_time_dim_min" : "2023-01-01T12:00:00Z",
+      "exa_time_dim_max" : "2023-01-01T12:00:00Z",
+      "exa_elevation_dim_min" : 10.0,
+      "exa_elevation_dim_max" : null
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 43.5498, 3.8287 ]
+    },
+    "properties" : {
+      "elevation" : 10,
+      "where" : "coast",
+      "when" : "2023-01-02T12:00:00Z",
+      "exa_time_dim_min" : "2023-01-02T12:00:00Z",
+      "exa_time_dim_max" : "2023-01-02T12:00:00Z",
+      "exa_elevation_dim_min" : 10.0,
+      "exa_elevation_dim_max" : null
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 43.2042, 3.9593 ]
+    },
+    "properties" : {
+      "elevation" : 0,
+      "where" : "sea",
+      "when" : "2023-01-01T12:00:00Z",
+      "exa_time_dim_min" : "2023-01-01T12:00:00Z",
+      "exa_time_dim_max" : "2023-01-01T12:00:00Z",
+      "exa_elevation_dim_min" : 0.0,
+      "exa_elevation_dim_max" : null
+    }
+  }, {
+    "type" : "Feature",
+    "geometry" : {
+      "type" : "Point",
+      "coordinates" : [ 43.408, 3.6152 ]
+    },
+    "properties" : {
+      "elevation" : 0,
+      "where" : "swamp",
+      "when" : "2023-01-02T12:00:00Z",
+      "exa_time_dim_min" : "2023-01-02T12:00:00Z",
+      "exa_time_dim_max" : "2023-01-02T12:00:00Z",
+      "exa_elevation_dim_min" : 0.0,
+      "exa_elevation_dim_max" : null
+    }
+  } ]
+}
