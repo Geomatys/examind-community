@@ -308,6 +308,14 @@ public class OM2BaseReader {
         }
     }
 
+    /**
+     * Read a phenomenon in the datasource.
+     *
+     * @param identifier Phenomenon identifier.
+     * @param c SQL connection.
+     *
+     * @return A phenomenon or {@code null} if it does not exist.
+     */
     protected Phenomenon getPhenomenon(final String identifier, final Connection c) throws DataStoreException {
         final String id;
         // cleanup phenomenon id because of its XML ype (NCName)
@@ -324,18 +332,18 @@ public class OM2BaseReader {
             try (final PreparedStatement stmt = c.prepareStatement("SELECT \"component\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"phenomenon\"=? ORDER BY \"order\" ASC")) {//NOSONAR
                 stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
-                    final List<Phenomenon> phenomenons = new ArrayList<>();
+                    final List<Phenomenon> components = new ArrayList<>();
                     while (rs.next()) {
                         final String phenID = rs.getString(1);
-                        phenomenons.add(getSinglePhenomenon(phenID, c));
+                        components.add(getSinglePhenomenon(phenID, c));
                     }
-                    Phenomenon base = getSinglePhenomenon(identifier, c);
+                    Phenomenon base = getSinglePhenomenon(id, c);
                     Phenomenon result = null;
                     if (base != null) {
-                        if (phenomenons.isEmpty()) {
+                        if (components.isEmpty()) {
                             result = base;
                         } else {
-                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), phenomenons);
+                            result = new CompositePhenomenon(id, base.getName(), base.getDefinition(), base.getDescription(), base.getProperties(), components);
                         }
                         if (cacheEnabled) {
                             cachedPhenomenon.put(id, result);
@@ -374,6 +382,9 @@ public class OM2BaseReader {
      }
 
     private Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
+        if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
+            return cachedPhenomenon.get(id);
+        }
         try {
             final Map<String, Object> properties = readProperties("observed_properties_properties", "id_phenomenon", id, c);
             try (final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observed_properties\" WHERE \"id\"=?")) {//NOSONAR
@@ -440,13 +451,13 @@ public class OM2BaseReader {
                     } else if (singles.size() == 1) {
                         return singles.get(0);
                     } else  {
-                        // multiple phenomenons are present, but no composite... TODO
+                        // multiple components are present, but no composite... TODO
                         return getVirtualCompositePhenomenon(c, procedure);
                     }
                 } else if (composites.size() == 1) {
                     return composites.get(0);
                 } else  {
-                    // multiple composite phenomenons are present, we must choose the global one or create a virtual
+                    // multiple composite components are present, we must choose the global one or create a virtual
                     Optional<CompositePhenomenon> phen = getOverlappingComposite(composites);
                     if (phen.isPresent()) {
                         return phen.get();
