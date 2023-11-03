@@ -26,7 +26,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -96,7 +95,46 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
     public static final String HAS_VERSION_PREDICATE       = "http://purl.org/dc/terms/hasVersion";
     public static final String NAME_PREDICATE              = "http://xmlns.com/foaf/0.1/name";
 
+    protected static final List<String> PREDICATES;
+    static {
+        List<String> predicates = new ArrayList<>();
+        predicates.add(TYPE_PREDICATE);
+        predicates.add(VALUE_PREDICATE);
+        predicates.add(CHANGE_NOTE_PREDICATE);
+        predicates.add(BROADER_PREDICATE);
+        predicates.add(HAS_TOP_CONCEPT_PREDICATE);
+        predicates.add(NARROWER_PREDICATE);
+        predicates.add(RELATED_PREDICATE);
+        predicates.add(NARROWER_TRANS_PREDICATE);
+        predicates.add(EXTERNAL_ID_PREDICATE);
+        predicates.add(HIERARCHY_ROOT_TY_PREDICATE);
+        predicates.add(HIERARCHY_ROOT_PREDICATE);
+        predicates.add(CREATOR_PREDICATE);
+        predicates.add(DATE_PREDICATE);
+        predicates.add(LANGUAGE_PREDICATE);
+        predicates.add(DESCRIPTION_PREDICATE);
+        predicates.add(CONTRIBUTOR_PREDICATE);
+        predicates.add(RIGHTS_PREDICATE);
+        predicates.add(TITLE_PREDICATE);
+        predicates.add(SUBJECT_PREDICATE);
+        predicates.add(ISSUED_PREDICATE);
+        predicates.add(MODIFIED_PREDICATE);
+        predicates.add(HAS_VERSION_PREDICATE);
+        predicates.add(NAME_PREDICATE);
+        PREDICATES = Collections.unmodifiableList(predicates);
+    }
 
+    protected static final List<String> MULTIPLE_PREDICATES;
+    static {
+        List<String> predicates = new ArrayList<>();
+        predicates.add(BROADER_PREDICATE);
+        predicates.add(HAS_TOP_CONCEPT_PREDICATE);
+        predicates.add(NARROWER_PREDICATE);
+        predicates.add(RELATED_PREDICATE);
+        predicates.add(NARROWER_TRANS_PREDICATE);
+        predicates.add(LANGUAGE_PREDICATE);
+        MULTIPLE_PREDICATES = Collections.unmodifiableList(predicates);
+    }
 
     protected static final int COMPLETION   = 0;
     protected static final int LOCALISATION = 1;
@@ -773,69 +811,68 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         for (Tuple tuple : tuples) {
             final String predicat = tuple.predicat;
             final String objet    = tuple.object;
-            if (CREATOR_PREDICATE.equals(predicat)) {
-                concept.setCreator(objet);
-            } else if (DATE_PREDICATE.equals(predicat)) {
-                concept.setDate(objet);
-            } else if (EXTERNAL_ID_PREDICATE.equals(predicat)) {
-                concept.setExternalID(objet);
-            } else if (DESCRIPTION_PREDICATE.equals(predicat)) {
-                concept.setDescription(objet);
-            } else if (LANGUAGE_PREDICATE.equals(predicat)) {
-                if (concept.getLanguage() == null || !concept.getLanguage().contains(objet)) {
-                    concept.addLanguage(objet);
+            // can be normal for sub-implementation adding new predicates.
+            if (!PREDICATES.contains(predicat)) {
+                continue;
+            }
+            switch (predicat) {
+                case CREATOR_PREDICATE -> concept.setCreator(objet);
+                case DATE_PREDICATE -> concept.setDate(objet);
+                case EXTERNAL_ID_PREDICATE ->  concept.setExternalID(objet);
+                case DESCRIPTION_PREDICATE ->  concept.setDescription(objet);
+                case LANGUAGE_PREDICATE ->  {
+                    if (concept.getLanguage() == null || !concept.getLanguage().contains(objet)) {
+                        concept.addLanguage(objet);
+                    }
                 }
-            } else if (RIGHTS_PREDICATE.equals(predicat)) {
-                concept.setRights(objet);
-            } else if (TITLE_PREDICATE.equals(predicat)) {
-                concept.setTitle(objet);
-            } else if (SUBJECT_PREDICATE.equals(predicat)) {
-                concept.setSubject(objet);
-            } else if (CONTRIBUTOR_PREDICATE.equals(predicat)) {
-                concept.setContributor(objet);
-            } else if (HAS_VERSION_PREDICATE.equals(predicat)) {
-                concept.setHasVersion(objet);
-            } else if (ISSUED_PREDICATE.equals(predicat)) {
-                concept.setIssued(objet);
-            } else if (MODIFIED_PREDICATE.equals(predicat)) {
-                concept.setModified(objet);
-            } else if (TYPE_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.setType(c);
-            } else if (VALUE_PREDICATE.equals(predicat)) {
-                concept.setValue(objet);
-            } else if (BROADER_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.addBroader(c);
-            } else if (CHANGE_NOTE_PREDICATE.equals(predicat)) {
-                concept.setChangeNote(objet);
-            } else if (NARROWER_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.addNarrower(c);
-            } else if (NARROWER_TRANS_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.addNarrowerTransitive(c);
-            } else if (RELATED_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.addRelated(c);
-            } else if (NAME_PREDICATE.equals(predicat)) {
-                concept.setName(objet);
-            } else if (HIERARCHY_ROOT_PREDICATE.equals(predicat)) {
-                final boolean value = Boolean.parseBoolean(objet);
-                concept.setHierarchyRoot(value);
-            } else if (HIERARCHY_ROOT_TY_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.setHierarchyRootType(c);
-            } else if (HAS_TOP_CONCEPT_PREDICATE.equals(predicat)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.addHasTopConcept(c);
+                case RIGHTS_PREDICATE ->  concept.setRights(objet);
+                case TITLE_PREDICATE ->  concept.setTitle(objet);
+                case SUBJECT_PREDICATE ->   concept.setSubject(objet);
+                case CONTRIBUTOR_PREDICATE ->  concept.setContributor(objet);
+                case HAS_VERSION_PREDICATE ->  concept.setHasVersion(objet);
+                case ISSUED_PREDICATE ->  concept.setIssued(objet);
+                case MODIFIED_PREDICATE ->  concept.setModified(objet);
+                case TYPE_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.setType(c);
+                }
+                case VALUE_PREDICATE ->  concept.setValue(objet);
+                case BROADER_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.addBroader(c);
+                }
+                case CHANGE_NOTE_PREDICATE ->  concept.setChangeNote(objet);
+                case NARROWER_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.addNarrower(c);
+                }
+                case NARROWER_TRANS_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.addNarrowerTransitive(c);
+                }
+                case RELATED_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.addRelated(c);}
+                case NAME_PREDICATE ->  concept.setName(objet);
+                case HIERARCHY_ROOT_PREDICATE ->  {
+                    final boolean value = Boolean.parseBoolean(objet);
+                    concept.setHierarchyRoot(value);
+                }
+                case HIERARCHY_ROOT_TY_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.setHierarchyRootType(c);
+                }
+                case HAS_TOP_CONCEPT_PREDICATE ->  {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.addHasTopConcept(c);
+                }
             }
         }
     }
@@ -874,12 +911,12 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
         return result;
     }
 
-    protected Concept readPartialConcept(final String uriConcept, final Connection con, List<String> customProperties) throws SQLException {
+    protected Concept readPartialConcept(final String uriConcept, final Connection con, List<String> predicates) throws SQLException {
         if (uriConcept == null) return null;
 
         // will return a concept only with uri/prefLabel
-        if (customProperties == null) {
-            customProperties = Collections.EMPTY_LIST;
+        if (predicates == null) {
+            predicates = Collections.EMPTY_LIST;
         }
 
         // hack to avoid the confusion with the LIKE operator when uriconcept is an integer
@@ -898,74 +935,63 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
        final Concept concept = buildEmptyConcept(removePrefix(uriConcept));
        concept.setPrefLabel(prefLabels);
 
-        for (String customProperty : customProperties) {
-            // multiple properties case
-            if (BROADER_PREDICATE.equals(customProperty)) {
-                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
-                concept.setBroader(objet);
-                continue;
-            } else if (HAS_TOP_CONCEPT_PREDICATE.equals(customProperty)) {
-                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
-                concept.setHasTopConcept(objet);
-                continue;
-            } else if (NARROWER_PREDICATE.equals(customProperty)) {
-                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
-                concept.setNarrower(objet);
-                continue;
-            } else if (RELATED_PREDICATE.equals(customProperty)) {
-                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
-                concept.setRelated(objet);
-                continue;
-            } else if (NARROWER_TRANS_PREDICATE.equals(customProperty)) {
-                List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, customProperty, con);
-                concept.setNarrowerTransitive(objet);
-                continue;
-            } else if (LANGUAGE_PREDICATE.equals(customProperty)) {
-                List<String> objet = readMultipleConceptProperty(uriConcept, customProperty, con);
-                concept.setLanguage(objet);
+        for (String predicate : predicates) {
+
+            // can be normal for sub-implementation adding new predicates.
+            if (!PREDICATES.contains(predicate)) {
                 continue;
             }
 
-            String objet = readConceptProperty(uriConcept, customProperty, con);
-            if (TYPE_PREDICATE.equals(customProperty)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.setType(c);
-            } else if (VALUE_PREDICATE.equals(customProperty)) {
-                concept.setValue(objet);
-            } else if (CHANGE_NOTE_PREDICATE.equals(customProperty)) {
-                concept.setChangeNote(objet);
-            } else if (EXTERNAL_ID_PREDICATE.equals(customProperty)) {
-                concept.setExternalID(objet);
-            } else if (HIERARCHY_ROOT_TY_PREDICATE.equals(customProperty)) {
-                final Concept c = new Concept();
-                c.setResource(objet);
-                concept.setHierarchyRootType(c);
-            } else if (HIERARCHY_ROOT_PREDICATE.equals(customProperty)) {
-                final boolean value = Boolean.parseBoolean(objet);
-                concept.setHierarchyRoot(value);
-            } else if (CREATOR_PREDICATE.equals(customProperty)) {
-                concept.setCreator(objet);
-            } else if (DATE_PREDICATE.equals(customProperty)) {
-                concept.setDate(objet);
-            } else if (DESCRIPTION_PREDICATE.equals(customProperty)) {
-                concept.setDescription(objet);
-            } else if (CONTRIBUTOR_PREDICATE.equals(customProperty)) {
-                concept.setContributor(objet);
-            } else if (RIGHTS_PREDICATE.equals(customProperty)) {
-                concept.setRights(objet);
-            } else if (TITLE_PREDICATE.equals(customProperty)) {
-                concept.setTitle(objet);
-            } else if (SUBJECT_PREDICATE.equals(customProperty)) {
-                concept.setSubject(objet);
-            } else if (ISSUED_PREDICATE.equals(customProperty)) {
-                concept.setIssued(objet);
-            } else if (MODIFIED_PREDICATE.equals(customProperty)) {
-                concept.setModified(objet);
-            } else if (HAS_VERSION_PREDICATE.equals(customProperty)) {
-                concept.setHasVersion(objet);
-            } else if (NAME_PREDICATE.equals(customProperty)) {
-                concept.setName(objet);
+            // multiple properties case
+            if (MULTIPLE_PREDICATES.contains(predicate)) {
+                // special case for language who take string
+                if (LANGUAGE_PREDICATE.equals(predicate)) {
+                    List<String> objet = readMultipleConceptProperty(uriConcept, predicate, con);
+                    concept.setLanguage(objet);
+                } else {
+                    List<Concept> objet = readMultipleConceptPropertyBrief(uriConcept, predicate, con);
+                    switch (predicate) {
+                        case BROADER_PREDICATE -> concept.setBroader(objet);
+                        case HAS_TOP_CONCEPT_PREDICATE -> concept.setHasTopConcept(objet);
+                        case NARROWER_PREDICATE -> concept.setNarrower(objet);
+                        case RELATED_PREDICATE -> concept.setRelated(objet);
+                        case NARROWER_TRANS_PREDICATE -> concept.setNarrowerTransitive(objet);
+                    }
+                }
+                continue;
+            }
+            
+
+            String objet = readConceptProperty(uriConcept, predicate, con);
+            switch(predicate) {
+                case TYPE_PREDICATE -> {
+                    final Concept c = new Concept();
+                    c.setResource(objet);
+                    concept.setType(c);
+                }
+                case VALUE_PREDICATE -> concept.setValue(objet);
+                case CHANGE_NOTE_PREDICATE -> concept.setChangeNote(objet);
+                case EXTERNAL_ID_PREDICATE -> concept.setExternalID(objet);
+                case HIERARCHY_ROOT_TY_PREDICATE -> {
+                   final Concept c = new Concept();
+                   c.setResource(objet);
+                   concept.setHierarchyRootType(c);
+                }
+                case HIERARCHY_ROOT_PREDICATE -> {
+                   final boolean value = Boolean.parseBoolean(objet);
+                   concept.setHierarchyRoot(value);
+                }
+                case CREATOR_PREDICATE -> concept.setCreator(objet);
+                case DATE_PREDICATE -> concept.setDate(objet);
+                case DESCRIPTION_PREDICATE -> concept.setDescription(objet);
+                case CONTRIBUTOR_PREDICATE -> concept.setContributor(objet);
+                case RIGHTS_PREDICATE -> concept.setRights(objet);
+                case TITLE_PREDICATE -> concept.setTitle(objet);
+                case SUBJECT_PREDICATE -> concept.setSubject(objet);
+                case ISSUED_PREDICATE -> concept.setIssued(objet);
+                case MODIFIED_PREDICATE -> concept.setModified(objet);
+                case HAS_VERSION_PREDICATE -> concept.setHasVersion(objet);
+                case NAME_PREDICATE -> concept.setName(objet);
             }
         }
         return concept;
