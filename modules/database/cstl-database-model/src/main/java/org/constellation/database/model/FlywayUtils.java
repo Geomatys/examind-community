@@ -45,6 +45,7 @@ public class FlywayUtils {
         flyway.setDataSource(dataSource);
         flyway.setLocations(locationString);
         flyway.setSkipDefaultResolvers(true);
+        flyway.setBaselineOnMigrate(true);
 
         final String encoding = "UTF-8";
         final String separator = "__";
