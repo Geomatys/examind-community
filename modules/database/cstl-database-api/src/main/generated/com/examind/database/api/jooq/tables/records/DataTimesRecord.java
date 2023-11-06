@@ -24,7 +24,6 @@ import com.examind.database.api.jooq.tables.DataTimes;
 import jakarta.validation.constraints.NotNull;
 
 import org.jooq.Field;
-import org.jooq.Record1;
 import org.jooq.Record2;
 import org.jooq.Row2;
 import org.jooq.impl.UpdatableRecordImpl;
@@ -75,8 +74,8 @@ public class DataTimesRecord extends UpdatableRecordImpl<DataTimesRecord> implem
     // -------------------------------------------------------------------------
 
     @Override
-    public Record1<Integer> key() {
-        return (Record1) super.key();
+    public Record2<Integer, Long> key() {
+        return (Record2) super.key();
     }
 
     // -------------------------------------------------------------------------
