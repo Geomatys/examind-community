@@ -588,10 +588,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private ProcedureInfo writeProcedure(final ProcedureDataset procedure, final String parent, final Connection c) throws SQLException, FactoryException, DataStoreException {
+        final String procedureID = procedure.getId();
         int pid;
         int nbTable;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
-            stmtExist.setString(1, procedure.getId());
+            stmtExist.setString(1, procedureID);
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 if (!rs.next()) {
                     try(final Statement stmt = c.createStatement();
@@ -609,7 +610,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedures\" VALUES(?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
-                        stmtInsert.setString(1, procedure.getId());
+                        stmtInsert.setString(1, procedureID);
                         Geometry position = procedure.spatialBound.getLastGeometry();
                         if (position != null) {
                             int srid = position.getSRID();
@@ -653,42 +654,51 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     // write properties
-                    writeProperties("procedures_properties", procedure.getId(), procedure.getProperties(), c);
+                    writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
 
                     // write locations
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
                         for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
-                            insertHistoricalLocation(stmtInsert, procedure.getId(), entry);
+                            insertHistoricalLocation(stmtInsert, procedureID, entry);
                         }
                     }
                 } else {
                     pid = rs.getInt(1);
                     nbTable = rs.getInt(2);
+                    /*
+                    * Update historical locations, add new ones if not already recorded (do not remove disappeared ones)
+                    */
                     try(final PreparedStatement stmtHlExist  = c.prepareStatement("SELECT \"procedure\" FROM \"" + schemaPrefix + "om\".\"historical_locations\" WHERE \"procedure\"=? AND \"time\"=?");//NOSONAR
                         final PreparedStatement stmtHlInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?,?,?)")) {//NOSONAR
-                        stmtHlExist.setString(1, procedure.getId());
+                        stmtHlExist.setString(1, procedureID);
                         // write new locations
                         for (Entry<Date, Geometry> entry : procedure.spatialBound.getHistoricalLocations().entrySet()) {
                             final Timestamp ts = new Timestamp(entry.getKey().getTime());
                             stmtHlExist.setTimestamp(2, ts);
                             try (final ResultSet rshl = stmtHlExist.executeQuery()) {
                                 if (!rshl.next()) {
-                                    insertHistoricalLocation(stmtHlInsert, procedure.getId(), entry);
+                                    insertHistoricalLocation(stmtHlInsert, procedureID, entry);
                                 }
                             }
                         }
                     }
+
+                    /*
+                     * update properties.
+                     */
+                    deleteProperties("procedures_properties", "id_procedure", procedureID, c);
+                    writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
                 }
             }
         }
         for (ProcedureDataset child : procedure.children) {
-            writeProcedure(child, procedure.getId(), c);
+            writeProcedure(child, procedureID, c);
         }
         // we don't fill the mainField at this point
-        return new ProcedureInfo(pid, nbTable, procedure.getId(), procedure.omType, null);
+        return new ProcedureInfo(pid, nbTable, procedureID, procedure.omType, null);
     }
 
-    private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException, DataStoreException, FactoryException {
+    private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException {
         stmtInsert.setString(1, procedureId);
         stmtInsert.setTimestamp(2, new Timestamp(entry.getKey().getTime()));
         if (entry.getValue() != null) {
@@ -706,7 +716,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         stmtInsert.executeUpdate();
     }
 
-    private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException, DataStoreException {
+    private void writeFeatureOfInterest(final SamplingFeature foi, final Connection c) throws SQLException {
         if (foi == null) return;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\" FROM  \"" + schemaPrefix + "om\".\"sampling_features\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, foi.getId());
