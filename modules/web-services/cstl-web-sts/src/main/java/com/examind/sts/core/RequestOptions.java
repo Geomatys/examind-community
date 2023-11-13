@@ -93,7 +93,7 @@ public class RequestOptions {
         observedProperties  = new FieldInfo(isExpand("observedproperties", "observedproperty"), isSelect("observedproperties", "observedproperty"));
         observations        = new FieldInfo(isExpand("observations"), isSelect("observations"));
         sensors             = new FieldInfo(isExpand("sensors"), isSelect("sensors"));
-        things              = new FieldInfo(isExpand("things"), isSelect("things"));
+        things              = new FieldInfo(isExpand("things", "thing"), isSelect("things", "thing"));
         historicalLocations = new FieldInfo(isExpand("historicallocations"), isSelect("historicallocations"));
         locations           = new FieldInfo(isExpand("locations"), isSelect("locations"));
 
