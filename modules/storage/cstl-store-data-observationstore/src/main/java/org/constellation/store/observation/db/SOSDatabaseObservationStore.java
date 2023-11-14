@@ -22,6 +22,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,14 +45,27 @@ import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
+import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.ProcedureDataset;
 
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.DatasetQuery;
+import org.geotoolkit.observation.query.HistoricalLocationQuery;
+import static org.geotoolkit.observation.query.ObservationQueryUtilities.buildQueryForSensor;
+import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.storage.DataStores;
+import static org.geotoolkit.observation.query.ObservationQueryUtilities.buildQueryForSensors;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -248,5 +263,50 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         } catch (SQLException | IOException ex) {
             throw new DataStoreException("Erro while building OM2 datasource", ex);
         }
+    }
+
+    /**
+     * overridden while geotk does not handle sensorId filter
+     */
+    @Override
+    public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
+        final List<ProcedureDataset> results = new ArrayList<>();
+
+        final ObservationFilterReader procFilter = getFilter();
+        
+        procFilter.init(new ProcedureQuery());
+        // TODO  <start> move up to geotk
+        procFilter.setProcedure(query.getSensorIds());
+        // TODO  <end> move up to geotk
+        
+        for (org.opengis.observation.Process p : procFilter.getProcesses()) {
+
+            final Procedure proc  =  (Procedure) p;
+            final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", "timeseries", new ArrayList<>(), null);
+
+            Observation template = (Observation) getReader().getTemplateForProcedure(proc.getId());
+
+            // complete fields and location
+            if (template != null) {
+                final Phenomenon phenProp = template.getObservedProperty();
+                if (phenProp != null) {
+                    final List<String> fields = OMUtils.getPhenomenonsFieldIdentifiers(phenProp);
+                    for (String field : fields) {
+                        if (!procedure.fields.contains(field)) {
+                            procedure.fields.add(field);
+                        }
+                    }
+                }
+                SamplingFeature foim = template.getFeatureOfInterest();
+                procedure.spatialBound.appendLocation(template.getSamplingTime(), foim);
+            }
+
+            // get historical locations
+            HistoricalLocationQuery hquery = (HistoricalLocationQuery) buildQueryForSensor(OMEntity.HISTORICAL_LOCATION, proc.getId());
+            Map<Date, Geometry> sensorLocations = getHistoricalSensorLocations(hquery).getOrDefault(proc.getId(), Collections.EMPTY_MAP);
+            procedure.spatialBound.getHistoricalLocations().putAll(sensorLocations);
+            results.add(procedure);
+        }
+        return results;
     }
 }
