@@ -73,7 +73,7 @@ import org.opengis.util.NameFactory;
 
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.feature.Features;
-import org.apache.sis.internal.storage.MetadataBuilder;
+import org.apache.sis.storage.base.MetadataBuilder;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultAddress;

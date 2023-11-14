@@ -48,7 +48,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.logging.Level;
 import javax.xml.XMLConstants;
-import org.apache.sis.internal.xml.LegacyNamespaces;
+import org.apache.sis.xml.util.LegacyNamespaces;
 import org.apache.sis.xml.Namespaces;
 import org.constellation.api.PathType;
 import static org.constellation.metadata.CSWQueryable.DIF_DISTRIBUTION_COND_PATH;

@@ -19,6 +19,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-style</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.sis.core</groupId>
             <artifactId>sis-metadata</artifactId>
         </dependency>

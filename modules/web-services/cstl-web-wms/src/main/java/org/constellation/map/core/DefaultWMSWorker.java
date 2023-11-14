@@ -107,11 +107,13 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.STYLE_NOT_DEFINED;
 import org.geotoolkit.referencing.ReferencingUtilities;
+import org.geotoolkit.sld.Layer;
 import org.geotoolkit.sld.MutableLayer;
 import org.geotoolkit.sld.MutableLayerStyle;
 import org.geotoolkit.sld.MutableNamedLayer;
 import org.geotoolkit.sld.MutableNamedStyle;
 import org.geotoolkit.sld.MutableStyledLayerDescriptor;
+import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.geotoolkit.sld.xml.GetLegendGraphic;
 import org.geotoolkit.sld.xml.v110.DescribeLayerResponseType;
 import org.geotoolkit.sld.xml.v110.LayerDescriptionType;
@@ -132,7 +134,6 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -238,7 +239,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
     /**
      * return a date formmatter depending on configuration flags.
-     * @return 
+     * @return
      */
     private DateFormat getDateFormatter() {
         boolean noMs = Application.getBooleanProperty(AppProperty.EXA_WMS_NO_MS, false);
@@ -811,7 +812,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             }
         }
         final Map<String, Object> extraParams = getFI.getParameters();
-        
+
         // Build additional filters
         List<Filter> extraFilters = extractAdditionalFilters(getFI);
 
@@ -1042,7 +1043,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         final Map<String, Object> extraParams = getMap.getParameters();
-        
+
         // Build additional filters
         List<Filter> extraFilters = extractAdditionalFilters(getMap);
 
@@ -1065,7 +1066,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         } catch (ConstellationStoreException ex) {
             return handleExceptions(getMap, errorInImage, errorBlank, ex, NO_APPLICABLE_CODE, null);
         }
-        
+
         // 3. CANVAS
         final Dimension canvasDimension = getMap.getSize();
         final Color background;
@@ -1280,7 +1281,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         final List<MutableNamedLayer> emptyNameSLDLayers = new ArrayList<>();
-        for(final org.opengis.sld.Layer sldLayer : sld.layers()){
+        for(final Layer sldLayer : sld.layers()){
             // We can't do anything if it is not a MutableNamedLayer.
             if (!(sldLayer instanceof MutableNamedLayer)) {
                 continue;

@@ -29,7 +29,6 @@ import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.util.BytesRef;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.util.NullArgumentException;
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.lucene.index.AbstractIndexer;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -398,7 +397,7 @@ public abstract class AbstractCSWIndexer<A> extends AbstractIndexer<A> implement
             } else {
                 LOGGER.log(Level.WARNING,NOT_SPATIALLY_INDEXABLE + "{0}\n cause: missing coordinates.", getIdentifier(form));
             }
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             throw new IndexingException("error while spatially indexing:" + doc.get("id"), ex);
         }
         return false;

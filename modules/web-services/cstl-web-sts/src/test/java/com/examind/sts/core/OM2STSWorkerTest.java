@@ -2250,7 +2250,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Geometry geom = new Point(new CoordinateArraySequence(new Coordinate[] {new Coordinate(65400, 1731368)}), new GeometryFactory());
         JTS.setCRS(geom, CRS.forCode("EPSG:27582"));
 
-        geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, CommonCRS.WGS84.normalizedGeographic());
+        geom = org.apache.sis.geometry.wrapper.jts.JTS.transform(geom, CommonCRS.WGS84.normalizedGeographic());
 
         System.out.println(geom);
     }

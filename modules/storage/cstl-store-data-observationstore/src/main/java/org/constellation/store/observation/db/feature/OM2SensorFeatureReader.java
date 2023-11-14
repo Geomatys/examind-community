@@ -20,7 +20,7 @@ package org.constellation.store.observation.db.feature;
 
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.feature.internal.AttributeConvention;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.JTS;
@@ -149,7 +149,7 @@ public class OM2SensorFeatureReader implements CloseableIterator<Feature> {
             JTS.setCRS(geom, currentCRS);
             if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
                 try {
-                    geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
+                    geom =  org.apache.sis.geometry.wrapper.jts.JTS.transform(geom, crs);
                 } catch (TransformException ex) {
                     throw new ConstellationStoreException(ex);
                 }

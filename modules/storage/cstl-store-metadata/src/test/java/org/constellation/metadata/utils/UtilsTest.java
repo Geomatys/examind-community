@@ -18,7 +18,7 @@
  */
 package org.constellation.metadata.utils;
 
-import org.apache.sis.internal.jaxb.gmi.MI_Metadata;
+import org.apache.sis.xml.bind.gmi.MI_Metadata;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.citation.DefaultResponsibleParty;

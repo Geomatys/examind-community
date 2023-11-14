@@ -22,7 +22,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
+import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.parameter.DefaultParameterValueGroup;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.util.ComparisonMode;

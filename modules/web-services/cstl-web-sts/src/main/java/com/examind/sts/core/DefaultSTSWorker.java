@@ -1807,7 +1807,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             CoordinateReferenceSystem geomCrs = JTS.findCoordinateReferenceSystem(locGeom);
             if (!Utilities.equalsIgnoreMetadata(geomCrs, crs)) {
                 try {
-                    return org.apache.sis.internal.feature.jts.JTS.transform(locGeom, crs);
+                    return org.apache.sis.geometry.wrapper.jts.JTS.transform(locGeom, crs);
                 } catch (TransformException ex) {
                     throw new ConstellationStoreException(ex);
                 }

@@ -4,7 +4,7 @@ package org.constellation.map.featureinfo;
 import java.awt.geom.Point2D;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.DirectPosition2D;
-import org.apache.sis.internal.referencing.WraparoundApplicator;
+import org.apache.sis.referencing.util.WraparoundApplicator;
 import org.apache.sis.measure.Units;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;

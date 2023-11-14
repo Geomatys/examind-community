@@ -18,8 +18,8 @@
 package org.constellation.sos.io.lucene;
 
 import java.nio.file.Path;
-import org.apache.sis.internal.storage.Capability;
-import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.storage.base.Capability;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;

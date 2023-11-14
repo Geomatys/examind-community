@@ -58,11 +58,11 @@ import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.dto.process.StyleProcessReference;
 import static org.constellation.business.ClusterMessageConstant.*;
-import org.apache.sis.internal.system.DefaultFactories;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.dto.service.Service;
+import org.geotoolkit.display2d.GO2Utilities;
+import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.geotoolkit.style.StyleUtilities;
-import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.style.StyleFactory;
 
 /**
@@ -105,7 +105,7 @@ public class StyleBusiness implements IStyleBusiness {
 
     private final StyleXmlIO sldParser = new StyleXmlIO();
 
-    private static final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+    private static final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
     /**
      * Logger used for debugging and event notification.
      */

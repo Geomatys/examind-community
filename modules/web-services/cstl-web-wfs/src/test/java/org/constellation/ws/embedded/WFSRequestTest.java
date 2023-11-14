@@ -281,7 +281,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
                         ":org.geotoolkit.gml.xml.v311"  +
                         ":org.geotoolkit.xsd.xml.v2001" +
                         ":org.geotoolkit.sampling.xml.v100" +
-                        ":org.apache.sis.internal.jaxb.geometry"), null);
+                        ":org.apache.sis.xml.bind.metadata.geometry"), null);
 
                 serviceBusiness.start(defId);
                 serviceBusiness.start(testId);

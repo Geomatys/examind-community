@@ -18,8 +18,6 @@
  */
 package org.constellation.store.observation.db.sensor;
 
-import org.apache.sis.internal.storage.Capability;
-import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStore;
@@ -27,6 +25,8 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.base.Capability;
+import org.apache.sis.storage.base.StoreMetadata;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATABASE;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATABASE_READONLY;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DERBY_URL;
@@ -60,12 +60,12 @@ import org.opengis.parameter.ParameterValueGroup;
         resourceTypes = {})
 @StoreMetadataExt(resourceTypes = ResourceType.SENSOR)
 public class SOSDatabaseSensorStoreFactory extends DataStoreProvider {
-    
+
      /** factory identification **/
     public static final String NAME = "om2sensor";
-    
+
     public static final ParameterDescriptor<String> IDENTIFIER = createFixedIdentifier(NAME);
-    
+
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
             new ParameterBuilder().addName(NAME)
                                   .addName("OM2SensorParameters")

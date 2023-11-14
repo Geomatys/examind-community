@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
-import org.apache.sis.internal.xml.LegacyNamespaces;
+import org.apache.sis.xml.util.LegacyNamespaces;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
@@ -1049,7 +1049,7 @@ public class CSW3RequestTest extends AbstractCSWRequestTest {
                         + "org.geotoolkit.csw.xml.v202:"
                         + "org.geotoolkit.csw.xml.v300:"
                         + "org.geotoolkit.ows.xml.v200:"
-                        + "org.apache.sis.internal.jaxb.geometry:"
+                        + "org.apache.sis.xml.bind.metadata.geometry:"
                         + "org.geotoolkit.ows.xml.v100"), null);
 
         //update the federated catalog in case of busy port

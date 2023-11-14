@@ -30,12 +30,12 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.TransferType;
-import org.apache.sis.internal.feature.jts.Factory;
-import org.apache.sis.internal.referencing.WraparoundApplicator;
-import org.apache.sis.internal.system.DefaultFactories;
+import org.apache.sis.geometry.wrapper.jts.Factory;
+import org.apache.sis.referencing.util.WraparoundApplicator;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.operation.transform.DefaultMathTransformFactory;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.util.Utilities;
 import org.apache.sis.util.collection.BackingStoreException;
@@ -69,7 +69,7 @@ import static org.constellation.map.featureinfo.AbstractFeatureInfoFormat.LOGGER
  */
 class DataProfile implements Spliterator<DataProfile.DataPoint> {
 
-    /** 
+    /**
      * A translation between datasource grid space to rendering.
      * Needed because rendering origin (0, 0) match grid space lower corner,
      * which can be an arbitrary position.
@@ -152,7 +152,7 @@ class DataProfile implements Spliterator<DataProfile.DataPoint> {
             templateSize[i+1] = (int) globalExtent.getSize(i+2);
         }
 
-        final MathTransformFactory mtf = DefaultFactories.forBuildin(MathTransformFactory.class);
+        final MathTransformFactory mtf = new DefaultMathTransformFactory();
         distanceCalculatorTemplate = new GridCalculator.Template(mtf, gridGeometry, PixelInCell.CELL_CORNER, conversionContext.regionOfInterest);
         currentSegment = new SegmentProfile(segmentIdx);
     }

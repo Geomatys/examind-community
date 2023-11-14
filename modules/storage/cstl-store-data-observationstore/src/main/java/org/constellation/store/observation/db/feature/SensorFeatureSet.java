@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db.feature;
 
-import org.apache.sis.internal.storage.StoreResource;
+import org.apache.sis.storage.base.StoreResource;
 import org.apache.sis.storage.AbstractFeatureSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
@@ -132,7 +132,7 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
     }
 
     @Override
-    public boolean removeIf(Predicate<? super Feature> filter) throws DataStoreException {
+    public void removeIf(Predicate<? super Feature> filter) throws DataStoreException {
         final FeatureType sft = getType();
         boolean match = false;
         try (CloseableIterator<Feature> reader = switch (readerType) {
@@ -149,7 +149,6 @@ public class SensorFeatureSet extends AbstractFeatureSet implements StoreResourc
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
-        return match;
 
     }
 

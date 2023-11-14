@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
 import jakarta.xml.bind.Unmarshaller;
-import org.apache.sis.internal.storage.image.WorldFileStoreProvider;
+import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;

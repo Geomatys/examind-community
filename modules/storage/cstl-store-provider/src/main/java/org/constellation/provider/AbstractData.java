@@ -160,7 +160,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
     public SortedSet<Number> getAvailableElevations() throws ConstellationStoreException {
         return new TreeSet<>();
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -286,7 +286,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
         }
         final MapLayer maplayer = new MapLayer();
         maplayer.setData(new InMemoryFeatureSet(type, feats));
-        maplayer.setStyle(styleI);
+        maplayer.setStyle((org.apache.sis.style.Style) styleI);
         maplayer.setIdentifier(name);
         maplayer.setTitle(name);
         maplayer.setOpacity(1.0);

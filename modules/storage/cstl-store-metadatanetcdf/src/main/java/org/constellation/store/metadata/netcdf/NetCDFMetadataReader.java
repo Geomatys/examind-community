@@ -19,7 +19,7 @@
 package org.constellation.store.metadata.netcdf;
 
 import java.util.*;
-import org.apache.sis.internal.xml.LegacyNamespaces;
+import org.apache.sis.xml.util.LegacyNamespaces;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.xml.XML;

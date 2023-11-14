@@ -17,8 +17,8 @@
 package com.examind.store.observation.csvflat;
 
 import com.examind.store.observation.FileParsingObservationStoreFactory;
-import org.apache.sis.internal.storage.Capability;
-import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.storage.base.Capability;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.storage.ResourceType;

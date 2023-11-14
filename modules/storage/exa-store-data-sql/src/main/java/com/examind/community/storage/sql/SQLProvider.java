@@ -16,7 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
-//import org.apache.sis.internal.sql.feature.QueryFeatureSet;
+//import org.apache.sis.storage.sql.feature.QueryFeatureSet;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
 import org.apache.sis.parameter.Parameters;

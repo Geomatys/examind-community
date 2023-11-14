@@ -25,8 +25,7 @@ import java.util.Map;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
-import org.apache.sis.internal.util.DefinitionURI;
-import org.apache.sis.util.NullArgumentException;
+import org.apache.sis.util.internal.DefinitionURI;
 import static org.constellation.wps.ws.rs.WPSService.extractDataFromKvpString;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.ows.xml.BoundingBox;
@@ -167,7 +166,7 @@ public class WPSGetTest {
             WPSService.extractInput(WPSVersion.v100.getCode(), processIdentifier, null);
             Assert.fail();
         }
-        catch (NullArgumentException ex) {
+        catch (NullPointerException ex) {
         }
 
         // TEST CASE 4
@@ -177,7 +176,7 @@ public class WPSGetTest {
             WPSService.extractInput(WPSVersion.v100.getCode(), null, null);
             Assert.fail();
         }
-        catch (NullArgumentException ex) {
+        catch (NullPointerException ex) {
         }
     }
 
@@ -281,7 +280,7 @@ public class WPSGetTest {
             WPSService.extractInput(WPSVersion.v200.getCode(), processIdentifier, null);
             Assert.fail();
         }
-        catch (NullArgumentException ex) {
+        catch (NullPointerException ex) {
         }
 
         // TEST CASE 4
@@ -291,7 +290,7 @@ public class WPSGetTest {
             WPSService.extractInput(WPSVersion.v200.getCode(), null, null);
             Assert.fail();
         }
-        catch (NullArgumentException ex) {
+        catch (NullPointerException ex) {
         }
     }
 
@@ -920,7 +919,7 @@ public class WPSGetTest {
                 Map<String, Map> inputMap = extractDataFromKvpString(null);
                 Assert.fail();
             }
-            catch (NullArgumentException ex) {
+            catch (NullPointerException ex) {
             }
         }
     }
@@ -991,7 +990,7 @@ public class WPSGetTest {
                 Map<String, Map> inputMap = extractDataFromKvpString(null);
                 Assert.fail();
             }
-            catch (NullArgumentException ex) {
+            catch (NullPointerException ex) {
             }
         }
     }

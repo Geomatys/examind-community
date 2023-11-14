@@ -2,7 +2,6 @@ package org.constellation.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.Assert;
-import org.apache.sis.util.NullArgumentException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.GeneralParameterDescriptor;
@@ -125,7 +124,7 @@ public class ParamUtilitiesTest {
         try {
             ParamUtilities.writeParameterJSON(null);
             Assert.fail("writeParameterJSON(null) should fail.");
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             // failure ok
         }
     }
@@ -167,7 +166,7 @@ public class ParamUtilitiesTest {
         try {
             ParamUtilities.readParameterJSON(null, DESCRITPTOR);
             Assert.fail("readParameterJSON(null, desc) should fail.");
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             // failure ok
         } catch (IOException e) {
             Assert.fail("readParameterJSON(null, desc) should not raise an IOException.");
@@ -176,7 +175,7 @@ public class ParamUtilitiesTest {
         try {
             ParamUtilities.readParameterJSON(serializedJSON, null);
             Assert.fail("readParameterJSON(json, null) should fail.");
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             // failure ok
         } catch (IOException e) {
             Assert.fail("readParameterJSON(json, null) should not raise an IOException.");
@@ -185,7 +184,7 @@ public class ParamUtilitiesTest {
         try {
             ParamUtilities.readParameterJSON(null, null);
             Assert.fail("readParameterJSON(null, null) should fail.");
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             // failure ok
         } catch (IOException e) {
             Assert.fail("readParameterJSON(null, null) should not raise an IOException.");

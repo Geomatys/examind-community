@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 import jakarta.xml.bind.JAXBException;
 import org.constellation.business.IStyleBusiness;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.geotoolkit.sld.xml.StyleXmlIO;
-import org.opengis.sld.StyledLayerDescriptor;
 import org.opengis.style.Style;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpInputMessage;
@@ -39,7 +39,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 
 /**
  * XML Style message converter.
- * 
+ *
  * @author Johann Sorel (Geomatys)
  */
 public class StyleMessageConverter implements HttpMessageConverter<Object> {
@@ -48,16 +48,16 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
 
     @Autowired
     private IStyleBusiness styleBusiness;
-    
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
-        return Style.class.isAssignableFrom(clazz) 
+        return Style.class.isAssignableFrom(clazz)
             || StyledLayerDescriptor.class.isAssignableFrom(clazz);
     }
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        return Style.class.isAssignableFrom(clazz) 
+        return Style.class.isAssignableFrom(clazz)
             || StyledLayerDescriptor.class.isAssignableFrom(clazz);
     }
 
@@ -68,12 +68,12 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
 
     @Override
     public Object read(Class<? extends Object> clazz, HttpInputMessage inputMessage) throws IOException, HttpMessageNotReadableException {
-        
+
         //copy the file content in memory
         final ByteArrayOutputStream bos = new ByteArrayOutputStream();
         IOUtilities.copy(inputMessage.getBody(), bos);
         final byte[] buffer = bos.toByteArray();
-            
+
         //try to extract a style from various form and version
         Style style = styleBusiness.parseStyle(null, buffer, null);
 
@@ -98,5 +98,5 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
             throw new IOException(ex);
         }
     }
-    
+
 }

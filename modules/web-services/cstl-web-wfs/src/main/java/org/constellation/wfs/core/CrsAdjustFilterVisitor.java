@@ -32,7 +32,7 @@ import org.opengis.util.FactoryException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.internal.filter.FunctionNames;
+import org.apache.sis.filter.internal.FunctionNames;
 
 /**
  *
@@ -55,7 +55,7 @@ public class CrsAdjustFilterVisitor extends DuplicatingFilterVisitor{
                     if(geoCrs == null){
                         JTS.setCRS(geo, replacementCrs);
                     }else if(Utilities.equalsIgnoreMetadata(geoCrs, baseCrs)){
-                        geo = org.apache.sis.internal.feature.jts.JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
+                        geo = org.apache.sis.geometry.wrapper.jts.JTS.transform(geo, CRS.findOperation(baseCrs, replacementCrs, null).getMathTransform());
                         JTS.setCRS(geo, replacementCrs);
                     }
                     obj = geo;

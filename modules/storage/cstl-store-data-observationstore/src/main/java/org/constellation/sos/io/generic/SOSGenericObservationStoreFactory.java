@@ -17,8 +17,8 @@
 
 package org.constellation.sos.io.generic;
 
-import org.apache.sis.internal.storage.Capability;
-import org.apache.sis.internal.storage.StoreMetadata;
+import org.apache.sis.storage.base.Capability;
+import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;

@@ -65,7 +65,7 @@ public class AbstractGeometryConverter implements HttpMessageConverter<AbstractG
                 JettisonJaxbContext cxtx = new JettisonJaxbContext(config, "org.constellation.dto:" +
                         "org.constellation.generic.database:" +
                         "org.geotoolkit.ogc.xml.v110:" +
-                        "org.apache.sis.internal.jaxb.geometry:" +
+                        "org.apache.sis.xml.bind.metadata.geometry:" +
                         "org.geotoolkit.gml.xml.v311");
                 JettisonUnmarshaller jsonUnmarshaller = cxtx.createJsonUnmarshaller();
                 context = jsonUnmarshaller.unmarshalFromJSON(entityStream, LayerContext.class);*/

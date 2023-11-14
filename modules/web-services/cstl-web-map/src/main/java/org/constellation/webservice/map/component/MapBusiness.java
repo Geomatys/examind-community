@@ -59,7 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static org.apache.sis.util.ArgumentChecks.ensureDimensionMatches;
-import static org.apache.sis.util.ArgumentChecks.ensureExpectedCount;
+import static org.apache.sis.util.ArgumentChecks.ensureCountBetween;
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.constellation.business.IMapBusiness;
 import org.constellation.ws.LayerCache;
@@ -158,7 +158,7 @@ public class MapBusiness implements IMapBusiness {
         ensureNonNull("dataId", dataIds);
         List<Style> styles = new ArrayList<>();
         if (styleIds != null) {
-            ensureExpectedCount("data/style size", dataIds.size(), styles.size());
+            ensureCountBetween("data/style size", false, dataIds.size(), dataIds.size(), styles.size());
             for (int i = 0; i < dataIds.size(); i++) {
                 Integer sid = styleIds.get(i);
                 Style s = null;
@@ -187,7 +187,7 @@ public class MapBusiness implements IMapBusiness {
                                      final String bbox, final int width, final int height,
                                      final List<Style> styles, final String filter) throws ConstellationException {
 
-        ensureExpectedCount("data/style size", dataIds.size(), styles.size());
+        ensureCountBetween("data/style size", false, dataIds.size(), dataIds.size(), styles.size());
         try {
             final MapLayers mapContext = MapBuilder.createContext();
 

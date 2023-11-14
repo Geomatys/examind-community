@@ -55,7 +55,6 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
     /*
      * Bundle path and keys
      */
-    private static final String BUNDLE = "org/constellation/process/service/bundle";
     private static final String ADD_SFLAYER_ABSTRACT_KEY            = "service.add_layer_Abstract";
     private static final String LAYER_REF_PARAM_REMARKS_KEY         = "service.add_layer.layerReference";
     private static final String LAYER_ALIAS_PARAM_REMARKS_KEY       = "service.add_layer.layerAlias";
@@ -71,13 +70,13 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Name and description
      */
     public static final String NAME = "service.add_layer";
-    public static final InternationalString ABSTRACT = new ResourceInternationalString(BUNDLE, ADD_SFLAYER_ABSTRACT_KEY);
+    public static final InternationalString ABSTRACT = new BundleInternationalString(ADD_SFLAYER_ABSTRACT_KEY);
 
     /*
      * Layer reference
      */
     public static final String LAYER_REF_PARAM_NAME = "layer_reference";
-    public static final InternationalString LAYER_REF_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_REF_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_REF_PARAM_REMARKS = new BundleInternationalString(LAYER_REF_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<DataProcessReference> LAYER_REF = BUILDER
             .addName(LAYER_REF_PARAM_NAME)
             .setRemarks(LAYER_REF_PARAM_REMARKS)
@@ -88,7 +87,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Layer alias
      */
     public static final String LAYER_ALIAS_PARAM_NAME = "layer_alias";
-    public static final InternationalString LAYER_ALIAS_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_ALIAS_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_ALIAS_PARAM_REMARKS = new BundleInternationalString(LAYER_ALIAS_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<String> LAYER_ALIAS = BUILDER
             .addName(LAYER_ALIAS_PARAM_NAME)
             .setRemarks(LAYER_ALIAS_PARAM_REMARKS)
@@ -99,7 +98,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Layer Style
      */
     public static final String LAYER_STYLE_PARAM_NAME = "layer_style_reference";
-    public static final InternationalString LAYER_STYLE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_STYLE_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_STYLE_PARAM_REMARKS = new BundleInternationalString(LAYER_STYLE_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<StyleReference> LAYER_STYLE = BUILDER
             .addName(LAYER_STYLE_PARAM_NAME)
             .setRemarks(LAYER_STYLE_PARAM_REMARKS)
@@ -110,7 +109,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Layer filter
      */
     public static final String LAYER_FILTER_PARAM_NAME = "layer_filter";
-    public static final InternationalString LAYER_FILTER_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_FILTER_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_FILTER_PARAM_REMARKS = new BundleInternationalString(LAYER_FILTER_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<Filter> LAYER_FILTER = BUILDER
             .addName(LAYER_FILTER_PARAM_NAME)
             .setRemarks(LAYER_FILTER_PARAM_REMARKS)
@@ -118,7 +117,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
             .create(Filter.class, null);
 
     public static final String LAYER_DIMENSION_PARAM_NAME = "layer_dimension";
-    public static final InternationalString LAYER_DIMENSION_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_DIMENSION_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_DIMENSION_PARAM_REMARKS = new BundleInternationalString(LAYER_DIMENSION_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<String> LAYER_DIMENSION = BUILDER
             .addName(LAYER_DIMENSION_PARAM_NAME)
             .setRemarks(LAYER_DIMENSION_PARAM_REMARKS)
@@ -129,7 +128,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Custom GetFeatureInfo
      */
     public static final String LAYER_CUSTOM_GFI_PARAM_NAME = "layer_feature_infos";
-    public static final InternationalString LAYER_CUSTOM_GFI_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_CUSTOM_GFI_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_CUSTOM_GFI_PARAM_REMARKS = new BundleInternationalString(LAYER_CUSTOM_GFI_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<GetFeatureInfoCfg[]> LAYER_CUSTOM_GFI = BUILDER
             .addName(LAYER_CUSTOM_GFI_PARAM_NAME)
             .setRemarks(LAYER_CUSTOM_GFI_PARAM_REMARKS)
@@ -140,7 +139,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Service Type
      */
     public static final String SERVICE_TYPE_PARAM_NAME = "service_type";
-    public static final InternationalString SERVICE_TYPE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_TYPE_PARAM_REMARKS_KEY);
+    public static final InternationalString SERVICE_TYPE_PARAM_REMARKS = new BundleInternationalString(SERVICE_TYPE_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
             .addName(SERVICE_TYPE_PARAM_NAME)
             .setRemarks(SERVICE_TYPE_PARAM_REMARKS)
@@ -151,7 +150,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Service instance name
      */
     public static final String SERVICE_INSTANCE_PARAM_NAME = "service_instance";
-    public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_INSTANCE_PARAM_REMARKS_KEY);
+    public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new BundleInternationalString(SERVICE_INSTANCE_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<String> SERVICE_INSTANCE = BUILDER
             .addName(SERVICE_INSTANCE_PARAM_NAME)
             .setRemarks(SERVICE_INSTANCE_PARAM_REMARKS)
@@ -167,7 +166,7 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
      * Output Layer context
      */
     public static final String OUT_LAYER_PARAM_NAME = "layer";
-    public static final InternationalString OUT_LAYER_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, OUT_LAYER_PARAM_REMARKS_KEY);
+    public static final InternationalString OUT_LAYER_PARAM_REMARKS = new BundleInternationalString(OUT_LAYER_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<LayerConfig> OUT_LAYER = BUILDER
             .addName(OUT_LAYER_PARAM_NAME)
             .setRemarks(OUT_LAYER_PARAM_REMARKS)

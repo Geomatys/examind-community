@@ -26,7 +26,7 @@ import org.constellation.exception.ConstellationException;
 
 import java.util.List;
 import java.util.Map;
-import org.opengis.sld.StyledLayerDescriptor;
+import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.opengis.style.Style;
 
 /**

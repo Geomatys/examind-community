@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
-import org.apache.sis.internal.jaxb.gco.Multiplicity;
+import org.apache.sis.xml.bind.gco.Multiplicity;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;

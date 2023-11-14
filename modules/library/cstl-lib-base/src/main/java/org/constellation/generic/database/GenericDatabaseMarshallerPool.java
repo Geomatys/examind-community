@@ -37,7 +37,7 @@ public final class GenericDatabaseMarshallerPool {
         StringBuilder sb = new StringBuilder("org.constellation.dto:" +
                             "org.constellation.dto.service.config.generic:" +
                             "org.geotoolkit.ogc.xml.v110:" +
-                            "org.apache.sis.internal.jaxb.geometry:" +
+                            "org.apache.sis.xml.bind.metadata.geometry:" +
                             "org.geotoolkit.gml.xml.v311");
         try {
             Class.forName("org.constellation.dto.portrayal.ObjectFactory");

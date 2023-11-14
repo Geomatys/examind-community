@@ -19,14 +19,13 @@
 
 package org.constellation.json.util;
 
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.util.Static;
+import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.sld.DefaultSLDFactory;
 import org.geotoolkit.sld.MutableSLDFactory;
 import org.geotoolkit.style.MutableStyleFactory;
 import org.geotoolkit.filter.FilterUtilities;
 import org.opengis.filter.FilterFactory;
-import org.opengis.style.StyleFactory;
 
 /**
  * @author Fabien Bernard (Geomatys).
@@ -43,7 +42,7 @@ public final class StyleFactories extends Static {
     /**
      * Style elements factory.
      */
-    public static final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+    public static final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
 
     /**
      * Filters factory.

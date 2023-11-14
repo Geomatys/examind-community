@@ -58,7 +58,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.ArgumentChecks;
-import org.apache.sis.util.NullArgumentException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
@@ -125,7 +124,7 @@ public class WPSUtils {
             final Identifier id = parseProcessIdentifier(identifier);
             return ProcessFinder.getProcessDescriptor(id.getCodeSpace(), id.getCode());
 
-        } catch (NoSuchIdentifierException | IllegalArgumentException | NullArgumentException ex) {
+        } catch (NoSuchIdentifierException | IllegalArgumentException | NullPointerException ex) {
             throw new CstlServiceException("The process " + IDENTIFIER_PARAMETER.toLowerCase() + " : " + identifier + " does not exist.",
                     INVALID_PARAMETER_VALUE, IDENTIFIER_PARAMETER.toLowerCase());
         }
@@ -542,7 +541,7 @@ public class WPSUtils {
      * @param attributeClass The java class to get complex type from.
      * @param ioType The type of parameter to describe (input or output).
      * @param userData A map containing user's options for type support.
-     * 
+     *
      * @return ComplexData
      */
     public static ComplexData describeComplex(final Class attributeClass, final WPSIO.IOType ioType, final Map<String, Object> userData) {

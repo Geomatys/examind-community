@@ -18,7 +18,7 @@
  */
 package org.constellation.metadata.ws.rs;
 
-import org.apache.sis.internal.xml.LegacyNamespaces;
+import org.apache.sis.xml.util.LegacyNamespaces;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;
 import org.constellation.metadata.core.CSWworker;

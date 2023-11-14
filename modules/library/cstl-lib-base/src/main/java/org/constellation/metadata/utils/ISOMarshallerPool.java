@@ -65,7 +65,7 @@ public class ISOMarshallerPool {
 
 
         // GML base factory
-        classeList.add(org.apache.sis.internal.jaxb.geometry.ObjectFactory.class);
+        classeList.add(org.apache.sis.xml.bind.metadata.geometry.ObjectFactory.class);
 
         // GML 3.1.1 / 3.2.1
         try {

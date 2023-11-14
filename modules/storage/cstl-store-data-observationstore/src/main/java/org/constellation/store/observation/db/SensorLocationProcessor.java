@@ -79,7 +79,7 @@ public class SensorLocationProcessor {
                     // reproject geom to envelope CRS if needed
                     if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {
                         try {
-                            geom = org.apache.sis.internal.feature.jts.JTS.transform(geom, envCRS);
+                            geom = org.apache.sis.geometry.wrapper.jts.JTS.transform(geom, envCRS);
                         } catch (TransformException ex) {
                             throw new DataStoreException(ex);
                         }

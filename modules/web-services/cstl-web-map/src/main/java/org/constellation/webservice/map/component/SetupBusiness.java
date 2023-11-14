@@ -29,7 +29,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.parameter.Parameters;
 
 import org.constellation.admin.SpringHelper;
@@ -56,6 +55,7 @@ import org.constellation.provider.DataProviderFactory;
 import org.constellation.util.SQLUtilities;
 import org.constellation.ws.IWSEngine;
 import org.constellation.ws.Worker;
+import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
 import org.geotoolkit.style.DefaultExternalGraphic;
@@ -110,7 +110,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
 
     @Autowired
     private IDatasourceBusiness datasourceBusiness;
-    
+
     @Autowired
     private IDataCoverageJob dataCoverageJob;
 
@@ -227,7 +227,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
 
     /**
      * Record the current sql datasource ine order to use it for further usage.
-     * 
+     *
      * @throws ConstellationException
      */
     private void createInternalDatasource() throws ConstellationException {
@@ -263,9 +263,9 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
     }
 
     private class WithDefaultResources {
-        
+
         private final Path dataDirectory;
-        
+
         WithDefaultResources(final Path dataDirectory) {
             this.dataDirectory = dataDirectory;
         }
@@ -286,7 +286,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
             }
 
             // Fill default SLD provider.
-            final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+            final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
 
 
             try {

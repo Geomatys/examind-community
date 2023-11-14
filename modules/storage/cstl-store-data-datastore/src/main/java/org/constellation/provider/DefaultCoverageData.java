@@ -40,9 +40,9 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.storage.StoreResource;
-import org.apache.sis.internal.storage.image.WorldFileStore;
-import org.apache.sis.internal.util.UnmodifiableArrayList;
+import org.apache.sis.storage.base.StoreResource;
+import org.apache.sis.storage.image.WorldFileStore;
+import org.apache.sis.util.internal.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.portrayal.MapItem;
@@ -123,7 +123,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             if (styleI == null) {
                 styleI = getDefaultStyle();
             }
-            layer.setStyle(styleI);
+            layer.setStyle((org.apache.sis.style.Style) styleI);
             final String title = getName().tip().toString();
             layer.setIdentifier(title);
             layer.setTitle(title);

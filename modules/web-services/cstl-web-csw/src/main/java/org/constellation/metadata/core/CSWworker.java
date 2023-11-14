@@ -20,7 +20,7 @@ package org.constellation.metadata.core;
 
 import com.codahale.metrics.annotation.Timed;
 import org.apache.sis.xml.Namespaces;
-import org.apache.sis.internal.xml.LegacyNamespaces;
+import org.apache.sis.xml.util.LegacyNamespaces;
 import org.constellation.api.ServiceDef;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.contact.Details;

@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.apache.sis.cql.CQL;
+import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.referencing.CRS;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.rest.ErrorMessage;
@@ -69,7 +69,7 @@ import org.geotoolkit.feature.model.FeatureSetWrapper;
 @RequestMapping("feature/{serviceId:.+}")
 public class FeatureAPI extends GridWebService<WFSWorker> {
 
-    private static final FilterFactory FF = DefaultFactories.forBuildin(FilterFactory.class);
+    private static final FilterFactory FF = DefaultFilterFactory.forFeatures();
 
     public FeatureAPI() {
         // here we use wfs for worker retrieval purpose
@@ -174,7 +174,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                 MediaType media;
                 String url = getServiceURL() + "/feature/" + serviceId + "/collections";
                 buildDocumentLinks(url, asJson, collections.getLinks(), false);
-                
+
                 if (asJson) {
                     media = MediaType.APPLICATION_JSON;
                 } else {
@@ -221,7 +221,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     result = collections;
                 }
                 return new ResponseObject(result, media, HttpStatus.OK).getResponseEntity();
-                
+
             } catch (CstlServiceException ex) {
                 if (ex.getExceptionCode().equals(LAYER_NOT_DEFINED)) {
                     return new ErrorMessage(HttpStatus.NOT_FOUND).i18N(I18nCodes.Collection.NOT_FOUND).build();
@@ -376,7 +376,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                     buildDocumentLinks(url + "/items/" + featureId, asJson, links, true);
                     buildCollectionLink(url, links);
                     fsc.getLinks().addAll(links);
-                    
+
                     MediaType media;
                     if (asJson) {
                         media = MediaType.APPLICATION_JSON;

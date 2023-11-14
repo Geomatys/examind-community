@@ -47,7 +47,7 @@ public abstract class DefaultGeoData<T extends Resource> extends AbstractData<T>
         if (styleI == null) {
             styleI = getDefaultStyle();
         }
-        layer.setStyle(styleI);
+        layer.setStyle((org.apache.sis.style.Style) styleI);
         final String title = getName().tip().toString();
         layer.setIdentifier(title);
         layer.setTitle(title);

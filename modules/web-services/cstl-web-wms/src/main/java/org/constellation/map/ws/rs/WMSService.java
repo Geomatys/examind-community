@@ -375,7 +375,7 @@ public class WMSService extends GridWebService<WMSWorker> {
         final String pNameStr = getParameter(KEY_PROPERTYNAME, false);
         final List<List<String>> propertyNames = pNameStr != null ? Util.parseMultipleList(pNameStr) : Collections.EMPTY_LIST;
         getMap.getParameters().put(KEY_PROPERTYNAME, propertyNames);
-        
+
         final int x, y;
         try {
             x = RequestsUtilities.toInt(strX);
@@ -592,12 +592,12 @@ public class WMSService extends GridWebService<WMSWorker> {
         final Color background = RequestsUtilities.toColor(strBGColor);
         final boolean transparent = RequestsUtilities.toBoolean(strTransparent);
         queryContext.setOpaque(!transparent);
-        org.opengis.sld.StyledLayerDescriptor sld = null;
+        org.geotoolkit.sld.StyledLayerDescriptor sld = null;
         if (strRemoteOwsUrl != null) {
             try {
                 Path strRemoteOwsPath = IOUtilities.toPath(strRemoteOwsUrl);
                 sld = styleBusiness.readSLD(strRemoteOwsPath, true);
-                    
+
             } catch (IOException | ConstellationException ex) {
                 throw new CstlServiceException(ex, STYLE_NOT_DEFINED);
             }

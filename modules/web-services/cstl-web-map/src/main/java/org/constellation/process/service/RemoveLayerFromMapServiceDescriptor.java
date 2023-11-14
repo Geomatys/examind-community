@@ -51,7 +51,6 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
     /*
      * Bundle path and keys
      */
-    private static final String BUNDLE = "org/constellation/process/service/bundle";
     private static final String ADD_SFLAYER_ABSTRACT_KEY            = "service.remove_layer_Abstract";
     private static final String LAYER_REF_PARAM_REMARKS_KEY         = "service.remove_layer.layerReference";
     private static final String SERVICE_INSTANCE_PARAM_REMARKS_KEY  = "service.remove_layer.serviceInstance";
@@ -61,13 +60,13 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
      * Name and description
      */
     public static final String NAME = "service.remove_layer";
-    public static final InternationalString ABSTRACT = new ResourceInternationalString(BUNDLE, ADD_SFLAYER_ABSTRACT_KEY);
+    public static final InternationalString ABSTRACT = new BundleInternationalString(ADD_SFLAYER_ABSTRACT_KEY);
 
     /*
      * Layer reference
      */
     public static final String LAYER_REF_PARAM_NAME = "layer_reference";
-    public static final InternationalString LAYER_REF_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, LAYER_REF_PARAM_REMARKS_KEY);
+    public static final InternationalString LAYER_REF_PARAM_REMARKS = new BundleInternationalString(LAYER_REF_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<DataProcessReference> LAYER_REF = BUILDER
             .addName(LAYER_REF_PARAM_NAME)
             .setRemarks(LAYER_REF_PARAM_REMARKS)
@@ -78,7 +77,7 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
      * Service reference
      */
     public static final String SERVICE_INSTANCE_PARAM_NAME = "service_instance";
-    public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, SERVICE_INSTANCE_PARAM_REMARKS_KEY);
+    public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new BundleInternationalString(SERVICE_INSTANCE_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<ServiceReference> SERVICE_REF = BUILDER
             .addName(SERVICE_INSTANCE_PARAM_NAME)
             .setRemarks(SERVICE_INSTANCE_PARAM_REMARKS)
@@ -94,7 +93,7 @@ public class RemoveLayerFromMapServiceDescriptor extends AbstractCstlProcessDesc
      * Output Layer context
      */
     public static final String OLD_LAYER_PARAM_NAME = "old_layer";
-    public static final InternationalString OLD_LAYER_PARAM_REMARKS = new ResourceInternationalString(BUNDLE, OLD_LAYER_PARAM_REMARKS_KEY);
+    public static final InternationalString OLD_LAYER_PARAM_REMARKS = new BundleInternationalString(OLD_LAYER_PARAM_REMARKS_KEY);
     public static final ParameterDescriptor<LayerConfig> OLD_LAYER = BUILDER
             .addName(OLD_LAYER_PARAM_NAME)
             .setRemarks(OLD_LAYER_PARAM_REMARKS)

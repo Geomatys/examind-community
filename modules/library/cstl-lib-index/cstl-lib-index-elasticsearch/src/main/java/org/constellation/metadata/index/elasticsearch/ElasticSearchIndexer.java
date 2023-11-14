@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.util.NullArgumentException;
 import static org.constellation.api.CommonConstants.NULL_VALUE;
 import org.constellation.api.PathType;
 import static org.constellation.metadata.CSWQueryable.DUBLIN_CORE_QUERYABLE;
@@ -473,7 +472,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
             } else {
                 LOGGER.log(Level.WARNING, "Unable to spatially index metadata: {0}\n cause: missing coordinates.", getIdentifier(form));
             }
-        } catch (NullArgumentException ex) {
+        } catch (NullPointerException ex) {
             throw new IndexingException("error while spatially indexing:" + doc.get("id"), ex);
         }
         return false;
@@ -508,7 +507,7 @@ public abstract class ElasticSearchIndexer<E> implements Indexer<E> {
                     // in the format [[minLon, maxLat], [maxLon, minLat]]:
 
                     // Elasticsearch do not like "line/point" bbox
-                   
+
                     if (ax -ix <  DELTA) {
                         ax = ax + DELTA;
                     }

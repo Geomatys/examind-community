@@ -94,8 +94,8 @@ public class PyramidProcess extends AbstractProcessDescriptor implements AdminPr
 
     public PyramidProcess() {
         super("gen-pyramid", AdminProcessRegistry.IDENTIFICATION,
-                new ResourceInternationalString(BUNDLE_LOCATION, "gen.description"),
-                new ResourceInternationalString(BUNDLE_LOCATION, "gen.title"), INPUT, OUTPUT);
+                new BundleInternationalString("gen.description"),
+                new BundleInternationalString( "gen.title"), INPUT, OUTPUT);
     }
 
     @Override

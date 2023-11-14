@@ -170,7 +170,7 @@ public class WFSService extends GridWebService<WFSWorker> {
             		  ":org.geotoolkit.gml.xml.v311"  +
                           ":org.geotoolkit.gml.xml.v321"  +
                           ":org.geotoolkit.xsd.xml.v2001" +
-                          ":org.apache.sis.internal.jaxb.geometry"), null);
+                          ":org.apache.sis.xml.bind.metadata.geometry"), null);
             setXMLContext(pool);
             LOGGER.log(Level.INFO, "WFS REST service running");
 

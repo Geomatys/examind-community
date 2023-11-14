@@ -110,7 +110,7 @@ public class FeatureSetObservationData extends AbstractData<FeatureSet> implemen
             }
         }
         maplayer.setData(origin);
-        maplayer.setStyle(styleI);
+        maplayer.setStyle((org.apache.sis.style.Style) styleI);
         return maplayer;
     }
 }

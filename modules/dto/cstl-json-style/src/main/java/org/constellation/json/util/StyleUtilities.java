@@ -40,7 +40,6 @@ import java.util.stream.Stream;
 import javax.measure.Unit;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
-import org.apache.sis.internal.system.DefaultFactories;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.storage.FeatureSet;
@@ -445,7 +444,7 @@ public final class StyleUtilities extends Static {
             double minimum = Double.POSITIVE_INFINITY;
             double maximum = Double.NEGATIVE_INFINITY;
 
-            final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+            final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
             final FilterFactory FF = FilterUtilities.FF;
 
             final ValueReference property = FF.property(attribute);
@@ -574,7 +573,7 @@ public final class StyleUtilities extends Static {
             /*
             * II - Extract all different values.
             */
-            final MutableStyleFactory SF = (MutableStyleFactory) DefaultFactories.forBuildin(StyleFactory.class);
+            final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
             final FilterFactory FF = FilterUtilities.FF;
             final ValueReference property = FF.property(attribute);
             final List<Object> differentValues = new ArrayList<>();

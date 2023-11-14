@@ -19,8 +19,8 @@
 
 package org.constellation.metadata;
 
-import org.apache.sis.internal.jaxb.gcx.Anchor;
-import org.apache.sis.internal.jaxb.metadata.replace.ReferenceSystemMetadata;
+import org.apache.sis.xml.bind.gcx.Anchor;
+import org.apache.sis.xml.bind.metadata.replace.ReferenceSystemMetadata;
 import org.apache.sis.metadata.iso.DefaultExtendedElementInformation;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.DefaultMetadataExtensionInformation;
@@ -119,6 +119,7 @@ import static org.constellation.test.utils.TestResourceUtils.getResourceAsString
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
+import org.opengis.metadata.identification.CharacterSet;
 
 
 /**
@@ -358,7 +359,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
          */
         metadata.setFileIdentifier("42292_5p_19900609195600");
         metadata.setLanguage(Locale.ENGLISH);
-        metadata.setCharacterSets(singleton(StandardCharsets.UTF_8));
+        metadata.setCharacterSet(CharacterSet.UTF_8);
         metadata.setHierarchyLevels(singleton(ScopeCode.DATASET));
         metadata.setHierarchyLevelNames(singleton("Common Data Index record"));
         /*

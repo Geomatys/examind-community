@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.internal.feature.AttributeConvention;
+import org.apache.sis.feature.internal.AttributeConvention;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.exception.ConstellationStoreException;
@@ -151,7 +151,7 @@ public class OM2SamplingFeatureReader implements CloseableIterator<Feature> {
         }
         if (!Utilities.equalsIgnoreMetadata(currentCRS, crs)) {
             try {
-                geom =  org.apache.sis.internal.feature.jts.JTS.transform(geom, crs);
+                geom =  org.apache.sis.geometry.wrapper.jts.JTS.transform(geom, crs);
             } catch (TransformException ex) {
                 throw new ConstellationStoreException(ex);
             }

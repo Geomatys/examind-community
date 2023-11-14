@@ -599,7 +599,7 @@ public class CSW2RequestTest extends AbstractCSWRequestTest {
                         + "org.constellation.dto.service.config.generic:"
                         + "org.geotoolkit.ows.xml.v110:"
                         + "org.geotoolkit.csw.xml.v202:"
-                        + "org.apache.sis.internal.jaxb.geometry:"
+                        + "org.apache.sis.xml.bind.metadata.geometry:"
                         + "org.geotoolkit.ows.xml.v100"), null);
 
         //update the federated catalog in case of busy port
