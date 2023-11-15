@@ -62,6 +62,7 @@ import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.HistoricalLocationQuery;
@@ -408,6 +409,15 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public void writeProcedure(ProcedureDataset procedure) throws ConstellationStoreException {
         try {
             ((ObservationStore)getMainStore()).getWriter().writeProcedure(toGeotk(procedure));
+        } catch (DataStoreException ex) {
+             throw new ConstellationStoreException(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public void updateProcedure(Process procedure) throws ConstellationStoreException {
+        try {
+            ((ObservationStore)getMainStore()).getWriter().updateProcedure((Procedure) procedure);
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex.getMessage(), ex);
         }

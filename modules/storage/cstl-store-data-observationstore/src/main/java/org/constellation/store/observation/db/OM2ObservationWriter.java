@@ -627,7 +627,29 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     @Override
     public void updateProcedure(Procedure procedure) throws DataStoreException {
-        throw new UnsupportedOperationException("TODO.");
+        final String procedureID = procedure.getId();
+        try(final Connection c = source.getConnection()) {
+            if (procedure instanceof ProcedureDataset pd) {
+                writeProcedure(pd, null, c);
+            } else {
+                boolean exist = false;
+                try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+                    stmtExist.setString(1, procedureID);
+                    try (final ResultSet rs = stmtExist.executeQuery()) {
+                        exist = rs.next();
+                    }
+                }
+                if (exist) {
+                    /*
+                     * update properties.
+                     */
+                    deleteProperties("procedures_properties", "id_procedure", procedureID, c);
+                    writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
+                }
+            }
+        } catch (SQLException | FactoryException ex) {
+            throw new DataStoreException("Error while inserting procedure.", ex);
+        }
     }
 
     private void setGeometry(PreparedStatement stmt, Geometry geom, int index) throws SQLException {

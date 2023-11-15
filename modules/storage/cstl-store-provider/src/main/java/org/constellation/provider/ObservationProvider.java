@@ -85,6 +85,8 @@ public interface ObservationProvider extends DataProvider {
 
     void writeProcedure(final ProcedureDataset procedure) throws ConstellationStoreException;
 
+    void updateProcedure(Process procedure) throws ConstellationStoreException;
+
     void writeOffering(Offering offering) throws ConstellationStoreException;
 
     void writeLocation(String procedureId, Geometry geom) throws ConstellationStoreException;
