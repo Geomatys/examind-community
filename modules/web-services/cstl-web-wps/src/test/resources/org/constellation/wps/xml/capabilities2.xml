@@ -113,11 +113,6 @@
             <ows:Abstract>Create a pyramid / mosaic from the givencoverage. Created tiles are stored in the given Coverage store.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
-            <ns10:Identifier>urn:exa:wps:geotoolkit::groovy:condition</ns10:Identifier>
-            <ows:Title xml:lang="en-EN">Geotoolkit : Groovy:condition</ows:Title>
-            <ows:Abstract>Evaluate expression given in parameter w</ows:Abstract>
-        </wps:Process>
-        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::math:power</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Math:power</ows:Title>
             <ows:Abstract>Return first double raised to the power of the second (first^second).</ows:Abstract>
@@ -311,6 +306,11 @@
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:lenght</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:lenght</ows:Title>
             <ows:Abstract>Returns the length of this Geometry.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::script:evaluate</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Script:evaluate</ows:Title>
+            <ows:Abstract>Evaluate expression given in parameter w</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ns10:Identifier>

@@ -497,10 +497,17 @@ public class TemplateReader extends AbstractTemplateHandler {
                 text = text.replace(" ", "%20");
                 return URI.create(text);
             } else if (text.startsWith("nilReason:")) {
+                NilReason nr;
                 try {
-                    value = NilReason.valueOf(text.substring("nilReason:".length())).createNilObject(type);
+                    nr = NilReason.valueOf(text.substring("nilReason:".length()));
                 } catch (URISyntaxException | IllegalArgumentException e) {
                     throw new ParseException("Illegal value: \"" + text + "\".(property:" + identifier + ")", e);
+                }
+                try {
+                    value = nr.createNilObject(type);
+                } catch (IllegalArgumentException e) {
+                    LOGGER.log(Level.WARNING, "Illegal type for nill object: \"" + type.getName() + "\".(property:" + identifier + ")");
+                    value = null;
                 }
             } else {
                 final boolean isCodeList = CodeList.class.isAssignableFrom(type);

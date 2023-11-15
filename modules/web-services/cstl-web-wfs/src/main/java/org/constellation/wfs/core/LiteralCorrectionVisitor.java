@@ -19,6 +19,8 @@
 
 package org.constellation.wfs.core;
 
+import org.apache.sis.feature.builder.FeatureTypeBuilder;
+import org.apache.sis.feature.internal.FeatureExpression;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.AttributeType;
 import org.opengis.feature.FeatureType;
@@ -38,14 +40,12 @@ public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
             final BinaryComparisonOperator filter = (BinaryComparisonOperator) f;
             final Expression exp1 = filter.getOperand1();
             final Expression exp2 = filter.getOperand2();
-            if (exp1 instanceof ValueReference) {
-                final ValueReference property = (ValueReference) exp1;
-                if (exp2 instanceof Literal) {
-                    final Literal literal = (Literal) exp2;
+            if (exp1 instanceof FeatureExpression property) {
+                if (exp2 instanceof Literal literal) {
 
                     // Add a support for a filter on boolean property using integer 0 or 1
                     if (ft != null) {
-                        final Object obj = property.apply(ft);
+                        final Object obj = property.expectedType(ft, new FeatureTypeBuilder()).build();
                         if (obj instanceof AttributeType) {
                             final AttributeType descriptor = (AttributeType) obj;
                             if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
@@ -70,14 +70,12 @@ public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
             final BinaryComparisonOperator filter = (BinaryComparisonOperator) f;
             final Expression exp1 = filter.getOperand1();
             final Expression exp2 = filter.getOperand2();
-            if (exp1 instanceof ValueReference) {
-                final ValueReference property = (ValueReference) exp1;
-                if (exp2 instanceof Literal) {
-                    final Literal literal = (Literal) exp2;
+            if (exp1 instanceof FeatureExpression property) {
+                if (exp2 instanceof Literal literal) {
 
                     // Add a support for a filter on boolean property using integer 0 or 1
                     if (ft != null) {
-                        final AttributeType descriptor = (AttributeType) property.apply(ft);
+                        final AttributeType descriptor = (AttributeType) property.expectedType(ft, new FeatureTypeBuilder()).build();
                         if (descriptor != null) {
                             if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
                                 final Literal booleanLit;

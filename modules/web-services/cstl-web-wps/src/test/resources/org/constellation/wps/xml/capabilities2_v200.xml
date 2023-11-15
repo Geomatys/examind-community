@@ -137,11 +137,6 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
-            <ows:Title xml:lang="en-EN">Geotoolkit : Groovy:condition</ows:Title>
-            <ows:Abstract>Evaluate expression given in parameter w</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition</ows:Identifier>
-        </wps:ProcessSummary>
-        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Math:power</ows:Title>
             <ows:Abstract>Return first double raised to the power of the second (first^second).</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::math:power</ows:Identifier>
@@ -335,6 +330,11 @@
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:lenght</ows:Title>
             <ows:Abstract>Returns the length of this Geometry.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:lenght</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Script:evaluate</ows:Title>
+            <ows:Abstract>Evaluate expression given in parameter w</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:diffGeometry</ows:Title>

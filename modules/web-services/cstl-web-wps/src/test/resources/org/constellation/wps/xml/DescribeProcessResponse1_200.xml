@@ -5,7 +5,7 @@
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">    
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Math:min</ows:Title>
@@ -125,69 +125,6 @@
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
                     </LiteralDataDomain>
                 </wps:LiteralData>
-            </wps:Output>
-        </wps:Process>
-    </wps:ProcessOffering>
-    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
-        <wps:Process>
-            <ows:Title xml:lang="fr-FR">Geotoolkit : Groovy:condition</ows:Title>
-            <ows:Abstract xml:lang="fr-FR">Evaluate expression given in parameter w</ows:Abstract>
-            <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition</ows:Identifier>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Expression</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Script groovy</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:expression</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Variables</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Map of binding script variable</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:variables</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AnyValue/>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Input minOccurs="1" maxOccurs="1">
-                <ows:Title xml:lang="fr-FR">Behavior</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Behavior of the process. Could be 'EXCEPTION' or 'RESULT'</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:behavior</ows:Identifier>
-                <wps:LiteralData>
-                    <wps:Format mimeType="text/plain" default="true"/>
-                    <LiteralDataDomain>
-                        <ows:AllowedValues>
-                            <ows:Value>EXCEPTION</ows:Value>
-                            <ows:Value>RESULT</ows:Value>
-                        </ows:AllowedValues>
-                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                        <ows:DefaultValue>RESULT</ows:DefaultValue>
-                    </LiteralDataDomain>
-                </wps:LiteralData>
-            </wps:Input>
-            <wps:Output>
-                <ows:Title xml:lang="fr-FR">Result</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Result of the expression</ows:Abstract>
-                <ows:Identifier>urn:exa:wps:geotoolkit::groovy:condition:output:result</ows:Identifier>
-                <wps:BoundingBoxData>
-                    <wps:Format mimeType="text/xml" default="true"/>
-                    <wps:SupportedCRS default="true">EPSG:4326</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">CRS:84</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:3395</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:3857</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:27571</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:27572</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:27573</wps:SupportedCRS>
-                    <wps:SupportedCRS default="false">EPSG:27574</wps:SupportedCRS>
-                </wps:BoundingBoxData>
             </wps:Output>
         </wps:Process>
     </wps:ProcessOffering>
@@ -1935,6 +1872,84 @@
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
                     </LiteralDataDomain>
                 </wps:LiteralData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Script:evaluate</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Evaluate expression given in parameter w</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Language</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">language</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:language</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>GROOVY</ows:Value>
+                            <ows:Value>LUA</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Expression</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Script</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:expression</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Variables</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Map of binding script variable</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:variables</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Behavior</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Behavior of the process. Could be 'EXCEPTION' or 'RESULT'</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:behavior</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>EXCEPTION</ows:Value>
+                            <ows:Value>RESULT</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                        <ows:DefaultValue>RESULT</ows:DefaultValue>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result of the expression</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::script:evaluate:output:result</ows:Identifier>
+                <wps:BoundingBoxData>
+                    <wps:Format mimeType="text/xml" default="true"/>
+                    <wps:SupportedCRS default="true">EPSG:4326</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">CRS:84</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3395</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3857</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27571</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27572</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27573</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27574</wps:SupportedCRS>
+                </wps:BoundingBoxData>
             </wps:Output>
         </wps:Process>
     </wps:ProcessOffering>

@@ -150,66 +150,6 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
-        <ns9:Identifier>urn:exa:wps:geotoolkit::groovy:condition</ns9:Identifier>
-        <ows:Title xml:lang="fr-FR">Geotoolkit : Groovy:condition</ows:Title>
-        <ows:Abstract xml:lang="fr-FR">Evaluate expression given in parameter w</ows:Abstract>
-        <DataInputs>
-            <Input minOccurs="1" maxOccurs="1">
-                <ns9:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:expression</ns9:Identifier>
-                <ows:Title xml:lang="fr-FR">Expression</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Script groovy</ows:Abstract>
-                <LiteralData>
-                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    <ows:AnyValue/>
-                </LiteralData>
-            </Input>
-            <Input minOccurs="1" maxOccurs="1">
-                <ns9:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:variables</ns9:Identifier>
-                <ows:Title xml:lang="fr-FR">Variables</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Map of binding script variable</ows:Abstract>
-                <LiteralData>
-                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    <ows:AnyValue/>
-                </LiteralData>
-            </Input>
-            <Input minOccurs="1" maxOccurs="1">
-                <ns9:Identifier>urn:exa:wps:geotoolkit::groovy:condition:input:behavior</ns9:Identifier>
-                <ows:Title xml:lang="fr-FR">Behavior</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Behavior of the process. Could be 'EXCEPTION' or 'RESULT'</ows:Abstract>
-                <LiteralData>
-                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
-                    <ows:AllowedValues>
-                        <ows:Value>EXCEPTION</ows:Value>
-                        <ows:Value>RESULT</ows:Value>
-                    </ows:AllowedValues>
-                    <DefaultValue>RESULT</DefaultValue>
-                </LiteralData>
-            </Input>
-        </DataInputs>
-        <ProcessOutputs>
-            <Output>
-                <ns9:Identifier>urn:exa:wps:geotoolkit::groovy:condition:output:result</ns9:Identifier>
-                <ows:Title xml:lang="fr-FR">Result</ows:Title>
-                <ows:Abstract xml:lang="fr-FR">Result of the expression</ows:Abstract>
-                <BoundingBoxOutput>
-                    <Default>
-                        <CRS>EPSG:4326</CRS>
-                    </Default>
-                    <Supported>
-                        <CRS>EPSG:4326</CRS>
-                        <CRS>CRS:84</CRS>
-                        <CRS>EPSG:3395</CRS>
-                        <CRS>EPSG:3857</CRS>
-                        <CRS>EPSG:27571</CRS>
-                        <CRS>EPSG:27572</CRS>
-                        <CRS>EPSG:27573</CRS>
-                        <CRS>EPSG:27574</CRS>
-                    </Supported>
-                </BoundingBoxOutput>
-            </Output>
-        </ProcessOutputs>
-    </ProcessDescription>
-    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::math:power</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Math:power</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Return first double raised to the power of the second (first^second).</ows:Abstract>
@@ -3957,6 +3897,78 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Script:evaluate</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Evaluate expression given in parameter w</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:language</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Language</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">language</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>GROOVY</ows:Value>
+                        <ows:Value>LUA</ows:Value>
+                    </ows:AllowedValues>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:expression</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Expression</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Script</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:variables</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Variables</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Map of binding script variable</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate:input:behavior</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Behavior</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Behavior of the process. Could be 'EXCEPTION' or 'RESULT'</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>EXCEPTION</ows:Value>
+                        <ows:Value>RESULT</ows:Value>
+                    </ows:AllowedValues>
+                    <DefaultValue>RESULT</DefaultValue>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::script:evaluate:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result of the expression</ows:Abstract>
+                <BoundingBoxOutput>
+                    <Default>
+                        <CRS>EPSG:4326</CRS>
+                    </Default>
+                    <Supported>
+                        <CRS>EPSG:4326</CRS>
+                        <CRS>CRS:84</CRS>
+                        <CRS>EPSG:3395</CRS>
+                        <CRS>EPSG:3857</CRS>
+                        <CRS>EPSG:27571</CRS>
+                        <CRS>EPSG:27572</CRS>
+                        <CRS>EPSG:27573</CRS>
+                        <CRS>EPSG:27574</CRS>
+                    </Supported>
+                </BoundingBoxOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:diffGeometry</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
@@ -6832,7 +6844,7 @@
                 </LiteralData>
             </Input>
         </DataInputs>
-    <ProcessOutputs/>
+        <ProcessOutputs/>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::vector:intersection</ns9:Identifier>
