@@ -189,6 +189,11 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
         Observation expectedMeasTemplate = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_meas_template.json"), Observation.class);
         Observation expected             = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation.json"), Observation.class);
         Observation measExpected         = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_measurement.json"), Observation.class);
+        Observation obs2                 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation2.json"), Observation.class);
+        Observation obs3                 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation3.json"), Observation.class);
+        Observation obs4                 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation4.json"), Observation.class);
+        Observation obs5                 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation5.json"), Observation.class);
+        Observation expectedFull         = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation_full.json"), Observation.class);
 
         String oid = omPr.writeObservation(expected);
 
@@ -263,6 +268,73 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
 
         assertEqualsMeasurement(measExpected, result, false);
 
+        /*
+        * write another observation that extend the fields (create another table)
+        */
+        omPr.writeObservation(obs2);
+
+        /*
+        * get the full observation (we don't look for result now, just that its readable)
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+
+        /*
+        * write another observation only write in the two first table (the point is to see if a data will be written in the third table)
+        */
+        omPr.writeObservation(obs3);
+
+        /*
+        * get the full observation (we don't look for result now, just that its readable)
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+
+        /*
+        * write another observation only write in the second table (the point is to see if a data will be written in the first and third table)
+        */
+        omPr.writeObservation(obs4);
+
+        /*
+        * get the full observation (we don't look for result now, just that its readable)
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        
+
+        /*
+        * write another observation only write in the third table (the point is to see if a data will be written in the first and second table)
+        */
+        omPr.writeObservation(obs5);
+
+        /*
+        * get the full observation
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expectedFull, result);
     }
 
     @Test
@@ -501,11 +573,7 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
 
         Observation first  = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_extend_sensor_observation.json"),   Observation.class);
         Observation second = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_extend_sensor_observation2.json"),   Observation.class);
-        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_sensor_observation.json"),   Observation.class);
-
-        expected.setId("obs-90001");
-        expected.setName("urn:ogc:object:observation:GEOM:90001");
-        expected.getProcedure().setId("urn:ogc:object:sensor:GEOM:multi_table_extend_sensor");
+        Observation expected = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/multi_table_extend_sensor_merged.json"),   Observation.class);
 
         String oid1 = omPr.writeObservation(first);
         String oid2 = omPr.writeObservation(second);
@@ -522,9 +590,10 @@ public class ObservationStoreProviderWriteTest extends SpringContextTest {
         assertTrue(results.get(0) instanceof Observation);
         Observation result   = (Observation) results.get(0);
 
-        result.getObservedProperty().setId("mega-phen");
-        result.getObservedProperty().setName("mega-phen");
-        result.getObservedProperty().setDefinition("mega-phen");
+        // composite is generated
+        result.getObservedProperty().setId("mega-phen-extend");
+        result.getObservedProperty().setName("mega-phen-extend");
+        result.getObservedProperty().setDefinition("mega-phen-extend");
 
         assertEqualsObservation(expected, result);
     }

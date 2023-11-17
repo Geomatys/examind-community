@@ -978,8 +978,6 @@ public class SOSDatabaseDataStoreRemoveTest {
                  "2009-05-01T14:01:00.0,8.9@@" +
                  "2009-05-01T14:02:00.0,7.8@@";
         Assert.assertEquals(values, cr.getValues());
-
-        //System.out.println(mapper.writeValueAsString(dataset7));
     }
 
     @Test

@@ -1,18 +1,18 @@
 {
-    "id": "obs-90092",
-    "name": "urn:ogc:object:observation:GEOM:90092",
+    "id": "obs-90004",
+    "name": "urn:ogc:object:observation:GEOM:90004",
     "procedure": {
-        "id": "urn:ogc:object:sensor:GEOM:multi_table_extend_sensor"
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor"
     },
     "samplingTime": {
-        "id": "time-90002",
+        "id": "time-6001",
         "beginning": {
             "id": "c5362f98-802f-47b6-a86b-34708faab9ee-time",
-            "date": "2000-01-01T01:00:00.0Z"
+            "date": "2000-01-01T09:00:00.0Z"
         },
         "ending": {
             "id": "56f7ca85-a2ca-4f18-a4ba-bde0081c0a4f-time",
-            "date": "2000-01-01T02:00:00.0Z"
+            "date": "2000-01-01T10:00:00.0Z"
         }
     },
     "featureOfInterest": {
@@ -31,18 +31,14 @@
         }
     },
     "observedProperty": {
-        "id": "mega-phen-MTE-ext",
-        "name": "mega-phen-MTE-ext-ext",
+        "id": "mega-phen-reduce-2",
+        "name": "mega-phen-reduce-2",
         "properties": {},
-        "definition": "mega-phen-MTE",
+        "definition": "mega-phen-reduce-2",
         "component": [{
                 "id": "f11",
                 "name": "f11",
-                "definition": "urn:ogc:def:phenomenon:GEOM:f11"
-            }, {
-                "id": "f12",
-                "name": "f12",
-                "definition": "urn:ogc:def:phenomenon:GEOM:f12"
+                "definition": "urn:ogc:def:phenomenon:GEOM:f22"
             }]
     },
     "result": {
@@ -54,14 +50,8 @@
             }, {
                 "index": 2,
                 "type": "QUANTITY",
-                "name": "f11",
-                "description": "urn:ogc:def:phenomenon:GEOM:f11",
-                "uom": "m"
-            }, {
-                "index": 3,
-                "type": "QUANTITY",
-                "name": "f12",
-                "description": "urn:ogc:def:phenomenon:GEOM:f12",
+                "name": "f22",
+                "description": "urn:ogc:def:phenomenon:GEOM:f22",
                 "uom": "m"
             }],
         "nbValues": 2,
@@ -70,7 +60,7 @@
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "2000-01-01T01:00:00.0,11.0,12.0@@2000-01-01T02:00:00.0,12.0,13.0@@"
+        "values": "2000-01-01T09:00:00.0,22.0@@2000-01-01T10:00:00.0,23.0@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {

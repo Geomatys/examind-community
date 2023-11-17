@@ -27,9 +27,11 @@ import java.sql.Timestamp;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
@@ -63,6 +65,10 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
      * @throws DataStoreException If a field contains forbidden characters.
      */
     private Map<Integer, String> buildInsertRequests() throws DataStoreException {
+        Set<Integer> tableIndexes = new HashSet<>();
+        for (int i = 1; i <= pi.nbTable; i++) {
+            tableIndexes.add(i);
+        }
         Map<Integer, StringBuilder> builders = new HashMap<>();
         for (DbField field : fields) {
             if (Util.containsForbiddenCharacter(field.name)) {
@@ -70,6 +76,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             }
             StringBuilder sql = builders.computeIfAbsent(field.tableNumber, tn ->
             {
+                tableIndexes.remove(tn);
                 String suffix = "";
                 if (tn > 1) {
                     suffix = "_" + tn;
@@ -77,6 +84,16 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
                 return new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" (\"id_observation\", \"id\", ");
             });
             sql.append('"').append(field.name).append("\",");
+        }
+
+        // add statement for un involved tables
+        // main table should never be in that list
+        for (Integer tn : tableIndexes) {
+            String suffix = "";
+            if (tn > 1) {
+                suffix = "_" + tn;
+            }
+            builders.put(tn, new StringBuilder("INSERT INTO \"" + schemaPrefix + "mesures\".\"" + baseTableName + suffix + "\" (\"id_observation\", \"id\" "));
         }
 
         Map<Integer, String> results = new HashMap<>();

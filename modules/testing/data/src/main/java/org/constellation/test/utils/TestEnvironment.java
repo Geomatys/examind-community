@@ -803,6 +803,11 @@ public class TestEnvironment {
     }
 
     private static String buildDerbyOM2Database(String providerIdentifier, boolean withData) throws Exception {
+        /*
+         you can pass in file mode for debugging purpose
+        final String url = "jdbc:derby:/tmp/" + providerIdentifier + ".derby";
+        System.out.println("DERBY URL:" + url);*/
+
         final String url = "jdbc:derby:memory:" + providerIdentifier;
         final DataSource ds = SQLUtilities.getDataSource(url + ";create=true");
         try (final Connection con = ds.getConnection()) {
@@ -859,6 +864,7 @@ public class TestEnvironment {
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            config.parameter("max-field-by-table").setValue(10);
 
             return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
