@@ -627,17 +627,29 @@ public class OM2BaseReader {
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {
-        return readFields(procedureID, false, c);
+        return readFields(procedureID, false, c, new ArrayList<>());
     }
     
-    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c) throws SQLException {
+    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c, List<Integer> fieldFilters) throws SQLException {
         final List<Field> results = new ArrayList<>();
-        String query = "SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL";
+        StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL");
         if (removeMainTimeField) {
-            query = query + " AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')";
+            query.append(" AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')");
         }
-        query = query + " ORDER BY \"order\"";
-        try(final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
+        if (fieldFilters != null && !fieldFilters.isEmpty()) {
+            query.append(" AND (");
+            for (Integer fieldFilter : fieldFilters) {
+                query.append("\"order\"= ").append(fieldFilter).append(" OR ");
+            }
+            if (!removeMainTimeField) {
+                query.append("\"order\"= 1)");
+            } else {
+                query.delete(query.length() - 4, query.length());
+                query.append(")");
+            }
+        }
+        query.append(" ORDER BY \"order\"");
+        try(final PreparedStatement stmt = c.prepareStatement(query.toString())) {//NOSONAR
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -995,7 +1007,7 @@ public class OM2BaseReader {
 
     private ComplexResult buildComplexResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
-        final List<Field> fields    = readFields(ti.procedureId, false, c);
+        final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>());
         int nbValue                 = 0;
         final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 

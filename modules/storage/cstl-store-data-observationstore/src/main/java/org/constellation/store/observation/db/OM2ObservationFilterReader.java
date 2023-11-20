@@ -25,6 +25,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -370,8 +371,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         }
 
                         // add proper order to fields
-                        List<Field> procedureFields = readFields(procedure, c);
-                        phenFields = reOrderFields(procedureFields, phenFields);
+                        Collections.sort(phenFields, new FieldComparator());
                         fields.addAll(phenFields);
 
                         // special case for trajectory observation
@@ -551,7 +551,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final Phenomenon phen = getPhenomenon(observedProperty, c);
                 final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
-                final List<Field> fields = readFields(procedure, true, c);
+                final List<Field> fields = readFields(procedure, true, c, new ArrayList<>());
                 final Map<Field, Phenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                 final TemporalGeometricPrimitive time = buildTime(obsID, startTime, endTime);
@@ -684,20 +684,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
                 // add proper order to fields
-                List<Field> allfields = readFields(currentProcedure.procedureId, c);
-                phenFields = reOrderFields(allfields, phenFields);
+                Collections.sort(phenFields, new FieldComparator());
                 fields.addAll(phenFields);
 
             } else {
-                fields    = new ArrayList<>();
-                final List<Field> allfields = readFields(currentProcedure.procedureId, c);
-                fields.add(allfields.get(0));
-                for (int i = 1; i < allfields.size(); i++) {
-                    Field f = allfields.get(i);
-                     if (isIncludedField(f.name, f.description, f.index)) {
-                         fields.add(f);
-                     }
-                }
+                fields = readFields(currentProcedure.procedureId, false, c, fieldFilters);
             }
             // in a measurement context, the last field is the one we look want to use for identifier construction.
             String idSuffix = "";

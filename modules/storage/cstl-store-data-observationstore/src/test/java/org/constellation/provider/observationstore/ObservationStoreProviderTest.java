@@ -5304,6 +5304,57 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
             System.out.println(results);
         */
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "2007-05-01T12:59:00.0,6.56,12.0@@" +
+                   "2007-05-01T13:59:00.0,6.56,13.0@@" +
+                   "2007-05-01T14:59:00.0,6.56,14.0@@" +
+                   "2007-05-01T15:59:00.0,6.56,15.0@@" +
+                   "2007-05-01T16:59:00.0,6.56,16.0@@";
+
+        assertEquals(expected, result);
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", "count");
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertTrue(cr.getNbValues() != null);
+        assertEquals((Integer)5, cr.getNbValues());
+
+        Filter f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:8-3"));
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", null);
+        query.setSelection(f);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expected = "2007-05-01T12:59:00.0,12.0@@" +
+                   "2007-05-01T13:59:00.0,13.0@@" +
+                   "2007-05-01T14:59:00.0,14.0@@" +
+                   "2007-05-01T15:59:00.0,15.0@@" +
+                   "2007-05-01T16:59:00.0,16.0@@";
+
+        assertEquals(expected, result);
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:8", "count");
+        query.setSelection(f);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertTrue(cr.getNbValues() != null);
+        assertEquals((Integer)5, cr.getNbValues());
     }
 
     private static String getPhenomenonId(Observation o) {

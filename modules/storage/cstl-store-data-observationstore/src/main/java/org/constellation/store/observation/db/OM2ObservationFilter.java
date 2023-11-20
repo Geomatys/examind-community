@@ -1424,7 +1424,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int oid                 = rs.getInt("id");
                     final String name             = rs.getString("identifier");
                     final String observedProperty = rs.getString("observed_property");
-                    final List<Field> fields      = readFields(procedure, true, c);
+                    final List<Field> fields      = readFields(procedure, true, c, new ArrayList<>());
                     final ProcedureInfo pti       = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
