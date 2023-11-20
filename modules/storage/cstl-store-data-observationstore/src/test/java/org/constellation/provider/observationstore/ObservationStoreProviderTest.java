@@ -4550,8 +4550,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 3 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
-        Object result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
 
         String expectedResult =   "2007-05-01T02:59:00.0,6.56@@"
                                 + "2007-05-01T03:59:00.0,6.56@@"
@@ -4572,10 +4575,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(expectedResult, result);
 
         query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", "count");
-        result = omPr.getResults(query);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
 
-        assertTrue(result instanceof Integer);
-        assertEquals((Integer)15, (Integer) result);
+        assertEquals((Integer)15, cr.getNbValues());
 
         /** NOT WORKING for now
             results = omPr.getCount(query, new HashMap<>());
@@ -4585,8 +4589,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2007-05-01T02:59:00.0,6.56@@"
                         + "2007-05-01T05:31:00.0,6.56@@"
@@ -4601,8 +4608,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 3 no decimation with id
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =          "urn:ogc:object:observation:GEOM:304-1,2007-05-01T02:59:00.0,6.56@@"
                                 + "urn:ogc:object:observation:GEOM:304-2,2007-05-01T03:59:00.0,6.56@@"
@@ -4626,8 +4636,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:3", "csv");
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:3-dec-0,2007-05-01T02:59:00.0,6.56@@"
                         + "urn:ogc:object:sensor:GEOM:3-dec-1,2007-05-01T05:31:00.0,6.56@@"
@@ -4645,8 +4658,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     public void getResultsSingleFilterTest() throws Exception {
         // sensor 8 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
-        Object result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
 
         String expectedResult =
                           "2007-05-01T12:59:00.0,6.56,12.0@@"
@@ -4660,8 +4676,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 8 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
@@ -4676,8 +4695,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         BinaryComparisonOperator filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
                         + "2007-05-01T13:59:00.0,6.56,13.0@@"
@@ -4687,8 +4709,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 8 with decimation with filter on result component
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         expectedResult =  "2007-05-01T12:59:00.0,6.56,12.0@@"
@@ -4701,8 +4726,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "2007-05-01T15:59:00.0,6.56,15.0@@"
@@ -4714,8 +4742,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         expectedResult =  "2007-05-01T14:59:00.0,6.56,14.0@@"
@@ -4729,8 +4760,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeIdInDataBlock(true);
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:observation:GEOM:801-5,2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "urn:ogc:object:observation:GEOM:801-7,2007-05-01T15:59:00.0,6.56,15.0@@"
@@ -4743,8 +4777,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         expectedResult =  "urn:ogc:object:sensor:GEOM:8-dec-0,2007-05-01T14:59:00.0,6.56,14.0@@"
@@ -4758,8 +4795,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     public void getResultsSingleFilter2Test() throws Exception {
         // sensor 12 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
-        Object result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
 
         String expectedResult = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
                                 "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"  +
@@ -4772,8 +4812,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 12 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated results are not the same because of the gaps between the values
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -4787,8 +4830,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         Filter filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
                           "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
@@ -4797,8 +4843,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 12 with decimation with filter on result component
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
                           "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
@@ -4809,8 +4858,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
                           "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
@@ -4822,8 +4874,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated results are not the same because of the gaps between the values
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -4837,8 +4892,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeIdInDataBlock(true);
         filter = ff.greaterOrEqual(ff.property("result[1]") , ff.literal(14.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:observation:GEOM:3000-1,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
                           "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
@@ -4851,8 +4909,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeIdInDataBlock(true);
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated results are not the same because of the gaps between the values
         expectedResult =  "urn:ogc:object:sensor:GEOM:12-dec-0,2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -4866,7 +4927,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeIdInDataBlock(true);
         filter = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2005-01-01T00:00:00Z")));
         query.setSelection(filter);
-        result = omPr.getResults(query);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
         assertTrue(result instanceof String);
 
         expectedResult = "urn:ogc:object:observation:GEOM:3000-2,2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
@@ -4882,7 +4947,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.after(ff.property("phenomenonTime"), ff.literal(buildInstant("2005-01-01T00:00:00Z")));
         query.setDecimationSize(10);
         query.setSelection(filter);
-        result = omPr.getResults(query);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
         assertTrue(result instanceof String);
 
         // here the decimated results are not the same because of the gaps between the values
@@ -4899,8 +4968,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     public void getResultsMultiFilterTest() throws Exception {
         // sensor 12 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
-        Object result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
 
         String expectedResult =
                           "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -4914,8 +4986,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 12 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
                           "2008-12-15T00:00:00.0,5.9,1.5,1.0@@" +
@@ -4928,8 +5003,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
         BinaryComparisonOperator filter = ff.greaterOrEqual(ff.property("result") , ff.literal(2.0));
         query.setSelection(filter);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
                         + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
@@ -4938,8 +5016,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 12 with decimation with filter on result
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
@@ -4950,8 +5031,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor quality no decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
         query.setIncludeQualityFields(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
                         + "1981-03-01T21:52:00.0,6.56,ko,3.2@@"
@@ -4963,8 +5047,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor quality with decimation
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         // quality fields are not included in decimation mode
@@ -4982,8 +5069,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("result[0].qflag") , ff.literal("ok"));
         query.setSelection(filter);
 
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
                         + "1982-03-01T21:52:00.0,6.56,ok,3.3@@"
@@ -4993,8 +5083,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor quality with decimation
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         // here the decimated resuts is the same, as we ask for more values than there is
         // quality fields are not included in decimation mode
@@ -5011,8 +5104,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 2 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
-        Object result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
 
         String expectedResult =
                           "12.0,18.5@@"
@@ -5029,8 +5125,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 2 no decimation with id
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:observation:GEOM:201-1,12.0,18.5@@"
                         + "urn:ogc:object:observation:GEOM:201-2,24.0,19.7@@"
@@ -5047,8 +5146,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 2 no decimation with time
         query.setIncludeIdInDataBlock(false);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2000-12-01T00:00:00.0,12.0,18.5@@"
                         + "2000-12-01T00:00:00.0,24.0,19.7@@"
@@ -5065,8 +5167,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 2 no decimation with time and id
         query.setIncludeTimeForProfile(true);
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
                         + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
@@ -5083,8 +5188,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 2 with decimation
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
         query.setDecimationSize(10);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "12,18.5@@"
                         + "112,23.9@@"
@@ -5098,8 +5206,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // sensor 2 with decimation and id
         query.setIncludeIdInDataBlock(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,12,18.5@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-1,112,23.9@@"
@@ -5114,8 +5225,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 2 with decimation and time
         query.setIncludeIdInDataBlock(false);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "2000-12-01T00:00:00.0,12,18.5@@"
                         + "2000-12-01T00:00:00.0,112,23.9@@"
@@ -5130,8 +5244,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor 2 with decimation, id and time
         query.setIncludeIdInDataBlock(true);
         query.setIncludeTimeForProfile(true);
-        result = omPr.getResults(query);
-        assertTrue(result instanceof String);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
 
         expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,12,18.5@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,112,23.9@@"
@@ -5144,6 +5261,51 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(expectedResult, result);
     }
 
+    @Test
+    public void getResultTest() throws Exception {
+        assertNotNull(omPr);
+
+        ResultQuery query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", null);
+
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expected = "2007-05-01T02:59:00.0,6.56@@"
+                        + "2007-05-01T03:59:00.0,6.56@@"
+                        + "2007-05-01T04:59:00.0,6.56@@"
+                        + "2007-05-01T05:59:00.0,6.56@@"
+                        + "2007-05-01T06:59:00.0,6.56@@"
+                        + "2007-05-01T07:59:00.0,6.56@@"
+                        + "2007-05-01T08:59:00.0,6.56@@"
+                        + "2007-05-01T09:59:00.0,6.56@@"
+                        + "2007-05-01T10:59:00.0,6.56@@"
+                        + "2007-05-01T11:59:00.0,6.56@@"
+                        + "2007-05-01T17:59:00.0,6.56@@"
+                        + "2007-05-01T18:59:00.0,6.55@@"
+                        + "2007-05-01T19:59:00.0,6.55@@"
+                        + "2007-05-01T20:59:00.0,6.55@@"
+                        + "2007-05-01T21:59:00.0,6.55@@";
+
+        assertEquals(expected, result);
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:3", "count");
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertTrue(cr.getNbValues() != null);
+        assertEquals((Integer)15, cr.getNbValues());
+
+        /** NOT WORKING for now
+            results = omPr.getCount(query, new HashMap<>());
+
+            System.out.println(results);
+        */
+    }
+
     private static String getPhenomenonId(Observation o) {
         assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
         org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
@@ -5153,7 +5315,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     private static String getPhenomenonId(Phenomenon phen) {
-        assertTrue(phen instanceof org.geotoolkit.observation.model.Phenomenon modPhen);
+        assertTrue(phen instanceof org.geotoolkit.observation.model.Phenomenon);
         return ((org.geotoolkit.observation.model.Phenomenon)phen).getId();
     }
     

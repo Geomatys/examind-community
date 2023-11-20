@@ -58,6 +58,7 @@ import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
@@ -655,7 +656,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public Object getResults() throws DataStoreException {
+    public Result getResults() throws DataStoreException {
         if (ResponseMode.OUT_OF_BAND.equals(responseMode)) {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
@@ -670,14 +671,38 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  1) build field list.
              */
-            final List<Field> fields    = new ArrayList<>();
-            final List<Field> allfields = readFields(currentProcedure.procedureId, c);
-            fields.add(allfields.get(0));
-            for (int i = 1; i < allfields.size(); i++) {
-                Field f = allfields.get(i);
-                 if (isIncludedField(f.name, f.description, f.index)) {
-                     fields.add(f);
-                 }
+            final List<Field> fields;
+            if (!currentFields.isEmpty()) {
+                fields = new ArrayList<>();
+                fields.add(currentProcedure.mainField);
+                
+                List<Field> phenFields = new ArrayList<>();
+                for (String f : currentFields) {
+                    final Field field = getProcedureField(currentProcedure.procedureId, f, c);
+                    if (field != null && !fields.contains(field)) {
+                        phenFields.add(field);
+                    }
+                }
+                // add proper order to fields
+                List<Field> allfields = readFields(currentProcedure.procedureId, c);
+                phenFields = reOrderFields(allfields, phenFields);
+                fields.addAll(phenFields);
+
+            } else {
+                fields    = new ArrayList<>();
+                final List<Field> allfields = readFields(currentProcedure.procedureId, c);
+                fields.add(allfields.get(0));
+                for (int i = 1; i < allfields.size(); i++) {
+                    Field f = allfields.get(i);
+                     if (isIncludedField(f.name, f.description, f.index)) {
+                         fields.add(f);
+                     }
+                }
+            }
+            // in a measurement context, the last field is the one we look want to use for identifier construction.
+            String idSuffix = "";
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                idSuffix = "-" + fields.get(fields.size() - 1).index;
             }
 
             // add the time for profile in the dataBlock if requested
@@ -722,7 +747,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
                 }
             } else {
-                processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure);
+                processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
             }
             processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);
             LOGGER.fine(measureRequest.toString());
@@ -735,9 +760,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 processor.processResults(rs);
             }
             switch (values.getMode()) {
-                case DATA_ARRAY:  return values.getDataArray();
-                case CSV:         return values.getStringValues();
-                case COUNT:       return values.getCount();
+                case DATA_ARRAY:  return new ComplexResult(fields, values.getDataArray(), null);
+                case CSV:         return new ComplexResult(fields, values.getEncoding(), values.getStringValues(), null);
+                case COUNT:       return new ComplexResult(values.getCount());
                 default: throw new IllegalArgumentException("Unexpected result mode");
             }
         } catch (SQLException ex) {

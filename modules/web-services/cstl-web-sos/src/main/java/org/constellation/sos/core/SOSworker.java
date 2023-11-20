@@ -1134,6 +1134,8 @@ public class SOSworker extends SensorWorker {
             } else {
                 final ResultQuery query = new ResultQuery(filter, resultModel, ResponseMode.OUT_OF_BAND, null, responseFormat);
                 try {
+                    // out of band should be treated in an other method than getResults().
+                    // for now, no implementation support out of band, so we let this piece of code as this.
                     response = omProvider.getResults(query);
                 } catch(UnsupportedOperationException ex) {
                     throw new CstlServiceException("Out of band response mode has been yet implemented for this data source", NO_APPLICABLE_CODE, RESPONSE_MODE);
@@ -1280,8 +1282,14 @@ public class SOSworker extends SensorWorker {
             query.setSelection(buildFilter(times, observedProperties, null, fois, bboxFilter, null));
 
             //we prepare the response document
-            values = (String) omProvider.getResults(query);
-
+            Object result = omProvider.getResults(query);
+            if (result instanceof ComplexResult cr) {
+                values = cr.getValues();
+            // keep legacy behavor until geotk interface wil return "Result" type.
+            } else {
+                values = (String) result;
+            }
+            
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }

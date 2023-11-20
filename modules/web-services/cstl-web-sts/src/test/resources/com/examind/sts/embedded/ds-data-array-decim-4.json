@@ -1,14 +1,14 @@
 {
     "value": [{
-            "components": ["id", "phenomenonTime", "resultTime", "result"],
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality"],
             "dataArray": [
-                ["urn:ogc:object:sensor:GEOM:2-dec-0", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 12], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 112], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-2", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 238], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-3", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 389], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-4", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 817], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-5", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 918], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-6", "2000-12-10T23:00:00Z", "2000-12-10T23:00:00Z", 12], 
-                ["urn:ogc:object:sensor:GEOM:2-dec-7", "2000-12-21T23:00:00Z", "2000-12-21T23:00:00Z", 12]]
+                ["urn:ogc:object:sensor:GEOM:2-dec-0", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 12, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 112, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-2", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 238, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-3", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 389, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-4", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 817, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-5", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", 918, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-6", "2000-12-10T23:00:00Z", "2000-12-10T23:00:00Z", 12, []], 
+                ["urn:ogc:object:sensor:GEOM:2-dec-7", "2000-12-21T23:00:00Z", "2000-12-21T23:00:00Z", 12, []]]
         }]
 }

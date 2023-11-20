@@ -48,8 +48,9 @@ public class ResultProcessor {
     protected final boolean includeQuality;
     protected final ProcedureInfo procedure;
     protected final int mainFieldIndex;
+    protected final String idSuffix;
 
-    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeTimeInProfile, ProcedureInfo procedure) {
+    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
         this.fields = fields;
         this.profile = "profile".equals(procedure.type);
         this.includeId = includeId;
@@ -57,6 +58,7 @@ public class ResultProcessor {
         this.includeTimeInProfile = includeTimeInProfile;
         this.procedure = procedure;
         this.mainFieldIndex = fields.indexOf(procedure.mainField);
+        this.idSuffix = idSuffix;
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
@@ -106,7 +108,7 @@ public class ResultProcessor {
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString("identifier", 0);
-                parser.setName(name);
+                parser.setName(name + idSuffix);
             }
             parser.parseLine(rs, 0);
         }

@@ -60,6 +60,7 @@ import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v321.TimeInstantType;
 import org.geotoolkit.gml.xml.v321.TimePeriodType;
 import org.geotoolkit.nio.ZipUtilities;
+import org.geotoolkit.observation.model.ComplexResult;
 import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
@@ -451,7 +452,16 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
             if (width != null) {
                 query.setDecimationSize(width);
             }
-            return pr.getResults(query);
+            Object result = pr.getResults(query);
+            if (result instanceof ComplexResult cr) {
+                if (cr.getDataArray() != null) {
+                    return cr.getDataArray();
+                } else {
+                    return cr.getValues();
+                }
+            }
+            // keep legacy behavor until geotk interface will return "Result" type.
+            return result;
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }

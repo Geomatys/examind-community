@@ -244,6 +244,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.includeQualityFields  = query.isIncludeQualityFields();
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();
+        this.resultModel           = query.getResultModel();
 
         this.firstFilter = false;
         try (final Connection c = source.getConnection()) {

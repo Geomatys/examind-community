@@ -363,7 +363,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             BigDecimal count = null;
             Integer decimation = null;
             if (req.getExtraFlag().containsKey("decimation")) {
-               decimation = Integer.parseInt(req.getExtraFlag().get("decimation"));
+               decimation = Integer.valueOf(req.getExtraFlag().get("decimation"));
             }
             final boolean applyPaging = (decimation == null);
             final boolean isDataArray = "dataArray".equals(req.getResultFormat());
@@ -381,11 +381,47 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 model = MEASUREMENT_QNAME;
             }
 
-            /**
-             * start block to refactor
-             *
-             * TODO fix this triple query
-             */
+            List<org.opengis.observation.Observation> sps;
+            final Integer reqTop = getRequestTop(req);
+
+            if (isDataArray) {
+                final AbstractObservationQuery procSubquery = buildExtraFilterQuery(OMEntity.PROCEDURE, req, applyPaging);
+
+                ResultQuery resSubquery = new ResultQuery(model, INLINE, null, null);
+                resSubquery = (ResultQuery) buildExtraFilterQuery(resSubquery, req, applyPaging, new ArrayList<>());
+                resSubquery.setIncludeTimeForProfile(true);
+                resSubquery.setIncludeIdInDataBlock(true);
+                resSubquery.setDecimationSize(decimation);
+                resSubquery.setIncludeQualityFields(includeQUalityFields);
+                
+                Map<String, ComplexResult> resultArrays = new HashMap<>();
+                if (reqTop == null || reqTop > 0) {
+                    Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
+                    count = req.getCount() ? new BigDecimal(0) : null;
+                    for (String sensorId : sensorIds) {
+                        resSubquery.setProcedure(sensorId);
+                        resSubquery.setResponseFormat("resultArray");
+                        ComplexResult resultArray = (ComplexResult) omProvider.getResults(resSubquery);
+                        resultArrays.put(sensorId, resultArray);
+                        if (req.getCount()) {
+                            resSubquery.setResponseFormat("count");
+                            ComplexResult countResult = (ComplexResult) omProvider.getResults(resSubquery);
+                            count = count.add(new BigDecimal(countResult.getNbValues()));
+                        }
+                    }
+                } else if (req.getCount()) {
+                    Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
+                    count = new BigDecimal(0);
+                    resSubquery.setResponseFormat("count");
+                    for (String sensorId : sensorIds) {
+                        resSubquery.setProcedure(sensorId);
+                        ComplexResult countResult = (ComplexResult) omProvider.getResults(resSubquery);
+                        count = count.add(new BigDecimal(countResult.getNbValues()));
+                    }
+                }
+                return buildDataArrayFromResults(resultArrays, model, count, null);
+            }
+
             ObservationQuery obsSubquery = new ObservationQuery(model, INLINE, null);
             obsSubquery = (ObservationQuery) buildExtraFilterQuery(obsSubquery, req, applyPaging, new ArrayList<>());
             obsSubquery.setIncludeFoiInTemplate(includeFoi);
@@ -395,67 +431,25 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             obsSubquery.setSeparatedMeasure(true);
             obsSubquery.setDecimationSize(decimation);
             obsSubquery.setResultMode(resMode);
-            
-            final AbstractObservationQuery procSubquery = buildExtraFilterQuery(OMEntity.PROCEDURE, req, applyPaging);
-            
-            ResultQuery resSubquery = new ResultQuery(model, INLINE, null, null);
-            resSubquery = (ResultQuery) buildExtraFilterQuery(resSubquery, req, applyPaging, new ArrayList<>());
-            resSubquery.setIncludeTimeForProfile(true);
-            resSubquery.setIncludeIdInDataBlock(true);
-            resSubquery.setDecimationSize(decimation);
-            resSubquery.setIncludeQualityFields(includeQUalityFields);
 
-            /*
-            * end block to refactor
-            */
-
-            List<org.opengis.observation.Observation> sps;
-            final Integer reqTop = getRequestTop(req);
+            // request full observations
             if (reqTop == null || reqTop > 0) {
-                if (decimation != null) {
-                    Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
-                    Map<String, List> resultArrays = new HashMap<>();
-                    count = req.getCount() ? new BigDecimal(0) : null;
-                    for (String sensorId : sensorIds) {
-                        resSubquery.setProcedure(sensorId);
-                        resSubquery.setResponseFormat("resultArray");
-                        List<Object> resultArray = (List<Object>) omProvider.getResults(resSubquery);
-                        resultArrays.put(sensorId, resultArray);
-                        if (req.getCount()) {
-                            resSubquery.setResponseFormat("count");
-                            count = count.add(new BigDecimal((Integer)omProvider.getResults(resSubquery)));
-                        }
-                    }
-                    return buildDataArrayFromResults(resultArrays, model, count, null); // no next link with decimation
-                }
                 sps = omProvider.getObservations(obsSubquery);
             } else {
                 sps = Collections.EMPTY_LIST;
             }
-            if (isDataArray) {
-                if (req.getCount()) {
-                    Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
-                    count = new BigDecimal(0);
-                    resSubquery.setResponseFormat("count");
-                    for (String sensorId : sensorIds) {
-                        resSubquery.setProcedure(sensorId);
-                        count = count.add(new BigDecimal((Integer) omProvider.getResults(resSubquery)));
-                    }
-                }
-                return buildDataArrayFromObservations(req, sps, count);
-            } else {
-                final RequestOptions expObs = exp.subLevel("Observations");
-                List<Observation> values = new ArrayList<>();
-                for (org.opengis.observation.Observation sp : sps) {
-                    Observation result = buildObservation(expObs, (org.geotoolkit.observation.model.Observation)sp, forMds);
-                    values.add(result);
-                }
-                if (req.getCount()) {
-                    count = new BigDecimal(omProvider.getCount(obsSubquery.noPaging()));
-                }
-                String iotNextLink = computePaginationNextLink(req, values.size(), count != null ? count.intValue() : null, "/Observations");
-                return new ObservationsResponse(values).iotCount(count).iotNextLink(iotNextLink);
+            final RequestOptions expObs = exp.subLevel("Observations");
+            List<Observation> values = new ArrayList<>();
+            for (org.opengis.observation.Observation sp : sps) {
+                Observation result = buildObservation(expObs, (org.geotoolkit.observation.model.Observation)sp, forMds);
+                values.add(result);
             }
+            if (req.getCount()) {
+                count = new BigDecimal(omProvider.getCount(obsSubquery.noPaging()));
+            }
+            String iotNextLink = computePaginationNextLink(req, values.size(), count != null ? count.intValue() : null, "/Observations");
+            return new ObservationsResponse(values).iotCount(count).iotNextLink(iotNextLink);
+            
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -696,65 +690,22 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return quality;
     }
 
-    private DataArrayResponse buildDataArrayFromResults(Map<String, List> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
+    private DataArrayResponse buildDataArrayFromResults(Map<String, ComplexResult> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
         DataArray result = new DataArray();
-        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result"));
-        for (Entry<String, List> entry : arrays.entrySet()) {
+        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality"));
+        for (Entry<String, ComplexResult> entry : arrays.entrySet()) {
             String sensorId = entry.getKey() + "-dec";
-            List resultArray = entry.getValue();
+            ComplexResult resultArray = entry.getValue();
             boolean single = MEASUREMENT_QNAME.equals(resultModel);
-            List<Object> results = formatSTSArray(sensorId, null, resultArray, single, true);
+            List<Object> results = formatSTSArray(sensorId, resultArray, single, true);
             result.getDataArray().addAll(results);
         }
         return new DataArrayResponse(Arrays.asList(result)).iotCount(count).iotNextLink(nextLink);
     }
 
-    private DataArrayResponse buildDataArrayFromObservations(AbstractSTSRequest req, List<org.opengis.observation.Observation> obs, BigDecimal count) throws ConstellationStoreException {
-        final DataArray result = new DataArray();
-        final RequestOptions exp = new RequestOptions(req);
-        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality"));
-        for (org.opengis.observation.Observation ob : obs) {
-            org.geotoolkit.observation.model.Observation aob = (org.geotoolkit.observation.model.Observation)ob;
-            final String observationId = aob.getName().getCode();
-
-            if (aob.getResult() instanceof ComplexResult cr) {
-                if (cr.getDataArray() != null) {
-
-                    List<Object> results = formatSTSArray(observationId, cr, false, true);
-                    result.getDataArray().addAll(results);
-
-                } else {
-                    throw new ConstellationStoreException("malformed data array result in observation");
-                }
-            } else if (aob.getResult() instanceof MeasureResult mr) {
-                List<Object> line = new ArrayList<>();
-                line.add(aob.getName().getCode());
-                String tempObj = null;
-                if (aob.getSamplingTime() != null) {
-                    tempObj = temporalObjToString(aob.getSamplingTime(), exp.timesCache);
-                }
-                line.add(tempObj);
-                line.add(tempObj);
-                line.add(mr.getValue());
-                line.add(buildResultQuality(aob));
-                result.getDataArray().add(line);
-            } else {
-                throw new ConstellationStoreException("unexpected result type:" + aob.getResult());
-            }
-
-        }
-        String iotNextLink = null;
-        if (count != null) {
-            iotNextLink = computePaginationNextLink(req, null, count.intValue(), "/Observations");
-        }
-        return new DataArrayResponse(Arrays.asList(result)).iotCount(count).iotNextLink(iotNextLink);
-    }
-
     private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean single, boolean idIncluded) {
-        return formatSTSArray(oid, flatFields(cr.getFields()), cr.getDataArray(), single, idIncluded);
-    }
-
-    private List<Object> formatSTSArray(final String oid, List<ExtField> fields, List<Object> resultArray, boolean single, boolean idIncluded) {
+        List<ExtField> fields = flatFields(cr.getFields());
+        List<Object> resultArray = cr.getDataArray();
         List<Object> results = new ArrayList<>();
         // reformat the results
         int j = 0;
@@ -778,26 +729,33 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             newLine.add(d);
 
             if (single) {
-                // should not happen if correctly called
-                if (arrayLine.size() > 3) {
-                    LOGGER.warning("Calling single sts array but found multiple phenomenon");
-                }
                 newLine.add(arrayLine.get(col));
+                col++;
+                List<Map> quality = new ArrayList<>();
+                if (arrayLine.size() > col) {
+                    for (int i = col; i < arrayLine.size(); i++) {
+                        ExtField f = fields.get(i);
+                        if (f.isQuality) {
+                            quality.add(buildResultQuality(f, arrayLine.get(i)));
+                        } else {
+                            LOGGER.warning("Non quality field found in single dataArray. This should not happen");
+                        }
+                    }
+                }
+                newLine.add(quality);
             } else {
                 List<Map> quality = new ArrayList<>();
                 List measures = new ArrayList<>();
                 for (int i = col; i < arrayLine.size(); i++) {
-                    ExtField f = fields != null ? fields.get(i) : null;
-                    if (f != null && f.isQuality) {
+                    ExtField f = fields.get(i);
+                    if (f.isQuality) {
                         quality.add(buildResultQuality(f, arrayLine.get(i)));
                     } else {
                         measures.add(arrayLine.get(i));
                     }
                 }
                 newLine.add(measures);
-                if (fields != null) {
-                    newLine.add(quality);
-                }
+                newLine.add(quality);
             }
             results.add(newLine);
             j++;
