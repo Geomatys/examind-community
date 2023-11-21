@@ -555,8 +555,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     FeatureSet featureset = data.getOrigin();
                     FeatureType ftType = data.getType();
 
-                    if (featureset instanceof XmlFeatureSet) {
-                        final Map params = (Map) ((XmlFeatureSet) featureset).getSchema();
+                    if (featureset instanceof XmlFeatureSet xfs) {
+                        final Map params = xfs.getSchema();
                         if (params.size() == 1 && params.get(params.keySet().iterator().next()) instanceof Schema) {
                             final FeatureType ft = NameOverride.wrap(ftType, layer.getName());
                             declaredSchema.put(ft, (Schema) params.get(params.keySet().iterator().next()));
@@ -646,7 +646,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 Schema sc = declaredSchema.get(ft);
                 if (commonSchema == null) {
                     commonSchema = sc;
-                    continue;
                 } else if ( commonSchema != sc) {
                     commonSchema = null;
                     break;
@@ -833,25 +832,37 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         return result;
     }
 
-    private List<String> extractPropertyNames(final List<Object> properties) {
+    private List<String> extractPropertyNames(final List<Object> properties, Map<String, String> prefixMapping) {
         final List<String> requestPropNames = new ArrayList<>();
         for (Object obj : properties) {
             if (obj instanceof JAXBElement jb) {
                 obj = jb.getValue();
             }
             if (obj instanceof String pName) {
-                final int pos = pName.lastIndexOf(':');
+                int pos = pName.indexOf(':');
                 if (pos != -1) {
-                    pName = pName.substring(pos + 1);
+                    String prefix = pName.substring(0, pos);
+                    prefix = correctGMLNamespace(prefixMapping.getOrDefault(prefix, prefix));
+                    pName = prefix + pName.substring(pos);
                 }
-                requestPropNames.add(pName);
+                requestPropNames.add(correctGMLNamespace(pName));
             } else if (obj instanceof PropertyName pName) {
                 if (pName.getValue() != null) {
-                    requestPropNames.add(pName.getValue().getLocalPart());
+                    requestPropNames.add(correctGMLNamespace(Util.toFeaturePropertyFormat(pName.getValue())));
                 }
             }
         }
         return requestPropNames;
+    }
+
+    private static String correctGMLNamespace(String propName) {
+        // hack for GML 3.2 namespace
+        if (propName.contains("http://www.opengis.net/gml/3.2") ||
+            propName.contains("http://www.opengis.net/gml/3.2.1")) {
+            propName = propName.replace("http://www.opengis.net/gml/3.2", "http://www.opengis.net/gml");
+            propName = propName.replace("http://www.opengis.net/gml/3.2.1", "http://www.opengis.net/gml");
+        }
+        return propName;
     }
 
     private void putSchemaLocation(final QName typeName, final Map<String, String> schemaLocations, final String version) {
@@ -909,7 +920,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
             final String[] array = new String[selected.size()];
             final Iterator<GenericName> ite = selected.iterator();
-            for (int i=0;i<array.length;i++) array[i] = ite.next().toString();
+            for (int i=0;i<array.length;i++) array[i] = Util.toXPathFormat(ite.next());
             return array;
 
         } else {
@@ -937,11 +948,6 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final List<FeatureSet> collections         = new ArrayList<>();
         final Map<String, String> schemaLocations  = new HashMap<>();
         final Map<String, String> namespaceMapping = request.getPrefixMapping();
-
-        //complete mapping by adding sis
-        if (namespaceMapping != null) {
-            namespaceMapping.put("sis", "sis");
-        }
 
         if ((request.getQuery() == null || request.getQuery().isEmpty()) && (request.getStoredQuery() == null || request.getStoredQuery().isEmpty())) {
             throw new CstlServiceException("You must specify a query!", MISSING_PARAMETER_VALUE);
@@ -1000,7 +1006,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final CoordinateReferenceSystem queryCRS = extractCRS(query.getSrsName());
 
             //decode property names---------------------------------------------
-            final List<String> requestPropNames = extractPropertyNames(query.getPropertyNames());
+            final List<String> requestPropNames = extractPropertyNames(query.getPropertyNames(), namespaceMapping);
 
             //decode sort by----------------------------------------------------
             final List<SortProperty> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
@@ -1022,12 +1028,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 } catch (ConstellationStoreException ex) {
                     throw new CstlServiceException(ex);
                 }
-                final GenericName ftName = ft.getName();
 
                 final FeatureSet origin = data.getOrigin();
                 final FeatureQuery subquery = new FeatureQuery();
                 if (!sortBys.isEmpty()) {
-                    subquery.setSortBy(sortBys.toArray(new SortProperty[sortBys.size()]));
+                    subquery.setSortBy(sortBys.toArray(SortProperty[]::new));
                 }
                 final Filter cleanFilter = processFilter(ft, filter, aliases);
                 subquery.setSelection(cleanFilter);
@@ -1217,7 +1222,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             final CoordinateReferenceSystem crs = extractCRS(query.getSrsName());
 
             //decode property names---------------------------------------------
-            final List<String> requestPropNames = extractPropertyNames(query.getPropertyNames());
+            final List<String> requestPropNames = extractPropertyNames(query.getPropertyNames(), namespaceMapping);
 
             //decode sort by----------------------------------------------------
             final List<SortProperty> sortBys = visitJaxbSortBy(query.getSortBy(), namespaceMapping, currentVersion);
@@ -1264,7 +1269,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
                 if (!sortBys.isEmpty()) {
-                    subquery.setSortBy(sortBys.toArray(new SortProperty[0]));
+                    subquery.setSortBy(sortBys.toArray(SortProperty[]::new));
                 }
 
                 // we ensure that the property names are contained in the feature type and add the mandatory attribute to the list
@@ -1419,8 +1424,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     if (featureObject instanceof Feature feature) {
                         ft = feature.getType();
                         featureCollection = Arrays.asList(feature);
-                    } else if (featureObject instanceof List) {
-                        featureCollection = (List) featureObject;
+                    } else if (featureObject instanceof List ls) {
+                        featureCollection = ls;
                     } else if (featureObject instanceof FeatureSet fs) {
                         try {
                             featureCollection = fs.features(false).collect(Collectors.toList());
@@ -1470,11 +1475,11 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             }
                         } else {
                             FeatureSet origin = data.getOrigin();
-                            if (origin instanceof WritableFeatureSet) {
+                            if (origin instanceof WritableFeatureSet wOrigin) {
 
                                 //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
                                 final AtomicInteger acc = new AtomicInteger();
-                                final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<FeatureStoreContentEvent>() {
+                                final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
                                     @Override
                                     public void eventOccured(FeatureStoreContentEvent event) {
                                         if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
@@ -1488,7 +1493,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                     }
                                 };
                                 origin.addListener(FeatureStoreContentEvent.class, listener);
-                                ((WritableFeatureSet) origin).add(featureCollection.iterator());
+                                wOrigin.add(featureCollection.iterator());
                                 origin.removeListener(FeatureStoreContentEvent.class, listener);
                                 totalInserted += acc.get();
                             } else {
@@ -1601,8 +1606,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         }
 
                         Object value;
-                        if (updateProperty.getValue() instanceof Element) {
-                            final String strValue = getXMLFromElementNSImpl((Element)updateProperty.getValue());
+                        if (updateProperty.getValue() instanceof Element elem) {
+                            final String strValue = getXMLFromElementNSImpl(elem);
                             value = null;
                             LOGGER.log(Level.FINER, ">> updating : {0}   => {1}", new Object[]{updatePropertyName, strValue});
                         } else {
@@ -1664,9 +1669,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                 }
 
 
-            } else if (transaction instanceof ReplaceElement) {
+            } else if (transaction instanceof ReplaceElement replaceRequest) {
 
-                final ReplaceElement replaceRequest = (ReplaceElement) transaction;
                 final String handle = replaceRequest.getHandle();
 
                 // we verify the input format
@@ -1684,8 +1688,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                 // extract replacement feature
                 Object featureObject = replaceRequest.getFeature();
-                if (featureObject instanceof JAXBElement) {
-                    featureObject = ((JAXBElement) featureObject).getValue();
+                if (featureObject instanceof JAXBElement jb) {
+                    featureObject = jb.getValue();
                 }
                 try {
                     if (featureObject instanceof Node) {
@@ -1693,7 +1697,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         featureObject = featureReader.read(featureObject);
 
                     } else if (featureObject instanceof FeatureCollectionType xmlCollection) {
-                        final String id = xmlCollection.getId();
+                        final String collId = xmlCollection.getId();
                         final List<Feature> features = new ArrayList<>();
                         FeatureType ft = null;
                         for (FeaturePropertyType fprop : xmlCollection.getFeatureMember()) {
@@ -1701,7 +1705,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                             ft = feat.getType();
                             features.add(feat);
                         }
-                        featureObject = new InMemoryFeatureSet(NamesExt.create(id), ft, features, true);
+                        featureObject = new InMemoryFeatureSet(NamesExt.create(collId), ft, features, true);
                     }
                 } catch (IllegalArgumentException ex) {
                     throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE);
@@ -1779,7 +1783,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
 
                         //todo we do not have the created ids, use a listener, not 100% safe but better then nothing
                         final AtomicInteger acc = new AtomicInteger();
-                        final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<FeatureStoreContentEvent>() {
+                        final StoreListener<FeatureStoreContentEvent> listener = new StoreListener<>() {
                             @Override
                             public void eventOccured(FeatureStoreContentEvent event) {
                                 if (event.getType() == FeatureStoreContentEvent.Type.ADD) {
@@ -1942,6 +1946,9 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                     }
                 }
             }
+            // remove the XPath QName format
+            filterProperty = filterProperty.replace("Q{", "{");
+            
             final Binding pa = Bindings.getBinding(FeatureType.class, filterProperty);
             if (pa == null || pa.get(ft, filterProperty, null) == null) {
                 String s = "";
@@ -2188,8 +2195,8 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
         final List<StoredQueryDescription> storedQueryList;
         if (request.getStoredQueryId() != null && !request.getStoredQueryId().isEmpty()) {
             storedQueryList = new ArrayList<>();
-            for (String id : request.getStoredQueryId()) {
-                StoredQueryDescription description = getStoredQueryById(id);
+            for (String sqId : request.getStoredQueryId()) {
+                StoredQueryDescription description = getStoredQueryById(sqId);
                 if (description != null) {
                     storedQueryList.add(description);
                 }

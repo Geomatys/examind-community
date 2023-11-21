@@ -58,6 +58,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import static org.constellation.wfs.core.AtomLinkBuilder.buildDocumentLinks;
+import static org.constellation.wfs.core.WFSConstants.GEOM_PROPERTY_TO_REPLACE;
 import org.geotoolkit.feature.model.FeatureSetWrapper;
 
 /**
@@ -300,7 +301,7 @@ public class FeatureAPI extends GridWebService<WFSWorker> {
                         env.setRange(0, Double.parseDouble(splitBbox[0]), Double.parseDouble(splitBbox[2]));
                         env.setRange(1, Double.parseDouble(splitBbox[1]), Double.parseDouble(splitBbox[3]));
 
-                        filter = FF.bbox(FF.property(""), env);
+                        filter = FF.bbox(FF.property(GEOM_PROPERTY_TO_REPLACE), env);
                     }
                     if (cqlFilter != null) {
                         Filter cql = CQL.parseFilter(cqlFilter);

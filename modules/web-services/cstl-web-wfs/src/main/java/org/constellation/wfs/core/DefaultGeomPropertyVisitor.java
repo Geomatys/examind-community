@@ -23,6 +23,7 @@ package org.constellation.wfs.core;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static org.constellation.wfs.core.WFSConstants.GEOM_PROPERTY_TO_REPLACE;
 import org.geotoolkit.feature.FeatureExt;
 import org.geotoolkit.filter.binaryspatial.LooseBBox;
 import org.geotoolkit.filter.binaryspatial.UnreprojectedLooseBBox;
@@ -57,7 +58,7 @@ public class DefaultGeomPropertyVisitor extends DuplicatingFilterVisitor{
             Expression exp1 = (Expression) visit(filter.getOperand1());
             if (exp1 instanceof ValueReference) {
                 ValueReference pname = (ValueReference) exp1;
-                if (pname.getXPath().trim().isEmpty()) {
+                if (pname.getXPath().trim().equals(GEOM_PROPERTY_TO_REPLACE)) {
                     exp1 = ff.property(geomAtt.getName().toString());
                 }
             }

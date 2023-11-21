@@ -224,18 +224,48 @@ public final class Util {
         return qname;
     }
 
-    public static String getXmlDocumentRoot(final String filePath) throws IOException, XMLStreamException {
-
-        XMLStreamReader xsr = null;
-        try (InputStream stream = Files.newInputStream(IOUtilities.toPath(filePath))) {
-            xsr = XML_IN_FACTORY.createXMLStreamReader(stream);
-            xsr.nextTag();
-            return xsr.getLocalName();
-        } finally {
-            if (xsr != null) {
-                xsr.close();
-            }
+    public static String toFeaturePropertyFormat(GenericName name) {
+        String ns = NamesExt.getNamespace(name);
+        String xname;
+        if (ns == null || ns.isEmpty()) {
+            xname = name.tip().toString();
+        } else {
+            xname = ns + ':' + name.tip().toString();
         }
+        return xname;
+    }
+
+     public static String toFeaturePropertyFormat(QName name) {
+        String ns = name.getNamespaceURI();
+        String xname;
+        if (ns == null || ns.isEmpty()) {
+            xname = name.getLocalPart();
+        } else {
+            xname =  ns + ':' + name.getLocalPart();
+        }
+        return xname;
+    }
+
+    public static String toXPathFormat(GenericName name) {
+        String ns = NamesExt.getNamespace(name);
+        String xname;
+        if (ns == null || ns.isEmpty()) {
+            xname = name.tip().toString();
+        } else {
+            xname = "Q{" + ns + '}' + name.tip().toString();
+        }
+        return xname;
+    }
+
+     public static String toXPathFormat(QName name) {
+        String ns = name.getNamespaceURI();
+        String xname;
+        if (ns == null || ns.isEmpty()) {
+            xname = name.getLocalPart();
+        } else {
+            xname = "Q{" + ns + '}' + name.getLocalPart();;
+        }
+        return xname;
     }
 
     /**

@@ -24,6 +24,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import jakarta.annotation.PostConstruct;
+import java.util.HashMap;
+import java.util.Map;
 import javax.xml.namespace.QName;
 import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.storage.FeatureSet;
@@ -130,10 +132,13 @@ public class WFSCIteWorkerTest extends AbstractWFSWorkerTest {
         points.add(new PointPropertyType(new PointType(null, new GeneralDirectPosition(68.87, 31.08))));
         points.add(new PointPropertyType(new PointType(null, new GeneralDirectPosition(71.96, 32.19))));
 
-        EqualsType equals = new EqualsType("http://cite.opengeospatial.org/gmlsf:multiPointProperty", new MultiPointType("urn:ogc:def:crs:EPSG::4326", points));
+        EqualsType equals = new EqualsType("gmlsf:multiPointProperty", new MultiPointType("urn:ogc:def:crs:EPSG::4326", points));
         FilterType f = new FilterType(equals);
         queries.add(new QueryType(f, Arrays.asList(new QName("http://cite.opengeospatial.org/gmlsf", "AggregateGeoFeature")), "1.1.0"));
         GetFeatureType request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+        Map<String, String> prefixMapping = new HashMap<>();
+        prefixMapping.put("gmlsf", "http://cite.opengeospatial.org/gmlsf");
+        request.setPrefixMapping(prefixMapping);
 
         Object result = worker.getFeature(request);
 
@@ -174,7 +179,7 @@ public class WFSCIteWorkerTest extends AbstractWFSWorkerTest {
          */
 
         queries = new ArrayList<>();
-        BBOXType bbox = new BBOXType("http://cite.opengeospatial.org/gmlsf:pointProperty",  30, -12, 60, -6, "urn:ogc:def:crs:EPSG::4326");
+        BBOXType bbox = new BBOXType("gmlsf:pointProperty",  30, -12, 60, -6, "urn:ogc:def:crs:EPSG::4326");
 
         /* TODO restore when geotk will be updated
 
@@ -187,6 +192,9 @@ public class WFSCIteWorkerTest extends AbstractWFSWorkerTest {
         //query.setSrsName("urn:ogc:def:crs:EPSG:6.11:32629");
         queries.add(query);
         request = new GetFeatureType("WFS", "1.1.0", null, Integer.MAX_VALUE, queries, ResultTypeType.RESULTS, "text/gml; subtype=\"gml/3.1.1\"");
+        prefixMapping = new HashMap<>();
+        prefixMapping.put("gmlsf", "http://cite.opengeospatial.org/gmlsf");
+        request.setPrefixMapping(prefixMapping);
 
         result = worker.getFeature(request);
 

@@ -48,8 +48,12 @@ public class AliasFilterVisitor extends DuplicatingFilterVisitor {
             for (Entry<String, QName> entry : fa.entrySet()) {
                 if (expression.getXPath().startsWith(entry.getKey() + "/")) {
                     String nmsp = entry.getValue().getNamespaceURI();
-                    if (nmsp == null) nmsp = "";
-                    final String newPropertyName = '{' + nmsp + '}' + entry.getValue().getLocalPart() + expression.getXPath().substring(entry.getKey().length());
+                    if (nmsp != null) {
+                        nmsp = "Q{" + nmsp + '}';
+                    } else {
+                        nmsp = "";
+                    }
+                    final String newPropertyName = nmsp + entry.getValue().getLocalPart() + expression.getXPath().substring(entry.getKey().length());
                     return ff.property(newPropertyName);
                 }
             }

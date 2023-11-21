@@ -99,6 +99,8 @@ public final class WFSConstants {
 
     public static final String UNKNOW_TYPENAME= "The specified TypeNames does not exist:";
 
+    public static final String GEOM_PROPERTY_TO_REPLACE = "to_replace";
+
     /**
      * The Mime type for describe feature GML 3.1.1
      */
