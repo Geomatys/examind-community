@@ -20,10 +20,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import javax.xml.namespace.QName;
-import org.apache.sis.filter.DefaultFilterFactory;
 
-import org.geotoolkit.util.NamesExt;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Quantities;
 import org.geotoolkit.gml.GeometrytoJTS;
@@ -36,7 +33,6 @@ import org.geotoolkit.ogc.xml.v110.SortPropertyType;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.util.ObjectConverters;
 
-import org.opengis.util.GenericName;
 import org.opengis.filter.Filter;
 import org.opengis.filter.MatchAction;
 import org.opengis.filter.Expression;
@@ -47,6 +43,7 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.util.logging.Logging;
 import org.geotoolkit.ogc.xml.OGCJAXBStatics;
+import org.opengis.filter.FilterFactory;
 
 /**
  * Transform OGC jaxb xml in GT classes.
@@ -55,16 +52,16 @@ import org.geotoolkit.ogc.xml.OGCJAXBStatics;
  */
 public class DtoToOGCFilterTransformer {
 
-    protected final DefaultFilterFactory filterFactory;
+    protected final FilterFactory filterFactory;
 
     private final Map<String, String> namespaceMapping;
 
-    public DtoToOGCFilterTransformer(final DefaultFilterFactory factory) {
+    public DtoToOGCFilterTransformer(final FilterFactory factory) {
         this.filterFactory = factory;
         this.namespaceMapping = null;
     }
 
-    public DtoToOGCFilterTransformer(final DefaultFilterFactory factory, final Map<String, String> namespaceMapping) {
+    public DtoToOGCFilterTransformer(final FilterFactory factory, final Map<String, String> namespaceMapping) {
         this.filterFactory = factory;
         this.namespaceMapping = namespaceMapping;
     }
@@ -238,7 +235,10 @@ public class DtoToOGCFilterTransformer {
             if (match == null) {
                 match = Boolean.TRUE;
             }
-            final MatchAction action = f.getMatchAction();
+            MatchAction action = f.getMatchAction();
+            if (action == null) {
+                action = MatchAction.ANY;
+            }
 
             if (OGCJAXBStatics.FILTER_COMPARISON_ISEQUAL.equalsIgnoreCase(OpName)) {
                 return filterFactory.equal(left, right, match, action);
