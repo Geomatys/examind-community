@@ -398,7 +398,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
-                    List<Field> readFields = readFields(procedureID, true, c, new ArrayList<>());
+                    List<Field> readFields = readFields(procedureID, true, c, new ArrayList<>(), new ArrayList<>());
                     Phenomenon replacingPhen = OMUtils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
@@ -429,7 +429,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             updateOrCreateOffering(procedureID,samplingTime, phenRef, foiID, c);
 
             return observationName;
-        } catch (SQLException | FactoryException ex) {
+        } catch (Exception ex) {
             throw new DataStoreException("Error while inserting observation:" + ex.getMessage(), ex);
         }
     }
@@ -1633,7 +1633,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>());
+        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>(), new ArrayList<>());
 
         List<String> rmSQLs = new ArrayList<>();
         StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m");
@@ -1682,7 +1682,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>());
+        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>(), new ArrayList<>());
 
         StringBuilder sql = new StringBuilder("SELECT ");
 

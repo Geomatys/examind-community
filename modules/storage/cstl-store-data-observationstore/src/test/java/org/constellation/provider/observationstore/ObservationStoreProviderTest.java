@@ -4153,6 +4153,54 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     @Test
+    public void getMeasurements4Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:13-4"));
+        query.setSelection(filter);
+
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(3, results.size());
+
+        for (Observation p : results) {
+            assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
+        }
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:4002-4-1", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("salinity", getPhenomenonId(result));
+
+        assertTrue(result.getResult() instanceof MeasureResult);
+
+        MeasureResult mr = (MeasureResult) result.getResult();
+
+        assertEquals(1.1, mr.getValue());
+
+        
+        query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:8-3"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(5, results.size());
+
+        result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:801-3-1", result.getName().getCode());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("temperature", getPhenomenonId(result));
+
+        assertTrue(result.getResult() instanceof MeasureResult);
+
+        mr = (MeasureResult) result.getResult();
+
+        assertEquals(12.0, mr.getValue());
+    }
+
+    @Test
     public void getObservationsTimeDisorderTest() throws Exception {
         assertNotNull(omPr);
 

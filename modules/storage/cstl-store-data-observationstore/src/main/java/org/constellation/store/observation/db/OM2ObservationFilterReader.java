@@ -198,13 +198,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
 
 
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
-            throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        } catch (DataStoreException ex) {
-            throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
-        } catch (RuntimeException ex) {
-            throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw an Exception.", ex);
         }
         return observations;
     }
@@ -358,12 +354,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 */
                 List<Field> fields = fieldMap.get(procedure);
                 if (fields == null) {
-                    if (!currentFields.isEmpty()) {
+                    if (!fieldIdFilters.isEmpty()) {
                         fields = new ArrayList<>();
                         fields.add(pti.mainField);
 
                         List<Field> phenFields = new ArrayList<>();
-                        for (String f : currentFields) {
+                        for (String f : fieldIdFilters) {
                             final Field field = getProcedureField(procedure, f, c);
                             if (field != null && !fields.contains(field)) {
                                 phenFields.add(field);
@@ -514,13 +510,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 values.clear();
             }
 
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        } catch (DataStoreException ex) {
-            throw new DataStoreException("the service has throw a Datastore Exception:" + ex.getMessage(), ex);
-        } catch (RuntimeException ex) {
-            throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
         
         // TODO make a real pagination
@@ -536,6 +528,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
+        final Map<String, Map<Field, Phenomenon>> phenMap = new HashMap<>();
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
@@ -547,13 +540,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String name = rs.getString("identifier");
                 final String obsID = "obs-" + oid;
                 final String featureID = rs.getString("foi");
-                final String observedProperty = rs.getString("observed_property");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
-                final Phenomenon phen = getPhenomenon(observedProperty, c);
                 final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
-                final List<Field> fields = readFields(procedure, true, c, new ArrayList<>());
-                final Map<Field, Phenomenon> fieldPhen = getPhenomenonFields(phen, fields, c);
-                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
+                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
+                final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
                 final TemporalGeometricPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
@@ -672,12 +662,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              *  1) build field list.
              */
             final List<Field> fields;
-            if (!currentFields.isEmpty()) {
+            if (!fieldIdFilters.isEmpty()) {
                 fields = new ArrayList<>();
                 fields.add(currentProcedure.mainField);
                 
                 List<Field> phenFields = new ArrayList<>();
-                for (String f : currentFields) {
+                for (String f : fieldIdFilters) {
                     final Field field = getProcedureField(currentProcedure.procedureId, f, c);
                     if (field != null && !fields.contains(field)) {
                         phenFields.add(field);
@@ -688,7 +678,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 fields.addAll(phenFields);
 
             } else {
-                fields = readFields(currentProcedure.procedureId, false, c, fieldFilters);
+                fields = readFields(currentProcedure.procedureId, false, c, fieldIndexFilters, fieldIdFilters);
             }
             // in a measurement context, the last field is the one we look want to use for identifier construction.
             String idSuffix = "";
@@ -722,20 +712,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     * asap_smooth / lttb
                     */
                    if ((fields.size() - fieldOffset) == 1) {
-                       processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+                       processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
 
                    /**
                     * otherwise we use time bucket method.
                     * This methods seems not to be so fast with very large group of data.
                     */
                    } else {
-                       processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+                       processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
                    }
                 } else {
                     /**
                      * default java bucket decimation
                      */
-                    processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldFilters, includeTimeForProfile, currentProcedure);
+                    processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
                 }
             } else {
                 processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
@@ -862,7 +852,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
 
         if (procDescJoin && !obsJoin) {
-             sqlRequest.append("group by \"id\"");
+            sqlRequest.append("group by \"id\"");
             sqlRequest.append(" ORDER BY \"mo\" ");
         } else {
             sqlRequest.append(" ORDER BY \"id\"");

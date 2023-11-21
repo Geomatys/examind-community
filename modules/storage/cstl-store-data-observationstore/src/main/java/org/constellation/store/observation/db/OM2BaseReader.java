@@ -428,7 +428,7 @@ public class OM2BaseReader {
          return (result != null) ? getPhenomenon(result, c) : null;
      }
 
-    private Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
+    protected Phenomenon getSinglePhenomenon(final String id, final Connection c) throws DataStoreException {
         if (cacheEnabled && cachedPhenomenon.containsKey(id)) {
             return cachedPhenomenon.get(id);
         }
@@ -626,21 +626,34 @@ public class OM2BaseReader {
         }
     }
 
-    protected List<Field> readFields(final String procedureID, final Connection c) throws SQLException {
-        return readFields(procedureID, false, c, new ArrayList<>());
+    protected List<Field> readFields(final String procedureID, final Connection c) {
+        return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>());
     }
     
-    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c, List<Integer> fieldFilters) throws SQLException {
+    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters) {
         final List<Field> results = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL");
         if (removeMainTimeField) {
             query.append(" AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')");
         }
-        if (fieldFilters != null && !fieldFilters.isEmpty()) {
+        if (fieldIndexFilters != null && !fieldIndexFilters.isEmpty()) {
             query.append(" AND (");
-            for (Integer fieldFilter : fieldFilters) {
+            for (Integer fieldFilter : fieldIndexFilters) {
                 query.append("\"order\"= ").append(fieldFilter).append(" OR ");
             }
+            if (!removeMainTimeField) {
+                query.append("\"order\"= 1)");
+            } else {
+                query.delete(query.length() - 4, query.length());
+                query.append(")");
+            }
+        }
+        if (fieldIdFilters != null && !fieldIdFilters.isEmpty()) {
+            query.append(" AND (");
+            for (String fieldFilter : fieldIdFilters) {
+                query.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
+            }
+            // main field name may vary
             if (!removeMainTimeField) {
                 query.append("\"order\"= 1)");
             } else {
@@ -657,6 +670,8 @@ public class OM2BaseReader {
                 }
                 return results;
             }
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
@@ -1007,7 +1022,7 @@ public class OM2BaseReader {
 
     private ComplexResult buildComplexResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
-        final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>());
+        final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>(), new ArrayList<>());
         int nbValue                 = 0;
         final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 
