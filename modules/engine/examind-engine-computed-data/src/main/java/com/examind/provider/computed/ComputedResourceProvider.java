@@ -19,14 +19,14 @@
 package com.examind.provider.computed;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import org.apache.sis.parameter.Parameters;
 import org.opengis.parameter.ParameterNotFoundException;
@@ -41,11 +41,10 @@ import org.constellation.exception.ConfigurationException;
 
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.AbstractDataProvider;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
-import org.constellation.provider.DataProviders;
+
 import static com.examind.provider.computed.AggregateUtils.getData;
 import static com.examind.provider.computed.ComputedResourceProviderDescriptor.DATA_IDS;
 import static com.examind.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME;
@@ -54,6 +53,8 @@ import static com.examind.provider.computed.ComputedResourceProviderDescriptor.D
 import org.constellation.repository.DataRepository;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 /**
  * @author Guilhem Legal (Geomatys)
@@ -62,7 +63,7 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
 
     private final List<Integer> dataIds;
 
-    protected Data cachedData = null;
+    private final AtomicReference<CacheResult> cachedData = new AtomicReference<>();
 
     public ComputedResourceProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
@@ -86,10 +87,13 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
     @Override
     public Set<GenericName> getKeys() {
         Data d = getComputedData();
-        if (d != null) {
-            return Collections.singleton(d.getName());
+        if (d == null) return Set.of();
+        var name = d.getName();
+        if (name == null) {
+            LOGGER.warning("Computed data name is null ! This is not supported. Therefore, no data will be published");
+            return Set.of();
         }
-        return new HashSet<>();
+        return Set.of(name);
     }
 
     /**
@@ -106,9 +110,10 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
     @Override
     public Data get(GenericName key, Date version) {
         Data d = getComputedData();
-        if (d != null && d.getName().equals(key)) {
-            return d;
-        }
+        if (d == null) return null;
+        var name = d.getName();
+        if (name == null) return null;
+        if (name.equals(key)) return d;
         return null;
     }
 
@@ -131,7 +136,7 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
      */
     @Override
     public void reload() {
-       cachedData = null;
+       invalidate(null);
     }
 
     /**
@@ -139,7 +144,20 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
      */
     @Override
     public void dispose() {
-        cachedData = null;
+        invalidate(new Disposed(Instant.now()));
+    }
+
+    private void invalidate(CacheResult newValue) {
+        var data = cachedData.getAndUpdate(whatever -> newValue);
+        if (data instanceof Success s) {
+            var value = s.value();
+            try {
+                if (value instanceof AutoCloseable resource) resource.close();
+                else if (value.getOrigin() instanceof AutoCloseable resource) resource.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, "A resource failed to close. This can lead to memory issues or unexpected behaviours", e);
+            }
+        }
     }
 
     @Override
@@ -162,7 +180,7 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
     }
 
     /**
-     * Utility method that search for a {@value org.constellation.provider.computed.ComputedResourceProviderDescriptor#DATA_NAME_ID}
+     * Utility method that search for a {@link ComputedResourceProviderDescriptor#DATA_NAME DATA_NAME}
      * parameter in {@link #getSource() source parameters}.
      * Note: This is a utility method, there's no guarantee over returned value. Computed resource implementations are
      * free to use it or not.
@@ -185,7 +203,40 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         return Optional.empty();
     }
 
-    protected abstract Data getComputedData();
+    private @Nullable Data getComputedData() {
+        var data = cachedData.get();
+        // TODO: after migration to JDK 21, transform to exhaustive switch-case.
+        if (data instanceof Success s) return s.value();
+        else if (data instanceof Error e) {
+            LOGGER.log(Level.FINE, "Attempt to acquire previously failed data (see attached exception for original failure)", e.cause());
+            return null;
+        } else if (data instanceof Disposed d) {
+            LOGGER.warning(d::message);
+            return null;
+        }
+
+        data = cachedData.updateAndGet(current -> {
+            // another thread has computed data while we were waiting
+            if (current != null) return current;
+            try {
+                return new Success(computeData());
+            } catch (Exception e) {
+                return new Error(e);
+            }
+        });
+
+        if (data instanceof Success s) return s.value();
+        else return null;
+    }
+
+    /**
+     * Compute a fresh instance of the data to expose via this provider.
+     * This method will be called each time the provider is reloaded, and its aim is to build a clean data instance.
+     *
+     * @return A newly computed instance of this provider data.
+     * @throws Exception If the data cannot be created/computed.
+     */
+    protected abstract @NonNull Data computeData() throws Exception;
 
     protected List<Data> getResourceList() throws ConfigurationException {
         final List<Data> results = new ArrayList<>();
@@ -197,4 +248,13 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         return results;
     }
 
+    private sealed interface CacheResult {}
+
+    private record Error(Exception cause) implements CacheResult {}
+
+    private record Success(Data value) implements CacheResult {}
+
+    private record Disposed(Instant when) implements CacheResult {
+        String message() { return "Attempt to access a disposed data provider. Provider has been closed on "+when; }
+    }
 }

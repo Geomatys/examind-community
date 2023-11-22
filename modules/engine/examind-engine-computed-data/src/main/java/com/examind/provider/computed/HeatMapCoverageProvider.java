@@ -38,7 +38,6 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.FactoryException;
 
 import java.awt.*;
-import java.util.logging.Level;
 import static com.examind.provider.computed.AggregateUtils.getData;
 import static com.examind.provider.computed.HeatMapCoverageProviderDescriptor.*;
 
@@ -80,18 +79,10 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
     }
 
     @Override
-    protected synchronized Data getComputedData() {
-        if (cachedData == null) {
-            try {
-                // TODO: add algorithm as provider parameter
-                final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, algorithm);
-                final String resultDataName = getDataName().orElse("HeatMap");
-                cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", resultDataName), res, null);
-            } catch (Exception ex) {
-                LOGGER.log(Level.WARNING, id, ex);
-            }
-        }
-        return cachedData;
+    protected Data computeData() throws DataStoreException, ConstellationException {
+        final HeatMapResource res = new HeatMapResource(dataToPointCloud(), tilingDimension, distanceX, distanceY, algorithm);
+        final String resultDataName = getDataName().orElse("HeatMap");
+        return new DefaultCoverageData(Names.createLocalName(null, ":", resultDataName), res, null);
     }
 
     private PointCloudResource dataToPointCloud() throws ConstellationException, DataStoreException {

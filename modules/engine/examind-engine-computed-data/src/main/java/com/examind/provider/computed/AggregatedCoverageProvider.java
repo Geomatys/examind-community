@@ -21,7 +21,6 @@ package com.examind.provider.computed;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CRS;
@@ -87,19 +86,12 @@ public class AggregatedCoverageProvider extends ComputedResourceProvider {
     }
 
     @Override
-    protected synchronized  Data getComputedData() {
-        if (cachedData == null) {
-            try {
-                final AggregatedCoverageResource res = createFromVirtualBands()
-                        .orElseGet(this::createFromDataIds);
+    protected Data computeData() throws DataStoreException, TransformException {
+        final AggregatedCoverageResource res = createFromVirtualBands()
+                .orElseGet(this::createFromDataIds);
 
-                final String aggregationName = getDataName().orElse("Aggregation");
-                cachedData = new DefaultCoverageData(Names.createLocalName(null, ":", aggregationName), res, null);
-            } catch (Exception ex){
-                LOGGER.log(Level.WARNING, id, ex);
-            }
-        }
-        return cachedData;
+        final String aggregationName = getDataName().orElse("Aggregation");
+        return new DefaultCoverageData(Names.createLocalName(null, ":", aggregationName), res, null);
     }
 
     private AggregatedCoverageResource createFromDataIds() {

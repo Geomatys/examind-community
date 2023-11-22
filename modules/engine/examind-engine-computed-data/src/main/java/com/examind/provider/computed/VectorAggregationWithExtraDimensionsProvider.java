@@ -67,8 +67,7 @@ public class VectorAggregationWithExtraDimensionsProvider extends ComputedResour
     }
 
     @Override
-    protected Data<?> getComputedData() {
-        if (cachedData != null) return cachedData;
+    protected Data<?> computeData() throws DataStoreException {
         var input = Parameters.castOrWrap(getSource());
         var dataName = input.getMandatoryValue(DATA_NAME);
         var confs = input.groups(DATA_CONFIGURATIONS.getName().getCode());
@@ -82,54 +81,50 @@ public class VectorAggregationWithExtraDimensionsProvider extends ComputedResour
             return new DefaultFeatureData(outName, null, data.source, data.conf.time, data.conf.elevation, null);
         }
 
-        try {
-            var commonType = createCommonType(dataList.stream().map(it -> it.sourceType).toList());
-            final FilterFactory<Feature, Object, Object> ff = DefaultFilterFactory.forFeatures();
-            AtomicBoolean anyTime = new AtomicBoolean();
-            AtomicBoolean anyElev = new AtomicBoolean();
-            var dataToConcat = dataList.stream()
-                    .map(data -> {
-                        var tMin = data.conf.time == null ? null : data.conf.time.lower();
-                        var tMax = data.conf.time == null ? null : data.conf.time.upper();
-                        var eMin = data.conf.elevation == null ? null : data.conf.elevation.lower();
-                        var eMax = data.conf.elevation == null ? null : data.conf.elevation.upper();
-                        final boolean hasTime = tMin != null || tMax != null;
-                        if (hasTime) anyTime.compareAndSet(false, true);
-                        final boolean hasElevation = eMin != null || eMax != null;
-                        if (hasElevation) anyElev.compareAndSet(false, true);
-                        var mapping = createMapper(commonType, data);
-                        WrapConfiguration conf;
-                        if (hasTime || hasElevation) {
-                            final Map<String, Expression<?, ?>> replacements = Map.of(
-                                    AGG_TIME_MIN, tMin == null ? ff.literal(null) : tMin,
-                                    AGG_TIME_MAX, tMax == null ? ff.literal(null) : tMax,
-                                    AGG_ELEV_MIN, eMin == null ? ff.literal(null) : eMin,
-                                    AGG_ELEV_MAX, eMax == null ? ff.literal(null) : eMax
-                            );
-                            var replaceVisitor = new ReplaceValueReferences(replacements);
-                            conf = new WrapConfiguration(
-                                    data.source, mapping.targetType, mapping.mapper,
-                                    selection -> (Filter) replaceVisitor.visit((Filter) selection),
-                                    projection -> (Expression) replaceVisitor.visit((Expression) projection)
-                            );
-                        } else {
-                            conf = new WrapConfiguration(data.source, mapping.targetType, mapping.mapper, identity(), identity());
-                        }
-                        return new WrapFeatureSet(conf);
-                    })
-                    .toList();
+        var commonType = createCommonType(dataList.stream().map(it -> it.sourceType).toList());
+        final FilterFactory<Feature, Object, Object> ff = DefaultFilterFactory.forFeatures();
+        AtomicBoolean anyTime = new AtomicBoolean();
+        AtomicBoolean anyElev = new AtomicBoolean();
+        var dataToConcat = dataList.stream()
+                .map(data -> {
+                    var tMin = data.conf.time == null ? null : data.conf.time.lower();
+                    var tMax = data.conf.time == null ? null : data.conf.time.upper();
+                    var eMin = data.conf.elevation == null ? null : data.conf.elevation.lower();
+                    var eMax = data.conf.elevation == null ? null : data.conf.elevation.upper();
+                    final boolean hasTime = tMin != null || tMax != null;
+                    if (hasTime) anyTime.compareAndSet(false, true);
+                    final boolean hasElevation = eMin != null || eMax != null;
+                    if (hasElevation) anyElev.compareAndSet(false, true);
+                    var mapping = createMapper(commonType, data);
+                    WrapConfiguration conf;
+                    if (hasTime || hasElevation) {
+                        final Map<String, Expression<?, ?>> replacements = Map.of(
+                                AGG_TIME_MIN, tMin == null ? ff.literal(null) : tMin,
+                                AGG_TIME_MAX, tMax == null ? ff.literal(null) : tMax,
+                                AGG_ELEV_MIN, eMin == null ? ff.literal(null) : eMin,
+                                AGG_ELEV_MAX, eMax == null ? ff.literal(null) : eMax
+                        );
+                        var replaceVisitor = new ReplaceValueReferences(replacements);
+                        conf = new WrapConfiguration(
+                                data.source, mapping.targetType, mapping.mapper,
+                                selection -> (Filter) replaceVisitor.visit((Filter) selection),
+                                projection -> (Expression) replaceVisitor.visit((Expression) projection)
+                        );
+                    } else {
+                        conf = new WrapConfiguration(data.source, mapping.targetType, mapping.mapper, identity(), identity());
+                    }
+                    return new WrapFeatureSet(conf);
+                })
+                .toList();
 
-            // TODO: concatenation will likely not work, because it requires a common super type, which is rarely used.
-            var concatenation = ConcatenatedFeatureSet.create(dataToConcat);
-            return new DefaultFeatureData(
-                    outName, null, concatenation,
-                    anyTime.get() ? new DimensionDef(CommonCRS.Temporal.JAVA.crs(), ff.property(AGG_TIME_MIN), ff.property(AGG_TIME_MAX)) : null,
-                    anyElev.get() ? new DimensionDef(CommonCRS.Vertical.MEAN_SEA_LEVEL.crs(), ff.property(AGG_ELEV_MIN), ff.property(AGG_ELEV_MAX)) : null,
-                    null
-            );
-        } catch (DataStoreException e) {
-            throw new BackingStoreException(e);
-        }
+        // TODO: concatenation will likely not work, because it requires a common super type, which is rarely used.
+        var concatenation = ConcatenatedFeatureSet.create(dataToConcat);
+        return new DefaultFeatureData(
+                outName, null, concatenation,
+                anyTime.get() ? new DimensionDef(CommonCRS.Temporal.JAVA.crs(), ff.property(AGG_TIME_MIN), ff.property(AGG_TIME_MAX)) : null,
+                anyElev.get() ? new DimensionDef(CommonCRS.Vertical.MEAN_SEA_LEVEL.crs(), ff.property(AGG_ELEV_MIN), ff.property(AGG_ELEV_MAX)) : null,
+                null
+        );
     }
 
     private SourceConf resolveConf(ParameterValueGroup conf) {
