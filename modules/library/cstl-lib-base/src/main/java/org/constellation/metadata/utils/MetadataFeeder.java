@@ -283,7 +283,7 @@ public class MetadataFeeder {
 
         return metadata.getIdentificationInfo().iterator().next();
     }
-    
+
     protected CoverageDescription getCoverageDescription(DefaultMetadata metadata, boolean create) {
         for (ContentInformation ci : metadata.getContentInfo()) {
             if (ci instanceof CoverageDescription) {
@@ -1233,7 +1233,7 @@ public class MetadataFeeder {
         final Optional<Envelope> optEnv = datasource.get();
         if (optEnv.isPresent()) {
             final MetadataBuilder builder = new MetadataBuilder();
-            builder.addExtent(optEnv.get());
+            builder.addExtent(optEnv.get(), null);
             final DefaultMetadata md = builder.build();
             final List<? extends Extent> newExtents = getExtents(md).collect(Collectors.toList());
             if (!newExtents.isEmpty()) {
@@ -1245,11 +1245,11 @@ public class MetadataFeeder {
 
         return Collections.EMPTY_LIST;
     }
-    
+
     public Collection<? extends Extent> setExtent(final Extent newExtent, WriteOption copyBehavior) {
         return setFullExtent(() -> Optional.ofNullable(newExtent), copyBehavior);
     }
-    
+
     public Collection<? extends Extent> setFullExtent(final Supplier<Optional<Extent>> datasource, WriteOption copyBehavior) {
         final Consumer<DefaultMetadata> mdInit;
         switch (copyBehavior) {
@@ -1287,7 +1287,7 @@ public class MetadataFeeder {
 
         return Collections.EMPTY_LIST;
     }
-    
+
     public void setGeographicBoundingBox(final Optional<GeographicBoundingBox> optBox, WriteOption copyBehavior) {
         final Consumer<DefaultMetadata> mdInit;
         switch (copyBehavior) {
@@ -1334,7 +1334,7 @@ public class MetadataFeeder {
             }
         }
     }
-    
+
     public void setCoverageDescriptionAttributeGroups(final Collection<? extends AttributeGroup> newValues, WriteOption copyBehavior) {
         final Consumer<DefaultMetadata> mdInit;
         switch (copyBehavior) {
@@ -1430,7 +1430,7 @@ public class MetadataFeeder {
         return builder.build().getSpatialRepresentationInfo().stream()
                 .findAny();
     }
-    
+
     public Stream<? extends Extent> getExtents() {
         return getExtents(eater);
     }
@@ -1445,11 +1445,11 @@ public class MetadataFeeder {
                 .findAny()
                 .isPresent();
     }
-    
+
     public Collection<? extends AttributeGroup> getCoverageDescriptionAttributeGroups() {
         return getCoverageDescriptionAttributeGroups(eater);
     }
-    
+
     private Collection<? extends AttributeGroup> getCoverageDescriptionAttributeGroups(DefaultMetadata md) {
         CoverageDescription cd = getCoverageDescription(md, false);
         if (cd != null) {
@@ -1457,12 +1457,12 @@ public class MetadataFeeder {
         }
         return new ArrayList<>();
     }
-    
+
     private boolean hasCoverageDescriptionAttributeGroups(Metadata md) {
         CoverageDescription cd = getCoverageDescription(eater, false);
         return cd !=null && cd.getAttributeGroups().isEmpty();
     }
-    
+
     private boolean hasGeographicBoundingBox(Metadata md) {
         return getGeographicBBoxes()
                 .findAny()
