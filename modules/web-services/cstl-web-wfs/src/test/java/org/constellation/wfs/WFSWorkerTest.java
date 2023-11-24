@@ -444,7 +444,7 @@ public class WFSWorkerTest extends AbstractWFSWorkerTest {
     public void getFeatureOMTest2() throws Exception {
 
         /**
-         * Test 6 : query on typeName samplingPoint whith a spatial filter BBOX
+         * Test 6 : query on typeName samplingPoint with a spatial filter BBOX
          */
         List<QueryType> queries = new ArrayList<>();
         SpatialOpsType bbox = new BBOXType("sp:position", 65300.0, 1731360.0, 65500.0, 1731400.0, "urn:ogc:def:crs:epsg:7.6:27582");

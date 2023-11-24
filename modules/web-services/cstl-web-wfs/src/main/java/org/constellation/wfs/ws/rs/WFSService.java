@@ -59,6 +59,8 @@ import static org.constellation.wfs.core.WFSConstants.STR_DESCRIBEFEATURETYPE;
 import static org.constellation.wfs.core.WFSConstants.STR_DESCRIBE_STORED_QUERIES;
 import static org.constellation.wfs.core.WFSConstants.STR_DROP_STORED_QUERY;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
+import org.constellation.wfs.core.WFSConstants;
+import static org.constellation.wfs.core.WFSConstants.GEOM_PROPERTY_TO_REPLACE;
 import static org.constellation.wfs.core.WFSConstants.STR_GETFEATURE;
 import static org.constellation.wfs.core.WFSConstants.STR_GETGMLOBJECT;
 import static org.constellation.wfs.core.WFSConstants.STR_GET_PROPERTY_VALUE;
@@ -586,7 +588,7 @@ public class WFSService extends GridWebService<WFSWorker> {
 
             if (coodinates != null) {
                 if (filter == null) {
-                    filter = buildBBOXFilter(version, "", coodinates[0], coodinates[1], coodinates[2], coodinates[3], crs);
+                    filter = buildBBOXFilter(version, GEOM_PROPERTY_TO_REPLACE, coodinates[0], coodinates[1], coodinates[2], coodinates[3], crs);
                 } else {
                     LOGGER.info("unexpected case --> filter + bbox TODO");
                 }
@@ -788,7 +790,7 @@ public class WFSService extends GridWebService<WFSWorker> {
 
             if (coodinates != null) {
                 if (filter == null) {
-                    filter = buildBBOXFilter(version, "", coodinates[0], coodinates[1], coodinates[2], coodinates[3], crs);
+                    filter = buildBBOXFilter(version, GEOM_PROPERTY_TO_REPLACE, coodinates[0], coodinates[1], coodinates[2], coodinates[3], crs);
                 } else {
                     LOGGER.info("unexpected case --> filter + bbox TODO");
                 }

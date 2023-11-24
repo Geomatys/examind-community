@@ -176,6 +176,10 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
             + "%3C/fes:PropertyIsLike%3E"
             + "%3C/fes:Filter%3E";
 
+    private static final String WFS_GETFEATURE_BBOX = "service=WFS&version=1.1.0&request=GetFeature&typename=SamplingPoint&srsName=urn:ogc:def:crs:epsg:7.6:27582&BBOX=65300.0,1731360.0,65500.0,1731400.0,urn:ogc:def:crs:epsg:7.6:27582";
+
+    private static final String WFS_GETPROP_VALUE_BBOX = "service=WFS&version=2.0.0&request=GetPropertyValue&typenames=SamplingPoint&srsName=urn:ogc:def:crs:epsg:7.6:27582&BBOX=65300.0,1731360.0,65500.0,1731400.0,urn:ogc:def:crs:epsg:7.6:27582&valueReference=sampledFeature";
+
     private static String EPSG_VERSION;
 
     private static boolean initialized = false;
@@ -1815,7 +1819,57 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         //System.out.println(xmlResult);
     }
 
+    @Test
+    @Order(order=29)
+    public void testWFSGetFeatureBBOXTest() throws Exception {
+
+        /**
+         * GET FEATURE KVP with bbox
+         *
+         * one result expected
+         */
+        URL getfeatsUrl;
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETFEATURE_BBOX);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        Object obj = unmarshallResponse(getfeatsUrl);
+
+        assertTrue(obj instanceof FeatureCollectionType);
+
+        FeatureCollectionType feat = (FeatureCollectionType) obj;
+        assertEquals(1, feat.getFeatureMember().size());
+    }
+
      @Test
+    @Order(order=29)
+    public void testWFSPropertyValueBBOXTest() throws Exception {
+
+        /**
+         * GET FEATURE KVP with bbox
+         *
+         * one result expected
+         */
+        URL getfeatsUrl;
+        try {
+            getfeatsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default?" + WFS_GETPROP_VALUE_BBOX);
+        } catch (MalformedURLException ex) {
+            assumeNoException(ex);
+            return;
+        }
+
+        Object result = unmarshallResponse(getfeatsUrl);
+
+        assertTrue(result instanceof ValueCollection);
+        assertEquals("1", ((ValueCollection)result).getNumberMatched());
+        assertEquals(1, ((ValueCollection)result).getNumberReturned());
+       
+    }
+
+    @Test
     @Order(order=30)
     public void testWFSDescribeFeatureGETCUstom() throws Exception {
 
