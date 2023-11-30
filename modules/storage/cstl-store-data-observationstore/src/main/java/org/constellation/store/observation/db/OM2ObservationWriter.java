@@ -717,6 +717,55 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     /*
+                     * update basic attributes:
+                     */
+                    try (final PreparedStatement stmtUp  = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"parent\"=?, \"type\"=?, \"name\"=?, \"description\"=? WHERE \"id\"=?")) {
+
+                        /*
+                         * we don't update position for now
+                         *
+                        Geometry position = procedure.spatialBound.getLastGeometry();
+                        if (position != null) {
+                            int srid = position.getSRID();
+                            if (srid == 0) {
+                                srid = 4326;
+                            }
+                            stmtInsert.setBytes(2, getGeometryBytes(position));
+                            stmtInsert.setInt(3, srid);
+                        } else {
+                            stmtInsert.setNull(2, java.sql.Types.BINARY);
+                            stmtInsert.setNull(3, java.sql.Types.INTEGER);
+                        }*/
+                        if (parent != null) {
+                            stmtUp.setString(1, parent);
+                        } else {
+                            stmtUp.setNull(1, java.sql.Types.VARCHAR);
+                        }
+                        if (procedure.type != null) {
+                            stmtUp.setString(2, procedure.type);
+                        } else {
+                            stmtUp.setNull(2, java.sql.Types.VARCHAR);
+                        }
+                        /* om type should not be updated. we can't move from a timeseries to a profile
+                        if (procedure.omType != null) {
+                            stmtUp.setString(3, procedure.omType);
+                        } else {
+                            stmtUp.setNull(3, java.sql.Types.VARCHAR);
+                        }*/
+                        if (procedure.getName() != null) {
+                            stmtUp.setString(3, procedure.getName());
+                        } else {
+                            stmtUp.setNull(3, java.sql.Types.VARCHAR);
+                        }
+                        if (procedure.getDescription() != null) {
+                            stmtUp.setString(4, procedure.getDescription());
+                        } else {
+                            stmtUp.setNull(4, java.sql.Types.VARCHAR);
+                        }
+                        stmtUp.setString(5, procedureID);
+                        stmtUp.executeUpdate();
+                    }
+                    /*
                      * update properties.
                      */
                     deleteProperties("procedures_properties", "id_procedure", procedureID, c);
