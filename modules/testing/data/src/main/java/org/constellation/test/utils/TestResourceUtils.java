@@ -72,11 +72,12 @@ public class TestResourceUtils {
      * @param targetDirectory The directory where to create a new file.
      * @param resourceName Resource file path.
      * @param newFileName Name of the new file created.
-     * 
+     *
+     * @return The created file.
      * @throws IOException if an error occurs during the copy.
      */
-    public static void writeResourceDataFile(Path targetDirectory, String resourceName, String newFileName) throws IOException {
-        writeResourceDataFile(targetDirectory, resourceName, newFileName, 'µ');
+    public static Path writeResourceDataFile(Path targetDirectory, String resourceName, String newFileName) throws IOException {
+        return writeResourceDataFile(targetDirectory, resourceName, newFileName, 'µ');
     }
 
     /**
@@ -87,15 +88,17 @@ public class TestResourceUtils {
      * @param resourceName Resource file path.
      * @param newFileName Name of the new file created.
      * @param replacement Replacement character for the ':' in created file name.
+     * @return The created file.
      * 
      * @throws IOException If an error occurs during the copy.
      */
-    public static void writeResourceDataFile(Path targetDirectory, String resourceName, String newFileName, char replacement) throws IOException {
+    public static Path writeResourceDataFile(Path targetDirectory, String resourceName, String newFileName, char replacement) throws IOException {
         newFileName = newFileName.replace(':', replacement);
         Path dataFile = targetDirectory.resolve(newFileName);
         try (InputStream in = Util.getResourceAsStream(resourceName)) {
             Files.copy(in, dataFile, StandardCopyOption.REPLACE_EXISTING);
         }
+        return dataFile;
     }
 
     /**

@@ -63,47 +63,30 @@ public class CsvObservationStoreTest {
     private static Path tsvFile;
     private static Path multiPlatFile;
     private static Path qualSpaceFile;
+    private static Path inCompLineFile;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
 
         final Path configDir = Paths.get("target");
         DATA_DIRECTORY       = configDir.resolve("data"  + UUID.randomUUID());
-        Path argoDirectory       = DATA_DIRECTORY.resolve("argo-profile");
-        Files.createDirectories(argoDirectory);
-        Path fmlwDirectory       = DATA_DIRECTORY.resolve("fmlw-traj");
-        Files.createDirectories(fmlwDirectory);
-        Path mooDirectory       = DATA_DIRECTORY.resolve("moo-ts");
-        Files.createDirectories(mooDirectory);
-        Path bopDirectory       = DATA_DIRECTORY.resolve("bool-prof");
-        Files.createDirectories(bopDirectory);
-        Path tsvDirectory       = DATA_DIRECTORY.resolve("tsv");
-        Files.createDirectories(tsvDirectory);
-        Path mpDirectory       = DATA_DIRECTORY.resolve("multiPlat");
-        Files.createDirectories(mpDirectory);
-        Path qsDirectory       = DATA_DIRECTORY.resolve("qual-space");
-        Files.createDirectories(qsDirectory);
+        Path argoDirectory    = Files.createDirectories(DATA_DIRECTORY.resolve("argo-profile"));
+        Path fmlwDirectory    = Files.createDirectories(DATA_DIRECTORY.resolve("fmlw-traj"));
+        Path mooDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("moo-ts"));
+        Path bopDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("bool-prof"));
+        Path tsvDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("tsv"));
+        Path mpDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("multiPlat"));
+        Path qsDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("qual-space"));
+        Path icDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("incomplete-line"));
 
-        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
-        argoFile = argoDirectory.resolve("argo-profiles-2902402-1.csv");
-
-        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
-        fmlwFile = fmlwDirectory.resolve("tsg-FMLW-1.csv");
-
-        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
-        mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
-
-        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/boolean-profile.csv", "boolean-profile.csv");
-        boolProfFile = mooDirectory.resolve("boolean-profile.csv");
-
-        writeResourceDataFile(tsvDirectory,  "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
-        tsvFile = tsvDirectory.resolve("tabulation.tsv");
-
-        writeResourceDataFile(mpDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
-        multiPlatFile = mpDirectory.resolve("multiplatform-1.csv");
-
-        writeResourceDataFile(qsDirectory,   "com/examind/process/sos/quality-space.csv", "quality-space.csv");
-        qualSpaceFile = qsDirectory.resolve("quality-space.csv");
+        argoFile      = writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
+        fmlwFile      = writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
+        mooFile       = writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
+        boolProfFile  = writeResourceDataFile(bopDirectory,  "com/examind/process/sos/boolean-profile.csv", "boolean-profile.csv");
+        tsvFile       = writeResourceDataFile(tsvDirectory,  "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
+        multiPlatFile = writeResourceDataFile(mpDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
+        qualSpaceFile = writeResourceDataFile(qsDirectory,   "com/examind/process/sos/quality-space.csv", "quality-space.csv");
+        inCompLineFile = writeResourceDataFile(icDirectory,   "com/examind/process/sos/incomplete-line.csv", "incomplete-line.csv");
     }
 
 
@@ -771,6 +754,89 @@ public class CsvObservationStoreTest {
         Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
         Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
 
-        Assert.assertEquals(pt.fields.size(), 2);
+        Assert.assertEquals(2, pt.fields.size());
+    }
+
+    @Test
+    public void csvStoreImcompleteLinesTest() throws Exception {
+
+        CsvObservationStoreFactory factory = new CsvObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvObservationStoreFactory.LOCATION).setValue(inCompLineFile.toUri().toString());
+
+        params.parameter(CsvObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("time");
+        params.parameter(CsvObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("time");
+
+        params.parameter(CsvObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+        params.parameter(CsvObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("lat");
+        params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("lon");
+
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("salinity,temperature");
+
+        params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvObservationStoreFactory.PROCEDURE_COLUMN.getName().getCode()).setValue("plat");
+        params.parameter(CsvObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(','));
+
+        CsvObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(2, procedureNames.size());
+        Assert.assertTrue(procedureNames.contains("P1"));
+        Assert.assertTrue(procedureNames.contains("P2"));
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertEquals(2, phenomenonNames.size());
+        Assert.assertTrue(phenomenonNames.contains("salinity"));
+        Assert.assertTrue(phenomenonNames.contains("temperature"));
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, "P1");
+        
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        Assert.assertTrue(time instanceof Period);
+
+        Period tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+
+        timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, "P2");
+
+        time = store.getEntityTemporalBounds(timeQuery);
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-03T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-04T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(2, results.procedures.size());
+        Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+        Assert.assertEquals(1, results.procedures.get(1).spatialBound.getHistoricalLocations().size());
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+        Assert.assertEquals(2, procedures.size());
+
+        ProcedureDataset pt = procedures.get(0);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+
+        pt = procedures.get(1);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-03T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-04T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
     }
 }

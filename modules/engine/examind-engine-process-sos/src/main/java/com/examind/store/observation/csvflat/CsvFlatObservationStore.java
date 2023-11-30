@@ -200,11 +200,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 lineNumber++;
                 final Object[] line = it.next();
 
-                if (line.length == 0) {
+                // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
+                if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
                     LOGGER.finer("skipping empty line " + lineNumber);
-                    continue;
-                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
-                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }
 
@@ -404,13 +402,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 lineNumber++;
                 final Object[] line = it.next();
 
-                if (line.length == 0) {
+                // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
+                if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
                     LOGGER.finer("skipping empty line " + lineNumber);
                     continue;
-                } else if (headers != null && line.length < (maxIndex.get() + 1)) {
-                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
-                    continue;
                 }
+                
                 // to be perfectly correct we should look for empty measure
                 if (verifyEmptyLineStr(line, lineNumber, Arrays.asList(procIndex))) {
                     LOGGER.fine("skipping line due to empty procedure column.");
@@ -491,11 +488,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 lineNumber++;
                 final Object[] line   = it.next();
 
-                if (line.length == 0) {
+                // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
+                if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
                     LOGGER.finer("skipping empty line " + lineNumber);
-                    continue;
-                } else if (headers != null && line.length < headers.length) {
-                    LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
                     continue;
                 }
 

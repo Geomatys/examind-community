@@ -300,6 +300,27 @@ public class FileParsingUtils {
         return true;
     }
 
+    /**
+     * Return {@code true} if the input line is empty or didn't match the expected minimal length maxIndex
+     *
+     * @param line CSV line.
+     * @param lineNumber Line number (for logging purpose).
+     * @param headers CSV headers.
+     * @param maxIndex Maximum index where we expected to have data.
+     *
+     * @return {@code true} if the input line is empty or didn't match the expected minimal length maxIndex
+     */
+    public static boolean verifyLineCompletion(Object[] line, int lineNumber, String[] headers, AtomicInteger maxIndex) {
+        if (line.length == 0) {
+            LOGGER.finer("skipping empty line " + lineNumber);
+            return true;
+        } else if (headers != null && line.length < (maxIndex.get() + 1)) {
+            LOGGER.finer("skipping imcomplete line " + lineNumber + " (" +line.length + "/" + headers.length + ")");
+            return true;
+        }
+        return false;
+    }
+
     public static String extractWithRegex(String regex, String value) {
         return extractWithRegex(regex, value, value);
     }

@@ -19,10 +19,12 @@ package com.examind.store.observation.csvflat;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FileParsingUtils;
 import static com.examind.store.observation.FileParsingUtils.asString;
+import static com.examind.store.observation.FileParsingUtils.verifyLineCompletion;
 import java.io.IOException;
 import java.nio.file.Path;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.util.Util;
@@ -72,37 +74,36 @@ public class CsvFlatUtils {
 
             // sometimes in soe xlsx files, the last columns are empty, and so do not appears in the line
             // so we want to consider a line as imcomplete only if the last index we look for is missing.
-            int maxIndex  = -1;
+            AtomicInteger maxIndex  = new AtomicInteger();
             for  (Integer i : obsPropIndex) {
-                if (maxIndex < i) {
-                    maxIndex = i;
+                if (maxIndex.get() < i) {
+                    maxIndex.set(i);
                 }
             }
             final Set<String> storeCode = new HashSet<>();
 
             // extract all codes
             final Iterator<Object[]> it = reader.iterator(!noHeader);
-            long lineNb = 0L;
+            int lineNumber = 0;
             line:while (it.hasNext()) {
-                lineNb++;
+                lineNumber++;
                 final Object[] line = it.next();
-                if (line.length == 0) {
-                    LOGGER.finer("skipping empty line " + lineNb);
-                    continue;
-                } else if (headers != null && line.length < maxIndex + 1) {
-                    LOGGER.finer("skipping imcomplete line " + lineNb + " (" +line.length + "/" + headers.length + ")");
+
+                // verify that the line is complete (meaning that the line is at least as long as the last index we look for)
+                if (verifyLineCompletion(line, lineNumber, headers, maxIndex)) {
+                    LOGGER.finer("skipping empty line " + lineNumber);
                     continue;
                 }
                 
                 String computed = "";
                 boolean first = true;
-                for(Integer i : obsPropIndex) {
+                for (Integer i : obsPropIndex) {
                     final String nextCode = asString(line[i]);
                     if (nextCode == null || nextCode.isEmpty()) {
-                        LOGGER.fine("Invalid measure ignore due to missing value at line " + lineNb + " column " + i);
+                        LOGGER.fine("Invalid measure ignore due to missing value at line " + lineNumber + " column " + i);
                         continue line;
                     } else if (Util.containsForbiddenCharacter(nextCode)) {
-                        LOGGER.warning("Invalid measure ignored due to invalid character. Value: " + nextCode + " at line " + lineNb + " column " + i);
+                        LOGGER.warning("Invalid measure ignored due to invalid character. Value: " + nextCode + " at line " + lineNumber + " column " + i);
                         continue line;
                     }
                     if (!first) {
