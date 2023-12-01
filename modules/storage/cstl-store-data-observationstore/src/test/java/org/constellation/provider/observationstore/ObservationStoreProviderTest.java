@@ -1091,21 +1091,21 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         * find all
         */
         List<Phenomenon> results = omPr.getPhenomenon(null);
-        Set<String> resultIds = getPhenomenonIds(results);
+        List<String> resultIds = getPhenomenonIds(results);
         assertEquals(11, resultIds.size());
 
-        Set<String> expectedIds = new HashSet<>();
+        List<String> expectedIds = new ArrayList<>();
+        expectedIds.add("age");
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
-        expectedIds.add("depth");
-        expectedIds.add("temperature");
-        expectedIds.add("salinity");
-        expectedIds.add("isHot");
         expectedIds.add("color");
+        expectedIds.add("depth");
         expectedIds.add("expiration");
-        expectedIds.add("age");
+        expectedIds.add("isHot");
         expectedIds.add("multi-type-phenomenon");
         expectedIds.add("multi-type-phenprofile");
+        expectedIds.add("salinity");
+        expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
         //no composite
@@ -1116,14 +1116,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(7, resultIds.size());
 
-        expectedIds = new HashSet<>();
-        expectedIds.add("depth");
-        expectedIds.add("temperature");
-        expectedIds.add("salinity");
-        expectedIds.add("isHot");
-        expectedIds.add("color");
-        expectedIds.add("expiration");
+        expectedIds = new ArrayList<>();
         expectedIds.add("age");
+        expectedIds.add("color");
+        expectedIds.add("depth");
+        expectedIds.add("expiration");
+        expectedIds.add("isHot");
+        expectedIds.add("salinity");
+        expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
         /*
@@ -1137,7 +1137,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1154,7 +1154,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1171,7 +1171,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1187,7 +1187,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1198,7 +1198,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1215,7 +1215,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1226,7 +1226,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         expectedIds.add("salinity");
@@ -1244,7 +1244,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1255,7 +1255,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1271,7 +1271,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("depth");
         expectedIds.add("temperature");
@@ -1284,7 +1284,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new LinkedHashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1302,7 +1302,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1313,7 +1313,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new LinkedHashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1329,7 +1329,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1344,7 +1344,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1355,10 +1355,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
-        expectedIds.add("temperature");
         expectedIds.add("salinity");
+        expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
         /*
@@ -1373,7 +1373,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new LinkedHashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -1384,7 +1384,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1401,11 +1401,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(4, resultIds.size());
 
-        expectedIds = new LinkedHashSet<>();
-        expectedIds.add("depth");
-        expectedIds.add("temperature");
+        expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
         // no composite
@@ -1415,12 +1415,67 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("depth");
-        expectedIds.add("temperature");
         expectedIds.add("salinity");
+        expectedIds.add("temperature");
+        Assert.assertEquals(expectedIds, resultIds);
+    }
+
+    @Test
+    public void getPhenomenonsForProcedureTest() throws Exception {
+        assertNotNull(omPr);
+
+        ObservedPropertyQuery query = new ObservedPropertyQuery();
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        query.setSelection(filter);
+        List<Phenomenon> results = omPr.getPhenomenon(query);
+        List<String> resultIds = getPhenomenonIds(results);
+        assertEquals(1, resultIds.size());
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(1, resultIds.size());
+
+        List<String> expectedIds = new ArrayList<>();
+        expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
 
+        //no composite
+        query.setNoCompositePhenomenon(true);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new ArrayList<>();
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
+        Assert.assertEquals(expectedIds, resultIds);
+
+       
+        query = new ObservedPropertyQuery();
+        BinaryComparisonOperator proc1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        BinaryComparisonOperator proc2 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
+        query.setSelection(ff.or(proc1, proc2));
+        results = omPr.getPhenomenon(query);
+        resultIds = getPhenomenonIds(results);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new ArrayList<>();
+        expectedIds.add("aggregatePhenomenon");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        //no composite
+        query.setNoCompositePhenomenon(true);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(2, resultIds.size());
+
+        expectedIds = new ArrayList<>();
+        expectedIds.add("depth");
+        expectedIds.add("temperature");
+        Assert.assertEquals(expectedIds, resultIds);
     }
 
     @Test
@@ -1434,10 +1489,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setOffset(0L);
         List<Phenomenon> results = omPr.getPhenomenon(query);
 
-        Set<String> resultIds = getPhenomenonIds(results);
+        List<String> resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        Set<String> expectedIds = new HashSet<>();
+        List<String> expectedIds = new ArrayList<>();
         expectedIds.add("age");
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
@@ -1450,7 +1505,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("color");
         expectedIds.add("depth");
         expectedIds.add("expiration");
@@ -1463,10 +1518,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
-        expectedIds.add("multi-type-phenprofile");
+        expectedIds = new ArrayList<>();
         expectedIds.add("isHot");
         expectedIds.add("multi-type-phenomenon");
+        expectedIds.add("multi-type-phenprofile");
         Assert.assertEquals(expectedIds, resultIds);
 
         query.setLimit(3L);
@@ -1476,7 +1531,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("salinity");
         expectedIds.add("temperature");
 
@@ -1492,7 +1547,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("age");
         expectedIds.add("color");
         expectedIds.add("depth");
@@ -1505,7 +1560,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("expiration");
         expectedIds.add("isHot");
         expectedIds.add("salinity");
@@ -1519,7 +1574,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = getPhenomenonIds(results);
         assertEquals(1, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        expectedIds = new ArrayList<>();
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
     }
@@ -5102,12 +5157,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         return ((org.geotoolkit.observation.model.Phenomenon)phen).getId();
     }
     
-    private static Set<String> getPhenomenonIds(List<Phenomenon> phens) {
-        return phens.stream().map(phen -> getPhenomenonId(phen)).collect(Collectors.toSet());
+    private static List<String> getPhenomenonIds(List<Phenomenon> phens) {
+        return phens.stream().map(phen -> getPhenomenonId(phen)).toList();
     }
 
     private static String getProcessId(Process proc) {
-        assertTrue(proc instanceof org.geotoolkit.observation.model.Procedure modPhen);
+        assertTrue(proc instanceof org.geotoolkit.observation.model.Procedure);
         return ((org.geotoolkit.observation.model.Procedure)proc).getId();
     }
 

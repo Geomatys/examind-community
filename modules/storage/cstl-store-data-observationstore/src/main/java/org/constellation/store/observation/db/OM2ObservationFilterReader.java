@@ -804,9 +804,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         if (procDescJoin) {
             // in this case no composite will appears in the results. so no need for an SQL union later
+            // if there is only one procedure involved, we want to order them by "order", if there is more than one, the order is irrelevant.
+            // that why we use the "max(order)" and "group by max(order)"
             noCompositePhenomenon = false;
             if (!obsJoin) {
-                sqlRequest.replaceFirst("DISTINCT(op.\"id\")", "op.\"id\"");
+                sqlRequest.replaceFirst("DISTINCT(op.\"id\") as \"id\"", "op.\"id\" as \"id\", MAX(\"order\") as \"mo\"");
             }
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
@@ -844,7 +846,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
 
         if (procDescJoin && !obsJoin) {
-            sqlRequest.append(" ORDER BY \"order\"");
+             sqlRequest.append("group by \"id\"");
+            sqlRequest.append(" ORDER BY \"mo\" ");
         } else {
             sqlRequest.append(" ORDER BY \"id\"");
         }
