@@ -40,7 +40,7 @@ public class ResultProcessor {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     
-    protected ResultBuilder values = null;
+    protected TemporaryResultBuilder values = null;
     protected final List<Field> fields;
     protected final boolean profile;
     protected final boolean includeId;
@@ -63,20 +63,20 @@ public class ResultProcessor {
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
         if ("resultArray".equals(responseFormat)) {
-            values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
+            values = new TemporaryResultBuilder(ResultMode.DATA_ARRAY, null, false);
         } else if ("text/csv".equals(responseFormat)) {
-            values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
+            values = new TemporaryResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
             // Add the header
             values.appendHeaders(fields);
         } else if (countRequest) {
-            values = new ResultBuilder(ResultMode.COUNT, null, false);
+            values = new TemporaryResultBuilder(ResultMode.COUNT, null, false);
         } else {
-            values = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+            values = new TemporaryResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
         }
         return values;
     }
 
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
         StringBuilder select  = new StringBuilder("m.*");
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         if (profile) {
@@ -100,7 +100,7 @@ public class ResultProcessor {
         }
     }
     
-    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -110,7 +110,7 @@ public class ResultProcessor {
                 String name = rs.getString("identifier", 0);
                 parser.setName(name + idSuffix);
             }
-            parser.parseLine(rs, 0);
+            parser.parseLine(rs, fieldOffset);
         }
     }
 }

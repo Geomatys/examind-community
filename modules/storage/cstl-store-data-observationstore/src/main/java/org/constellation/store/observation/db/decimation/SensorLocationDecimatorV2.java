@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db.decimation;
 
-import java.io.IOException;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -33,10 +32,11 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.geotoolkit.geometry.GeometricUtilities;
+import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -55,11 +55,11 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
 
     @Override
     public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
-        Polygon spaFilter = null;
+        Geometry spaFilter = null;
         final CoordinateReferenceSystem envCRS;
         if (envelopeFilter != null) {
             envCRS = envelopeFilter.getCoordinateReferenceSystem();
-            spaFilter = JTS.toGeometry(envelopeFilter);
+            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
         } else {
             envCRS = CommonCRS.WGS84.normalizedGeographic();
         }

@@ -41,7 +41,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
     }
 
     @Override
-    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -52,36 +52,36 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                 DbField field = (DbField) fields.get(i);
                 String fieldName = field.name;
                 int rsIndex = field.tableNumber -1;
-                
-                // id field
-                if (i < mainFieldIndex && field.type == FieldType.TEXT) {
-                    values.appendString(procedure.procedureId + "-dec-" + cpt);
-                    cpt++;
-                    continue;
+
                 // main field
-                } else if (i == mainFieldIndex) {
+                if (i == mainFieldIndex) {
                     fieldName = "step";
 
                     // special case for profile + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
-                    if (profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1)) {
+                    if (skipProfileMain) {
                         continue;
                     }
+                // id field
+                } else if (i < fieldOffset && field.type == FieldType.TEXT) {
+                    values.appendString(procedure.procedureId + "-dec-" + cpt, false);
+                    cpt++;
+                    continue;
                 }
                 switch (field.type) {
                     case TIME -> {
                         Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
-                        values.appendTime(t);
+                        values.appendTime(t, true);
                     }
                     case QUANTITY -> {
                         double dvalue = rs.getDouble(fieldName, rsIndex);
                         if (rs.wasNull(rsIndex)) {
                             dvalue = Double.NaN;
                         }
-                        values.appendDouble(dvalue);
+                        values.appendDouble(dvalue, true);
                     }
                     default-> {
-                        values.appendString(rs.getString(fieldName, rsIndex));
+                        values.appendString(rs.getString(fieldName, rsIndex), true);
                     }
                 }
             }

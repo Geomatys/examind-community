@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind Community An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
  * Copyright 2014 Geomatys.
  *
@@ -429,6 +429,26 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = expResult.replace("\"{count}\"", "238");
         compareJSON(expResult, result);
     }
+    
+    @Test
+    public void getObservationsFilterTest() throws Exception {
+        initPool();
+        // Creates a valid GetFoi url.
+        String filter = "Datastream/Thing/id eq 'urn:ogc:object:sensor:GEOM:8'".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Observations?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-1.json");
+        compareJSON(expResult, result);
+
+        filter = "Datastream/Thing/id eq 'urn:ogc:object:sensor:GEOM:8' and Datastream/ObservedProperty/id eq 'depth'".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-2.json");
+        compareJSON(expResult, result);
+
+    }
 
     @Test
     public void getObservedPropertyForObservation() throws Exception {
@@ -568,6 +588,28 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-5.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    public void getDataArrayForDatastreamsNaN() throws Exception {
+        initPool();
+        
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:13-4)/Observations?$resultFormat=dataArray");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-5.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    public void getDataArrayForDatastreamsProfileNaN() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:14-3)/Observations?$resultFormat=dataArray");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-6.json");
         compareJSON(expResult, result);
     }
 

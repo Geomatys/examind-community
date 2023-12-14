@@ -29,9 +29,10 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.util.SQLResult;
+import org.geotoolkit.geometry.GeometricUtilities;
+import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKTReader;
@@ -56,11 +57,11 @@ public class SensorLocationProcessor {
     }
 
     public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
-        Polygon spaFilter = null;
+        Geometry spaFilter = null;
         final CoordinateReferenceSystem envCRS;
         if (envelopeFilter != null) {
             envCRS = envelopeFilter.getCoordinateReferenceSystem();
-            spaFilter = JTS.toGeometry(envelopeFilter);
+            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
         } else {
             envCRS = CommonCRS.WGS84.normalizedGeographic();
         }

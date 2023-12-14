@@ -646,7 +646,7 @@ public class OM2BaseReader {
                 query.append("\"order\"= ").append(fieldFilter).append(" OR ");
             }
             if (!removeMainTimeField) {
-                query.append("\"order\"= 1)");
+                query.append("(\"order\"= 1 AND \"field_type\"= 'Time'))");
             } else {
                 query.delete(query.length() - 4, query.length());
                 query.append(")");
@@ -1016,7 +1016,7 @@ public class OM2BaseReader {
 
         final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>(), new ArrayList<>());
         int nbValue                 = 0;
-        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+        final TemporaryResultBuilder values  = new TemporaryResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 
         FilterSQLRequest measureFilter = null;
         if (measureId != null) {

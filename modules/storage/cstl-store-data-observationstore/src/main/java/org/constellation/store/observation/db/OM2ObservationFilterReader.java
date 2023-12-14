@@ -1,5 +1,5 @@
 /*
- *    Examind - An open source and standard compliant SDI
+ *    Examind Community An open source and standard compliant SDI
  *    https://community.examind.com
  *
  * Copyright 2014 Geomatys.
@@ -53,6 +53,8 @@ import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
+import org.geotoolkit.geometry.GeometricUtilities;
+import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
@@ -71,7 +73,6 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Polygon;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.observation.Process;
@@ -333,12 +334,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     private List<org.opengis.observation.Observation> getComplexObservations() throws DataStoreException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
-        final Map<String, Procedure> processMap       = new LinkedHashMap<>();
+        final Map<String, Procedure> processMap     = new LinkedHashMap<>();
         final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
-        final ResultBuilder values          = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
+        final TemporaryResultBuilder values = new TemporaryResultBuilder(resultMode, DEFAULT_ENCODING, false);
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
@@ -408,8 +409,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                /*
                 * Compute procedure measure request
                 */
-                int offset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-                final FilterSQLRequest measureFilter        = applyFilterOnMeasureRequest(offset, fields, pti);
+                int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+                final FilterSQLRequest measureFilter        = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
                 final MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, oid, false, true, false, false);
                 LOGGER.fine(measureRequests.toString());
                 
@@ -436,7 +437,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                      */
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         while (rs2.nextOnField(pti.mainField.name)) {
-                            parser.parseLine(rs2, offset);
+                            parser.parseLine(rs2, fieldOffset);
                             nbValue = nbValue + parser.nbValue;
 
                             /**
@@ -502,7 +503,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     */
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         while (rs2.next()) {
-                            parser.parseLine(rs2, offset);
+                            parser.parseLine(rs2, fieldOffset);
                             nbValue = nbValue + parser.nbValue;
                         }
                     }
@@ -646,14 +647,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @return The index where starts the measure fields.
      */
     private  int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
-        int offset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
+        int fieldOffset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
         if (profileWithTime) {
-            offset++;
+            fieldOffset++;
         }
         if (includeIDInDataBlock) {
-            offset++;
+            fieldOffset++;
         }
-        return offset;
+        return fieldOffset;
     }
 
     @Override
@@ -724,7 +725,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              */
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
             try (final SQLResult rs = measureRequest.execute(c)) {
-                processor.processResults(rs);
+                processor.processResults(rs, fieldOffset);
             }
             switch (values.getMode()) {
                 case DATA_ARRAY:  return new ComplexResult(fields, values.getDataArray(), null);
@@ -962,9 +963,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.join(joins, firstFilter);
         
          // will be removed when postgis filter will be set in request
-        Polygon spaFilter = null;
+        Geometry spaFilter = null;
         if (envelopeFilter != null) {
-            spaFilter = JTS.toGeometry(envelopeFilter);
+            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
         }
         sqlRequest.append(" ORDER BY pr.\"id\"");
 

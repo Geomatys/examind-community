@@ -59,6 +59,8 @@ import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.SingleFilterSQLRequest.Param;
+import org.geotoolkit.geometry.GeometricUtilities;
+import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.*;
@@ -73,7 +75,7 @@ import org.geotoolkit.observation.query.HistoricalLocationQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ResultQuery;
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperator;
@@ -1490,9 +1492,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest.join(joins, firstFilter);
         
          // will be removed when postgis filter will be set in request
-        Polygon spaFilter = null;
+        Geometry spaFilter = null;
         if (envelopeFilter != null) {
-            spaFilter = JTS.toGeometry(envelopeFilter);
+            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
         }
         if (!forCount) {
             sqlRequest.append(" ORDER BY \"id\"");
@@ -1565,9 +1567,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest.join(joins, firstFilter);
 
         // will be removed when postgis filter will be set in request
-        Polygon spaFilter = null;
+        Geometry spaFilter = null;
         if (envelopeFilter != null) {
-            spaFilter = JTS.toGeometry(envelopeFilter);
+            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
         }
         
         boolean applyPostPagination = true;

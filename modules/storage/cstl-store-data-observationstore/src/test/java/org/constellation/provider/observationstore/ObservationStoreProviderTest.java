@@ -4588,8 +4588,459 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "12.0,18.5@@";
 
         assertEquals(expectedResult, result);
+    }
 
+    @Test
+    public void getObservationsNanTest() throws Exception {
+        assertNotNull(omPr);
 
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:13-4"));
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        query.setSelection(filter);
+        query.setSeparatedMeasure(true);
+       
+        List<Observation>results = omPr.getObservations(query);
+        assertEquals(3, results.size());
+
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:4002-4-1", result.getName().getCode());
+        assertNotNull(result.getObservedProperty());
+        assertEquals("salinity", getPhenomenonId(result));
+        assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult mr = (MeasureResult) result.getResult();
+        assertEquals(1.1, mr.getValue());
+
+        result = results.get(1);
+        assertEquals("urn:ogc:object:observation:GEOM:4002-4-2", result.getName().getCode());
+        assertTrue(result.getResult() instanceof MeasureResult);
+        mr = (MeasureResult) result.getResult();
+        assertEquals(1.1, mr.getValue());
+
+        result = results.get(2);
+        assertEquals("urn:ogc:object:observation:GEOM:4002-4-3", result.getName().getCode());
+        assertTrue(result.getResult() instanceof MeasureResult);
+        mr = (MeasureResult) result.getResult();
+        assertEquals(1.3, mr.getValue());
+
+        // data array version with no extra field
+        ResultQuery resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setSelection(filter);
+        resSubquery.setIncludeTimeForProfile(true);
+        resSubquery.setIncludeIdInDataBlock(false);
+        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
+
+        Object o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        ComplexResult resultArray = (ComplexResult) o;
+
+        assertEquals(3, resultArray.getDataArray().size());
+
+        // data array version as is it executed in the STSWorker
+        resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setSelection(filter);
+        resSubquery.setIncludeTimeForProfile(true);
+        resSubquery.setIncludeIdInDataBlock(true);
+        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
+
+        o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        resultArray = (ComplexResult) o;
+
+        assertEquals(3, resultArray.getDataArray().size());
+    }
+
+    @Test
+    public void getObservationsNanProfileTest() throws Exception {
+        assertNotNull(omPr);
+
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:14-3"));
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        query.setSelection(filter);
+        query.setSeparatedMeasure(true);
+
+        List<Observation>results = omPr.getObservations(query);
+        assertEquals(14, results.size());
+
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:5003-3-1", result.getName().getCode());
+        assertNotNull(result.getObservedProperty());
+        assertEquals("salinity", getPhenomenonId(result));
+        assertTrue(result.getResult() instanceof MeasureResult);
+        MeasureResult mr = (MeasureResult) result.getResult();
+        assertEquals(5.1, mr.getValue());
+
+        // data array version with no extra field
+        ResultQuery resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setSelection(filter);
+        resSubquery.setIncludeTimeForProfile(false);
+        resSubquery.setIncludeIdInDataBlock(false);
+        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:14");
+
+        Object o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        ComplexResult resultArray = (ComplexResult) o;
+
+        assertEquals(14, resultArray.getDataArray().size());
+
+        // data array version as is it executed in the STSWorker
+        resSubquery = new ResultQuery(MEASUREMENT_QNAME, INLINE, null, null);
+        resSubquery.setSelection(filter);
+        resSubquery.setIncludeTimeForProfile(true);
+        resSubquery.setIncludeIdInDataBlock(true);
+        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:14");
+
+        o = omPr.getResults(resSubquery);
+        assertTrue(o instanceof ComplexResult);
+
+        resultArray = (ComplexResult) o;
+
+        assertEquals(14, resultArray.getDataArray().size());
+    }
+
+    @Test
+    public void getResultsProfileSingleMainFieldTest() throws Exception {
+        assertNotNull(omPr);
+
+        // sensor 2 no decimation
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:2-1"));
+        ResultQuery query = new ResultQuery(MEASUREMENT_QNAME, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        query.setSelection(filter);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                          "12.0@@"
+                        + "24.0@@"
+                        + "48.0@@"
+                        + "96.0@@"
+                        + "192.0@@"
+                        + "384.0@@"
+                        + "768.0@@"
+                        + "12.0@@"
+                        + "12.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with id
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1-1,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-2,24.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-3,48.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-4,96.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-5,192.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-6,384.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-7,768.0@@"
+                        + "urn:ogc:object:observation:GEOM:202-1-1,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:203-1-1,12.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time
+        query.setIncludeIdInDataBlock(false);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "2000-12-01T00:00:00.0,12.0@@"
+                        + "2000-12-01T00:00:00.0,24.0@@"
+                        + "2000-12-01T00:00:00.0,48.0@@"
+                        + "2000-12-01T00:00:00.0,96.0@@"
+                        + "2000-12-01T00:00:00.0,192.0@@"
+                        + "2000-12-01T00:00:00.0,384.0@@"
+                        + "2000-12-01T00:00:00.0,768.0@@"
+                        + "2000-12-11T00:00:00.0,12.0@@"
+                        + "2000-12-22T00:00:00.0,12.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time and id
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1-1,2000-12-01T00:00:00.0,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-2,2000-12-01T00:00:00.0,24.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-3,2000-12-01T00:00:00.0,48.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-4,2000-12-01T00:00:00.0,96.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-5,2000-12-01T00:00:00.0,192.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-6,2000-12-01T00:00:00.0,384.0@@"
+                        + "urn:ogc:object:observation:GEOM:201-1-7,2000-12-01T00:00:00.0,768.0@@"
+                        + "urn:ogc:object:observation:GEOM:202-1-1,2000-12-11T00:00:00.0,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:203-1-1,2000-12-22T00:00:00.0,12.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation
+        query = new ResultQuery(MEASUREMENT_QNAME, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        query.setSelection(filter);
+        query.setDecimationSize(10);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "12@@"
+                        + "112@@"
+                        + "238@@"
+                        + "389@@"
+                        + "817@@"
+                        + "918@@"
+                        + "12@@"
+                        + "12@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and id
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,12@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,112@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,238@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,389@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,817@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,918@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,12@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-7,12@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and time
+        query.setIncludeIdInDataBlock(false);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "2000-12-01T00:00:00.0,12@@"
+                        + "2000-12-01T00:00:00.0,112@@"
+                        + "2000-12-01T00:00:00.0,238@@"
+                        + "2000-12-01T00:00:00.0,389@@"
+                        + "2000-12-01T00:00:00.0,817@@"
+                        + "2000-12-01T00:00:00.0,918@@"
+                        + "2000-12-11T00:00:00.0,12@@"
+                        + "2000-12-22T00:00:00.0,12@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation, id and time
+        query.setIncludeIdInDataBlock(true);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,12@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,112@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,2000-12-01T00:00:00.0,238@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,389@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-01T00:00:00.0,817@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-01T00:00:00.0,918@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-11T00:00:00.0,12@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-7,2000-12-22T00:00:00.0,12@@";
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void getResultsProfileSingleFieldTest() throws Exception {
+        assertNotNull(omPr);
+
+        // sensor 2 no decimation
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:2-2"));
+        ResultQuery query = new ResultQuery(MEASUREMENT_QNAME, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        query.setSelection(filter);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                          "18.5@@"
+                        + "19.7@@"
+                        + "21.2@@"
+                        + "23.9@@"
+                        + "26.2@@"
+                        + "31.4@@"
+                        + "35.1@@"
+                        + "18.5@@"
+                        + "18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with id
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-2-1,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-2,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-3,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-4,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-5,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-6,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-7,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-2-1,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-2-1,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time
+        query.setIncludeIdInDataBlock(false);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "2000-12-01T00:00:00.0,18.5@@"
+                        + "2000-12-01T00:00:00.0,19.7@@"
+                        + "2000-12-01T00:00:00.0,21.2@@"
+                        + "2000-12-01T00:00:00.0,23.9@@"
+                        + "2000-12-01T00:00:00.0,26.2@@"
+                        + "2000-12-01T00:00:00.0,31.4@@"
+                        + "2000-12-01T00:00:00.0,35.1@@"
+                        + "2000-12-11T00:00:00.0,18.5@@"
+                        + "2000-12-22T00:00:00.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 no decimation with time and id
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-2-1,2000-12-01T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-2,2000-12-01T00:00:00.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-3,2000-12-01T00:00:00.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-4,2000-12-01T00:00:00.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-5,2000-12-01T00:00:00.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-6,2000-12-01T00:00:00.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-2-7,2000-12-01T00:00:00.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-2-1,2000-12-11T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-2-1,2000-12-22T00:00:00.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation
+        query = new ResultQuery(MEASUREMENT_QNAME, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        query.setSelection(filter);
+        query.setDecimationSize(10);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "18.5@@"
+                        + "23.9@@"
+                        + "26.2@@"
+                        + "31.4@@"
+                        + "35.1@@"
+                        + "18.5@@"
+                        + "18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and id
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation and time
+        query.setIncludeIdInDataBlock(false);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "2000-12-01T00:00:00.0,18.5@@"
+                        + "2000-12-01T00:00:00.0,23.9@@"
+                        + "2000-12-01T00:00:00.0,26.2@@"
+                        + "2000-12-01T00:00:00.0,31.4@@"
+                        + "2000-12-01T00:00:00.0,35.1@@"
+                        + "2000-12-11T00:00:00.0,18.5@@"
+                        + "2000-12-22T00:00:00.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor 2 with decimation, id and time
+        query.setIncludeIdInDataBlock(true);
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:sensor:GEOM:2-dec-0,2000-12-01T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-1,2000-12-01T00:00:00.0,23.9@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-2,2000-12-01T00:00:00.0,26.2@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,31.4@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-01T00:00:00.0,35.1@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-11T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:sensor:GEOM:2-dec-6,2000-12-22T00:00:00.0,18.5@@";
+
+        assertEquals(expectedResult, result);
     }
 
     @Test

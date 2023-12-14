@@ -57,7 +57,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
 
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
         times = OM2Utils.getMainFieldStep(fieldRequest, c, width, OMEntity.RESULT, procedure);
@@ -84,7 +84,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
 
     @Override
-    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -108,7 +108,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             if (!currentObs.equals(prevObs)) {
                 if (prevObs != null) {
                     // append the last values
-                    appendValue(t, cpt, mapValues, first, true);
+                    appendValue(t, cpt, mapValues, first, true, fieldOffset);
                 }
 
                 first.set(true);
@@ -120,7 +120,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
             final long currentMainValue = extractMainValue(procedure.mainField, rs);
             if (currentMainValue > (start + step)) {
-                appendValue(t, cpt, mapValues, first, false);
+                appendValue(t, cpt, mapValues, first, false, fieldOffset);
 
                 // move to the next closest step
                 if (step > 0) {
@@ -135,17 +135,17 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 DbField field = (DbField) fields.get(i);
                 int rsIndex = field.tableNumber -1;
 
+                // already extracted
+                if (i == mainFieldIndex) {
+
                 // time for profile field
-                if (i < mainFieldIndex && field.type == FieldType.TIME) {
+                } else if (i < fieldOffset && field.type == FieldType.TIME) {
                     t = dateFromTS(rs.getTimestamp(field.name, rsIndex));
 
                 // identifier field
-                } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
+                } else if (i < fieldOffset && field.type == FieldType.TEXT) {
                     // nothing to extract
 
-                } else if (i == mainFieldIndex) {
-                    // already extracted
-                    
                 } else {
                     double value = rs.getDouble(field.name, rsIndex);
                     if (!rs.wasNull(rsIndex)) {
@@ -156,7 +156,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         }
 
         // append the last values
-        appendValue(t, cpt, mapValues, first, true);
+        appendValue(t, cpt, mapValues, first, true, fieldOffset);
     }
 
     private class StepValues {
@@ -225,22 +225,22 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     }
 
-    private void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last) throws DataStoreException {
+    private void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last, int fieldOffset) throws DataStoreException {
         if (sv == null) {
             return;
         }
 
         // if there is only one value in the step, we use the original main value.
         if (sv.mainValues.size() == 1) {
-            appendValue(t, cpt.getAndIncrement(), sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0);
+            appendValue(t, cpt.getAndIncrement(), sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
 
         // if min and max are equals we only write one value in the middle of the step.
         } else if (sv.minMaxEquals() && !(first.get() || last)) {
-            appendValue(t, cpt.getAndIncrement(), sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0);
+            appendValue(t, cpt.getAndIncrement(), sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
 
         // special case where we have only one value in the series, main value has not been recorded
         } else if (first.get() && last) {
-            appendValue(t, cpt.getAndIncrement(), sv.start, sv.mapValues, Double.MAX_VALUE, 0);
+            appendValue(t, cpt.getAndIncrement(), sv.start, sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
 
         // else we write the minimum value at the 1/3 of the step, and the max, at the 2/3 of the step.
         } else {
@@ -251,44 +251,44 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             long maxVal = (last) ? sv.start + sv.step : sv.start + 2*(sv.step / 3L);
 
             //min
-            appendValue(t, cpt.getAndIncrement(), minVal, sv.mapValues, Double.MAX_VALUE, 0);
+            appendValue(t, cpt.getAndIncrement(), minVal, sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
             //max
-            appendValue(t, cpt.getAndIncrement(), maxVal, sv.mapValues, -Double.MAX_VALUE, 1);
+            appendValue(t, cpt.getAndIncrement(), maxVal, sv.mapValues, -Double.MAX_VALUE, 1, fieldOffset);
         }
         first.set(false);
     }
 
-    private void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index) throws DataStoreException {
+    private void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index, int fieldOffset) throws DataStoreException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
 
-            // time for profile field
-            if (i < mainFieldIndex && field.type == FieldType.TIME) {
-                values.appendTime(t);
-            // id field
-            } else if (i < mainFieldIndex && field.type == FieldType.TEXT) {
-                values.appendString(procedure.procedureId + "-dec-" + cpt);
             // main field
-            } else if (i == mainFieldIndex) {
+            if (i == mainFieldIndex) {
                 if (FieldType.TIME.equals(field.type)) {
-                    values.appendTime(new Date(mainValue));
+                    values.appendTime(new Date(mainValue), false);
                 } else if (FieldType.QUANTITY.equals(field.type)) {
                     // special case for profile + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
-                    boolean skipMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(1);
-                    if (!skipMain) {
-                        values.appendLong(mainValue);
+                    if (!skipProfileMain) {
+                        values.appendLong(mainValue, onlyProfileMain);
                     }
                 } else {
                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                 }
+
+            // time for profile field
+            } else if (i < fieldOffset && field.type == FieldType.TIME) {
+                values.appendTime(t, false);
+            // id field
+            } else if (i < fieldOffset && field.type == FieldType.TEXT) {
+                values.appendString(procedure.procedureId + "-dec-" + cpt, false);
             } else {
                 final double value = fieldValues.get(field.name)[index];
                 if (value != undefinedValue) {
-                    values.appendDouble(value);
+                    values.appendDouble(value, true);
                 } else {
-                    values.appendDouble(Double.NaN);
+                    values.appendDouble(Double.NaN, true);
                 }
             }
         }

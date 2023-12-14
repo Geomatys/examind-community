@@ -1,0 +1,9 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality"],
+            "dataArray": [
+                ["urn:ogc:object:observation:GEOM:4002-4-1", "2000-07-31T22:00:00Z", "2000-07-31T22:00:00Z", 1.1, []], 
+                ["urn:ogc:object:observation:GEOM:4002-4-2", "2000-08-31T22:00:00Z", "2000-08-31T22:00:00Z", 1.1, []], 
+                ["urn:ogc:object:observation:GEOM:4002-4-3", "2000-09-30T22:00:00Z", "2000-09-30T22:00:00Z", 1.3, []]]
+        }]
+}
