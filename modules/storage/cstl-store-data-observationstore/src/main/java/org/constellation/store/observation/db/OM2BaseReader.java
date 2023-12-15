@@ -933,6 +933,10 @@ public class OM2BaseReader {
             stmt.setString(1, id);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
+                    String omType = rs.getString("om_type");
+                    if (omType != null) {
+                        properties.putIfAbsent("type", omType);
+                    }
                     return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), properties);
                 }
             }

@@ -2,7 +2,10 @@
     "id": "obs-90000",
     "name": "urn:ogc:object:observation:GEOM:90000",
     "procedure": {
-        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor"
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-6001",

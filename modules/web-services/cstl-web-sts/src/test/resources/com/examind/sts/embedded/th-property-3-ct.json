@@ -28,7 +28,7 @@
             "name": "Sensor 14",
             "description": "",
             "properties": {
-                "type": "timeseries"
+                "type": "profile"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:14",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:14)",

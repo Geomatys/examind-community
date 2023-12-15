@@ -3,7 +3,10 @@
     "name": "urn:ogc:object:observation:GEOM:0004",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:change_uom_sensor",
-        "name": "Sensor quality"
+        "name": "Sensor quality",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-4",

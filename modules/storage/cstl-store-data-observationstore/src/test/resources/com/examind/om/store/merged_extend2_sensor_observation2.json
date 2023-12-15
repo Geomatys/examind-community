@@ -4,7 +4,9 @@
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:extend2_sensor",
         "name": "Sensor extended",
-        "properties": {}
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "obs-8001-time",

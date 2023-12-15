@@ -4,7 +4,9 @@
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:multi-type",
         "name": "Sensor multi type",
-        "properties": {}
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-7001",

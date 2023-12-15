@@ -83,7 +83,7 @@ public class SensorServiceRestAPI {
     }
 
     @RequestMapping(value="/SensorService/{id}/sensors/generate", method = PUT, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity importSensorMetadata(final @PathVariable("id") Integer serviceId) throws Exception {
+    public ResponseEntity generateServiceSensors(final @PathVariable("id") Integer serviceId) throws Exception {
         try {
             sensorServiceBusiness.generateSensorFromOMProvider(serviceId);
             return new ResponseEntity(new AcknowlegementType("Success", "The sensors have been generated."), OK);

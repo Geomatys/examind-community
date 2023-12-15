@@ -3,7 +3,10 @@
     "name": "urn:ogc:object:observation:template:GEOM:multi-type-2",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:multi-type",
-        "name": "Sensor multi type"
+        "name": "Sensor multi type",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "featureOfInterest": {
         "id": "station-001",

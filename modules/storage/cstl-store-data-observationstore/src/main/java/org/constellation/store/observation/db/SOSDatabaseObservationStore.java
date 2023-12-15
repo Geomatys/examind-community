@@ -293,7 +293,8 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         for (org.opengis.observation.Process p : procFilter.getProcesses()) {
 
             final Procedure proc  =  (Procedure) p;
-            final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", "timeseries", new ArrayList<>(), null);
+            final String omType = (String) proc.getProperties().getOrDefault("type", "timeseries");
+            final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", omType, new ArrayList<>(), null);
 
             Observation template = (Observation) getReader().getTemplateForProcedure(proc.getId());
 

@@ -3,7 +3,10 @@
     "name": "urn:ogc:object:observation:GEOM:750",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:single_instant_extend_sensor",
-        "name": "Sensor extended"
+        "name": "Sensor extended",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-750",

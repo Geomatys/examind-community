@@ -3,7 +3,9 @@
     "name": "urn:ogc:object:observation:GEOM:90091",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:multi_table_extend_sensor",
-        "properties": {}
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "obs-90091-time",

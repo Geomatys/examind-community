@@ -3,7 +3,10 @@
     "name": "urn:ogc:object:observation:GEOM:1101",
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:overlapping_sensor",
-        "name": "Sensor extended"
+        "name": "Sensor extended",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-1101",

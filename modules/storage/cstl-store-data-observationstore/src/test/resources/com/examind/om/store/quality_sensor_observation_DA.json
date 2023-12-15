@@ -4,7 +4,9 @@
     "procedure": {
         "id": "urn:ogc:object:sensor:GEOM:quality_sensor",
         "name": "Sensor quality",
-        "properties": {}
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "samplingTime": {
         "id": "time-6001",

@@ -2,7 +2,10 @@
     "id": "obs-multi_table_sensor-13",
     "name": "urn:ogc:object:observation:template:GEOM:multi_table_sensor-13",
     "procedure": {
-        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor"
+        "id": "urn:ogc:object:sensor:GEOM:multi_table_sensor",
+        "properties": {
+            "type": "timeseries"
+        }
     },
     "featureOfInterest": {
         "id": "station-001",
