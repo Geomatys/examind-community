@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -367,7 +368,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         }
 
                         // add proper order to fields
-                        Collections.sort(phenFields, new FieldComparator());
+                        Collections.sort(phenFields, Comparator.comparing(field -> field.index));
                         fields.addAll(phenFields);
 
                         // special case for trajectory observation
@@ -674,7 +675,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                 }
                 // add proper order to fields
-                Collections.sort(phenFields, new FieldComparator());
+                Collections.sort(phenFields, Comparator.comparing(field -> field.index));
                 fields.addAll(phenFields);
 
             } else {

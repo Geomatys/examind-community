@@ -58,7 +58,7 @@ public class ResultProcessor {
         this.includeTimeInProfile = includeTimeInProfile;
         this.procedure = procedure;
         this.mainFieldIndex = fields.indexOf(procedure.mainField);
-        this.idSuffix = idSuffix;
+        this.idSuffix = idSuffix == null ? "" : idSuffix;
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {

@@ -1286,9 +1286,11 @@ public class SOSworker extends SensorWorker {
             if (result instanceof ComplexResult cr) {
                 values = cr.getValues();
             // keep legacy behavor until geotk interface wil return "Result" type.
-            } else {
-                values = (String) result;
-            }
+            } else if (result instanceof String s) {
+                values = s;
+            } else if (result == null) {
+                values = null;
+            } else throw new UnsupportedOperationException("Unknown value type: "+ result.getClass().getName());
             
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
