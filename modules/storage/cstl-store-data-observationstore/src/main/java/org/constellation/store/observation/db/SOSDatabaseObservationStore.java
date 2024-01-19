@@ -18,6 +18,7 @@ package org.constellation.store.observation.db;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.util.Version;
 import org.constellation.admin.SpringHelper;
 
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
@@ -87,7 +89,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     protected ObservationFilterReader filter;
     protected final DataSource source;
     protected final String schemaPrefix;
-    protected final boolean timescaleDB;
+    protected final Version timescaleDBVersion;
     protected final int maxFieldByTable;
 
     protected final OMSQLDialect dialect;
@@ -131,7 +133,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             source =  candidate;
 
             dialect = OMSQLDialect.valueOf(((String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue()).toUpperCase());
-            timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
+            boolean timescaleDB = (Boolean) params.parameter(SOSDatabaseObservationStoreFactory.TIMESCALEDB.getName().toString()).getValue();
 
             String sp =  (String) params.parameter(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX.getName().toString()).getValue();
             if (sp == null) {
@@ -156,6 +158,21 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
                         loadExt.execute("INSTALL spatial");
                         loadExt.execute("LOAD spatial");
                     }
+                }
+                if (timescaleDB) {
+                    try (Statement stmt = c.createStatement();
+                         ResultSet rs = stmt.executeQuery("SELECT installed_version FROM pg_available_extensions where name = 'timescaledb'")) {
+                        if (rs.next()) {
+                            String version = rs.getString(1);
+                            LOGGER.log(Level.INFO, "TimescaleDB version: {0}", version);
+                            timescaleDBVersion = new Version(version);
+                        } else {
+                            LOGGER.warning("Unable to read timescaleDB version, assuming < 1.11.0");
+                            timescaleDBVersion = new Version("1.10.0");
+                        }
+                    }
+                } else {
+                    timescaleDBVersion = null;
                 }
             } catch (SQLException ex) {
                 throw new DataStoreException(ex);
@@ -211,7 +228,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationReader getReader() throws DataStoreException {
         if (reader == null) {
             final Map<String,Object> properties = getBasicProperties();
-            reader = new OM2ObservationReader(source, dialect, schemaPrefix, properties, timescaleDB);
+            reader = new OM2ObservationReader(source, dialect, schemaPrefix, properties, timescaleDBVersion);
         }
         return reader;
     }
@@ -223,7 +240,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationWriter getWriter() throws DataStoreException {
         if (writer == null) {
             final Map<String,Object> properties = getBasicProperties();
-            writer = new OM2ObservationWriter(source, dialect, schemaPrefix, properties, timescaleDB, maxFieldByTable);
+            writer = new OM2ObservationWriter(source, dialect, schemaPrefix, properties, timescaleDBVersion, maxFieldByTable);
         }
         return writer;
     }
@@ -235,7 +252,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public synchronized ObservationFilterReader getFilter() throws DataStoreException {
         if (filter == null) {
             final Map<String,Object> properties = getBasicProperties();
-            filter = new OM2ObservationFilterReader(source, dialect, schemaPrefix, properties, timescaleDB);
+            filter = new OM2ObservationFilterReader(source, dialect, schemaPrefix, properties, timescaleDBVersion);
         }
         return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }

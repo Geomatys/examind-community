@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -160,8 +161,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    public OM2ObservationFilter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(properties, schemaPrefix, true, dialect, timescaleDB);
+    public OM2ObservationFilter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
+        super(properties, schemaPrefix, true, dialect, timescaleDBVersion);
         this.source     = source;
         resultModel     = null;
         try {

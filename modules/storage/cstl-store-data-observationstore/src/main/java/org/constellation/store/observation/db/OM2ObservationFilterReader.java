@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.geotoolkit.observation.model.Field;
@@ -76,13 +77,15 @@ import org.opengis.util.FactoryException;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2ObservationFilterReader extends OM2ObservationFilter {
+    
+    protected static final Version MIN_TIMESCALE_VERSION_SMOOTH = new Version("1.11.0");
 
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
         super(omFilter);
     }
 
-    public OM2ObservationFilterReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(source, dialect, schemaPrefix, properties, timescaleDB);
+    public OM2ObservationFilterReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
+        super(source, dialect, schemaPrefix, properties, timescaleDBVersion);
     }
 
     @Override
@@ -712,7 +715,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     * for a single field we use specific timescale function
                     * asap_smooth / lttb
                     */
-                   if ((fields.size() - fieldOffset) == 1) {
+                   if ((fields.size() - fieldOffset) == 1 && timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0  ) {
                        processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
 
                    /**

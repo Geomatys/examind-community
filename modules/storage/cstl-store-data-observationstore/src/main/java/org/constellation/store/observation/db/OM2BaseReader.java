@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 
 import org.apache.sis.storage.DataStoreException;
+import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
 import org.constellation.util.FilterSQLRequest;
@@ -87,7 +88,9 @@ public class OM2BaseReader {
     protected final OMSQLDialect dialect;
     
     protected final boolean timescaleDB;
-
+    
+    protected final Version timescaleDBVersion;
+    
     /**
      * The base for observation id.
      */
@@ -124,9 +127,10 @@ public class OM2BaseReader {
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final OMSQLDialect dialect, final boolean timescaleDB) throws DataStoreException {
+    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final OMSQLDialect dialect, final Version timescaleDBVersion) throws DataStoreException {
         this.dialect = dialect;
-        this.timescaleDB = timescaleDB;
+        this.timescaleDBVersion = timescaleDBVersion;
+        this.timescaleDB = timescaleDBVersion != null;
         this.phenomenonIdBase = (String) properties.getOrDefault(PHENOMENON_ID_BASE_NAME, "");
         this.sensorIdBase = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
         this.observationTemplateIdBase = (String) properties.getOrDefault(OBSERVATION_TEMPLATE_ID_BASE_NAME, "urn:observation:template:");
@@ -151,6 +155,7 @@ public class OM2BaseReader {
         this.schemaPrefix              = that.schemaPrefix;
         this.cacheEnabled              = that.cacheEnabled;
         this.timescaleDB               = that.timescaleDB;
+        this.timescaleDBVersion        = that.timescaleDBVersion;
     }
 
     /**

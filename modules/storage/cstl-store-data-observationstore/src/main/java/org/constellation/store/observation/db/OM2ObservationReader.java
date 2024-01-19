@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.sis.util.Version;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
@@ -84,8 +85,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     protected final DataSource source;
 
-    public OM2ObservationReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final boolean timescaleDB) throws DataStoreException {
-        super(properties, schemaPrefix, false, dialect, timescaleDB);
+    public OM2ObservationReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
+        super(properties, schemaPrefix, false, dialect, timescaleDBVersion);
         this.source = source;
         try {
             // try if the connection is valid
