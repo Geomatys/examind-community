@@ -57,17 +57,21 @@ public class ConstellationOGCRegistry {
                 final String serviceType = serviceName.toLowerCase();
                 for (ServiceComplete service : serviceBusiness.getAllServicesByType(null, serviceType)) {
                     final String identifier = service.getIdentifier();
-                    wsengine.updateWorkerStatus(serviceType, identifier, WorkerState.DOWN);
-                    if ("STARTED".equalsIgnoreCase(service.getStatus())) {
-                        final Worker worker = wsengine.buildWorker(serviceType, identifier);
-                        if (worker != null) {
-                            wsengine.addServiceInstance(serviceType, identifier, worker);
-                        } else {
-                            throw new ConfigurationException("The instance " + identifier + " can not be instanciated.");
+                    try {
+                        wsengine.updateWorkerStatus(serviceType, identifier, WorkerState.DOWN);
+                        if ("STARTED".equalsIgnoreCase(service.getStatus())) {
+                            final Worker worker = wsengine.buildWorker(serviceType, identifier);
+                            if (worker != null) {
+                                wsengine.addServiceInstance(serviceType, identifier, worker);
+                            } else {
+                                throw new ConfigurationException("The instance " + identifier + " can not be instanciated.");
+                            }
                         }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Error while starting service :" + serviceName + " - " + identifier, ex);
                     }
                 }
-            } catch (ConstellationException ex) {
+            } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, "Error while starting services for :" + serviceName, ex);
             }
         } else {
