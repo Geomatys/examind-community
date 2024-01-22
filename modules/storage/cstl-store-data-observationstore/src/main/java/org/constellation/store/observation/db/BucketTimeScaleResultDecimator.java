@@ -58,7 +58,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         } else {
             select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
         }
-        select.append(procedure.mainField.name).append("\") AS step");
+        select.append(procedure.mainField.name).append("\") AS \"step\"");
         for (int i = offset; i < fields.size(); i++) {
              select.append(", avg(\"").append(fields.get(i).name).append("\") AS \"").append(fields.get(i).name).append("\"");
         }

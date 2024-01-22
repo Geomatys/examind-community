@@ -41,8 +41,8 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
         Field f = fields.get(mainFieldIndex + 1);
 
         StringBuilder select  = new StringBuilder();
-        select.append("time as step, value as ").append(f.name);
-        select.append(" FROM unnest ((SELECT asap_smooth(");
+        select.append("time as \"step\", value as \"").append(f.name);
+        select.append("\" FROM unnest ((SELECT asap_smooth(");
         select.append("\"").append(procedure.mainField.name).append("\",");
         select.append("\"").append(fields.get(offset).name).append("\",");
         select.append(width).append(")");
