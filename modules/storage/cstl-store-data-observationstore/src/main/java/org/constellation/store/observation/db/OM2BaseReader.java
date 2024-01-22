@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,6 +19,9 @@
 
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.store.observation.db.model.InsertDbField;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 
@@ -45,7 +48,8 @@ import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.Util;
@@ -789,22 +793,6 @@ public class OM2BaseReader {
             }
         }
         return f;
-    }
-
-    protected static class ProcedureInfo  {
-        public final int pid;
-        public final int nbTable;
-        public final String procedureId;
-        public final String type;
-        public final Field mainField;
-
-        public ProcedureInfo(int pid, int nbTable, String procedureId, String type, Field mainField) {
-            this.pid = pid;
-            this.nbTable = nbTable;
-            this.procedureId = procedureId;
-            this.type = type;
-            this.mainField = mainField;
-        }
     }
 
     /**

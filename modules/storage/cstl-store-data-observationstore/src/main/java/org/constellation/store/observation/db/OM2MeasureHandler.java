@@ -18,8 +18,9 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.util.logging.Logger;
-import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 
 /**
  * Base class for handling measure results.

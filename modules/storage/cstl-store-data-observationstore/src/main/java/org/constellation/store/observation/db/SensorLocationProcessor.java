@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -18,10 +18,12 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
@@ -39,10 +41,12 @@ import org.opengis.util.FactoryException;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public class SensorLocationProcessor {
 
+    protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
+    
     protected final GeneralEnvelope envelopeFilter;
     protected final OMSQLDialect dialect;
 

@@ -18,6 +18,8 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.store.observation.db.model.InsertDbField;
 import jakarta.annotation.Nullable;
 import java.sql.Timestamp;
 import java.util.AbstractMap;
@@ -28,7 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
-import static org.constellation.store.observation.db.OMSQLDialect.DERBY;
+import static org.constellation.store.observation.db.model.OMSQLDialect.DERBY;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
 import static org.geotoolkit.observation.model.FieldType.BOOLEAN;

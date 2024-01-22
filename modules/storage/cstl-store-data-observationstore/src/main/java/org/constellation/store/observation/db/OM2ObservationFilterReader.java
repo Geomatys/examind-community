@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2014 Geomatys.
  *
@@ -19,6 +19,13 @@
 
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.store.observation.db.decimation.SensorLocationDecimatorV2;
+import org.constellation.store.observation.db.decimation.SensorLocationDecimator;
+import org.constellation.store.observation.db.decimation.DefaultResultDecimator;
+import org.constellation.store.observation.db.decimation.BucketTimeScaleResultDecimator;
+import org.constellation.store.observation.db.decimation.ASMTimeScaleResultDecimator;
 import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
@@ -41,6 +48,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;

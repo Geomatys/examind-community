@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2019 Geomatys.
  *
@@ -18,20 +18,13 @@
  */
 package org.constellation.provider.observationstore;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
-import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.provider.AbstractDataProviderFactory;
 import org.constellation.provider.DataProvider;
 import static org.constellation.provider.ProviderParameters.createDescriptor;
-import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
-import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 
 /**
  *

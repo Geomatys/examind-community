@@ -16,14 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.decimation;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.store.observation.db.OM2Utils;
+import org.constellation.store.observation.db.TimeScaleResultDecimator;
 import static org.constellation.store.observation.db.OM2Utils.getTimeScalePeriod;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -16,15 +16,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.decimation;
 
 import java.util.Map;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.store.observation.db.SensorLocationProcessor;
 import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  *
- * @author guilhem
+ * @author Guilhem Legal (Geomatys)
  */
 public abstract class AbstractSensorLocationDecimator extends SensorLocationProcessor {
 

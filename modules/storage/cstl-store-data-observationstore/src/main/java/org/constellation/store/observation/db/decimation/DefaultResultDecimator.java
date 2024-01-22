@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.decimation;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -31,7 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
-import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.OM2Utils;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
@@ -43,7 +45,7 @@ import org.geotoolkit.observation.model.OMEntity;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class DefaultResultDecimator extends ResultDecimator {
+public class DefaultResultDecimator extends AbstractResultDecimator {
 
     private static final SimpleDateFormat debugSDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 

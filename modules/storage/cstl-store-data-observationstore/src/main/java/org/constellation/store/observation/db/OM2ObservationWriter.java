@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2014 Geomatys.
  *
@@ -18,6 +18,9 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.DbField;
+import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.store.observation.db.model.InsertDbField;
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.admin.SpringHelper;
@@ -49,9 +52,10 @@ import org.apache.sis.util.Version;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
-import static org.constellation.store.observation.db.OMSQLDialect.DERBY;
-import static org.constellation.store.observation.db.OMSQLDialect.DUCKDB;
-import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
+import static org.constellation.store.observation.db.model.OMSQLDialect.DERBY;
+import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
+import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.PreparedSQLBatch;
 import org.constellation.util.SQLResult;

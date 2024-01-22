@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;

@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.Date;

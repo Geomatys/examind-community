@@ -1,6 +1,6 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind - An open source and standard compliant SDI
+ *    https://community.examind.com
  *
  * Copyright 2022 Geomatys.
  *
@@ -16,23 +16,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.store.observation.db;
+package org.constellation.store.observation.db.decimation;
 
 import java.util.List;
-import org.constellation.store.observation.db.OM2BaseReader.ProcedureInfo;
+import org.constellation.store.observation.db.ResultProcessor;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class ResultDecimator extends ResultProcessor {
+public abstract class AbstractResultDecimator extends ResultProcessor {
 
     protected final int width;
 
     protected List<Integer> fieldFilters;
 
-    public ResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
+    public AbstractResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
         super(fields, includeId, false, includeTimeInProfile, procedure, "");
         this.width = width;
         this.fieldFilters = fieldFilters;

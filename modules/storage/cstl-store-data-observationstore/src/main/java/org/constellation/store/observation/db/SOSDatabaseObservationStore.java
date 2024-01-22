@@ -16,6 +16,7 @@
  */
 package org.constellation.store.observation.db;
 
+import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -43,7 +44,7 @@ import org.constellation.admin.SpringHelper;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.constellation.business.IDatasourceBusiness;
-import static org.constellation.store.observation.db.OMSQLDialect.POSTGRES;
+import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.util.SQLUtilities;
