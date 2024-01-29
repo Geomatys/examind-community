@@ -400,7 +400,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
                     List<Field> readFields = readFields(procedureID, true, c, new ArrayList<>(), new ArrayList<>());
-                    Phenomenon replacingPhen = OMUtils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
+                    Phenomenon replacingPhen = OM2Utils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
                     updatePhen.setString(1, phenRef.getId());
@@ -1308,12 +1308,16 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
                             OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c);
+                            removeEmptyMeasures(cdt, c);
                             
-                            int nbRemoved = removeEmptyMeasures(cdt, c);
-                            if (nbRemoved > 0) {
+                            boolean rmo = removeObservationIfEmpty(cdt, c);
+                            if (!rmo) {
                                 updateObservationTemporalBounds(cdt, c);
+                                updateObservationPhenomenon(cdt, fieldsToRemove, c);
+                            } else {
+                                boolean removed = removeProcedureIfEmpty(cdt.pi, c);
+                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
                             }
-                            updateObservationPhenomenon(cdt, fieldsToRemove, c);
                         } else {
                             LOGGER.fine("Full removal mode: no intersecting phenomenon. no deletion");
                         }
@@ -1329,6 +1333,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             boolean rmo = removeObservationIfEmpty(cdt, c);
                             if (!rmo) {
                                 updateObservationTemporalBounds(cdt, c);
+                                 // the phenomenon may be updated if some fields are now empty
                                 List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
                                 if (!emptyFields.isEmpty()) {
                                     updateObservationPhenomenon(cdt, emptyFields, c);
@@ -1344,14 +1349,19 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
                             OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c, obs);
-
                             removeEmptyMeasures(cdt, c);
-                            updateObservationTemporalBounds(cdt, c);
-
-                            // the phenomenon may be updated if some fields are now empty
-                            List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
-                            if (!emptyFields.isEmpty()) {
-                                updateObservationPhenomenon(cdt, emptyFields, c);
+                            
+                            boolean rmo = removeObservationIfEmpty(cdt, c);
+                            if (!rmo) {
+                                updateObservationTemporalBounds(cdt, c);
+                                // the phenomenon may be updated if some fields are now empty
+                                List<Field> emptyFields = getEmptyFieldsForObservation(cdt, c);
+                                if (!emptyFields.isEmpty()) {
+                                    updateObservationPhenomenon(cdt, emptyFields, c);
+                                }
+                            } else {
+                                boolean removed = removeProcedureIfEmpty(cdt.pi, c);
+                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
                             }
                            
                         } else {

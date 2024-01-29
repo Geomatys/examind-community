@@ -134,10 +134,14 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
 
                 boolean hasFilter = false;
                 Timestamp boundBegin = null;
-                Timestamp boundEnd = null;
+                Timestamp boundEnd   = null;
+                Timestamp instant    = null;
                 if (obsInfo.time instanceof Period p) {
                     boundBegin = new Timestamp(p.getBeginning().getDate().getTime());
                     boundEnd   = new Timestamp(p.getEnding().getDate().getTime());
+                    hasFilter  = true;
+                } else if (obsInfo.time instanceof Instant i) {
+                    instant = new Timestamp(i.getDate().getTime());
                     hasFilter  = true;
                 } else if (obsInfo.time != null) {
                     throw new IllegalArgumentException("Unexpected observation time bounds type:" + obsInfo.time.getClass().getName());
@@ -153,7 +157,10 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
                     }
                     final Timestamp t = new Timestamp(d.getTime());
 
-                    if (!hasFilter || (t.after(boundBegin) && t.before(boundEnd) || t.equals(boundBegin) || t.equals(boundEnd))) {
+                    if (!hasFilter                            || 
+                        (instant != null && t.equals(instant)) ||
+                        ((boundBegin != null && boundEnd != null) && (t.after(boundBegin) && t.before(boundEnd) || t.equals(boundBegin) || t.equals(boundEnd)))
+                        ) {
                         boolean removed = false;
                         for (PreparedStatement stmt : stmts) {
                             stmt.setTimestamp(1, t);

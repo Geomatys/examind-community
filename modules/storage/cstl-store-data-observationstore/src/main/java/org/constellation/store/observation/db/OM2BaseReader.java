@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -269,9 +270,9 @@ public class OM2BaseReader {
      * @throws SQLException If an error occurs during query execution.
      */
     protected Map<String, Object> readProperties(String tableName, String columnName, String id, Connection c) throws SQLException {
-        String request = "SELECT \"property_name\", \"value\" FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\"=?";
+        String request = "SELECT \"property_name\", \"value\" FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\"=? ORDER BY \"property_name\", \"value\"";
         LOGGER.fine(request);
-        Map<String, Object> results = new HashMap<>();
+        Map<String, Object> results = new LinkedHashMap<>();
         try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, id);
             try (final ResultSet rs   = stmt.executeQuery()) {
