@@ -446,10 +446,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             if (getPhen) {
                 final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
                 for (String p : phenomenon) {
-                    sbPheno.append(" op.\"id\"=").appendValue(p).append(" OR ");
+                    sbPheno.append(" op.\"id\" =").appendValue(p).append(" OR ");
                     // try to be flexible and allow to call this ommiting phenomenon id base
                     if (!p.startsWith(phenomenonIdBase)) {
-                        sbPheno.append(" op.\"id\"=").appendValue(phenomenonIdBase + p).append(" OR ");
+                        sbPheno.append(" op.\"id\" =").appendValue(phenomenonIdBase + p).append(" OR ");
                     }
                     fields.addAll(getFieldsForPhenomenon(p));
                 }
@@ -1686,7 +1686,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
-            secondRequest.replaceAll("op.\"id\"=", "c.\"component\"=");
+            // TODO find a cleaner way to do this
+            secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
 
             sqlRequest.join(joins, firstFilter);
 

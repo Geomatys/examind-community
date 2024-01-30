@@ -840,7 +840,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = op.\"id\""));
+            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "op.\"id\" = opp.\"id_phenomenon\""));
         }
         if (procPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
@@ -863,7 +863,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
-            secondRequest.replaceAll("op.\"id\"=", "c.\"component\"=");
+            // TODO find a cleaner way to do this
+            secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
 
             sqlRequest.join(joins, firstFilter);
 

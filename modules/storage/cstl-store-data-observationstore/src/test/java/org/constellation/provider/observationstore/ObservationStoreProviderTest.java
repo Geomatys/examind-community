@@ -1107,6 +1107,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        long count = omPr.getCount(new ObservedPropertyQuery());
+        assertEquals(11, count);
 
         //no composite
         ObservedPropertyQuery query = new ObservedPropertyQuery();
@@ -1125,6 +1128,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(7, count);
 
         /*
         * by id filter
@@ -1140,6 +1146,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
        /*
         * by ids filter
@@ -1158,6 +1167,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
         /**
          * filter on measurment template "urn:ogc:object:observation:template:GEOM:test-1-2"
@@ -1174,6 +1186,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:test-1
@@ -1190,6 +1205,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1202,6 +1220,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
         /**
          * filter on observation template "urn:ogc:object:observation:template:GEOM:13
@@ -1218,6 +1239,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1231,6 +1255,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("temperature");
         expectedIds.add("salinity");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3, count);
 
         /**
          * procedure filter
@@ -1247,6 +1274,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1259,6 +1289,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
         /*
         * offering filter
@@ -1276,6 +1309,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1288,6 +1324,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
         /*
         * procedure + offering filter
@@ -1305,6 +1344,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1317,6 +1359,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
        /*
         * properties filter
@@ -1332,6 +1377,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         /**
          * time filter
@@ -1347,6 +1395,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1360,6 +1411,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3, count);
 
         /*
         * sub properties filter => procedure properties
@@ -1376,6 +1430,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1388,6 +1445,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(2, count);
 
        /*
         * sub properties filter => featureOfInterest properties
@@ -1407,6 +1467,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(4, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -1420,6 +1483,43 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3, count);
+        
+        
+       /*
+        * sub properties filter => procedure properties
+        * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:1')
+        * + 
+        * observed properties filter
+        */
+        query = new ObservedPropertyQuery();
+        BinaryComparisonOperator equal1 = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/PONT"));
+        BinaryComparisonOperator equal2 = ff.equal(ff.property("properties/phen-category"), ff.literal("biological"));
+        filter = ff.and(equal1, equal2);
+        query.setSelection(filter);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(0, resultIds.size());
+        
+        count = omPr.getCount(query);
+        assertEquals(0, count);
+
+        // no composite
+        query.setNoCompositePhenomenon(true);
+        results = omPr.getPhenomenon(query);
+
+        resultIds = getPhenomenonIds(results);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new ArrayList<>();
+        expectedIds.add("depth");
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count);
     }
 
     @Test
