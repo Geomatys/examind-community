@@ -20,7 +20,6 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
 import org.constellation.util.FilterSQLRequest;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationFilterReader;
@@ -49,7 +48,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -164,8 +162,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     }
 
-    public OM2ObservationFilter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
-        super(properties, schemaPrefix, true, dialect, timescaleDBVersion);
+    public OM2ObservationFilter(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
+        super(properties, true);
         this.source     = source;
         resultModel     = null;
         try {

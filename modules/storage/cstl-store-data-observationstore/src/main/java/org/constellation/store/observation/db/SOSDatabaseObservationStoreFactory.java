@@ -23,6 +23,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.AbstractObservationStoreFactory;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
 import org.apache.sis.parameter.ParameterBuilder;
+import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
@@ -53,43 +54,55 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     /**
      * Parameter for database port
      */
-    public static final ParameterDescriptor<Integer> PORT = BUILDER.addName("port").setRemarks("Port").setRequired(false).create(Integer.class, 5432);
+    public static final String PORT_NAME = "port";
+    public static final ParameterDescriptor<Integer> PORT = BUILDER.addName(PORT_NAME).setRemarks("Port").setRequired(false).create(Integer.class, 5432);
 
     /**
      * Parameter for database type (postgres, derby, ...)
      */
+    public static final String SGBDTYPE_NAME = "sgbdtype";
     public static final ParameterDescriptor<String> SGBDTYPE =
-             BUILDER.addName("sgbdtype").setRequired(false).createEnumerated(String.class, new String[]{"derby","duckdb","postgres"}, "derby");
+             BUILDER.addName(SGBDTYPE_NAME).setRequired(false).createEnumerated(String.class, new String[]{"derby","duckdb","postgres"}, "derby");
 
     /**
      * Parameter for database url for derby database
      */
-    public static final ParameterDescriptor<String> DERBYURL =
-             BUILDER.addName("derbyurl").setRemarks("DerbyURL").setRequired(false).create(String.class, null);
+    public static final String DERBY_URL_NAME = "derbyurl";
+    public static final ParameterDescriptor<String> DERBY_URL =
+             BUILDER.addName(DERBY_URL_NAME).setRemarks("DerbyURL").setRequired(false).create(String.class, null);
 
     /**
      * Parameter for database host
      */
+    public static final String HOST_NAME = "host";
     public static final ParameterDescriptor<String> HOST =
-             BUILDER.addName("host").setRemarks("Host").setRequired(false).create(String.class, "localhost");
+             BUILDER.addName(HOST_NAME).setRemarks("Host").setRequired(false).create(String.class, "localhost");
 
     /**
      * Parameter for database name
      */
+    public static final String DATABASE_NAME = "database";
     public static final ParameterDescriptor<String> DATABASE =
-             BUILDER.addName("database").setRemarks("Database").setRequired(false).create(String.class, null);
+             BUILDER.addName(DATABASE_NAME).setRemarks("Database").setRequired(false).create(String.class, null);
 
     /**
      * Parameter for database user name
      */
+    public static final String USER_NAME = "user";
     public static final ParameterDescriptor<String> USER =
-             BUILDER.addName("user").setRemarks("User").setRequired(false).create(String.class, null);
+             BUILDER.addName(USER_NAME).setRemarks("User").setRequired(false).create(String.class, null);
 
+    public static final String SCHEMA_PREFIX_NAME = "schema-prefix";
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
-             BUILDER.addName("schema-prefix").setRemarks("schema-prefix").setRequired(false).create(String.class, null);
+             BUILDER.addName(SCHEMA_PREFIX_NAME).setRemarks(SCHEMA_PREFIX_NAME).setRequired(false).create(String.class, null);
     
+    public static final String DECIMATION_ALGORITHM_NAME = "decimation_algorithm";
+    public static final ParameterDescriptor<String> DECIMATION_ALGORITHM =
+             BUILDER.addName(DECIMATION_ALGORITHM_NAME).setRemarks(DECIMATION_ALGORITHM_NAME).setRequired(false).create(String.class, "");
+    
+    public static final String TIMESCALEDB_NAME = "timescaledb";
     public static final ParameterDescriptor<Boolean> TIMESCALEDB =
-             BUILDER.addName("timescaledb").setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
+             BUILDER.addName(TIMESCALEDB_NAME).setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
 
     /**
      * Max field by table, Optional.
@@ -106,11 +119,12 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     /**
      * Parameter for database user password
      */
+    public static final String PASSWD_NAME = "password";
     public static final ParameterDescriptor<String> PASSWD =
-             BUILDER.addName("password").setRemarks("Password").setRequired(false).create(String.class, null);
+             BUILDER.addName(PASSWD_NAME).setRemarks("Password").setRequired(false).create(String.class, null);
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
-            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBYURL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
+            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
                          OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE);
 
     @Override
@@ -125,7 +139,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
 
     @Override
     public SOSDatabaseObservationStore open(ParameterValueGroup params) throws DataStoreException {
-        return new SOSDatabaseObservationStore(params);
+        return new SOSDatabaseObservationStore(Parameters.castOrWrap(params));
     }
 
     @Override

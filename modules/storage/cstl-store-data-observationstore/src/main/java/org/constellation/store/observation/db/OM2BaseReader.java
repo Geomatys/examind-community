@@ -48,18 +48,16 @@ import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
 import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
-import org.constellation.util.Util;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.geometry.jts.JTS;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
-import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
 import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
@@ -94,6 +92,8 @@ public class OM2BaseReader {
     protected final boolean timescaleDB;
     
     protected final Version timescaleDBVersion;
+    
+    protected final String decimationAlgorithm;
     
     /**
      * The base for observation id.
@@ -131,22 +131,16 @@ public class OM2BaseReader {
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
-    public OM2BaseReader(final Map<String, Object> properties, final String schemaPrefix, final boolean cacheEnabled, final OMSQLDialect dialect, final Version timescaleDBVersion) throws DataStoreException {
-        this.dialect = dialect;
-        this.timescaleDBVersion = timescaleDBVersion;
-        this.timescaleDB = timescaleDBVersion != null;
-        this.phenomenonIdBase = (String) properties.getOrDefault(PHENOMENON_ID_BASE_NAME, "");
-        this.sensorIdBase = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
+    public OM2BaseReader(final Map<String, Object> properties, final boolean cacheEnabled) throws DataStoreException {
+        this.dialect                   = (OMSQLDialect) properties.getOrDefault(SQL_DIALECT, null);
+        this.timescaleDBVersion        = (Version) properties.getOrDefault(TIMESCALEDB_VERSION, null);
+        this.timescaleDB               = timescaleDBVersion != null;
+        this.decimationAlgorithm       = (String) properties.getOrDefault(DECIMATION_ALGORITHM_NAME, "");
+        this.phenomenonIdBase          = (String) properties.getOrDefault(PHENOMENON_ID_BASE_NAME, "");
+        this.sensorIdBase              = (String) properties.getOrDefault(SENSOR_ID_BASE_NAME, "");
         this.observationTemplateIdBase = (String) properties.getOrDefault(OBSERVATION_TEMPLATE_ID_BASE_NAME, "urn:observation:template:");
         this.observationIdBase         = (String) properties.getOrDefault(OBSERVATION_ID_BASE_NAME, "");
-        if (schemaPrefix == null) {
-            this.schemaPrefix = "";
-        } else {
-            if (Util.containsForbiddenCharacter(schemaPrefix)) {
-                throw new DataStoreException("Invalid schema prefix value");
-            }
-            this.schemaPrefix = schemaPrefix;
-        }
+        this.schemaPrefix              = (String)  properties.getOrDefault(SCHEMA_PREFIX_NAME, "");
         this.cacheEnabled = cacheEnabled;
     }
 
@@ -160,6 +154,7 @@ public class OM2BaseReader {
         this.cacheEnabled              = that.cacheEnabled;
         this.timescaleDB               = that.timescaleDB;
         this.timescaleDBVersion        = that.timescaleDBVersion;
+        this.decimationAlgorithm       = that.decimationAlgorithm;
     }
 
     /**

@@ -19,7 +19,6 @@
 
 package org.constellation.store.observation.db;
 
-import org.constellation.store.observation.db.model.OMSQLDialect;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.apache.sis.storage.DataStoreException;
@@ -45,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.sis.util.Version;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
@@ -87,8 +85,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
     protected final DataSource source;
 
-    public OM2ObservationReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
-        super(properties, schemaPrefix, false, dialect, timescaleDBVersion);
+    public OM2ObservationReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
+        super(properties, false);
         this.source = source;
         try {
             // try if the connection is valid

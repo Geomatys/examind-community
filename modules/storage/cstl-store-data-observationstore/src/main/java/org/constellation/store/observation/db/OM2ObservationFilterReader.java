@@ -20,7 +20,6 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
 import org.constellation.store.observation.db.decimation.SensorLocationDecimatorV2;
 import org.constellation.store.observation.db.decimation.SensorLocationDecimator;
 import org.constellation.store.observation.db.decimation.DefaultResultDecimator;
@@ -92,8 +91,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         super(omFilter);
     }
 
-    public OM2ObservationFilterReader(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion) throws DataStoreException {
-        super(source, dialect, schemaPrefix, properties, timescaleDBVersion);
+    public OM2ObservationFilterReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
+        super(source, properties);
     }
 
     @Override
@@ -716,32 +715,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             measureRequest = buildMesureRequests(currentProcedure, measureFilter, null, obsJoin, false, false, false);
             measureRequest.append(sqlRequest);
             
-            ResultProcessor processor;
-            if (decimate) {
-                if (timescaleDB) {
-                    /**
-                    * for a single field we use specific timescale function
-                    * asap_smooth / lttb
-                    */
-                   if ((fields.size() - fieldOffset) == 1 && timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0  ) {
-                       processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
-
-                   /**
-                    * otherwise we use time bucket method.
-                    * This methods seems not to be so fast with very large group of data.
-                    */
-                   } else {
-                       processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
-                   }
-                } else {
-                    /**
-                     * default java bucket decimation
-                     */
-                    processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
-                }
-            } else {
-                processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
-            }
+            ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix);
             processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);
             LOGGER.fine(measureRequest.toString());
 
@@ -762,6 +736,40 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequest != null ? measureRequest.toString() : "NO SQL QUERY");
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
+    }
+    
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix) {
+        ResultProcessor processor;
+        if (decimate) {
+            if (timescaleDB) {
+                boolean singleField = (fields.size() - fieldOffset) == 1;
+                boolean smoothAvailable = timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0;
+                
+                /**
+                * for a single field we use specific timescale function
+                * asap_smooth (lttb todo)
+                */
+               if (singleField && smoothAvailable && !decimationAlgorithm.equals("time_bucket")) {
+                   processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+
+               /**
+                * otherwise we use time bucket method.
+                * This methods seems not to be so fast with very large group of data.
+                */
+               } else {
+                   processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+               }
+            } else {
+                /**
+                 * default java bucket decimation.
+                 * no algorithm change possible yet
+                 */
+                processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+            }
+        } else {
+            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
+        }
+        return processor;
     }
 
     @Override

@@ -17,8 +17,7 @@
 package org.constellation.store.observation.db;
 
 import java.io.IOException;
-
-import org.opengis.parameter.ParameterValueGroup;
+import org.apache.sis.parameter.Parameters;
 
 /**
  *
@@ -26,8 +25,8 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class SOSDatabaseParamsUtils {
     
-    public static String getDriverClassName(final ParameterValueGroup params){
-        final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
+    public static String getDriverClassName(final Parameters params){
+        final String type  = params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE);
         return switch (type) {
             case "derby"    ->  "org.apache.derby.jdbc.EmbeddedDriver";
             case "duckdb"   ->  "org.duckdb.DuckDBDriver";
@@ -36,28 +35,28 @@ public class SOSDatabaseParamsUtils {
         };
     }
 
-    public static String getJDBCUrl(final ParameterValueGroup params) throws IOException {
-        final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
+    public static String getJDBCUrl(final Parameters params) throws IOException {
+        final String type  = params.getMandatoryValue(SOSDatabaseObservationStoreFactory.SGBDTYPE);
         if (type.equals("derby") || type.equals("duckdb")) {
-            final String derbyURL = (String) params.parameter(SOSDatabaseObservationStoreFactory.DERBYURL.getName().toString()).getValue();
+            final String derbyURL = params.getValue(SOSDatabaseObservationStoreFactory.DERBY_URL);
             return derbyURL;
         } else {
-            final String host  = (String) params.parameter(SOSDatabaseObservationStoreFactory.HOST.getName().toString()).getValue();
-            final Integer port = (Integer) params.parameter(SOSDatabaseObservationStoreFactory.PORT.getName().toString()).getValue();
-            final String db    = (String) params.parameter(SOSDatabaseObservationStoreFactory.DATABASE.getName().toString()).getValue();
+            final String host  = params.getValue(SOSDatabaseObservationStoreFactory.HOST);
+            final Integer port = params.getValue(SOSDatabaseObservationStoreFactory.PORT);
+            final String db    = params.getValue(SOSDatabaseObservationStoreFactory.DATABASE);
             return "jdbc:postgresql" + "://" + host + ":" + port + "/" + db;
         }
     }
 
-    public static String getHirokuUrl(final ParameterValueGroup params) throws IOException {
-        final String type  = (String) params.parameter(SOSDatabaseObservationStoreFactory.SGBDTYPE.getName().toString()).getValue();
+    public static String getHirokuUrl(final Parameters params) throws IOException {
+        final String type = params.getMandatoryValue(SOSDatabaseObservationStoreFactory.SGBDTYPE);
         if (type.equals("derby") || type.equals("duckdb")) {
             // i don't know if its possible to build an hiroku url for derby
             return null;
         } else {
-            final String host  = (String) params.parameter(SOSDatabaseObservationStoreFactory.HOST.getName().toString()).getValue();
-            final Integer port = (Integer) params.parameter(SOSDatabaseObservationStoreFactory.PORT.getName().toString()).getValue();
-            final String db    = (String) params.parameter(SOSDatabaseObservationStoreFactory.DATABASE.getName().toString()).getValue();
+            final String host  = params.getValue(SOSDatabaseObservationStoreFactory.HOST);
+            final Integer port = params.getValue(SOSDatabaseObservationStoreFactory.PORT);
+            final String db    = params.getValue(SOSDatabaseObservationStoreFactory.DATABASE);
             return "postgres" + "://" + host + ":" + port + "/" + db;
         }
     }

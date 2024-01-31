@@ -48,7 +48,6 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.util.Version;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
@@ -101,16 +100,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * Build a new Observation writer for the given data source.
      *
      * @param source Data source on the database.
-     * @param dialect SGBD dialect.
-     * @param schemaPrefix Prefix for the database schemas.
      * @param properties
-     * @param timescaleDBVersion The TimescaleDB extension version if available.
      * @param maxFieldByTable Maximum number of field allowed for a measure table.
      *
      * @throws org.apache.sis.storage.DataStoreException
      */
-    public OM2ObservationWriter(final DataSource source, final OMSQLDialect dialect, final String schemaPrefix, final Map<String, Object> properties, final Version timescaleDBVersion, final int maxFieldByTable) throws DataStoreException {
-        super(properties, schemaPrefix, false, dialect, timescaleDBVersion);
+    public OM2ObservationWriter(final DataSource source, final Map<String, Object> properties, final int maxFieldByTable) throws DataStoreException {
+        super(properties, false);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
