@@ -507,7 +507,7 @@ public class FileParsingUtils {
     public static String asString(Object value, DateFormat df) {
         if (value == null) return null;
         if (value instanceof String s) {
-            return s;
+            return s.trim();
         } else if (value instanceof Number) {
             return value.toString().replaceFirst("\\.0*$", "");
         } else if (value instanceof Date d) {
