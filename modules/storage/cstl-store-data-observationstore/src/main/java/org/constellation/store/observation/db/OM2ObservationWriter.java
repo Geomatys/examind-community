@@ -587,7 +587,23 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 }
             } else {
-                // not a complete update, only properties
+                
+                try(final PreparedStatement stmtUpdate = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observed_properties\" SET \"name\" = ?, \"definition\" = ?, \"description\" = ? WHERE \"id\"= ?")) {//NOSONAR
+                    if (phenomenon.getName() != null) {
+                        stmtUpdate.setString(1, phenomenon.getName());
+                    } else {
+                        stmtUpdate.setNull(1, java.sql.Types.VARCHAR);
+                    }
+                    stmtUpdate.setString(2, phenomenon.getDefinition());
+                    if (phenomenon.getDescription() != null) {
+                        stmtUpdate.setString(3, phenomenon.getDescription());
+                    } else {
+                        stmtUpdate.setNull(3, java.sql.Types.VARCHAR);
+                    }
+                    stmtUpdate.setString(4, phenomenonId);
+                    stmtUpdate.executeUpdate();
+                }
+                
                 deleteProperties("observed_properties_properties", "id_phenomenon", phenomenonId, c);
                 writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
             }

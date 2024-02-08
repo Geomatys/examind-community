@@ -36,8 +36,8 @@
         "properties": {},
         "definition": "mega-phen-reduce-2",
         "component": [{
-                "id": "f11",
-                "name": "f11",
+                "id": "f22",
+                "name": "f22",
                 "definition": "urn:ogc:def:phenomenon:GEOM:f22"
             }]
     },
