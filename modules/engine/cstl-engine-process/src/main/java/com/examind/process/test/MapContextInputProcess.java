@@ -21,7 +21,7 @@ package com.examind.process.test;
 import static com.examind.process.test.MapContextInputDescriptor.EXA_INPUT;
 import static com.examind.process.test.MapContextInputDescriptor.EXA_REF_INPUT;
 import static com.examind.process.test.MapContextInputDescriptor.NB_ITEMS_OUTPUT;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.constellation.process.AbstractCstlProcess;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;

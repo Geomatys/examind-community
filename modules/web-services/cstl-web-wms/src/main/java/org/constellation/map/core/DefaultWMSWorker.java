@@ -82,7 +82,7 @@ import org.geotoolkit.factory.Hints;
 import org.geotoolkit.inspire.xml.vs.ExtendedCapabilitiesType;
 import org.geotoolkit.inspire.xml.vs.LanguageType;
 import org.geotoolkit.inspire.xml.vs.LanguagesType;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.api.WorkerState;

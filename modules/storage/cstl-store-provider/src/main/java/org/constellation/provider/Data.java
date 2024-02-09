@@ -32,7 +32,7 @@ import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.map.MapItem;
 import org.apache.sis.storage.Aggregate;
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;

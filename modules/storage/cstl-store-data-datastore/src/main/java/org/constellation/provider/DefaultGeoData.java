@@ -18,11 +18,11 @@
  */
 package org.constellation.provider;
 
-import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.map.MapItem;
 import org.apache.sis.storage.Resource;
 
 import org.constellation.exception.ConstellationStoreException;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.geotoolkit.map.MapBuilder;
 import org.opengis.style.Style;

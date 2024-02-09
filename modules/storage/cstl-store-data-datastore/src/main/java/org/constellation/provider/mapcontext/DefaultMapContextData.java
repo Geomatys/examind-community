@@ -18,9 +18,8 @@
  */
 package org.constellation.provider.mapcontext;
 
-import java.util.Map;
-import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapItem;
+import org.apache.sis.map.MapLayers;
 import org.apache.sis.storage.Resource;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;

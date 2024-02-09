@@ -20,7 +20,7 @@ package org.constellation.business;
 
 import java.util.List;
 import java.util.Map;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.portrayal.PortrayalResponse;

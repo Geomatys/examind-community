@@ -28,7 +28,7 @@ import org.opengis.geometry.Envelope;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.portrayal.MapItem;
+import org.apache.sis.map.MapItem;
 import org.apache.sis.storage.GridCoverageResource;
 
 import org.geotoolkit.image.io.metadata.SpatialMetadata;

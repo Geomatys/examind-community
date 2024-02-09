@@ -18,7 +18,7 @@
  */
 package com.examind.process.test;
 
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.MapContextLayersDTO;
 import org.constellation.dto.process.MapContextProcessReference;

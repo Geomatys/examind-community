@@ -19,8 +19,8 @@
 package org.constellation.provider.observationstore;
 
 import java.util.stream.Stream;
-import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapItem;
+import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;

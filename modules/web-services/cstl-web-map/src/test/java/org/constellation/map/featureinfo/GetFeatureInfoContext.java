@@ -17,8 +17,8 @@ import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.map.MapBuilder;
-import org.apache.sis.portrayal.MapLayers;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapLayers;
+import org.apache.sis.map.MapLayer;
 import org.geotoolkit.storage.memory.InMemoryFeatureSet;
 import org.geotoolkit.storage.memory.InMemoryGridCoverageResource;
 

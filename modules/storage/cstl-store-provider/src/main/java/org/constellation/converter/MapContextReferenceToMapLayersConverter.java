@@ -18,8 +18,8 @@
  */
 package org.constellation.converter;
 
-import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapItem;
+import org.apache.sis.map.MapLayers;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.constellation.admin.SpringHelper;
 import static org.constellation.api.ProviderConstants.INTERNAL_MAP_CONTEXT_PROVIDER;

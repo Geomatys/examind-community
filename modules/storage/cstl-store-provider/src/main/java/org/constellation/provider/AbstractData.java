@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
@@ -33,8 +32,8 @@ import org.opengis.geometry.Envelope;
 import org.opengis.util.GenericName;
 
 import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapItem;
+import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;

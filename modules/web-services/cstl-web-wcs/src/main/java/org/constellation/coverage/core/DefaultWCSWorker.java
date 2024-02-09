@@ -111,7 +111,7 @@ import org.geotoolkit.gmlcov.geotiff.xml.v100.ParametersType;
 import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import static org.constellation.map.util.MapUtils.combine;
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;

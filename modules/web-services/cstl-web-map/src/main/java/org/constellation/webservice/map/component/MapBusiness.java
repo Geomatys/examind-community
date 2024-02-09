@@ -41,9 +41,9 @@ import org.geotoolkit.display2d.service.OutputDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.factory.Hints;
 import org.geotoolkit.map.MapBuilder;
-import org.apache.sis.portrayal.MapLayers;
-import org.apache.sis.portrayal.MapItem;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapLayers;
+import org.apache.sis.map.MapItem;
+import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
 
 import org.constellation.business.IDataBusiness;

@@ -19,7 +19,7 @@
 package org.constellation.converter;
 
 import com.fasterxml.jackson.databind.util.StdConverter;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.constellation.dto.process.MapContextProcessReference;
 
 /**

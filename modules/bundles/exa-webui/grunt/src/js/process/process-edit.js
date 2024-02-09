@@ -165,7 +165,7 @@ angular.module('cstl-process-edit', ['cstl-restapi', 'cstl-services',
                     }]
                 }
             })
-            .put('org.apache.sis.portrayal.MapLayers', {
+            .put('org.apache.sis.map.MapLayers', {
                 templateUrl: 'views/tasks/editor/mapcontext.html',
                 controller:'ProcessMapContextEditorController',
                 controllerAs: 'ec'

@@ -69,7 +69,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
-import org.apache.sis.portrayal.MapLayer;
+import org.apache.sis.map.MapLayer;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.ows.xml.GetFeatureInfo;
 import org.locationtech.jts.geom.Coordinate;

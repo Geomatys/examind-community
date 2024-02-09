@@ -28,7 +28,7 @@ import jakarta.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.apache.sis.util.ObjectConverters;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IMapContextBusiness;

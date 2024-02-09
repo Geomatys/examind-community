@@ -62,7 +62,7 @@ import org.geotoolkit.coverage.xmlstore.XMLCoverageResource;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStore;
 import org.geotoolkit.coverage.xmlstore.XMLCoverageStoreFactory;
 import org.geotoolkit.map.MapBuilder;
-import org.apache.sis.portrayal.MapLayers;
+import org.apache.sis.map.MapLayers;
 import org.constellation.api.ProviderType;
 import org.constellation.provider.CoverageData;
 import org.constellation.provider.PyramidData;
