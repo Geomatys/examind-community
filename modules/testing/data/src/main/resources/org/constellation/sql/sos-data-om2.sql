@@ -14,6 +14,8 @@ INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_na
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon-2', 'phen-category',  'elementary');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'biological');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'organics');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-usage',     'production');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('temperature',           'phen-category',  'biological');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-usage',     'studies');
 
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('aggregatePhenomenon', 'depth', 0);

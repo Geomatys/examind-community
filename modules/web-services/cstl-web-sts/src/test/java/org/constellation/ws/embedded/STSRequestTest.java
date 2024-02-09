@@ -720,12 +720,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         URL getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
         String result = getStringResponse(getFoiUrl) + "\n";
-        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property.json");
+        String expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property-2.json");
         compareJSON(expResult, result);
 
         getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$count=true&$filter=" + filter);
         result = getStringResponse(getFoiUrl) + "\n";
-        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property-ct.json");
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-property-2-ct.json");
         compareJSON(expResult, result);
 
         filter = "phenomenonTime eq 2000-11-30T23:00:00.000Z".replace("'", "%27").replace(" ", "%20");

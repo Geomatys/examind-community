@@ -44,7 +44,10 @@
                 "id": "temperature",
                 "name": "Temperature",
                 "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
-                "description": "the temperature in celcius degree"
+                "description": "the temperature in celcius degree",
+                "properties": {
+                    "phen-category": "biological"
+                }
             },
             "result": {
                 "fields": [{
@@ -95,7 +98,10 @@
             "id": "temperature",
             "name": "Temperature",
             "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
-            "description": "the temperature in celcius degree"
+            "description": "the temperature in celcius degree",
+            "properties": {
+                "phen-category": "biological"
+            }
         }],
     "procedures": [{
             "id": "urn:ogc:object:sensor:GEOM:12",

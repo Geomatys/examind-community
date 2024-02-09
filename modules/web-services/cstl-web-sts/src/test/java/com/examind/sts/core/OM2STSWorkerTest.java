@@ -980,14 +980,17 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GetObservedPropertyById request = new GetObservedPropertyById("temperature");
         ObservedProperty result = worker.getObservedPropertyById(request);
 
+        Map<String, Object> obsPropProperties = new HashMap<>();
+        obsPropProperties.put("phen-category", "biological");
+        
         ObservedProperty expResult = new ObservedProperty()
                 .iotId("temperature")
                 .name("Temperature")
+                .properties(obsPropProperties)
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
                 .description("the temperature in celcius degree")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)")
-                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams")
-                .properties(Collections.EMPTY_MAP);
+                .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams");
         expResult.setMultiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/MultiDatastreams");
 
         Assert.assertEquals(expResult, result);
@@ -1133,6 +1136,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1301,6 +1305,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1428,6 +1433,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
 
         ObservedProperty expObsProp = new ObservedProperty()
                 .iotId("depth")
@@ -1617,6 +1623,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1626,12 +1633,15 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/Datastreams")
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(depth)/MultiDatastreams");
+        
+        Map<String, Object> obsPropProperties2 = new HashMap<>();
+        obsPropProperties2.put("phen-category", "biological");
         ObservedProperty expObsProp2 = new ObservedProperty()
                 .iotId("temperature")
                 .name("Temperature")
+                .properties(obsPropProperties2)
                 .description("the temperature in celcius degree")
                 .definition("urn:ogc:def:phenomenon:GEOM:temperature")
-                .properties(Collections.EMPTY_MAP)
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)")
                 .datastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/Datastreams")
                 .multiDatastreamsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/ObservedProperties(temperature)/MultiDatastreams");
@@ -1799,6 +1809,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")
@@ -1939,6 +1950,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
 
         Map<String, Object> obsPropProperties = new HashMap<>();
         obsPropProperties.put("phen-category", Arrays.asList("biological", "organics"));
+        obsPropProperties.put("phen-usage", "production");
         ObservedProperty expObsProp1 = new ObservedProperty()
                 .iotId("depth")
                 .name("Depth")

@@ -25,7 +25,8 @@
             "definition": "urn:ogc:def:phenomenon:GEOM:depth",
             "description": "the depth in water",
             "properties": {
-                "phen-category": ["biological","organics"]
+                "phen-category": ["biological","organics"],
+                "phen-usage": "production"
             },
             "@iot.id": "depth",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/ObservedProperties(depth)",

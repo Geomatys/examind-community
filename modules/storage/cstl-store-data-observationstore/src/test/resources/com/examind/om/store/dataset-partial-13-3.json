@@ -48,7 +48,9 @@
                         "id": "temperature",
                         "name": "Temperature",
                         "description": "the temperature in celcius degree",
-                        "properties": {},
+                        "properties": {
+                            "phen-category": "biological"
+                        },
                         "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
                     }, {
                         "id": "whatever",
@@ -118,7 +120,9 @@
                     "id": "temperature",
                     "name": "Temperature",
                     "description": "the temperature in celcius degree",
-                    "properties": {},
+                    "properties": {
+                        "phen-category": "biological"
+                    },
                     "definition": "urn:ogc:def:phenomenon:GEOM:temperature"
                 }, {
                     "id": "whatever",

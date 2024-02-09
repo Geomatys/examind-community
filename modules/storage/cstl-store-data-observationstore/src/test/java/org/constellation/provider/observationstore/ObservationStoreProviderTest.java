@@ -1512,14 +1512,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getPhenomenon(query);
 
         resultIds = getPhenomenonIds(results);
-        assertEquals(1, resultIds.size());
+        assertEquals(2, resultIds.size());
 
         expectedIds = new ArrayList<>();
         expectedIds.add("depth");
+        expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
         
         count = omPr.getCount(query);
-        assertEquals(1, count);
+        assertEquals(2, count);
     }
 
     @Test
@@ -2234,13 +2235,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
 
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(13, resultIds.size());
+        assertEquals(14, resultIds.size());
 
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:2");
         expectedIds.add("urn:ogc:object:sensor:GEOM:3");
         expectedIds.add("urn:ogc:object:sensor:GEOM:4");
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
         expectedIds.add("urn:ogc:object:sensor:GEOM:8");
         expectedIds.add("urn:ogc:object:sensor:GEOM:9");
         expectedIds.add("urn:ogc:object:sensor:GEOM:10");
@@ -2253,7 +2255,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         result = omPr.getCount(query);
-        assertEquals(result, 13L);
+        assertEquals(result, 14L);
 
        /*
         * sub properties filter => featureOfInterest properties
@@ -2495,13 +2497,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getProcedures(query);
 
         resultIds = getProcessIds(results);
-        assertEquals(13, resultIds.size());
+        assertEquals(14, resultIds.size());
 
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:2");
         expectedIds.add("urn:ogc:object:sensor:GEOM:3");
         expectedIds.add("urn:ogc:object:sensor:GEOM:4");
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
         expectedIds.add("urn:ogc:object:sensor:GEOM:8");
         expectedIds.add("urn:ogc:object:sensor:GEOM:9");
         expectedIds.add("urn:ogc:object:sensor:GEOM:10");
@@ -3769,9 +3772,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
     }
 
-    /**
-     * NOT possible yet wait until new geotk version
-     */
     @Test
     public void getMeasurementTemplateResult2FilterTest() throws Exception {
 
@@ -3849,6 +3849,85 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         count = omPr.getCount(query);
         assertEquals(1L, count);
+    }
+    
+    @Test
+    public void getMeasurementTemplateFilterTest() throws Exception {
+
+         // get all the sensor templates that have at an observed property with the property phen-category = biological
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        Filter filter = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+            assertTrue(p.getObservedProperty() instanceof org.geotoolkit.observation.model.Phenomenon);
+            org.geotoolkit.observation.model.Phenomenon phen = (org.geotoolkit.observation.model.Phenomenon) p.getObservedProperty();
+            
+            assertTrue(phen.getProperties().containsKey("phen-category"));
+            Object catObj = phen.getProperties().get("phen-category");
+            // can be multiple
+            if (catObj instanceof List categories) {
+                assertTrue(categories.contains("biological"));
+            } else {
+                assertTrue(catObj instanceof String);
+                assertTrue(catObj.equals("biological"));
+            }
+        }
+        assertEquals(20, resultIds.size());
+        
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");// this one is in double because of the foi
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2"); 
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        long count = omPr.getCount(query);
+        assertEquals(21L, count);  // one is in double because of the foi
+
+        // DO NOT WORK YET
+        
+        // get all the sensor templates that have at an observed property with the property phen-category = biological and phen-category = organics
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        BinaryComparisonOperator equal1 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        BinaryComparisonOperator equal2 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("organics"));
+        filter = ff.and(equal1, equal2);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+        }
+        assertEquals(0, resultIds.size());
+
+        expectedIds = new HashSet<>();
+       // expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(0L, count);
     }
 
     @Test

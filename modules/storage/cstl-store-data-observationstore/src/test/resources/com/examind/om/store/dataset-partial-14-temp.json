@@ -42,14 +42,18 @@
                         "name": "Depth",
                         "description": "the depth in water",
                         "properties": {
-                            "phen-category": ["biological", "organics"]
+                            "phen-category": ["biological", "organics"],
+                            "phen-usage": "production"
                         },
                         "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                     }, {
                         "id": "temperature",
                         "name": "Temperature",
                         "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
-                        "description": "the temperature in celcius degree"
+                        "description": "the temperature in celcius degree",
+                        "properties": {
+                            "phen-category": "biological"
+                        }
                     }]
             },
             "result": {
@@ -107,14 +111,18 @@
                     "name": "Depth",
                     "description": "the depth in water",
                     "properties": {
-                        "phen-category": ["biological", "organics"]
+                        "phen-category": ["biological", "organics"],
+                        "phen-usage": "production"
                     },
                     "definition": "urn:ogc:def:phenomenon:GEOM:depth"
                 }, {
                     "id": "temperature",
                     "name": "Temperature",
                     "definition": "urn:ogc:def:phenomenon:GEOM:temperature",
-                    "description": "the temperature in celcius degree"
+                    "description": "the temperature in celcius degree",
+                    "properties": {
+                        "phen-category": "biological"
+                    }
                 }]
         }],
     "procedures": [{
