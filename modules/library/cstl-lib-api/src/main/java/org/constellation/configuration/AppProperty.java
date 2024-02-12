@@ -269,7 +269,9 @@ public enum AppProperty {
 
     EXA_DISABLE_WMS_130_ROTATION("examind.disable.wms.130.rotation", false, Boolean.class),
     
-    EXA_OM2_DEFAULT_DECIMATION_ALGORITHM("examind.om2.default.decimation.algorithm", false, String.class);
+    EXA_OM2_DEFAULT_DECIMATION_ALGORITHM("examind.om2.default.decimation.algorithm", false, String.class),
+    
+    EXA_OM2_DUCKDB_EXTENSION_DIRECTORY("examind.om2.duckdb.extension.directory", false, String.class);
 
     private final String key;
     private final boolean secure;

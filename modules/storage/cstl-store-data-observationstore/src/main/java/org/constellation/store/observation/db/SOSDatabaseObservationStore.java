@@ -18,6 +18,8 @@ package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -168,10 +170,12 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
 
             // Test if the connection is valid
             try(final Connection c = this.source.getConnection()) {
-                // TODO: add a validation test here (query db metadata ?)
-                
                 if (dialect.equals(OMSQLDialect.DUCKDB)) {
                     try (Statement loadExt = c.createStatement()) {
+                        String tsExtDirValue = Application.getProperty(AppProperty.EXA_OM2_DUCKDB_EXTENSION_DIRECTORY, null);
+                        if (tsExtDirValue != null) {
+                            loadExt.execute("SET extension_directory='" + tsExtDirValue + "'");
+                        }
                         loadExt.execute("INSTALL spatial");
                         loadExt.execute("LOAD spatial");
                     }
