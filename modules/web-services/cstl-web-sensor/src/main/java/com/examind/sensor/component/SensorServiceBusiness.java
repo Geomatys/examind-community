@@ -491,7 +491,9 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         Integer smlPid = getSensorProviderId(id, SensorProvider.class);
         final List<ProcedureDataset> procedures = omProvider.getProcedureTrees(new DatasetQuery());
         for (ProcedureDataset process : procedures) {
-            writeProcedure(id, process);
+            // we should not write over the procedured as we are generating sensor from them.
+            // I let this in comment in case i'm missing something i can't see for now
+            //writeProcedure(id, process);
             Integer sid =  sensorBusiness.generateSensor(process, smlPid, null, null);
             sensorBusiness.addSensorToService(id, sid);
         }

@@ -96,14 +96,14 @@ public class DatabaseRegister {
             final Integer exaMinIdle     = Application.getIntegerProperty(AppProperty.CSTL_DATABASE_MIN_IDLE);
             final Long exaIdleTimeout    = Application.getLongProperty(AppProperty.CSTL_DATABASE_IDLE_TIMEOUT, null);
 
-            exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold, exaMinIdle, exaIdleTimeout);
+            exaDatasource = SQLUtilities.getDataSource(exaDbUrl, "examind", exaMaxPoolSize, leakDetectionThreshold, exaMinIdle, exaIdleTimeout, null, null);
 
             boolean separatedPool = Application.getBooleanProperty(AppProperty.EPSG_DATABASE_SEPARATED_POOL, false);
             if (!Objects.equals(exaDbUrl, epsgDbUrl) || separatedPool) {
                 final Integer epsgMaxPoolSize = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MAX_POOL_SIZE);
                 final Integer epsgMinIdle     = Application.getIntegerProperty(AppProperty.EPSG_DATABASE_MIN_IDLE);
                 final Long epsgIdleTimeout    = Application.getLongProperty(AppProperty.EPSG_DATABASE_IDLE_TIMEOUT, null);
-                epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout);
+                epsgDatasource = SQLUtilities.getDataSource(epsgDbUrl, "epsg", epsgMaxPoolSize, leakDetectionThreshold, epsgMinIdle, epsgIdleTimeout, null, null);
             } else {
                 epsgDatasource = exaDatasource;
             }

@@ -18,8 +18,6 @@ package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.OMSQLDialect;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -32,6 +30,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 
@@ -122,6 +121,8 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             // password
             final String passwd = params.getValue(SOSDatabaseObservationStoreFactory.PASSWD);
             
+            dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
+             
             // examind special for sharing datasource (disabled for derby)
             DataSource candidate = null;
             if (hirokuUrl != null) {
@@ -137,11 +138,17 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             }
             // fall back on direct datasource instanciation.
             if (candidate == null) {
-                candidate = SQLUtilities.getDataSource(jdbcUrl, driver, user, passwd);
+                Boolean readOnly = params.getValue(SOSDatabaseObservationStoreFactory.DATABASE_READONLY);
+                Properties ro_prop = null;
+                if (dialect.equals(OMSQLDialect.DUCKDB) && Boolean.TRUE.equals(readOnly)) {
+                    ro_prop = new Properties();
+                    ro_prop.setProperty("duckdb.read_only", "true");   
+                }     
+                candidate = SQLUtilities.getDataSource(jdbcUrl, driver, user, passwd, ro_prop, readOnly);
             }
             source =  candidate;
 
-            dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
+           
             boolean timescaleDB = params.getValue(SOSDatabaseObservationStoreFactory.TIMESCALEDB);
 
             String sp = params.getValue(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX);

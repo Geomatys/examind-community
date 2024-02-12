@@ -91,12 +91,16 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     public static final String USER_NAME = "user";
     public static final ParameterDescriptor<String> USER =
              BUILDER.addName(USER_NAME).setRemarks("User").setRequired(false).create(String.class, null);
+    
+    public static final String DATABASE_READONLY_NAME = "database-readonly";
+    public static final ParameterDescriptor<Boolean> DATABASE_READONLY =
+             BUILDER.addName(DATABASE_READONLY_NAME).setRemarks("database readonly").setRequired(false).create(Boolean.class, null);
 
     public static final String SCHEMA_PREFIX_NAME = "schema-prefix";
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
              BUILDER.addName(SCHEMA_PREFIX_NAME).setRemarks(SCHEMA_PREFIX_NAME).setRequired(false).create(String.class, null);
     
-    public static final String DECIMATION_ALGORITHM_NAME = "decimation_algorithm";
+    public static final String DECIMATION_ALGORITHM_NAME = "decimation-algorithm";
     public static final ParameterDescriptor<String> DECIMATION_ALGORITHM =
              BUILDER.addName(DECIMATION_ALGORITHM_NAME).setRemarks(DECIMATION_ALGORITHM_NAME).setRequired(false).create(String.class, "");
     
@@ -125,7 +129,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
             .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
-                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE);
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {

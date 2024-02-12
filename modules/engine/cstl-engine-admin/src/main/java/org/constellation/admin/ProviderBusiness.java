@@ -499,6 +499,9 @@ public class ProviderBusiness implements IProviderBusiness {
                     if (inParams.get("timescaledb") != null) {
                         dbObsParams.parameter("timescaledb").setValue(Boolean.parseBoolean(inParams.get("timescaledb")));
                     }
+                    if (inParams.get("database-readonly") != null) {
+                        dbObsParams.parameter("database-readonly").setValue(Boolean.parseBoolean(inParams.get("database-readonly")));
+                    }
                     dbObsParams.parameter("phenomenon-id-base").setValue(inParams.get("phenomenon-id-base"));
                     dbObsParams.parameter("observation-template-id-base").setValue(inParams.get("observation-template-id-base"));
                     dbObsParams.parameter("observation-id-base").setValue(inParams.get("observation-id-base"));

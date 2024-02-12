@@ -253,7 +253,8 @@ angular.module('cstl-webservice-create', [
             'cswIndexType':'lucene-node',
             'createData':false,
             'generateSensor': false,
-            'directProvider':false
+            'directProvider':false,
+            'readOnly':false
         };
 
         self.initSource = function() {
@@ -337,6 +338,7 @@ angular.module('cstl-webservice-create', [
                             'schema-prefix':self.guiConfig.schema,
                             timescaledb: self.guiConfig.timescaledb,
                             sgbdtype: 'postgres',
+                            'database-readonly': self.guiConfig.readOnly,
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
@@ -351,6 +353,7 @@ angular.module('cstl-webservice-create', [
                             derbyurl: self.guiConfig.url,
                             'schema-prefix':self.guiConfig.schema,
                             sgbdtype: 'duckdb',
+                            'database-readonly': self.guiConfig.readOnly,
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
@@ -365,6 +368,7 @@ angular.module('cstl-webservice-create', [
                             derbyurl: self.guiConfig.url,
                             'schema-prefix':self.guiConfig.schema,
                             sgbdtype: 'derby',
+                            'database-readonly': self.guiConfig.readOnly,
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
