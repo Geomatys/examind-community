@@ -143,14 +143,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     where  op."id" = opp.id_phenomenon
                     AND opp."property_name"= 'propName'  AND opp."value" = ' propValue')
             )
+            
+            UPDATE there was kind of a change here, the request is now almost like the suggestion above. TODO verify that the problem is still here
              */
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = o.\"observed_property\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = o.\"observed_property\""));
+            sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
         }
         if (procPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
         }
         if (foiPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
         sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY o.\"procedure\" ");
@@ -220,13 +225,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     private List<org.opengis.observation.Observation> getMesurementTemplates() throws DataStoreException {
         List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (phenPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = pd.\"field_name\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = pd.\"field_name\""));
+            sqlRequest.replaceAll("${phen-prop-join}", "pd.\"field_name\"");
         }
         if (procPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
         }
         if (foiPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "o.\"foi\" = sfp.\"id_sampling_feature\""));
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
         sqlRequest.join(joins, firstFilter);
         sqlRequest.append(" ORDER BY o.\"procedure\", pd.\"order\" ");
@@ -783,15 +791,18 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" off", "off.\"foi\" = sf.\"id\""));
         }
         if (foiPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sf.\"id\" = sfp.\"id_sampling_feature\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sf.\"id\" = sfp.\"id_sampling_feature\""));
+            sqlRequest.replaceAll("${foi-prop-join}", "sf.\"id\"");
         }
         if (procPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offerings\" offe", "off.\"id_offering\" = offe.\"identifier\""));
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = offe.\"procedure\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = offe.\"procedure\""));
+            sqlRequest.replaceAll("${proc-prop-join}", "offe.\"procedure\"");
         }
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" offop", "offop.\"id_offering\" = off.\"id_offering\""));
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
+            sqlRequest.replaceAll("${phen-prop-join}",  "offop.\"phenomenon\"");
         }
         sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);
@@ -840,13 +851,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "op.\"id\" = opp.\"id_phenomenon\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "op.\"id\" = opp.\"id_phenomenon\""));
+            sqlRequest.replaceAll("${phen-prop-join}",  "op.\"id\"");
         }
         if (procPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
         }
         if (foiPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sfp.\"id_sampling_feature\" = o.\"foi\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sfp.\"id_sampling_feature\" = o.\"foi\""));
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
         
         /*
@@ -862,10 +876,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
-            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
-            // TODO find a cleaner way to do this
+            
+            // -- TODO REALLY find a cleaner way to do this
             secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
-
+            secondRequest.replaceAll("op.\"id\" IN", "c.\"component\" IN");
+            // -- end TODO
+            
+            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+            
             sqlRequest.join(joins, firstFilter);
 
             sqlRequest.append(" UNION ").append(secondRequest);
@@ -904,15 +922,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offerings\" off", "off.\"procedure\" = pr.\"id\""));
         }
         if (procPropJoin) {
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = pr.\"id\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = pr.\"id\""));
+            sqlRequest.replaceAll("${proc-prop-join}", "pr.\"id\"");
         }
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" offop", "offop.\"id_offering\" = off.\"identifier\""));
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
+            sqlRequest.replaceAll("${phen-prop-join}",  "offop.\"phenomenon\"");
+            
         }
         if (foiPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" offf", "offf.\"id_offering\" = off.\"identifier\""));
-            joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "offf.\"foi\" = sfp.\"id_sampling_feature\""));
+            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "offf.\"foi\" = sfp.\"id_sampling_feature\""));
+            sqlRequest.replaceAll("${foi-prop-join}", "offf.\"foi\"");
         }
         sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);

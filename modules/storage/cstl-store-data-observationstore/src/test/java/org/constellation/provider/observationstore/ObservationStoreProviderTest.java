@@ -370,6 +370,27 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         result = omPr.getCount(query);
         assertEquals(result, 3L);
+        
+        
+        /*
+        * sub properties filter => procedure properties
+        * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:2')
+        */
+        query = new SamplingFeatureQuery();
+        BinaryComparisonOperator equal1 = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("BSS10972X0137"));
+        BinaryComparisonOperator equal2 =ff.equal(ff.property("procedure/properties/supervisor-code"), ff.literal("00ARGLELES"));
+        filter = ff.and(equal1, equal2);
+        query.setSelection(filter);
+        
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new LinkedHashSet<>();
+        expectedIds.add("station-002");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        result = omPr.getCount(query);
+        assertEquals(result, 1L);
 
     }
 
@@ -476,6 +497,20 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         query = new SamplingFeatureQuery();
         filter = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
+        query.setSelection(filter);
+        results = omPr.getFeatureOfInterest(query);
+
+        resultIds = getFOIIds(results);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        query = new SamplingFeatureQuery();
+        BinaryComparisonOperator equal1 = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
+        BinaryComparisonOperator equal2 =ff.equal(ff.property("properties/region"), ff.literal("Occitanie"));
+        filter = ff.and(equal1, equal2);
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
@@ -3905,8 +3940,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         long count = omPr.getCount(query);
         assertEquals(21L, count);  // one is in double because of the foi
 
-        // DO NOT WORK YET
-        
         // get all the sensor templates that have at an observed property with the property phen-category = biological and phen-category = organics
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         BinaryComparisonOperator equal1 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
@@ -3919,15 +3952,27 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         for (Observation p : results) {
             resultIds.add(p.getName().getCode());
         }
-        assertEquals(0, resultIds.size());
+        assertEquals(13, resultIds.size());
 
         expectedIds = new HashSet<>();
-       // expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");// this one is in double because of the foi
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
 
         Assert.assertEquals(expectedIds, resultIds);
 
         count = omPr.getCount(query);
-        assertEquals(0L, count);
+        assertEquals(14L, count);  // one is in double because of the foi
     }
 
     @Test
