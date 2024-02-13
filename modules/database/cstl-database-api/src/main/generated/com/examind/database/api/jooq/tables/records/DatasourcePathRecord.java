@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.datasource_path
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathRecord> implements Record6<Integer, String, String, Boolean, String, Integer> {
+public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathRecord> implements Record6<Integer, String, String, Boolean, String, Long> {
 
     private static final long serialVersionUID = 1L;
 
@@ -120,7 +120,7 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     /**
      * Setter for <code>admin.datasource_path.size</code>.
      */
-    public DatasourcePathRecord setSize(Integer value) {
+    public DatasourcePathRecord setSize(Long value) {
         set(5, value);
         return this;
     }
@@ -129,8 +129,8 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
      * Getter for <code>admin.datasource_path.size</code>.
      */
     @NotNull
-    public Integer getSize() {
-        return (Integer) get(5);
+    public Long getSize() {
+        return (Long) get(5);
     }
 
     // -------------------------------------------------------------------------
@@ -147,12 +147,12 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Integer, String, String, Boolean, String, Integer> fieldsRow() {
+    public Row6<Integer, String, String, Boolean, String, Long> fieldsRow() {
         return (Row6) super.fieldsRow();
     }
 
     @Override
-    public Row6<Integer, String, String, Boolean, String, Integer> valuesRow() {
+    public Row6<Integer, String, String, Boolean, String, Long> valuesRow() {
         return (Row6) super.valuesRow();
     }
 
@@ -182,7 +182,7 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     }
 
     @Override
-    public Field<Integer> field6() {
+    public Field<Long> field6() {
         return DatasourcePath.DATASOURCE_PATH.SIZE;
     }
 
@@ -212,7 +212,7 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     }
 
     @Override
-    public Integer component6() {
+    public Long component6() {
         return getSize();
     }
 
@@ -242,7 +242,7 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     }
 
     @Override
-    public Integer value6() {
+    public Long value6() {
         return getSize();
     }
 
@@ -277,13 +277,13 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     }
 
     @Override
-    public DatasourcePathRecord value6(Integer value) {
+    public DatasourcePathRecord value6(Long value) {
         setSize(value);
         return this;
     }
 
     @Override
-    public DatasourcePathRecord values(Integer value1, String value2, String value3, Boolean value4, String value5, Integer value6) {
+    public DatasourcePathRecord values(Integer value1, String value2, String value3, Boolean value4, String value5, Long value6) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -307,7 +307,7 @@ public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathReco
     /**
      * Create a detached, initialised DatasourcePathRecord
      */
-    public DatasourcePathRecord(Integer datasourceId, String path, String name, Boolean folder, String parentPath, Integer size) {
+    public DatasourcePathRecord(Integer datasourceId, String path, String name, Boolean folder, String parentPath, Long size) {
         super(DatasourcePath.DATASOURCE_PATH);
 
         setDatasourceId(datasourceId);

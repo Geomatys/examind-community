@@ -983,11 +983,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
                 fileName = "/";
             }
         }
-        int size = 0;
+        long size = 0;
         Map<String, String> types = new HashMap<>();
         if (!isDir) {
             try {
-                size = (int) Files.size(path);
+                size = Files.size(path);
+
                 if (storeId != null) {
                     types.putAll(DataProviders.probeContentForSpecificStore(path, storeId));
                 } else {

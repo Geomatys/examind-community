@@ -48,20 +48,20 @@ public class DatasourceRepositoryTest extends AbstractRepositoryTest {
          * datasource insertion
          */
         int did = datasourceRepository.create(TestSamples.newDataSource());
-        DataSourcePath dsPath = new DataSourcePath(did, "/", "fold", true, null, 0);
+        DataSourcePath dsPath = new DataSourcePath(did, "/", "fold", true, null, 0l);
         Map<String, String> types = new HashMap<>();
         datasourceRepository.addAnalyzedPath(dsPath, types);
 
-        dsPath = new DataSourcePath(did, "/file1", "file1", false, "/", 123);
+        dsPath = new DataSourcePath(did, "/file1", "file1", false, "/", 123l);
         types.put("store1", "type1");
         datasourceRepository.addAnalyzedPath(dsPath, types);
 
-        dsPath = new DataSourcePath(did, "/file2", "file2", false, "/", 123);
+        dsPath = new DataSourcePath(did, "/file2", "file2", false, "/", 123l);
         types.clear();
         types.put("store1", "type2");
         datasourceRepository.addAnalyzedPath(dsPath, types);
         
-        dsPath = new DataSourcePath(did, "/file3", "file3", false, "/", 123);
+        dsPath = new DataSourcePath(did, "/file3", "file3", false, "/", 123l);
         types.clear();
         types.put("store2", "type1");
         datasourceRepository.addAnalyzedPath(dsPath, types);

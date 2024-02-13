@@ -95,7 +95,7 @@ public class DatasourcePath extends TableImpl<DatasourcePathRecord> {
     /**
      * The column <code>admin.datasource_path.size</code>.
      */
-    public final TableField<DatasourcePathRecord, Integer> SIZE = createField(DSL.name("size"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<DatasourcePathRecord, Long> SIZE = createField(DSL.name("size"), SQLDataType.BIGINT.nullable(false), this, "");
 
     private DatasourcePath(Name alias, Table<DatasourcePathRecord> aliased) {
         this(alias, aliased, null);
@@ -208,7 +208,7 @@ public class DatasourcePath extends TableImpl<DatasourcePathRecord> {
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function6<? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function6<? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Long, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -216,7 +216,7 @@ public class DatasourcePath extends TableImpl<DatasourcePathRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Integer, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function6<? super Integer, ? super String, ? super String, ? super Boolean, ? super String, ? super Long, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }

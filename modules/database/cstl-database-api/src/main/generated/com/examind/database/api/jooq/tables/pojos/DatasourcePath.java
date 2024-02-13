@@ -37,7 +37,7 @@ public class DatasourcePath implements Serializable {
     private String name;
     private Boolean folder;
     private String parentPath;
-    private Integer size;
+    private Long size;
 
     public DatasourcePath() {}
 
@@ -56,7 +56,7 @@ public class DatasourcePath implements Serializable {
         String name,
         Boolean folder,
         String parentPath,
-        Integer size
+        Long size
     ) {
         this.datasourceId = datasourceId;
         this.path = path;
@@ -149,14 +149,14 @@ public class DatasourcePath implements Serializable {
      * Getter for <code>admin.datasource_path.size</code>.
      */
     @NotNull
-    public Integer getSize() {
+    public Long getSize() {
         return this.size;
     }
 
     /**
      * Setter for <code>admin.datasource_path.size</code>.
      */
-    public DatasourcePath setSize(Integer size) {
+    public DatasourcePath setSize(Long size) {
         this.size = size;
         return this;
     }

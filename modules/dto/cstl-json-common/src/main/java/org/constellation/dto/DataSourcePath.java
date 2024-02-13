@@ -29,13 +29,13 @@ public class DataSourcePath {
     private String name;
     private Boolean folder;
     private String parentPath;
-    private Integer size;
+    private Long size;
 
     public DataSourcePath() {
     }
 
     public DataSourcePath(Integer datasourceId, String path, String name,
-            Boolean folder, String parentPath, Integer size) {
+            Boolean folder, String parentPath, Long size) {
         this.datasourceId = datasourceId;
         this.path = path;
         this.name = name;
@@ -117,14 +117,14 @@ public class DataSourcePath {
     /**
      * @return the size
      */
-    public Integer getSize() {
+    public Long getSize() {
         return size;
     }
 
     /**
      * @param size the size to set
      */
-    public void setSize(Integer size) {
+    public void setSize(Long size) {
         this.size = size;
     }
 }

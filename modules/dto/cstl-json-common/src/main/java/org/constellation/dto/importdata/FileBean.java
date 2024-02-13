@@ -45,7 +45,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
 
     private Long lastModified;
 
-    private int size = 0;
+    private long size = 0;
 
     private List<StoreFormat> types;
 
@@ -56,7 +56,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
     }
 
     public FileBean(final String name, final Boolean folder, final String path,
-            final String parentPath, final int size, final Map<String, String> types) {
+            final String parentPath, final long size, final Map<String, String> types) {
         this.name = name;
         this.folder = folder;
         this.path = path;
@@ -70,7 +70,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
     }
 
     public FileBean(final String name, final Boolean folder, final String path,
-            final String parentPath, final int size, final List<StoreFormat> types) {
+            final String parentPath, final long size, final List<StoreFormat> types) {
         this.name = name;
         this.folder = folder;
         this.path = path;
@@ -80,7 +80,7 @@ public class FileBean implements Serializable,Comparable<FileBean> {
     }
 
     public FileBean(final String name, final Boolean folder, final String path,
-            final String parentPath, final int size, final Long lastModified) {
+            final String parentPath, final long size, final Long lastModified) {
         this.name = name;
         this.folder = folder;
         this.path = path;
@@ -140,11 +140,11 @@ public class FileBean implements Serializable,Comparable<FileBean> {
         return path.compareTo(o.getPath());
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 
