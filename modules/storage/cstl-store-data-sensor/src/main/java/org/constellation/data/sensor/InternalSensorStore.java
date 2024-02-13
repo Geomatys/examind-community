@@ -18,23 +18,17 @@
  */
 package org.constellation.data.sensor;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.metadata.ModifiableMetadata;
-import org.apache.sis.metadata.iso.DefaultIdentifier;
-import org.apache.sis.metadata.iso.DefaultMetadata;
-import org.apache.sis.metadata.iso.citation.DefaultCitation;
-import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
-import org.apache.sis.referencing.NamedIdentifier;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.geotoolkit.sensor.AbstractSensorStore;
 import org.constellation.sos.io.internal.InternalSensorReader;
 import org.constellation.sos.io.internal.InternalSensorWriter;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterValueGroup;
@@ -65,16 +59,7 @@ public class InternalSensorStore extends AbstractSensorStore implements Resource
 
     @Override
     public Metadata getMetadata() throws DataStoreException {
-        final String name = "internal-sensor";
-        final DefaultMetadata metadata = new DefaultMetadata();
-        final DefaultDataIdentification identification = new DefaultDataIdentification();
-        final NamedIdentifier identifier = new NamedIdentifier(new DefaultIdentifier(name));
-        final DefaultCitation citation = new DefaultCitation(name);
-        citation.setIdentifiers(Collections.singleton(identifier));
-        identification.setCitation(citation);
-        metadata.setIdentificationInfo(Collections.singleton(identification));
-        metadata.transitionTo(ModifiableMetadata.State.FINAL);
-        return metadata;
+        return OMUtils.buildMetadata(InternalSensorStoreFactory.NAME);
     }
 
     @Override

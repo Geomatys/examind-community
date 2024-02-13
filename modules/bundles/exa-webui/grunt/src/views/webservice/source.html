@@ -386,7 +386,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="form-group">
+                        <!-- not available for STS (sensorthings) for now -->
+                        <div class="form-group" ng-if="wsChooseCtrl.type === 'sos'">
                             <div class="checkbox inline">
                                 <input type="checkbox"
                                        ng-model="wsChooseCtrl.guiConfig.transactional"/>
@@ -400,7 +401,6 @@
                                 <span translate="service.config.source.readOnly">Read only</span>
                             </div>
                         </div>
-                        <!-- for now we have no reason to allow to set this mode
                         <div class="form-group">
                             <div class="checkbox inline">
                                 <input type="checkbox"
@@ -408,8 +408,7 @@
                                 <span translate="service.config.source.directprovider">Direct provider</span>
                             </div>
                         </div>
-                        -->
-                        <div class="form-group">
+                        <div class="form-group" ng-if="!wsChooseCtrl.guiConfig.directProvider">
                             <div class="checkbox inline">
                                 <input type="checkbox"
                                        ng-model="wsChooseCtrl.guiConfig.generateSensor"/>

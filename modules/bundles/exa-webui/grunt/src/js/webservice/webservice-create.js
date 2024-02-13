@@ -377,13 +377,15 @@ angular.module('cstl-webservice-create', [
                     };
             }
             Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData, body).then(function() {
-                 createSensorProvider();
+                 createSensorProvider(body);
             }, function() {
                 Growl('error','Error','Unable to create OM2 provider');
             });
         }
         
-        function createSensorProvider() {
+        function createSensorProvider(omProviderBody) {
+            var sensorProviderId = self.id + '-' + self.type +'-sensor';
+            // SML file system mode
             if (self.guiConfig.enableDirectory) {
                 var sensorProviderJson = {
                     type: "sensor-store",
@@ -392,7 +394,6 @@ angular.module('cstl-webservice-create', [
                         data_directory: self.guiConfig.dataDirectory
                     }
                 };
-                var sensorProviderId = self.id + '-' + self.type +'-sensor';
                 Examind.providers.create(sensorProviderId, true, sensorProviderJson).then(
                     function() {
                         linkProviders(sensorProviderId, true);
@@ -400,6 +401,20 @@ angular.module('cstl-webservice-create', [
                         Growl('error','Error','Unable to create SML provider');
                     }
                 );
+        
+            // direct provider mode 
+            } else if (self.guiConfig.directProvider) {
+                omProviderBody.type = "sensor-store";
+                omProviderBody.subType = "om2sensor";
+                Examind.providers.create(sensorProviderId, false, omProviderBody).then(
+                    function() {
+                        linkProviders(sensorProviderId, true);
+                    }, function() {
+                        Growl('error','Error','Unable to create SML provider');
+                    }
+                );
+            
+            // default internal mode
             } else {
                 linkProviders('default-internal-sensor', false);
             }
@@ -413,13 +428,14 @@ angular.module('cstl-webservice-create', [
             });
             Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId,  self.id + '-' + self.type + '-om', true).then(
             function() {
-                 if (self.guiConfig.generateSensor) {
+                // do not generate sensor in direct provider mode
+                if (self.guiConfig.generateSensor && !self.guiConfig.directProvider) {
                     Examind.sensorServices.generateSensorFromOMProvider(webserviceFactory.serviceId).then(
                     function() {},
                     function() {
                         Growl('error','Error','Unable to generate sensors');
                     });
-                 }
+                }
             },
             function() {
                 Growl('error','Error','Unable to link O&M provider');

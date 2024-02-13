@@ -248,6 +248,7 @@ public class TestEnvironment {
         // Sensor Providers
         public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sos/sensors", TestEnvironment::createSensorFileProvider);
         public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider);
+        public static final TestResource SENSOR_OM2_DB = new TestResource(null, TestEnvironment::createSensorOM2Provider, TestEnvironment::createOM2DatabaseSensorStore);
 
         // metadata providers
         public static final TestResource METADATA_FILE = new TestResource(null, TestEnvironment::createMetadataFileProvider);
@@ -908,6 +909,30 @@ public class TestEnvironment {
             throw new ConstellationRuntimeException(ex);
         }
     }
+    
+    private static DataStore createOM2DatabaseSensorStore(Path p) {
+        try {
+            final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
+
+            final DataProviderFactory sensorFactory = DataProviders.getFactory("sensor-store");
+            final ParameterValueGroup source    = sensorFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) sensorFactory.getStoreDescriptor(), source);
+
+            final ParameterValueGroup config = choice.addGroup("om2sensor");
+            config.parameter("sgbdtype").setValue("derby");
+            config.parameter("derbyurl").setValue(url);
+            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+
+            return sensorFactory.createProvider(providerIdentifier, source).getMainStore();
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
 
     private static Integer createOMGenericDBProvider(IProviderBusiness providerBusiness, Path p) {
         try {
@@ -1033,6 +1058,33 @@ public class TestEnvironment {
             final ParameterValueGroup config = choice.addGroup("cstlsensor");
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", sourcef);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+    
+    private static Integer createSensorOM2Provider(IProviderBusiness providerBusiness, Path p) {
+        boolean withData = false; // TODO
+        boolean ddb = false; // TODO
+        try {
+            final String providerIdentifier = "omSensorSrc-" + UUID.randomUUID().toString();
+            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb);
+
+            final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
+            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
+
+            final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
+            config.parameter("sgbdtype").setValue(ddb ? "duckdb" : "derby");
+            config.parameter("derbyurl").setValue(url);
+            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
+            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
+            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
+            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
+            config.parameter("max-field-by-table").setValue(10);
+
+            return  providerBusiness.storeProvider(providerIdentifier, ProviderType.SENSOR, "sensor-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }

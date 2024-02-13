@@ -1,8 +1,8 @@
 /*
- *    Constellation - An open source and standard compliant SDI
- *    http://www.constellation-sdi.org
+ *    Examind community - An open source and standard compliant SDI
+ *    https://community.examind.com/
  *
- * Copyright 2015 Geomatys.
+ * Copyright 2024 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.constellation.data.sensor;
 
 import java.net.URI;
-import java.nio.file.Path;
 import org.apache.sis.internal.storage.Capability;
 import org.apache.sis.internal.storage.StoreMetadata;
 import org.apache.sis.parameter.ParameterBuilder;
@@ -28,7 +27,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
-import org.geotoolkit.observation.Bundle;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.createFixedIdentifier;
 import org.geotoolkit.storage.ResourceType;
 import org.geotoolkit.storage.StoreMetadataExt;
 import org.opengis.parameter.ParameterDescriptor;
@@ -49,16 +48,10 @@ public class FileSystemSensorStoreFactory extends DataStoreProvider {
      /** factory identification **/
     public static final String NAME = "filesensor";
 
-    public static final ParameterDescriptor<String> IDENTIFIER  = new ParameterBuilder()
-                    .addName("identifier")
-                    .addName(Bundle.formatInternational(Bundle.Keys.paramIdentifierAlias))
-                    .setRemarks(Bundle.formatInternational(Bundle.Keys.paramIdentifierRemarks))
-                    .setRequired(true)
-                    .createEnumerated(String.class, new String[]{NAME}, NAME);
+    public static final ParameterDescriptor<String> IDENTIFIER  = createFixedIdentifier(NAME);
 
     public static final ParameterDescriptor<URI> DATA_DIRECTORY_DESCRIPTOR = new ParameterBuilder().addName("data_directory")
             .setRemarks("Directory where are stored the sensorML files").setRequired(true).create(URI.class, null);
-
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
             new ParameterBuilder().addName(NAME).addName("FileSensorParameters").createGroup(IDENTIFIER,DATA_DIRECTORY_DESCRIPTOR);

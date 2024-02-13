@@ -18,20 +18,13 @@
  */
 package org.constellation.provider.sensorstore;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
-import org.apache.sis.parameter.ParameterBuilder;
-import org.apache.sis.storage.DataStoreProvider;
 import org.constellation.provider.AbstractDataProviderFactory;
 import org.constellation.provider.DataProvider;
-import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
 import static org.constellation.provider.ProviderParameters.createDescriptor;
-import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.util.GenericName;
 
 /**
  *
