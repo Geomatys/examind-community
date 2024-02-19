@@ -47,6 +47,7 @@ services :
          CSTL_TOKEN_LIFE: 30
          EXAMIND_ENABLE_INTERNAL_SIS_STORE: "true"
          EXA_CACHE_DATA_INFO: "false"
+         AWS_REGION: "eu-west-1"
        entrypoint: catalina.sh jpda run
 volumes:
   exa-db-volume:

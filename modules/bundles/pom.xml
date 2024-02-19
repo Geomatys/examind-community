@@ -21,6 +21,7 @@
         <module>exa-webui</module>
         <module>exa-services</module>
         <module>exa-bundle</module>
+        <module>exa-s3-bundle</module>
     </modules>
 
 </project>

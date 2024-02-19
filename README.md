@@ -62,6 +62,18 @@ mvn clean install -Dtest.database.url="postgres://<user>:<password>@<host>:<port
 ```
 example: `postgres://cstl:admin@localhost:5432/cstl-test`
 
+##### S3 storage system
+
+If you want to use S3 storage system client in the project, run this command before all others :
+```shell
+mvn install -pl :exa-s3-bundle
+```
+
+You must also set an environement variable with the AWS region where the buckets you want to use are located.
+Currently only one region can be available at the same time. This will be fixed in the future.
+
+**aws.region** : `eu-central-1`
+
 ### Deploy using Docker
 
 #### Build Docker image
