@@ -304,7 +304,7 @@ public enum ServiceDef {
 
     public enum Profile {
 
-        NONE("None", new Version(""), Organization.NONE),
+        NONE("None", null, Organization.NONE),
         CSW_ISO("Catalog Services for the Web, ISO profile", new Version("1.0.0"), Organization.OGC),
         WMS_SLD("Styled Layer Descriptor profile of the Web Map Service",
         new Version("1.1.0"), Organization.OGC);
