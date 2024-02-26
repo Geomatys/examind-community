@@ -158,7 +158,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                     String id = obsPropIds.get(i);
                     String name = (obsPropNames.size() > i) ? obsPropNames.get(i) :id;
                     String uom = (uomIds.size() > i) ? uomIds.get(i) : null;
-                    fixedObsProperties.add(new ObservedProperty(id, name, uom));
+                    fixedObsProperties.add(createFixedObservedProperty(id, name, uom));
                     measureFields.add(id);
                 }
             }
@@ -320,6 +320,10 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
         }
     }
 
+    // for overriding store
+    protected ObservedProperty createFixedObservedProperty(String id, String name, String uom) {
+        return new ObservedProperty(id, name, uom);
+    }
 
     @Override
     protected Set<String> extractProcedureIds() throws DataStoreException {
