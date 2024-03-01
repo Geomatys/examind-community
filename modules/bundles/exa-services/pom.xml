@@ -381,6 +381,9 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <warName>exa-services</warName>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
                     <webResources>
                         <resource>
                             <filtering>true</filtering>
