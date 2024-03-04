@@ -231,4 +231,21 @@ public class ObservationTestUtils {
         mapper.writeValue(System.out, obs);
 
     }
+    
+    public static <T> T castToModel(Object o, Class<T> modelClass) {
+        if (o == null) return null;
+        if (modelClass.isInstance(o)) return (T) o;
+        Assert.fail("Object is not a OM model instance: " + o);
+        return null; // unreacheable
+    }
+    
+    public static org.opengis.observation.Observation getObservationById(String obsId, List<org.opengis.observation.Observation> observations) {
+        for (org.opengis.observation.Observation obs : observations) {
+            if (obsId.equals(obs.getName().getCode())) {
+                return obs;
+            }
+        }
+        Assert.fail(obsId + " observation not found in dataset");
+        return null; // unreachable
+    }
 }

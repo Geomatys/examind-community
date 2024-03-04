@@ -138,13 +138,9 @@ INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','aggregateP
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','depth');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-2','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-3','temperature');
 
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','depth');
-INSERT INTO "om"."offering_observed_properties" VALUES ('offering-4','temperature');
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','aggregatePhenomenon');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-5','depth');

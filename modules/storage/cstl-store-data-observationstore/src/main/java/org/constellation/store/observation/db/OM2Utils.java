@@ -28,8 +28,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
@@ -38,7 +36,6 @@ import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
@@ -142,30 +139,6 @@ public class OM2Utils {
         return false;
     }
 
-    public static boolean isEqualsOrSubset(Phenomenon candidate, Phenomenon phenomenon) {
-        if (Objects.equals(candidate, phenomenon)) {
-            return true;
-        } else if (phenomenon instanceof CompositePhenomenon composite) {
-            if (candidate instanceof CompositePhenomenon compositeCdt) {
-                return OMUtils.isACompositeSubSet(compositeCdt, composite);
-            } else if (candidate != null) {
-                return OMUtils.hasComponent(candidate.getId(), composite);
-            }
-        }
-        return false;
-    }
-
-    public static boolean isPartOf(Phenomenon candidate, Phenomenon phenomenon) {
-        if (candidate instanceof CompositePhenomenon compositeCdt) {
-            if (phenomenon instanceof CompositePhenomenon composite) {
-                return OMUtils.isACompositeSubSet(composite, compositeCdt);
-            } else if (phenomenon != null) {
-                return OMUtils.hasComponent(phenomenon.getId(), compositeCdt);
-            }
-        }
-        return false;
-    }
-
     public static boolean isTimeIntersect(RelativePosition pos) {
         return pos.equals(RelativePosition.BEGUN_BY) ||
               pos.equals(RelativePosition.ENDED_BY) ||
@@ -196,7 +169,7 @@ public class OM2Utils {
      * 
      * @throws IllegalArgumentException if the observation result has no field or is of an unknown type.
      */
-    public static List<Field> getMeasureFields(Observation obs) {
+    public static List<Field> getMeasureFields(org.opengis.observation.Observation obs) {
         final List<Field> fields;
         if (obs.getResult() instanceof ComplexResult cr && !cr.getFields().isEmpty()) {
             // remove main field at index O.
@@ -208,6 +181,19 @@ public class OM2Utils {
             throw new IllegalArgumentException("Unxexpected result type in observation");
         }
         return fields;
+    }
+    
+    public static boolean containField(Field field, Phenomenon phen) {
+        if (phen instanceof CompositePhenomenon composite) {
+            for (Phenomenon component : composite.getComponent()) {
+                if (component.getId().equals(field.name)) {
+                    return true;
+                }
+            }
+        } else if (phen != null) {
+            return phen.getId().equals(field.name);
+        }
+        return false;
     }
 
     public static String getTimeScalePeriod(long millisecond) throws SQLException {
@@ -317,57 +303,6 @@ public class OM2Utils {
         } catch (SQLException ex) {
             LOGGER.log(Level.WARNING, "SQLException while executing the query: {0}", request.toString());
             throw ex;
-        }
-    }
-    
-    /**
-     *  TODO fix on geotk
-     */
-    public static Phenomenon getPhenomenonModels(String name, final List<? extends Field> phenomenons, final String phenomenonIdBase, final Set<Phenomenon> existingPhens) {
-        if (phenomenons.size() == 1) {
-            Field single = phenomenons.get(0);
-            // look for an existing phenomenon
-            for (Phenomenon exisiting : existingPhens) {
-                if (!(exisiting instanceof CompositePhenomenon) && exisiting.getId().equals(single.name)) {
-                    return exisiting;
-                }
-            }
-            // build a new single phenomenon
-            return new Phenomenon(single.name, single.label, single.name, single.description, null);
-        } else {
-            
-            final List<Phenomenon> types = new ArrayList<>();
-            for (Field phen : phenomenons) {
-                // try to use existing components because if not, previous properties will be lost by overwritting
-                boolean found = false;
-                for (Phenomenon exisiting : existingPhens) {
-                    if (!(exisiting instanceof CompositePhenomenon) && exisiting.getId().equals(phen.name)) {
-                        types.add(exisiting);
-                        found = true;
-                        break;
-                    }
-                }
-                // build a new phenomenon
-                if (!found)  {
-                    types.add(new Phenomenon(phen.name, phen.label, phen.name, phen.description, null));
-                }
-            }
-
-            // look for an already existing (composite) phenomenon to use instead of creating a new one
-            for (Phenomenon existingPhen : existingPhens) {
-                if (existingPhen instanceof CompositePhenomenon cphen) {
-                    if (Objects.equals(cphen.getComponent(), types)) {
-                        return cphen;
-                    }
-                }
-            }
-
-            final String compositeId = "composite" + UUID.randomUUID().toString();
-            final String definition = phenomenonIdBase + compositeId;
-            if (name == null) {
-                name = definition;
-            }
-            return new CompositePhenomenon(compositeId, name, definition, null, null, types);
         }
     }
 }

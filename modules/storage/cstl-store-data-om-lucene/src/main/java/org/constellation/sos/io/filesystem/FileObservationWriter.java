@@ -157,7 +157,7 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
     public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
-
+    
     /**
      * {@inheritDoc}
      */

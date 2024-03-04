@@ -790,9 +790,7 @@
           <swes:procedure>urn:ogc:object:sensor:GEOM:3</swes:procedure>
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
-          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
           <swes:observableProperty>depth</swes:observableProperty>
-          <swes:observableProperty>temperature</swes:observableProperty>
           <swes:relatedFeature>
             <swes:FeatureRelationship>
               <swes:target xlink:href="station-001"/>
@@ -816,9 +814,7 @@
           <swes:procedure>urn:ogc:object:sensor:GEOM:4</swes:procedure>
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.0</swes:procedureDescriptionFormat>
           <swes:procedureDescriptionFormat>http://www.opengis.net/sensorML/1.0.1</swes:procedureDescriptionFormat>
-          <swes:observableProperty>aggregatePhenomenon</swes:observableProperty>
           <swes:observableProperty>depth</swes:observableProperty>
-          <swes:observableProperty>temperature</swes:observableProperty>
           <swes:relatedFeature>
             <swes:FeatureRelationship>
               <swes:target xlink:href="station-001"/>

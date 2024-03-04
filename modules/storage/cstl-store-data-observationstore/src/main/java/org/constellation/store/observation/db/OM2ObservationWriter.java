@@ -61,7 +61,7 @@ import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.OMUtils;
-import static org.geotoolkit.observation.OMUtils.OBSERVATION_QNAME;
+import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -400,7 +400,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
                     List<Field> readFields = readFields(procedureID, true, c, new ArrayList<>(), new ArrayList<>());
-                    Phenomenon replacingPhen = OM2Utils.getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
+                    Phenomenon replacingPhen = getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
                     updatePhen.setString(1, phenRef.getId());
@@ -937,6 +937,15 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             case TIME     -> stmt.setTimestamp(index, (Timestamp) result.getValue());
         }
     }
+    
+    private String createOfferingId(final String procedureID) {
+        // cleanup offering id because of its XML ype (NCName)
+        if (procedureID.startsWith(sensorIdBase)) {
+            return "offering-" + procedureID.substring(sensorIdBase.length()).replace(':', '-');
+        } else {
+            return "offering-" + procedureID.replace(':', '-');
+        }
+    }
 
     private void updateOrCreateOffering(final String procedureID, final TemporalObject samplingTime, final Phenomenon pheno, final String foiID, final Connection c) throws SQLException {
         final String offeringID;
@@ -945,12 +954,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             try(final ResultSet rs = stmtExist.executeQuery()) {
                 // INSERT
                 if (!rs.next()) {
-                    // cleanup offering id because of its XML ype (NCName)
-                    if (procedureID.startsWith(sensorIdBase)) {
-                        offeringID  = "offering-" + procedureID.substring(sensorIdBase.length()).replace(':', '-');
-                    } else {
-                        offeringID  = "offering-" + procedureID.replace(':', '-');
-                    }
+                    offeringID  = createOfferingId(procedureID);
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offerings\" VALUES(?,?,?,?,?,?)")) {//NOSONAR
                         stmtInsert.setString(1, offeringID);
                         stmtInsert.setString(2, "Offering for procedure:" + procedureID);
@@ -1115,6 +1119,55 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
         }
     }
+    
+    private void updatePhenomenonInOffering(String procedureID, Connection c) throws SQLException, DataStoreException {
+        final String offeringID;
+        try (final PreparedStatement stmtExist = c.prepareStatement("SELECT * FROM  \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?")) {//NOSONAR
+            stmtExist.setString(1, procedureID);
+            try (final ResultSet rs = stmtExist.executeQuery()) {
+                if (rs.next()) {
+                    offeringID = rs.getString(1);
+                } else {
+                    LOGGER.log(Level.WARNING, "try to update a non existing offering for procedure:{0}", procedureID);
+                    return;
+                }
+            }
+        }
+        // cleanup before rewriting offering phenomenons
+        try (final PreparedStatement remove = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\" WHERE \"id_offering\"=?")) {//NOSONAR
+            remove.setString(1, offeringID);
+            remove.executeUpdate();
+        }
+        final Set<String> phenIds = new HashSet<>();
+        try (final PreparedStatement phenList = c.prepareStatement("SELECT DISTINCT \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {
+            phenList.setString(1, procedureID);
+            try (final ResultSet rs = phenList.executeQuery()) {
+                while (rs.next()) {
+                    final String phenId = rs.getString(1);
+                    Phenomenon phen = getPhenomenon(phenId, c);
+                    if (phen instanceof CompositePhenomenon composite) {
+                        for (Phenomenon cp : composite.getComponent()) {
+                            phenIds.add(cp.getId());
+                        }
+                    } else if (phen != null) {
+                         phenIds.add(phenId);
+                    } else {
+                        LOGGER.log(Level.WARNING, "null phenomenon for ID:{0}", phenId);
+                    }
+                }
+            }
+        }
+        // insert all the used phenomenons
+        try (final PreparedStatement insert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
+            final PreparedSQLBatch stmtBatch = new PreparedSQLBatch(insert, dialect.supportBatch);
+            for (String phenoID : phenIds) {
+                stmtBatch.setString(1, offeringID);
+                stmtBatch.setString(2, phenoID);
+                stmtBatch.addBatch();
+            }
+            stmtBatch.executeBatch();
+        }
+    }
 
     /**
      * {@inheritDoc}
@@ -1235,6 +1288,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     /**
      * {@inheritDoc}
      */
+    /**
+     * {@inheritDoc}
+     */
     private int getNewObservationId(Connection c) throws DataStoreException {
         try(final Statement stmt       = c.createStatement();
             final ResultSet rs         = stmt.executeQuery("SELECT max(\"id\") FROM \"" + schemaPrefix + "om\".\"observations\"")) {//NOSONAR
@@ -1327,7 +1383,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     if (fullRemoval) {
 
                         // case 1.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
-                        if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
+                        if (isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
                             removeObservation(cdt.id, cdt.pi, c);
                             
                             // remove procedure if needed
@@ -1360,7 +1416,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                         // case 2.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
                         // so we remove all the measure line that match the main field
-                        if (OM2Utils.isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
+                        if (isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
                             OM2MeasureRemover remover = new OM2MeasureRemover(cdt, schemaPrefix, dialect);
                             remover.removeMeasures(c, obs);
                             boolean rmo = removeObservationIfEmpty(cdt, c);
@@ -1557,7 +1613,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             stmtObs.setString(1, pi.procedureId);
             stmtObs.executeUpdate();
         }
-
+        cleanupUnusedEntities(c);
+    }
+    
+    private void cleanupUnusedEntities(Connection c) throws SQLException {
         final String cleanOPQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\""
                                   + " WHERE  \"id\" NOT IN (SELECT DISTINCT \"observed_property\" FROM \"" + schemaPrefix + "om\".\"observations\") "
                                   + " AND    \"id\" NOT IN (SELECT DISTINCT \"phenomenon\"        FROM \"" + schemaPrefix + "om\".\"offering_observed_properties\")"
@@ -2148,10 +2207,94 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         insertFieldStmt.setInt(8, field.tableNumber);
         insertFieldStmt.executeUpdate();
     }
+    
+    private Set<ObservationInfos> getIntersectingObservation(Phenomenon phen, Connection c) throws SQLException, DataStoreException {
+        FilterSQLRequest sql = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"time_begin\", \"time_end\", \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
+       
+        // phenomenon match
+        Set<String> intersectingPhen = getIntersectingPhenomenon(phen, c);
+        if (intersectingPhen.isEmpty()) {
+            return new HashSet<>();
+        }
+        sql.append("( o.\"observed_property\" IN ( ").appendValues(intersectingPhen).append(") )");
+
+        Set<ObservationInfos> results = new HashSet<>();
+        try (final SQLResult result = sql.execute(c)) {
+            while (result.next()) {
+                TemporalGeometricPrimitive time = null; // OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
+                Phenomenon phenomenon = getPhenomenon(result.getString("observed_property"), c);
+                final int obsId = result.getInt("id");
+                final String identifier = result.getString("identifier");
+                final ProcedureInfo pi = getPIDFromOID(obsId, c).orElseThrow(IllegalStateException::new);
+                int nbMeasure = 0; // getNbMeasureForObservation(pi.pid, obsId, c);
+                results.add(new ObservationInfos(obsId, identifier, time, phenomenon, nbMeasure, pi));
+            }
+        }
+        return results;
+    }
 
     @Override
     public void removePhenomenon(String phenomenonID) throws DataStoreException {
-        throw new UnsupportedOperationException("TODO.");
+        try (final Connection c = source.getConnection()) {
+            Phenomenon phenToRemove = getPhenomenon(phenomenonID, c);
+            if (phenToRemove != null) {
+                Set<ProcedureInfo> procedures = new HashSet<>();
+                Set<ObservationInfos> candidates = getIntersectingObservation(phenToRemove, c);
+                for (ObservationInfos cdt : candidates) {
+                    procedures.add(cdt.pi);
+                    
+                    // 1. direct phenomenon / subset observations => full removal
+                    if (isEqualsOrSubset(cdt.phenomenon, phenToRemove)) {
+                        removeObservation(cdt.identifier, cdt.pi, c);
+                        LOGGER.info("removed:" + cdt.identifier);
+                        
+                    // 2. main field is contained in the phenomenon to remove => full removal
+                    } else if (containField(cdt.pi.mainField, phenToRemove)) {
+                        removeObservation(cdt.identifier, cdt.pi, c);
+                        LOGGER.info("Main field removed:" + cdt.identifier);
+                        
+                     // 3. At least one component of the observation phenomenon is involved => update observed property
+                     } else if (isPartOf(cdt.phenomenon, phenToRemove)) {
+                        final List<Field> fields                 = getPhenomenonsFields(phenToRemove);
+                        final List<InsertDbField> fieldsToRemove  = completeDbField(cdt.pi.procedureId, fields, c);
+                        OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
+                        remover.removeMeasures(c);
+                        removeEmptyMeasures(cdt, c);
+
+                        boolean rmo = removeObservationIfEmpty(cdt, c);
+                        if (!rmo) {
+                            updateObservationTemporalBounds(cdt, c);
+                            updateObservationPhenomenon(cdt, fieldsToRemove, c);
+                        } else {
+                            LOGGER.info("removed:" + cdt.identifier);
+                        }
+                    }
+                }
+                for (ProcedureInfo pi : procedures) {
+                    boolean removed = removeProcedureIfEmpty(pi, c);
+                    if (!removed) {
+                        // update offering phenomenons
+                        updatePhenomenonInOffering(pi.procedureId, c);
+                        // remove the field(s)
+                        final List<Field> fields = getPhenomenonsFields(phenToRemove);
+                        try(PreparedStatement rmFieldStmt = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\" = ? AND (\"field_name\"= ? OR \"parent\" = ?)")) {
+                            final PreparedSQLBatch stmtBatch = new PreparedSQLBatch(rmFieldStmt, dialect.supportBatch);
+                            for (Field field : fields) {
+                                stmtBatch.setString(1, pi.procedureId);
+                                stmtBatch.setString(2, field.name);
+                                stmtBatch.setString(3, field.name);
+                                stmtBatch.addBatch();
+                            }
+                            stmtBatch.executeBatch();
+                        }
+                    }
+                }
+                
+                cleanupUnusedEntities(c);
+            }
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while removing phenomenon.", ex);
+        }
     }
 
     /**

@@ -755,16 +755,7 @@
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:3"/>
-        <sos:observedProperty>
-          <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
-            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
-            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
-            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
-          </ns31:CompositePhenomenon>
-        </sos:observedProperty>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:featureOfInterest xlink:href="station-001"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>
@@ -784,16 +775,7 @@
           </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:4"/>
-        <sos:observedProperty>
-          <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
-            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
-            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
-            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
-          </ns31:CompositePhenomenon>
-        </sos:observedProperty>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
-        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:featureOfInterest xlink:href="station-001"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>

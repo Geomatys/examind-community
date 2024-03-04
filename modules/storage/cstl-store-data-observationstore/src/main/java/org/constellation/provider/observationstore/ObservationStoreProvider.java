@@ -395,6 +395,15 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
+    
+    @Override
+    public void removePhenomenon(String phenomenonID) throws ConstellationStoreException {
+        try {
+            ((ObservationStore)getMainStore()).getWriter().removePhenomenon(phenomenonID);
+        } catch (DataStoreException ex) {
+            throw new ConstellationStoreException("Failed to delete a phenomenon", ex);
+        }
+    }
 
     @Override
     public List<String> removeDataset(ObservationDataset dataset) throws ConstellationStoreException {
@@ -419,7 +428,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
         try {
             ((ObservationStore)getMainStore()).getWriter().updateProcedure((Procedure) procedure);
         } catch (DataStoreException ex) {
-             throw new ConstellationStoreException(ex.getMessage(), ex);
+             throw new ConstellationStoreException("Failed to update a procedure", ex);
         }
     }
 

@@ -78,6 +78,8 @@ public interface ObservationProvider extends DataProvider {
     void removeProcedure(String procedureID) throws ConstellationStoreException;
 
     void removeObservation(final String observationID) throws ConstellationStoreException;
+    
+    void removePhenomenon(String phenomenonID) throws ConstellationStoreException;
 
     void writePhenomenons(final List<Phenomenon> phens) throws ConstellationStoreException;
 
