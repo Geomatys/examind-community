@@ -20,7 +20,7 @@ package org.constellation.metadata.harvest;
 
 import java.io.IOException;
 import org.apache.sis.xml.MarshallerPool;
-import org.apache.sis.xml.util.LegacyNamespaces;
+import org.apache.sis.xml.privy.LegacyNamespaces;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;

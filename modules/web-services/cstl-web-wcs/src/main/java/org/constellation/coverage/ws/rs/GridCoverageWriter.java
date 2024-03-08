@@ -43,7 +43,6 @@ import org.apache.sis.image.Interpolation;
 import org.constellation.util.CRSUtilities;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
-import org.geotoolkit.internal.coverage.CoverageUtilities;
 import org.geotoolkit.nio.IOUtilities;
 import org.opengis.referencing.datum.PixelInCell;
 import org.springframework.http.HttpInputMessage;
@@ -149,12 +148,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
         final ImageWriter iowriter = ImageIO.getImageWritersByFormatName("geotiff").next();
 
         // TIFF writer do no support writing in output stream currently, we have to write in a file before
-        String name = CoverageUtilities.getName(coverage).toString();
-        if (name.length() < 3) {
-            //causes a java.lang.IllegalArgumentException: Prefix string too short if name is empty
-            name += "data";
-        }
-        final File f = File.createTempFile(name, ".tiff");
+        final File f = File.createTempFile("data", ".tiff");
         iowriter.setOutput(f);
         TiffImageWriteParam param = new TiffImageWriteParam(iowriter);
         if (entry.compression != null && !entry.compression.equals("NONE")) {

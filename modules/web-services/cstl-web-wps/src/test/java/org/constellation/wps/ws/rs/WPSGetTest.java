@@ -25,7 +25,7 @@ import java.util.Map;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.IdentifiedObjects;
-import org.apache.sis.util.internal.DefinitionURI;
+import org.apache.sis.util.privy.DefinitionURI;
 import static org.constellation.wps.ws.rs.WPSService.extractDataFromKvpString;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.ows.xml.BoundingBox;

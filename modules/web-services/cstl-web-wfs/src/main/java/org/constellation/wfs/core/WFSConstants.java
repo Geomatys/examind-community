@@ -61,7 +61,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.apache.sis.feature.internal.AttributeConvention;
+import org.apache.sis.feature.privy.AttributeConvention;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.util.Version;

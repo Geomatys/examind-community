@@ -31,7 +31,7 @@ import org.apache.sis.image.Interpolation;
 import org.apache.sis.image.PixelIterator;
 import org.apache.sis.image.TransferType;
 import org.apache.sis.geometry.wrapper.jts.Factory;
-import org.apache.sis.referencing.util.WraparoundApplicator;
+import org.apache.sis.referencing.privy.WraparoundApplicator;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;

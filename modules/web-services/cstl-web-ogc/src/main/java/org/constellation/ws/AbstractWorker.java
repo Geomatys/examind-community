@@ -36,7 +36,7 @@ import javax.xml.XMLConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.apache.sis.util.internal.UnmodifiableArrayList;
+import org.apache.sis.util.privy.UnmodifiableArrayList;
 import org.apache.sis.util.Version;
 import org.constellation.api.ServiceDef;
 import org.constellation.api.ServiceDef.Specification;

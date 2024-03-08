@@ -46,7 +46,7 @@ import java.util.stream.Stream;
 import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import org.apache.sis.feature.internal.AttributeConvention;
+import org.apache.sis.feature.privy.AttributeConvention;
 import org.apache.sis.geometry.wrapper.jts.JTS;
 import org.apache.sis.storage.aggregate.ConcatenatedFeatureSet;
 import org.apache.sis.storage.FeatureQuery;

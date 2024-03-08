@@ -32,7 +32,7 @@ import org.opengis.util.FactoryException;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.sis.filter.internal.FunctionNames;
+import org.apache.sis.filter.privy.FunctionNames;
 
 /**
  *

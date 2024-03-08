@@ -42,7 +42,7 @@ import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.storage.base.StoreResource;
 import org.apache.sis.storage.image.WorldFileStore;
-import org.apache.sis.util.internal.UnmodifiableArrayList;
+import org.apache.sis.util.privy.UnmodifiableArrayList;
 import org.apache.sis.measure.NumberRange;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.map.MapItem;

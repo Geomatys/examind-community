@@ -36,7 +36,7 @@ import org.apache.sis.cql.CQLException;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.Envelopes;
-import org.apache.sis.feature.internal.FeatureExpression;
+import org.apache.sis.feature.privy.FeatureExpression;
 import org.apache.sis.filter.DefaultFilterFactory;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;

@@ -18,7 +18,7 @@
  */
 package org.constellation.test.utils;
 
-import org.apache.sis.util.internal.DefinitionURI;
+import org.apache.sis.util.privy.DefinitionURI;
 import org.geotoolkit.test.xml.DocumentComparator;
 import org.apache.sis.util.CharSequences;
 import org.junit.Assert;

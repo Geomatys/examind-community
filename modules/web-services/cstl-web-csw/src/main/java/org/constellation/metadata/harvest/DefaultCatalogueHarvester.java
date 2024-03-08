@@ -18,7 +18,7 @@
  */
 package org.constellation.metadata.harvest;
 
-import org.apache.sis.xml.util.LegacyNamespaces;
+import org.apache.sis.xml.privy.LegacyNamespaces;
 import org.geotoolkit.metadata.MetadataIoException;
 import org.constellation.metadata.utils.Utils;
 import org.constellation.ws.CstlServiceException;

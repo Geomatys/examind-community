@@ -20,7 +20,7 @@ package org.constellation.store.observation.db.feature;
 
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
-import org.apache.sis.feature.internal.AttributeConvention;
+import org.apache.sis.feature.privy.AttributeConvention;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.util.Util;
 import org.geotoolkit.geometry.jts.JTS;
