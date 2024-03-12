@@ -120,7 +120,7 @@ public class CoverageDataTest {
         Assert.assertNotNull(result.getBands());
         Assert.assertEquals(3, result.getBands().size());
 
-        BandDescription desc = getBand("1", result);
+        BandDescription desc = getBand("Red", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals("0", desc.getIndice());
         Assert.assertEquals( 0,  desc.getMinValue(), 0.1);

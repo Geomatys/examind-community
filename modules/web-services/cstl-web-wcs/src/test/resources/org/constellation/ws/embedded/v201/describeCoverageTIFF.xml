@@ -28,13 +28,13 @@
         </gml:gridDomain>
         <ns32:rangeType>
             <ns33:DataRecord>
-                <ns33:field name="1">
+                <ns33:field name="Red">
                     <ns33:Quantity/>
                 </ns33:field>
-                <ns33:field name="2">
+                <ns33:field name="Green">
                     <ns33:Quantity/>
                 </ns33:field>
-                <ns33:field name="3">
+                <ns33:field name="Blue">
                     <ns33:Quantity/>
                 </ns33:field>
             </ns33:DataRecord>

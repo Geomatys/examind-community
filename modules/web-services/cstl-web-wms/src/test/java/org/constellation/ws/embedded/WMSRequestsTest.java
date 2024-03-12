@@ -241,7 +241,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "layers=Lakes&styles=&"
             + "query_layers=Lakes&info_format=text/plain&"
             + "i=60&j=60";
-    
+
     private static final String WMS_GETFEATUREINFO_PLAIN_FEAT2 = "QuErY_LaYeRs=BasicPolygons&I=50&"
             + "LaYeRs=BasicPolygons&StYlEs=&WiDtH=100&CrS=CRS:84&"
             + "ReQuEsT=GetFeatureInfo&InFo_fOrMaT=text/plain&BbOx=-2,2,2,6"
@@ -495,7 +495,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
     private static final String WMS_GETMAP_TIFF_TO_JPEG = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fjpeg"
-            + "&TRANSPARENT=${transparent}&LAYERS=" + MARTINIQUE 
+            + "&TRANSPARENT=${transparent}&LAYERS=" + MARTINIQUE
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
@@ -1222,7 +1222,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PLAIN_COV2);
 
         expResult =  MARTINIQUE + "\n" +
-                    "1;2;3;\n" +
+                    "Red;Green;Blue;\n" +
                     "63.0;92.0;132.0;\n\n";
 
         result = getStringResponse(gfi);
@@ -1373,7 +1373,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		</gml:boundedBy>\n" +
                     "		<x>-6813851.323435604</x>\n" +
                     "		<y>1651980.0473288011</y>\n" +
-                    "		<variable>1,2,3</variable>\n" +
+                    "		<variable>Red,Green,Blue</variable>\n" +
                     "		<value>63.0,92.0,132.0</value>\n" +
                     "	</" + MARTINIQUE + "_feature>\n" +
                     "</" + MARTINIQUE + "_layer>\n" +
@@ -1477,9 +1477,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "	<Coverage>\n" +
                     "		<Layer>" + MARTINIQUE + "</Layer>\n" +
                     "		<values>\n" +
-                    "			<band_1>63.0</band_1>\n" +
-                    "			<band_2>92.0</band_2>\n" +
-                    "			<band_3>132.0</band_3>\n" +
+                    "			<Red>63.0</Red>\n" +
+                    "			<Green>92.0</Green>\n" +
+                    "			<Blue>132.0</Blue>\n" +
                     "		</values>\n" +
                     "	</Coverage>\n" +
                     "</FeatureInfo>";
@@ -1995,11 +1995,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "    <body>\n" +
                     "<h2>" + MARTINIQUE + "</h2><br/><div><div class=\"left-part\"><ul>\n" +
                     "<li>\n" +
-                    "1</li>\n" +
+                    "Red</li>\n" +
                     "<li>\n" +
-                    "2</li>\n" +
+                    "Green</li>\n" +
                     "<li>\n" +
-                    "3</li>\n" +
+                    "Blue</li>\n" +
                     "</ul>\n" +
                     "</div><div class=\"right-part\">63.0<br/>\n" +
                     "92.0<br/>\n" +
@@ -2129,7 +2129,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         assertEquals("pt4 X property", 53.4,  (double)points.get(4).get("x"), 1e-1);
         assertEquals("pt4 Y property", 200.0, (double)points.get(4).get("y"), 1e-1);
-        
+
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_PROFILE_COV_ALIAS);
 
         result = getStringResponse(gfi);
@@ -2310,7 +2310,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
 
         expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"" + MARTINIQUE + "\",\"values\":[{\"name\":\"1\",\"value\":63.0,\"unit\":null},{\"name\":\"2\",\"value\":92.0,\"unit\":null},{\"name\":\"3\",\"value\":132.0,\"unit\":null}]}]";
+                = "[{\"type\":\"coverage\",\"layer\":\"" + MARTINIQUE + "\",\"values\":[{\"name\":\"Red\",\"value\":63.0,\"unit\":null},{\"name\":\"Green\",\"value\":92.0,\"unit\":null},{\"name\":\"Blue\",\"value\":132.0,\"unit\":null}]}]";
 
         result = getStringResponse(gfi);
         assertNotNull(result);

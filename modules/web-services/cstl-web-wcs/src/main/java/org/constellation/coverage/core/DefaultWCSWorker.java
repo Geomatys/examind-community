@@ -39,6 +39,7 @@ import java.util.SortedSet;
 import java.util.logging.Level;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import java.util.Locale;
 import javax.xml.namespace.QName;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
@@ -512,16 +513,21 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 for (SampleDimension band : bands) {
                     final QuantityType quantity = new QuantityType();
                     band.getUnits().ifPresent(s -> quantity.setUom(new UnitReference(s.toString())));
-                   
+
                     // TODO select only one category => which one?
                     if (band.getCategories() != null) {
                         for (Category cat : band.getCategories()) {
+                            if (cat.getName().toString(Locale.ENGLISH).equalsIgnoreCase("no data")) {
+                                //ignore this category
+                                continue;
+                            }
+
                             final AllowedValuesType av = new AllowedValuesType();
                             if (cat.getName() != null) {
                                 av.setId(cat.getName().toString());
                             }
-                          final NumberRange<?> range =  cat.getMeasurementRange().orElse(null);
-                            if ( range != null) {
+                            final NumberRange<?> range =  cat.getMeasurementRange().orElse(null);
+                            if (range != null) {
                                 av.setMin(range.getMinDouble());
                                 av.setMax(range.getMaxDouble());
                             }
@@ -1084,7 +1090,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                             throw new CstlServiceException("Subsetting params overlap the envelope extent",
                                     INVALID_SUBSETTING);
                         }
-                        
+
                         //verif that trim value is correct (low < high)
                         /*  we want to allow images crossing anti-meridian
                         if (low > high) {

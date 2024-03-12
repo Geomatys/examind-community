@@ -19,6 +19,7 @@
 
 package org.constellation.ws.embedded;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.Unmarshaller;
 import org.apache.sis.xml.MarshallerPool;
 import static org.constellation.api.ServiceConstants.GET_CAPABILITIES;
@@ -63,6 +64,7 @@ import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.dto.service.Instance;
 import org.constellation.dto.service.InstanceReport;
 import org.constellation.dto.service.ServiceStatus;
+import org.constellation.test.utils.JSONComparator;
 
 import org.geotoolkit.ogc.xml.v200.ResourceIdType;
 import org.constellation.test.utils.TestDatabaseHandler;
@@ -1938,7 +1940,8 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
         result = result.replaceAll("\\s+", "");
         expected = getStringFromFile("org/constellation/wfs/json/aggregated.json");
         expected = expected.replaceAll("\\s+", "");
-        assertEquals(expected, result);
+        JSONComparator comparator = new JSONComparator();
+        assertTrue(new ObjectMapper().readTree(expected).equals(comparator, new ObjectMapper().readTree(result)));
     }
 
     @Test
