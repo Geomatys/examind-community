@@ -39,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.FieldType;
@@ -86,7 +87,7 @@ public class FileParsingUtils {
             return computeMaxValue(Integer.parseInt(columnName), maxIndex);
         }
         for (int i = 0; i < headers.length; i++) {
-            final String header = headers[i];
+            final String header = removeBom(headers[i]);
             if (header.equals(columnName) || (ignoreCase && header.equalsIgnoreCase(columnName))) {
                 if (appendIndex != null) {
                     appendIndex.add(i);
@@ -95,6 +96,25 @@ public class FileParsingUtils {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Check if there is a BOM - Byte Order Mark - at the beginning of a String and removes it if it is present
+     * @param string the String to remove the BOM from
+     * @return the String without the BOM if there was one
+     */
+    public static String removeBom(String string) {
+        if (!string.isEmpty()) {
+            //Get the first character
+            String bom = string.substring(0, 1);
+            //Convert first character to byte to character(Use Apache Commons Codec Hex class)
+            String bomByte = new String(Hex.encodeHex(bom.getBytes()));
+            if ("efbbbf".equals(bomByte)) {
+                //Eliminate BOM
+                string = string.substring(1);
+            }
+        }
+        return string;
     }
 
     private static int computeMaxValue(int i, AtomicInteger max) {
@@ -135,13 +155,13 @@ public class FileParsingUtils {
                 int index = Integer.parseInt(columnName);
                 results.add(computeMaxValue(index, maxIndex));
                 if (headers != null) {
-                    appendName.add(headers[index]);
+                    appendName.add(removeBom(headers[index]));
                 }
             }
             return results;
         }
         for (int i = 0; i < headers.length; i++) {
-            final String header = headers[i];
+            final String header = removeBom(headers[i]);
             if (columnNames.contains(header)) {
                 results.add(computeMaxValue(i, maxIndex));
                 if (appendName != null) {
