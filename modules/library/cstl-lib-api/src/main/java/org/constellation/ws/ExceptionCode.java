@@ -20,10 +20,6 @@ package org.constellation.ws;
 
 import org.opengis.util.CodeList;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 /**
  * Describes the type of an exception.
  *
@@ -37,12 +33,6 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      * For cross-version compatibility.
      */
     private static final long serialVersionUID = 7234996844680200818L;
-
-    /**
-     * List of all enumerations of this type.
-     * Must be declared before any enum declaration.
-     */
-    private static final List<ExceptionCode> VALUES = new ArrayList<ExceptionCode>(16);
 
     /**
      * Invalid format.
@@ -220,7 +210,7 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      * @param name The enum name. This name must not be in use by an other enum of this type.
      */
     private ExceptionCode(final String name) {
-        super(name, VALUES);
+        super(name);
     }
 
     /**
@@ -229,9 +219,7 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      * @return The list of codes declared in the current JVM.
      */
     public static ExceptionCode[] values() {
-        synchronized (VALUES) {
-            return VALUES.toArray(new ExceptionCode[VALUES.size()]);
-        }
+        return CodeList.values(ExceptionCode.class);
     }
 
     /**
@@ -239,7 +227,7 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      */
     @Override
     public ExceptionCode[] family() {
-        return values();
+        return values(ExceptionCode.class);
     }
 
     /**
@@ -250,6 +238,6 @@ public final class ExceptionCode extends CodeList<ExceptionCode> {
      * @return A code matching the given name.
      */
     public static ExceptionCode valueOf(String code) {
-        return valueOf(ExceptionCode.class, code);
+        return valueOf(ExceptionCode.class, code, ExceptionCode::new).get();
     }
 }
