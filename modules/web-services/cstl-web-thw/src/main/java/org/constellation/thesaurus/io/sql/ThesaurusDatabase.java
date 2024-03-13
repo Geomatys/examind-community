@@ -28,6 +28,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -530,35 +531,7 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                     return matchingConcept;
                 }
             }
-
-            if (searchMode == PREFIX_REGEX || searchMode == AUTO_SEARCH) {
-                final FilterSQLRequest query = new SingleFilterSQLRequest(queryPrefix);
-                if (geometric) {
-                    query.append(" AND ");
-                } else {
-                    query.append(" WHERE ");
-                }
-                query.append("\"label\" ").append(likeOperator).appendValue("%" + term).append(" ");
-                appendLanguageFilter(language, false, query);
-                appendThemeFilter(themes, query);
-
-                boolean stop = false;
-                try (final SQLResult result = query.execute(c)) {
-                    while (result.next()) {
-                        stop        = true;
-                        String uric = result.getString(1);
-                        uric        = removePrefix(uric);
-                        final Concept concept = readConcept(uric, false, c, null);
-                        if (!matchingConcept.contains(concept)) {
-                            matchingConcept.add(concept);
-                        }
-                    }
-                }
-                if (stop || searchMode == PREFIX_REGEX) {
-                    return matchingConcept;
-                }
-            }
-
+            
             if (searchMode == SUFFIX_REGEX || searchMode == AUTO_SEARCH) {
 
                 final FilterSQLRequest query = new SingleFilterSQLRequest(queryPrefix);
@@ -584,6 +557,34 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                     }
                 }
                 if (stop || searchMode == SUFFIX_REGEX) {
+                    return matchingConcept;
+                }
+            }
+
+            if (searchMode == PREFIX_REGEX || searchMode == AUTO_SEARCH) {
+                final FilterSQLRequest query = new SingleFilterSQLRequest(queryPrefix);
+                if (geometric) {
+                    query.append(" AND ");
+                } else {
+                    query.append(" WHERE ");
+                }
+                query.append("\"label\" ").append(likeOperator).appendValue("%" + term).append(" ");
+                appendLanguageFilter(language, false, query);
+                appendThemeFilter(themes, query);
+
+                boolean stop = false;
+                try (final SQLResult result = query.execute(c)) {
+                    while (result.next()) {
+                        stop        = true;
+                        String uric = result.getString(1);
+                        uric        = removePrefix(uric);
+                        final Concept concept = readConcept(uric, false, c, null);
+                        if (!matchingConcept.contains(concept)) {
+                            matchingConcept.add(concept);
+                        }
+                    }
+                }
+                if (stop || searchMode == PREFIX_REGEX) {
                     return matchingConcept;
                 }
             }
@@ -1346,14 +1347,15 @@ public class ThesaurusDatabase implements Thesaurus, AutoCloseable {
                 " FROM \"" + schema + "\".\"" + TABLE_NAME + "\" AS pc" +
                 " LEFT JOIN \"" + schema + "\".\"terme_completion\" AS tc ON tc.uri_concept = pc.objet" +
                 " WHERE pc.uri_concept = ? AND pc.predicat = '" + NARROWER_PREDICATE + "'" +
-                " GROUP BY pc.objet, tc.label, tc.type_terme, tc.langage_iso";
+                " GROUP BY pc.objet, tc.label, tc.type_terme, tc.langage_iso " +
+                " ORDER BY pc.objet";
 
         try (Connection con = datasource.getConnection();
              PreparedStatement stmt = con.prepareStatement(selectNarrowers)) {//NOSONAR
 
             stmt.setString(1, conceptUri);
             try (ResultSet rs = stmt.executeQuery()) {
-                Map<String, ConceptNode> conceptMap = new HashMap<>();
+                Map<String, ConceptNode> conceptMap = new LinkedHashMap<>();
                 while (rs.next()) {
                     String objectUri = rs.getString(1);
                     int narrowerCount = rs.getInt(5);

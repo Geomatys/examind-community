@@ -246,10 +246,11 @@ public class THWRestAPI {
     @RequestMapping(value="/THW/{thesaurusUri}/{lang}/concept/search/{keyword}",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity searchConcepts(@PathVariable("thesaurusUri") String thesaurusUri,
                                             @PathVariable("lang") String lang,
-                                            @PathVariable("keyword") String keyword) {
+                                            @PathVariable("keyword") String keyword,
+                                            @RequestParam(name = "mode", required = false, defaultValue = "0") int mode) {
         try (WriteableThesaurus thesaurus = getThesaurusWriter(thesaurusUri)) {
             ISOLanguageCode isoLang = ISOLanguageCode.fromCode(lang);
-            List<Concept> concepts = thesaurus.search(keyword, SearchMode.AUTO_SEARCH, false, null, isoLang);
+            List<Concept> concepts = thesaurus.search(keyword, mode, false, null, isoLang);
             return new ResponseEntity(toConceptNodes(concepts), OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
