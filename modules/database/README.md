@@ -72,9 +72,9 @@ Default configuration is defined in `cstl-database-api` pom file.
 
 ```xml
 <properties>
-    <jdbc.url>jdbc:postgresql://localhost:5432/cstl-test</jdbc.url>
-    <jdbc.user>cstl</jdbc.user>
-    <jdbc.passwd>admin</jdbc.passwd>
+    <jdbc.url>jdbc:postgresql://localhost:5432/exa-generate</jdbc.url>
+    <jdbc.user>examind</jdbc.user>
+    <jdbc.passwd>examind</jdbc.passwd>
 </properties>
 ```
 
