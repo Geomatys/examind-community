@@ -610,6 +610,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void writeProcedure(final ProcedureDataset procedure) throws DataStoreException {
         try(final Connection c = source.getConnection()) {
@@ -617,6 +620,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         } catch (SQLException | FactoryException ex) {
             throw new DataStoreException("Error while inserting procedure.", ex);
         }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void updateProcedure(Procedure procedure) throws DataStoreException {
+        throw new UnsupportedOperationException("TODO.");
     }
 
     private void setGeometry(PreparedStatement stmt, Geometry geom, int index) throws SQLException {
@@ -2114,6 +2125,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
         insertFieldStmt.setInt(8, field.tableNumber);
         insertFieldStmt.executeUpdate();
+    }
+
+    @Override
+    public void removePhenomenon(String phenomenonID) throws DataStoreException {
+        throw new UnsupportedOperationException("TODO.");
     }
 
     /**

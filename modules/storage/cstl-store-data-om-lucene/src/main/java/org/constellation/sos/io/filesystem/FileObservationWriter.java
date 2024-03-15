@@ -40,6 +40,7 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Geometry;
@@ -143,6 +144,14 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
     public void removeProcedure(final String procedureID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void updateProcedure(Procedure procedure) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet in this implementation.");
+    }
 
     @Override
     public List<String> removeDataSet(ObservationDataset dataset) throws DataStoreException {
@@ -161,6 +170,14 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
                 LOGGER.log(Level.WARNING, "Bad implementation of phenomenon:{0}", phenomenon.getClass().getName());
             }
         }
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void removePhenomenon(String phenomenonID) throws DataStoreException {
+        throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 
     /**
