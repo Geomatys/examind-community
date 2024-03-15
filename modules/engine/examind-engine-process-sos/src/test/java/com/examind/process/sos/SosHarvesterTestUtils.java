@@ -291,8 +291,8 @@ public class SosHarvesterTestUtils {
        for (SamplingFeature sp : fois) {
             if ((id != null && sp.getId().equals(id)) || id == null)
             if (sp.getGeometry() instanceof PointType pt) {
-                if (pt.getDirectPosition().getOrdinate(0) == lat &&
-                    pt.getDirectPosition().getOrdinate(1) == lon) {
+                if (pt.getDirectPosition().getCoordinate(0) == lat &&
+                    pt.getDirectPosition().getCoordinate(1) == lon) {
 
                     foi = sp.getId();
                 }
@@ -317,11 +317,11 @@ public class SosHarvesterTestUtils {
        Set<String> alreadyFound = new HashSet<>();
        for (SamplingFeature sp : fois) {
             if (sp.getGeometry() instanceof PointType pt) {
-                String key = pt.getDirectPosition().getOrdinate(0) + "-" + pt.getDirectPosition().getOrdinate(1);
+                String key = pt.getDirectPosition().getCoordinate(0) + "-" + pt.getDirectPosition().getCoordinate(1);
                 if (alreadyFound.contains(key)) {
                     throw new IllegalStateException("duplicated feature of interest for coord:" + key);
                 }
-                alreadyFound.add(pt.getDirectPosition().getOrdinate(0) + "-" + pt.getDirectPosition().getOrdinate(1));
+                alreadyFound.add(pt.getDirectPosition().getCoordinate(0) + "-" + pt.getDirectPosition().getCoordinate(1));
             }
         }
     }

@@ -543,8 +543,8 @@ public final class DataProviders extends Static{
                 lower = new double[]{-180, -90};
                 upper = new double[]{180, 90};
             } else {
-                lower = env.getLowerCorner().getCoordinate();
-                upper = env.getUpperCorner().getCoordinate();
+                lower = env.getLowerCorner().getCoordinates();
+                upper = env.getUpperCorner().getCoordinates();
             }
 
         } catch (Exception ignore) {

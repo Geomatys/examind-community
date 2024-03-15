@@ -190,13 +190,13 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
                 }
                 builder.append("\t\t\t<gml:Box srsName=\"").append(crsName).append("\">\n");
                 builder.append("\t\t\t\t<gml:coordinates>");
-                builder.append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1)).append(" ")
-                        .append(pos.getOrdinate(0)).append(",").append(pos.getOrdinate(1));
+                builder.append(pos.getCoordinate(0)).append(",").append(pos.getCoordinate(1)).append(" ")
+                        .append(pos.getCoordinate(0)).append(",").append(pos.getCoordinate(1));
                 builder.append("</gml:coordinates>").append("\n");
                 builder.append("\t\t\t</gml:Box>").append("\n");
                 builder.append("\t\t</gml:boundedBy>").append("\n");
-                builder.append("\t\t<x>").append(pos.getOrdinate(0)).append("</x>").append("\n")
-                       .append("\t\t<y>").append(pos.getOrdinate(1)).append("</y>").append("\n");
+                builder.append("\t\t<x>").append(pos.getCoordinate(0)).append("</x>").append("\n")
+                       .append("\t\t<y>").append(pos.getCoordinate(1)).append("</y>").append("\n");
             }
         }
         if (time != null && !time.isEmpty()) {

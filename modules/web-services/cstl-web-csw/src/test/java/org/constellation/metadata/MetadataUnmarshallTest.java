@@ -98,7 +98,6 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,6 +119,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import org.opengis.metadata.identification.CharacterSet;
+import org.opengis.referencing.ObjectDomain;
 
 
 /**
@@ -594,7 +594,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         Map<String, String> prop = new HashMap<>();
         prop.put(DefaultVerticalDatum.NAME_KEY, datumID);
-        prop.put(DefaultVerticalDatum.SCOPE_KEY, null);
+        prop.put(ObjectDomain.SCOPE_KEY, null);
         DefaultVerticalDatum datum = new DefaultVerticalDatum(prop, VerticalDatumType.GEOIDAL);
 
 
@@ -609,7 +609,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         prop = new HashMap<>();
         prop.put(DefaultVerticalCRS.NAME_KEY, "idvertCRS");
-        prop.put(DefaultVerticalCRS.SCOPE_KEY, null);
+        prop.put(ObjectDomain.SCOPE_KEY, null);
         DefaultVerticalCRS vcrs = new DefaultVerticalCRS(prop, datum, cs);
 
 

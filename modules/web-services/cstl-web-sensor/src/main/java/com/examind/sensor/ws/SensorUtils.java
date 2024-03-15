@@ -174,7 +174,7 @@ public final class SensorUtils {
 
     public static boolean isCompleteEnvelope3D(Envelope e) {
         return e.getLowerCorner() != null && e.getUpperCorner() != null
-                && e.getLowerCorner().getCoordinate().length == 3 && e.getUpperCorner().getCoordinate().length == 3;
+                && e.getLowerCorner().getDimension() == 3 && e.getUpperCorner().getDimension() == 3;
     }
 
     public static String extractFOID(Observation obs) {

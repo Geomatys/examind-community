@@ -50,9 +50,9 @@ public class EnvelopeSerializer extends StdSerializer<Envelope> {
         gen.writeStartObject();
         final int dimension = value.getDimension();
         gen.writeFieldName("lowerCorner");
-        gen.writeArray(value.getLowerCorner().getCoordinate(), 0, dimension);
+        gen.writeArray(value.getLowerCorner().getCoordinates(), 0, dimension);
         gen.writeFieldName("upperCorner");
-        gen.writeArray(value.getUpperCorner().getCoordinate(), 0, dimension);
+        gen.writeArray(value.getUpperCorner().getCoordinates(), 0, dimension);
         gen.writeEndObject();
     }
 }

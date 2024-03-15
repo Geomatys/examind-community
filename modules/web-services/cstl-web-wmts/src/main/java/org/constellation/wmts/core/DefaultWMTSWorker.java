@@ -423,8 +423,8 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                             int[] tileSize = TileMatrices.getTileSize(mosaic);
                             matrix.setTileWidth(tileSize[0]);
                             matrix.setTileHeight(tileSize[1]);
-                            matrix.getTopLeftCorner().add(upperLeft.getOrdinate(xAxis));
-                            matrix.getTopLeftCorner().add(upperLeft.getOrdinate(yAxis));
+                            matrix.getTopLeftCorner().add(upperLeft.getCoordinate(xAxis));
+                            matrix.getTopLeftCorner().add(upperLeft.getCoordinate(yAxis));
                             tm.add(matrix);
 
                             // Fill dimensions. We iterate over all mosaics of the current scale to find all slices.
@@ -437,7 +437,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                 final List<String> currentDimValues = dims.get(entry.getKey()).getValue();
                                 if (entry.getValue() instanceof TemporalCRS) {
                                     timeIndex = entry.getKey();
-                                    double value = upperLeft.getOrdinate(entry.getKey());
+                                    double value = upperLeft.getCoordinate(entry.getKey());
                                     if (!Utilities.equalsApproximately(JAVA_TIME, entry.getValue())) {
                                         final double[] tmpArray = new double[]{value};
                                         toJavaTime = CRS.findOperation(entry.getValue(), JAVA_TIME, null).getMathTransform();
@@ -448,7 +448,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                     strValue = dateFormatter.format(new Date((long) value));
 
                                 } else {
-                                    strValue = String.valueOf(upperLeft.getOrdinate(entry.getKey()));
+                                    strValue = String.valueOf(upperLeft.getCoordinate(entry.getKey()));
                                 }
 
                                 if (strValue != null && !currentDimValues.contains(strValue)) {
@@ -463,7 +463,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                     // For temporal values, we convert it into timestamp, then to an ISO 8601 date.
                                     final List<String> currentDimValues = dims.get(entry.getKey()).getValue();
                                     if (timeIndex == entry.getKey()) {
-                                        double value = upperLeft.getOrdinate(entry.getKey());
+                                        double value = upperLeft.getCoordinate(entry.getKey());
                                         if (toJavaTime != null) {
                                             final double[] tmpArray = new double[]{value};
                                             toJavaTime.transform(tmpArray, 0, tmpArray, 0, 1);
@@ -473,7 +473,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                                         strValue = dateFormatter.format(new Date((long) value));
 
                                     } else {
-                                        strValue = String.valueOf(upperLeft.getOrdinate(entry.getKey()));
+                                        strValue = String.valueOf(upperLeft.getCoordinate(entry.getKey()));
                                     }
 
                                     if (strValue != null && !currentDimValues.contains(strValue)) {

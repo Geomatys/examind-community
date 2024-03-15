@@ -410,7 +410,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                         others = new ArrayList<>(DEFAULT_CRS);
                         others.remove(defaultCRS);
                     }
-                    
+
                     ftt = buildFeatureType(
                             currentVersion,
                             typeName,
@@ -1629,7 +1629,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
                                     throw new CstlServiceException(ex);
                                 }
                             } else if (value instanceof DirectPosition dp) {
-                                value = new GeometryFactory().createPoint(new Coordinate(dp.getOrdinate(0), dp.getOrdinate(1)));
+                                value = new GeometryFactory().createPoint(new Coordinate(dp.getCoordinate(0), dp.getCoordinate(1)));
                             } else if (value instanceof String sval) {
                                 value = JAXPStreamFeatureReader.readValue(sval, (AttributeType) propertyType);
                             }
@@ -1948,7 +1948,7 @@ public class DefaultWFSWorker extends LayerWorker implements WFSWorker {
             }
             // remove the XPath QName format
             filterProperty = filterProperty.replace("Q{", "{");
-            
+
             final Binding pa = Bindings.getBinding(FeatureType.class, filterProperty);
             if (pa == null || pa.get(ft, filterProperty, null) == null) {
                 String s = "";

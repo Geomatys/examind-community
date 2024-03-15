@@ -71,7 +71,7 @@ import org.opengis.util.FactoryException;
 public class SpatialFilterBuilder {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.metadata.index.elasticsearch");
-    
+
     public static XContentBuilder build(Filter filter, boolean withPlugin) throws IOException, FilterParserException {
         XContentBuilder builder = XContentFactory.jsonBuilder();
         builder.startObject();
@@ -594,8 +594,8 @@ public class SpatialFilterBuilder {
                 } else {
                     final List<Double> values = new ArrayList<>();
                     for(DirectPosition dp : ls.getPos()){
-                        values.add(dp.getOrdinate(0));
-                        values.add(dp.getOrdinate(1));
+                        values.add(dp.getCoordinate(0));
+                        values.add(dp.getCoordinate(1));
                     }
                     coordinates = values.toArray(new Double[values.size()]);
                 }
@@ -636,7 +636,7 @@ public class SpatialFilterBuilder {
     }
 
     private static final double DELTA = 0.01;
-    
+
     private static XContentBuilder addEnvelope(XContentBuilder builder, final Envelope env, boolean withPlugin) throws IOException {
         if (env.getDimension() < 2) {
             throw new IllegalArgumentException("Envelope must have at least 2 dimensions.");

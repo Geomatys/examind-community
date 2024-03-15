@@ -110,8 +110,8 @@ public class InternalMapContextRestAPI extends AbstractRestAPI {
                     final DirectPosition lower = env.getLowerCorner();
                     final DirectPosition upper = env.getUpperCorner();
                     if(lower != null && upper != null) {
-                        final double[] lowerCoords = lower.getCoordinate();
-                        final double[] upperCoords = upper.getCoordinate();
+                        final double[] lowerCoords = lower.getCoordinates();
+                        final double[] upperCoords = upper.getCoordinates();
                         bbox.setMinx(lowerCoords[0]);
                         bbox.setMiny(lowerCoords[1]);
                         bbox.setMaxx(upperCoords[0]);

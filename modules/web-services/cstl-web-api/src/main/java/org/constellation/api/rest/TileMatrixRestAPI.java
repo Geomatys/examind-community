@@ -379,7 +379,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
     }
 
     public static Envelope toDTO(org.opengis.geometry.Envelope env) {
-        return new Envelope(toDTO(env.getCoordinateReferenceSystem()), env.getLowerCorner().getCoordinate(), env.getUpperCorner().getCoordinate());
+        return new Envelope(toDTO(env.getCoordinateReferenceSystem()), env.getLowerCorner().getCoordinates(), env.getUpperCorner().getCoordinates());
     }
 
     public static CoordinateReferenceSystem toDTO(org.opengis.referencing.crs.CoordinateReferenceSystem crs) {
