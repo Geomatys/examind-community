@@ -21,6 +21,7 @@ package org.constellation.admin;
 import org.geotoolkit.style.DefaultMutableStyle;
 import org.junit.Assert;
 import org.junit.Test;
+import org.opengis.style.Style;
 
 /**
  *
@@ -34,19 +35,19 @@ public class StyleBusinessTest extends AbstractBusinessTest {
         style.setName("hauteur du géoïde");
         Integer id = styleBusiness.createStyle("sld-temp", style);
 
-        org.opengis.style.Style s = styleBusiness.getStyle("sld-temp", "hauteur du géoïde");
+        org.opengis.style.Style s = (org.opengis.style.Style) styleBusiness.getStyle("sld-temp", "hauteur du géoïde");
         Assert.assertNotNull(s);
-        
-        s = styleBusiness.getStyle(id);
+
+        s = (Style) styleBusiness.getStyle(id);
         Assert.assertNotNull(s);
-        
+
         style.setName("hauteur du géoïde v2");
         styleBusiness.updateStyle(id, style);
-        
-        s = styleBusiness.getStyle(id);
+
+        s = (Style) styleBusiness.getStyle(id);
         Assert.assertEquals("hauteur du géoïde v2", s.getName());
-        
-        s = styleBusiness.getStyle("sld-temp", "hauteur du géoïde v2");
+
+        s = (Style) styleBusiness.getStyle("sld-temp", "hauteur du géoïde v2");
         Assert.assertNotNull(s);
     }
 }

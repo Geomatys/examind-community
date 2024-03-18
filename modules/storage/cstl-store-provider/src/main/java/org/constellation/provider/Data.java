@@ -44,6 +44,7 @@ import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.storage.WritableFeatureSet;
 import org.apache.sis.storage.tiling.TileMatrix;
 import org.apache.sis.storage.tiling.TileMatrixSet;
+import org.apache.sis.style.Style;
 import org.apache.sis.util.Classes;
 import org.constellation.api.DataType;
 import org.constellation.api.ServiceDef;
@@ -59,7 +60,6 @@ import org.geotoolkit.storage.multires.TileMatrices;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 

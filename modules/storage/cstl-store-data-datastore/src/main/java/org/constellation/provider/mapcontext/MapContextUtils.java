@@ -32,6 +32,7 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.style.Style;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ILayerBusiness;
@@ -59,7 +60,7 @@ import org.opengis.util.FactoryException;
  * @author Guilhem Legal (Geomatys)
  */
 public class MapContextUtils {
-    
+
     private static final Logger LOGGER = Logger.getLogger("org.constellation.provider.mapcontext");
 
     public static MapLayers getMapLayers(MapContextLayersDTO mc) throws FactoryException, ConstellationException {
@@ -103,7 +104,7 @@ public class MapContextUtils {
             final org.constellation.dto.Data data = dataBusiness.getData(layerConf.getDataId());
 
             final Integer styleId = isLayer.getStyleId();
-            final org.opengis.style.Style layerStyle;
+            final Style layerStyle;
             if (styleId != null) {
                 layerStyle = styleBusiness.getStyle(styleId);
             } else {
@@ -123,7 +124,7 @@ public class MapContextUtils {
             }
 
             final Integer styleId = dtLayer.getStyleId();
-            final org.opengis.style.Style layerStyle;
+            final Style layerStyle;
             if (styleId != null) {
                 layerStyle = styleBusiness.getStyle(styleId);
             } else {

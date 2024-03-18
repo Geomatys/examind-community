@@ -75,7 +75,7 @@ public class StyleMessageConverter implements HttpMessageConverter<Object> {
         final byte[] buffer = bos.toByteArray();
 
         //try to extract a style from various form and version
-        Style style = styleBusiness.parseStyle(null, buffer, null);
+        org.apache.sis.style.Style style = styleBusiness.parseStyle(null, buffer, null);
 
         if (style == null) {
             throw new HttpMessageNotReadableException("No UserStyle definition found.", inputMessage);

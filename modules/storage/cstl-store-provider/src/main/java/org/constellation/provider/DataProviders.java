@@ -40,6 +40,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.style.Style;
 import org.apache.sis.util.Static;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.constellation.admin.SpringHelper;
@@ -75,7 +76,6 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
@@ -652,7 +652,7 @@ public final class DataProviders extends Static{
         return prop;
     }
 
-    public  static Style getStyle(String name) throws ConstellationException {
+    public static Style getStyle(String name) throws ConstellationException {
         IStyleBusiness stBusiness = SpringHelper.getBean("exaStyleBusiness", IStyleBusiness.class)
                                                 .orElseThrow(() -> new ConstellationException("No spring context available"));
         return stBusiness.getStyle("sld", name);

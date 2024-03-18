@@ -979,7 +979,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             //NOTE: ADRIAN HACKED HERE
             final SceneDef sdef = new SceneDef();
 
-            final Style style;
+            final MutableStyle style;
             if (!layer.getStyles().isEmpty()) {
                 final StyleReference styleName = layer.getStyles().get(0);
                 final MutableStyle incomingStyle = (MutableStyle) getStyle(styleName);
@@ -1233,7 +1233,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             // SCENE
             final SceneDef sdef = new SceneDef();
 
-            final Style style;
+            final MutableStyle style;
             if (!layer.getStyles().isEmpty()) {
                 final StyleReference styleName = layer.getStyles().get(0);
                 final MutableStyle incomingStyle = (MutableStyle) getStyle(styleName);

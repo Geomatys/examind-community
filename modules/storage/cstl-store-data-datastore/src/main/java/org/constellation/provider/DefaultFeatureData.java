@@ -50,6 +50,7 @@ import org.apache.sis.feature.privy.AttributeConvention;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.style.Style;
 
 import org.geotoolkit.storage.feature.FeatureStoreUtilities;
 import org.geotoolkit.storage.feature.query.Query;
@@ -63,7 +64,6 @@ import org.constellation.dto.StatInfo;
 import org.constellation.exception.ConstellationStoreException;
 import org.locationtech.jts.geom.Geometry;
 
-import org.opengis.style.Style;
 
 /**
  * Default layer details for a datastore type.

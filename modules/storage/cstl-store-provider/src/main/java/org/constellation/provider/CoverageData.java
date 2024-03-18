@@ -20,7 +20,6 @@ package org.constellation.provider;
 
 import java.awt.Dimension;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.opengis.geometry.Envelope;
@@ -30,11 +29,11 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.map.MapItem;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.style.Style;
 
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 
 import org.constellation.exception.ConstellationStoreException;
-import org.opengis.style.Style;
 
 /**
  * Coverage extension of a {@link Data}, which add some methods specific
@@ -81,7 +80,7 @@ public interface CoverageData extends Data<GridCoverageResource> {
     List<org.constellation.dto.Dimension> getSpecialDimensions() throws ConstellationStoreException;
 
     /**
-     * 
+     *
      * @param style Style to apply to the data. Can be null.
      * @param forceSampleDimensions if set to {@code true} the sample dimensions will be overriden.
      *

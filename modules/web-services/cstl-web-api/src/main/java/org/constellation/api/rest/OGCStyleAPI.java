@@ -40,6 +40,7 @@ import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.exception.ConstellationException;
 import org.constellation.ws.WebServiceUtilities;
 import org.geotoolkit.atom.xml.Link;
+import org.geotoolkit.style.MutableStyle;
 import org.opengis.style.Style;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -169,7 +170,7 @@ public class OGCStyleAPI {
         }
 
         //try to parse a style from various form and version
-        Style style = styleBusiness.parseStyle(styleName, buffer, file.getOriginalFilename());
+        MutableStyle style = (MutableStyle) styleBusiness.parseStyle(styleName, buffer, file.getOriginalFilename());
 
         if (style == null) {
             final String message = "Failed to import style from file, no UserStyle element defined";
@@ -219,21 +220,25 @@ public class OGCStyleAPI {
                 status = HttpStatus.NOT_FOUND;
                 result = new ErrorMessage(status, "Cannot find style with this id : " + styleId);
             } else {
-                Style style = styleBusiness.getStyle(styleId);
-                if (f.toLowerCase().contains("json")) {
-                    org.constellation.json.binding.Style jstyle = styleConverterBusiness.getJsonStyle(style);
-                    jstyle.setId(styleId);
-                    mType = MediaType.APPLICATION_JSON;
-                    result = jstyle;
-                    status = HttpStatus.OK;
-                } else {
-                    if (f.toLowerCase().equals("file")) {
-                        final String name = style.getName();
-                        headers.set("Content-Disposition", "attachment; filename=" + name + ".xml");
+                org.apache.sis.style.Style style = styleBusiness.getStyle(styleId);
+                if (style instanceof Style st) {
+                    if (f.toLowerCase().contains("json")) {
+                        org.constellation.json.binding.Style jstyle = styleConverterBusiness.getJsonStyle(st);
+                        jstyle.setId(styleId);
+                        mType = MediaType.APPLICATION_JSON;
+                        result = jstyle;
+                        status = HttpStatus.OK;
+                    } else {
+                        if (f.toLowerCase().equals("file")) {
+                            final String name = st.getName();
+                            headers.set("Content-Disposition", "attachment; filename=" + name + ".xml");
+                        }
+                        mType = MediaType.APPLICATION_XML;
+                        result = style;
+                        status = HttpStatus.OK;
                     }
-                    mType = MediaType.APPLICATION_XML;
-                    result = style;
-                    status = HttpStatus.OK;
+                } else {
+                    throw new IllegalArgumentException("Style " + style.getClass().getName() + " can not be converted to requested format.");
                 }
             }
             headers.setContentType(mType);
@@ -284,7 +289,7 @@ public class OGCStyleAPI {
             }
 
             //try to parse a style from various form and version
-            Style style;
+            org.apache.sis.style.Style style;
             try {
                 style = styleBusiness.parseStyle(name, buffer, file.getOriginalFilename());
             } catch (Exception ex) {
@@ -299,7 +304,7 @@ public class OGCStyleAPI {
             }
 
             try {
-                styleBusiness.updateStyle(styleId, style);
+                styleBusiness.updateStyle(styleId, (Style) style);
                 return new ResponseEntity<>(String.format("Style with id %d is successfully updated", styleId), HttpStatus.OK);
             } catch (Exception ex) {
                 LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

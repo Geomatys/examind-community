@@ -38,6 +38,7 @@ public class Style extends Identifiable implements Serializable {
     private String body;
     private Integer ownerId;
     private Boolean isShared;
+    private String specification;
 
     public Style() {
     }
@@ -50,7 +51,8 @@ public class Style extends Identifiable implements Serializable {
             Date date,
             String body,
             Integer ownerId,
-            Boolean isShared
+            Boolean isShared,
+            String specification
     ) {
         this.id = id;
         this.name = name;
@@ -60,6 +62,7 @@ public class Style extends Identifiable implements Serializable {
         this.body = body;
         this.ownerId = ownerId;
         this.isShared = isShared;
+        this.specification = specification;
     }
 
     public String getName() {
@@ -118,6 +121,13 @@ public class Style extends Identifiable implements Serializable {
         this.body = body;
     }
 
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -133,6 +143,7 @@ public class Style extends Identifiable implements Serializable {
         if (providerId != null ? !providerId.equals(that.providerId) : that.providerId != null) return false;
         if (body != null ? !body.equals(that.body) : that.body != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (specification != null ? !specification.equals(that.specification) : that.specification != null) return false;
 
         return true;
     }
@@ -146,6 +157,7 @@ public class Style extends Identifiable implements Serializable {
         result = 31 * result + (date != null ? date.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
+        result = 31 * result + (specification != null ? specification.hashCode() : 0);
         return result;
     }
 
@@ -159,6 +171,7 @@ public class Style extends Identifiable implements Serializable {
                 ", date=" + date +
                 ", type='" + type + '\'' +
                 ", ownerId='" + ownerId + '\'' +
+                ", specification='" + specification + '\'' +
                 '}';
     }
 }

@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.exception.TargetNotFoundException;
@@ -40,6 +43,7 @@ import org.geotoolkit.storage.coverage.ImageStatistics;
 import org.apache.sis.storage.Resource;
 import static org.constellation.api.rest.AbstractRestAPI.LOGGER;
 import org.constellation.business.IStyleConverterBusiness;
+import org.constellation.business.StyleSpecification;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -86,6 +90,46 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     @Autowired
     private IDataBusiness dataBusiness;
 
+    /**
+     * List capabilities of internal style representations.
+     *
+     * @return ResponseEntity never null, contains the style specifications capabilities
+     */
+    @RequestMapping(value="/internal/styles/capabilities",method = GET, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity capabilities(){
+        final Collection<StyleSpecification> specifications = styleBusiness.specifications();
+        
+        final List<Map<String,Object>> capabilities = new ArrayList<>();
+        for (StyleSpecification spec : specifications) {
+            final Map<String,Object> params = new HashMap<>();
+            params.put("name", spec.getName());
+            params.put("templates", spec.getTemplates());
+            capabilities.add(params);
+        }        
+        return new ResponseEntity(capabilities,OK);
+    }
+    
+    /**
+     * Create a new style with given template
+     *
+     * @param specification specification identifier
+     * @param template specification template name or null
+     * @return ResponseEntity never null, contains the created style id
+     */
+    @RequestMapping(value="/internal/styles/create",method = POST, produces=MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity createStyleJson(
+            @RequestParam(value="name",required=true) String name, 
+            @RequestParam(value="specification",required=true) String specification, 
+            @RequestParam(value="template",required=false) String template){
+        try {
+            final Integer styleId = styleBusiness.createStyle("sld", name, specification, template);
+            return new ResponseEntity(styleId,OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+    
     /**
      * Create a new style with internal JSON representation.
      *

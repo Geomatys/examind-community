@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import javax.xml.namespace.QName;
+import org.apache.sis.style.Style;
 import org.constellation.api.WorkerState;
 import org.constellation.business.ClusterMessage;
 import org.constellation.business.IClusterBusiness;
@@ -58,7 +59,6 @@ import org.constellation.map.featureinfo.FeatureInfoFormat;
 import org.constellation.util.Util;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
-import org.opengis.style.Style;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 
@@ -272,7 +272,7 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
     protected List<LayerCache> getLayerCaches(final String login) throws CstlServiceException {
         return getLayerCaches(login, false);
     }
-    
+
     protected List<LayerCache> getLayerCaches(final String login, boolean sort) throws CstlServiceException {
         List<LayerCache> results = new ArrayList<>();
         try {
@@ -300,7 +300,7 @@ public abstract class LayerWorker extends AbstractWorker<LayerContext> {
         }
         return results;
     }
-    
+
     protected List<LayerCache> getLayerCaches(final String login, final Collection<QName> names) throws CstlServiceException {
         List<LayerCache> results = new ArrayList<>();
         for (QName name : names) {

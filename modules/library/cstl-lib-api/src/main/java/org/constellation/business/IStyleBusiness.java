@@ -18,6 +18,7 @@
  */
 package org.constellation.business;
 
+import java.util.Collection;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.StyleBrief;
 import org.constellation.exception.TargetNotFoundException;
@@ -27,13 +28,34 @@ import org.constellation.exception.ConstellationException;
 import java.util.List;
 import java.util.Map;
 import org.geotoolkit.sld.StyledLayerDescriptor;
-import org.opengis.style.Style;
+import org.apache.sis.style.Style;
 
 /**
  * @author Cédric Briançon (Geomatys)
  * @author Guilhem Legal (Geomatys)
  */
 public interface IStyleBusiness {
+
+    /**
+     * @return available style specifications.
+     */
+    Collection<StyleSpecification> specifications();
+
+    /**
+     * Get StyleSpecification from name.
+     *
+     * @param name specification name
+     * @return Style specification or null
+     */
+    StyleSpecification specificationForName(String name);
+
+    /**
+     * Get StyleSpecification from style class name.
+     *
+     * @param clazz specification style class
+     * @return Style specification or null
+     */
+    StyleSpecification specificationForClass(Class clazz);
 
     /**
      * Return all the styles references.
@@ -66,16 +88,16 @@ public interface IStyleBusiness {
     int deleteAll() throws ConfigurationException;
 
     /**
-     * Gets and returns the {@link org.opengis.style.Style} that matches with the specified
+     * Gets and returns the {@link org.apache.sis.style.Style} that matches with the specified
      * identifier.
      *
      * @param providerID The style provider identifier (sld or sld_temp).
      * @param styleName The style name.
      *
-     * @return the {@link org.opengis.style.Style} instance
+     * @return the {@link org.apache.sis.style.Style} instance
      * @throws TargetNotFoundException If the style with the specified identifier can't be found.
      */
-    org.opengis.style.Style getStyle(String providerID, String styleName) throws TargetNotFoundException;
+    Style getStyle(String providerID, String styleName) throws ConfigurationException, TargetNotFoundException;
 
     /**
      * Find and return an id that matches with the specified provider id / style name.
@@ -89,14 +111,14 @@ public interface IStyleBusiness {
     Integer getStyleId(final String providerId, final String styleName) throws TargetNotFoundException;
 
     /**
-     * Gets and returns the {@link org.opengis.style.Style} that matches with the specified id.
+     * Gets and returns the {@link org.apache.sis.style.Style} that matches with the specified id.
      *
      * @param styleId style entity id.
-     * @return the {@link org.opengis.style.Style} instance
+     * @return the {@link org.apache.sis.style.Style} instance
      * @throws TargetNotFoundException
      *             if the style with the specified identifier can't be found
      */
-    org.opengis.style.Style getStyle(int styleId) throws TargetNotFoundException;
+    Style getStyle(int styleId) throws TargetNotFoundException;
 
     /**
      * Flag that returns if style exists for given provider and style name.
@@ -135,7 +157,21 @@ public interface IStyleBusiness {
      * @throws TargetNotFoundException If the style with the specified identifier can't be found.
      * @throws ConfigurationException If the operation has failed for any reason.
      */
-    Integer createStyle(String providerId, org.opengis.style.Style style) throws ConfigurationException;
+    Integer createStyle(String providerId, Style style) throws ConfigurationException;
+
+    /**
+     * Creates a new style into a style provider instance.
+     *
+     * @param providerId The style provider identifier (sld or sld_temp).
+     * @param name The style name.
+     * @param specification The style specification.
+     * @param template The style template.
+     * @return The assigned style id.
+     *
+     * @throws TargetNotFoundException If the style with the specified identifier can't be found.
+     * @throws ConfigurationException If the operation has failed for any reason.
+     */
+    Integer createStyle(String providerId, String name, String specification, String template) throws ConfigurationException;
 
     /**
      * Return the @{@link StyleBrief} object for a given style id.
@@ -165,7 +201,10 @@ public interface IStyleBusiness {
      */
     List<StyleBrief> getAvailableStyles(String providerId, String type) throws ConstellationException;
 
+    @Deprecated
     void updateStyle(int id, org.opengis.style.Style style) throws ConfigurationException;
+
+    void updateStyle(int id, String name, Style style) throws ConfigurationException;
 
     /**
      * Links a style resource to an existing data resource.
@@ -213,7 +252,7 @@ public interface IStyleBusiness {
      *
      * @return A parsed style
      */
-    public Style parseStyle(final String styleName, final Object source, final String fileName);
+    public org.apache.sis.style.Style parseStyle(final String styleName, final Object source, final String fileName);
 
     /**
      * Read a SLD from either a XML String or from an URL (pointing to an XML file).This method try to read it in all the available version until it succesfully read it.
@@ -248,7 +287,7 @@ public interface IStyleBusiness {
      * @return A Style.
      * @throws ConstellationException If the XML can not be read in any version (and throwEx set to {@code true}).
      */
-    Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException;
+    org.apache.sis.style.Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException;
 
     /**
      * Read a Style from either a XML String or from an URL (pointing to an XML file).
@@ -259,7 +298,7 @@ public interface IStyleBusiness {
      * @return A Style.
      * @throws ConstellationException If the XML is malformed. If the seVersion is not supported.
      */
-    Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException;
+    org.apache.sis.style.Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException;
 
     /**
      * Get the extraInfo from StyledLayer for a Style and a Layer.

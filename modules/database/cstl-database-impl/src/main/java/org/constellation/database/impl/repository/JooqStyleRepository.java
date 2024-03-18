@@ -190,6 +190,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
         styleRecord.setOwner(style.getOwnerId());
         styleRecord.setProvider(style.getProviderId());
         styleRecord.setType(style.getType());
+        styleRecord.setSpecification(style.getSpecification());
         // default value
         if (style.getIsShared() == null) {
             style.setIsShared(false);
@@ -209,6 +210,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
                 .set(STYLE.PROVIDER, s.getProviderId())
                 .set(STYLE.OWNER, s.getOwnerId())
                 .set(STYLE.TYPE, s.getType())
+                .set(STYLE.SPECIFICATION, s.getSpecification())
                 .where(STYLE.ID.eq(s.getId())).execute();
     }
 
@@ -362,6 +364,7 @@ public class JooqStyleRepository extends AbstractJooqRespository<StyleRecord, co
             p.setName(dao.getName());
             p.setType(dao.getType());
             p.setProviderId(dao.getProvider());
+            p.setSpecification(dao.getSpecification());
             return p;
         }
         return null;

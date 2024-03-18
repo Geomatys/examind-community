@@ -54,6 +54,7 @@ import org.apache.sis.referencing.operation.transform.TransformSeparator;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.style.Style;
 import org.apache.sis.util.ArgumentChecks;
 import org.constellation.api.DataType;
 import org.constellation.dto.BandDescription;
@@ -83,7 +84,6 @@ import org.opengis.referencing.datum.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.MathTransform1D;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 /**

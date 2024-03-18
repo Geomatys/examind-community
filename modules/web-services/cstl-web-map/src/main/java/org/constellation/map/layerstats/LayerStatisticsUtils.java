@@ -116,21 +116,26 @@ public class LayerStatisticsUtils {
         return new LayerStatistics(ruleStatsMap.values(), totalSurface.get(), totalLength.get(), totalPonctual.get(), totalCount.get());
     }
 
-    public static String computeStatisticsForLayerWithStyle(final Resource dataPOrigin, final Style style) throws ConstellationException {
+    public static String computeStatisticsForLayerWithStyle(final Resource dataPOrigin, final org.apache.sis.style.Style style) throws ConstellationException {
         ArgumentChecks.ensureNonNull("dataOrigin", dataPOrigin);
         ArgumentChecks.ensureNonNull("style", style);
         if (dataPOrigin instanceof FeatureSet featureSet) {
 
-            final List<Rule> rules = new ArrayList<>();
-            style.featureTypeStyles().forEach(fts -> rules.addAll(fts.rules()));
-            final LayerStatistics statistics = computeStatistics(rules, featureSet);
+            if (style instanceof Style st) {
+                final List<Rule> rules = new ArrayList<>();
+                st.featureTypeStyles().forEach(fts -> rules.addAll(fts.rules()));
+                final LayerStatistics statistics = computeStatistics(rules, featureSet);
 
-            try {
-                final ObjectMapper mapper = getMapper();
-                return mapper.writeValueAsString(statistics);
+                try {
+                    final ObjectMapper mapper = getMapper();
+                    return mapper.writeValueAsString(statistics);
 
-            } catch (JsonProcessingException e) {
-                throw new ConstellationException("Error while serializing statistics to String.");
+                } catch (JsonProcessingException e) {
+                    throw new ConstellationException("Error while serializing statistics to String.");
+                }
+            } else {
+                LOGGER.warning("Type of style not supported yet in statistics computation : " + style.getClass());
+                return null;
             }
         } else {
             LOGGER.warning("Type of resource not supported yet in statistics computation : " + dataPOrigin.getClass());

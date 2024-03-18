@@ -88,7 +88,7 @@ public class TestSamples {
         return newData(ownerId, providerId, datasetId, "test data 5 ", "", "COVERAGE", true, false, false, true, null);
     }
 
-    public static Data newData(Integer ownerId, Integer providerId, Integer datasetId, String name, String namespace, 
+    public static Data newData(Integer ownerId, Integer providerId, Integer datasetId, String name, String namespace,
             String type, boolean hidden, boolean included, boolean sensorable, boolean rendered, String subType) {
         Data data = new Data();
         data.setDate(new Date());
@@ -369,6 +369,7 @@ public class TestSamples {
         style.setType("VECTOR");
         style.setIsShared(Boolean.TRUE);
         style.setProviderId(1);
+        style.setSpecification("sld");
         style.setName(name);
         return style;
     }
@@ -380,6 +381,7 @@ public class TestSamples {
         style.setOwnerId(ownerId);
         style.setType("VE''CTOR");
         style.setIsShared(Boolean.FALSE);
+        style.setSpecification("sld");
         style.setProviderId(1);
         style.setName(name);
         return style;

@@ -24,6 +24,7 @@ import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.style.Style;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
@@ -36,7 +37,6 @@ import org.geotoolkit.storage.feature.query.Query;
 import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.geometry.Envelope;
-import org.opengis.style.Style;
 import org.opengis.util.GenericName;
 
 /**

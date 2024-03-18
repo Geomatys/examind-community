@@ -38,6 +38,7 @@ import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.style.Style;
 
 import org.constellation.api.ServiceDef.Query;
 import org.constellation.dto.DimensionRange;
@@ -53,7 +54,6 @@ import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 
 
 /**
@@ -278,7 +278,7 @@ public abstract class AbstractData<T extends Resource> implements Data<T> {
         }
         if (styleI == null) {
             try {
-                styleI = DataProviders.getStyle("default-line");
+                styleI = (Style) DataProviders.getStyle("default-line");
             } catch (ConstellationException ex) {
                 throw new ConstellationStoreException(ex);
             }

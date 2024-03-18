@@ -21,13 +21,13 @@ package org.constellation.provider.mapcontext;
 import org.apache.sis.map.MapItem;
 import org.apache.sis.map.MapLayers;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.style.Style;
 import org.constellation.api.DataType;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.AbstractData;
 import org.constellation.provider.Data;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
-import org.opengis.style.Style;
 
 /**
  *

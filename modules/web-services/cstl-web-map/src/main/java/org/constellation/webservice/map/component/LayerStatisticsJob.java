@@ -146,7 +146,7 @@ public class LayerStatisticsJob implements ILayerStatisticsJob {
 
                     if (dataP instanceof FeatureData fd) {
                         final FeatureSet featureSet = fd.getOrigin();
-                        final Style style = styleBusiness.getStyle(styleId);
+                        final org.apache.sis.style.Style style = styleBusiness.getStyle(styleId);
                         final String stats = LayerStatisticsUtils.computeStatisticsForLayerWithStyle(featureSet, style);
                         styledLayer.setStatsState(STATE_COMPLETED);
                         styledLayer.setExtraInfo(stats);

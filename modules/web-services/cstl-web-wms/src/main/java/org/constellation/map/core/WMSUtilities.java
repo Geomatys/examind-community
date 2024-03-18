@@ -20,8 +20,6 @@ package org.constellation.map.core;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +36,7 @@ import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.style.Style;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.filter.visitor.ListingPropertyVisitor;
 import org.geotoolkit.style.MutableFeatureTypeStyle;
@@ -47,7 +46,6 @@ import org.geotoolkit.wms.xml.v111.LatLonBoundingBox;
 import org.opengis.feature.Feature;
 import org.opengis.filter.Expression;
 import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.style.Style;
 
 /**
  *
@@ -165,7 +163,7 @@ public class WMSUtilities {
 
     /**
      * Ensure that the data envelope is not empty. It can occurs with vector data, on a single point.
-     * 
+     *
      * @param inputGeoBox the box to verify.
      * @return the input box extendd if needed.
      */
@@ -246,7 +244,7 @@ public class WMSUtilities {
             } else {
                 sb.append(r.getMinValue());
             }
-            
+
             first = false;
         }
         return sb.toString();

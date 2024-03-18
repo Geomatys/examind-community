@@ -65,6 +65,7 @@ import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.apache.sis.map.MapLayers;
 import org.apache.sis.storage.tiling.Tile;
 import org.apache.sis.storage.tiling.TileStatus;
+import org.apache.sis.style.Style;
 import org.geotoolkit.internal.referencing.CRSUtilities;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.*;
@@ -107,7 +108,6 @@ import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -609,7 +609,7 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
         final Map<String, Object> params = new HashMap<>();
         params.put("ELEVATION", elevation);
         params.put("TIME", time);
-        
+
         final SceneDef sdef = new SceneDef();
 
         try {

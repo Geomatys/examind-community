@@ -29,7 +29,6 @@ import java.util.Optional;
 import org.apache.sis.cql.CQL;
 import org.apache.sis.cql.CQLException;
 
-import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -45,6 +44,7 @@ import org.apache.sis.map.MapLayers;
 import org.apache.sis.map.MapItem;
 import org.apache.sis.map.MapLayer;
 import org.apache.sis.storage.FeatureQuery;
+import org.apache.sis.style.Style;
 
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IStyleBusiness;

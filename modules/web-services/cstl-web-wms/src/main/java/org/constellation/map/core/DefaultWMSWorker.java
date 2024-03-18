@@ -519,7 +519,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             if (stylesName != null && !stylesName.isEmpty()) {
                 // For each styles defined for the layer, get the dimension of the getLegendGraphic response.
                 for (StyleReference styleName : stylesName) {
-                    final org.opengis.style.Style ms = getStyle(styleName);
+                    final org.apache.sis.style.Style ms = getStyle(styleName);
                     String legendUrlPng2 =  legendUrlPng+"&STYLE="+ styleName.getName();
                     String legendUrlGif2 =  legendUrlGif+"&STYLE="+ styleName.getName();
                     final org.geotoolkit.wms.xml.Style style = convertStyleToWmsStyle(queryVersion, ms, data, legendUrlPng2, legendUrlGif2);
@@ -738,7 +738,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @param legendUrlGif
      * @return
      */
-    private org.geotoolkit.wms.xml.Style convertStyleToWmsStyle(final String currentVersion, final org.opengis.style.Style ms, final Data data,
+    private org.geotoolkit.wms.xml.Style convertStyleToWmsStyle(final String currentVersion, final org.apache.sis.style.Style ms, final Data data,
             final String legendUrlPng, final String legendUrlGif)
     {
         AbstractOnlineResource or = createOnlineResource(currentVersion, legendUrlPng);
@@ -756,7 +756,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         or = createOnlineResource(currentVersion, legendUrlGif);
         final AbstractLegendURL legendURL2 = createLegendURL(currentVersion, MimeType.IMAGE_GIF, or, dimension.width, dimension.height);
 
-        String styleName = ms.getName();
+        String styleName = (ms instanceof org.opengis.style.Style st) ? styleName = st.getName() : "unnamed";
         return createStyle(currentVersion, styleName, styleName, null, legendURL1, legendURL2);
     }
 
@@ -802,7 +802,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<String> styleNames   = getFI.getStyles();
         final StyledLayerDescriptor sld = getFI.getSld();
 
-        final List<org.opengis.style.Style> styles = getStyles(layersCache, sld, styleNames);
+        final List<org.apache.sis.style.Style> styles = getStyles(layersCache, sld, styleNames);
         List<List<String>> propertyNames = Collections.EMPTY_LIST;
         if (getFI.getParameters().containsKey(KEY_PROPERTYNAME)) {
             if (getFI.getParameters().get(KEY_PROPERTYNAME) instanceof List pname) {
@@ -917,7 +917,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final String sldUrl = getLegend.getSld();
         final String style = getLegend.getStyle();
         try {
-            org.opengis.style.Style ms = null;
+            org.apache.sis.style.Style ms = null;
             // If a sld file is given, extracts the style from it.
             if (sldUrl != null && !sldUrl.isEmpty()) {
                 if (getLegend.getSldVersion() == null) {
@@ -946,13 +946,13 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         continue;
                     }
                     if (layerName.equals(mutableLayerName)) {
-                        ms = (org.opengis.style.Style) mutableLayer.styles().get(0);
+                        ms = (org.apache.sis.style.Style) mutableLayer.styles().get(0);
                         break;
                     }
                 }
                 if (ms == null) {
                     LOGGER.log(Level.INFO, "No layer {0} found for the given SLD. Continue with the first style found.", layerName);
-                    ms = (org.opengis.style.Style) emptyNameMutableLayers.get(0).styles().get(0);
+                    ms = (org.apache.sis.style.Style) emptyNameMutableLayers.get(0).styles().get(0);
                 }
             } else if (style != null && !style.isEmpty()) {
                 for (StyleReference ref : layer.getStyles()) {
@@ -1035,7 +1035,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final List<String> styleNames = getMap.getStyles();
         final StyledLayerDescriptor sld = getMap.getSld();
 
-        List<org.opengis.style.Style> styles;
+        List<org.apache.sis.style.Style> styles;
         try {
             styles = getStyles(layersCache, sld, styleNames);
         } catch (CstlServiceException ex) {
@@ -1275,7 +1275,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
     }
 
-    private org.opengis.style.Style extractStyle(final QName layerName, final List<StyleReference> layerStyles, final StyledLayerDescriptor sld) throws CstlServiceException{
+    private org.apache.sis.style.Style extractStyle(final QName layerName, final List<StyleReference> layerStyles, final StyledLayerDescriptor sld) throws CstlServiceException{
         if(sld == null){
             throw new IllegalArgumentException("SLD should not be null");
         }
@@ -1302,7 +1302,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                         final StyleReference styleRef = Util.findStyleReference(namedStyle, layerStyles);
                         return getStyle(styleRef);
                     } else if (mls instanceof org.opengis.style.Style ms) {
-                        return ms;
+                        return (org.apache.sis.style.Style) ms;
                     }
 
                 }
@@ -1313,17 +1313,17 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         LOGGER.log(Level.INFO, "No layer {0} found for the styles defined in the given SLD file.", layerName);
         if (!emptyNameSLDLayers.isEmpty()) {
             LOGGER.info("Continue with the first style read in the SLD, that do not specify any layer on which to apply.");
-            return (org.opengis.style.Style) ((MutableNamedLayer)sld.layers().get(0)).styles().get(0);
+            return (org.apache.sis.style.Style) ((MutableNamedLayer)sld.layers().get(0)).styles().get(0);
         }
         return null;
     }
 
-    private List<org.opengis.style.Style> getStyles(final List<LayerCache> layers, final StyledLayerDescriptor sld, final List<String> styleNames) throws CstlServiceException {
-        final List<org.opengis.style.Style> results = new ArrayList<>();
+    private List<org.apache.sis.style.Style> getStyles(final List<LayerCache> layers, final StyledLayerDescriptor sld, final List<String> styleNames) throws CstlServiceException {
+        final List<org.apache.sis.style.Style> results = new ArrayList<>();
         int i = 0;
         for (LayerCache layer : layers) {
             final List<StyleReference> styles = layer.getStyles();
-            final org.opengis.style.Style style;
+            final org.apache.sis.style.Style style;
             if (sld != null) {
                 //try to use the provided SLD
                 style = extractStyle(layer.getName(), styles, sld);

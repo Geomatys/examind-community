@@ -46,7 +46,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,7 +62,6 @@ import org.constellation.dto.service.Service;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.geotoolkit.style.StyleUtilities;
-import org.opengis.style.StyleFactory;
 
 /**
  * @author Bernard Fabien (Geomatys)
@@ -103,6 +101,9 @@ public class StyleBusiness implements IStyleBusiness {
     @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
+    @Autowired
+    private Map<String, StyleSpecification> styleSpecifications;
+
     private final StyleXmlIO sldParser = new StyleXmlIO();
 
     private static final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
@@ -135,6 +136,26 @@ public class StyleBusiness implements IStyleBusiness {
             case 2  -> "sld_temp";
             default -> throw new IllegalArgumentException("Style provider with identifier \"" + id + "\" does not exist.");
         };
+    }
+
+    @Override
+    public Collection<StyleSpecification> specifications() {
+        return Collections.unmodifiableCollection(styleSpecifications.values());
+    }
+
+    @Override
+    public StyleSpecification specificationForName(String name) {
+        return styleSpecifications.get(name);
+    }
+
+    @Override
+    public StyleSpecification specificationForClass(Class clazz) {
+        for (StyleSpecification spec : styleSpecifications.values()) {
+            if (spec.getStyleClass().isAssignableFrom(clazz)) {
+                return spec;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -175,12 +196,37 @@ public class StyleBusiness implements IStyleBusiness {
         return style;
     }
 
+    @Override
+    @Transactional
+    public Integer createStyle(String providerId, String styleName, String specification, String styleTemplate) throws ConfigurationException {
+        final StyleSpecification spec = specificationForName(specification);
+        if (spec == null) throw new ConfigurationException("Style specification " + specification + " do not exist");
+        final org.apache.sis.style.Style style = spec.create(styleTemplate);
+        if (isBlank(styleName)) {
+            throw new ConfigurationException("Unable to create/update the style. No specified style name.");
+        }
+
+        // Retrieve or not the provider instance.
+        final int provider = nameToId(providerId);
+
+        Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
+        final Style newStyle = new Style();
+        newStyle.setName(styleName);
+        newStyle.setProviderId(provider);
+        newStyle.setType("VECTOR");
+        newStyle.setDate(new Date());
+        newStyle.setBody(spec.encode(style));
+        newStyle.setOwnerId(userId);
+        newStyle.setSpecification(spec.getName());
+        return styleRepository.create(newStyle);
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     @Transactional
-    public Integer createStyle(final String providerId, final org.opengis.style.Style styleI) throws ConfigurationException {
+    public Integer createStyle(final String providerId, final org.apache.sis.style.Style styleI) throws ConfigurationException {
         if (styleI instanceof MutableStyle style) {
             String styleName = style.getName();
 
@@ -197,7 +243,7 @@ public class StyleBusiness implements IStyleBusiness {
             // Retrieve or not the provider instance.
             final int provider = nameToId(providerId);
 
-            final String xmlStyle = writeStyle(sldParser, styleI);
+            final String xmlStyle = specificationForName("sld").encode(style);
 
             Integer userId = userBusiness.findOne(securityManager.getCurrentUserLogin()).map((CstlUser input) -> input.getId()).orElse(null);
             final Style newStyle = new Style();
@@ -207,6 +253,7 @@ public class StyleBusiness implements IStyleBusiness {
             newStyle.setDate(new Date());
             newStyle.setBody(xmlStyle);
             newStyle.setOwnerId(userId);
+            newStyle.setSpecification("sld");
             return styleRepository.create(newStyle);
         } else {
             throw new ConfigurationException("Style is not an instanceof Mutable style");
@@ -269,6 +316,7 @@ public class StyleBusiness implements IStyleBusiness {
         bean.setName(style.getName());
         bean.setProvider(idToName(style.getProviderId()));
         bean.setType(style.getType());
+        bean.setSpecification(style.getSpecification());
         final Optional<CstlUser> userStyle = userBusiness.findById(style.getOwnerId());
         if (userStyle.isPresent()) {
             bean.setOwner(userStyle.get().getLogin());
@@ -294,9 +342,9 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
-    public org.opengis.style.Style getStyle(final String providerId, final String styleName) throws TargetNotFoundException {
+    public org.apache.sis.style.Style getStyle(final String providerId, final String styleName) throws TargetNotFoundException, ConfigurationException {
         final Style style = ensureExistingStyle(providerId, styleName);
-        return parseStyle(style.getName(), style.getBody(), null);
+        return specificationForName(style.getSpecification()).decode(style.getBody());
     }
 
     /**
@@ -316,12 +364,17 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
-    public org.opengis.style.Style getStyle(int styleId) throws TargetNotFoundException {
+    public org.apache.sis.style.Style getStyle(int styleId) throws TargetNotFoundException {
         Style style = styleRepository.findById(styleId);
         if (style == null) {
             throw new TargetNotFoundException("Style with id" + styleId + " not found.");
         }
-        return parseStyle(style.getName(), style.getBody(), null);
+        try {
+            return specificationForName(style.getSpecification()).decode(style.getBody());
+        } catch (ConfigurationException ex) {
+            //TODO should be something else but not a TargetNotFoundException
+            throw new RuntimeException(ex);
+        }
     }
 
     /**
@@ -348,20 +401,25 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public void updateStyle(final int id, final org.opengis.style.Style style) throws ConfigurationException {
+        updateStyle(id, style.getName(), (org.apache.sis.style.Style) style);
+    }
+
+    @Override
+    @Transactional
+    public void updateStyle(final int id, String styleName, final org.apache.sis.style.Style style) throws ConfigurationException {
         ensureNonNull("Style", style);
-        final String styleName = style.getName();
         // Proceed style name.
-        if (isBlank(styleName)) {
-            throw new ConfigurationException("Unable to create/update the style. No specified style name.");
+        if (styleName != null && isBlank(styleName)) {
+            throw new ConfigurationException("Unable to update style. Specified style name must not be empty.");
         }
 
         final Style s = styleRepository.findById(id);
 
         if (s != null) {
-            final String xmlStyle = writeStyle(sldParser, style);
+            final String xmlStyle = specificationForClass(style.getClass()).encode(style);
             s.setBody(xmlStyle);
-            s.setType(getTypeFromMutableStyle((MutableStyle) style));
-            s.setName(styleName);
+            s.setType(style instanceof MutableStyle ? getTypeFromMutableStyle((MutableStyle) style) : "VECTOR");
+            if (styleName != null) s.setName(styleName);
             styleRepository.update(s);
 
             // Force statistics and state to null for each StyledLayer linked to this style.
@@ -455,6 +513,12 @@ public class StyleBusiness implements IStyleBusiness {
     @Override
     @Transactional
     public int deleteStyle(final int id) throws ConfigurationException {
+        //delete any stored resources associated
+        final StyleBrief brief = getStyleBrief(id);
+        if (!"sld".equals(brief.getSpecification())) {
+            StyleSpecification spec = specificationForName(brief.getSpecification());
+            spec.deleteResources(getStyle(id));
+        }
         return styleRepository.delete(id);
     }
 
@@ -532,7 +596,7 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
-    public org.opengis.style.Style parseStyle(final String styleName, final Object source, final String fileName) {
+    public org.apache.sis.style.Style parseStyle(final String styleName, final Object source, final String fileName) {
         MutableStyle value = null;
         final String baseErrorMsg = "SLD Style ";
          // 1. try UserStyle
@@ -656,24 +720,6 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     /**
-     * Transform a {@link org.opengis.style.Style} instance into a {@link String} instance.
-     *
-     * @param style The style to be written.
-     * @return a {@link String} instance
-     * @throws IOException On error while writing {@link org.opengis.style.Style} XML
-     */
-    private static String writeStyle(final StyleXmlIO sldParser, final org.opengis.style.Style style) throws ConfigurationException {
-        ensureNonNull("style", style);
-        try {
-            final StringWriter sw = new StringWriter();
-            sldParser.writeStyle(sw, style, Specification.StyledLayerDescriptor.V_1_1_0);
-            return sw.toString();
-        } catch (JAXBException ex) {
-            throw new ConfigurationException("An error occurred while writing MutableStyle XML.", ex);
-        }
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -719,8 +765,8 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
-    public org.opengis.style.Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException {
-        org.opengis.style.Style style = null;
+    public org.apache.sis.style.Style readStyle(final Object sldSrc, boolean throwEx) throws ConstellationException {
+       MutableStyle style = null;
         try {
             style = sldParser.readStyle(sldSrc, Specification.SymbologyEncoding.V_1_1_0);
         } catch (JAXBException ex) {
@@ -748,7 +794,7 @@ public class StyleBusiness implements IStyleBusiness {
      * {@inheritDoc}
      */
     @Override
-    public org.opengis.style.Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException {
+    public org.apache.sis.style.Style readStyle(final Object styleSrc, final String seVersion) throws ConstellationException {
         try {
             Specification.SymbologyEncoding version = Specification.SymbologyEncoding.version(seVersion);
             return sldParser.readStyle(styleSrc, version);

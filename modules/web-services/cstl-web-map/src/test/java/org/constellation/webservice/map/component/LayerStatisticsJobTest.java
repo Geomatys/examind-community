@@ -19,7 +19,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.style.Style;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.sis.style.Style;
 
 import static org.constellation.map.layerstats.LayerStatisticsUtils.getMapper;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
@@ -133,7 +133,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
 
             initialized = true;
         } else {
-            styleBusiness.updateStyle(styleId, style);
+            styleBusiness.updateStyle(styleId, null, style);
             styleBusiness.updateActivateStatsForLayerAndStyle(styleId, layerId, true);
         }
         layerStatisticsJob.syncUpdateStyledLayerStatistics(styleId, layerId);
@@ -200,7 +200,7 @@ public class LayerStatisticsJobTest extends SpringContextTest {
         // Add style to database
         final Path stylePath = DATA_DIRECTORY.resolve("Med_KBA_Tunisia_modified-sld.xml");
         Style style = styleBusiness.parseStyle(styleName, stylePath, styleName + ".xml");
-        styleBusiness.updateStyle(styleId, style);
+        styleBusiness.updateStyle(styleId, null, style);
 
         layerStatisticsJob.syncUpdateStyledLayerStatistics(styleId, layerId);
         final String extraInfo = styleBusiness.getExtraInfoForStyleAndLayer(styleId, layerId);
