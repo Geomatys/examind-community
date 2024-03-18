@@ -26,8 +26,8 @@ import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
 import org.jooq.Record1;
-import org.jooq.Record8;
-import org.jooq.Row8;
+import org.jooq.Record9;
+import org.jooq.Row9;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
@@ -35,7 +35,7 @@ import org.jooq.impl.UpdatableRecordImpl;
  * Generated DAO object for table admin.style
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
-public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Record8<Integer, String, Integer, String, Long, String, Integer, Boolean> {
+public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Record9<Integer, String, Integer, String, Long, String, Integer, Boolean, String> {
 
     private static final long serialVersionUID = 1L;
 
@@ -166,6 +166,22 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
         return (Boolean) get(7);
     }
 
+    /**
+     * Setter for <code>admin.style.specification</code>.
+     */
+    public StyleRecord setSpecification(String value) {
+        set(8, value);
+        return this;
+    }
+
+    /**
+     * Getter for <code>admin.style.specification</code>.
+     */
+    @Size(max = 100)
+    public String getSpecification() {
+        return (String) get(8);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -176,17 +192,17 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     }
 
     // -------------------------------------------------------------------------
-    // Record8 type implementation
+    // Record9 type implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<Integer, String, Integer, String, Long, String, Integer, Boolean> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row9<Integer, String, Integer, String, Long, String, Integer, Boolean, String> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 
     @Override
-    public Row8<Integer, String, Integer, String, Long, String, Integer, Boolean> valuesRow() {
-        return (Row8) super.valuesRow();
+    public Row9<Integer, String, Integer, String, Long, String, Integer, Boolean, String> valuesRow() {
+        return (Row9) super.valuesRow();
     }
 
     @Override
@@ -230,6 +246,11 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     }
 
     @Override
+    public Field<String> field9() {
+        return Style.STYLE.SPECIFICATION;
+    }
+
+    @Override
     public Integer component1() {
         return getId();
     }
@@ -270,6 +291,11 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     }
 
     @Override
+    public String component9() {
+        return getSpecification();
+    }
+
+    @Override
     public Integer value1() {
         return getId();
     }
@@ -307,6 +333,11 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     @Override
     public Boolean value8() {
         return getIsShared();
+    }
+
+    @Override
+    public String value9() {
+        return getSpecification();
     }
 
     @Override
@@ -358,7 +389,13 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     }
 
     @Override
-    public StyleRecord values(Integer value1, String value2, Integer value3, String value4, Long value5, String value6, Integer value7, Boolean value8) {
+    public StyleRecord value9(String value) {
+        setSpecification(value);
+        return this;
+    }
+
+    @Override
+    public StyleRecord values(Integer value1, String value2, Integer value3, String value4, Long value5, String value6, Integer value7, Boolean value8, String value9) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -367,6 +404,7 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
         value6(value6);
         value7(value7);
         value8(value8);
+        value9(value9);
         return this;
     }
 
@@ -384,7 +422,7 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
     /**
      * Create a detached, initialised StyleRecord
      */
-    public StyleRecord(Integer id, String name, Integer provider, String type, Long date, String body, Integer owner, Boolean isShared) {
+    public StyleRecord(Integer id, String name, Integer provider, String type, Long date, String body, Integer owner, Boolean isShared, String specification) {
         super(Style.STYLE);
 
         setId(id);
@@ -395,6 +433,7 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
         setBody(body);
         setOwner(owner);
         setIsShared(isShared);
+        setSpecification(specification);
         resetChangedOnNotNull();
     }
 
@@ -413,6 +452,7 @@ public class StyleRecord extends UpdatableRecordImpl<StyleRecord> implements Rec
             setBody(value.getBody());
             setOwner(value.getOwner());
             setIsShared(value.getIsShared());
+            setSpecification(value.getSpecification());
             resetChangedOnNotNull();
         }
     }

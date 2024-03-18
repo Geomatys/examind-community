@@ -41,6 +41,7 @@ public class Style implements Serializable {
     private String body;
     private Integer owner;
     private Boolean isShared;
+    private String specification;
 
     public Style() {}
 
@@ -53,6 +54,7 @@ public class Style implements Serializable {
         this.body = value.body;
         this.owner = value.owner;
         this.isShared = value.isShared;
+        this.specification = value.specification;
     }
 
     public Style(
@@ -63,7 +65,8 @@ public class Style implements Serializable {
         Long date,
         String body,
         Integer owner,
-        Boolean isShared
+        Boolean isShared,
+        String specification
     ) {
         this.id = id;
         this.name = name;
@@ -73,6 +76,7 @@ public class Style implements Serializable {
         this.body = body;
         this.owner = owner;
         this.isShared = isShared;
+        this.specification = specification;
     }
 
     /**
@@ -202,6 +206,22 @@ public class Style implements Serializable {
         return this;
     }
 
+    /**
+     * Getter for <code>admin.style.specification</code>.
+     */
+    @Size(max = 100)
+    public String getSpecification() {
+        return this.specification;
+    }
+
+    /**
+     * Setter for <code>admin.style.specification</code>.
+     */
+    public Style setSpecification(String specification) {
+        this.specification = specification;
+        return this;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
@@ -259,6 +279,12 @@ public class Style implements Serializable {
         }
         else if (!this.isShared.equals(other.isShared))
             return false;
+        if (this.specification == null) {
+            if (other.specification != null)
+                return false;
+        }
+        else if (!this.specification.equals(other.specification))
+            return false;
         return true;
     }
 
@@ -274,6 +300,7 @@ public class Style implements Serializable {
         result = prime * result + ((this.body == null) ? 0 : this.body.hashCode());
         result = prime * result + ((this.owner == null) ? 0 : this.owner.hashCode());
         result = prime * result + ((this.isShared == null) ? 0 : this.isShared.hashCode());
+        result = prime * result + ((this.specification == null) ? 0 : this.specification.hashCode());
         return result;
     }
 
@@ -289,6 +316,7 @@ public class Style implements Serializable {
         sb.append(", ").append(body);
         sb.append(", ").append(owner);
         sb.append(", ").append(isShared);
+        sb.append(", ").append(specification);
 
         sb.append(")");
         return sb.toString();

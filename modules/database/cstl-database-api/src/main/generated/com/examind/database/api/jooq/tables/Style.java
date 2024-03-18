@@ -30,13 +30,13 @@ import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
-import org.jooq.Function8;
+import org.jooq.Function9;
 import org.jooq.Identity;
 import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
-import org.jooq.Row8;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.SelectField;
 import org.jooq.Table;
@@ -108,6 +108,11 @@ public class Style extends TableImpl<StyleRecord> {
      * The column <code>admin.style.is_shared</code>.
      */
     public final TableField<StyleRecord, Boolean> IS_SHARED = createField(DSL.name("is_shared"), SQLDataType.BOOLEAN.nullable(false).defaultValue(DSL.field(DSL.raw("false"), SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>admin.style.specification</code>.
+     */
+    public final TableField<StyleRecord, String> SPECIFICATION = createField(DSL.name("specification"), SQLDataType.VARCHAR(100).nullable(false).defaultValue(DSL.field(DSL.raw("'sld'::character varying"), SQLDataType.VARCHAR)), this, "");
 
     private Style(Name alias, Table<StyleRecord> aliased) {
         this(alias, aliased, null);
@@ -224,18 +229,18 @@ public class Style extends TableImpl<StyleRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row8 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<Integer, String, Integer, String, Long, String, Integer, Boolean> fieldsRow() {
-        return (Row8) super.fieldsRow();
+    public Row9<Integer, String, Integer, String, Long, String, Integer, Boolean, String> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 
     /**
      * Convenience mapping calling {@link SelectField#convertFrom(Function)}.
      */
-    public <U> SelectField<U> mapping(Function8<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Function9<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? super String, ? extends U> from) {
         return convertFrom(Records.mapping(from));
     }
 
@@ -243,7 +248,7 @@ public class Style extends TableImpl<StyleRecord> {
      * Convenience mapping calling {@link SelectField#convertFrom(Class,
      * Function)}.
      */
-    public <U> SelectField<U> mapping(Class<U> toType, Function8<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? extends U> from) {
+    public <U> SelectField<U> mapping(Class<U> toType, Function9<? super Integer, ? super String, ? super Integer, ? super String, ? super Long, ? super String, ? super Integer, ? super Boolean, ? super String, ? extends U> from) {
         return convertFrom(toType, Records.mapping(from));
     }
 }
