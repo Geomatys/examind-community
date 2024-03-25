@@ -1449,7 +1449,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 sql.append( "OR \"id\" = ").appendValue(compo.getId());
             }
         }
-        sql.append(" OR  \"id\" IN ( SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+        sql.append(" OR  \"id\" IN ( SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
 
         if (phen instanceof CompositePhenomenon cPhen && !cPhen.getComponent().isEmpty()) {
             // look for other composite containing a component of the searched one

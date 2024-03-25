@@ -882,7 +882,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             secondRequest.replaceAll("op.\"id\" IN", "c.\"component\" IN");
             // -- end TODO
             
-            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\")", "op.\"id\" IN (SELECT DISTINCT(\"phenomenon\")");
             
             sqlRequest.join(joins, firstFilter);
 

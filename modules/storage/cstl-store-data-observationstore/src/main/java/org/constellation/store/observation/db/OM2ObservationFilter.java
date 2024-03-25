@@ -282,7 +282,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case POSTGRES     -> "st_asBinary(\"shape\") as \"shape\"";
             case DERBY,DUCKDB -> "\"shape\"";
         };
-        sqlRequest = new SingleFilterSQLRequest("SELECT distinct sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
+        sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
         obsJoin = false;
     }
@@ -291,7 +291,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.noCompositePhenomenon = query.isNoCompositePhenomenon();
         sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT(op.\"id\") as \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\" op ");
         if (noCompositePhenomenon) {
-            sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT \"phenomenon\" FROM \"").append(schemaPrefix).append("om\".\"components\") ");
+            sqlRequest.append(" WHERE op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\") FROM \"").append(schemaPrefix).append("om\".\"components\") ");
             firstFilter = false;
         } else {
             sqlRequest.append(" WHERE ");
@@ -300,7 +300,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     private void initFilterGetSensor() {
-        sqlRequest = new SingleFilterSQLRequest("SELECT distinct(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
+        sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT(pr.\"id\") FROM \"" + schemaPrefix + "om\".\"procedures\" pr WHERE ");
         firstFilter = true;
     }
 
@@ -466,7 +466,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     sb = sbPheno;
                 } else {
                     final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
-                    final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                    final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
                     for (String p : phenomenon) {
                         sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
                         sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
@@ -1028,15 +1028,15 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         switch (targetEntity) {
             case OBSERVED_PROPERTY -> {
-                select = " ${phen-prop-join} IN (select \"id_phenomenon\" FROM \"" + schemaPrefix + "om\".\"observed_properties_properties\" WHERE ";
+                select = " ${phen-prop-join} IN (select DISTINCT(\"id_phenomenon\") FROM \"" + schemaPrefix + "om\".\"observed_properties_properties\" WHERE ";
                 phenPropJoin = true;
             }
             case PROCEDURE -> {
-                select = " ${proc-prop-join} IN (select \"id_procedure\" FROM \"" + schemaPrefix + "om\".\"procedures_properties\" WHERE ";
+                select = " ${proc-prop-join} IN (select DISTINCT(\"id_procedure\") FROM \"" + schemaPrefix + "om\".\"procedures_properties\" WHERE ";
                 procPropJoin = true;
             }
             case FEATURE_OF_INTEREST -> {
-                select = " ${foi-prop-join} IN (select \"id_sampling_feature\" FROM \"" + schemaPrefix + "om\".\"sampling_features_properties\" WHERE ";
+                select = " ${foi-prop-join} IN (select DISTINCT(\"id_sampling_feature\") FROM \"" + schemaPrefix + "om\".\"sampling_features_properties\" WHERE ";
                 foiPropJoin = true;
             }
             default -> {
@@ -1698,7 +1698,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             secondRequest.replaceAll("op.\"id\" IN", "c.\"component\" IN");
             // -- end TODO
             
-            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT \"phenomenon\"", "op.\"id\" IN (SELECT \"phenomenon\"");
+            secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\")", "op.\"id\" IN (SELECT DISTINCT(\"phenomenon\")");
 
             sqlRequest.join(joins, firstFilter);
 

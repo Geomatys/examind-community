@@ -301,7 +301,7 @@ public class OM2BaseReader {
     protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi) {
         String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?";
         if (observedProperty != null) {
-             request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT \"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
+             request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
         }
         if (foi != null) {
             request = request + " AND \"foi\"=?";
@@ -414,7 +414,7 @@ public class OM2BaseReader {
          request.append(" WHERE \"component\" IN (");
          request.appendValues(fields.stream().map(f -> f.name).toList());
          request.append(" ) AND \"phenomenon\" NOT IN (");
-         request.append("SELECT cc.\"phenomenon\" FROM \"" + schemaPrefix + "om\".\"components\" cc WHERE ");
+         request.append("SELECT DISTINCT(cc.\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" cc WHERE ");
          for (Field field : fields) {
              request.append(" \"component\" <> ").appendValue(field.name).append(" AND ");
          }
