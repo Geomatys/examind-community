@@ -215,19 +215,20 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         
         this.singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
-            sqlRequest = new SingleFilterSQLRequest("SELECT distinct o.\"procedure\"");
+            sqlRequest = new SingleFilterSQLRequest("SELECT distinct ");
             if (singleObservedPropertyInTemplate) {
-                sqlRequest.append(", (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) AS \"obsprop\", pd.\"order\", pd.\"uom\"");
-            } 
+                sqlRequest.append("pd.\"procedure\", pd.\"field_name\" AS \"obsprop\", pd.\"order\", pd.\"uom\"");
+            } else {
+                sqlRequest.append("o.\"procedure\"");
+            }
             if (includeFoiInTemplate) {
-                sqlRequest.append(", \"foi\"");
+                sqlRequest.append(", o.\"foi\"");
+                obsJoin = true;
             }
             if (singleObservedPropertyInTemplate) {
-                sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o");
-                sqlRequest.append(" LEFT JOIN \"").append(schemaPrefix).append("om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\" , \"").append(schemaPrefix).append("om\".\"procedure_descriptions\" pd");
-                sqlRequest.append(" WHERE (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
-                sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\"");
-                firstFilter = false;
+                sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"procedure_descriptions\" pd ${obs-join-from} ");
+                sqlRequest.append(" WHERE ");
+                firstFilter = true;
             } else {
                 sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"observations\" o");
                 sqlRequest.append(" WHERE ");
@@ -396,6 +397,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     columnName = "off.\"procedure\"";
                 } else if (PROCEDURE.equals(objectType) || LOCATION.equals(objectType)) {
                     columnName = "pr.\"id\"";
+                } else if (singleObservedPropertyInTemplate) {
+                    columnName = "pd.\"procedure\"";
                 } else {
                     columnName = "o.\"procedure\"";
                     obsJoin = true;
@@ -459,7 +462,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 if (singleObservedPropertyInTemplate) {
                     final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
                     for (String p : phenomenon) {
-                        sbPheno.append(" (CASE WHEN \"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = ").appendValue(p).append(" OR ");
+                        sbPheno.append(" pd.\"field_name\" = ").appendValue(p).append(" OR ");
                         fields.addAll(getFieldsForPhenomenon(p));
                     }
                     sbPheno.deleteLastChar(3);
@@ -685,10 +688,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                     }
                                 } catch (NumberFormatException ex) {}
                             }
-                            if (existProcedure(sensorIdBase + procedureID)) {
-                                procSb.append("(o.\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
+                            String tablePrefix;
+                            if (singleObservedPropertyInTemplate) {
+                                tablePrefix = "pd";
                             } else {
-                                procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
+                                tablePrefix = "o";
+                            }
+                            if (existProcedure(sensorIdBase + procedureID)) {
+                                procSb.append("(").append(tablePrefix).append(".\"procedure\"=").appendValue(sensorIdBase + procedureID).append(") OR");
+                            } else {
+                                procSb.append("(").append(tablePrefix).append(".\"procedure\"=").appendValue(procedureID).append(") OR");
                             }
                         } else if (oid.startsWith(observationIdBase)) {
                             String[] component = oid.split("-");
@@ -1012,6 +1021,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 // we joins with the offerings
                 offJoin = true;
             } else if (objectType == OBSERVED_PROPERTY) {
+                // we joins with the observations
+                obsJoin = true;
+                
+            // TODO verify here if we must join without the target entity test
+            // like this
+            // } else if (objectType == OBSERVATION) {
+            } else if (objectType == OBSERVATION && targetEntity == FEATURE_OF_INTEREST) {
                 // we joins with the observations
                 obsJoin = true;
             }
@@ -1366,6 +1382,27 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     private CountOrIdentifiers filterObservation(boolean forCount) throws DataStoreException {
         final CountOrIdentifiers results  = new CountOrIdentifiers(forCount);
         List<TableJoin> joins = new ArrayList<>();
+        if (singleObservedPropertyInTemplate) {
+            if (obsJoin) {
+                String obsFrom = ",\"" + schemaPrefix + "om\".\"observations\" o  LEFT JOIN \"" + schemaPrefix + "om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\"";
+                sqlRequest.replaceAll("${obs-join-from}", obsFrom);
+                if (!firstFilter) {
+                    sqlRequest.append(" AND ");
+                }
+                sqlRequest.append(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
+                sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\" ");
+            } else {
+                sqlRequest.replaceAll("${obs-join-from}", "");
+                if (!firstFilter) {
+                    sqlRequest.append(" AND ");
+                }
+                // we must add a field filter to remove the "time" field of the timeseries
+                sqlRequest.append(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
+                // we must remove the quality fields
+                sqlRequest.append(" AND (pd.\"parent\" IS NULL) ");
+            }
+            firstFilter = false;
+        }
         if (phenPropJoin) {
             String joinColumn;
             if (MEASUREMENT_QNAME.equals(resultModel)) {
@@ -1376,19 +1413,26 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 joinColumn = "o.\"observed_property\"";
             }
             sqlRequest.replaceAll("${phen-prop-join}", joinColumn);
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = " + joinColumn));
         }
         if (procPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
-            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
+            String tablePrefix;
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                tablePrefix = "pd";
+            } else {
+                tablePrefix = "o";
+            }
+            sqlRequest.replaceAll("${proc-prop-join}", tablePrefix + ".\"procedure\"");
         }
         if (foiPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", " sfp.\"id_sampling_feature\" = o.\"foi\""));
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
         sqlRequest.join(joins, firstFilter);
         if (!forCount) {
-            sqlRequest.append(" ORDER BY o.\"procedure\"");
+            if (singleObservedPropertyInTemplate) {
+                sqlRequest.append(" ORDER BY pd.\"procedure\", pd.\"order\" "); 
+            } else {
+                sqlRequest.append(" ORDER BY o.\"procedure\"");
+            }
         }
         if (firstFilter) {
             sqlRequest = sqlRequest.replaceFirst("WHERE", "");
@@ -1634,12 +1678,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" off", "off.\"foi\" = sf.\"id\""));
         }
         if (foiPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sf.\"id\" = sfp.\"id_sampling_feature\""));
             sqlRequest.replaceAll("${foi-prop-join}", "sf.\"id\"");
         }
         if (procPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offerings\" offe", "off.\"id_offering\" = offe.\"identifier\""));
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = offe.\"procedure\""));
             sqlRequest.replaceAll("${proc-prop-join}", "offe.\"procedure\"");
         }
         if (phenPropJoin) {
@@ -1667,15 +1709,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedure_descriptions\" pd", "pd.\"field_name\" = op.\"id\""));
         }
         if (phenPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "op.\"id\" = opp.\"id_phenomenon\""));
             sqlRequest.replaceAll("${phen-prop-join}", "op.\"id\"");
         }
          if (procPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"procedures_properties\" prp", "prp.\"id_procedure\" = o.\"procedure\""));
             sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
         }
         if (foiPropJoin) {
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "sfp.\"id_sampling_feature\" = o.\"foi\""));
              sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
 
@@ -1729,7 +1768,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         if (foiPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" offf", "offf.\"id_offering\" = off.\"identifier\""));
-            //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"sampling_features_properties\" sfp", "offf.\"foi\" = sfp.\"id_sampling_feature\""));
             sqlRequest.replaceAll("${foi-prop-join}", "offf.\"foi\"");
         }
         sqlRequest.join(joins, firstFilter);

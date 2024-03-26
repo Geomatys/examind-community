@@ -2930,7 +2930,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
         assertEquals(expectedIds, resultIds);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -2943,7 +2943,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-4");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
@@ -3939,6 +3939,21 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         
         long count = omPr.getCount(query);
         assertEquals(21L, count);  // one is in double because of the foi
+        
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(20, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(20L, count);  // no more double because of the foi
+        
 
         // get all the sensor templates that have at an observed property with the property phen-category = biological and phen-category = organics
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -3973,8 +3988,244 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         count = omPr.getCount(query);
         assertEquals(14L, count);  // one is in double because of the foi
-    }
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
 
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(13, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(13L, count);  // no more double because of the foi
+    }
+    
+    @Test
+    public void getMeasurementTemplateFilter2Test() throws Exception {
+
+        // get all the sensor templates that have at a procedure with the property bss-code = 10972X0137/SER
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        Filter filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+            assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
+            org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
+            
+            assertTrue(proc.getProperties().containsKey("bss-code"));
+            Object catObj = proc.getProperties().get("bss-code");
+            // can be multiple
+            if (catObj instanceof List categories) {
+                assertTrue(categories.contains("10972X0137/SER"));
+            } else {
+                assertTrue(catObj instanceof String);
+                assertTrue(catObj.equals("10972X0137/SER"));
+            }
+        }
+        assertEquals(1, resultIds.size());
+        
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        long count = omPr.getCount(query);
+        assertEquals(1L, count);
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(1, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(1, count); 
+        
+        // get all the sensor templates that have at a procedure with the property bss-code = BSS10972X0137
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("BSS10972X0137"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+            assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
+            org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
+            
+            assertTrue(proc.getProperties().containsKey("bss-code"));
+            Object catObj = proc.getProperties().get("bss-code");
+            // can be multiple
+            if (catObj instanceof List categories) {
+                assertTrue(categories.contains("BSS10972X0137"));
+            } else {
+                assertTrue(catObj instanceof String);
+                assertTrue(catObj.equals("BSS10972X0137"));
+            }
+        }
+        assertEquals(3, resultIds.size());
+        
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3L, count); 
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(3, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(3L, count); 
+    }
+    
+    @Test
+    public void getMeasurementTemplateFilter3Test() throws Exception {
+
+        // get all the sensor templates that have  a feature of interest with the property commune = Argeles
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        Filter filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Argeles"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+            assertTrue(p.getFeatureOfInterest() instanceof org.geotoolkit.observation.model.SamplingFeature);
+            org.geotoolkit.observation.model.SamplingFeature foi = (org.geotoolkit.observation.model.SamplingFeature) p.getFeatureOfInterest();
+            
+            assertTrue(foi.getProperties().containsKey("commune"));
+            Object catObj = foi.getProperties().get("commune");
+            // can be multiple
+            if (catObj instanceof List categories) {
+                assertTrue(categories.contains("Argeles"));
+            } else {
+                assertTrue(catObj instanceof String);
+                assertTrue(catObj.equals("Argeles"));
+            }
+        }
+        assertEquals(17, resultIds.size());
+        
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        long count = omPr.getCount(query);
+        assertEquals(17L, count);
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(17, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(17L, count); 
+        
+        // get all the sensor templates that have a feature of interest with the property commune = Beziers
+        query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
+        filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = new HashSet<>();
+        for (Observation p : results) {
+            resultIds.add(p.getName().getCode());
+            assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
+            org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
+            
+            assertTrue(p.getFeatureOfInterest() instanceof org.geotoolkit.observation.model.SamplingFeature);
+            org.geotoolkit.observation.model.SamplingFeature foi = (org.geotoolkit.observation.model.SamplingFeature) p.getFeatureOfInterest();
+            
+            assertTrue(foi.getProperties().containsKey("commune"));
+            Object catObj = foi.getProperties().get("commune");
+            // can be multiple
+            if (catObj instanceof List categories) {
+                assertTrue(categories.contains("Beziers"));
+            } else {
+                assertTrue(catObj instanceof String);
+                assertTrue(catObj.equals("Beziers"));
+            }
+        }
+        assertEquals(12, resultIds.size());
+        
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
+
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(12L, count); 
+        
+        // same query but without including foi in template
+        query.setIncludeFoiInTemplate(false);
+        
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(12, resultIds.size());
+        
+         Assert.assertEquals(expectedIds, resultIds);
+        
+        count = omPr.getCount(query);
+        assertEquals(12L, count); 
+    }
+    
     @Test
     public void getObservationNamesTest() throws Exception {
         assertNotNull(omPr);
