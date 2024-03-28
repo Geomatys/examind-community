@@ -35,6 +35,7 @@ import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IProviderBusiness;
@@ -463,7 +464,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
     @Order(order=3)
     public void getObservationsDataStreamDataArrayTest() throws Exception {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-2");
         STSResponse resultObj = worker.getObservations(request);
 
@@ -651,7 +652,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
     @Order(order=3)
     public void getObservationsDataStreamDataArrayDecimTest() throws Exception {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:test-1-2");
         request.getExtraFlag().put("decimation", "10");
         STSResponse resultObj = worker.getObservations(request);
@@ -682,7 +683,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
     @Order(order=3)
     public void getObservationsMultiDataStreamDataArrayTest() throws Exception {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:8");
         request.getExtraFlag().put("forMDS", "true");
         STSResponse resultObj = worker.getObservations(request);

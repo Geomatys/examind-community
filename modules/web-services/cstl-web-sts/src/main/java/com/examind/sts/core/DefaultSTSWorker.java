@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.api.ServiceDef;
@@ -120,6 +121,7 @@ import static org.geotoolkit.observation.model.ResponseMode.INLINE;
 import static org.geotoolkit.observation.model.ResponseMode.RESULT_TEMPLATE;
 import org.geotoolkit.observation.query.ObservationQueryUtilities;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
+import org.geotoolkit.sts.json.CSVResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -366,7 +368,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                decimation = Integer.valueOf(req.getExtraFlag().get("decimation"));
             }
             final boolean applyPaging = (decimation == null);
-            final boolean isDataArray = "dataArray".equals(req.getResultFormat());
+            final boolean resultFormatted = req.getResultFormat() != null;
 
             final QName model;
             final boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
@@ -384,7 +386,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             List<org.opengis.observation.Observation> sps;
             final Integer reqTop = getRequestTop(req);
 
-            if (isDataArray) {
+            if (resultFormatted) {
                 final AbstractObservationQuery procSubquery = buildExtraFilterQuery(OMEntity.PROCEDURE, req, applyPaging);
 
                 ResultQuery resSubquery = new ResultQuery(model, INLINE, null, null);
@@ -394,15 +396,15 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 resSubquery.setDecimationSize(decimation);
                 resSubquery.setIncludeQualityFields(includeQUalityFields);
                 
-                Map<String, ComplexResult> resultArrays = new HashMap<>();
+                Map<String, ComplexResult> results = new HashMap<>();
                 if (reqTop == null || reqTop > 0) {
                     Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
                     count = req.getCount() ? new BigDecimal(0) : null;
                     for (String sensorId : sensorIds) {
                         resSubquery.setProcedure(sensorId);
-                        resSubquery.setResponseFormat("resultArray");
+                        resSubquery.setResponseFormat(req.getResultFormat());
                         ComplexResult resultArray = (ComplexResult) omProvider.getResults(resSubquery);
-                        resultArrays.put(sensorId, resultArray);
+                        results.put(sensorId, resultArray);
                         if (req.getCount()) {
                             resSubquery.setResponseFormat("count");
                             ComplexResult countResult = (ComplexResult) omProvider.getResults(resSubquery);
@@ -419,7 +421,25 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                         count = count.add(new BigDecimal(countResult.getNbValues()));
                     }
                 }
-                return buildDataArrayFromResults(resultArrays, model, count, null);
+                if (DATA_ARRAY.equals(req.getResultFormat())) {
+                    return buildDataArrayFromResults(results, model, count, null);
+                    
+                // here we assume the we are in csv like mode
+                } else {
+                    StringBuilder content = new StringBuilder();
+                    boolean first = true;
+                    for (ComplexResult cr: results.values()) {
+                        String values = cr.getValues();
+                        // after the first one, we remove the headers (todo c bancal)
+                        if (!first) {
+                            int pos = values.indexOf('\n');
+                            values = values.substring(pos + 1);
+                        }
+                        content.append(values);
+                        first = false;
+                    }
+                    return new CSVResponse(content.toString());
+                }
             }
 
             ObservationQuery obsSubquery = new ObservationQuery(model, INLINE, null);

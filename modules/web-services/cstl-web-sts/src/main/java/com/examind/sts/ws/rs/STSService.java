@@ -67,6 +67,8 @@ import org.geotoolkit.sts.GetSensorById;
 import org.geotoolkit.sts.GetSensors;
 import org.geotoolkit.sts.GetThingById;
 import org.geotoolkit.sts.GetThings;
+import org.geotoolkit.sts.json.CSVResponse;
+import org.geotoolkit.sts.json.STSResponse;
 import org.springframework.http.MediaType;
 
 
@@ -136,8 +138,12 @@ public class STSService extends OGCWebService<STSWorker> {
 
             } else if (request instanceof GetObservations) {
                 final GetObservations model = (GetObservations) request;
-                return new ResponseObject(worker.getObservations(model), MediaType.APPLICATION_JSON);
-
+                Object observations = worker.getObservations(model);
+                if (observations instanceof CSVResponse csvr) {
+                    return new ResponseObject(csvr.getContent(), MediaType.TEXT_PLAIN);
+                } else {
+                    return new ResponseObject(observations, MediaType.APPLICATION_JSON);
+                }
             } else if (request instanceof GetObservationById) {
                 final GetObservationById model = (GetObservationById) request;
                 return new ResponseObject(worker.getObservationById(model), MediaType.APPLICATION_JSON);

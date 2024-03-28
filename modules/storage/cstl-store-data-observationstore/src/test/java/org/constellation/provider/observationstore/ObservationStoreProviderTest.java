@@ -35,6 +35,7 @@ import jakarta.annotation.PostConstruct;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IProviderBusiness;
@@ -5104,7 +5105,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resSubquery.setSelection(filter);
         resSubquery.setIncludeTimeForProfile(true);
         resSubquery.setIncludeIdInDataBlock(false);
-        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setResponseFormat(DATA_ARRAY);
         resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
 
         Object o = omPr.getResults(resSubquery);
@@ -5119,7 +5120,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resSubquery.setSelection(filter);
         resSubquery.setIncludeTimeForProfile(true);
         resSubquery.setIncludeIdInDataBlock(true);
-        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setResponseFormat(DATA_ARRAY);
         resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:13");
 
         o = omPr.getResults(resSubquery);
@@ -5157,7 +5158,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resSubquery.setSelection(filter);
         resSubquery.setIncludeTimeForProfile(false);
         resSubquery.setIncludeIdInDataBlock(false);
-        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setResponseFormat(DATA_ARRAY);
         resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:14");
 
         Object o = omPr.getResults(resSubquery);
@@ -5172,7 +5173,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resSubquery.setSelection(filter);
         resSubquery.setIncludeTimeForProfile(true);
         resSubquery.setIncludeIdInDataBlock(true);
-        resSubquery.setResponseFormat("resultArray");
+        resSubquery.setResponseFormat(DATA_ARRAY);
         resSubquery.setProcedure("urn:ogc:object:sensor:GEOM:14");
 
         o = omPr.getResults(resSubquery);

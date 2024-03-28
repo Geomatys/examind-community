@@ -45,6 +45,7 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
@@ -404,7 +405,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
 
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
-        final ResultMode resultMode = "resultArray".equals(responseFormat) ? ResultMode.DATA_ARRAY : ResultMode.CSV;
+        final ResultMode resultMode = DATA_ARRAY.equals(responseFormat) ? ResultMode.DATA_ARRAY : ResultMode.CSV;
         ResultBuilder msb = ob.getResults(resultMode);
         final int currentCount   = ob.getResultsCount();
 

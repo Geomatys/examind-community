@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -62,7 +63,7 @@ public class ResultProcessor {
     }
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
-        if ("resultArray".equals(responseFormat)) {
+        if (DATA_ARRAY.equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
         } else if ("text/csv".equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);

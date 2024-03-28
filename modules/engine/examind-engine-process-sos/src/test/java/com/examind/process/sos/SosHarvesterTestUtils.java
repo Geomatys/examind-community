@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.AbstractFeature;
@@ -107,7 +108,7 @@ public class SosHarvesterTestUtils {
 
     public static Set<String> getQualityFieldNames(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFlag().put("forMDS", "true");
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
         DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
@@ -176,7 +177,7 @@ public class SosHarvesterTestUtils {
 
     public static Integer getNbMeasure(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFlag().put("forMDS", "true");
         request.setCount(true);
         request.setTop(0);
@@ -187,7 +188,7 @@ public class SosHarvesterTestUtils {
 
     public static String getMeasure(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         GetObservations request = new GetObservations();
-        request.setResultFormat("dataArray");
+        request.setResultFormat(DATA_ARRAY);
         request.getExtraFlag().put("forMDS", "true");
         request.setCount(false);
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);

@@ -93,6 +93,7 @@ public class CommonConstants {
     public static final String RESPONSE_FORMAT_V100_XML     = "text/xml; subtype=\"om/1.0.0\"";
     public static final String RESPONSE_FORMAT_V200_XML     = "http://www.opengis.net/om/2.0";
     public static final String RESPONSE_FORMAT_V200_JSON    = "application/json;subtype=\"http://www.opengis.net/om/2.0\"";
+    public static final String DATA_ARRAY = "dataArray";
 
     public static final String OM_NAMESPACE = "http://www.opengis.net/om/1.0";
 
