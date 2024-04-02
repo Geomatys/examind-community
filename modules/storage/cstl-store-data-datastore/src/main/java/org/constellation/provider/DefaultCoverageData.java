@@ -423,7 +423,7 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
         final int dimGridSpan = Math.toIntExact(extent.getSize(dimIdx));
         try {
             final MathTransform targetTransform = sep.separate();
-            final double[] gridPoints = DoubleStream.iterate(0, i -> i + 1)
+            final double[] gridPoints = DoubleStream.iterate(extent.getLow(dimIdx), i -> i + 1)
                     .limit(dimGridSpan)
                     .toArray();
             final double[] axisValues = new double[gridPoints.length];

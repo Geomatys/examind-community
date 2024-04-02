@@ -51,7 +51,6 @@ import static com.examind.provider.computed.ComputedResourceProviderDescriptor.D
 import static com.examind.provider.computed.ComputedResourceProviderDescriptor.DATA_NAME_ID;
 
 import org.constellation.repository.DataRepository;
-import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterValue;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -67,12 +66,17 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
 
     public ComputedResourceProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) {
         super(providerId,service,param);
-        dataIds = new ArrayList<>();
-        for (GeneralParameterValue value : param.values()) {
-            if (value.getDescriptor().equals(DATA_IDS)) {
-                dataIds.add(((ParameterValue) value).intValue());
-            }
-        }
+        dataIds = param.values().stream()
+                .<Integer>mapMulti((value, sink) -> {
+                    if (value.getDescriptor().equals(DATA_IDS) && value instanceof ParameterValue pv) {
+                        sink.accept(pv.intValue());
+                    }
+                })
+                .toList();
+    }
+
+    protected List<Integer> getSourceDataIds() {
+        return dataIds;
     }
 
     @Override
