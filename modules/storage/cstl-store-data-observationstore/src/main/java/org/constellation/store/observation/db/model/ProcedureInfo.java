@@ -28,13 +28,15 @@ public class ProcedureInfo {
     public final int pid;
     public final int nbTable;
     public final String procedureId;
+    public final String procedureName;
     public final String type;
     public final Field mainField;
 
-    public ProcedureInfo(int pid, int nbTable, String procedureId, String type, Field mainField) {
+    public ProcedureInfo(int pid, int nbTable, String procedureId, String procedureName, String type, Field mainField) {
         this.pid = pid;
         this.nbTable = nbTable;
         this.procedureId = procedureId;
+        this.procedureName = procedureName;
         this.type = type;
         this.mainField = mainField;
     }

@@ -772,7 +772,7 @@ public class OM2BaseReader {
                          rs.getInt("order"),
                          FieldType.fromLabel(rs.getString("field_type")),
                          fieldName,
-                         fieldName,
+                         rs.getString("label"),
                          rs.getString("field_definition"),
                          rs.getString("uom"),
                          rs.getInt("table_number"));
@@ -802,16 +802,9 @@ public class OM2BaseReader {
      * @throws SQLException id The sql query fails.
      */
     protected Optional<ProcedureInfo> getPIDFromObservation(final String obsIdentifier, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", p.\"id\", p.\"om_type\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT p.\"pid\", p.\"nb_table\", p.\"id\", p.\"om_type\", p.\"name\" FROM \"" + schemaPrefix + "om\".\"observations\", \"" + schemaPrefix + "om\".\"procedures\" p WHERE \"identifier\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setString(1, obsIdentifier);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    final String procedureId = rs.getString(3);
-                    final Field mainField = getMainField(procedureId, c);
-                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(4), mainField));
-                }
-                return Optional.empty();
-            }
+            return extractPID(stmt, c);
         }
     }
 
@@ -826,16 +819,20 @@ public class OM2BaseReader {
      * @throws SQLException id The sql query fails.
      */
     protected Optional<ProcedureInfo> getPIDFromOID(final int oid, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", p.\"id\", p.\"om_type\" FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"procedures\" p WHERE o.\"id\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT p.\"pid\", p.\"nb_table\", p.\"id\", p.\"om_type\", p.\"name\" FROM \"" + schemaPrefix + "om\".\"observations\" o, \"" + schemaPrefix + "om\".\"procedures\" p WHERE o.\"id\"=? AND \"procedure\"=p.\"id\"")) {//NOSONAR
             stmt.setInt(1, oid);
-            try (final ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                   final String procedureId = rs.getString(3);
-                   final Field mainField = getMainField(procedureId, c);
-                   return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(4), mainField));
-                }
-                return Optional.empty();
+            return extractPID(stmt, c);
+        }
+    }
+    
+    private Optional<ProcedureInfo> extractPID(final PreparedStatement stmt, Connection c) throws SQLException {
+        try (final ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+               final String procedureId = rs.getString(3);
+               final Field mainField = getMainField(procedureId, c);
+               return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(5), rs.getString(4), mainField));
             }
+            return Optional.empty();
         }
     }
 
@@ -848,12 +845,12 @@ public class OM2BaseReader {
      * @return Information about the procedureId such as PID and number of measure table.
      */
     protected Optional<ProcedureInfo> getPIDFromProcedure(final String procedureId, final Connection c) throws SQLException {
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", \"om_type\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+        try(final PreparedStatement stmt = c.prepareStatement("SELECT \"pid\", \"nb_table\", \"om_type\", \"name\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmt.setString(1, procedureId);
             try(final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     final Field mainField = getMainField(procedureId, c);
-                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(3), mainField));
+                    return Optional.of(new ProcedureInfo(rs.getInt(1), rs.getInt(2), procedureId, rs.getString(4), rs.getString(3), mainField));
                 }
                 return Optional.empty();
             }

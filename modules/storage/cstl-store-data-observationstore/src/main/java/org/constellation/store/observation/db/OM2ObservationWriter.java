@@ -826,7 +826,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             writeProcedure(child, procedureID, c);
         }
         // we don't fill the mainField at this point
-        return new ProcedureInfo(pid, nbTable, procedureID, procedure.omType, null);
+        return new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
     }
 
     private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException {
@@ -2169,7 +2169,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {
-        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?)")) {//NOSONAR
+        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?,?)")) {//NOSONAR
             for (DbField field : fields) {
                 insertField(insertFieldStmt, procedureID, field, null, offset);
                 if (field.qualityFields != null) {
@@ -2205,6 +2205,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             insertFieldStmt.setNull(7, java.sql.Types.VARCHAR);
         }
         insertFieldStmt.setInt(8, field.tableNumber);
+        insertFieldStmt.setString(9, field.label);
         insertFieldStmt.executeUpdate();
     }
     
