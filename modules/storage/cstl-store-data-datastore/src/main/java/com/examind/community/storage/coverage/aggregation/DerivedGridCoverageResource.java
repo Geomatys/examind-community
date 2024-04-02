@@ -1,8 +1,8 @@
 package com.examind.community.storage.coverage.aggregation;
 
-import org.apache.sis.internal.storage.MetadataBuilder;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
+import org.apache.sis.storage.base.MetadataBuilder;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.opengis.metadata.Metadata;
