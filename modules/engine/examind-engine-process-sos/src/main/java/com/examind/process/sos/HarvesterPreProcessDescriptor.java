@@ -36,7 +36,6 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class HarvesterPreProcessDescriptor extends AbstractProcessDescriptor{
 
-    /**Process name : addition */
     public static final String NAME = "sosHarvester.prepare";
 
     private static final ParameterBuilder PARAM_BUILDER = new ParameterBuilder();
