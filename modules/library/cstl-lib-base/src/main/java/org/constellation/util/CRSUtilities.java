@@ -71,12 +71,12 @@ public class CRSUtilities {
 
                 for (final String code : codes) {
                     try {
-                        final InternationalString descIs = factory.getDescriptionText(code);
+                        final InternationalString descIs = factory.getDescriptionText(CoordinateReferenceSystem.class, code).orElse(null);
                         final String description = descIs != null ? " - " + descIs.toString() : "";
 
                         final String codeAndName = code + description;
                         crsList.put(code, codeAndName);
-                        final IdentifiedObject obj = factory.createObject(code);
+                        final IdentifiedObject obj = factory.createCoordinateReferenceSystem(code);
                         final String wkt = obj.getName().toString();
                         if (code.startsWith("EPSG")) {
                             wktCrsList.put(wkt + " - EPSG:" + code, code);

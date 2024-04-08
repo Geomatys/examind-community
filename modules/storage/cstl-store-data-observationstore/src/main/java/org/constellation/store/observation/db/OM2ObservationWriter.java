@@ -184,7 +184,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             sqlConflictRequest.append(" AND ( ");
             addtimeDuringSQLFilter(sqlConflictRequest, samplingTime, "o");
             sqlConflictRequest.append(" ) ");
-            
+
             try (final SQLResult rs = sqlConflictRequest.execute(c)) {
                 while (rs.next()) {
                     // look for observation time extension
@@ -204,7 +204,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                     obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"),
                             obsBegin, obsEnd, extBegin, extEnd));
-                    
+
                 }
             } catch (SQLException ex) {
                 throw new DataStoreException("Error while looking for conflicting observation:" + ex.getMessage(), ex);
@@ -239,7 +239,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         final Procedure procedure  = observation.getProcedure();
         final String procedureID   = procedure.getId();
         final String procedureOMType = (String) procedure.getProperties().getOrDefault("type", "timeseries");
-        
+
         final TemporalObject samplingTime = observation.getSamplingTime();
 
         final SamplingFeature foi = observation.getFeatureOfInterest();
@@ -251,7 +251,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         final Phenomenon phenomenon = observation.getObservedProperty();
 
         List<ObservationRef> conflictedObservations = isConflicted(c, procedureID, samplingTime, foiID);
-        
+
         final Phenomenon phenRef;
         final String observationName;
 
@@ -336,7 +336,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 int modOid                 = replacingObs.id;
                 observationName            = replacingObs.name;
                 boolean replacePhen        = false;
-                
+
                 // write the new phenomenon even if its not actually used in the observation
                 // for a composite, we need to write at least the component
                 writePhenomenon(phenomenon, c, false);
@@ -346,7 +346,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 * update an existing observation
                 */
                 if (conflictedObservations.size() == 1) {
-                    
+
                     writeResult(modOid, pi, observation.getResult(), c, true);
 
                     replacePhen = !replacingObs.phenomenonId.equals(newPhen);
@@ -422,7 +422,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     updateEnd.executeUpdate();
                 }
             }
-            
+
             String parent = getProcedureParent(procedureID, c);
             if (parent != null) {
                 updateOrCreateOffering(parent,samplingTime, phenRef, foiID, c);
@@ -437,7 +437,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     /**
      * is this still relevant???
-     * 
+     *
      * @param procedureID
      * @param result
      */
@@ -554,7 +554,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
                 }
                 if (phenomenon instanceof CompositePhenomenon composite) {
-                    
+
                     try(final PreparedStatement stmtInsertCompo = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"components\" VALUES(?,?,?)")) {//NOSONAR
                         int cpt = 0;
                         for (org.opengis.observation.Phenomenon childA : composite.getComponent()) {
@@ -587,7 +587,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 }
             } else {
-                
+
                 try(final PreparedStatement stmtUpdate = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"observed_properties\" SET \"name\" = ?, \"definition\" = ?, \"description\" = ? WHERE \"id\"= ?")) {//NOSONAR
                     if (phenomenon.getName() != null) {
                         stmtUpdate.setString(1, phenomenon.getName());
@@ -603,7 +603,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmtUpdate.setString(4, phenomenonId);
                     stmtUpdate.executeUpdate();
                 }
-                
+
                 deleteProperties("observed_properties_properties", "id_phenomenon", phenomenonId, c);
                 writeProperties("observed_properties_properties", phenomenonId, phenomenon.getProperties(), c);
             }
@@ -907,7 +907,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     private void writeResult(final int oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof MeasureResult measRes) {
-            
+
             buildMeasureTable(pi, Arrays.asList(MEASURE_SINGLE_FIELD),  c);
             if (update) {
                 try (final PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" SET \"value\" = ? WHERE \"id_observation\"= ? AND id = 1")) {//NOSONAR
@@ -1242,7 +1242,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         opstmt.executeUpdate();
                     }
                 }
-                
+
                 try (final PreparedStatement opstmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"offering_observed_properties\" VALUES(?,?)")) {//NOSONAR
                     for (String op : offering.getObservedProperties()) {
                         if (op != null) {
@@ -1393,7 +1393,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         // case 1.1: simple case. observation has the same phenomenon or the phenomenon is a subset.
                         if (isEqualsOrSubset(cdt.phenomenon, obs.getObservedProperty())) {
                             removeObservation(cdt.id, cdt.pi, c);
-                            
+
                             // remove procedure if needed
                             boolean removed = removeProcedureIfEmpty(cdt.pi, c);
                             if (removed) sensorRemoved.add(cdt.pi.procedureId);
@@ -1406,7 +1406,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c);
                             removeEmptyMeasures(cdt, c);
-                            
+
                             boolean rmo = removeObservationIfEmpty(cdt, c);
                             if (!rmo) {
                                 updateObservationTemporalBounds(cdt, c);
@@ -1447,7 +1447,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c, obs);
                             removeEmptyMeasures(cdt, c);
-                            
+
                             boolean rmo = removeObservationIfEmpty(cdt, c);
                             if (!rmo) {
                                 updateObservationTemporalBounds(cdt, c);
@@ -1460,7 +1460,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                 boolean removed = removeProcedureIfEmpty(cdt.pi, c);
                                 if (removed) sensorRemoved.add(cdt.pi.procedureId);
                             }
-                           
+
                         } else {
                             LOGGER.fine("Fine removal mode: no intersecting phenomenon. no deletion");
                         }
@@ -1469,7 +1469,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
                 }
             }
-            
+
         } catch (SQLException ex) {
             throw new DataStoreException("Error while removing observation Dataset.", ex);
         }
@@ -1577,7 +1577,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private void removeProcedure(final ProcedureInfo pi, final Connection c) throws SQLException, DataStoreException {
         if (pi == null) return;
-        
+
         deleteProperties("procedures_properties", "id_procedure", pi.procedureId, c);
         removeObservationForProcedure(pi.procedureId, c);
 
@@ -1693,7 +1693,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @param c A SQL connection.
      */
     private synchronized void removeObservation(final String observationID, final ProcedureInfo pi, Connection c) throws SQLException, DataStoreException {
-        
+
         // remove from measure tables
         for (int i = 0; i < pi.nbTable; i++) {
             String suffix = pi.pid + "";
@@ -1879,7 +1879,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             String tableName = "mesure" + pi.pid + "_" + tableNum;
             sql.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m" + tableNum + " ");
             where.append(" m" + tableNum + ".\"id\" = m1.\"id\" AND ");
-           
+
         }
         sql.append(where);
         sql.append(" m1.\"id_observation\" = " + obsInfo.id);
@@ -1902,7 +1902,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     /**
      * Update the observation identifier by removing the specified fields from the current phenomenon fields.
      * Try to find an existing composite phenomenon if it exist. If not a new composite will be created.
-     * 
+     *
      * @param obsInfo Informations about the observation that need to be updated.
      * @param fieldsToRemove Phenomenon fields that need to be removed fom the current phenomenon.
      * @param c An SQL connection.
@@ -2060,7 +2060,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         int nbTable;
         int nbTabField;
         boolean firstField;
-        
+
         /**
          * Look for table existence.
          */
@@ -2071,7 +2071,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             nbTable     = 0;
             nbTabField  = 0;
             fieldOffset = 1;
-            
+
         } else if (allowSensorStructureUpdate) {
             oldfields               = readFields(pi.procedureId, c);
             firstField              = false;
@@ -2079,7 +2079,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             // number of field in the last measure table
             nbTabField              = getNbFieldInTable(pi.procedureId, nbTable, c);
             fieldOffset             = oldfields.size() + 1;
-            
+
         } else {
             throw new DataStoreException("Observation writer does not support sensor structure update");
         }
@@ -2121,7 +2121,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         try (final Statement stmt = c.createStatement()) {
 
             for (TableStatement ts : tablesStmt.values()) {
-                
+
                 if (ts instanceof TableCreation tc) {
                     StringBuilder tableStsmt = tc.sql;
 

@@ -67,9 +67,7 @@ import org.geotoolkit.storage.memory.ExtendedFeatureStore;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.geometry.Envelope;
-import org.opengis.metadata.extent.Extent;
 import org.opengis.metadata.extent.GeographicBoundingBox;
-import org.opengis.metadata.extent.GeographicExtent;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -573,15 +571,11 @@ public final class DataProviders extends Static{
         CoordinateReferenceSystem crs = CRS.getHorizontalComponent(envelope.getCoordinateReferenceSystem());
 
         //search for envelope directly in geographic
-        Extent extent = crs.getDomainOfValidity();
-        if (extent != null) {
-            for (GeographicExtent ext : extent.getGeographicElements()) {
-                if (ext instanceof GeographicBoundingBox geo) {
-                    env = new GeneralEnvelope(geo);
-                    env.simplify();
-                    return env;
-                }
-            }
+        GeographicBoundingBox geo = CRS.getGeographicBoundingBox(crs);
+        if (geo != null) {
+            env = new GeneralEnvelope(geo);
+            env.simplify();
+            return env;
         }
 
         //fallback on crs validity area
