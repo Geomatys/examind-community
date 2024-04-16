@@ -47,6 +47,7 @@
         <xstream.version>1.4.18</xstream.version>
         <antlr.version>4.11.1</antlr.version>
         <poi.version>5.2.3</poi.version>
+        <duckdb.version>0.10.1</duckdb.version>
         <!-- @{argLine} necessary for jacoco generation, we must declare
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
@@ -719,6 +720,12 @@
                 <artifactId>json</artifactId>
                 <version>20180130</version>
                 <scope>test</scope>
+            </dependency>
+            
+            <dependency>
+            	<groupId>org.duckdb</groupId>
+            	<artifactId>duckdb_jdbc</artifactId>
+            	<version>${duckdb.version}</version>
             </dependency>
 
         </dependencies>
