@@ -361,7 +361,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
-        final TemporaryResultBuilder values = new TemporaryResultBuilder(resultMode, DEFAULT_ENCODING, false);
+        final ResultBuilder values = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");

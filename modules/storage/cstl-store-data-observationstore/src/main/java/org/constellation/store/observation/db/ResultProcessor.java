@@ -40,7 +40,7 @@ public class ResultProcessor {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     
-    protected TemporaryResultBuilder values = null;
+    protected ResultBuilder values = null;
     protected final List<Field> fields;
     protected final boolean profile;
     protected final boolean includeId;
@@ -63,15 +63,15 @@ public class ResultProcessor {
 
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
         if ("resultArray".equals(responseFormat)) {
-            values = new TemporaryResultBuilder(ResultMode.DATA_ARRAY, null, false);
+            values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
         } else if ("text/csv".equals(responseFormat)) {
-            values = new TemporaryResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
+            values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
             // Add the header
             values.appendHeaders(fields);
         } else if (countRequest) {
-            values = new TemporaryResultBuilder(ResultMode.COUNT, null, false);
+            values = new ResultBuilder(ResultMode.COUNT, null, false);
         } else {
-            values = new TemporaryResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+            values = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
         }
         return values;
     }

@@ -266,12 +266,12 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             // main field
             if (i == mainFieldIndex) {
                 if (FieldType.TIME.equals(field.type)) {
-                    values.appendTime(new Date(mainValue), false);
+                    values.appendTime(new Date(mainValue), false, field);
                 } else if (FieldType.QUANTITY.equals(field.type)) {
                     // special case for profile + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
                     if (!skipProfileMain) {
-                        values.appendLong(mainValue, onlyProfileMain);
+                        values.appendLong(mainValue, onlyProfileMain, field);
                     }
                 } else {
                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
@@ -279,16 +279,16 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
             // time for profile field
             } else if (i < fieldOffset && field.type == FieldType.TIME) {
-                values.appendTime(t, false);
+                values.appendTime(t, false, field);
             // id field
             } else if (i < fieldOffset && field.type == FieldType.TEXT) {
-                values.appendString(procedure.procedureId + "-dec-" + cpt, false);
+                values.appendString(procedure.procedureId + "-dec-" + cpt, false, field);
             } else {
                 final double value = fieldValues.get(field.name)[index];
                 if (value != undefinedValue) {
-                    values.appendDouble(value, true);
+                    values.appendDouble(value, true, field);
                 } else {
-                    values.appendDouble(Double.NaN, true);
+                    values.appendDouble(Double.NaN, true, field);
                 }
             }
         }

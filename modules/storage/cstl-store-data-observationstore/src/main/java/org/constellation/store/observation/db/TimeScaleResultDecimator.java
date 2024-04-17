@@ -64,24 +64,24 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                     }
                 // id field
                 } else if (i < fieldOffset && field.type == FieldType.TEXT) {
-                    values.appendString(procedure.procedureId + "-dec-" + cpt, false);
+                    values.appendString(procedure.procedureId + "-dec-" + cpt, false, field);
                     cpt++;
                     continue;
                 }
                 switch (field.type) {
                     case TIME -> {
                         Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
-                        values.appendTime(t, true);
+                        values.appendTime(t, true, field);
                     }
                     case QUANTITY -> {
                         double dvalue = rs.getDouble(fieldName, rsIndex);
                         if (rs.wasNull(rsIndex)) {
                             dvalue = Double.NaN;
                         }
-                        values.appendDouble(dvalue, true);
+                        values.appendDouble(dvalue, true, field);
                     }
                     default-> {
-                        values.appendString(rs.getString(fieldName, rsIndex), true);
+                        values.appendString(rs.getString(fieldName, rsIndex), true, field);
                     }
                 }
             }

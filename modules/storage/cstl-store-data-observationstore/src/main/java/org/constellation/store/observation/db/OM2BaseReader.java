@@ -1017,7 +1017,7 @@ public class OM2BaseReader {
 
         final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>(), new ArrayList<>());
         int nbValue                 = 0;
-        final TemporaryResultBuilder values  = new TemporaryResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
+        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 
         FilterSQLRequest measureFilter = null;
         if (measureId != null) {

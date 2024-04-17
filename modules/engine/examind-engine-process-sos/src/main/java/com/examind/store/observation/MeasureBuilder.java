@@ -181,18 +181,18 @@ public class MeasureBuilder {
             // write the data line
             result.newBlock();
             if (isProfile) {
-                result.appendDouble((Double)mainValue);
+                result.appendDouble((Double)mainValue, false, null);
             } else {
-                result.appendTime((long)mainValue);
+                result.appendTime((long)mainValue, false, null);
             }
             for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
                 final String measureName = entry2.getKey();
                 if (measureColumnFound.contains(measureName)) {
                     final Measure measure = entry2.getValue();
                     
-                    result.appendValue(measure.value);
+                    result.appendValue(measure.value, true, null);
                     for (String qValue : measure.qualityValues) {
-                        result.appendString(qValue);
+                        result.appendString(qValue, false, null);
                     }
                     noneValue = false;
                 }

@@ -41,12 +41,12 @@ public class FieldParser {
     private final boolean profileWithTime;
     private final boolean includeID;
     private final boolean includeQuality;
-    private final TemporaryResultBuilder values;
+    private final ResultBuilder values;
     private String name;
 
     private boolean first = true;
 
-    public FieldParser(List<Field> fields, TemporaryResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
+    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
@@ -90,10 +90,10 @@ public class FieldParser {
             case TIME:
                 // profile with time field
                 if (profileWithTime && fieldIndex < offset) {
-                    values.appendTime(firstTime, isMeasureField);
+                    values.appendTime(firstTime, isMeasureField, field);
                 } else {
                     Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
-                    values.appendTime(t, isMeasureField);
+                    values.appendTime(t, isMeasureField, field);
                     
                     if (fieldIndex < offset) {
                         if (first) {
@@ -109,18 +109,18 @@ public class FieldParser {
                 if (rs.wasNull(rsIndex)) {
                     d = Double.NaN;
                 }
-                values.appendDouble(d, isMeasureField);
+                values.appendDouble(d, isMeasureField, field);
                 break;
             case BOOLEAN:
                 boolean bvalue = rs.getBoolean(fieldName, rsIndex);
-                values.appendBoolean(bvalue, isMeasureField);
+                values.appendBoolean(bvalue, isMeasureField, field);
                 break;
             default:
                 String svalue = rs.getString(fieldName, rsIndex);
                 if (includeID && fieldName.equals("id")) {
                     svalue = name + '-' + svalue;
                 }
-                values.appendString(svalue, isMeasureField);
+                values.appendString(svalue, isMeasureField, field);
                 break;
         }
     }
