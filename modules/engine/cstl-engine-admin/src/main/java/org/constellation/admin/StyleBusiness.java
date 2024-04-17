@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import jakarta.annotation.PostConstruct;
 import org.constellation.api.DataType;
 import org.constellation.api.StatisticState;
 import org.constellation.business.*;
@@ -101,8 +102,15 @@ public class StyleBusiness implements IStyleBusiness {
     @Autowired
     private org.constellation.security.SecurityManager securityManager;
 
-    @Autowired
+    @Autowired(required = false)
     private Map<String, StyleSpecification> styleSpecifications;
+    
+    @PostConstruct
+    private void init() {
+        if (styleSpecifications == null) {
+            styleSpecifications = Collections.EMPTY_MAP;
+        }
+    }
 
     private final StyleXmlIO sldParser = new StyleXmlIO();
 
@@ -144,8 +152,12 @@ public class StyleBusiness implements IStyleBusiness {
     }
 
     @Override
-    public StyleSpecification specificationForName(String name) {
-        return styleSpecifications.get(name);
+    public StyleSpecification specificationForName(String name) throws ConfigurationException {
+        StyleSpecification spec = styleSpecifications.get(name);
+        if (spec == null) {
+            throw new ConfigurationException("No style specification available for: " + name);
+        }
+        return spec;
     }
 
     @Override

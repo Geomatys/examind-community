@@ -47,7 +47,7 @@ public interface IStyleBusiness {
      * @param name specification name
      * @return Style specification or null
      */
-    StyleSpecification specificationForName(String name);
+    StyleSpecification specificationForName(String name) throws ConfigurationException;
 
     /**
      * Get StyleSpecification from style class name.

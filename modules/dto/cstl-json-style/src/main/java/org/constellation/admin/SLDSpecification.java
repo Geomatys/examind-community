@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.constellation.business;
+package org.constellation.admin;
 
 import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import org.constellation.business.StyleSpecification;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.geotoolkit.display2d.GO2Utilities;
