@@ -453,6 +453,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     private static final String WMS_GETMAP_GIF
             = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/gif&ReQuEsT=GetMap&StYlEs=&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
+    
+    private static final String WMS_GETMAP_STYLE_SENSOR
+            = "HeIgHt=100&LaYeRs=Lakes&FoRmAt=image/png&ReQuEsT=GetMap&StYlEs=default-point-sensor&CrS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.3.0&WiDtH=100";
 
     private static final String WMS_GETMAP_GIF_UNVALID_LAYER
             = "TrAnSpArEnT=False&HeIgHt=100&LaYeRs=unknownlayer&FoRmAt=image/gif&ReQuEsT=GetMap&StYlEs=&srS=CRS:84&BbOx=-0.0025,-0.0025,0.0025,0.0025&VeRsIoN=1.1.1&WiDtH=100&EXCEPTIONS=application/vnd.ogc.se_inimage";
@@ -549,7 +552,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "format=image/png&width=1024&height=512&"
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
             + "layers=" + JCOL_FILTER + "&styles=&elevation=700";
-
+    
     private static boolean initialized = false;
 
     private static Path CONFIG_DIR;
@@ -610,7 +613,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 datas.addAll(testResource.createProvider(TestResource.NETCDF_WITH_NAN, providerBusiness, null).datas);
 
                 DataImport d15 = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas.get(0);
-
+                
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
@@ -644,11 +647,15 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
+                int styleId1 = styleBusiness.getStyleId("sld", "default-polygon");
+                int styleId2 = styleBusiness.getStyleId("sld", "default-point-sensor");
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
                 // only add the 'lakes' data and add a namespace to the layer
                 for (DataImport d : shapeDatas) {
                     if ("Lakes".equals(d.name)) {
-                        layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm1Id, null);
+                        int layerId = layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm1Id, null);
+                        styleBusiness.linkToLayer(styleId2, layerId);
+                        styleBusiness.linkToLayer(styleId1, layerId);
                     }
                 }
 
@@ -2457,7 +2464,24 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         System.out.println("");
     }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapLakeSensorStyle() throws Exception {
+        initLayerList();
+        // Creates a valid GetMap url.
+        final URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETMAP_STYLE_SENSOR);
 
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        final BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(100, image.getWidth());
+        assertEquals(100, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 2);
+    }
+    
     @Test
     @Order(order = 30)
     public void testNewInstance() throws Exception {

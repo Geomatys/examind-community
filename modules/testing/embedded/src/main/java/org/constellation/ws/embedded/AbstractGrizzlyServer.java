@@ -95,6 +95,7 @@ import org.apache.catalina.Context;
 import org.geotoolkit.test.xml.DocumentComparator;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
+import org.constellation.business.IStyleBusiness;
 import org.constellation.business.IUserBusiness;
 import org.constellation.test.utils.JSONComparator;
 import org.constellation.util.NodeUtilities;
@@ -158,6 +159,7 @@ public abstract class AbstractGrizzlyServer {
     protected IPyramidBusiness pyramidBusiness;
     protected IMapContextBusiness mapBusiness;
     protected IDataCoverageJob dataCoverageJob;
+    protected IStyleBusiness styleBusiness;
 
     protected static Class controllerConfiguration;
     protected static Class apiControllerConfiguration = RestAPIControllerConfig.class;
@@ -192,6 +194,7 @@ public abstract class AbstractGrizzlyServer {
         pyramidBusiness  = SpringHelper.getBean(IPyramidBusiness.class).orElseThrow(IllegalStateException::new);
         mapBusiness      = SpringHelper.getBean(IMapContextBusiness.class).orElseThrow(IllegalStateException::new);
         dataCoverageJob  = SpringHelper.getBean(IDataCoverageJob.class).orElseThrow(IllegalStateException::new);
+        styleBusiness    = SpringHelper.getBean(IStyleBusiness.class).orElseThrow(IllegalStateException::new);
     }
 
     /**

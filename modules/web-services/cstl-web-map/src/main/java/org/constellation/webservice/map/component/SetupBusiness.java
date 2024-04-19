@@ -339,7 +339,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
                 final List<GraphicalSymbol> symbs = new ArrayList<>();
                 symbs.add(graphSymb);
                 final DefaultGraphic graphic = (DefaultGraphic) SF.graphic(symbs, null, null, null, null, null);
-                final DefaultPointSymbolizer pointSymbolizer = (DefaultPointSymbolizer) SF.pointSymbolizer(pointNormalStyleName, "",
+                final DefaultPointSymbolizer pointSymbolizer = (DefaultPointSymbolizer) SF.pointSymbolizer(pointNormalStyleName, (String)null,
                         null, null, graphic);
                 style.featureTypeStyles().get(0).rules().get(0).symbolizers().clear();
                 style.featureTypeStyles().get(0).rules().get(0).symbolizers().add(pointSymbolizer);
