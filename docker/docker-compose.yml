@@ -19,7 +19,7 @@ services :
        #image: tomcat:7-jre8
        restart: "no"
        volumes:
-         - "./mount/examind/data/:/var/examind/"
+         - "./mount/examind/data/:/var/examind/:Z"
          #- "./mount/examind/tomcat/webapps/:/usr/local/tomcat/webapps/"
          #- "./mount/examind/tomcat/fs/:/usr/local/tomcat/fs/"
          #- "./mount/examind/tomcat/bin/setenv.sh:/usr/local/tomcat/bin/setenv.sh"
