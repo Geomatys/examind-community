@@ -124,6 +124,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String COV_ALIAS = "SST";
     private static final String MARTINIQUE = "martinique";
     private static final String JCOL_FILTER = "JCOLF";
+    private static final String OM2_LAYER = "SamplingPoint";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -553,6 +554,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "crs=CRS:84&bbox=-81,35,-80.5,35.5&"
             + "layers=" + JCOL_FILTER + "&styles=&elevation=700";
     
+    private static final String WMS_GETMAP_OM2 = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&bbox=-180,-90,180,90&"
+            + "layers=" + OM2_LAYER + "&styles=";
+    
     private static boolean initialized = false;
 
     private static Path CONFIG_DIR;
@@ -563,7 +569,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         controllerConfiguration = WMSControllerConfig.class;
     }
 
-    private static final int DEF_NB_LAYER = 25;
+    private static final int DEF_NB_LAYER = 27;
 
     /**
      * Initialize the list of layers from the defined providers in
@@ -613,6 +619,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 datas.addAll(testResource.createProvider(TestResource.NETCDF_WITH_NAN, providerBusiness, null).datas);
 
                 DataImport d15 = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas.get(0);
+                
+                datas.addAll(testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).datas);
                 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -2480,6 +2488,26 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(100, image.getWidth());
         assertEquals(100, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 2);
+    }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapOM2() throws Exception {
+        initLayerList();
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_OM2);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("OM2.png");
+        writeInFile(getMapUrl, p);
+
+        System.out.println("");
     }
     
     @Test

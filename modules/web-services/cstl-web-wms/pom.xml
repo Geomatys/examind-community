@@ -98,6 +98,12 @@
         <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>com.examind.community</groupId>
+        <artifactId>cstl-store-data-observationstore</artifactId>
+        <version>${project.version}</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>org.apache.sis.storage</groupId>
         <artifactId>sis-netcdf</artifactId>
         <scope>test</scope>
