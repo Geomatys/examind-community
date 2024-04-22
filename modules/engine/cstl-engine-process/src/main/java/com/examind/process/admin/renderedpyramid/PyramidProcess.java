@@ -41,7 +41,7 @@ import org.geotoolkit.processing.AbstractProcessDescriptor;
 import org.geotoolkit.processing.ForwardProcessListener;
 import org.geotoolkit.storage.coverage.CoverageTileGenerator;
 import org.geotoolkit.storage.coverage.mosaic.AggregatedCoverageResource;
-import org.geotoolkit.storage.multires.WritableTiledResource;
+import org.apache.sis.storage.tiling.WritableTiledResource;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;

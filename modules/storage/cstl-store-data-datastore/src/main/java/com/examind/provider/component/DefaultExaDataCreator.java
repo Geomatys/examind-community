@@ -33,7 +33,7 @@ import org.constellation.provider.DefaultFeatureData;
 import org.constellation.provider.DefaultOtherData;
 import org.constellation.provider.mapcontext.DefaultMapContextData;
 import org.constellation.provider.DefaultPyramidData;
-import org.geotoolkit.storage.multires.TiledResource;
+import org.apache.sis.storage.tiling.TiledResource;
 import org.opengis.util.GenericName;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
