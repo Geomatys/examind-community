@@ -50,6 +50,7 @@ import org.constellation.dto.PagedSearch;
 import org.constellation.dto.Sort;
 import org.constellation.dto.StatInfo;
 import org.constellation.dto.StyleBrief;
+import org.constellation.exception.ConfigurationException;
 import org.constellation.json.util.StyleUtilities;
 import org.constellation.provider.Data;
 import org.constellation.provider.util.StatsUtilities;
@@ -70,6 +71,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import org.springframework.web.bind.annotation.RestController;
 import org.opengis.filter.Expression;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -98,17 +100,17 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/internal/styles/capabilities",method = GET, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity capabilities(){
         final Collection<StyleSpecification> specifications = styleBusiness.specifications();
-        
+
         final List<Map<String,Object>> capabilities = new ArrayList<>();
         for (StyleSpecification spec : specifications) {
             final Map<String,Object> params = new HashMap<>();
             params.put("name", spec.getName());
             params.put("templates", spec.getTemplates());
             capabilities.add(params);
-        }        
+        }
         return new ResponseEntity(capabilities,OK);
     }
-    
+
     /**
      * Create a new style with given template
      *
@@ -118,8 +120,8 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/create",method = POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createStyleJson(
-            @RequestParam(value="name",required=true) String name, 
-            @RequestParam(value="specification",required=true) String specification, 
+            @RequestParam(value="name",required=true) String name,
+            @RequestParam(value="specification",required=true) String specification,
             @RequestParam(value="template",required=false) String template){
         try {
             final Integer styleId = styleBusiness.createStyle("sld", name, specification, template);
@@ -129,7 +131,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
-    
+
     /**
      * Create a new style with internal JSON representation.
      *
@@ -174,6 +176,60 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 return new ErrorMessage(UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.ALREADY_EXIST).build();
             }
         } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Get a JSON representation of the style for edition purpose.
+     * This json is not a standard and made only for examind webui style editor.
+     *
+     * @param styleId
+     * @return editable style in json
+     */
+    @RequestMapping(value="/internal/styles/edit/{styleId}/**",method = GET)
+    public ResponseEntity getStyleForEdition(@PathVariable(value = "styleId") int styleId, HttpServletRequest request) {
+
+        String subPath = request.getRequestURI();
+        final String split = "/internal/styles/edit/" + styleId; // Dirty way to replicate the service URL to extract the path at the end
+        subPath = subPath.substring(subPath.indexOf(split)+split.length());
+
+        try {
+            final org.apache.sis.style.Style style = styleBusiness.getStyle(styleId);
+            final StyleSpecification specification = styleBusiness.specificationForClass(style.getClass());
+            final Map.Entry<String,Object> export = specification.exportToEdition(style, subPath);
+
+            final HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", export.getKey());
+            final ResponseEntity re = new ResponseEntity(export.getValue(), headers, OK);
+            return re;
+        } catch (ConfigurationException ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+
+    /**
+     * Update a style from it's JSON edition representation.
+     * This json is not a standard and made only for examind webui style editor.
+     *
+     * @param styleId
+     */
+    @RequestMapping(value="/internal/styles/edit/{styleId}/**",method = POST)
+    public ResponseEntity updateStyleForEdition(@PathVariable(value = "styleId") int styleId, @RequestBody(required = true) Object update, HttpServletRequest request) {
+
+        String subPath = request.getRequestURI();
+        final String split = "/internal/styles/edit/" + styleId; // Dirty way to replicate the service URL to extract the path at the end
+        subPath = subPath.substring(subPath.indexOf(split)+split.length());
+
+        try {
+            org.apache.sis.style.Style style = styleBusiness.getStyle(styleId);
+            final StyleSpecification specification = styleBusiness.specificationForClass(style.getClass());
+            style = specification.importFromEdition(style, subPath, update);
+            styleBusiness.updateStyle(styleId, null, style);
+            return new ResponseEntity(OK);
+        } catch (ConfigurationException ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();
         }
@@ -308,7 +364,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
                 return new ErrorMessage(HttpStatus.UNPROCESSABLE_ENTITY).i18N(I18nCodes.Style.NOT_COLORMAP).build();
             }
             return new ResponseEntity(new Repartition(points),OK);
-            
+
         } catch(TargetNotFoundException ex) {
             return new ErrorMessage(ex).i18N(I18nCodes.Style.NOT_FOUND).build();
         } catch(Exception ex) {
@@ -386,7 +442,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Data dataP                       = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs                      = dataP.getOrigin();
             final Style originalStyle              = wrapper.getStyle();
-            
+
             final org.opengis.style.Style mutableStyle = StyleUtilities.generateAutoUniqueStyle(autoUniqueValues, originalStyle, rs);
 
             //create the style in server
@@ -417,7 +473,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             final Data dataP                      = DataProviders.getProviderData(data.getProviderId(), data.getNamespace(), data.getName());
             final Resource rs                     = dataP.getOrigin();
             final ChartDataModel result           = StyleUtilities.generateChartData(attribute, intervals, rs);
-            
+
             return new ResponseEntity(result,OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

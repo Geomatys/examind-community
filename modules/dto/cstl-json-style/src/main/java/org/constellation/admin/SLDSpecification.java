@@ -18,15 +18,20 @@
  */
 package org.constellation.admin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Collections;
+import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.business.StyleSpecification;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
+import org.constellation.json.binding.Style;
 import org.geotoolkit.display2d.GO2Utilities;
 import org.geotoolkit.sld.StyledLayerDescriptor;
 import org.geotoolkit.sld.xml.Specification;
@@ -36,6 +41,7 @@ import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.MutableStyleFactory;
 import org.geotoolkit.style.StyleUtilities;
 import org.opengis.util.FactoryException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -47,6 +53,9 @@ public final class SLDSpecification implements StyleSpecification<MutableStyle> 
 
     private final StyleXmlIO sldParser = new StyleXmlIO();
     private static final MutableStyleFactory SF = GO2Utilities.STYLE_FACTORY;
+
+    @Autowired
+    private IStyleConverterBusiness styleConverterBusiness;
 
     @Override
     public String getName() {
@@ -60,7 +69,7 @@ public final class SLDSpecification implements StyleSpecification<MutableStyle> 
 
     @Override
     public Set<String> getTemplates() {
-        return Collections.EMPTY_SET;
+        return Set.of("empty");
     }
 
     @Override
@@ -123,7 +132,6 @@ public final class SLDSpecification implements StyleSpecification<MutableStyle> 
         return value;
     }
 
-
     private MutableStyle readStyle(final String sldSrc, boolean throwEx) throws ConfigurationException {
        MutableStyle style = null;
         try {
@@ -175,5 +183,25 @@ public final class SLDSpecification implements StyleSpecification<MutableStyle> 
     @Override
     public void deleteResources(MutableStyle style) throws ConfigurationException {
         //nothing to delete
+    }
+
+    @Override
+    public Map.Entry<String,Object> exportToEdition(MutableStyle style, String subPath) throws ConfigurationException {
+        final Style json = styleConverterBusiness.getJsonStyle(style);
+        try {
+            return new AbstractMap.SimpleImmutableEntry<>("application/json", new ObjectMapper().writeValueAsString(json));
+        } catch (JsonProcessingException ex) {
+            throw new ConfigurationException("Failed to encode style in JSON",ex);
+        }
+    }
+
+    @Override
+    public MutableStyle importFromEdition(MutableStyle style, String subPath, Object json) throws ConfigurationException {
+        try {
+            final Style jsonStyle = new ObjectMapper().readValue(String.valueOf(json), Style.class);
+            return org.constellation.json.util.StyleUtilities.type(jsonStyle);
+        } catch (JsonProcessingException ex) {
+            throw new ConfigurationException("Failed to parse json style", ex);
+        }
     }
 }
