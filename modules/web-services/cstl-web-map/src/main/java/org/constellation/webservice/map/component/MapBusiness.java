@@ -157,15 +157,15 @@ public class MapBusiness implements IMapBusiness {
                                      final String filter) throws ConstellationException {
         ensureNonNull("dataId", dataIds);
         List<Style> styles = new ArrayList<>();
-        if (styleIds != null) {
-            ensureCountBetween("data/style size", false, dataIds.size(), dataIds.size(), styles.size());
+        if (styleIds != null && !styleIds.isEmpty()) {
+            ensureCountBetween("data/style size", false, dataIds.size(), dataIds.size(), styleIds.size());
             for (int i = 0; i < dataIds.size(); i++) {
                 Integer sid = styleIds.get(i);
                 Style s = null;
                 if (sid != null) {
                     s = styleBusiness.getStyle(sid);
                 }
-                styles.add(null);
+                styles.add(s);
             }
         } else {
             // create a list full of null

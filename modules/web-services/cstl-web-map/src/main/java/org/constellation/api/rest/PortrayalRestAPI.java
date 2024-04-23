@@ -175,15 +175,17 @@ public class PortrayalRestAPI {
             if (dataIds != null) {
                 String[] ss = dataIds.split(",");
                 for (String s : ss) {
-                    dids.add(Integer.parseInt(s));
+                    dids.add(Integer.valueOf(s));
                 }
             }
             List<Integer> sids = new ArrayList<>();
-            if (styleIds != null) {
+            if (styleIds != null && !styleIds.isEmpty()) {
                 String[] ss = styleIds.split(",");
                 for (String s : ss) {
-                    if (s.equalsIgnoreCase("null")) {
-                        sids.add(Integer.parseInt(s));
+                    if (!(s.equalsIgnoreCase("null") || s.isEmpty())) {
+                        sids.add(Integer.valueOf(s));
+                    } else {
+                        sids.add(null);
                     }
                 }
             }
