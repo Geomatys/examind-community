@@ -377,13 +377,14 @@ public class TestEnvironment {
     }
 
     private static String getEPSGVersion() {
-        final CRSAuthorityFactory epsg;
+        final InternationalString edition;
         try {
-            epsg = CRS.getAuthorityFactory("EPSG");
+            final CRSAuthorityFactory epsg = CRS.getAuthorityFactory("EPSG");
+            edition = epsg.getAuthority().getEdition();
         } catch (FactoryException e) {
             throw new IllegalStateException("No EPSG factory defined", e);
         }
-        final InternationalString edition = epsg.getAuthority().getEdition();
+
         if (edition == null) throw new IllegalStateException("No EPSG version defined !");
         return edition.toString(Locale.ROOT);
     }

@@ -86,7 +86,7 @@ import org.opengis.metadata.identification.TopicCategory;
 import org.opengis.metadata.maintenance.ScopeCode;
 import org.opengis.metadata.spatial.GeometricObjectType;
 import org.opengis.referencing.cs.AxisDirection;
-import org.opengis.referencing.datum.VerticalDatumType;
+import org.opengis.referencing.datum.RealizationMethod;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.InternationalString;
@@ -595,7 +595,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         Map<String, String> prop = new HashMap<>();
         prop.put(DefaultVerticalDatum.NAME_KEY, datumID);
         prop.put(ObjectDomain.SCOPE_KEY, null);
-        DefaultVerticalDatum datum = new DefaultVerticalDatum(prop, VerticalDatumType.GEOIDAL);
+        DefaultVerticalDatum datum = new DefaultVerticalDatum(prop, RealizationMethod.GEOID);
 
 
         // vertical coordinate system  TODO var 32 uom?

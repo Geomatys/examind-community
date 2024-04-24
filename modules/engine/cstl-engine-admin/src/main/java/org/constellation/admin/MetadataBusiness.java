@@ -1136,7 +1136,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> roleCodes = new LinkedList<>();
         for (final org.opengis.metadata.citation.Role role : org.opengis.metadata.citation.Role.values()) {
             final String standardName = Types.getStandardName(role.getClass());
-            final String code = role.identifier()!=null?role.identifier():role.name();
+            final String code = role.identifier()!=null?role.identifier().orElse(null):role.name();
             final String codeListName = standardName+"."+code;
             roleCodes.add(codeListName);
         }
@@ -1147,7 +1147,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> keywordTypesCodes = new LinkedList<>();
         for (final KeywordType ktype : KeywordType.values()) {
             final String standardName = Types.getStandardName(ktype.getClass());
-            final String code = ktype.identifier()!=null?ktype.identifier():ktype.name();
+            final String code = ktype.identifier()!=null?ktype.identifier().orElse(null):ktype.name();
             final String codeListName = standardName+"."+code;
             keywordTypesCodes.add(codeListName);
         }
@@ -1168,7 +1168,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> topicCategoryCodes = new LinkedList<>();
         for (final TopicCategory tc : TopicCategory.values()) {
             final String standardName = Types.getStandardName(tc.getClass());
-            final String code = tc.identifier()!=null? tc.identifier(): tc.name();
+            final String code = tc.identifier()!=null? tc.identifier().orElse(null): tc.name();
             final String codeListName = standardName+"."+code;
             topicCategoryCodes.add(codeListName);
         }
@@ -1179,7 +1179,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> dateTypeCodes = new LinkedList<>();
         for (final DateType dateType : DateType.values()) {
             final String standardName = Types.getStandardName(dateType.getClass());
-            final String code = dateType.identifier()!=null? dateType.identifier(): dateType.name();
+            final String code = dateType.identifier()!=null? dateType.identifier().orElse(null): dateType.name();
             final String codeListName = standardName+"."+code;
             dateTypeCodes.add(codeListName);
         }
@@ -1190,7 +1190,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> maintenanceFrequencyCodes = new LinkedList<>();
         for (final MaintenanceFrequency cl : MaintenanceFrequency.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             maintenanceFrequencyCodes.add(codeListName);
         }
@@ -1201,7 +1201,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> geometricObjectTypeCodes = new LinkedList<>();
         for (final GeometricObjectType got : GeometricObjectType.values()) {
             final String standardName = Types.getStandardName(got.getClass());
-            final String code = got.identifier()!=null? got.identifier(): got.name();
+            final String code = got.identifier()!=null? got.identifier().orElse(null): got.name();
             final String codeListName = standardName+"."+code;
             geometricObjectTypeCodes.add(codeListName);
         }
@@ -1212,7 +1212,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> classificationCodes = new LinkedList<>();
         for (final Classification cl : Classification.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             classificationCodes.add(codeListName);
         }
@@ -1239,7 +1239,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> restrictionCodes = new LinkedList<>();
         for (final Restriction cl : Restriction.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             restrictionCodes.add(codeListName);
         }
@@ -1249,7 +1249,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> dimensionNameTypeCodes = new LinkedList<>();
         for (final DimensionNameType cl : DimensionNameType.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             dimensionNameTypeCodes.add(codeListName);
         }
@@ -1259,7 +1259,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> coverageContentTypeCodes = new LinkedList<>();
         for (final CoverageContentType cl : CoverageContentType.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             coverageContentTypeCodes.add(codeListName);
         }
@@ -1269,7 +1269,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> imagingConditionCodes = new LinkedList<>();
         for (final ImagingCondition cl : ImagingCondition.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             imagingConditionCodes.add(codeListName);
         }
@@ -1279,7 +1279,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> cellGeometryCodes = new LinkedList<>();
         for (final CellGeometry cl : CellGeometry.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             cellGeometryCodes.add(codeListName);
         }
@@ -1290,7 +1290,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> pixelOrientationCodes = new LinkedList<>();
         for (final PixelOrientation cl : PixelOrientation.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             pixelOrientationCodes.add(codeListName);
         }
@@ -1301,7 +1301,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> scopeCodes = new LinkedList<>();
         for (final ScopeCode cl : ScopeCode.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             scopeCodes.add(codeListName);
         }
@@ -1312,7 +1312,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> progressCodes = new LinkedList<>();
         for (final Progress cl : Progress.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             progressCodes.add(codeListName);
         }
@@ -1323,7 +1323,7 @@ public class MetadataBusiness implements IMetadataBusiness {
         final List<String> spatialRepresentationCodes = new LinkedList<>();
         for (final SpatialRepresentationType cl : SpatialRepresentationType.values()) {
             final String standardName = Types.getStandardName(cl.getClass());
-            final String code = cl.identifier()!=null? cl.identifier(): cl.name();
+            final String code = cl.identifier()!=null? cl.identifier().orElse(null): cl.name();
             final String codeListName = standardName+"."+code;
             spatialRepresentationCodes.add(codeListName);
         }

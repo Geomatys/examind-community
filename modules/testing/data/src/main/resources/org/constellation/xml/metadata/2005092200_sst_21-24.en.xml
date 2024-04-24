@@ -55,28 +55,34 @@
             </gmd:transformationParameterAvailability>
         </gmd:MD_GridSpatialRepresentation>
     </gmd:spatialRepresentationInfo>
-    <gmd:referenceSystemInfo>
-        <gmd:MD_ReferenceSystem>
-            <gmd:referenceSystemIdentifier>
-                <gmd:RS_Identifier>
-                    <gmd:code>
-                        <gcol:CharacterString>hours since 1992-1-1</gcol:CharacterString>
-                    </gmd:code>
-                </gmd:RS_Identifier>
-            </gmd:referenceSystemIdentifier>
-        </gmd:MD_ReferenceSystem>
-    </gmd:referenceSystemInfo>
-    <gmd:referenceSystemInfo>
-        <gmd:MD_ReferenceSystem>
-            <gmd:referenceSystemIdentifier>
-                <gmd:RS_Identifier>
-                    <gmd:code>
-                        <gcol:CharacterString>lon lat valtime</gcol:CharacterString>
-                    </gmd:code>
-                </gmd:RS_Identifier>
-            </gmd:referenceSystemIdentifier>
-        </gmd:MD_ReferenceSystem>
-    </gmd:referenceSystemInfo>
+    <gmd:referenceSystemInfo>        
+        <gmd:MD_ReferenceSystem>            
+            <gmd:referenceSystemIdentifier>                
+                <gmd:RS_Identifier>                    
+                    <gmd:code>                        
+                        <gcol:CharacterString>hours since 1992-1-1</gcol:CharacterString>                    
+                    </gmd:code>                
+                </gmd:RS_Identifier>            
+            </gmd:referenceSystemIdentifier>            
+            <gmd:referenceSystemType>                
+                <gmd:MD_ReferenceSystemTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ReferenceSystemTypeCode" codeListValue="temporal">Temporal</gmd:MD_ReferenceSystemTypeCode>            
+            </gmd:referenceSystemType>        
+        </gmd:MD_ReferenceSystem>    
+    </gmd:referenceSystemInfo>    
+    <gmd:referenceSystemInfo>        
+        <gmd:MD_ReferenceSystem>            
+            <gmd:referenceSystemIdentifier>                
+                <gmd:RS_Identifier>                    
+                    <gmd:code>                        
+                        <gcol:CharacterString>lon lat valtime</gcol:CharacterString>                    
+                    </gmd:code>                
+                </gmd:RS_Identifier>            
+            </gmd:referenceSystemIdentifier>            
+            <gmd:referenceSystemType>                
+                <gmd:MD_ReferenceSystemTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ReferenceSystemTypeCode" codeListValue="compoundGeographic2DTemporal">Compound geographic2DTemporal</gmd:MD_ReferenceSystemTypeCode>            
+            </gmd:referenceSystemType>        
+        </gmd:MD_ReferenceSystem>    
+    </gmd:referenceSystemInfo>    
     <gmd:identificationInfo>
         <gmd:MD_DataIdentification>
             <gmd:citation>

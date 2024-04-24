@@ -44,7 +44,7 @@ import org.geotoolkit.storage.multires.TiledResource;
 import org.geotoolkit.util.NamesExt;
 import org.junit.Assert;
 import org.junit.Test;
-import org.opengis.referencing.datum.PixelInCell;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.opengis.util.GenericName;
 
 /**

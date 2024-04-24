@@ -11,12 +11,12 @@ import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.apache.sis.referencing.operation.transform.TransformSeparator;
-import org.opengis.geometry.MismatchedDimensionException;
+import org.opengis.coordinate.MismatchedDimensionException;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.datum.Ellipsoid;
-import org.opengis.referencing.datum.PixelInCell;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.opengis.referencing.operation.CoordinateOperation;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.MathTransformFactory;
@@ -56,7 +56,7 @@ final class GridCalculator {
     static class Template {
 
         private final MathTransformFactory mtFactory;
-        private final ParameterValueGroup transformParams;
+        private final MathTransform.Builder transformBuilder;
 
         private final MathTransform gridToBase;
 
@@ -87,10 +87,11 @@ final class GridCalculator {
 
             this.gridToBase = wraparound.forDomainOfUse(gridToBaseWithoutWrapAround);
 
-            this.transformParams = mtFactory.getDefaultParameters("Modified Azimuthal Equidistant");
+            transformBuilder = mtFactory.builder("Modified Azimuthal Equidistant");
+
+
             final Ellipsoid ellipsoid = baseCrs.getDatum().getEllipsoid();
-            transformParams.parameter("semi_major").setValue(ellipsoid.getSemiMajorAxis());
-            transformParams.parameter("semi_minor").setValue(ellipsoid.getSemiMinorAxis());
+            transformBuilder.setSourceAxes(null, ellipsoid);
         }
 
 
@@ -99,11 +100,10 @@ final class GridCalculator {
             var covStart = new DirectPosition2D();
             gridToBase.transform(imgStart, covStart);
 
-            final ParameterValueGroup parameters = transformParams.getDescriptor().createValue();
-            Parameters.copy(transformParams, parameters);
+            final ParameterValueGroup parameters = transformBuilder.parameters();
             parameters.parameter("Latitude of natural origin").setValue(covStart.y, Units.DEGREE);
             parameters.parameter("Longitude of natural origin").setValue(covStart.x, Units.DEGREE);
-            final MathTransform geoToProj = mtFactory.createParameterizedTransform(parameters);
+            final MathTransform geoToProj = transformBuilder.create();
 
             return new GridCalculator(MathTransforms.concatenate(gridToBase, geoToProj));
         }

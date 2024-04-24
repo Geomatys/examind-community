@@ -75,6 +75,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.geotoolkit.processing.chain.model.Element.BEGIN;
+import org.opengis.util.InternationalString;
 import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -229,10 +230,12 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             for (GeneralParameterDescriptor inputDescriptor : descriptor.getInputDescriptor().descriptors()) {
 
                 String description = null;
-                if (inputDescriptor.getDescription() != null && !inputDescriptor.getDescription().isEmpty()) {
-                    description = inputDescriptor.getDescription().toString();
-                } else if (inputDescriptor.getRemarks() != null && !inputDescriptor.getRemarks().isEmpty()) {
-                    description = inputDescriptor.getRemarks().toString();
+                InternationalString desc = inputDescriptor.getDescription().orElse(null);
+                InternationalString rema = inputDescriptor.getRemarks().orElse(null);
+                if (desc != null && !desc.toString().isEmpty()) {
+                    description = desc.toString();
+                } else if (rema != null && !rema.toString().isEmpty()) {
+                    description = rema.toString();
                 }
 
                 String type = null;
@@ -265,11 +268,13 @@ public class OpenEOProcessService extends OGCWebService<WPSWorker> {
             //In openEO API we only can return one thing, so here we only work with the first output
             GeneralParameterDescriptor outputDescriptor = descriptor.getOutputDescriptor().descriptors().get(0);
 
-            String description = null;
-            if (outputDescriptor.getDescription() != null && !outputDescriptor.getDescription().toString().isEmpty()) {
-                description = outputDescriptor.getDescription().toString();
-            } else if (outputDescriptor.getRemarks() != null && !outputDescriptor.getRemarks().toString().isEmpty()) {
-                description = outputDescriptor.getRemarks().toString();
+            String description;
+            InternationalString desc = outputDescriptor.getDescription().orElse(null);
+            InternationalString rema = outputDescriptor.getRemarks().orElse(null);
+            if (desc != null && !desc.toString().isEmpty()) {
+                description = desc.toString();
+            } else if (rema != null && !rema.toString().isEmpty()) {
+                description = rema.toString();
             } else {
                 description = outputDescriptor.getName().getCode();
             }

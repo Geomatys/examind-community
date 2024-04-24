@@ -66,7 +66,7 @@ import org.opengis.metadata.identification.OperationMetadata;
 import org.opengis.metadata.identification.TopicCategory;
 import org.opengis.metadata.spatial.GeometricObjectType;
 import org.opengis.metadata.spatial.SpatialRepresentation;
-import org.opengis.referencing.datum.PixelInCell;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.InternationalString;
 import org.opengis.util.NameFactory;
@@ -617,7 +617,7 @@ public class MetadataFeeder {
     public String getTopicCategory() {
         final Identification identification = getIdentification(eater);
         if (!identification.getTopicCategories().isEmpty()) {
-            return identification.getTopicCategories().iterator().next().identifier();
+            return identification.getTopicCategories().iterator().next().identifier().orElse(null);
         }
         return null;
     }
@@ -628,7 +628,7 @@ public class MetadataFeeder {
         if (!identification.getTopicCategories().isEmpty()) {
             final Collection<TopicCategory> topicCategories = identification.getTopicCategories();//.iterator().next().identifier();
             for (TopicCategory topicCategory : topicCategories){
-                result.add(topicCategory.identifier());
+                result.add(topicCategory.identifier().orElseThrow());
             }
         }
 

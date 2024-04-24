@@ -386,7 +386,7 @@ public abstract class AbstractWebService implements WebService{
                 return launchException("The XML request is not valid.\nCause:" + errorMsg, codeName, locator).getResponseEntity();
             } catch (CstlServiceException e) {
 
-                return launchException(e.getMessage(), e.getExceptionCode().identifier(), e.getLocator()).getResponseEntity();
+                return launchException(e.getMessage(), e.getExceptionCode().identifier().orElse(null).toString(), e.getLocator()).getResponseEntity();
             }
             try {
                 return treatIncomingRequest(request).getResponseEntity(httpServletResponse);

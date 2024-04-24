@@ -562,7 +562,7 @@ public final class MetadataUtilities {
                         assertEquals(expVEx.getVerticalCRS().getCoordinateSystem().getName(), resVEx.getVerticalCRS().getCoordinateSystem().getName());
                         assertEquals(expVEx.getVerticalCRS().getCoordinateSystem(), resVEx.getVerticalCRS().getCoordinateSystem());
                         assertEquals(expVEx.getVerticalCRS().getDatum().getName(), resVEx.getVerticalCRS().getDatum().getName());
-                        assertEquals(expVEx.getVerticalCRS().getDatum().getVerticalDatumType(), resVEx.getVerticalCRS().getDatum().getVerticalDatumType());
+                        assertEquals(expVEx.getVerticalCRS().getDatum().getRealizationMethod(), resVEx.getVerticalCRS().getDatum().getRealizationMethod());
                         assertEquals(expVEx.getVerticalCRS().getDatum(), resVEx.getVerticalCRS().getDatum());
                         assertEquals(expVEx.getVerticalCRS(), resVEx.getVerticalCRS());
                     }

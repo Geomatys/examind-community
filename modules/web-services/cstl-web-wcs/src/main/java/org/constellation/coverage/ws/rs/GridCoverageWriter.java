@@ -44,7 +44,7 @@ import org.constellation.util.CRSUtilities;
 import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.nio.IOUtilities;
-import org.opengis.referencing.datum.PixelInCell;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;

@@ -1285,7 +1285,7 @@
       "description" : "Define in which CRS geometry is defined.",
       "schema" : {
         "type" : [ "OBJECT" ],
-        "subtype" : "SC_CRS"
+        "subtype" : "CRS"
       },
       "optional" : true,
       "default" : null
@@ -3040,7 +3040,7 @@
       "description" : "The target CRS",
       "schema" : {
         "type" : [ "OBJECT" ],
-        "subtype" : "SC_CRS"
+        "subtype" : "CRS"
       },
       "optional" : false,
       "default" : null

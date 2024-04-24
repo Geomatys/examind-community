@@ -52,7 +52,7 @@ import org.constellation.provider.datastore.ResourceProxy;
 import org.geotoolkit.storage.multires.DefiningTileMatrix;
 import org.geotoolkit.storage.multires.DefiningTileMatrixSet;
 import org.opengis.metadata.Identifier;
-import org.opengis.referencing.datum.PixelInCell;
+import org.apache.sis.coverage.grid.PixelInCell;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.annotation.Autowired;
