@@ -114,36 +114,42 @@ public class StreamResponseWriter implements HttpMessageConverter<Tile>  {
 
     private boolean writeIfMediaTypeMatchResource(Tile t, MediaType mt, HttpOutputMessage hom) throws IOException, DataStoreException {
         // TODO: find a more consistent way to define if tile can provide a file of the requested media-type
-        if (t instanceof DefaultImageTile it && isCompatible(mt, it.getImageReaderSpi())) {
-            final Object input = it.getInput();
-            if (input instanceof byte[] bytes) {
-                hom.getBody().write(bytes);
-                return true;
-            } else if (input instanceof ByteBuffer buffer) {
-                assert buffer.hasRemaining() : "Empty/consumed buffer received as tile input !";
-                // Note: a tile should be a little object, so we do not bother loading/writing block by block.
-                final byte[] bytes = new byte[buffer.remaining()];
-                buffer.get(bytes);
-                hom.getBody().write(bytes);
-                return true;
-            } else if (input instanceof Path file) {
-                Files.copy(file, hom.getBody());
-                return true;
-            } else if (input instanceof File file) {
-                Files.copy(file.toPath(), hom.getBody());
-                return true;
-            } else if (input instanceof ImageInputStream iis) {
-                final byte[] buffer = new byte[65536];
-                int read, readNoBytes = 0;
-                var output = hom.getBody();
-                do {
-                    read = iis.read(buffer);
-                    if (read > 0) output.write(buffer, 0, read);
-                    // Avoid heavy CPU consumption / infinite recursion if no byte can be read from datasource.
-                    else if (read == 0 && ++readNoBytes > 10) {
-                        throw new HttpMessageNotWritableException("Cannot read from input stream");
-                    }
-                } while (read >= 0);
+        if (t instanceof DefaultImageTile it) {
+            final ImageReaderSpi spi = it.getImageReaderSpi();
+
+            if (spi != null && isCompatible(mt, spi)) {
+                final Object input = it.getInput();
+                if (input instanceof byte[] bytes) {
+                    hom.getBody().write(bytes);
+                    return true;
+                } else if (input instanceof ByteBuffer buffer) {
+                    assert buffer.hasRemaining() : "Empty/consumed buffer received as tile input !";
+                    // Note: a tile should be a little object, so we do not bother loading/writing block by block.
+                    final byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    hom.getBody().write(bytes);
+                    return true;
+                } else if (input instanceof Path file) {
+                    Files.copy(file, hom.getBody());
+                    return true;
+                } else if (input instanceof File file) {
+                    Files.copy(file.toPath(), hom.getBody());
+                    return true;
+                } else if (input instanceof ImageInputStream iis) {
+                    final byte[] buffer = new byte[65536];
+                    int read, readNoBytes = 0;
+                    var output = hom.getBody();
+                    do {
+                        read = iis.read(buffer);
+                        if (read > 0) output.write(buffer, 0, read);
+                        // Avoid heavy CPU consumption / infinite recursion if no byte can be read from datasource.
+                        else if (read == 0 && ++readNoBytes > 10) {
+                            throw new HttpMessageNotWritableException("Cannot read from input stream");
+                        }
+                    } while (read >= 0);
+                }
+            } else {
+                throw new HttpMessageNotWritableException("Tile image SPI in undefined");
             }
         } else if (t instanceof ResourceOnFileSystem rof) {
             final Path[] files = rof.getComponentFiles();
