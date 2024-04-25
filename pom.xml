@@ -13,7 +13,7 @@
     <parent>
         <groupId>org.geotoolkit</groupId>
         <artifactId>buildset</artifactId>
-        <version>24.04.22</version>
+        <version>24.04.26</version>
     </parent>
 
     <groupId>com.examind.community</groupId>
@@ -721,7 +721,7 @@
                 <version>20180130</version>
                 <scope>test</scope>
             </dependency>
-            
+
             <dependency>
             	<groupId>org.duckdb</groupId>
             	<artifactId>duckdb_jdbc</artifactId>
