@@ -63,6 +63,7 @@ import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
 import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.apache.sis.map.MapLayers;
+import org.apache.sis.metadata.iso.ISOMetadata;
 import org.apache.sis.storage.tiling.Tile;
 import org.apache.sis.storage.tiling.TileStatus;
 import org.apache.sis.storage.tiling.TiledResource;
@@ -82,7 +83,6 @@ import org.geotoolkit.ows.xml.v110.ServiceProvider;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.coverage.finder.StrictlyCoverageFinder;
-import org.geotoolkit.storage.multires.TileFormat;
 import org.geotoolkit.storage.multires.TileMatrices;
 import org.geotoolkit.temporal.util.TimeParser;
 import org.geotoolkit.wmts.WMTSUtilities;
@@ -101,6 +101,10 @@ import org.geotoolkit.wmts.xml.v100.TileMatrixSetLink;
 import org.geotoolkit.wmts.xml.v100.URLTemplateType;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
+import org.opengis.metadata.Identifier;
+import org.opengis.metadata.Metadata;
+import org.opengis.metadata.distribution.Format;
+import org.opengis.metadata.identification.Identification;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.SingleCRS;
 import org.opengis.referencing.crs.TemporalCRS;
@@ -279,9 +283,26 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         throw new CstlServiceException("No valid extent for layer " + name);
                     }
 
-                    final Envelope pyramidSetEnv = pyramids.get(0).getEnvelope().orElse(null);
+                    final org.apache.sis.storage.tiling.TileMatrixSet firstPyramid = pyramids.get(0);
+                    final Envelope pyramidSetEnv = firstPyramid.getEnvelope().orElse(null);
                     if (pyramidSetEnv == null) {
                         throw new CstlServiceException("No valid extent for layer " + name);
+                    }
+
+                    //extract tile format
+                    Format tileFormat = null;
+                    if (firstPyramid instanceof org.geotoolkit.storage.multires.TileMatrixSet tms) {
+                        final Metadata metaData = tms.getMetaData();
+                        for (Identification id : metaData.getIdentificationInfo()) {
+                            for (Format format : id.getResourceFormats()) {
+                                tileFormat = format;
+                                break;
+                            }
+                        }
+                    }
+                    if (tileFormat == null) {
+                        //fallback consider it as PNG, which is the most common case
+                        tileFormat = org.geotoolkit.storage.multires.TileMatrixSet.createFormat("png", "png", "image/png", "png");
                     }
 
                     final CoordinateReferenceSystem pyramidSetEnvCRS = pyramidSetEnv.getCoordinateReferenceSystem();
@@ -356,19 +377,26 @@ public class DefaultWMTSWorker extends LayerWorker implements WMTSWorker {
                         LOGGER.log(Level.FINE, "Input envelope cannot be reprojected in CRS:84.");
                     }
 
-                    final TileFormat tileFormat = pmodel.getTileFormat();
-                    final Set<String> pformats = new HashSet<>();
-                    pformats.add(tileFormat.getMimeType());
-
-                    outputLayer.setFormat(new ArrayList<>(pformats));
-
-                    final List<URLTemplateType> resources = new ArrayList<>();
-                    for (String pformat : pformats) {
-                        String url = getServiceUrl();
-                        url = url.substring(0, url.length() - 1) + "/" + name + "/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.{format}";
-                        final URLTemplateType tileURL = new URLTemplateType(pformat, "tile", url);
-                        resources.add(tileURL);
+                    final ISOMetadata formatMeta = (ISOMetadata) tileFormat;
+                    String format    = "image/png"; 
+                    String extension = "png";
+                    for (Identifier fid : formatMeta.getIdentifiers()) {
+                        if (org.geotoolkit.storage.multires.TileMatrixSet.AUTHORITY_EXTENSION.equals(fid.getAuthority().getTitle().toString())) {
+                            extension = fid.getCode();
+                        } else if (org.geotoolkit.storage.multires.TileMatrixSet.AUTHORITY_MIME.equals(fid.getAuthority().getTitle().toString())) {
+                            format = fid.getCode();
+                        }
                     }
+
+                    outputLayer.setFormat(List.of(format));
+                    
+                    final List<URLTemplateType> resources = new ArrayList<>();
+                    String url = getServiceUrl();
+                    url = url.substring(0, url.length() - 1) + "/" + name + "/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}." + extension;
+                    final URLTemplateType tileURL = new URLTemplateType(format, "tile", url);
+                    resources.add(tileURL);
+                    
+                    
                     outputLayer.setResourceURL(resources);
 
                     for (org.apache.sis.storage.tiling.TileMatrixSet pr : pyramids) {

@@ -24,7 +24,7 @@
       <wmts:TileMatrixSetLink>
         <wmts:TileMatrixSet>cdfc088c-8f08-490d-94cb-01c4153d0846</wmts:TileMatrixSet>
       </wmts:TileMatrixSetLink>
-      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/haiti/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.{format}"/>
+      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/haiti/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.png"/>
     </wmts:Layer>
     <wmts:Layer>
       <ows:Title>nmsp:haiti_01_pyramid</ows:Title>
@@ -46,7 +46,7 @@
       <wmts:TileMatrixSetLink>
         <wmts:TileMatrixSet>cdfc088c-8f08-490d-94cb-01c4153d0846</wmts:TileMatrixSet>
       </wmts:TileMatrixSetLink>
-      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/nmsp:haiti_01_pyramid/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.{format}"/>
+      <wmts:ResourceURL format="image/png" resourceType="tile" template="http://localhost:9090/WS/wmts/default/nmsp:haiti_01_pyramid/{tileMatrixSet}/{tileMatrix}/{tileRow}/{tileCol}.png"/>
     </wmts:Layer>
     <wmts:TileMatrixSet>
       <ows:Identifier>cdfc088c-8f08-490d-94cb-01c4153d0846</ows:Identifier>
