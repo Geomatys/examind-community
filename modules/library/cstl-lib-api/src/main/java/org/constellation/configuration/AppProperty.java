@@ -206,6 +206,16 @@ public enum AppProperty {
 
     EXA_PROACTIVE_WORKFLOW_DIR("examind.proactive.workflow.dir"),
 
+    /**
+     * Galaxy url for galaxy workflows
+     */
+    EXA_GALAXY_URL("examind.galaxy.url", false, String.class),
+
+    /**
+     * Galaxy access key for galaxy workflows
+     */
+    EXA_GALAXY_ACCESS_KEY("examind.galaxy.access.key"),
+
     EXA_PBS_SCRIPT_DIR("examind.pbs.script.dir"),
 
     EXA_PROCESS_DEPLOY_DIR("examind.process.deploy.dir"),

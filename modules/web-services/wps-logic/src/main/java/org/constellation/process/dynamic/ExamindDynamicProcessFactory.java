@@ -23,6 +23,7 @@ import org.constellation.process.ChainProcessRetriever;
 import org.apache.sis.metadata.iso.DefaultIdentifier;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
+import org.constellation.process.dynamic.galaxy.RunGalaxyDescriptor;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.identification.Identification;
@@ -113,6 +114,8 @@ public class ExamindDynamicProcessFactory implements ProcessingRegistry {
                             dynDesc = new RunDockerDescriptor(ep.getCode());
                         } else if (ep.getCode().startsWith("proactive.run")) {
                             dynDesc = new RunProactiveDescriptor(ep.getCode());
+                        } else if (ep.getCode().startsWith("galaxy.run")) {
+                            dynDesc = new RunGalaxyDescriptor(ep.getCode());
                         } else if (ep.getCode().startsWith("cwl.run")) {
                             dynDesc = new RunCWLDescriptor(ep.getCode());
                         } else if (ep.getCode().startsWith("pbs.run")) {

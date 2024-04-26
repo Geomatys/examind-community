@@ -3,3 +3,4 @@ org.constellation.process.dynamic.cwl.DeployCWLDescriptor
 org.constellation.process.dynamic.proactive.DeployProactiveDescriptor
 org.constellation.process.dynamic.ClearDynamicFactoryDescriptor
 org.constellation.process.dynamic.pbs.DeployPBSDescriptor
+org.constellation.process.dynamic.galaxy.DeployGalaxyDescriptor
