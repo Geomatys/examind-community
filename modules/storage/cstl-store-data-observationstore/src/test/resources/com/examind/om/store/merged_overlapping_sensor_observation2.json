@@ -9,13 +9,13 @@
         }
     },
     "samplingTime": {
-        "id": "time-1101",
+        "id": "obs-1101-time",
         "beginning": {
-            "id": "a51c1b2d-b0b1-4be7-b0ad-8402a49e146d-time",
+            "id": "obs-1101-st-time",
             "date": "1980-03-01T01:52:00.0Z"
         },
         "ending": {
-            "id": "0e9a5739-0d2a-4bcd-816c-6425283e3781-time",
+            "id": "obs-1101-en-time",
             "date": "1980-03-05T21:52:00.0Z"
         }
     },

@@ -106,34 +106,26 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the getcapabilities method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
     @Order(order=1)
     public void getCapabilitiesErrorTest() throws Exception {
         super.getCapabilitiesErrorTest();
-
     }
 
     /**
      * Tests the getcapabilities method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
     @Order(order=2)
     public void getCapabilitiesTest() throws Exception {
         super.getCapabilitiesTest();
-
     }
 
     /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -144,8 +136,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -156,8 +146,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -175,8 +163,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetObservationById method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -187,8 +173,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetResult method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -199,8 +183,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetResult method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -211,8 +193,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -223,8 +203,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetFeatureOfInterest method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -235,8 +213,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetFeatureOfInterest method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -247,8 +223,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the GetFeatureOfInterest method
-     *
-     * @throws java.lang.Exception
      */
     @Ignore
     @Override
@@ -266,11 +240,9 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
     public void GetObservationSamplingCurveSinglePhenomenonTest() throws Exception {
         super.GetObservationSamplingCurveSinglePhenomenonTest();
     }
-    
+
     /**
      * Tests the DescribeSensor method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -281,8 +253,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the DescribeSensor method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -293,8 +263,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -305,8 +273,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -318,8 +284,6 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
 
     /**
      * Tests the destroy method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -327,5 +291,4 @@ public class LuceneFileSystemSOSWorkerTest extends SOSWorkerTest {
     public void destroyTest() throws Exception {
         super.destroyTest();
     }
-
 }

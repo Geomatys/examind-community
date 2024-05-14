@@ -18,8 +18,6 @@
  */
 package org.constellation.metadata.index.generic;
 
-// J2SE dependencies
-
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
@@ -34,7 +32,6 @@ import org.geotoolkit.gml.xml.v311.TimePeriodType;
 import org.geotoolkit.gml.xml.v311.TimePositionType;
 import org.geotoolkit.lucene.index.LuceneIndexSearcher;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.opengis.metadata.citation.DateType;
@@ -52,6 +49,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import org.constellation.metadata.utils.Utils;
 import jakarta.annotation.PostConstruct;
+import java.time.Instant;
 import org.geotoolkit.index.tree.manager.SQLRtreeManager;
 
 import static org.junit.Assert.assertEquals;
@@ -198,7 +196,7 @@ public class GenericindexTest extends AbstractGenericIndexTest {
         DefaultMetadata meta = new DefaultMetadata();
         DefaultDataIdentification ident = new DefaultDataIdentification();
         DefaultCitation citation = new DefaultCitation();
-        Date d = TemporalUtilities.getDateFromString("1970-01-01");
+        Date d = Date.from(Instant.EPOCH);
         DefaultCitationDate date = new DefaultCitationDate(d, DateType.CREATION);
         citation.setDates(Arrays.asList(date));
         ident.setCitation(citation);
@@ -251,8 +249,8 @@ public class GenericindexTest extends AbstractGenericIndexTest {
 
         // FIXME GEOTK-462 CSTL-1420 restore the line below
         //TimePeriodType tp1 = new TimePeriodType("id", "2008-11-01", "2008-12-01");
-        Date d1 = TemporalUtilities.getDateFromString("2008-11-01");
-        Date d2 = TemporalUtilities.getDateFromString("2008-12-01");;
+        Instant d1 = Instant.parse("2008-11-01T00:00:00Z");
+        Instant d2 = Instant.parse("2008-12-01T00:00:00Z");
 
         TimePeriodType tp1 = new TimePeriodType("id", new TimePositionType(d1), new TimePositionType(d2));
         tp1.setId("007-all");

@@ -138,7 +138,7 @@ import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -193,7 +193,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                                                  "http://www.opengis.net/spec/iot_sensing/1.1/req/request-data",
                                                  "http://www.opengis.net/spec/iot_sensing/1.1/req/data-array/data-array",
                                                  "http://www.opengis.net/spec/iot_sensing/1.1/req/multi-datastream",
-                                                 STS_DEC_EXT); 
+                                                 STS_DEC_EXT);
         result.addServerSetting("conformance", conformance);
         return result;
     }
@@ -336,7 +336,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
             }
             iotNextLink = computePaginationNextLink(req, values.size(), count != null ? count.intValue() : null, "/Things");
-            
+
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -402,7 +402,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 resSubquery.setIncludeIdInDataBlock(true);
                 resSubquery.setDecimationSize(decimation);
                 resSubquery.setIncludeQualityFields(includeQUalityFields);
-                
+
                 Map<String, ComplexResult> results = new HashMap<>();
                 if (reqTop == null || reqTop > 0) {
                     Collection<String> sensorIds = omProvider.getIdentifiers(procSubquery);
@@ -430,7 +430,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 if (DATA_ARRAY.equals(req.getResultFormat())) {
                     return buildDataArrayFromResults(results, model, count, null);
-                    
+
                 // here we assume the we are in csv like mode
                 } else {
                     StringBuilder content = new StringBuilder();
@@ -478,7 +478,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             }
             String iotNextLink = computePaginationNextLink(req, values.size(), count != null ? count.intValue() : null, "/Observations");
             return new ObservationsResponse(values).iotCount(count).iotNextLink(iotNextLink);
-            
+
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1091,7 +1091,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         List<UnitOfMeasure> uoms = new ArrayList<>();
         if (obs.getResult() instanceof ComplexResult cr) {
-            
+
             // skip first main field (not for profile)
             int offset = 0;
             if (!cr.getFields().isEmpty() && cr.getFields().get(0).type == FieldType.TIME) {
@@ -1232,7 +1232,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         final String phenId = s.getId();
         final String definition = s.getDefinition();
         String phenName = s.getName() != null ? s.getName() : phenId;
-        String description = s.getDescription() != null ? s.getDescription() : "";
+        String description = s.getDescription();
+        if (description == null) description = "";
 
         if (exp.isSelected("id")) obsProp = obsProp.iotId(phenId);
         if (exp.isSelected("name")) obsProp = obsProp.name(phenName);
@@ -1240,7 +1241,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         if (exp.isSelected("description")) obsProp = obsProp.description(description);
         if (exp.isSelected("selfLink")) obsProp = obsProp.iotSelfLink(selfLink.replace("$", phenId));
         if (exp.isSelected("properties")) obsProp = obsProp.properties(s.getProperties());
-        
+
         if (exp.datastreams.expanded) {
             List<org.opengis.observation.Observation> linkedTemplates = getDatastreamForPhenomenon(s.getId());
             RequestOptions dsExp = exp.subLevel("Datastreams");
@@ -1492,9 +1493,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 }
                 metadataLink = metadataLink + "/API/sensors/" + s.getId() + "/metadata/download";
             }
-            if (s.getDescription() != null) {
-                description = s.getDescription();
-            }
+            description = s.getDescription();
+            if (description == null) description = "";
             name = s.getName();
         }
 
@@ -1546,8 +1546,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         }
         String description = "";
         String name = sensorID;
-        if (p != null && p.getDescription() != null) {
-            description = p.getDescription();
+        if (p != null && (description = p.getDescription()) == null) {
+            description = "";
         }
         if (p != null && p.getName()!= null) {
             name = p.getName();
@@ -1951,7 +1951,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         private final Map<String, Sensor> sensors                          = new HashMap<>();
         private final Map<String, FeatureOfInterest> featureOfInterest     = new HashMap<>();
         private final Map<String, GeoJSONGeometry> sensorArea              = new HashMap<>();
-        private final Map<TemporalObject, String> timesCache               = new HashMap<>();
+        private final Map<TemporalPrimitive, String> timesCache               = new HashMap<>();
         
         public Datastream getOrCreateDatastream(RequestOptions exp, org.geotoolkit.observation.model.Observation template) throws ConstellationStoreException {
             String id = template.getId();

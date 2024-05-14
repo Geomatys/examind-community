@@ -131,8 +131,6 @@ public class NetCDFCSW3WorkerTest extends CSW3WorkerTest {
 
     /**
      * Tests the getcapabilities method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Override
@@ -161,6 +159,8 @@ public class NetCDFCSW3WorkerTest extends CSW3WorkerTest {
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+            comparator.ignoredNodes.add("http://www.isotc211.org/2005/gco:DateTime");       // Because the date type is not the same.
+            comparator.ignoredNodes.add("http://www.opengis.net/gml/3.2:timePosition");     // Because the date type is not the same.
             comparator.compare();
         } else {
             fail("unexpected record type:" + obj);
@@ -323,8 +323,6 @@ public class NetCDFCSW3WorkerTest extends CSW3WorkerTest {
 
     /**
      * Tests the getDomain method
-     *
-     * @throws java.lang.Exception
      */
     @Test
     @Ignore

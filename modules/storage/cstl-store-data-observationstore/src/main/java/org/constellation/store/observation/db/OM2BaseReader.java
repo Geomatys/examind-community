@@ -77,7 +77,7 @@ import org.locationtech.jts.io.WKTReader;
 
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 /**
@@ -87,13 +87,13 @@ import org.opengis.util.FactoryException;
 public class OM2BaseReader {
 
     protected final OMSQLDialect dialect;
-    
+
     protected final boolean timescaleDB;
-    
+
     protected final Version timescaleDBVersion;
-    
+
     protected final String decimationAlgorithm;
-    
+
     /**
      * The base for observation id.
      */
@@ -168,7 +168,7 @@ public class OM2BaseReader {
     /**
      * Extract a Feature of interest from its identifier.
      * If cache is enabled, it can be returned from it if already read.
-     * 
+     *
      * @param id FOI identifier.
      * @param c A SQL connection.
      *
@@ -267,7 +267,7 @@ public class OM2BaseReader {
      * @param columnName Column name of the entity identifier depending on the type of the entity.
      * @param id Entity identifier.
      * @param c A SQL connection.
-     * 
+     *
      * @return A Map of properties.
      * @throws SQLException If an error occurs during query execution.
      */
@@ -327,7 +327,7 @@ public class OM2BaseReader {
     }
 
     @SuppressWarnings("squid:S2695")
-    protected TemporalGeometricPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi) {
+    protected TemporalPrimitive getTimeForTemplate(Connection c, String procedure, String observedProperty, String foi) {
         String request = "SELECT min(\"time_begin\"), max(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?";
         if (observedProperty != null) {
              request = request + " AND (\"observed_property\"=? OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE \"component\"=?))";
@@ -336,6 +336,10 @@ public class OM2BaseReader {
             request = request + " AND \"foi\"=?";
         }
         LOGGER.fine(request);
+        String procedureId = procedure;
+        if (procedureId.startsWith(sensorIdBase)) {
+            procedureId = procedureId.substring(sensorIdBase.length());
+        }
         try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
             stmt.setString(1, procedure);
             int cpt = 2;
@@ -354,11 +358,11 @@ public class OM2BaseReader {
                     Date maxBegin = rs.getTimestamp(2);
                     Date maxEnd   = rs.getTimestamp(3);
                     if (minBegin != null && maxEnd != null && maxEnd.after(maxBegin)) {
-                        return buildTime(procedure, minBegin, maxEnd);
+                        return buildTime(procedureId, minBegin, maxEnd);
                     } else if (minBegin != null && !minBegin.equals(maxBegin)) {
-                        return buildTime(procedure, minBegin, maxBegin);
+                        return buildTime(procedureId, minBegin, maxBegin);
                     } else if (minBegin != null) {
-                        return buildTime(procedure, minBegin, null);
+                        return buildTime(procedureId, minBegin, null);
                     }
                 }
             }
@@ -605,7 +609,7 @@ public class OM2BaseReader {
         final String id;
         final String name;
         final String description;
-        final TemporalGeometricPrimitive time;
+        final TemporalPrimitive time;
         final String procedure;
         final List<String> phens = new ArrayList<>();
         final List<String> foi       = new ArrayList<>();
@@ -663,7 +667,7 @@ public class OM2BaseReader {
     protected List<Field> readFields(final String procedureID, final Connection c) {
         return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>());
     }
-    
+
     protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters) {
         final List<Field> results = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL");
@@ -823,7 +827,7 @@ public class OM2BaseReader {
     /**
      * Return the information about the procedure:  PID (internal int procedure identifier) , the number of measure table, ... associated for the specified observation.
      * If there is no procedure for the specified procedure id, this method will return PID = -1, nb table = 0 (for backward compatibility).
-     * 
+     *
      * @param obsIdentifier Observation identifier.
      * @param c A SQL connection.
      *
@@ -921,7 +925,7 @@ public class OM2BaseReader {
      * @param procedure Procedure identifier.
      * @param tableNum measure table number.
      * @param c A SQL connection.
-     * 
+     *
      * @return The number of fields (meaning SQL column) of the specified measure table for the specified procedure.
      * If the procedure or the the table number does not exist it will return 0.
      */
@@ -949,7 +953,7 @@ public class OM2BaseReader {
             }
         }
     }
-    
+
     public Procedure getProcess(String id, final Connection c) throws SQLException {
         final Map<String, Object> properties = readProperties("procedures_properties", "id_procedure", id, c);
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
@@ -1003,7 +1007,7 @@ public class OM2BaseReader {
                         case TEXT:
                         default: value = rs.getString(fieldName, rsIndex);
                     }
-                    
+
                 }
                 results.add(OMUtils.createQualityElement(field, value));
             }

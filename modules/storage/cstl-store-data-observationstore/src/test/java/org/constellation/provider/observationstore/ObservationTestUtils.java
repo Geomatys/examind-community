@@ -30,11 +30,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
+import org.apache.sis.xml.IdentifiedObject;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -47,8 +49,7 @@ import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.MemberName;
 import org.opengis.util.RecordType;
 import org.opengis.util.Type;
@@ -64,20 +65,22 @@ public class ObservationTestUtils {
         ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("Europe/Paris") );
     }
 
-    public static TemporalGeometricPrimitive buildInstant(String date) throws ParseException {
+    public static TemporalPrimitive buildInstant(String date) throws ParseException {
         Date d = ISO_8601_FORMATTER.parse(date);
         return OMUtils.buildTime("ft", d, null);
     }
 
-    public static TemporalGeometricPrimitive buildPeriod(String begin, String end) throws ParseException {
+    public static TemporalPrimitive buildPeriod(String begin, String end) throws ParseException {
         Date b = ISO_8601_FORMATTER.parse(begin);
         Date e = ISO_8601_FORMATTER.parse(end);
         return OMUtils.buildTime("ft", b, e);
     }
 
-    public static void assertPeriodEquals(String begin, String end, TemporalObject result) throws ParseException {
+    public static void assertPeriodEquals(String begin, String end, TemporalPrimitive result) throws ParseException {
         if (result instanceof Period tResult) {
-            assertPeriodEquals(begin, end, tResult.getBeginning().getDate(), tResult.getEnding().getDate());
+            assertPeriodEquals(begin, end,
+                    Date.from(TemporalUtilities.toInstant(tResult.getBeginning())),
+                    Date.from(TemporalUtilities.toInstant(tResult.getEnding())));
         } else {
             throw new AssertionError("Not a time period");
         }
@@ -102,14 +105,14 @@ public class ObservationTestUtils {
         }
     }
 
-    public static void assertInstantEquals(String position, TemporalGeometricPrimitive result) throws ParseException {
+    public static void assertInstantEquals(String position, TemporalPrimitive result) throws ParseException {
         if (result instanceof Instant tResult) {
-            assertEquals(ISO_8601_FORMATTER.parse(position), tResult.getDate());
+            assertEquals(ISO_8601_FORMATTER.parse(position), TemporalUtilities.toDate(tResult));
         } else {
             throw new AssertionError("Not a time instant");
         }
     }
-
+    
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */
@@ -128,7 +131,7 @@ public class ObservationTestUtils {
         assertEquals(result.getName().getCode(), expected.getName().getCode());
         assertEquals(result.getObservedProperty(), expected.getObservedProperty());
         assertEquals(result.getProcedure().getId(), expected.getProcedure().getId());
-        assertEquals(result.getSamplingTime(), expected.getSamplingTime());
+        assertEqualsIdentifiedObject(result.getSamplingTime(), expected.getSamplingTime());
 
         assertEquals(result.getProperties(), expected.getProperties());
         assertEquals(result.getType(), expected.getType());
@@ -185,26 +188,39 @@ public class ObservationTestUtils {
     public static void assertEqualsMeasObservation(Observation expected, Observation result, boolean hasQuality) {
         assertEquals(expected.getResult(), result.getResult());
 
-        assertEquals(result.getId(), expected.getId());
-        assertEquals(result.getName().getCode(), expected.getName().getCode());
-        assertEquals(result.getObservedProperty(), expected.getObservedProperty());
-        assertEquals(result.getProcedure().getId(), expected.getProcedure().getId());
+        assertEquals(expected.getId(), result.getId());
+        assertEquals(expected.getName().getCode(), result.getName().getCode());
+        assertEquals(expected.getObservedProperty(), result.getObservedProperty());
+        assertEquals(expected.getProcedure().getId(), result.getProcedure().getId());
 
-        assertEquals(result.getProcedure(), expected.getProcedure());
-        assertEquals(result.getSamplingTime(), expected.getSamplingTime());
-        assertEquals(result.getFeatureOfInterest(), expected.getFeatureOfInterest());
-        assertEquals(result.getProperties(), expected.getProperties());
-        assertEquals(result.getType(), expected.getType());
+        assertEquals(expected.getProcedure(), result.getProcedure());
+        assertEqualsIdentifiedObject(expected.getSamplingTime(), result.getSamplingTime());
+        assertEquals(expected.getFeatureOfInterest(), result.getFeatureOfInterest());
+        assertEquals(expected.getProperties(), result.getProperties());
+        assertEquals(expected.getType(), result.getType());
 
         if (hasQuality) {
             Assert.assertNotNull(result.getResultQuality());
             Assert.assertNotNull(expected.getResultQuality());
-            assertEquals(result.getResultQuality(), expected.getResultQuality());
+            assertEquals(expected.getResultQuality(), result.getResultQuality());
         }
 
         assertEquals(expected, result);
     }
 
+    public static void assertEqualsIdentifiedObject(Object expected, Object result) {
+        if (expected instanceof IdentifiedObject exp &&
+            result   instanceof IdentifiedObject res) {
+            assertEquals(exp.getIdentifiers(), res.getIdentifiers());
+        }
+        if (expected instanceof Period expPeriod &&
+            result   instanceof Period resPeriod) {
+            assertEqualsIdentifiedObject(expPeriod.getBeginning(), resPeriod.getBeginning());
+            assertEqualsIdentifiedObject(expPeriod.getEnding(),    resPeriod.getEnding());
+        }
+        assertEquals(expected, result);
+    }
+    
     /**
      * The point of this test is to look for quality fields insertion / extraction.
      */
@@ -215,7 +231,7 @@ public class ObservationTestUtils {
         assertEquals(expected.getProcedure().getId(), result.getProcedure().getId());
 
         assertEquals(expected.getProcedure(), result.getProcedure());
-        assertEquals(expected.getSamplingTime(), result.getSamplingTime());
+        assertEqualsIdentifiedObject(expected.getSamplingTime(), result.getSamplingTime());
         assertEquals(expected.getFeatureOfInterest(), result.getFeatureOfInterest());
         assertEquals(expected.getResultQuality(), result.getResultQuality());
 
@@ -233,7 +249,7 @@ public class ObservationTestUtils {
         assertEquals(expResult.getNbValues(),  resResult.getNbValues());
         assertEquals(expResult.getValues(),    resResult.getValues());
         assertEquals(expResult.getTextEncodingProperties(),  resResult.getTextEncodingProperties());
-        
+
         assertEquals(result.getResult(), expected.getResult());
 
         assertEquals(result, expected);
@@ -248,7 +264,7 @@ public class ObservationTestUtils {
         mapper.writeValue(System.out, obs);
 
     }
-    
+
     public static <T> T castToModel(Object o, Class<T> modelClass) {
         if (o == null) return null;
         if (modelClass.isInstance(o)) return (T) o;

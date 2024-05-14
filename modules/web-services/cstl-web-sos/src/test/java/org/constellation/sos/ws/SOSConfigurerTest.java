@@ -34,10 +34,8 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.test.SpringContextTest;
-import org.geotoolkit.temporal.object.DefaultInstant;
-import org.geotoolkit.temporal.object.DefaultPeriod;
+import org.geotoolkit.observation.OMUtils;
 import org.junit.Assert;
-import org.opengis.referencing.IdentifiedObject;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,7 +55,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;
-    
+
     protected static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
 
     public void getDecimatedObservationsCsvTest() throws Exception {
@@ -99,7 +97,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
 
         Assert.assertEquals(expResult, result);
     }
-    
+
     public void getDecimatedObservationsDataArrayTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         List result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("depth"), new ArrayList<>(), null, null, 10, DATA_ARRAY, false, false);
@@ -198,7 +196,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
 
         Assert.assertEquals(expResult, result);
     }
-    
+
     public void getObservationsDataArrayTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         List result = (List) sensorServBusiness.getResultsCsv(sid, "urn:ogc:object:sensor:GEOM:3", Arrays.asList("depth"), new ArrayList<>(), null, null, null, DATA_ARRAY, false, false);
@@ -445,12 +443,13 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
     public void getTimeForSensorIdTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");
         TemporalPrimitive results = sensorServBusiness.getTimeForSensorId(sid, "urn:ogc:object:sensor:GEOM:3");
-        TemporalPrimitive expResults = new DefaultPeriod(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"),
-                                                         new DefaultInstant(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"), format.parse("2007-05-01T02:59:00.0")),
-                                                         new DefaultInstant(Collections.singletonMap(IdentifiedObject.NAME_KEY, "some id"), format.parse("2007-05-01T21:59:00.0")));
+        
+        Date b = format.parse("2007-05-01T02:59:00.0");
+        Date e = format.parse("2007-05-01T21:59:00.0");
+        TemporalPrimitive expResults = OMUtils.buildTime("3", b, e);
+        
         Assert.assertEquals(expResults, results);
     }
-
 
     public void getObservedPropertiesTest() throws Exception {
         final Integer sid = serviceBusiness.getServiceIdByIdentifierAndType("SOS", "default");

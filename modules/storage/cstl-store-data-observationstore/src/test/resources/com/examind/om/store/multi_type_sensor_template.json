@@ -9,13 +9,13 @@
         }
     },
     "samplingTime": {
-        "id": "time-7001",
+        "id": "multi-type-time",
         "beginning": {
-            "id": "e4a06e9d-38f3-4b69-87f4-64240edb8d50-time",
+            "id": "multi-type-st-time",
             "date": "1980-03-01T21:52:00.0Z"
         },
         "ending": {
-            "id": "8ab262ee-11bf-4732-96ee-c690324bfb67-time",
+            "id": "multi-type-en-time",
             "date": "1981-03-01T22:52:00.0Z"
         }
     },

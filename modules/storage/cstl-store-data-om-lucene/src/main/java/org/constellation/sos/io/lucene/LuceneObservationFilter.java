@@ -27,16 +27,17 @@ import org.geotoolkit.index.SearchingException;
 import org.geotoolkit.lucene.filter.SpatialQuery;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
 import javax.xml.namespace.QName;
 import java.nio.file.Path;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,9 +52,11 @@ import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.Filter;
+import org.opengis.filter.Literal;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Envelope;
@@ -66,7 +69,7 @@ import org.opengis.geometry.Envelope;
 public abstract class LuceneObservationFilter implements ObservationFilterReader {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.io.lucene");
-    
+
     private StringBuilder luceneRequest;
 
     private LuceneObservationSearcher searcher;
@@ -90,7 +93,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     protected String version = null;
 
     protected OMEntity objectType = null;
-    
+
     private static final String OR_OPERATOR = " OR ";
 
     public LuceneObservationFilter(final LuceneObservationFilter that) throws DataStoreException {
@@ -117,7 +120,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     public void init(AbstractObservationQuery query) throws DataStoreException {
         this.objectType = query.getEntityType();
         this.timeFilters.clear();
-         
+
         switch (objectType) {
             case FEATURE_OF_INTEREST: luceneRequest = new StringBuilder("type:foi"); break;
             case OBSERVED_PROPERTY:   luceneRequest = new StringBuilder("type:phenomenon"); break;
@@ -130,7 +133,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
     }
-    
+
     private void initFilterObservation(ObservationQuery query) {
         this.responseMode   = query.getResponseMode();
         this.responseFormat = query.getResponseFormat();
@@ -333,12 +336,16 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
+        if (time instanceof Literal<?,?> lit) {
+            time = lit.getValue();
+        }
         TemporalOperatorName type = tFilter.getOperatorType();
         if (type == TemporalOperatorName.EQUALS) {
             timeFilters.add(tFilter);
+            Optional<Temporal> ti;
             if (time instanceof Period tp) {
-                final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
-                final String end        = getLuceneTimeValue(tp.getEnding().getDate());
+                final String begin = getLuceneTimeValue(tp.getBeginning());
+                final String end   = getLuceneTimeValue(tp.getEnding());
 
                 // we request directly a multiple observation or a period observation (one measure during a period)
                 luceneRequest.append("AND (");
@@ -346,8 +353,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 luceneRequest.append(" sampling_time_end:").append(end).append(") ");
 
             // if the temporal object is a timeInstant
-            } else if (time instanceof Instant ti) {
-                final String position    = getLuceneTimeValue(ti.getDate());
+            } else if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position    = getLuceneTimeValue(ti.get());
                 luceneRequest.append("AND (");
 
                 // case 1 a single observation
@@ -364,8 +371,9 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } else if (type == TemporalOperatorName.BEFORE) {
             timeFilters.add(tFilter);
             // for the operation before the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final String position    = getLuceneTimeValue(ti.getDate());
+            Optional<Temporal> ti;
+            if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position = getLuceneTimeValue(ti.get());
                 luceneRequest.append("AND (");
 
                 // the single and multpile observations which begin after the bound
@@ -378,8 +386,9 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } else if (type == TemporalOperatorName.AFTER) {
             timeFilters.add(tFilter);
             // for the operation after the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final String position    = getLuceneTimeValue(ti.getDate());
+            Optional<Temporal> ti;
+            if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position = getLuceneTimeValue(ti.get());
                 luceneRequest.append("AND (");
 
                 // the single and multpile observations which begin after the bound
@@ -387,8 +396,6 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 luceneRequest.append(OR_OPERATOR);
                 // the multiple observations overlapping the bound
                 luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000]))");
-
-
             } else {
                 throw new ObservationStoreException("TM_After operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -396,8 +403,8 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } else if (type == TemporalOperatorName.DURING) {
             timeFilters.add(tFilter);
             if (time instanceof Period tp) {
-                final String begin      = getLuceneTimeValue(tp.getBeginning().getDate());
-                final String end        = getLuceneTimeValue(tp.getEnding().getDate());
+                final String begin = getLuceneTimeValue(tp.getBeginning());
+                final String end   = getLuceneTimeValue(tp.getEnding());
                 luceneRequest.append("AND (");
 
                 // the multiple observations included in the period
@@ -497,7 +504,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             case FEATURE_OF_INTEREST:
             case OBSERVED_PROPERTY:
             case PROCEDURE:
-            case OFFERING:            
+            case OFFERING:
             case OBSERVATION:         return getIdentifiers().size();
             case RESULT:              return filterResult().size();
             case HISTORICAL_LOCATION:

@@ -22,6 +22,7 @@ import org.constellation.store.observation.db.model.InsertDbField;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,11 +48,12 @@ import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.filter.TemporalOperatorName;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.RelativePosition;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 /**
@@ -64,16 +66,17 @@ public class OM2Utils {
     public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
     public static Timestamp getInstantTimestamp(Instant inst) {
-        if (inst != null && inst.getDate() != null) {
-            return new Timestamp(inst.getDate().getTime());
-        }
-        return null;
+        return (inst != null) ? getInstantTimestamp(inst.getPosition()) : null;
     }
 
-    public static void addtimeDuringSQLFilter(FilterSQLRequest sqlRequest, TemporalObject time, String tableAlias) {
+    public static Timestamp getInstantTimestamp(Temporal inst) {
+        return (inst != null) ? new Timestamp(TemporalUtilities.toInstant(inst).toEpochMilli()) : null;
+    }
+
+    public static void addtimeDuringSQLFilter(FilterSQLRequest sqlRequest, TemporalPrimitive time, String tableAlias) {
         if (time instanceof Period tp) {
-            final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
-            final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+            final var begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
+            final var end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
 
             // 1.1 the multiple observations included in the period
             sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\">=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\"<=").appendValue(end).append(")");
@@ -89,9 +92,9 @@ public class OM2Utils {
             sqlRequest.append("OR");
             // 4. the multiple observations which overlaps the whole period
             sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"<=").appendValue(begin).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(end).append(")");
-        
+
         } else if (time instanceof Instant inst) {
-            final Timestamp instTime = new Timestamp(inst.getDate().getTime());
+            final Timestamp instTime = new Timestamp(TemporalUtilities.toInstant(inst.getPosition()).toEpochMilli());
 
             sqlRequest.append(" (").append(tableAlias).append(".\"time_begin\"<=").appendValue(instTime).append(" AND ").append(tableAlias).append(".\"time_end\">=").appendValue(instTime).append(")");
             sqlRequest.append("OR");
@@ -100,8 +103,8 @@ public class OM2Utils {
     }
 
     public static void addTimeContainsSQLFilter(FilterSQLRequest sqlRequest, Period tp) {
-        final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
-        final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+        final Timestamp begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
+        final Timestamp end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
 
         // the multiple observations which overlaps the whole period
         sqlRequest.append(" (\"time_begin\"<=").appendValue(begin).append(" AND \"time_end\">=").appendValue(end).append(")");
@@ -142,16 +145,16 @@ public class OM2Utils {
         return false;
     }
 
-    public static boolean isTimeIntersect(RelativePosition pos) {
-        return pos.equals(RelativePosition.BEGUN_BY) ||
-              pos.equals(RelativePosition.ENDED_BY) ||
-              pos.equals(RelativePosition.CONTAINS) ||
-              pos.equals(RelativePosition.OVERLAPS) ||
-              pos.equals(RelativePosition.DURING)   ||
-              pos.equals(RelativePosition.BEGINS)   ||
-              pos.equals(RelativePosition.ENDS)   ||
-              pos.equals(RelativePosition.MET_BY)   ||
-              pos.equals(RelativePosition.MEETS);
+    public static boolean isTimeIntersect(TemporalOperatorName pos) {
+        return pos.equals(TemporalOperatorName.BEGUN_BY) ||
+              pos.equals(TemporalOperatorName.ENDED_BY)  ||
+              pos.equals(TemporalOperatorName.CONTAINS)  ||
+              pos.equals(TemporalOperatorName.OVERLAPS)  ||
+              pos.equals(TemporalOperatorName.DURING)    ||
+              pos.equals(TemporalOperatorName.BEGINS)    ||
+              pos.equals(TemporalOperatorName.ENDS)      ||
+              pos.equals(TemporalOperatorName.MET_BY)    ||
+              pos.equals(TemporalOperatorName.MEETS);
     }
 
     public static int getMeasureCount(Observation obs) {
@@ -169,7 +172,7 @@ public class OM2Utils {
      *
      * @param obs An observation.
      * @return A liste of measure fields
-     * 
+     *
      * @throws IllegalArgumentException if the observation result has no field or is of an unknown type.
      */
     public static List<Field> getMeasureFields(org.opengis.observation.Observation obs) {
@@ -185,7 +188,7 @@ public class OM2Utils {
         }
         return fields;
     }
-    
+
     public static boolean containField(Field field, Phenomenon phen) {
         if (phen instanceof CompositePhenomenon composite) {
             for (Phenomenon component : composite.getComponent()) {

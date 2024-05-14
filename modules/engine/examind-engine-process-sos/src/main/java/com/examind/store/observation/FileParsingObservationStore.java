@@ -78,7 +78,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
 
 /**
@@ -97,7 +97,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected final List<String> mainColumns;
 
-    // date column expected header 
+    // date column expected header
     protected final List<String> dateColumns;
     // date format correspuding to the dateColumn
     protected final String dateFormat;
@@ -165,9 +165,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
         this.mainColumns = getMultipleValuesList(params, MAIN_COLUMN.getName().toString());
         this.dateColumns = getMultipleValuesList(params, DATE_COLUMN.getName().toString());
-        
+
         this.dateFormat = (String) params.parameter(DATE_FORMAT.getName().toString()).getValue();
-        
+
         this.longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         this.latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
         this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
@@ -294,7 +294,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         if (observationBlock.containsKey(key)) {
             return observationBlock.get(key);
         } else {
-            
+
             MeasureBuilder cmb = new MeasureBuilder(measColumns);
             ObservationBlock ob = new ObservationBlock(procedure, foiID, cmb, measColumns.observationType);
             observationBlock.put(key, ob);
@@ -342,7 +342,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         for (final MeasureField mf : measureFields) {
             String name     = mf.name;
             String uom      = mf.uom;
-            
+
             uom  = extractWithRegex(uomRegex, name, uom);
             name = extractWithRegex(obsPropRegex, name);
 
@@ -430,7 +430,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
 
     @Override
-    public TemporalGeometricPrimitive getTemporalBounds() throws DataStoreException {
+    public TemporalPrimitive getTemporalBounds() throws DataStoreException {
 
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -463,7 +463,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * Extract the current procedure  in the current line.
      *
      * Method overriden by sub-classes
-     * 
+     *
      * @param line The current csv line processed
      * @param procIndex Column index for procedure id.
      * @param procNameIndex Column index for procedure name.
@@ -514,7 +514,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
 
     protected Optional<? extends Number> parseMain(Object[] line, final Long preComputeDateValue, List<Integer> mainIndexes, final DateFormat sdf, int lineNumber, String currentObsType) throws DataStoreException {
-        
+
         // assume that for profile main field is a double
         if ("Profile".equals(currentObsType)) {
             if (mainIndexes.size() > 1) {

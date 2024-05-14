@@ -27,14 +27,13 @@ import org.constellation.generic.GenericReader;
 import org.constellation.generic.Values;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.observation.ObservationReader;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,7 @@ import java.util.logging.Level;
 import org.apache.sis.referencing.CRS;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
+import org.apache.sis.temporal.TemporalObjects;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -67,7 +67,6 @@ import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.observation.query.IdentifierQuery;
-import org.geotoolkit.temporal.object.DefaultInstant;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -203,13 +202,13 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getEventTime() throws DataStoreException {
+    public TemporalPrimitive getEventTime() throws DataStoreException {
          try {
             final Values values = loadData(Arrays.asList("var06"));
             String v = values.getVariable("var06");
             if (v != null) {
                 Calendar d = TemporalUtilities.parseDateCal(v);
-                return new DefaultInstant(Collections.EMPTY_MAP, d.getTime());
+                return TemporalObjects.createInstant(d.getTime().toInstant());
             } else {
                 return null;
             }
@@ -245,7 +244,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             if (endStr != null) {
                 end = df.parse(endStr);
             }
-            TemporalGeometricPrimitive time = OMUtils.buildTime(identifier, begin, end);
+            TemporalPrimitive time = OMUtils.buildTime(identifier, begin, end);
 
             // procedure
             final String procedure = sensorIdBase + identifier.substring(9);
@@ -511,7 +510,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             if (endStr != null) {
                 end = df.parse(endStr);
             }
-            final TemporalGeometricPrimitive samplingTime = OMUtils.buildTime(obsID, begin, end);
+            final TemporalPrimitive samplingTime = OMUtils.buildTime(obsID, begin, end);
 
             final Phenomenon observedProperty;
             if (phenomenon != null) {
@@ -539,11 +538,11 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                    procedure,
                                    samplingTime,
                                    featureOfInterest,
-                                   observedProperty, 
+                                   observedProperty,
                                    null,
                                    result,
                                    null);
-            
+
         } catch (ConstellationMetadataException | ParseException ex) {
             throw new DataStoreException(ex);
         }
@@ -632,7 +631,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
+    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
         throw new DataStoreException("The Default generic implementation of SOS does not support GetFeatureofInterestTime");
     }
 
@@ -677,7 +676,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
+    public TemporalPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 

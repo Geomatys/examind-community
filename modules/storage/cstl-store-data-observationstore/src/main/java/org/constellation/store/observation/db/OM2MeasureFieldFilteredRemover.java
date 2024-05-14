@@ -39,6 +39,7 @@ import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -55,7 +56,7 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
     private final ObservationInfos obsInfo;
 
     private final List<InsertDbField> fields;
-    
+
      // calculated
     private final Collection<String> emptyFieldRequests;
 
@@ -121,7 +122,7 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
         try {
             if (obs.getResult() instanceof MeasureResult) {
                 if (obs.getSamplingTime() instanceof Instant inst) {
-                    final Timestamp t = new Timestamp(inst.getDate().getTime());
+                    final Timestamp t = new Timestamp(TemporalUtilities.toInstant(inst.getPosition()).toEpochMilli());
                     boolean removed = false;
                     for (PreparedStatement stmt : stmts) {
                         stmt.setTimestamp(1, t);
@@ -137,11 +138,11 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
                 Timestamp boundEnd   = null;
                 Timestamp instant    = null;
                 if (obsInfo.time instanceof Period p) {
-                    boundBegin = new Timestamp(p.getBeginning().getDate().getTime());
-                    boundEnd   = new Timestamp(p.getEnding().getDate().getTime());
+                    boundBegin = new Timestamp(TemporalUtilities.toInstant(p.getBeginning()).toEpochMilli());
+                    boundEnd   = new Timestamp(TemporalUtilities.toInstant(p.getEnding()).toEpochMilli());
                     hasFilter  = true;
                 } else if (obsInfo.time instanceof Instant i) {
-                    instant = new Timestamp(i.getDate().getTime());
+                    instant = new Timestamp(TemporalUtilities.toInstant(i.getPosition()).toEpochMilli());
                     hasFilter  = true;
                 } else if (obsInfo.time != null) {
                     throw new IllegalArgumentException("Unexpected observation time bounds type:" + obsInfo.time.getClass().getName());
@@ -157,7 +158,7 @@ public class OM2MeasureFieldFilteredRemover extends OM2MeasureHandler {
                     }
                     final Timestamp t = new Timestamp(d.getTime());
 
-                    if (!hasFilter                            || 
+                    if (!hasFilter                            ||
                         (instant != null && t.equals(instant)) ||
                         ((boundBegin != null && boundEnd != null) && (t.after(boundBegin) && t.before(boundEnd) || t.equals(boundBegin) || t.equals(boundEnd)))
                         ) {

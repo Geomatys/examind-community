@@ -9,10 +9,12 @@ import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
+import org.opengis.util.InternationalString;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -32,8 +34,9 @@ public class ParameterDescriptorJSONSerializer extends JsonSerializer<GeneralPar
         writer.writeStringField("name", name);
         writer.writeNumberField("minOccurs", generalDesc.getMinimumOccurs());
         writer.writeNumberField("maxOccurs", generalDesc.getMaximumOccurs());
-        if (generalDesc.getDescription() != null) {
-            writer.writeStringField("description", generalDesc.getDescription().toString());
+        Optional<InternationalString> desc = generalDesc.getDescription();
+        if (desc.isPresent()) {
+            writer.writeStringField("description", desc.get().toString());
         }
 
         if (generalDesc instanceof ParameterDescriptor) {

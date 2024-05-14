@@ -23,6 +23,11 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,7 +57,6 @@ import org.apache.sis.util.iso.Names;
 import org.apache.sis.util.SimpleInternationalString;
 import org.apache.sis.util.iso.Types;
 import org.apache.sis.xml.NilReason;
-import org.constellation.dto.metadata.JsonMetadataConstants;
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.util.ReflectionUtilities;
 import org.geotoolkit.gml.xml.AbstractTimePosition;
@@ -63,9 +67,7 @@ import org.geotoolkit.gts.xml.PeriodDurationType;
 import org.geotoolkit.metadata.MetadataFactory;
 import org.geotoolkit.sml.xml.v101.SensorMLStandard;
 import org.opengis.referencing.ReferenceSystem;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.PeriodDuration;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
@@ -115,8 +117,8 @@ public class TemplateReader extends AbstractTemplateHandler {
 
         updateObjectFromTree(tree,  tree.getRoot(), metadata, new ReservedObjects());
 
-        if (metadata instanceof AbstractMetadata) {
-            ((AbstractMetadata)metadata).prune();
+        if (metadata instanceof AbstractMetadata am) {
+            am.prune();
         }
         return metadata;
     }
@@ -128,8 +130,7 @@ public class TemplateReader extends AbstractTemplateHandler {
 
             final Object obj = getValue(node, metadata, reserved);
 
-            if (obj instanceof Collection) {
-                final Collection list = (Collection) obj;
+            if (obj instanceof Collection list) {
 
                 // remove disapeared collection instance
                 strip(children, list, node);
@@ -181,7 +182,9 @@ public class TemplateReader extends AbstractTemplateHandler {
             return null;
         }
         // special types
-        if (metadata instanceof ReferenceSystemMetadata || metadata instanceof Period || metadata instanceof AbstractTimePosition || metadata instanceof Instant || !(metadata instanceof AbstractMetadata)) {
+        if (metadata instanceof ReferenceSystemMetadata || metadata instanceof Period || metadata instanceof AbstractTimePosition
+                || metadata instanceof Instant || metadata instanceof org.opengis.temporal.Instant || !(metadata instanceof AbstractMetadata))
+        {
             final Method getter = ReflectionUtilities.getGetterFromName(node.name, metadata.getClass());
             return ReflectionUtilities.invokeMethod(metadata, getter);
 
@@ -194,9 +197,9 @@ public class TemplateReader extends AbstractTemplateHandler {
              */
             if (node.strict){
 
-                if (result instanceof Collection) {
-                    final NumeratedCollection results = new NumeratedCollection((Collection)result);
-                    final Iterator it        = ((Collection)result).iterator();
+                if (result instanceof Collection c) {
+                    final NumeratedCollection results = new NumeratedCollection(c);
+                    final Iterator it        = c.iterator();
                     int i = 0;
                     while (it.hasNext()) {
                         final Object o = it.next();
@@ -220,9 +223,9 @@ public class TemplateReader extends AbstractTemplateHandler {
              */
             } else if (node.type != null) {
                 final Class type = readType(node);
-                if (result instanceof Collection) {
-                    final NumeratedCollection results = new NumeratedCollection((Collection)result);
-                    final Iterator it        = ((Collection)result).iterator();
+                if (result instanceof Collection c) {
+                    final NumeratedCollection results = new NumeratedCollection(c);
+                    final Iterator it        = c.iterator();
                     int i = 0;
                     while (it.hasNext()) {
                         final Object o = it.next();
@@ -240,9 +243,9 @@ public class TemplateReader extends AbstractTemplateHandler {
                 return null;
 
             } else {
-                if (result instanceof Collection) {
-                    final NumeratedCollection results = new NumeratedCollection((Collection)result);
-                    final Iterator it        = ((Collection)result).iterator();
+                if (result instanceof Collection c) {
+                    final NumeratedCollection results = new NumeratedCollection(c);
+                    final Iterator it        = c.iterator();
                     int i = 0;
                     while (it.hasNext()) {
                         final Object o = it.next();
@@ -302,8 +305,8 @@ public class TemplateReader extends AbstractTemplateHandler {
         for (ValueNode child : n.children) {
             final Object childO = getValue(child, obj, new ReservedObjects());
             final Collection c;
-            if (childO instanceof Collection) {
-                c = (Collection) childO;
+            if (childO instanceof Collection cc) {
+                c = cc;
             } else {
                 c = Arrays.asList(childO);
             }
@@ -451,8 +454,11 @@ public class TemplateReader extends AbstractTemplateHandler {
         if (type == Date.class) {
             return toDate(value, identifier);
         }
+        if (type == Instant.class || type == Temporal.class) {
+            return toInstant(value, identifier);
+        }
         if ((type == double.class || type == Double.class) && value instanceof String) {
-            return Double.parseDouble((String) value);
+            return Double.valueOf((String) value);
         }
         if (type == LocalName.class && value instanceof String) {
             return Names.createLocalName(null, null, (String) value);
@@ -464,12 +470,12 @@ public class TemplateReader extends AbstractTemplateHandler {
             return Names.createScopedName(null, null, (String) value);
         }
         if ((type == int.class ||type == Integer.class) && value instanceof String) {
-            return Integer.parseInt((String) value);
+            return Integer.valueOf((String) value);
         }
         if ((type == long.class || type == Long.class) && value instanceof String) {
-            return Long.parseLong((String) value);
+            return Long.valueOf((String) value);
         }
-        if (type == PeriodDuration.class && value instanceof String) {
+        if (type == java.time.Period.class && value instanceof String) {
             try {
                 return new PeriodDurationType((String) value);
             } catch (IllegalArgumentException ex) {
@@ -527,17 +533,17 @@ public class TemplateReader extends AbstractTemplateHandler {
     }
 
     private static Object fixImmutable(final Object obj) {
-        if (obj instanceof Collection) {
-            final Iterator it = ((Collection)obj).iterator();
+        if (obj instanceof Collection c) {
+            final Iterator it = c.iterator();
             while(it.hasNext()) {
                 Object o = it.next();
-                if (o instanceof ReferenceSystemMetadata) {
-                    fixImmutableRs((ReferenceSystemMetadata)o);
+                if (o instanceof ReferenceSystemMetadata rsm) {
+                    fixImmutableRs(rsm);
                 }
             }
         }
-        if (obj instanceof ReferenceSystemMetadata) {
-            fixImmutableRs((ReferenceSystemMetadata)obj);
+        if (obj instanceof ReferenceSystemMetadata rsm) {
+            fixImmutableRs(rsm);
         }
         return obj;
     }
@@ -556,12 +562,12 @@ public class TemplateReader extends AbstractTemplateHandler {
         if (value == null) {
             return null;
         }
-        if (value instanceof Number) {
-            return new Date(((Number) value).longValue());
+        if (value instanceof Number n) {
+            return new Date(n.longValue());
         }
         final String t = (String) value;
         if (t.indexOf('-') < 0) try {
-            return new Date(Long.valueOf(t));
+            return new Date(Long.parseLong(t));
         } catch (NumberFormatException e) {
             throw new ParseException("Illegal date: " + value + " (property:" + identifier +")", e);
         }
@@ -579,11 +585,38 @@ public class TemplateReader extends AbstractTemplateHandler {
             throw new ParseException("Illegal date: " + value + " (property:" + identifier +")", e);
         }
     }
-
+    
+    private Temporal toInstant(final Object value, final String identifier) throws ParseException {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number n) {
+            return Instant.ofEpochMilli(n.longValue());
+        }
+        final String t = (String) value;
+        if (t.indexOf('-') < 0) try {
+            return Instant.ofEpochMilli(Long.parseLong(t));
+        } catch (NumberFormatException e) {
+            throw new ParseException("Illegal date: " + value + " (property:" + identifier +")", e);
+        }
+        if (t.indexOf(':') < 0) {
+            return LocalDate.parse((String) value).atStartOfDay().atOffset(ZoneOffset.UTC).toInstant();
+        } else {
+            try {
+                return instantHourFormat.parse((String) value, Instant::from);
+            } catch (DateTimeParseException e) {
+                try {
+                    return instantHourFormat2.parse((String) value, Instant::from);
+                }  catch (DateTimeParseException e2) {
+                    throw new ParseException(e2.getMessage(), e2);
+                }
+            }
+        }
+    }
 
     private Object get(Collection c , int ordinal) {
-        if (c instanceof NumeratedCollection) {
-            return ((NumeratedCollection)c).get(ordinal);
+        if (c instanceof NumeratedCollection nc) {
+            return nc.get(ordinal);
         }
         if (c.size() > ordinal) {
             final Iterator it = c.iterator();
@@ -598,11 +631,10 @@ public class TemplateReader extends AbstractTemplateHandler {
     }
 
     private void replace(Collection c , int ordinal, Object newValue) {
-        if (c instanceof List) {
-            List list = (List) c;
+        if (c instanceof List list) {
             list.set(ordinal, newValue);
-        } else if (c instanceof NumeratedCollection){
-            NumeratedCollection list = (NumeratedCollection) c;
+        } else if (c instanceof NumeratedCollection nc){
+            NumeratedCollection list = nc;
             list.replace(ordinal, newValue);
         } else {
             final Iterator it = c.iterator();

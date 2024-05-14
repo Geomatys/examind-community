@@ -203,9 +203,10 @@
                     <gmd:temporalElement>
                         <gmd:EX_TemporalExtent>
                             <gmd:extent>
-                                <gml:TimeInstant>
-                                    <gml:timePosition>2005-09-22T02:00:00+02:00</gml:timePosition>
-                                </gml:TimeInstant>
+                                <gml:TimePeriod>                                    
+                                    <gml:beginPosition>2005-09-22T00:00:00</gml:beginPosition>                                    
+                                    <gml:endPosition indeterminatePosition="unknown"/>                                
+                                </gml:TimePeriod>
                             </gmd:extent>
                         </gmd:EX_TemporalExtent>
                     </gmd:temporalElement>

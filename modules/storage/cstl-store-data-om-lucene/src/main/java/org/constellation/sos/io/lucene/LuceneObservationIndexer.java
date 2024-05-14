@@ -16,8 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.constellation.sos.io.lucene;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,20 +32,20 @@ import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTim
 
 import org.geotoolkit.index.IndexingException;
 import org.geotoolkit.lucene.index.AbstractIndexer;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import org.geotoolkit.observation.json.ObservationJsonUtils;
 import org.geotoolkit.nio.IOUtilities;
@@ -57,6 +55,8 @@ import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -91,7 +91,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
     public LuceneObservationIndexer(final Path dataDirectory, final Path configDirectory, final String serviceID, final boolean create) throws IndexingException {
         super(serviceID, configDirectory, new WhitespaceAnalyzer());
         mapper = ObservationJsonUtils.getMapper();
-        
+
         if (Files.isDirectory(dataDirectory)) {
             try {
                 observationDirectory = dataDirectory.resolve("observations");
@@ -102,7 +102,7 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
 
                 observationTemplateDirectory = dataDirectory.resolve("observationTemplates");
                 Files.createDirectories(observationTemplateDirectory);
-                
+
                 foiDirectory = dataDirectory.resolve("features");
                 Files.createDirectories(foiDirectory);
 
@@ -288,18 +288,19 @@ public class LuceneObservationIndexer extends AbstractIndexer<Object> {
             if (foi != null) {
                 doc.add(new Field("feature_of_interest", foi.getId(), ft));
             }
+            Optional<Temporal> instant;
             try {
-                final TemporalObject time = observation.getSamplingTime();
+                final TemporalPrimitive time = observation.getSamplingTime();
                 if (time instanceof Period period) {
-                    doc.add(new Field("sampling_time_begin", getLuceneTimeValue(period.getBeginning().getDate()), ft));
-                    doc.add(new Field("sampling_time_end",   getLuceneTimeValue(period.getEnding().getDate()), ft));
-                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(period.getBeginning().getDate()).getBytes()), sft));
-                    doc.add(new Field("sampling_time_end_sort",   new BytesRef(getLuceneTimeValue(period.getEnding().getDate()).getBytes()), sft));
+                    doc.add(new Field("sampling_time_begin", getLuceneTimeValue(period.getBeginning()), ft));
+                    doc.add(new Field("sampling_time_end",   getLuceneTimeValue(period.getEnding()), ft));
+                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(period.getBeginning()).getBytes()), sft));
+                    doc.add(new Field("sampling_time_end_sort",   new BytesRef(getLuceneTimeValue(period.getEnding()).getBytes()), sft));
 
-                } else if (time instanceof Instant instant) {
-                    doc.add(new Field("sampling_time_begin",   getLuceneTimeValue(instant.getDate()), ft));
+                } else if ((instant = TemporalUtilities.toTemporal(time)).isPresent()) {
+                    doc.add(new Field("sampling_time_begin",   getLuceneTimeValue(instant.get()), ft));
                     doc.add(new Field("sampling_time_end",    "NULL", ft));
-                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(instant.getDate()).getBytes()), sft));
+                    doc.add(new Field("sampling_time_begin_sort", new BytesRef(getLuceneTimeValue(instant.get()).getBytes()), sft));
                     doc.add(new Field("sampling_time_end_sort", new BytesRef("NULL".getBytes()), sft));
 
                 } else if (time != null) {

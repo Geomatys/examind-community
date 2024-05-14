@@ -43,7 +43,7 @@ import static org.geotoolkit.observation.model.ResultMode.CSV;
 import static org.geotoolkit.observation.model.ResultMode.DATA_ARRAY;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -216,7 +216,7 @@ public class FieldParser {
              */
             final String measureID                = rs2.getString("id");
             final String singleObsID              = "obs-" + oid + '-' + measureID;
-            final TemporalGeometricPrimitive time = buildTime(singleObsID, lastTime != null ? lastTime : firstTime, null);
+            final TemporalPrimitive time = buildTime(singleObsID, lastTime != null ? lastTime : firstTime, null);
             final ComplexResult result            = buildComplexResult();
             final String singleName               = obsName + '-' + measureID;
             final Observation observation = new Observation(singleObsID,
@@ -246,7 +246,7 @@ public class FieldParser {
             parseLine(rs2);
         }
         
-        final TemporalGeometricPrimitive time = buildTime(obsID, firstTime, lastTime);
+        final TemporalPrimitive time = buildTime(obsID, firstTime, lastTime);
         final ComplexResult result = buildComplexResult();
         final Observation observation = new Observation(obsID,
                                                       obsName,

@@ -461,7 +461,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         Observation expected2 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_disjoint_sensor_observation.json"),   Observation.class);
         Observation expected3 = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/merged_disjoint_sensor_observation2.json"),   Observation.class);
 
-        String oid1 = omPr.writeObservation(first);
+        omPr.writeObservation(first);
 
         /*
         * get the written first observation
@@ -475,11 +475,9 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         assertTrue(results.get(0) instanceof Observation);
         Observation result   = (Observation) results.get(0);
 
-        // fix changed id
-        expected.setId("obs-1");
         assertEqualsObservation(expected, result);
 
-        String oid2 = omPr.writeObservation(second);
+        omPr.writeObservation(second);
 
         /*
         * get the full merged observation

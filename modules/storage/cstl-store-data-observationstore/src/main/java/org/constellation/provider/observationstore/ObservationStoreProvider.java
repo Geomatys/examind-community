@@ -53,7 +53,7 @@ import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
@@ -307,7 +307,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public TemporalGeometricPrimitive getTime() throws ConstellationStoreException {
+    public TemporalPrimitive getTime() throws ConstellationStoreException {
         try {
             return ((ObservationStore)getMainStore()).getTemporalBounds();
         } catch (DataStoreException ex) {
@@ -316,7 +316,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public TemporalGeometricPrimitive getTimeForProcedure(String sensorID) throws ConstellationStoreException {
+    public TemporalPrimitive getTimeForProcedure(String sensorID) throws ConstellationStoreException {
         try {
             return ((ObservationStore)getMainStore()).getEntityTemporalBounds(new IdentifierQuery(OMEntity.PROCEDURE, sensorID));
         } catch (DataStoreException ex) {
@@ -325,7 +325,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public TemporalGeometricPrimitive getTimeForFeatureOfInterest(String fid) throws ConstellationStoreException {
+    public TemporalPrimitive getTimeForFeatureOfInterest(String fid) throws ConstellationStoreException {
         try {
             return ((ObservationStore)getMainStore()).getEntityTemporalBounds(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, fid));
         } catch (DataStoreException ex) {
@@ -350,7 +350,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
-    
+
     @Override
     public void removePhenomenon(String phenomenonID) throws ConstellationStoreException {
         try {

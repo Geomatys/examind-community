@@ -19,7 +19,7 @@
 package com.examind.store.observation.csv;
 
 import java.nio.file.Path;
-import java.text.SimpleDateFormat;
+import java.time.temporal.Temporal;
 import java.util.List;
 import java.util.Set;
 import org.geotoolkit.data.csv.CSVProvider;
@@ -34,14 +34,14 @@ import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -108,15 +108,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("PSAL (psu)"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("2018-11-02T07:10:52.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-13T03:55:49.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-11-02T07:10:52" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-13T03:55:49" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -132,8 +130,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2018-11-02T07:10:52.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-13T03:55:49.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-11-02T07:10:52" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-13T03:55:49" , format(tp.getEnding()));
     }
 
     @Test
@@ -184,15 +182,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("VEPK LEVEL0 (meter2 second)"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-        
         Period tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:29:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-30T11:59:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -221,8 +217,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:29:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-30T11:59:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -260,14 +256,10 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("STATUS"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
-        Assert.assertTrue(time instanceof Instant);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
-        Instant tp = (Instant) time;
-        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getDate()));
+        Temporal tp = TemporalUtilities.toTemporal(time).orElseThrow();
+        Assert.assertEquals("1980-03-01T21:52:00", format(tp));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -280,10 +272,9 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
 
         time = pt.spatialBound.getTimeObject();
-        Assert.assertTrue(time instanceof Instant);
 
-        tp = (Instant) time;
-        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getDate()));
+        tp = TemporalUtilities.toTemporal(time).orElseThrow();
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp));
     }
 
     @Test
@@ -321,15 +312,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("PSAL LEVEL1 (psu)"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:00:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-10-30T06:45:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:00:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-10-30T06:45:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -345,8 +334,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:00:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-10-30T06:45:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:00:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-10-30T06:45:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -384,15 +373,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -408,8 +395,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -450,15 +437,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("VEPK (meter2 second)"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, "p001");
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("2000-07-28T00:30:00.000", sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2000-07-29T23:30:00.000",sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2000-07-28T00:30:00", format(tp.getBeginning()));
+        Assert.assertEquals("2000-07-29T23:30:00",format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(2, results.procedures.size());
@@ -474,8 +459,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2000-07-28T00:30:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2000-07-29T23:30:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2000-07-28T00:30:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2000-07-29T23:30:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -516,14 +501,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
         Period tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -555,8 +539,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -597,14 +581,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
         Period tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -636,8 +619,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
     }
 
     @Test
@@ -691,15 +674,13 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("velocity"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:29:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-30T11:59:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -728,8 +709,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2018-10-30T00:29:00" , format(tp.getBeginning()));
+        Assert.assertEquals("2018-11-30T11:59:00" , format(tp.getEnding()));
 
         Assert.assertEquals(3, pt.fields.size());
     }
@@ -768,16 +749,14 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("salinity"));
         Assert.assertTrue(phenomenonNames.contains("temperature"));
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
-
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, "P1");
-        
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
         Assert.assertTrue(time instanceof Period);
 
         Period tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
 
         timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, "P2");
 
@@ -785,8 +764,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-03T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-04T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-04T21:52:00" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(2, results.procedures.size());
@@ -803,8 +782,8 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-01T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-02T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
 
         pt = procedures.get(1);
         Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
@@ -813,7 +792,7 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("1980-03-03T21:52:00.0" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("1980-03-04T21:52:00.0" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("1980-03-03T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-04T21:52:00" , format(tp.getEnding()));
     }
 }

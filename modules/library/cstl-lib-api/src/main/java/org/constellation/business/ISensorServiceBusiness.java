@@ -28,7 +28,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -45,7 +45,7 @@ public interface ISensorServiceBusiness {
      *
      * @param id Sensor service id.
      * @param sensorID sensor identifier.
-     * 
+     *
      * @return {@code true} if the sensor has been removed.
      */
     boolean removeSensor(final Integer id, final String sensorID) throws ConstellationException;
@@ -58,7 +58,7 @@ public interface ISensorServiceBusiness {
 
     Collection<String> getObservedPropertiesForSensorId(final Integer id, final String sensorID, final boolean decompose) throws ConfigurationException;
 
-    TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException;
+    TemporalPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException;
 
     /**
      * Remove an observation data from all the services in which the data is integrated.
@@ -111,7 +111,7 @@ public interface ISensorServiceBusiness {
      *
      * @param id Sensor service id.
      * @param sensorID existing sensor identifier.
-     * 
+     *
      * @return {@code true} if the sensor has been integrated.
      */
     boolean importSensor(Integer id, String sensorID) throws ConstellationException;

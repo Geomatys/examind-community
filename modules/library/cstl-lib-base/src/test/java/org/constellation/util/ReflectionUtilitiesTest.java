@@ -19,6 +19,7 @@
 
 package org.constellation.util;
 
+import java.time.Instant;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.citation.DefaultCitation;
 import org.apache.sis.metadata.iso.citation.DefaultCitationDate;
@@ -132,11 +133,11 @@ public class ReflectionUtilitiesTest {
         identification.setDescriptiveKeywords(keywords);
 
         final List<TemporalExtent> tempExtents = new ArrayList<TemporalExtent>();
-        final Date start = new Date(1547845121);
-        final Date stop  = new Date(1747845121);
+        final Instant start = Instant.ofEpochMilli(1547845121);
+        final Instant stop  = Instant.ofEpochMilli(1747845121);
         final TimePositionType startPos = new TimePositionType(start);
         final TimePositionType stopPos = new TimePositionType(stop);
-        TimePeriodType allPeriod = new TimePeriodType(startPos, stopPos);
+        TimePeriodType allPeriod = new TimePeriodType(null, startPos, stopPos);
         allPeriod.setId("1-all");
 
         final DefaultExtent extent = new DefaultExtent();
@@ -152,28 +153,28 @@ public class ReflectionUtilitiesTest {
          * Test 1 ISO 19115:MD_Metadata:identificationInfo:citation:date:date#dateType=revision
          */
         Object result = ReflectionUtilities.getConditionalValuesFromPath("ISO 19115:MD_Metadata:identificationInfo:citation:date:date", "dateType", "revision", metadata);
-        
-        assertTrue(result instanceof Date);
-        assertEquals(1266687454, ((Date)result).getTime());
-        
+
+        assertTrue(result instanceof Instant);
+        assertEquals(1266687454, ((Instant)result).toEpochMilli());
+
 
         /*
          * Test 2 ISO 19115:MD_Metadata:identificationInfo:citation:date:date#dateType=publication
          */
         result = ReflectionUtilities.getConditionalValuesFromPath("ISO 19115:MD_Metadata:identificationInfo:citation:date:date", "dateType", "publication", metadata);
 
-        assertTrue(result instanceof Date);
-        assertEquals(1253587454, ((Date)result).getTime());
-        
+        assertTrue(result instanceof Instant);
+        assertEquals(1253587454, ((Instant)result).toEpochMilli());
+
 
         /*
          * Test 3 ISO 19115:MD_Metadata:identificationInfo:citation:date:date#dateType=creation
          */
         result = ReflectionUtilities.getConditionalValuesFromPath("ISO 19115:MD_Metadata:identificationInfo:citation:date:date", "dateType", "creation", metadata);
 
-        assertTrue(result instanceof Date);
-        assertEquals(1245587454, ((Date)result).getTime());
-        
+        assertTrue(result instanceof Instant);
+        assertEquals(1245587454, ((Instant)result).toEpochMilli());
+
 
          /**
          * Test 4 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=originator
@@ -182,7 +183,7 @@ public class ReflectionUtilitiesTest {
 
         assertTrue(result instanceof DefaultInternationalString);
         assertEquals(orgName1, result);
-        
+
 
         /**
          * Test 5 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=publisher
@@ -191,7 +192,7 @@ public class ReflectionUtilitiesTest {
 
         assertTrue(result instanceof DefaultInternationalString);
         assertEquals(orgName2, result);
-        
+
 
         /**
          * Test 6 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=author
@@ -208,7 +209,7 @@ public class ReflectionUtilitiesTest {
 
         assertTrue("result type was:" + result.getClass().getName(), result instanceof List);
         assertEquals(key1, ((List)result).get(0));
-        
+
         /**
          * Test 8 ISO 19115:MD_Metadata:identificationInfo:descriptiveKeywords:keyword#type=VariablesCategory
          */
@@ -328,8 +329,8 @@ public class ReflectionUtilitiesTest {
         assertTrue(result instanceof List);
         List collResult = (List) result;
         assertEquals(2, collResult.size());
-        assertEquals(1266687454, ((Date)collResult.get(0)).getTime());
-        assertEquals(1888687454, ((Date)collResult.get(1)).getTime());
+        assertEquals(1266687454, ((Instant)collResult.get(0)).toEpochMilli());
+        assertEquals(1888687454, ((Instant)collResult.get(1)).toEpochMilli());
 
         /*
          * Test 2 ISO 19115:MD_Metadata:identificationInfo:citation:date:date#dateType=publication
@@ -339,9 +340,9 @@ public class ReflectionUtilitiesTest {
         assertTrue(result instanceof List);
         collResult = (List) result;
         assertEquals(2, collResult.size());
-        assertEquals(1253587454, ((Date)collResult.get(0)).getTime());
-        assertEquals(1999587454, ((Date)collResult.get(1)).getTime());
-        
+        assertEquals(1253587454, ((Instant)collResult.get(0)).toEpochMilli());
+        assertEquals(1999587454, ((Instant)collResult.get(1)).toEpochMilli());
+
 
         /*
          * Test 3 ISO 19115:MD_Metadata:identificationInfo:citation:date:date#dateType=creation
@@ -351,10 +352,10 @@ public class ReflectionUtilitiesTest {
         assertTrue(result instanceof List);
         collResult = (List) result;
         assertEquals(2, collResult.size());
-        assertEquals(1245587454, ((Date)collResult.get(0)).getTime());
-        assertEquals(1789587454, ((Date)collResult.get(1)).getTime());
+        assertEquals(1245587454, ((Instant)collResult.get(0)).toEpochMilli());
+        assertEquals(1789587454, ((Instant)collResult.get(1)).toEpochMilli());
 
-        
+
 
         /**
          * Test 4 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=originator
@@ -367,7 +368,7 @@ public class ReflectionUtilitiesTest {
         assertTrue(collResult.get(1) instanceof DefaultInternationalString);
         assertEquals(orgName1, collResult.get(0));
         assertEquals(orgName4, collResult.get(1));
-        
+
 
         /**
          * Test 5 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=publisher
@@ -380,7 +381,7 @@ public class ReflectionUtilitiesTest {
         assertTrue(collResult.get(1) instanceof DefaultInternationalString);
         assertEquals(orgName2, collResult.get(0));
         assertEquals(orgName5, collResult.get(1));
-        
+
 
         /**
          * Test 6 ISO 19115:MD_Metadata:identificationInfo:pointOfContact:organisationName#role=author
@@ -412,12 +413,12 @@ public class ReflectionUtilitiesTest {
         assertEquals(Arrays.asList(key3, key4), ((List)result).get(0));
         assertEquals(Arrays.asList(key7, key8), ((List)result).get(1));
     }
-    
+
     @Test
     public void instanceOfTest() {
          assertTrue(ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", UserType.class));
          assertTrue(ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", ClassificationSchemeType.class));
          assertFalse(ReflectionUtilities.instanceOf("org.geotoolkit.ebrim.xml.v250.RegistryObjectType", NotifyActionType.class));
-         
+
     }
 }

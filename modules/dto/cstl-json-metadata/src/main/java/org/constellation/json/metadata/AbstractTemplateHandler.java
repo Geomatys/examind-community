@@ -20,6 +20,8 @@ package org.constellation.json.metadata;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -61,6 +63,10 @@ public class AbstractTemplateHandler {
      */
     protected final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
     protected final DateFormat dateHourFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+    
+    protected final DateTimeFormatter instantFormat    = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("UTC"));
+    protected final DateTimeFormatter instantHourFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.of("UTC"));
+    protected final DateTimeFormatter instantHourFormat2 = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneId.of("UTC"));
 
     /**
      * The default value to give to the {@code specialized} of {@link TemplateReader} constructor.

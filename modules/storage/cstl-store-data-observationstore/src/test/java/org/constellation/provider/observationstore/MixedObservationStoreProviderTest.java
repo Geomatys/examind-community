@@ -64,7 +64,6 @@ import org.geotoolkit.observation.query.OfferingQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
-import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -84,9 +83,8 @@ import org.opengis.filter.TemporalOperator;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
-import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -3173,7 +3171,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
     @Test
     public void getTimeForTemplateTest() throws Exception {
-        TemporalGeometricPrimitive result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:2");
+        TemporalPrimitive result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:2");
         assertPeriodEquals("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z", result);
 
         // this sensor has no observation
@@ -4552,7 +4550,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
          */
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), ISO_8601_FORMATTER.parse("2007-05-01T15:00:00Z"))));
+        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(buildInstant("2007-05-01T15:00:00Z")));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -5206,17 +5204,17 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
                         + "384.0,384.0,31.4@@"
                         + "768.0,768.0,35.1@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-01T00:00:00Z", (TemporalGeometricPrimitive) results.get(0).getSamplingTime());
+        assertInstantEquals("2000-12-01T00:00:00Z", results.get(0).getSamplingTime());
 
         result = getResultValues(results.get(1));
         expectedResult  = "12.0,12.0,18.5@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-11T00:00:00Z", (TemporalGeometricPrimitive) results.get(1).getSamplingTime());
+        assertInstantEquals("2000-12-11T00:00:00Z", results.get(1).getSamplingTime());
 
         result = getResultValues(results.get(2));
         expectedResult  = "12.0,12.0,18.5@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-22T00:00:00Z", (TemporalGeometricPrimitive) results.get(2).getSamplingTime());
+        assertInstantEquals("2000-12-22T00:00:00Z", results.get(2).getSamplingTime());
 
         /*
         * TODO

@@ -16,7 +16,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.constellation.metadata;
 
 import org.apache.sis.xml.bind.gcx.Anchor;
@@ -60,7 +59,6 @@ import org.apache.sis.xml.XML;
 import org.constellation.util.Util;
 import org.geotoolkit.csw.xml.CSWMarshallerPool;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
-import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -99,10 +97,12 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -113,6 +113,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import static java.util.Collections.singleton;
+import java.util.Date;
 import org.apache.sis.measure.Units;
 import static org.constellation.test.utils.TestResourceUtils.getResourceAsString;
 import static org.junit.Assert.assertEquals;
@@ -264,7 +265,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         assertTrue(tmpObj instanceof Period);
 
-
         obj = unmarshaller.unmarshal(Util.getResourceAsStream("org/constellation/xml/metadata/meta7.xml"));
 
         assertTrue(obj instanceof DefaultMetadata);
@@ -281,14 +281,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         return element;
     }
 
-    /**
-     *
-     * @param values
-     * @param keywordType
-     * @param altTitle
-     * @return
-     */
-    protected Keywords createKeyword(Set<String> values, String keywordType, String title, String altTitle, String date, String version) throws ParseException {
+    protected Keywords createKeyword(Set<String> values, String keywordType, String title, String altTitle, Temporal date, String version) throws ParseException {
 
         DefaultKeywords keyword = new DefaultKeywords();
         Set<InternationalString> kws = new HashSet<>();
@@ -309,8 +302,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         citation.setAlternateTitles(singleton(new SimpleInternationalString(altTitle)));
         DefaultCitationDate revisionDate = new DefaultCitationDate();
         revisionDate.setDateType(DateType.REVISION);
-        Date d = TemporalUtilities.parseDate(date);
-        revisionDate.setDate(d);
+        revisionDate.setReferenceDate(date);
 
         citation.setDates(singleton(revisionDate));
         citation.setEdition(new Anchor(URI.create("SDN:C371:1:35"), version));
@@ -344,8 +336,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
      /**
       * Tests the unmarshall of a metadata.
-      *
-      * @throws java.lang.Exception
       *
       * @todo Remove (together with the XML file) after we enabled {@link DefaultMetadataTest#testMarshalling()}.
       */
@@ -388,7 +378,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         /*
          * creation date
          */
-        metadata.setDateStamp(TemporalUtilities.parseDate("2009-01-01T06:00:00+0200"));
+        metadata.setDateStamp(Date.from(OffsetDateTime.parse("2009-01-01T06:00:00+02:00").toInstant()));
 
         /*
          * Spatial representation info
@@ -440,12 +430,10 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
         DefaultCitationDate revisionDate = new DefaultCitationDate();
         revisionDate.setDateType(DateType.REVISION);
-        Date d = TemporalUtilities.parseDate("1990-06-05T00:00:00+0200");
-        revisionDate.setDate(d);
+        revisionDate.setReferenceDate(LocalDate.of(1990, 6, 5));
         DefaultCitationDate creationDate = new DefaultCitationDate();
         creationDate.setDateType(DateType.CREATION);
-        Date dc = TemporalUtilities.parseDate("1979-08-03T00:00:00+0200");
-        creationDate.setDate(dc);
+        creationDate.setReferenceDate(LocalDate.of(1979, 8, 3));
         List<CitationDate> dates = new ArrayList<>();
         dates.add(revisionDate);
         dates.add(creationDate);
@@ -513,7 +501,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         //parameter
         Set<String> keys = new HashSet<>();
         keys.add("Transmittance and attenuance of the water column");
-        Keywords keyword = createKeyword(keys, "parameter", "BODC Parameter Discovery Vocabulary", "P021", "2008-11-26T00:00:00+0200", "35");
+        Keywords keyword = createKeyword(keys, "parameter", "BODC Parameter Discovery Vocabulary", "P021", LocalDate.of(2008, 11, 26), "35");
         keywords.add(keyword);
 
 
@@ -541,8 +529,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         citation.setAlternateTitles(singleton(new SimpleInternationalString("90008411")));
         revisionDate = new DefaultCitationDate();
         revisionDate.setDateType(DateType.REVISION);
-        d = TemporalUtilities.parseDate("1990-06-05T00:00:00+0200");
-        revisionDate.setDate(d);
+        revisionDate.setReferenceDate(LocalDate.of(1990, 6, 5));
         citation.setDates(singleton(revisionDate));
         aggregateInfo.setAggregateDataSetName(citation);
         aggregateInfo.setInitiativeType(InitiativeType.CAMPAIGN);
@@ -566,9 +553,7 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         //temporal extent
         DefaultTemporalExtent tempExtent = new DefaultTemporalExtent();
 
-        Date begin = TemporalUtilities.parseDate("1990-06-05T00:00:00+0200");
-        Date end = TemporalUtilities.parseDate("1990-07-02T00:00:00+0200");
-        TimePeriodType period = new TimePeriodType(null, begin, end);
+        TimePeriodType period = new TimePeriodType(null, LocalDate.of(1990, 6, 5), LocalDate.of(1990, 7, 2));
         period.setId("extent");
 
         tempExtent.setExtent(period);
@@ -719,8 +704,6 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
 
     /**
      * TODO enable when SIS version will be > 0.6-jdk7-MC0020
-     *
-     * @throws Exception
      */
     @Ignore
     public void topicCategoryMarshallTest() throws Exception {
@@ -750,6 +733,5 @@ public class MetadataUnmarshallTest { //extends MetadataTest {
         expResult = (DefaultDataIdentification) unmarshaller.unmarshal(new StringReader(result));
 
         assertEquals(expResult, data);
-
     }
 }

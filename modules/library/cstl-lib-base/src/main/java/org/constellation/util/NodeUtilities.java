@@ -25,7 +25,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -33,7 +32,6 @@ import org.w3c.dom.NodeList;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -48,6 +46,7 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import java.time.format.DateTimeParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -58,6 +57,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.apache.sis.temporal.LenientDateFormat;
 import org.apache.sis.xml.privy.LegacyNamespaces;
 import org.apache.sis.xml.MarshallerPool;
 import org.apache.sis.xml.XML;
@@ -473,7 +473,7 @@ public class NodeUtilities {
                     }
                 } else if (type.equals(Date.class)) {
                     try {
-                        final Date d = TemporalUtilities.getDateFromString(s);
+                        final Date d = Date.from(LenientDateFormat.parseInstantUTC(s));
                         if (parseDate) {
                             synchronized (Util.LUCENE_DATE_FORMAT) {
                                 result.add(Util.LUCENE_DATE_FORMAT.format(d));
@@ -481,7 +481,7 @@ public class NodeUtilities {
                         } else {
                             result.add(d);
                         }
-                    } catch (ParseException ex) {
+                    } catch (DateTimeParseException ex) {
                         LOGGER.log(Level.WARNING, "Unable to parse the date value:{0}", s);
                     }
                 } else if (s != null) {

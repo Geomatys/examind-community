@@ -19,7 +19,8 @@
 
 package org.constellation.sos.core;
 
-import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,10 +28,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureProperty;
+import org.geotoolkit.gml.xml.GMLPeriod;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
 import org.geotoolkit.observation.xml.AbstractObservation;
 import org.geotoolkit.observation.xml.Process;
@@ -39,7 +40,6 @@ import org.geotoolkit.observation.xml.v100.MeasurementType;
 import org.geotoolkit.sos.xml.Capabilities;
 import org.geotoolkit.sos.xml.SOSXmlFactory;
 import org.geotoolkit.sos.xml.v100.ObservationOfferingType;
-import org.geotoolkit.swe.xml.AbstractDataRecord;
 import org.geotoolkit.swe.xml.AbstractEncodingProperty;
 import org.geotoolkit.swe.xml.AbstractTime;
 import org.geotoolkit.swe.xml.AnyScalar;
@@ -50,9 +50,9 @@ import org.geotoolkit.swe.xml.DataRecord;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.swe.xml.SimpleDataRecord;
 import org.geotoolkit.swe.xml.v101.CompositePhenomenonType;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
 /**
@@ -142,12 +142,12 @@ public final class Normalizer {
                 merged.put(UUID.randomUUID().toString(), meas);
 
             } else if (merged.containsKey(key)) {
-                final AbstractObservation uniqueObs = (AbstractObservation) merged.get(key);
+                final AbstractObservation uniqueObs = merged.get(key);
                 if (uniqueObs.getResult() instanceof DataArrayProperty mergedArrayP) {
-                    final DataArray mergedArray          = mergedArrayP.getDataArray();
+                    final DataArray mergedArray = mergedArrayP.getDataArray();
 
                     if (obs.getResult() instanceof DataArrayProperty arrayP) {
-                        final DataArray array          = arrayP.getDataArray();
+                        final DataArray array = arrayP.getDataArray();
 
                         //we merge this observation with the map one
                         mergedArray.setElementCount(mergedArray.getElementCount().getCount().getValue() + array.getElementCount().getCount().getValue());
@@ -155,36 +155,41 @@ public final class Normalizer {
                     }
                 }
                 // merge the samplingTime
-                if (uniqueObs.getSamplingTime() instanceof Period totalPeriod) {
-                    if (obs.getSamplingTime() instanceof Instant instant) {
-                        if (totalPeriod.getBeginning().getDate().getTime() > instant.getDate().getTime()) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  new Timestamp(instant.getDate().getTime()), new Timestamp(totalPeriod.getEnding().getDate().getTime()));
+                GMLPeriod totalPeriod = GMLPeriod.castOrWrap(uniqueObs.getSamplingTime()).orElse(null);
+                if (totalPeriod != null) {
+                    final Temporal beginning = TemporalUtilities.toTemporal(totalPeriod.getBeginning());
+                    final Temporal ending = TemporalUtilities.toTemporal(totalPeriod.getEnding());
+                    GMLPeriod period;
+                    if (obs.getSamplingTime() instanceof org.opengis.temporal.Instant instant) {
+                        final Instant t = TemporalUtilities.toInstant(instant.getPosition());
+                        if (TemporalUtilities.toInstant(beginning).isAfter(t)) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version, null, t, ending);
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
-                        if (totalPeriod.getEnding().getDate().getTime() < instant.getDate().getTime()) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), instant.getDate());
+                        if (TemporalUtilities.toInstant(ending).isBefore(t)) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version, null, beginning, instant.getPosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
-                    } else if (obs.getSamplingTime() instanceof Period period) {
+                    } else if ((period = GMLPeriod.castOrWrap(obs.getSamplingTime()).orElse(null)) != null) {
                         // BEGIN
-                        if (TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)totalPeriod.getBeginning()).getTimePosition()).getIndeterminatePosition()) ||
-                            TimeIndeterminateValueType.BEFORE.equals((((GMLInstant)     period.getBeginning()).getTimePosition()).getIndeterminatePosition())) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  ((GMLInstant) totalPeriod.getBeginning()).getTimePosition(), ((GMLInstant) period.getEnding()).getTimePosition());
+                        if (TimeIndeterminateValueType.BEFORE.equals(totalPeriod.getBeginPosition().getIndeterminatePosition()) ||
+                            TimeIndeterminateValueType.BEFORE.equals(period.getBeginPosition().getIndeterminatePosition())) {
+                            final var newPeriod = SOSXmlFactory.buildTimePeriod(version, totalPeriod.getBeginPosition(), period.getEndPosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
 
-                        } else if (totalPeriod.getBeginning().getDate().getTime() > period.getBeginning().getDate().getTime()) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  period.getBeginning().getDate(), totalPeriod.getEnding().getDate());
+                        } else if (TemporalUtilities.toInstant(beginning).isAfter(TemporalUtilities.toInstant(period.getBeginning()))) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version, null, period.getBeginning().getPosition(), ending);
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
 
                         // END
-                        if (TimeIndeterminateValueType.NOW.equals((((GMLInstant)totalPeriod.getEnding()).getTimePosition()).getIndeterminatePosition()) ||
-                            TimeIndeterminateValueType.NOW.equals((((GMLInstant)     period.getEnding()).getTimePosition()).getIndeterminatePosition())) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), period.getEnding().getDate());
+                        if (TimeIndeterminateValueType.NOW.equals(totalPeriod.getEndPosition().getIndeterminatePosition()) ||
+                            TimeIndeterminateValueType.NOW.equals(period.getEndPosition().getIndeterminatePosition())) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version, null, beginning, period.getEnding().getPosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
 
-                        } else if (totalPeriod.getEnding().getDate().getTime() < period.getEnding().getDate().getTime()) {
-                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version,  totalPeriod.getBeginning().getDate(), period.getEnding().getDate());
+                        } else if (TemporalUtilities.toInstant(ending).isBefore(TemporalUtilities.toInstant(period.getEnding()))) {
+                            final Period newPeriod = SOSXmlFactory.buildTimePeriod(version, null, beginning, period.getEnding().getPosition());
                             uniqueObs.setSamplingTimePeriod(newPeriod);
                         }
                     }
@@ -333,7 +338,7 @@ public final class Normalizer {
 
     /**
      * Determine if the observation is a profile by looking for its data array first field type.
-     * 
+     *
      * @param obs A XML observation.
      * @return
      */

@@ -73,7 +73,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
 
     public static final String SQL_DIALECT = "sql_dialect";
     public static final String TIMESCALEDB_VERSION = "timescaledb_version";
-    
+
     static final Map<String, List<String>> RESPONSE_FORMAT = new HashMap<>();
     static {
         RESPONSE_FORMAT.put("1.0.0", Arrays.asList(RESPONSE_FORMAT_V100_XML));
@@ -113,14 +113,14 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
 
             // decimation algorithm
             String decAlgo = params.getValue(SOSDatabaseObservationStoreFactory.DECIMATION_ALGORITHM);
-            
+
             // allow to get default value from application properties if not set
             if (decAlgo == null || decAlgo.isEmpty()) {
                 this.decimationAlgorithm = Application.getProperty(AppProperty.EXA_OM2_DEFAULT_DECIMATION_ALGORITHM, "");
             } else {
                 this.decimationAlgorithm = decAlgo;
             }
-            
+
             // build database structure if needed
             buildDatasource();
 
@@ -168,7 +168,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         properties.put(DECIMATION_ALGORITHM_NAME, decimationAlgorithm);
         return properties;
     }
-    
+
     /**
      * {@inheritDoc }
      */
@@ -278,7 +278,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
                     }
                 }
                 return true;
-                
+
             } else {
                 LOGGER.warning("unable to connect OM datasource");
             }

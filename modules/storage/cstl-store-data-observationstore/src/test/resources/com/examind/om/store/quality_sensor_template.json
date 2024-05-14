@@ -9,13 +9,13 @@
         }
     },
     "samplingTime": {
-        "id": "time-6001",
+        "id": "quality_sensor-time",
         "beginning": {
-            "id": "e031950b-30ce-4bfe-9dc3-3cb5d08d4b3b-time",
+            "id": "quality_sensor-st-time",
             "date": "1980-03-01T21:52:00.0Z"
         },
         "ending": {
-            "id": "6fc4bdfe-9f1b-43ef-8831-5668ca1bb305-time",
+            "id": "quality_sensor-en-time",
             "date": "1984-03-01T21:52:00.0Z"
         }
     },

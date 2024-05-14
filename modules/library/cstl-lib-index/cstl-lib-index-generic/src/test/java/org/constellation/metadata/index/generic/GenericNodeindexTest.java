@@ -18,8 +18,6 @@
  */
 package org.constellation.metadata.index.generic;
 
-// J2SE dependencies
-
 import org.constellation.metadata.CSWQueryable;
 import org.constellation.test.utils.Order;
 import org.constellation.util.NodeUtilities;

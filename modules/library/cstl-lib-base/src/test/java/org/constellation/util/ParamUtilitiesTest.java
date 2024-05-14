@@ -235,5 +235,4 @@ public class ParamUtilitiesTest {
         Assert.assertNotNull(jsonValue);
         Assert.assertEquals(expectedJSON, jsonValue);
     }
-
 }

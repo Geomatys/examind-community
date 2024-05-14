@@ -46,8 +46,6 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 import org.apache.sis.metadata.MetadataCopier;
 import org.apache.sis.metadata.MetadataStandard;
@@ -72,14 +70,6 @@ public class NetCDFMetadataReader extends DomMetadataReader {
      * The directory containing the data XML files.
      */
     private final Path dataDirectory;
-
-    /**
-     * A date formatter used to display the Date object for Dublin core translation.
-     */
-    private static final DateFormat FORMATTER;
-    static {
-        FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-    }
 
     private final String CURRENT_EXT;
 

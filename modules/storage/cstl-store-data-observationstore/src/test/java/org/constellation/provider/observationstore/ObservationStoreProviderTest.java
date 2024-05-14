@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -64,7 +63,6 @@ import org.geotoolkit.observation.query.OfferingQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.observation.query.SamplingFeatureQuery;
-import org.geotoolkit.temporal.object.DefaultInstant;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -84,9 +82,8 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
-import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -218,7 +215,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         result = omPr.getCount(query);
         assertEquals(result, 1L);
-        
+
        /*
         * by ids filter
         */
@@ -255,7 +252,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         result = omPr.getCount(query);
         assertEquals(result, 1L);
-        
+
        /*
         * procedure filter
         */
@@ -336,7 +333,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query = new SamplingFeatureQuery();
         filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("10972X0137/SER"));
         query.setSelection(filter);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(1, resultIds.size());
 
@@ -378,8 +375,8 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         result = omPr.getCount(query);
         assertEquals(result, 3L);
-        
-        
+
+
         /*
         * sub properties filter => procedure properties
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:2')
@@ -389,7 +386,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         BinaryComparisonOperator equal2 =ff.equal(ff.property("procedure/properties/supervisor-code"), ff.literal("00ARGLELES"));
         filter = ff.and(equal1, equal2);
         query.setSelection(filter);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(1, resultIds.size());
 
@@ -444,7 +441,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.or(f1, f2);
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
-        
+
         resultIds = getFOIIds(results);
         assertEquals(2, resultIds.size());
 
@@ -460,7 +457,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("offering"), ff.literal("offering-2"));
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
-        
+
         resultIds = getFOIIds(results);
         assertEquals(1, resultIds.size());
 
@@ -514,7 +511,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new HashSet<>();
         expectedIds.add("station-001");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         query = new SamplingFeatureQuery();
         BinaryComparisonOperator equal1 = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
         BinaryComparisonOperator equal2 =ff.equal(ff.property("properties/region"), ff.literal("Occitanie"));
@@ -705,7 +702,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
         filter = ff.and(bbox, equal);
         query.setSelection(filter);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(0, resultIds.size());
     }
@@ -818,7 +815,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         env = new GeneralEnvelope(crs27582);
         env.setRange(0, 66000.0, 67000.0);
         env.setRange(1, 1730000.0, 1740000.0);
-        
+
         query = new SamplingFeatureQuery();
         bbox = ff.bbox(ff.property("the_geom"), env);
         equal = ff.equal(ff.property("offering"), ff.literal("offering-4"));
@@ -1096,7 +1093,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
-        
+
         assertEquals(4, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
@@ -1112,7 +1109,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // no composite
         query.setNoCompositePhenomenon(true);
         resultIds = omPr.getIdentifiers(query);
-        
+
         assertEquals(3, resultIds.size());
 
         expectedIds = new HashSet<>();
@@ -1150,7 +1147,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         long count = omPr.getCount(new ObservedPropertyQuery());
         assertEquals(11, count);
 
@@ -1171,7 +1168,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(7, count);
 
@@ -1189,7 +1186,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1210,7 +1207,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("aggregatePhenomenon");
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1229,7 +1226,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("depth");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1248,14 +1245,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
         results = omPr.getPhenomenon(query);
-        
+
         resultIds = getPhenomenonIds(results);
         assertEquals(2, resultIds.size());
 
@@ -1263,7 +1260,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1282,14 +1279,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
         results = omPr.getPhenomenon(query);
-        
+
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
@@ -1298,7 +1295,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("temperature");
         expectedIds.add("salinity");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(3, count);
 
@@ -1317,7 +1314,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1332,7 +1329,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1352,7 +1349,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(3, count);
 
@@ -1367,7 +1364,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1387,7 +1384,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1402,7 +1399,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1420,7 +1417,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1438,7 +1435,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon-2");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1454,7 +1451,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(3, count);
 
@@ -1473,7 +1470,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("aggregatePhenomenon");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(1, count);
 
@@ -1488,7 +1485,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
 
@@ -1510,7 +1507,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(4, count);
 
@@ -1526,15 +1523,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(3, count);
-        
-        
+
+
        /*
         * sub properties filter => procedure properties
         * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:1')
-        * + 
+        * +
         * observed properties filter
         */
         query = new ObservedPropertyQuery();
@@ -1546,7 +1543,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         resultIds = getPhenomenonIds(results);
         assertEquals(0, resultIds.size());
-        
+
         count = omPr.getCount(query);
         assertEquals(0, count);
 
@@ -1561,7 +1558,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(2, count);
     }
@@ -1596,7 +1593,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
-       
+
         query = new ObservedPropertyQuery();
         BinaryComparisonOperator proc1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
         BinaryComparisonOperator proc2 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
@@ -1624,7 +1621,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
     @Test
     public void getPhenomenonPagingTest() throws Exception {
-       /* 
+       /*
         * paging
         */
         ObservedPropertyQuery query = new ObservedPropertyQuery();
@@ -1658,7 +1655,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setLimit(3L);
         query.setOffset(6L);
         results = omPr.getPhenomenon(query);
-        
+
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
@@ -1700,7 +1697,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setLimit(3L);
         query.setOffset(3L);
         results = omPr.getPhenomenon(query);
-        
+
         resultIds = getPhenomenonIds(results);
         assertEquals(3, resultIds.size());
 
@@ -2074,7 +2071,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(1, results.size());
     }
-    
+
     @Test
     public void existProcedureTest() throws Exception {
         assertNotNull(omPr);
@@ -2408,12 +2405,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         resultIds = getProcessIds(results);
         assertEquals(1, resultIds.size());
-        
+
         expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:2");
         Assert.assertEquals(expectedIds, resultIds);
 
-       
+
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
         results = omPr.getProcedures(query);
@@ -2680,7 +2677,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(1, resultIds.size());
 
         assertTrue(resultIds.contains("offering-2"));
-        
+
         result = omPr.getCount(query);
         assertEquals(result, 1L);
 
@@ -2787,7 +2784,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Filter filter = ff.equal(ff.property("sensorType") , ff.literal("component"));
         query.setSelection(filter);
         results = omPr.getOfferings(query);
-        
+
         assertEquals(1, results.size());
         assertEquals("offering-2", results.get(0).getId());
 
@@ -2857,7 +2854,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        
+
         Collection<String> resultIds = omPr.getIdentifiers(query);
         assertEquals(35, resultIds.size());
 
@@ -2910,7 +2907,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(0L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
 
@@ -2929,7 +2926,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(8L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
@@ -2947,7 +2944,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(16L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
@@ -2965,7 +2962,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(24L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
@@ -3068,7 +3065,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(5L);
         query.setOffset(0L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
@@ -3084,7 +3081,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(5L);
         query.setOffset(5L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
@@ -3100,7 +3097,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(5L);
         query.setOffset(10L);
-        
+
         resultIds = omPr.getIdentifiers(query);
         assertEquals(5, resultIds.size());
 
@@ -3162,7 +3159,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
     @Test
     public void getTimeForTemplateTest() throws Exception {
-        TemporalGeometricPrimitive result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:2");
+        TemporalPrimitive result = omPr.getTimeForProcedure("urn:ogc:object:sensor:GEOM:2");
         assertPeriodEquals("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z", result);
 
         // this sensor has no observation
@@ -3206,7 +3203,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         // The sensor '10' got observations with different feature of interest, so the foi is null
         Observation result = omPr.getTemplate("urn:ogc:object:sensor:GEOM:10");
-        
+
         assertNotNull(result);
         assertNotNull(result.getName());
         assertEquals("urn:ogc:object:observation:template:GEOM:10", result.getName().getCode());
@@ -3219,7 +3216,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // The sensor '13'  got observations with different observed properties
         // we return a template with the most complete phenomenon or if not a computed phenomenon
         result = omPr.getTemplate("urn:ogc:object:sensor:GEOM:13");
-        
+
         assertNotNull(result);
         assertNotNull(result.getName());
         assertEquals("urn:ogc:object:observation:template:GEOM:13", result.getName().getCode());
@@ -3250,7 +3247,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         query.setIncludeFoiInTemplate(true);
         query.setIncludeTimeInTemplate(false);
-        
+
         results = omPr.getObservations(query);
         assertEquals(2, results.size());
 
@@ -3478,7 +3475,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // by ommiting FOI in template, it returns only one template
         query.setIncludeFoiInTemplate(false);
         results = omPr.getObservations(query);
-        
+
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
         Observation template1 = (Observation) results.get(0);
@@ -3487,7 +3484,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNull(template1.getSamplingTime());
 
         query.setIncludeTimeInTemplate(true);
-        
+
         results = omPr.getObservations(query);
         assertEquals(1, results.size());
         assertTrue(results.get(0) instanceof org.geotoolkit.observation.model.Observation);
@@ -3503,7 +3500,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:13"));
         query.setSelection(filter);
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
         assertEquals(3, results.size());
 
@@ -3527,7 +3524,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(0L);
-        
+
         results = omPr.getObservations(query);
         assertEquals(8, results.size());
 
@@ -3636,7 +3633,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        
+
         filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
         query.setSelection(filter);
         results = omPr.getObservations(query);
@@ -3647,7 +3644,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
-        
+
         ResourceId idFilter = ff.resourceId("urn:ogc:object:observation:template:GEOM:test-1-2");
         query.setSelection(idFilter);
         results = omPr.getObservations(query);
@@ -3999,7 +3996,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         count = omPr.getCount(query);
         assertEquals(1L, count);
     }
-    
+
     @Test
     public void getMeasurementTemplateFilterTest() throws Exception {
 
@@ -4014,7 +4011,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             resultIds.add(p.getName().getCode());
             assertTrue(p.getObservedProperty() instanceof org.geotoolkit.observation.model.Phenomenon);
             org.geotoolkit.observation.model.Phenomenon phen = (org.geotoolkit.observation.model.Phenomenon) p.getObservedProperty();
-            
+
             assertTrue(phen.getProperties().containsKey("phen-category"));
             Object catObj = phen.getProperties().get("phen-category");
             // can be multiple
@@ -4050,24 +4047,24 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2"); 
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
 
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         long count = omPr.getCount(query);
         assertEquals(24L, count);  // one is in double because of the foi
         
         
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(23, resultIds.size());
         
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(23L, count);  // no more double because of the foi
         
@@ -4109,18 +4106,18 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(14, resultIds.size());
         
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(14L, count);  // no more double because of the foi
     }
-    
+
     @Test
     public void getMeasurementTemplateFilter2Test() throws Exception {
 
@@ -4135,7 +4132,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             resultIds.add(p.getName().getCode());
             assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
             org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
-            
+
             assertTrue(proc.getProperties().containsKey("bss-code"));
             Object catObj = proc.getProperties().get("bss-code");
             // can be multiple
@@ -4147,28 +4144,28 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             }
         }
         assertEquals(1, resultIds.size());
-        
+
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
 
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         long count = omPr.getCount(query);
         assertEquals(1L, count);
-        
+
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(1, resultIds.size());
-        
+
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
-        assertEquals(1, count); 
-        
+        assertEquals(1, count);
+
         // get all the sensor templates that have at a procedure with the property bss-code = BSS10972X0137
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         filter = ff.equal(ff.property("procedure/properties/bss-code"), ff.literal("BSS10972X0137"));
@@ -4180,7 +4177,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             resultIds.add(p.getName().getCode());
             assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
             org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
-            
+
             assertTrue(proc.getProperties().containsKey("bss-code"));
             Object catObj = proc.getProperties().get("bss-code");
             // can be multiple
@@ -4192,31 +4189,31 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             }
         }
         assertEquals(3, resultIds.size());
-        
+
         expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
 
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
-        assertEquals(3L, count); 
-        
+        assertEquals(3L, count);
+
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(3, resultIds.size());
-        
+
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
-        assertEquals(3L, count); 
+        assertEquals(3L, count);
     }
-    
+
     @Test
     public void getMeasurementTemplateFilter3Test() throws Exception {
 
@@ -4231,7 +4228,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             resultIds.add(p.getName().getCode());
             assertTrue(p.getFeatureOfInterest() instanceof org.geotoolkit.observation.model.SamplingFeature);
             org.geotoolkit.observation.model.SamplingFeature foi = (org.geotoolkit.observation.model.SamplingFeature) p.getFeatureOfInterest();
-            
+
             assertTrue(foi.getProperties().containsKey("commune"));
             Object catObj = foi.getProperties().get("commune");
             // can be multiple
@@ -4243,7 +4240,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             }
         }
         assertEquals(17, resultIds.size());
-        
+
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
@@ -4265,23 +4262,23 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
 
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         long count = omPr.getCount(query);
         assertEquals(17L, count);
-        
+
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(17, resultIds.size());
-        
+
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
-        assertEquals(17L, count); 
-        
+        assertEquals(17L, count);
+
         // get all the sensor templates that have a feature of interest with the property commune = Beziers
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         filter = ff.equal(ff.property("featureOfInterest/properties/commune"), ff.literal("Beziers"));
@@ -4293,10 +4290,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             resultIds.add(p.getName().getCode());
             assertTrue(p.getProcedure() instanceof org.geotoolkit.observation.model.Procedure);
             org.geotoolkit.observation.model.Procedure proc = (org.geotoolkit.observation.model.Procedure) p.getProcedure();
-            
+
             assertTrue(p.getFeatureOfInterest() instanceof org.geotoolkit.observation.model.SamplingFeature);
             org.geotoolkit.observation.model.SamplingFeature foi = (org.geotoolkit.observation.model.SamplingFeature) p.getFeatureOfInterest();
-            
+
             assertTrue(foi.getProperties().containsKey("commune"));
             Object catObj = foi.getProperties().get("commune");
             // can be multiple
@@ -4329,24 +4326,24 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
 
         Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(15L, count); 
         
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
-        
+
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
         assertEquals(15, resultIds.size());
         
          Assert.assertEquals(expectedIds, resultIds);
-        
+
         count = omPr.getCount(query);
         assertEquals(15L, count); 
     }
-    
+
     @Test
     public void getObservationNamesTest() throws Exception {
         assertNotNull(omPr);
@@ -4369,7 +4366,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
         query.setSelection(filter);
         query.setIncludeFoiInTemplate(false);
-        
+
         resultIds = omPr.getIdentifiers(query);
 
         assertEquals(5, resultIds.size());
@@ -4525,7 +4522,8 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        TemporalOperator be = ff.before(ff.property("phenomenonTime") , ff.literal(new DefaultInstant(Collections.singletonMap(NAME_KEY, "id"), ISO_8601_FORMATTER.parse("2007-05-01T15:00:00Z"))));
+        TemporalOperator be = ff.before(ff.property("phenomenonTime"),
+                ff.literal(buildInstant("2007-05-01T15:00:00Z")));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -4684,7 +4682,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
             Observation result = (Observation) p;
             assertNotNull("null sampling time on measurement", result.getSamplingTime());
-            
+
         }
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
@@ -4775,7 +4773,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(1.1, mr.getValue());
 
-        
+
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:template:GEOM:8-3"));
         query.setSelection(filter);
@@ -4892,7 +4890,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
         assertEquals("urn:ogc:object:observation:GEOM:304", result.getName().getCode());
-        
+
         assertNotNull(result.getObservedProperty());
         assertEquals("depth", getPhenomenonId(result));
 
@@ -5160,17 +5158,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "384.0,31.4@@"
                         + "768.0,35.1@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-01T00:00:00Z", (TemporalGeometricPrimitive) results.get(0).getSamplingTime());
+        assertInstantEquals("2000-12-01T00:00:00Z", (TemporalPrimitive) results.get(0).getSamplingTime());
 
         result = getResultValues(results.get(1));
         expectedResult  = "12.0,18.5@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-11T00:00:00Z", (TemporalGeometricPrimitive) results.get(1).getSamplingTime());
+        assertInstantEquals("2000-12-11T00:00:00Z", (TemporalPrimitive) results.get(1).getSamplingTime());
 
         result = getResultValues(results.get(2));
         expectedResult  = "12.0,18.5@@";
         assertEquals(expectedResult, result);
-        assertInstantEquals("2000-12-22T00:00:00Z", (TemporalGeometricPrimitive) results.get(2).getSamplingTime());
+        assertInstantEquals("2000-12-22T00:00:00Z", (TemporalPrimitive) results.get(2).getSamplingTime());
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));
@@ -5199,7 +5197,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         query.setSelection(filter);
         query.setSeparatedMeasure(true);
-       
+
         List<Observation>results = omPr.getObservations(query);
         assertEquals(3, results.size());
 
@@ -5769,7 +5767,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "2007-05-01T15:59:00.0,6.56,15.0@@"
                         + "2007-05-01T16:59:00.0,6.56,16.0@@";
-        
+
         assertEquals(expectedResult, result);
 
         // sensor 8 with decimation
@@ -5787,7 +5785,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "2007-05-01T14:59:00.0,6.56,14.0@@"
                         + "2007-05-01T15:59:00.0,6.56,15.0@@"
                         + "2007-05-01T16:59:00.0,6.56,16.0@@";
-        
+
         assertEquals(expectedResult, result);
 
         // sensor 8 no decimation with filter on result component

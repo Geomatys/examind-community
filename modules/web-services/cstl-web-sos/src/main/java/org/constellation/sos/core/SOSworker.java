@@ -68,7 +68,6 @@ import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.sos.legacy.SensorConfigurationUpgrade;
 import org.constellation.ws.CstlServiceException;
-import org.geotoolkit.gml.xml.GMLInstant;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
 import org.geotoolkit.gml.xml.FeatureCollection;
@@ -124,6 +123,7 @@ import org.geotoolkit.observation.model.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
+import java.time.temporal.Temporal;
 import java.util.Optional;
 import java.util.Objects;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
@@ -132,6 +132,7 @@ import org.constellation.api.WorkerState;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
+import org.geotoolkit.gml.xml.GMLPeriod;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
@@ -168,7 +169,6 @@ import org.geotoolkit.swes.xml.DescribeSensor;
 import org.geotoolkit.swes.xml.InsertSensor;
 import org.geotoolkit.swes.xml.InsertSensorResponse;
 import org.geotoolkit.swes.xml.ObservationTemplate;
-import org.geotoolkit.temporal.object.ISODateParser;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.geotoolkit.util.StringUtilities;
 import org.locationtech.jts.geom.Geometry;
@@ -188,10 +188,10 @@ import org.opengis.observation.Measurement;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.observation.sampling.SamplingFeature;
+import org.opengis.temporal.IndeterminateValue;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.CodeList;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -479,7 +479,7 @@ public class SOSworker extends SensorWorker {
 
                 final Collection<String>  procNames  = omProvider.getIdentifiers(new ProcedureQuery(stFilter));
                 final Collection<String> offNames    = omProvider.getIdentifiers(new OfferingQuery(stFilter));
-                TemporalGeometricPrimitive eventTime = omProvider.getTime();
+                TemporalPrimitive eventTime = omProvider.getTime();
 
                 queryableResultProperties.addAll(getProviderCapabilities().queryableResultProperties);
 
@@ -490,15 +490,17 @@ public class SOSworker extends SensorWorker {
                 String begin = "undefined";
                 String end   = "now";
                 if (eventTime instanceof Instant i) {
-                    if (i.getDate() != null) {
-                        begin = ISO8601_FORMAT.format(i.getDate());
+                    var date = TemporalUtilities.toDate(i);
+                    if (date != null) {
+                        begin = ISO8601_FORMAT.format(date);
                     }
                 } else if (eventTime instanceof Period p) {
-                    if (p.getBeginning() != null && p.getBeginning().getDate() != null) {
-                        begin = ISO8601_FORMAT.format(p.getBeginning().getDate());
+                    Temporal t;
+                    if ((t = p.getBeginning().getPosition()) != null) {
+                        begin = ISO8601_FORMAT.format(TemporalUtilities.toDate(t));
                     }
-                    if (p.getBeginning() != null && p.getEnding().getDate() != null) {
-                        end = ISO8601_FORMAT.format(p.getEnding().getDate());
+                    if ((t = p.getEnding().getPosition()) != null) {
+                        end = ISO8601_FORMAT.format(TemporalUtilities.toDate(t));
                     }
                 }
                 final Range range = buildRange(currentVersion, begin, end);
@@ -581,19 +583,19 @@ public class SOSworker extends SensorWorker {
 
             final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL, MEASUREMENT_MODEL);
             final List<String> procedureDescription   = acceptedSensorMLFormats.get(version);
-            TemporalGeometricPrimitive time           = off.getTime();
+            TemporalPrimitive time                    = off.getTime();
             // v2.0.0 force Timeperiod
             if ("2.0.0".equals(version)) {
                 if (time instanceof Instant ti) {
-                    time = buildTimePeriod(version, ti.getDate(), TimeIndeterminateValueType.NOW);
+                    time = buildTimePeriod(version, ti.getPosition(), TimeIndeterminateValueType.NOW);
                 } else if (time instanceof Period tp) {
-                    time = buildTimePeriod(version, tp.getBeginning().getDate(), tp.getEnding().getDate());
+                    time = buildTimePeriod(version, off.getId(), tp.getBeginning(), tp.getEnding());
                 }
             } else {
                 if (time instanceof Instant ti) {
-                    time = buildTimeInstant(version, ti.getDate());
+                    time = buildTimeInstant(version, off.getId(), ti.getPosition());
                 } else if (time instanceof Period tp) {
-                    time = buildTimePeriod(version, tp.getBeginning().getDate(), tp.getEnding().getDate());
+                    time = buildTimePeriod(version, off.getId(), tp.getBeginning(), tp.getEnding());
                 }
             }
             final List<ResponseModeType> responseModes = new ArrayList<>();
@@ -1006,7 +1008,7 @@ public class SOSworker extends SensorWorker {
             }
 
             final List<Filter> times = new ArrayList<>();
-            TemporalGeometricPrimitive templateTime = null;
+            TemporalPrimitive templateTime = null;
             if (template) {
                 templateTime = getTemplateTime(currentVersion, requestObservation.getTemporalFilter());
             } else {
@@ -1164,7 +1166,7 @@ public class SOSworker extends SensorWorker {
         final List<String> observedProperties = new ArrayList<>();
         final String offering                 = request.getOffering();
         final String procedure;
-        final TemporalObject time;
+        final TemporalPrimitive time;
         final QName resultModel;
         final String values;
 
@@ -1255,25 +1257,24 @@ public class SOSworker extends SensorWorker {
              * The template time :
              */
             // case TEquals with time instant
+            GMLPeriod tp;
             if (time instanceof Instant) {
-               final TemporalOperator equals  = buildTimeEquals(currentVersion, null, time);
+               final TemporalOperator equals  = buildTimeEquals(currentVersion, null, ff.literal(time));
                times.add(equals);
-
-            } else if (time instanceof Period tp) {
-
+            } else if ((tp = GMLPeriod.castOrWrap(time).orElse(null)) != null) {
                 //case TBefore
-                if (TimeIndeterminateValueType.BEFORE.equals(((GMLInstant)tp.getBeginning()).getTimePosition().getIndeterminatePosition())) {
-                    final TemporalOperator before = buildTimeBefore(currentVersion, null, tp.getEnding());
+                if (IndeterminateValue.BEFORE.equals(tp.getBeginPosition().getIndeterminatePosition().orElse(null))) {
+                    final TemporalOperator before = buildTimeBefore(currentVersion, null, ff.literal(tp.getEnding()));
                     times.add(before);
 
                 //case TAfter
-                } else if (TimeIndeterminateValueType.NOW.equals((((GMLInstant)tp.getEnding()).getTimePosition()).getIndeterminatePosition())) {
-                    final TemporalOperator after = buildTimeAfter(currentVersion, null, tp.getBeginning());
+                } else if (IndeterminateValue.NOW.equals(tp.getEndPosition().getIndeterminatePosition().orElse(null))) {
+                    final TemporalOperator after = buildTimeAfter(currentVersion, null, ff.literal(tp.getBeginning()));
                     times.add(after);
 
                 //case TDuring/TEquals  (here the sense of T_Equals with timePeriod is lost but not very usefull)
                 } else {
-                    final TemporalOperator during = buildTimeDuring(currentVersion, null, tp);
+                    final TemporalOperator during = buildTimeDuring(currentVersion, null, ff.literal(tp));
                     times.add(during);
                 }
             }
@@ -1291,7 +1292,7 @@ public class SOSworker extends SensorWorker {
             } else if (result == null) {
                 values = null;
             } else throw new UnsupportedOperationException("Unknown value type: "+ result.getClass().getName());
-            
+
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex);
         }
@@ -1446,7 +1447,7 @@ public class SOSworker extends SensorWorker {
         }
     }
 
-    public TemporalGeometricPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
+    public TemporalPrimitive getFeatureOfInterestTime(final GetFeatureOfInterestTime request) throws CstlServiceException {
         LOGGER.log(Level.FINE, "GetFeatureOfInterestTime request processing\n");
         final long start = System.currentTimeMillis();
         verifyBaseRequest(request, true, false);
@@ -1459,7 +1460,7 @@ public class SOSworker extends SensorWorker {
             throw new CstlServiceException("You must specify a samplingFeatureId", MISSING_PARAMETER_VALUE);
         }
 
-        final TemporalGeometricPrimitive result;
+        final TemporalPrimitive result;
         try {
             if (omProvider.existEntity(new IdentifierQuery(OMEntity.FEATURE_OF_INTEREST, fid))) {
                 result = omProvider.getTimeForFeatureOfInterest(fid);
@@ -1874,9 +1875,8 @@ public class SOSworker extends SensorWorker {
                 if (verifySynchronization) {
                     if (obs.getSamplingTime() instanceof Instant timeInstant) {
                         try {
-                            final ISODateParser parser = new ISODateParser();
-                            final Date d = parser.parseToDate(timeInstant.getDate().toString());
-                            final long t = System.currentTimeMillis() - d.getTime();
+                            final Temporal d = timeInstant.getPosition();
+                            final long t = System.currentTimeMillis() - TemporalUtilities.toInstant(d).toEpochMilli();
                             LOGGER.log(Level.FINE, "gap between time of reception and time of sampling: {0} ms ({1})", new Object[]{t, TemporalUtilities.durationToString(t)});
                         } catch (IllegalArgumentException ex) {
                             LOGGER.warning("unable to parse the samplingTime");
@@ -2026,10 +2026,10 @@ public class SOSworker extends SensorWorker {
         }
     }
 
-    private TemporalGeometricPrimitive getTemplateTime(final String version, final List<Filter> times) throws CstlServiceException {
+    private TemporalPrimitive getTemplateTime(final String version, final List<Filter> times) throws CstlServiceException {
 
         //In template mode  his method return a temporal Object.
-        TemporalGeometricPrimitive templateTime = null;
+        TemporalPrimitive templateTime = null;
         for (Filter time: times) {
             CodeList type = time.getOperatorType();
 
@@ -2041,7 +2041,7 @@ public class SOSworker extends SensorWorker {
                 //String propertyName = time.getTEquals().getPropertyName();
                 final Object timeFilter   = filter.getExpressions().get(1);
 
-                if (timeFilter instanceof TemporalGeometricPrimitive tt) {
+                if (timeFilter instanceof TemporalPrimitive tt) {
                     templateTime = tt;
 
                 } else {
@@ -2055,10 +2055,10 @@ public class SOSworker extends SensorWorker {
 
                 // we get the property name (not used for now)
                 // String propertyName = time.getTBefore().getPropertyName();
-                final Object timeFilter   = filter.getExpressions().get(1);
-
-                if (timeFilter instanceof Instant ti) {
-                    templateTime = buildTimePeriod(version, TimeIndeterminateValueType.BEFORE, ti.getDate());
+                final Object timeFilter = filter.getExpressions().get(1);
+                Optional<Temporal> ti = TemporalUtilities.toTemporal(timeFilter);
+                if (ti.isPresent()) {
+                    templateTime = buildTimePeriod(version, TimeIndeterminateValueType.BEFORE, ti.get());
                 } else {
                     throw new CstlServiceException("TM_Before operation require timeInstant!",
                                                   INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -2070,11 +2070,10 @@ public class SOSworker extends SensorWorker {
 
                 // we get the property name (not used for now)
                 //String propertyName = time.getTAfter().getPropertyName();
-                final Object timeFilter   = filter.getExpressions().get(1);
-
-                if (timeFilter instanceof Instant ti) {
-                    templateTime = buildTimePeriod(version, ti.getDate(), TimeIndeterminateValueType.NOW);
-
+                final Object timeFilter = filter.getExpressions().get(1);
+                Optional<Temporal> ti = TemporalUtilities.toTemporal(timeFilter);
+                if (ti.isPresent()) {
+                    templateTime = buildTimePeriod(version, ti.get(), TimeIndeterminateValueType.NOW);
                 } else {
                    throw new CstlServiceException("TM_After operation require timeInstant!",
                                                  INVALID_PARAMETER_VALUE, EVENT_TIME);

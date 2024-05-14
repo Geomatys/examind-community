@@ -113,6 +113,7 @@ import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.FactoryException;
+import org.opengis.util.InternationalString;
 
 /**
  *
@@ -696,14 +697,6 @@ public class GeotkProcess implements WPSProcess {
 
     /**
      * Create {@link DataOutput output} object for one requested output.
-     *
-     * @param version
-     * @param outputDescriptor
-     * @param requestedOutput
-     * @param outputValue
-     * @param parameters
-     * @return
-     * @throws CstlServiceException
      */
     private static DataOutput createDocumentResponseOutput(final String version, final ProcessDescriptor processDesc, final ParameterDescriptor outputDescriptor, final OutputDefinition requestedOutput,
             final Object outputValue, final Map<String, Object> parameters) throws WPSException {
@@ -715,11 +708,8 @@ public class GeotkProcess implements WPSProcess {
         final String titleOut = requestedOutput.getTitle() != null ? requestedOutput.getTitle().getValue() : WPSUtils.capitalizeFirstLetterStr(outputIdentifierCode);
         String abstractOut = requestedOutput.getAbstract()!= null ? requestedOutput.getAbstract().getValue() : null;
         if (abstractOut == null) {
-            if (outputDescriptor.getRemarks() != null) {
-                abstractOut = WPSUtils.capitalizeFirstLetterStr(outputDescriptor.getRemarks().toString());
-            } else {
-                abstractOut = WPSUtils.capitalizeFirstLetterStr("No description available");
-            }
+            abstractOut = WPSUtils.capitalizeFirstLetterStr(outputDescriptor.getRemarks()
+                    .map(InternationalString::toString).orElse("No description available"));
         }
 
         if (DataTransmissionMode.REFERENCE.equals(requestedOutput.getTransmission())) {
@@ -805,11 +795,6 @@ public class GeotkProcess implements WPSProcess {
      * Create reference output.
      *
      * @param version Targeted WPS version (see {@link WPSVersion related version enum} for available choices).
-     * @param requestedOutput
-     * @param outputValue
-     * @param parameters
-     * @return
-     * @throws CstlServiceException
      */
     private static Reference createReferenceOutput(final String version, final OutputDefinition requestedOutput,
             final Object outputValue, final Map<String, Object> parameters) throws WPSException {

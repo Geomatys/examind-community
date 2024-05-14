@@ -60,7 +60,7 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.opengis.metadata.quality.Element;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  * Observation Filter reader specialization for database with mesure in a single flat table.
@@ -283,7 +283,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
                 final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
-                final TemporalGeometricPrimitive time = buildTime(obsID, startTime, endTime);
+                final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
                  *  BUILD RESULT
@@ -307,7 +307,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                     while (rs2.nextOnField(pti.mainField.name)) {
                         final Long rid = rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                            TemporalGeometricPrimitive measureTime;
+                            TemporalPrimitive measureTime;
                             if (profile) {
                                 measureTime = time;
                             } else {

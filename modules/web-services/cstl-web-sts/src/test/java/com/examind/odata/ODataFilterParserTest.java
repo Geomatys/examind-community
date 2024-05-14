@@ -20,8 +20,9 @@ package com.examind.odata;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.temporal.Temporal;
 import java.util.TimeZone;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -36,8 +37,6 @@ import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
-import org.opengis.geometry.Geometry;
-import org.opengis.temporal.Instant;
 
 /**
  *
@@ -55,6 +54,14 @@ public class ODataFilterParserTest {
         ISO8601_MS_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
+    private String format(Temporal t) {
+        return ISO8601_FORMAT.format(TemporalUtilities.toDate(t));
+    }
+
+    private String formatMS(Temporal t) {
+        return ISO8601_MS_FORMAT.format(TemporalUtilities.toDate(t));
+    }
+
     @Test
     public void parseFilterTest() throws Exception {
         String filterStr = "resultTime ge 2005-01-01T00:00:00Z";
@@ -68,9 +75,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         Literal lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        Instant inst = (Instant) lit.getValue();
-        Assert.assertEquals("2005-01-01T00:00:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        Temporal t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2005-01-01T00:00:00Z", format(t));
 
         filterStr = "resultTime le 2005-01-01T00:00:00Z";
         result = ODataFilterParser.parseFilter(filterStr);
@@ -83,9 +89,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2005-01-01T00:00:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2005-01-01T00:00:00Z", format(t));
 
         filterStr = "Thing/Datastream/ObservedProperty/id eq 'temperature'";
         result = ODataFilterParser.parseFilter(filterStr);
@@ -163,9 +168,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(comp.getOperand2() instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2005-01-01T00:00:00.356Z", ISO8601_MS_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2005-01-01T00:00:00.356Z", formatMS(t));
 
         Assert.assertTrue(log.getOperands().get(1) instanceof TemporalOperator);
         temp = (TemporalOperator) log.getOperands().get(1);
@@ -176,9 +180,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2008-01-01T00:00:00.254Z", ISO8601_MS_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2008-01-01T00:00:00.254Z", formatMS(t));
 
 
         filterStr = "(time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z) and ObservedProperty/id eq 'temperature'";
@@ -197,9 +200,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2007-05-01T11:59:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T11:59:00Z", format(t));
 
         Assert.assertTrue(log.getOperands().get(1) instanceof TemporalOperator);
         temp = (TemporalOperator) log.getOperands().get(1);
@@ -209,9 +211,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2007-05-01T13:59:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T13:59:00Z", format(t));
 
         Assert.assertTrue(log.getOperands().get(2) instanceof BinaryComparisonOperator);
         comp = (BinaryComparisonOperator) log.getOperands().get(2);
@@ -240,9 +241,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2007-05-01T08:59:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T08:59:00Z", format(t));
 
         Assert.assertTrue(log.getOperands().get(1) instanceof TemporalOperator);
         temp = (TemporalOperator) log.getOperands().get(1);
@@ -252,9 +252,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2007-05-01T19:59:00Z", ISO8601_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2007-05-01T19:59:00Z", format(t));
 
         filterStr = "(result le 6.55)";
         result = ODataFilterParser.parseFilter(filterStr);
@@ -283,7 +282,7 @@ public class ODataFilterParserTest {
         Assert.assertTrue(lit.getValue() instanceof Double);
         db = (double) lit.getValue();
         Assert.assertEquals(14.0, db, 0);
-        
+
         filterStr = "phenomenonTime ge 2000-11-01T00:00:00.000Z and phenomenonTime le 2012-12-23T00:00:00.000Z and (ObservedProperty/id eq 'temperature' or ObservedProperty/id eq 'salinity')";
         result = ODataFilterParser.parseFilter(filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
@@ -299,9 +298,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1) ;
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2000-11-01T00:00:00.000Z", ISO8601_MS_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2000-11-01T00:00:00.000Z", formatMS(t));
 
         Assert.assertTrue(log.getOperands().get(1) instanceof TemporalOperator);
         temp = (TemporalOperator) log.getOperands().get(1);
@@ -311,15 +309,14 @@ public class ODataFilterParserTest {
         Assert.assertEquals("time", pName.getXPath());
         Assert.assertTrue(temp.getExpressions().get(1) instanceof Literal);
         lit = (Literal) temp.getExpressions().get(1);
-        Assert.assertTrue(lit.getValue() instanceof Instant);
-        inst = (Instant) lit.getValue();
-        Assert.assertEquals("2012-12-23T00:00:00.000Z", ISO8601_MS_FORMAT.format(inst.getDate()));
+        t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
+        Assert.assertEquals("2012-12-23T00:00:00.000Z", formatMS(t));
 
         Assert.assertTrue(log.getOperands().get(2) instanceof LogicalOperator);
         log = (LogicalOperator) log.getOperands().get(2);
         Assert.assertEquals(LogicalOperatorName.OR, log.getOperatorType());
         Assert.assertEquals(2, log.getExpressions().size());
-        
+
         Assert.assertTrue(log.getOperands().get(0) instanceof BinaryComparisonOperator);
         comp = (BinaryComparisonOperator) log.getOperands().get(0);
         Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
@@ -344,7 +341,7 @@ public class ODataFilterParserTest {
         str = (String) lit.getValue();
         Assert.assertEquals("salinity", str);
 
-        
+
         filterStr = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')";
         result = ODataFilterParser.parseFilter(filterStr);
         Assert.assertTrue(result instanceof SpatialOperator);

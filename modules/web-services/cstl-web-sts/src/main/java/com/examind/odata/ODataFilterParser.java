@@ -53,7 +53,7 @@ import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 
 
 /**
@@ -208,7 +208,7 @@ public final class ODataFilterParser {
                 case BOOL:  return ff.literal(Boolean.valueOf(tree.getText()));
                 case DATE: {
 
-                    TemporalObject ta = parseTemporalObj(tree.getText());
+                    TemporalPrimitive ta = parseTemporalObj(tree.getText());
                     return ff.literal(ta);
                 }
                 case TEXT: {
@@ -428,7 +428,7 @@ public final class ODataFilterParser {
         return false;
     }
 
-    private static TemporalObject parseTemporalObj(String to) throws ODataParseException {
+    private static TemporalPrimitive parseTemporalObj(String to) throws ODataParseException {
         int index = to.indexOf('/');
         if (index != -1) {
             Date begin = parseDate(to.substring(0, index));
@@ -439,7 +439,7 @@ public final class ODataFilterParser {
             return OMUtils.buildTime("t", d, null);
         }
     }
-    
+
     public static Date parseDate(String str) throws ODataParseException {
         for (SimpleDateFormat format : FORMATTERS) {
             try {

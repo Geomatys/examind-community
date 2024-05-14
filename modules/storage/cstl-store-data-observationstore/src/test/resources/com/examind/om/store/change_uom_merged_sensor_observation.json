@@ -9,7 +9,7 @@
         }
     },
     "samplingTime": {
-        "id": "time-4",
+        "id": "obs-4-time",
         "beginning": {
             "id": "obs-4-st-time",
             "date": "1980-03-01T21:52:00.0Z"

@@ -302,18 +302,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertTrue(result.getContents().getOfferings() != null);
         assertEquals("nb offering!", NB_SENSOR, result.getContents().getOfferings().size());
         assertNotNull(result);
-
     }
-
 
     /**
      * Tests the DescribeSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void DescribeSensorErrorTest() throws Exception {
 
-         /**
+        /*
          * Test 1 bad outputFormat
          */
         boolean exLaunched = false;
@@ -327,7 +323,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 2 missing outputFormat
          */
         exLaunched = false;
@@ -341,7 +337,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 3 missing sensorID
          */
         exLaunched = false;
@@ -354,19 +350,15 @@ public abstract class SOSWorkerTest extends SpringContextTest {
             assertEquals(ex.getLocator(), PROCEDURE);
         }
         assertTrue(exLaunched);
-
     }
 
     /**
      * Tests the DescribeSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void DescribeSensorTest() throws Exception {
         Unmarshaller unmarshaller = SensorMLMarshallerPool.getInstance().acquireUnmarshaller();
 
-
-        /**
+        /*
          * Test 1 system sensor
          */
         DescribeSensor request  = new DescribeSensor("1.0.0", "SOS", "urn:ogc:object:sensor:GEOM:1", "text/xml;subtype=\"SensorML/1.0.0\"");
@@ -381,7 +373,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         MetadataUtilities.systemSMLEquals(expResult, result);
 
-        /**
+        /*
          * Test 2 component sensor
          */
         request  = new DescribeSensor("1.0.0", "SOS", "urn:ogc:object:sensor:GEOM:2", "text/xml;subtype=\"SensorML/1.0.0\"");
@@ -399,13 +391,15 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         SensorMLMarshallerPool.getInstance().recycle(unmarshaller);
     }
 
+    private static TimePeriodType newPeriod(String begin, String end) {
+        return new TimePeriodType(null, new TimePositionType(begin), new TimePositionType(end));
+    }
+
     /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     public void GetObservationErrorTest() throws Exception {
-        /**
+        /*
          *  Test 1: getObservation with bad response format
          */
         GetObservation request  = new GetObservation("1.0.0",
@@ -429,7 +423,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 2: getObservation with bad response format
          */
         request  = new GetObservation("1.0.0",
@@ -453,14 +447,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 3: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with unsupported Response mode
          */
         List<EventTime> times = new ArrayList<>();
-        TimePeriodType period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        TimePeriodType period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         TimeEqualsType filter = new TimeEqualsType(null, period);
         EventTime equals = new EventTime(filter);
         times.add(equals);
@@ -485,14 +479,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 4: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with unsupported Response mode
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -517,14 +511,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 5: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with no offering
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -549,14 +543,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 6: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with wrong offering
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -581,14 +575,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 7: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with wrong srsName
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -613,15 +607,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-
-        /**
+        /*
          *  Test 8: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          *
          * with wrong resultModel
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -646,13 +639,13 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 9: getObservation with unexisting procedure
          *          + Time filter TEquals
          *
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         filter = new TimeEqualsType(null, period);
         equals = new EventTime(filter);
         times.add(equals);
@@ -677,7 +670,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 10: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *          and with wrong observed prop
          */
@@ -703,7 +696,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          *  Test 11: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *          and with wrong foi
          */
@@ -733,13 +726,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     public void GetObservationTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          *  Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:4 and no resultModel
          */
         GetObservation request  = new GetObservation("1.0.0",
@@ -762,7 +753,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(result.getMember().size(), 1);
 
         ObservationType obsResult = (ObservationType) result.getMember().iterator().next();
-
 
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
@@ -823,7 +813,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:4 avec responseMode null
          */
         request  = new GetObservation("1.0.0",
@@ -867,8 +857,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-
-        /**
+        /*
          *  Test 3: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          */
         request  = new GetObservation("1.0.0",
@@ -892,7 +881,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         obsResult = (ObservationType) result.getMember().iterator().next();
 
-
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
@@ -913,7 +901,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 4: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          */
         request  = new GetObservation("1.0.0",
@@ -935,7 +923,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         obsR      = (DataArrayPropertyType) obsResult.getResult();
         assertEquals(obsR.getDataArray().getElementCount().getCount().getValue(), (Object)15);
 
-        /**
+        /*
          *  Test 5: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TBefore
          */
@@ -958,7 +946,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         result = (ObservationCollectionType) worker.getObservation(request);
 
         assertEquals(result.getMember().size(), 1);
-        
+
         obsResult =  (ObservationType) result.getMember().iterator().next();
         assertTrue(obsResult.getResult() instanceof DataArrayPropertyType);
         obsR      = (DataArrayPropertyType) obsResult.getResult();
@@ -966,7 +954,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertEquals(result.getMember().iterator().next().getName().getCode(), "urn:ogc:object:observation:GEOM:304");
 
-        /**
+        /*
          *  Test 6: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TAFter
          */
@@ -994,12 +982,12 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         obsR      = (DataArrayPropertyType) obsResult.getResult();
         assertEquals((Integer)14, obsR.getDataArray().getElementCount().getCount().getValue());
 
-        /**
+        /*
          *  Test 7: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TDuring
          */
         times = new ArrayList<>();
-        TimePeriodType period  = new TimePeriodType(new TimePositionType("2007-05-01T03:00:00.0"), new TimePositionType("2007-05-01T08:00:00.0"));
+        TimePeriodType period  = newPeriod("2007-05-01T03:00:00.0", "2007-05-01T08:00:00.0");
         TimeDuringType dfilter = new TimeDuringType(null, period);
         EventTime during       = new EventTime(dfilter);
         times.add(during);
@@ -1023,12 +1011,12 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         obsR      = (DataArrayPropertyType) obsResult.getResult();
         assertEquals((Integer)5, obsR.getDataArray().getElementCount().getCount().getValue());
 
-        /**
+        /*
          *  Test 8: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *          + Time filter TEquals
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         TimeEqualsType efilter = new TimeEqualsType(null, period);
         EventTime equals = new EventTime(efilter);
         times.add(equals);
@@ -1052,8 +1040,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         obsR      = (DataArrayPropertyType) obsResult.getResult();
         assertTrue(obsR.getDataArray().getElementCount().getCount().getValue() == 5);
 
-
-        /**
+        /*
          *  Test 9: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with resultTemplate mode
          */
@@ -1104,13 +1091,13 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 10: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with resultTemplate mode
          *           with timeFilter TEquals
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T02:59:00.0"), new TimePositionType("2007-05-01T06:59:00.0"));
+        period = newPeriod("2007-05-01T02:59:00.0", "2007-05-01T06:59:00.0");
         efilter = new TimeEqualsType(null, period);
         equals = new EventTime(efilter);
         times.add(equals);
@@ -1146,7 +1133,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         obsResult = (ObservationType) result.getMember().iterator().next();
 
-
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
@@ -1160,7 +1146,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 11: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with resultTemplate mode
          *           with timeFilter Tafter
@@ -1217,7 +1203,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 12: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with resultTemplate mode
          *           with timeFilter Tbefore
@@ -1260,7 +1246,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         obsResult = (ObservationType) result.getMember().iterator().next();
 
-
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
         assertPhenomenonEquals(expResult, obsResult);
@@ -1274,7 +1259,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 13: getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with observedproperties = depth
          */
@@ -1296,7 +1281,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         expResult = (ObservationType)obj.getValue();
         assertEquals(result.getMember().size(), 1);
 
-
         obsResult = (ObservationType) result.getMember().iterator().next();
         assertTrue(obsResult != null);
 
@@ -1314,7 +1298,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 14: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = aggregatePhenomenon
          */
@@ -1336,7 +1320,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         expResult = (ObservationType)obj.getValue();
         assertEquals(result.getMember().size(), 1);
 
-
         obsResult = (ObservationType) result.getMember().iterator().next();
         assertTrue(obsResult != null);
 
@@ -1354,7 +1337,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 15: getObservation with procedure urn:ogc:object:sensor:GEOM:test-1
          *           with observedproperties = aggregatePhenomenon
          *           with foi                =  10972X0137-PLOUF
@@ -1377,7 +1360,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         expResult = (ObservationType)obj.getValue();
         assertEquals(result.getMember().size(), 1);
 
-
         obsResult = (ObservationType) result.getMember().iterator().next();
         assertTrue(obsResult != null);
 
@@ -1395,7 +1377,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 16: getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *           with observedProperties = aggregatePhenomenon
          *           => no error but no result
@@ -1413,11 +1395,10 @@ public abstract class SOSWorkerTest extends SpringContextTest {
                                       null);
         result = (ObservationCollectionType) worker.getObservation(request);
 
-
         ObservationCollectionType collExpResult = new ObservationCollectionType("urn:ogc:def:nil:OGC:inapplicable");
         assertEquals(collExpResult, result);
 
-        /**
+        /*
          *  Test 17: getObservation with procedure urn:ogc:object:sensor:GEOM:4 AND BBOX Filter
          */
         request  = new GetObservation("1.0.0",
@@ -1441,7 +1422,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         obsResult = (ObservationType) result.getMember().iterator().next();
 
-
         assertTrue(obsResult != null);
         assertEquals(expResult.getName(), obsResult.getName());
         assertEquals(expResult.getPropertyFeatureOfInterest(), obsResult.getPropertyFeatureOfInterest());
@@ -1457,7 +1437,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 18: getObservation with procedure urn:ogc:object:sensor:GEOM:4 AND BBOX Filter (no result expected)
          */
         request  = new GetObservation("1.0.0",
@@ -1476,11 +1456,10 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         collExpResult = new ObservationCollectionType("urn:ogc:def:nil:OGC:inapplicable");
         assertEquals(collExpResult, result);
 
-
         marshallerPool.recycle(unmarshaller);
     }
 
-     /**
+    /**
      * Tests the GetObservation method
      *
      * @throws java.lang.Exception
@@ -1488,7 +1467,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
     public void GetObservationMeasurementTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          *  Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:7
          *           with resultTemplate mode
          *  => measurement type
@@ -1531,7 +1510,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertPhenomenonEquals(expResult, measResult);
         assertEquals(expResult, measResult);
 
-        /**
+        /*
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:9
          *
          *  => measurement type
@@ -1579,16 +1558,14 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         marshallerPool.recycle(unmarshaller);
     }
 
-     /**
+    /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     public void GetObservationSamplingCurveTest() throws Exception {
 
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          *  Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:8
          *           with resultTemplate mode
          */
@@ -1656,10 +1633,8 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-
-        /**
+        /*
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:8
-         *
          */
         request  = new GetObservation("1.0.0",
                                       "offering-8",
@@ -1692,9 +1667,8 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 3: getObservation with no procedure And FID = station-006
-         *
          */
         request  = new GetObservation("1.0.0",
                                       "offering-8",
@@ -1728,19 +1702,16 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult, obsResult);
     }
 
-      /**
+    /**
      * Tests the GetObservation method
-     *
-     * @throws java.lang.Exception
      */
     public void GetObservationSamplingCurveSinglePhenomenonTest() throws Exception {
 
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1: getObservation with procedure urn:ogc:object:sensor:GEOM:8
          * and phenomenon = depth
-         *
          */
         GetObservation request  = new GetObservation("1.0.0",
                                       "offering-8",
@@ -1780,10 +1751,9 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(expResult, obsResult);
 
-        /**
+        /*
          *  Test 2: getObservation with procedure urn:ogc:object:sensor:GEOM:8
          *  and phenomenon = temperature
-         *
          */
         request  = new GetObservation("1.0.0",
                                       "offering-8",
@@ -1895,11 +1865,9 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the GetResult method
-     *
-     * @throws java.lang.Exception
      */
     public void GetResultErrorTest() throws Exception {
-        /**
+        /*
          * Test 1: bad version number + null template ID
          */
         String templateId = null;
@@ -1913,7 +1881,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 2:  null template ID
          */
         templateId = null;
@@ -1928,7 +1896,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 3:  bad template ID
          */
         templateId = "some id";
@@ -1946,17 +1914,13 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the GetResult method
-     *
-     * @throws java.lang.Exception
      */
     public void GetResultTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-
-
         // we make a getObservation request in order to get a template
 
-        /**
+        /*
          *   getObservation with procedure urn:ogc:object:sensor:GEOM:4
          *           with resultTemplate mode
          */
@@ -2014,7 +1978,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(templateExpResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(templateExpResult, obsResult);
 
-        /**
+        /*
          * Test 1:  getResult with no TimeFilter
          */
         String templateId = "urn:ogc:object:observation:template:GEOM:3-0";
@@ -2031,7 +1995,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-        /**
+        /*
          *   getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *   with resultTemplate mode and time filter TBefore
          */
@@ -2093,7 +2057,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(templateExpResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(templateExpResult, obsResult);
 
-        /**
+        /*
          * Test 2:  getResult with no TimeFilter
          */
         templateId = "urn:ogc:object:observation:template:GEOM:3-1";
@@ -2108,7 +2072,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-         /**
+        /*
          * Test 3:  getResult with Tafter
          */
         times = new ArrayList<>();
@@ -2129,7 +2093,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-        /**
+        /*
          * Test 4:  getResult with Tbefore
          */
         times = new ArrayList<>();
@@ -2150,7 +2114,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-        /**
+        /*
          * Test 5:  getResult with TEquals
          */
         times = new ArrayList<>();
@@ -2171,11 +2135,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-        /**
+        /*
          * Test 6:  getResult with TEquals
          */
         times = new ArrayList<>();
-        period = new TimePeriodType(new TimePositionType("2007-05-01T03:00:00.00"), new TimePositionType("2007-05-01T04:00:00.00"));
+        period = newPeriod("2007-05-01T03:00:00.00", "2007-05-01T04:00:00.00");
         TimeDuringType dfilter = new TimeDuringType(null, period);
         EventTime during = new EventTime(dfilter);
         times.add(during);
@@ -2192,8 +2156,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-
-         /**
+        /*
          *   getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *   with resultTemplate mode and time filter TAfter
          */
@@ -2254,8 +2217,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(templateExpResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(templateExpResult, obsResult);
 
-
-        /**
+        /*
          * Test 7:  getResult with no TimeFilter
          */
         templateId = "urn:ogc:object:observation:template:GEOM:3-2";
@@ -2270,7 +2232,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult.getResult(), result.getResult());
         assertEquals(expResult, result);
 
-         /**
+        /*
          *   getObservation with procedure urn:ogc:object:sensor:GEOM:3
          *   with resultTemplate mode and time filter TEquals
          */
@@ -2330,7 +2292,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(templateExpResult.getSamplingTime(), obsResult.getSamplingTime());
         assertEquals(templateExpResult, obsResult);
 
-        /**
+        /*
          * Test 8:  getResult with no TimeFilter
          */
         templateId = "urn:ogc:object:observation:template:GEOM:3-3";
@@ -2346,13 +2308,10 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResult, result);
 
         marshallerPool.recycle(unmarshaller);
-
     }
 
     /**
      * Tests the InsertObservation method
-     *
-     * @throws java.lang.Exception
      */
     public void insertObservationTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
@@ -2361,7 +2320,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         ObservationType template = (ObservationType)obj.getValue();
 
-        TimePeriodType period = new TimePeriodType(new TimePositionType("2007-06-01T01:00:00.00"), new TimePositionType("2007-06-01T03:00:00.00"));
+        TimePeriodType period = newPeriod("2007-06-01T01:00:00.00", "2007-06-01T03:00:00.00");
         template.setSamplingTime(period);
 
         // and we fill the result object
@@ -2393,14 +2352,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void RegisterSensorErrorTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-
-        /**
+        /*
          * Test 1 we register a system sensor with no Observation template
          */
         AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml");
@@ -2416,7 +2372,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 2 we register a system sensor with an imcomplete Observation template
          */
         JAXBElement obj =  (JAXBElement) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/templates/template-6.xml");
@@ -2440,13 +2396,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void RegisterSensorTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1 we register a system sensor
          */
         AbstractSensorML sensorDescription = (AbstractSensorML) unmarshallAndFixEPSG(unmarshaller, "org/constellation/xml/sos/sensors/urnµogcµobjectµsensorµGEOMµ1.xml");
@@ -2467,7 +2421,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertNull(response.getAssignedOffering());
 
-        /**
+        /*
          * we verify that the sensor is well registered
          */
         DescribeSensor DSrequest  = new DescribeSensor("1.0.0","SOS","urn:ogc:object:sensor:GEOM:66", "text/xml;subtype=\"SensorML/1.0.0\"");
@@ -2484,7 +2438,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         /**
          * Test 2 insert observation for the new sensor
          */
-        TimePeriodType period = new TimePeriodType(new TimePositionType("2007-06-01T01:00:00.00"), new TimePositionType("2007-06-01T03:00:00.00"));
+        TimePeriodType period = new TimePeriodType(null, new TimePositionType("2007-06-01T01:00:00.00"), new TimePositionType("2007-06-01T03:00:00.00"));
         obsTemplate.setSamplingTime(period);
 
         // and we fill the result object
@@ -2501,12 +2455,10 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void GetFeatureOfInterestErrorTest() throws Exception {
 
-        /**
+        /*
          * Test 1 : bad featureID
          */
         GetFeatureOfInterest request = new GetFeatureOfInterest("1.0.0", "SOS", "wrongFID");
@@ -2520,7 +2472,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 2 : no filter
          */
         exLaunched = false;
@@ -2534,13 +2486,12 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         }
         assertTrue(exLaunched);
 
-        /**
+        /*
          * Test 3 : malformed BBOX filter
          */
         exLaunched = false;
         BBOXType bbox = new BBOXType();
         request = new GetFeatureOfInterest("1.0.0", "SOS", bbox);
-
 
         try {
             worker.getFeatureOfInterest(request);
@@ -2553,13 +2504,11 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void GetFeatureOfInterestTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1 : getFeatureOfInterest with featureID filter
          */
         SamplingPoint expResult = ((JAXBElement<SamplingPoint>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/features/station-001.xml")).getValue();
@@ -2572,7 +2521,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertEquals(expResult, result);
 
-        /**
+        /*
          * Test 2 : getFeatureOfInterest with featureID filter (SamplingCurve)
          */
         SamplingCurveType expResultC = ((JAXBElement<SamplingCurveType>) unmarshallAndFixEPSG(unmarshaller, "org/constellation/sos/v100/features/station-006.xml")).getValue();
@@ -2588,7 +2537,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         assertEquals(expResultC.getLength(), resultC.getLength());
         assertEquals(expResultC, resultC);
 
-        /**
+        /*
          * Test 3 : getFeatureOfInterest with BBOX filter restore when multiple works
 
         request = new GetFeatureOfInterest("1.0.0", "SOS", new GetFeatureOfInterest.Location(new BBOXType(null, 64000.0, 1730000.0, 66000.0, 1740000.0, "urn:ogc:def:crs:EPSG::27582")));
@@ -2599,20 +2548,16 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         assertEquals(expResult, result);*/
 
-
-
         marshallerPool.recycle(unmarshaller);
     }
 
     /**
      * Tests the RegisterSensor method
-     *
-     * @throws java.lang.Exception
      */
     public void GetFeatureOfInterestTimeTest() throws Exception {
         Unmarshaller unmarshaller = marshallerPool.acquireUnmarshaller();
 
-        /**
+        /*
          * Test 1 : getFeatureOfInterestTime with featureID filter
          */
         TimePeriodType expResult = new TimePeriodType(null, "1980-03-01T21:52:00.000", "2012-12-22");
@@ -2625,13 +2570,12 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
         TimePeriodType result = (TimePeriodType)resultT;
 
-
         assertEquals(expResult.getBeginPosition().getValue(), result.getBeginPosition().getValue());
         assertEquals(expResult.getBeginPosition(), result.getBeginPosition());
         assertEquals(expResult.getEndPosition(), result.getEndPosition());
         assertEquals(expResult, result);
 
-        /**
+        /*
          * Test 2 : getFeatureOfInterestTime with featureID filter  (SamplingCurve)
          */
         expResult = new TimePeriodType(null, "2007-05-01T12:59:00.00", "2009-05-01T13:47:00.00");
@@ -2651,8 +2595,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Tests the destroy method
-     *
-     * @throws java.lang.Exception
      */
     public void destroyTest() throws Exception {
         worker.destroy();
@@ -2692,7 +2634,7 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         expResult.getObservedProperty().setName(obsResult.getObservedProperty().getName());
         assertEquals(expResult.getObservedProperty().getName(), obsResult.getObservedProperty().getName());
 
-        if (expResult.getObservedProperty() instanceof CompositePhenomenonType && 
+        if (expResult.getObservedProperty() instanceof CompositePhenomenonType &&
             obsResult.getObservedProperty() instanceof CompositePhenomenonType) {
             CompositePhenomenonType expCompo = (CompositePhenomenonType) expResult.getObservedProperty();
             CompositePhenomenonType resCompo = (CompositePhenomenonType) obsResult.getObservedProperty();
@@ -2727,12 +2669,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
 
     /**
      * Fix EPSG version before unmarshall expected result file.
-     *
-     * @param unmarshaller
-     * @param path
-     * @return
-     * @throws JAXBException
-     * @throws IOException
      */
     private Object unmarshallAndFixEPSG(Unmarshaller unmarshaller, String path) throws JAXBException, IOException {
         final InputStream resourceAsStream = Util.getResourceAsStream(path);

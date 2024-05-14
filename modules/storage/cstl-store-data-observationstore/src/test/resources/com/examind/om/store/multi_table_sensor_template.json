@@ -8,13 +8,13 @@
         }
     },
     "samplingTime": {
-        "id": "time-multi_table_sensor",
+        "id": "multi_table_sensor-time",
         "beginning": {
-            "id": "95e93505-4e32-4e7e-b369-ff03171d2a89-time",
+            "id": "multi_table_sensor-st-time",
             "date": "2000-01-01T01:00:00.0Z"
         },
         "ending": {
-            "id": "c7b7d7dc-d4bb-4d43-95cf-852725ef5e1d-time",
+            "id": "multi_table_sensor-en-time",
             "date": "2000-01-01T02:00:00.0Z"
         }
     },

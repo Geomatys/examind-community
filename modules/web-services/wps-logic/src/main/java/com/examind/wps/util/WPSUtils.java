@@ -406,8 +406,10 @@ public class WPSUtils {
 
 
     public static LanguageStringType buildProcessIODescription(final GeneralParameterDescriptor param, final Locale lang) {
-        String _abstract = Stream.of(param.getDescription(), param.getRemarks())
-                .filter(Objects::nonNull)
+        var list = new ArrayList<InternationalString>(2);
+        param.getDescription().ifPresent(list::add);
+        param.getRemarks().ifPresent(list::add);
+        String _abstract = list.stream()
                 .map(is -> is.toString(lang))
                 .collect(Collectors.joining(System.lineSeparator()));
 

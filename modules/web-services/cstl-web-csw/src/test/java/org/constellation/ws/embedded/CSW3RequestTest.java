@@ -819,8 +819,7 @@ public class CSW3RequestTest extends AbstractCSWRequestTest {
 
         Object result = unmarshallResponse(conec);
 
-        assertTrue(result instanceof GetRecordsResponseType);
-
+        // Cast without check in order to get the wrong type in the error message.
         GetRecordsResponseType grResult = (GetRecordsResponseType) result;
 
         assertEquals(1, grResult.getSearchResults().getAny().size());
@@ -1284,7 +1283,7 @@ public class CSW3RequestTest extends AbstractCSWRequestTest {
             return;
         }
         initServer();
-        
+
         // first we make a getRecords request to count the number of record
         URL niUrl = new URL(getCswURL() + "request=getRecords&version=3.0.0&service=CSW&typenames=csw:Record");
 

@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,10 +44,12 @@ import java.util.Map;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
+import org.apache.sis.temporal.TemporalObjects;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -73,6 +76,7 @@ import org.geotoolkit.observation.query.HistoricalLocationQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ResultQuery;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.locationtech.jts.io.ParseException;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
@@ -84,9 +88,8 @@ import org.opengis.filter.TemporalOperatorName;
 import org.opengis.filter.ValueReference;
 import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 /**
@@ -215,7 +218,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();
         this.separatedProfileObs   = query.isSeparatedProfileObservation();
-        
+
         this.singleObservedPropertyInTemplate = MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode);
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             sqlRequest = new SingleFilterSQLRequest("SELECT distinct ");
@@ -618,11 +621,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             // mid is not really used in that case we should look for existence and none emptiness but it will be costly
                             long mid = Long.parseLong(component[2]);
                             measureIdFilters.add(mid);
-                            
+
 
                         } else if (component.length == 2) {
                             oid = component[0];
-                           
+
                             // mid is not really used in that case we should look for existence and none emptiness but it will be costly
                             long mid = Long.parseLong(component[1]);
                             measureIdFilters.add(mid);
@@ -633,7 +636,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         obsJoin = true;
                     }
-                    
+
                 }
                 if (!procSb.isEmpty()) {
                     procSb.deleteLastChar(3);
@@ -751,13 +754,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             if (existProcedure(sensorIdBase + procedureID)) {
                                 procedureID = sensorIdBase + procedureID;
                             }
-                            
+
                             // avoid to join with observation in a getResult context
                             if (currentProcedure == null || !currentProcedure.procedureId.equals(procedureID)) {
                                 procSb.append("(o.\"procedure\"=").appendValue(procedureID).append(") OR");
                                 obsJoin = true;
                             }
-                            
+
                         } else if (oid.startsWith(observationIdBase)) {
                             String[] component = oid.split("-");
                             if (component.length == 3) {
@@ -807,7 +810,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         // we get the property name (not used for now)
         // String XPath = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
-        if (time instanceof Literal lit && !(time instanceof TemporalGeometricPrimitive)) {
+        if (time instanceof Literal lit && !(time instanceof TemporalPrimitive)) {
             time = lit.getValue();
         }
 
@@ -828,12 +831,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
         }
         FilterSQLRequest timeRequest = new SingleFilterSQLRequest();
+        Optional<Temporal> ti;
 
         if (type == TemporalOperatorName.EQUALS) {
 
             if (time instanceof Period tp) {
-                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
-                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+                final var begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
+                final var end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
 
                 // historical can't have a period as time value
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
@@ -841,38 +845,38 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 } else {
                     // force the join with observation table.
                     if (objectType == OMEntity.RESULT) obsJoin = true;
-                    
+
                     // we request directly a multiple observation or a period observation (one measure during a period)
                     timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"=").appendValue(begin).append(" AND ");
                     timeRequest.append(" ").append(tableAlias).append(".\"time_end\"=").appendValue(end).append(" ");
                 }
             // if the temporal object is a timeInstant
-            } else if (time instanceof Instant ti) {
-                final Timestamp position = new Timestamp(ti.getDate().getTime());
-                
+            } else if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final Timestamp position = new Timestamp(TemporalUtilities.toInstant(ti.get()).toEpochMilli());
+
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
                     timeRequest.append(" ").append(tableAlias).append(".\"time\"=").appendValue(position);
                 } else {
                     if (!skipforResult) {
-                        OM2Utils.addtimeDuringSQLFilter(timeRequest, ti, tableAlias);
+                        OM2Utils.addtimeDuringSQLFilter(timeRequest, TemporalObjects.createInstant(ti.get()), tableAlias);
                     }
-                    
+
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\"=", conditional).appendValue(position, conditional).append(") ", conditional);
                     }
                 }
-                
+
             } else {
                 throw new ObservationStoreException("TM_Equals operation require timeInstant or TimePeriod!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
             }
         } else if (type == TemporalOperatorName.BEFORE) {
-            
+
             // for the operation before the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final Timestamp position = new Timestamp(ti.getDate().getTime());
-                
+            if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final Timestamp position = new Timestamp(TemporalUtilities.toInstant(ti.get()).toEpochMilli());
+
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
                     timeRequest.append(" \"time\"<=").appendValue(position);
                 } else {
@@ -890,10 +894,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
         } else if (type == TemporalOperatorName.AFTER) {
-            
+
             // for the operation after the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final Timestamp position = new Timestamp(ti.getDate().getTime());
+            if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final Timestamp position = new Timestamp(TemporalUtilities.toInstant(ti.get()).toEpochMilli());
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
                     timeRequest.append(" \"time\">=").appendValue(position);
                 } else {
@@ -914,10 +918,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
         } else if (type == TemporalOperatorName.DURING) {
-            
+
             if (time instanceof Period tp) {
-                final Timestamp begin = new Timestamp(tp.getBeginning().getDate().getTime());
-                final Timestamp end   = new Timestamp(tp.getEnding().getDate().getTime());
+                final Timestamp begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
+                final Timestamp end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
                     timeRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end);
                 } else {
@@ -1026,7 +1030,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             } else if (objectType == OBSERVED_PROPERTY) {
                 // we joins with the observations
                 obsJoin = true;
-                
+
             // TODO verify here if we must join without the target entity test
             // like this
             // } else if (objectType == OBSERVATION) {
@@ -1239,7 +1243,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
             result.addRequest(tableNum, single);
         }
-        
+
         return result;
     }
     
@@ -1376,7 +1380,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         public CountOrIdentifiers(boolean forCount) {
             this.forCount = forCount;
         }
-        
+
         public void add(String identifier) {
             if (forCount) {
                 count++;
@@ -1451,7 +1455,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         sqlRequest.join(joins, firstFilter);
         if (!forCount) {
             if (singleObservedPropertyInTemplate) {
-                sqlRequest.append(" ORDER BY pd.\"procedure\", pd.\"order\" "); 
+                sqlRequest.append(" ORDER BY pd.\"procedure\", pd.\"order\" ");
             } else {
                 sqlRequest.append(" ORDER BY o.\"procedure\"");
             }
@@ -1613,7 +1617,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             while (rs.next()) {
                 try {
                     final String procedure = rs.getString("id");
-                    
+
                      // exclude from spatial filter (will be removed when postgis filter will be set in request)
                     if (!entityMatchEnvelope(rs, "location", "crs")) {
                         continue;
@@ -1712,7 +1716,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" offop", "offop.\"id_offering\" = off.\"id_offering\""));
-            
+
             // joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
             sqlRequest.replaceAll("${phen-prop-join}", "offop.\"phenomenon\"");
         }
@@ -1789,12 +1793,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
-            
+
             // -- TODO REALLY find a cleaner way to do this
             secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
             secondRequest.replaceAll("op.\"id\" IN", "c.\"component\" IN");
             // -- end TODO
-            
+
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\")", "op.\"id\" IN (SELECT DISTINCT(\"phenomenon\")");
 
             sqlRequest.join(joins, firstFilter);
@@ -2080,7 +2084,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     
     protected List applyPostPagination(List full) {
         if (offset == null && limit == null) return full;
-        
+
         int from = 0;
         if (offset != null) {
             from = offset.intValue();

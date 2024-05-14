@@ -49,7 +49,7 @@ import static org.geotoolkit.observation.model.ResultMode.DATA_ARRAY;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.result.ResultBuilder;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -156,7 +156,7 @@ public class MixedFieldParser extends FieldParser {
        endBlock(blocValues);
         
        final String singleObsID              = "obs-" + oid + '-' + measureID;
-       final TemporalGeometricPrimitive time = buildTime(singleObsID, lastTime != null ? lastTime : firstTime, null);
+       final TemporalPrimitive time = buildTime(singleObsID, lastTime != null ? lastTime : firstTime, null);
        final ComplexResult result            = buildComplexResult();
        final String singleName               = obsName + '-' + measureID;
        clear();
@@ -240,7 +240,7 @@ public class MixedFieldParser extends FieldParser {
                     
                     // close profile observation
                     if (separated && !Objects.equals(obsKey, prevObsKey)) {
-                        final TemporalGeometricPrimitive timeObs = buildTime(obsID, firstTime, null);
+                        final TemporalPrimitive timeObs = buildTime(obsID, firstTime, null);
                         Entry<String, Observation> entry = buildObservation(obsID, proc, feature, phen, timeObs, properties, separated);
                         results.put(entry.getKey(), entry.getValue());
                     }
@@ -281,13 +281,13 @@ public class MixedFieldParser extends FieldParser {
         if (hasData) {
             endBlock(blocValues);
         }
-        final TemporalGeometricPrimitive timeObs = buildTime(obsID, firstTime, lastTime);
+        final TemporalPrimitive timeObs = buildTime(obsID, firstTime, lastTime);
         Entry<String, Observation> entry = buildObservation(obsID, proc, feature, phen, timeObs, properties, separated);
         results.put(entry.getKey(), entry.getValue());
         return results;
     }
     
-    private Entry<String, Observation> buildObservation(String obsID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final TemporalGeometricPrimitive time, Map<String, Object> properties, boolean separatedObs) {
+    private Entry<String, Observation> buildObservation(String obsID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final TemporalPrimitive time, Map<String, Object> properties, boolean separatedObs) {
         String observationKey;
         if (separatedObs) {
             synchronized (format2) {

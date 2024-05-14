@@ -20,15 +20,10 @@ package com.examind.store.observation.csv;
 
 import com.examind.store.observation.dbf.DbfObservationStore;
 import com.examind.store.observation.dbf.DbfObservationStoreFactory;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -36,52 +31,35 @@ import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class DbfObservationStoreTest {
+public class DbfObservationStoreTest extends AbstractCsvStoreTest {
 
-    private static Path DATA_DIRECTORY;
     protected static Path ltFile;
     protected static Path rtFile;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-
-        final Path configDir = Paths.get("target");
-        DATA_DIRECTORY       = configDir.resolve("data"  + UUID.randomUUID());
-        Path ltDirectory       = DATA_DIRECTORY.resolve("lt-ts");
-        Files.createDirectories(ltDirectory);
-        writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
-        ltFile = ltDirectory.resolve("LakeTile_001.dbf");
-
-        Path rtDirectory       = DATA_DIRECTORY.resolve("rt-ts");
-        Files.createDirectories(rtDirectory);
-        writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_001.dbf", "rivertile_001.dbf");
-        rtFile = rtDirectory.resolve("rivertile_001.dbf");
+        AbstractCsvStoreTest.setUpClass();
         
-    }
-
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        IOUtilities.deleteSilently(DATA_DIRECTORY);
+        ltFile       = writeResourceFileInDir("lt-ts", "LakeTile_001.dbf");
+        rtFile       = writeResourceFileInDir("rt-ts", "rivertile_001.dbf");
     }
 
     @Test
     public void dbfStoreTSTest() throws Exception {
 
         String sensorId = "urn:sensor:dbf:1";
-        
+
         DbfObservationStoreFactory factory = new DbfObservationStoreFactory();
         ParameterValueGroup params = factory.getOpenParameters().createValue();
         params.parameter(DbfObservationStoreFactory.LOCATION).setValue(ltFile.toUri().toString());
@@ -111,15 +89,13 @@ public class DbfObservationStoreTest {
         Assert.assertTrue(phenomenonNames.contains("HEIGHT"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
-
         Period tp = (Period) time;
-        Assert.assertEquals("2022-08-20T01:55:11.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2022-08-20T01:55:13.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2022-08-20T01:55:11" , format(tp.getBeginning()));
+        Assert.assertEquals("2022-08-20T01:55:13" , format(tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -135,8 +111,8 @@ public class DbfObservationStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2022-08-20T01:55:11.000" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2022-08-20T01:55:13.000" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2022-08-20T01:55:11" , format(tp.getBeginning()));
+        Assert.assertEquals("2022-08-20T01:55:13" , format(tp.getEnding()));
 
         // TODO verify foi
     }
@@ -177,15 +153,15 @@ public class DbfObservationStoreTest {
         Assert.assertTrue(phenomenonNames.contains("width"));
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
-        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 
         Assert.assertTrue(time instanceof Period);
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
         Period tp = (Period) time;
-        Assert.assertEquals("2022-06-06T00:58:50.921" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2022-06-06T00:58:51.320" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2022-06-06T00:58:50.921" , format(sdf, tp.getBeginning()));
+        Assert.assertEquals("2022-06-06T00:58:51.320" , format(sdf, tp.getEnding()));
 
         ObservationDataset results = store.getDataset(new DatasetQuery());
         Assert.assertEquals(1, results.procedures.size());
@@ -201,8 +177,8 @@ public class DbfObservationStoreTest {
         Assert.assertTrue(time instanceof Period);
 
         tp = (Period) time;
-        Assert.assertEquals("2022-06-06T00:58:50.921" , sdf.format(tp.getBeginning().getDate()));
-        Assert.assertEquals("2022-06-06T00:58:51.320" , sdf.format(tp.getEnding().getDate()));
+        Assert.assertEquals("2022-06-06T00:58:50.921" , format(sdf, tp.getBeginning()));
+        Assert.assertEquals("2022-06-06T00:58:51.320" , format(sdf, tp.getEnding()));
 
         // TODO verify foi
     }

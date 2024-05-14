@@ -27,7 +27,6 @@ import org.constellation.dto.service.config.generic.Select;
 import org.constellation.dto.service.config.generic.Where;
 import org.geotoolkit.observation.ObservationResult;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
 import javax.xml.namespace.QName;
@@ -36,19 +35,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
-import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.model.Offering;
@@ -74,6 +74,8 @@ import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeCons
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import org.opengis.filter.BinarySpatialOperator;
+import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.temporal.Instant;
 
 /**
  *
@@ -93,7 +95,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
 
     protected OMEntity objectType = null;
     protected String version      = null;
-    
+
     /**
      * Clone a  Generic Observation Filter for CSTL O&amp;M datasource.
      * @param omFilter
@@ -136,7 +138,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
             case PROCEDURE:           initFilterGetSensor(); break;
             case OBSERVATION:         initFilterObservation((ObservationQuery) query);
             case RESULT:              initFilterGetResult((ResultQuery) query);
-            case OFFERING:            
+            case OFFERING:
             case LOCATION:
             case HISTORICAL_LOCATION: throw new UnsupportedOperationException("Not supported yet.");
             default: throw new DataStoreException("unexpected object type:" + objectType);
@@ -270,12 +272,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * @return time representation.
      * @throws org.geotoolkit.observation.ObservationStoreException If the date is {@code null}.
      */
-    private static String getTimeValue(final Date time) throws ObservationStoreException {
+    private static String getTimeValue(final Temporal time) throws ObservationStoreException {
         if (time != null) {
-          return new Timestamp(time.getTime()).toString();
+            return new Timestamp(TemporalUtilities.toInstant(time).toEpochMilli()).toString();
         } else {
-          throw new ObservationStoreException("bad format of time, \"Timeposition\" mustn't be null", MISSING_PARAMETER_VALUE, "eventTime");
+            throw new ObservationStoreException("bad format of time, \"Timeposition\" mustn't be null", MISSING_PARAMETER_VALUE, "eventTime");
         }
+    }
+
+    private static String getTimeValue(final Instant time) throws ObservationStoreException {
+        return getTimeValue(TemporalUtilities.toTemporal(time));
     }
 
     /**
@@ -287,20 +293,21 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
         CodeList<?> type = tFilter.getOperatorType();
+        Optional<Temporal> opt;
         if (type == TemporalOperatorName.EQUALS) {
             eventTimes.add(new TimeEqualsType("result_time", time));
             if (time instanceof Period tp) {
-                final String begin = getTimeValue(tp.getBeginning().getDate());
-                final String end   = getTimeValue(tp.getEnding().getDate());
+                final String begin = getTimeValue(tp.getBeginning());
+                final String end   = getTimeValue(tp.getEnding());
 
-                final Where where       = new Where(configurationQuery.getWhere("tequalsTP"));
+                final Where where = new Where(configurationQuery.getWhere("tequalsTP"));
                 where.replaceVariable("begin", begin, true);
                 where.replaceVariable("end", end, true);
                 currentQuery.addWhere(where);
 
             // if the temporal object is a timeInstant
-            } else if (time instanceof Instant ti) {
-                final String position = getTimeValue(ti.getDate());
+            } else if ((opt = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position = getTimeValue(opt.get());
 
                 final Where where = new Where(configurationQuery.getWhere("tequalsTI"));
                 where.replaceVariable("position", position, true);
@@ -313,8 +320,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else if (type == TemporalOperatorName.BEFORE) {
             eventTimes.add(new TimeBeforeType("result_time", time));
             // for the operation before the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final String position = getTimeValue(ti.getDate());
+            if ((opt = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position = getTimeValue(opt.get());
 
                 final Where where = new Where(configurationQuery.getWhere("tbefore"));
                 where.replaceVariable("time", position, true);
@@ -327,10 +334,10 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else if (type == TemporalOperatorName.AFTER) {
             eventTimes.add(new TimeAfterType("result_time", time));
             // for the operation after the temporal object must be an timeInstant
-            if (time instanceof Instant ti) {
-                final String position    = getTimeValue(ti.getDate());
+            if ((opt = TemporalUtilities.toTemporal(time)).isPresent()) {
+                final String position = getTimeValue(opt.get());
 
-                final Where where        = new Where(configurationQuery.getWhere("tafter"));
+                final Where where = new Where(configurationQuery.getWhere("tafter"));
                 where.replaceVariable("time", position, true);
                 currentQuery.addWhere(where);
 
@@ -341,8 +348,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else if (type == TemporalOperatorName.DURING) {
             eventTimes.add(new TimeDuringType("result_time", time));
             if (time instanceof Period tp) {
-                final String begin = getTimeValue(tp.getBeginning().getDate());
-                final String end   = getTimeValue(tp.getEnding().getDate());
+                final String begin = getTimeValue(tp.getBeginning());
+                final String end   = getTimeValue(tp.getEnding());
 
                 final Where where = new Where(configurationQuery.getWhere("tduring"));
                 where.replaceVariable("begin", begin, true);
@@ -498,15 +505,15 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         Map<String, Object> hints = Collections.EMPTY_MAP;
         // TODO optimize
         switch (objectType) {
-            case FEATURE_OF_INTEREST: 
+            case FEATURE_OF_INTEREST:
             case OBSERVED_PROPERTY:
             case OFFERING:
-            case OBSERVATION:         
+            case OBSERVATION:
             case PROCEDURE:           return getIdentifiers().size();
             case RESULT:              return filterResult().size();
             case HISTORICAL_LOCATION:
             case LOCATION:            throw new DataStoreException("not implemented yet.");
-            
+
         }
         throw new DataStoreException("initialisation of the filter missing.");
     }

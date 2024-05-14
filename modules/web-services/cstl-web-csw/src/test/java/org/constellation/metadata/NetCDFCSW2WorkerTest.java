@@ -161,10 +161,11 @@ public class NetCDFCSW2WorkerTest extends CSW2workerTest {
             Node resultNode = (Node) obj;
             Node expResultNode = getOriginalMetadata("org/constellation/xml/metadata/2005092200_sst_21-24.en.xml");
 
-            System.out.println(getStringFromNode(resultNode));
             DocumentComparator comparator = new DocumentComparator(expResultNode, resultNode);
             comparator.ignoredAttributes.add("http://www.w3.org/2000/xmlns:*");
             comparator.ignoredAttributes.add("http://www.w3.org/2001/XMLSchema-instance:schemaLocation");
+            comparator.ignoredNodes.add("http://www.isotc211.org/2005/gco:DateTime");       // Because the date type is not the same.
+            comparator.ignoredNodes.add("http://www.opengis.net/gml/3.2:timePosition");     // Because the date type is not the same.
             comparator.compare();
         } else {
             fail("unexpected record type:" + obj);

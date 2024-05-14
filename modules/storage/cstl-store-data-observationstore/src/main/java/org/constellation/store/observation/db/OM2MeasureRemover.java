@@ -34,6 +34,7 @@ import org.constellation.store.observation.db.ResultValuesIterator.DataLine;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 
@@ -74,7 +75,7 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
             } else {
                 sql = "DELETE FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" WHERE  \"" + mainFieldName + "\" = ? AND \"id_observation\" = " + obsInfo.id + "";
             }
-            
+
             results.add(sql);
         }
         return results;
@@ -93,7 +94,7 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
         try {
             if (obs.getResult() instanceof MeasureResult) {
                 if (obs.getSamplingTime() instanceof Instant inst) {
-                    final Timestamp t = new Timestamp(inst.getDate().getTime());
+                    final Timestamp t = new Timestamp(TemporalUtilities.toInstant(inst.getPosition()).toEpochMilli());
                     for (PreparedStatement stmt : stmts) {
                         stmt.setTimestamp(1, t);
                         stmt.executeUpdate();
@@ -104,10 +105,10 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
                 Timestamp boundBegin;
                 Timestamp boundEnd;
                 if (obsInfo.time instanceof Period p) {
-                    boundBegin = new Timestamp(p.getBeginning().getDate().getTime());
-                    boundEnd   = new Timestamp(p.getEnding().getDate().getTime());
+                    boundBegin = new Timestamp(TemporalUtilities.toInstant(p.getBeginning()).toEpochMilli());
+                    boundEnd   = new Timestamp(TemporalUtilities.toInstant(p.getEnding()).toEpochMilli());
                 } else if (obsInfo.time instanceof Instant i) {
-                    boundBegin = new Timestamp(i.getDate().getTime());
+                    boundBegin = new Timestamp(TemporalUtilities.toInstant(i.getPosition()).toEpochMilli());
                     boundEnd = null;
                 } else if (obsInfo.time != null) {
                     throw new IllegalArgumentException("Unexpected observation time bounds type:" + obsInfo.time.getClass().getName());
@@ -136,7 +137,7 @@ public class OM2MeasureRemover extends OM2MeasureHandler {
                 }
                 LOGGER.finer("measure removed:" + rmCount);
             }
-        
+
         } finally {
             for (PreparedStatement stmt : stmts) {
                 try {stmt.close();} catch (SQLException ex) {LOGGER.log(Level.FINER, "Error while closing delete statement", ex);}

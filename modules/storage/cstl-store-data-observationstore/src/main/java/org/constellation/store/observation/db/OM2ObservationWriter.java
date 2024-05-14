@@ -25,9 +25,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.admin.SpringHelper;
 import org.geotoolkit.observation.ObservationWriter;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalObject;
 import org.opengis.util.FactoryException;
 
 import javax.sql.DataSource;
@@ -37,6 +35,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -76,10 +75,12 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.geotoolkit.observation.model.TextEncoderProperties;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.locationtech.jts.io.WKBWriter;
 import org.locationtech.jts.io.WKTWriter;
-import org.opengis.temporal.RelativePosition;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.filter.TemporalOperatorName;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.TemporalPrimitive;
 
 
 
@@ -169,7 +170,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private List<ObservationRef> isConflicted(final Connection c, final String procedureID, final TemporalObject samplingTime, final String foiID) throws DataStoreException {
+    private List<ObservationRef> isConflicted(final Connection c, final String procedureID, final TemporalPrimitive samplingTime, final String foiID) throws DataStoreException {
         List<ObservationRef> obs = new ArrayList<>();
         if (samplingTime != null) {
             FilterSQLRequest sqlRequest = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"observed_property\", \"time_begin\", \"time_end\", \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
@@ -213,7 +214,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             // there a conflict with another observations
             if (!obs.isEmpty()) {
                 LOGGER.info("Found a potentially conflict in observation insertion");
-                if (samplingTime instanceof Instant i) {
+                if (samplingTime instanceof Instant) {
                     // the observation can be inserted into another one
                     if (obs.size() == 1) {
                         return obs;
@@ -240,7 +241,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         final String procedureID   = procedure.getId();
         final String procedureOMType = (String) procedure.getProperties().getOrDefault("type", "timeseries");
 
-        final TemporalObject samplingTime = observation.getSamplingTime();
+        final TemporalPrimitive samplingTime = observation.getSamplingTime();
 
         final SamplingFeature foi = observation.getFeatureOfInterest();
         String foiID = null;
@@ -621,7 +622,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             throw new DataStoreException("Error while inserting procedure.", ex);
         }
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -945,7 +946,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             case TIME     -> stmt.setTimestamp(index, (Timestamp) result.getValue());
         }
     }
-    
+
     private String createOfferingId(final String procedureID) {
         // cleanup offering id because of its XML ype (NCName)
         if (procedureID.startsWith(sensorIdBase)) {
@@ -955,7 +956,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private void updateOrCreateOffering(final String procedureID, final TemporalObject samplingTime, final Phenomenon pheno, final String foiID, final Connection c) throws SQLException {
+    private void updateOrCreateOffering(final String procedureID, final TemporalPrimitive samplingTime, final Phenomenon pheno, final String foiID, final Connection c) throws SQLException {
         final String offeringID;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT * FROM  \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?")) {//NOSONAR
             stmtExist.setString(1, procedureID);
@@ -968,22 +969,22 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         stmtInsert.setString(2, "Offering for procedure:" + procedureID);
                         stmtInsert.setString(3, offeringID);
                         if (samplingTime instanceof Period period) {
-                            final Date beginDate = period.getBeginning().getDate();
-                            final Date endDate = period.getEnding().getDate();
+                            final java.time.Instant beginDate = TemporalUtilities.toInstant(period.getBeginning());
+                            final java.time.Instant endDate   = TemporalUtilities.toInstant(period.getEnding());
                             if (beginDate != null) {
-                                stmtInsert.setTimestamp(4, new Timestamp(beginDate.getTime()));
+                                stmtInsert.setTimestamp(4, new Timestamp(beginDate.toEpochMilli()));
                             } else {
                                 stmtInsert.setNull(4, java.sql.Types.TIMESTAMP);
                             }
                             if (endDate != null) {
-                                stmtInsert.setTimestamp(5, new Timestamp(endDate.getTime()));
+                                stmtInsert.setTimestamp(5, new Timestamp(endDate.toEpochMilli()));
                             } else {
                                 stmtInsert.setNull(5, java.sql.Types.TIMESTAMP);
                             }
                         } else if (samplingTime instanceof Instant instant) {
-                            final Date date = instant.getDate();
+                            final java.time.Instant date = TemporalUtilities.toInstant(instant.getPosition());
                             if (date != null) {
-                                stmtInsert.setTimestamp(4, new Timestamp(date.getTime()));
+                                stmtInsert.setTimestamp(4, new Timestamp(date.toEpochMilli()));
                             } else {
                                 stmtInsert.setNull(4, java.sql.Types.TIMESTAMP);
                             }
@@ -1030,10 +1031,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     }
 
                     if (samplingTime instanceof Period period) {
-                        final Date beginDate = period.getBeginning().getDate();
-                        final Date endDate = period.getEnding().getDate();
+                        final java.time.Instant beginDate = TemporalUtilities.toInstant(period.getBeginning());
+                        final java.time.Instant endDate   = TemporalUtilities.toInstant(period.getEnding());
                         if (beginDate != null) {
-                            final long obsBeginTime = beginDate.getTime();
+                            final long obsBeginTime = beginDate.toEpochMilli();
                             if (obsBeginTime < offBegin) {
                                 try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=? WHERE \"identifier\"=?")) {//NOSONAR
                                     beginStmt.setTimestamp(1, new Timestamp(obsBeginTime));
@@ -1043,7 +1044,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             }
                         }
                         if (endDate != null) {
-                            final long obsEndTime = endDate.getTime();
+                            final long obsEndTime = TemporalUtilities.toInstant(endDate).toEpochMilli();
                             if (obsEndTime > offEnd) {
                                 try(final PreparedStatement endStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_end\"=? WHERE \"identifier\"=?")) {//NOSONAR
                                     endStmt.setTimestamp(1, new Timestamp(obsEndTime));
@@ -1053,9 +1054,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             }
                         }
                     } else if (samplingTime instanceof Instant instant) {
-                        final Date date = instant.getDate();
+                        final Temporal date = instant.getPosition();
                         if (date != null) {
-                            final long obsTime = date.getTime();
+                            final long obsTime = TemporalUtilities.toInstant(date).toEpochMilli();
                             if (obsTime < offBegin) {
                                 try(final PreparedStatement beginStmt = c.prepareStatement("UPDATE \"" + schemaPrefix + "om\".\"offerings\" SET \"time_begin\"=?  WHERE \"identifier\"=?")) {//NOSONAR
                                     beginStmt.setTimestamp(1, new Timestamp(obsTime));
@@ -1127,7 +1128,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             }
         }
     }
-    
+
     private void updatePhenomenonInOffering(String procedureID, Connection c) throws SQLException, DataStoreException {
         final String offeringID;
         try (final PreparedStatement stmtExist = c.prepareStatement("SELECT * FROM  \"" + schemaPrefix + "om\".\"offerings\" WHERE \"procedure\"=?")) {//NOSONAR
@@ -1205,19 +1206,21 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 stmt.setString(2, offering.getDescription());
                 stmt.setString(3, (offering.getName() != null) ? offering.getName() : null);
                 if (offering.getTime() instanceof Period period) {
-                    if (period.getBeginning() != null && period.getBeginning().getDate() != null) {
-                        stmt.setTimestamp(4, new Timestamp(period.getBeginning().getDate().getTime()));
+                    Instant t;
+                    if ((t = period.getBeginning()) != null) {
+                        stmt.setTimestamp(4, new Timestamp(TemporalUtilities.toInstant(t).toEpochMilli()));
                     } else {
                         stmt.setNull(4, java.sql.Types.TIMESTAMP);
                     }
-                    if (period.getEnding() != null && period.getEnding().getDate() != null) {
-                        stmt.setTimestamp(5, new Timestamp(period.getEnding().getDate().getTime()));
+                    if ((t = period.getEnding()) != null) {
+                        stmt.setTimestamp(5, new Timestamp(TemporalUtilities.toInstant(t).toEpochMilli()));
                     } else {
                         stmt.setNull(5, java.sql.Types.TIMESTAMP);
                     }
                 } else if (offering.getTime() instanceof Instant instant) {
-                    if (instant != null && instant.getDate() != null) {
-                        stmt.setTimestamp(4, new Timestamp(instant.getDate().getTime()));
+                    Temporal t = instant.getPosition();
+                    if (t != null) {
+                        stmt.setTimestamp(4, new Timestamp(TemporalUtilities.toInstant(t).toEpochMilli()));
                     } else {
                         stmt.setNull(4, java.sql.Types.TIMESTAMP);
                     }
@@ -1376,11 +1379,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                 // 2. look for each observation if we should remove it, totally or partially
                 for (ObservationInfos cdt : candidates) {
-                    final RelativePosition pos = obs.getSamplingTime().relativePosition(cdt.time);
+                    final TemporalOperatorName pos = obs.getSamplingTime().findRelativePosition(cdt.time);
 
                     LOGGER.fine("Observation candidate id:" + cdt.id + " phen:" + cdt.phenomenon.getId() + " time related:" + pos.name());
 
-                    boolean timeEquals = pos.equals(RelativePosition.EQUALS);
+                    boolean timeEquals = pos.equals(TemporalOperatorName.EQUALS);
                     boolean fullRemoval  = timeEquals && (getMeasureCount(obs) == cdt.nbMeasure);
 
                     /*
@@ -1480,11 +1483,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         public final int id;
         public final int nbMeasure;
         public final String identifier;
-        public final TemporalGeometricPrimitive time;
+        public final TemporalPrimitive time;
         public final Phenomenon phenomenon;
         public final ProcedureInfo pi;
 
-        public ObservationInfos(int id, String identifier, TemporalGeometricPrimitive time, Phenomenon phenomenon, int nbMeasure, ProcedureInfo pi) {
+        public ObservationInfos(int id, String identifier, TemporalPrimitive time, Phenomenon phenomenon, int nbMeasure, ProcedureInfo pi) {
             this.id         = id;
             this.identifier = identifier;
             this.time       = time;
@@ -1512,7 +1515,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         Set<ObservationInfos> results = new HashSet<>();
         try (final SQLResult result = sql.execute(c)) {
             while (result.next()) {
-                TemporalGeometricPrimitive time = OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
+                TemporalPrimitive time = OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
                 Phenomenon phenomenon = getPhenomenon(result.getString("observed_property"), c);
                 final int obsId = result.getInt("id");
                 final String identifier = result.getString("identifier");
@@ -1623,7 +1626,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
         cleanupUnusedEntities(c);
     }
-    
+
     private void cleanupUnusedEntities(Connection c) throws SQLException {
         final String cleanOPQUery = " SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"observed_properties\""
                                   + " WHERE  \"id\" NOT IN (SELECT DISTINCT \"observed_property\" FROM \"" + schemaPrefix + "om\".\"observations\") "
@@ -2213,10 +2216,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         insertFieldStmt.setString(9, field.label);
         insertFieldStmt.executeUpdate();
     }
-    
+
     private Set<ObservationInfos> getIntersectingObservation(Phenomenon phen, Connection c) throws SQLException, DataStoreException {
         FilterSQLRequest sql = new SingleFilterSQLRequest("SELECT \"id\", \"identifier\", \"time_begin\", \"time_end\", \"observed_property\" FROM  \"" + schemaPrefix + "om\".\"observations\" o WHERE ");
-       
+
         // phenomenon match
         Set<String> intersectingPhen = getIntersectingPhenomenon(phen, c);
         if (intersectingPhen.isEmpty()) {
@@ -2227,7 +2230,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         Set<ObservationInfos> results = new HashSet<>();
         try (final SQLResult result = sql.execute(c)) {
             while (result.next()) {
-                TemporalGeometricPrimitive time = null; // OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
+                TemporalPrimitive time = null; // OMUtils.buildTime("id", result.getTimestamp("time_begin"), result.getTimestamp("time_end"));
                 Phenomenon phenomenon = getPhenomenon(result.getString("observed_property"), c);
                 final int obsId = result.getInt("id");
                 final String identifier = result.getString("identifier");
@@ -2248,7 +2251,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 Set<ObservationInfos> candidates = getIntersectingObservation(phenToRemove, c);
                 for (ObservationInfos cdt : candidates) {
                     procedures.add(cdt.pi);
-                    
+
                     // 1. direct phenomenon / subset observations => full removal
                     if (isEqualsOrSubset(cdt.phenomenon, phenToRemove)) {
                         removeObservation(cdt.identifier, cdt.pi, c);
@@ -2295,7 +2298,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         }
                     }
                 }
-                
+
                 cleanupUnusedEntities(c);
             }
         } catch (SQLException ex) {

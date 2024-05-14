@@ -30,7 +30,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import org.constellation.dto.Sensor;
-import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConstellationException;
 import org.constellation.sos.core.SOSworker;
 import org.constellation.test.utils.Order;
@@ -53,12 +52,12 @@ import org.geotoolkit.sts.json.ObservationsResponse;
 import org.geotoolkit.sts.json.ObservedProperty;
 import org.geotoolkit.sts.json.Thing;
 import org.geotoolkit.swe.xml.Phenomenon;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.observation.Observation;
 import org.opengis.observation.ObservationCollection;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.Instant;
 import org.opengis.util.NoSuchIdentifierException;
 
 /**
@@ -163,9 +162,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
                 }
             }
             Assert.assertNotNull(obs.getSamplingTime());
-            Assert.assertTrue(obs.getSamplingTime() instanceof Instant);
-            Instant instant = (Instant) obs.getSamplingTime();
-            Assert.assertNotNull(instant.getDate());
+            Assert.assertTrue(TemporalUtilities.toTemporal(obs.getSamplingTime()).isPresent());
         }
         Assert.assertNotNull(observedProperty);
 
@@ -570,7 +567,7 @@ public class SosHarvesterProcessYamlTest extends AbstractSosHarvesterTest {
         Assert.assertTrue(o instanceof ObservationCollection);
 
         String observedProperty = "TEMPERATURE";
-        
+
         /*
          * Verify an inserted data
          */

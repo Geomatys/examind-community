@@ -73,7 +73,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.observation.Process;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 
@@ -82,7 +82,7 @@ import org.opengis.util.FactoryException;
  * @author Guilhem Legal (Geomatys)
  */
 public class OM2ObservationFilterReader extends OM2ObservationFilter {
-    
+
     protected static final Version MIN_TIMESCALE_VERSION_SMOOTH = new Version("1.11.0");
 
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
@@ -144,7 +144,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     where  op."id" = opp.id_phenomenon
                     AND opp."property_name"= 'propName'  AND opp."value" = ' propValue')
             )
-            
+
             UPDATE there was kind of a change here, the request is now almost like the suggestion above. TODO verify that the problem is still here
              */
             sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
@@ -183,7 +183,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     featureID = rs.getString("foi");
                     feature = getFeatureOfInterest(featureID, c);
                 }
-                TemporalGeometricPrimitive tempTime = null;
+                TemporalPrimitive tempTime = null;
                 if (includeTimeInTemplate) {
                     tempTime = getTimeForTemplate(c, procedure, null, featureID);
                 }
@@ -191,12 +191,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", getProcedureOMType(procedure, c));
-                
+
                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                 /*
                  *  BUILD RESULT
                  */
-                
+
                 final ComplexResult result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
                 Observation observation = new Observation(obsID,
                                                           name,
@@ -265,7 +265,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Map<String, Phenomenon> phenMap                 = new HashMap<>();
         final Map<String, Map<String, Object>> obsPropMap     = new HashMap<>();
         final Map<String, ProcedureInfo> ptiMap               = new HashMap<>();
-        final Map<String, TemporalGeometricPrimitive> timeMap = new HashMap<>();
+        final Map<String, TemporalPrimitive> timeMap          = new HashMap<>();
 
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
@@ -310,7 +310,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         throw new RuntimeException(ex);
                     }
                 });
-                
+
 
                 final Phenomenon phen = phenMap.computeIfAbsent(observedProperty, op -> {return getPhenomenonSafe(op, c);});
                 final String featureID;
@@ -327,8 +327,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  *  BUILD RESULT
                  */
                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
-                
-                TemporalGeometricPrimitive tempTime = null;
+
+                TemporalPrimitive tempTime = null;
                 if (includeTimeInTemplate) {
                     String timeKey =  procedure + "-" + observedProperty + "-" + featureID;
                     tempTime = timeMap.computeIfAbsent(timeKey, k -> getTimeForTemplate(c, procedure, observedProperty, featureID));
@@ -388,6 +388,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 ProcedureInfo pti        = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                 boolean profile          = "profile".equals(pti.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
+
+                Map<String, Object> properties = new HashMap<>();
+                properties.put("type", pti.type);
 
                /*
                 * Compute procedure fields
@@ -486,7 +489,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         }
-        
+
         // TODO make a real pagination
         return applyPostPagination(new ArrayList<>(observations.values()));
     }
@@ -531,7 +534,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
                 final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
-                final TemporalGeometricPrimitive time = buildTime(obsID, startTime, endTime);
+                final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
                  *  BUILD RESULT
@@ -555,12 +558,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     while (rs2.nextOnField(pti.mainField.name)) {
                         final Long rid = rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                            TemporalGeometricPrimitive measureTime;
-                            if (profile) {
-                                measureTime = time;
-                            } else {
-                                final Date mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
-                                measureTime = buildTime(oid + "-" + rid, mt, null);
+                            TemporalPrimitive measureTime;
+                            Date mt = null;
+                            if (!profile) {
+                                mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
                             }
 
                             for (Entry<Field, Phenomenon> entry : fieldPhen.entrySet()) {
@@ -583,6 +584,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     MeasureResult result = new MeasureResult(field, resultValue);
                                     final String measId =  obsID + '-' + field.index + '-' + rid;
                                     final String measName = name + '-' + field.index + '-' + rid;
+                                    if (profile) {
+                                        measureTime = time;
+                                    } else {
+                                        measureTime = buildTime(measId, mt, null);
+                                    }
                                     List<Element> resultQuality = buildResultQuality(field, rs2);
                                     Observation observation = new Observation(measId,
                                                                               measName,
@@ -619,7 +625,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @param profile Set to {@code true} if the current observation is a Profile.
      * @param profileWithTime Set to {@code true} if the time has to be included in the result for a profile.
      * @param includeIDInDataBlock Set to {@code true} if the measure identifier has to be included in the result.
-     * 
+     *
      * @return The index where starts the measure fields.
      */
     protected int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
@@ -643,7 +649,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final boolean decimate              = !countRequest && decimationSize != null;
         final boolean profile               = "profile".equals(currentProcedure.type);
         final boolean profileWithTime       = profile && includeTimeForProfile;
-       
+
         FilterSQLRequest measureRequest    = null;
         try (final Connection c = source.getConnection()) {
             /**
@@ -653,7 +659,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (!fieldIdFilters.isEmpty()) {
                 fields = new ArrayList<>();
                 fields.add(currentProcedure.mainField);
-                
+
                 List<Field> phenFields = new ArrayList<>();
                 for (String f : fieldIdFilters) {
                     final Field field = getProcedureField(currentProcedure.procedureId, f, c);
@@ -721,7 +727,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             if (timescaleDB) {
                 boolean singleField = (fields.size() - fieldOffset) == 1;
                 boolean smoothAvailable = timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0;
-                
+
                 /**
                 * for a single field we use specific timescale function
                 * asap_smooth (lttb todo)
@@ -841,7 +847,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (foiPropJoin) {
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
-        
+
         /*
          * build UNION request
          *
@@ -855,14 +861,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
             secondRequest.join(joins2, firstFilter);
-            
+
             // -- TODO REALLY find a cleaner way to do this
             secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
             secondRequest.replaceAll("op.\"id\" IN", "c.\"component\" IN");
             // -- end TODO
-            
+
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\")", "op.\"id\" IN (SELECT DISTINCT(\"phenomenon\")");
-            
+
             sqlRequest.join(joins, firstFilter);
 
             sqlRequest.append(" UNION ").append(secondRequest);
@@ -906,7 +912,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (phenPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_observed_properties\" offop", "offop.\"id_offering\" = off.\"identifier\""));
             sqlRequest.replaceAll("${phen-prop-join}",  "offop.\"phenomenon\"");
-            
+
         }
         if (foiPropJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" offf", "offf.\"id_offering\" = off.\"identifier\""));
@@ -989,7 +995,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         continue;
                     }
                     locations.put(procedure, geom);
-                    
+
                 } catch (FactoryException | ParseException ex) {
                     throw new DataStoreException(ex);
                 }
@@ -1014,7 +1020,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // basic join statement
             String obsStmt = "o.\"procedure\" = hl.\"procedure\"";
-            
+
             // TODO, i can't remember what is the purpose of this piece of sql request
             obsStmt = obsStmt + "AND (";
             // profile / single date ts

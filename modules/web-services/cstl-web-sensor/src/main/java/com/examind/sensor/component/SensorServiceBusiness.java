@@ -76,9 +76,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -268,14 +266,14 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
                 current = sensorBusiness.getSensorMLTree(sensorID);
             }
             return SensorUtils.getPhenomenonFromSensor(current, pr, decompose);
-            
+
         } catch (ConstellationStoreException ex) {
             throw new ConfigurationException(ex);
         }
     }
 
     @Override
-    public TemporalGeometricPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
+    public TemporalPrimitive getTimeForSensorId(final Integer id, final String sensorID) throws ConfigurationException {
         final ObservationProvider pr = getSensorProvider(id, ObservationProvider.class);
         try {
             return pr.getTimeForProcedure(sensorID);
@@ -300,7 +298,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         if (dataProvider instanceof ObservationProvider omProvider) return omProvider;
         throw new ConfigurationException("data provider is not an observation store.");
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -594,13 +592,13 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
     private Filter buildFilter(final Date start, final Date end, List<String> observedProperties, List<String> featuresOfInterest)  {
         final List<Filter> filters = new ArrayList<>();
         if (start != null && end != null) {
-            final Period period = new TimePeriodType(null, new Timestamp(start.getTime()), new Timestamp(end.getTime()));
+            final var period = new TimePeriodType(null, new Timestamp(start.getTime()).toInstant(), new Timestamp(end.getTime()).toInstant());
             filters.add(ff.during(ff.property("resultTime"), ff.literal(period)));
         } else if (start != null) {
-            final Instant time = new TimeInstantType(new Timestamp(start.getTime()));
+            final var time = new TimeInstantType(new Timestamp(start.getTime()).toInstant());
             filters.add(ff.after(ff.property("resultTime"), ff.literal(time)));
         } else if (end != null) {
-            final Instant time = new TimeInstantType(new Timestamp(end.getTime()));
+            final var time = new TimeInstantType(new Timestamp(end.getTime()).toInstant());
             filters.add(ff.before(ff.property("resultTime"), ff.literal(time)));
         }
 

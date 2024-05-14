@@ -32,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,7 +50,6 @@ import org.constellation.dto.CstlUser;
 import org.constellation.metadata.utils.MetadataFeeder;
 import org.constellation.metadata.utils.Utils;
 import org.geotoolkit.nio.IOUtilities;
-import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.metadata.citation.OnlineResource;
 import org.opengis.metadata.distribution.DigitalTransferOptions;
 import org.opengis.metadata.distribution.Distribution;
@@ -95,7 +95,7 @@ public final class MetadataUtilities {
         }
         return null;
     }
-    
+
     public static @Nullable String getTemplateMetadata(@NonNull final Properties prop, @NonNull final String templatePath) {
         try {
             final TemplateEngine templateEngine = TemplateEngineFactory.getInstance(TemplateEngineFactory.GROOVY_TEMPLATE_ENGINE);
@@ -209,7 +209,7 @@ public final class MetadataUtilities {
         prop.put("fileId", metadataID);
         prop.put("dataTitle", title);
         prop.put("dataAbstract", "");
-        final String dateIso = TemporalUtilities.toISO8601Z(new Date(), TimeZone.getTimeZone("UTC"));
+        final String dateIso = Instant.now().toString();
         prop.put("isoCreationDate", dateIso);
         prop.put("creationDate", dateIso);
         if ("raster".equalsIgnoreCase(dataType)) {

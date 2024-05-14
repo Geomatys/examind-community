@@ -30,9 +30,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.xml.bind.JAXBElement;
+import java.time.temporal.Temporal;
+import java.util.Optional;
 
 import org.opengis.metadata.Metadata;
-import org.opengis.temporal.Instant;
 import org.opengis.util.InternationalString;
 import org.opengis.util.LocalName;
 
@@ -47,6 +48,8 @@ import org.apache.sis.xml.IdentifierSpace;
 import org.constellation.util.NodeUtilities;
 import org.constellation.util.ReflectionUtilities;
 import org.constellation.util.Util;
+import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.temporal.Instant;
 import org.w3c.dom.Node;
 
 /**
@@ -86,7 +89,6 @@ public final class Utils {
       *
       * @return the founded title or UNKNOW_TITLE
       */
-
     public static String findTitle(final Object obj) {
 
         //here we try to get the title
@@ -150,7 +152,6 @@ public final class Utils {
       *
       * @return the founded standard name or {@code null}
       */
-
     public static String findStandardName(final Object obj) {
 
         //here we try to get the title
@@ -210,8 +211,6 @@ public final class Utils {
      * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param obj the object for which we want a identifier.
-     * @param paths
-     *
      * @return the founded identifier or UNKNOW_IDENTIFIER
      */
     public static String findIdentifier(final Object obj, final List<String> paths) {
@@ -262,7 +261,6 @@ public final class Utils {
      *
      * @param identifier the new identifier to set
      * @param object the object for which we want to set identifier.
-     *
      */
     public static void setIdentifier(final String identifier, final Object object) {
 
@@ -401,7 +399,6 @@ public final class Utils {
      *
      * @param title the new title to set.
      * @param object the object for which we want to set title.
-     *
      */
     public static void setTitle(final String title, final Object object) {
 
@@ -558,8 +555,6 @@ public final class Utils {
      * This method use path with an old structure (MDweb) and should be changed to use proper XPath
      *
      * @param node the node object for which we want a identifier.
-     * @param paths
-     *
      * @return the founded identifier or UNKNOW_IDENTIFIER
      */
     public static String findIdentifierNode(final Node node, final List<String> paths) {
@@ -588,10 +583,6 @@ public final class Utils {
      * if there is no values corresponding to the paths the method return "null" (the string)
      *
      * This method use path with an old structure (MDweb) and should be changed to use proper XPath
-     *
-     * @param metadata
-     * @param paths
-     * @return
      */
     public static List<Object> extractValues(final Object metadata, final List<String> paths) {
         final List<Object> response  = new ArrayList<>();
@@ -648,11 +639,11 @@ public final class Utils {
     /**
      * Return a String value from the specified Object.
      * Let the number object as Number
-     *
-     * @param obj
-     * @return
      */
-    private static List<Object> getStringValue(final Object obj) {
+    private static List<Object> getStringValue(Object obj) {
+        if (obj instanceof Optional<?> opt) {
+            obj = opt.orElse(null);
+        }
         final List<Object> result = new ArrayList<>();
         if (obj == null) {
             result.add(NULL_VALUE);
@@ -695,11 +686,15 @@ public final class Utils {
                 result.add(NULL_VALUE);
             }
 
-        } else if (obj instanceof Instant) {
-            final Instant inst = (Instant)obj;
-            if (inst.getDate() != null) {
+        } else if (obj instanceof Temporal t) {
+            synchronized (Util.LUCENE_DATE_FORMAT) {
+                result.add(Util.LUCENE_DATE_FORMAT.format(Date.from(TemporalUtilities.toInstant(t))));
+            }
+        } else if (obj instanceof Instant w) {
+            Date t = TemporalUtilities.toDate(w.getPosition());
+            if (t != null) {
                 synchronized (Util.LUCENE_DATE_FORMAT) {
-                    result.add(Util.LUCENE_DATE_FORMAT.format(inst.getDate()));
+                    result.add(Util.LUCENE_DATE_FORMAT.format(t));
                 }
             } else {
                 result.add(NULL_VALUE);
@@ -745,7 +740,7 @@ public final class Utils {
         }
         return str;
     }
-    
+
     /**
      * Escapes the characters in a String.
      *

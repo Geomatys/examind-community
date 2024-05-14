@@ -9,13 +9,13 @@
         }
     },
     "samplingTime": {
-        "id": "time-7001",
+        "id": "obs-7001-time",
         "beginning": {
-            "id": "dc1f6525-2f47-41d9-bcdd-60dc11f25935-time",
+            "id": "obs-7001-st-time",
             "date": "1980-03-01T21:52:00.0Z"
         },
         "ending": {
-            "id": "471f681f-1c07-43f6-8b33-052e001d19c5-time",
+            "id": "obs-7001-en-time",
             "date": "1981-03-01T22:52:00.0Z"
         }
     },

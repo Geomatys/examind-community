@@ -19,6 +19,7 @@
 
 package org.constellation.filter;
 
+import java.time.temporal.Temporal;
 import java.util.Collections;
 import org.locationtech.jts.geom.Geometry;
 import org.geotoolkit.csw.xml.QueryConstraint;
@@ -81,7 +82,6 @@ import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.TemporalOperatorName;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.util.CodeList;
 
@@ -267,10 +267,9 @@ public abstract class AbstractFilterParser implements FilterParser {
                     addComparisonFilter(response, propertyName, literalValue, "<");
 
                 } else if (type == TemporalOperatorName.ANY_INTERACTS) {
-                    if (literalValue instanceof Period) {
-                        Period p = (Period) literalValue;
-                        Instant start = p.getBeginning();
-                        Instant end   = p.getEnding();
+                    if (literalValue instanceof Period p) {
+                        Temporal start = p.getBeginning().getPosition();
+                        Temporal end   = p.getEnding().getPosition();
                         addComparisonFilter(response, propertyName, start, "<=");
                         addComparisonFilter(response, propertyName, end, ">=");
                     } else {
@@ -278,10 +277,9 @@ public abstract class AbstractFilterParser implements FilterParser {
                     }
 
                 } else if (type == TemporalOperatorName.DURING) {
-                    if (literalValue instanceof Period) {
-                        Period p = (Period) literalValue;
-                        Instant start = p.getBeginning();
-                        Instant end   = p.getEnding();
+                    if (literalValue instanceof Period p) {
+                        Temporal start = p.getBeginning().getPosition();
+                        Temporal end   = p.getEnding().getPosition();
                         addComparisonFilter(response, propertyName, start, "<=");
                         addComparisonFilter(response, propertyName, end, ">=");
 

@@ -19,13 +19,9 @@
 
 package org.constellation.sos.ws;
 
+import java.time.Instant;
 import org.geotoolkit.gml.xml.v311.TimePositionType;
 import org.geotoolkit.observation.ObservationStoreException;
-import org.geotoolkit.sml.xml.SensorMLMarshallerPool;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 
@@ -40,30 +36,6 @@ import static org.junit.Assert.assertFalse;
  * @author Guilhem Legal (Geomatys)
  */
 public class UtilsTest {
-
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
-    @Before
-    public void setUp() throws Exception {
-
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-    }
-
-    /**
-     *
-     * @throws java.lang.Exception
-     */
     @Test
     public void getLuceneTimeValueTest() throws Exception {
 
@@ -102,7 +74,7 @@ public class UtilsTest {
 
         exLaunched = false;
         try {
-            getLuceneTimeValue(null);
+            getLuceneTimeValue((Instant) null);
         } catch (ObservationStoreException ex) {
             exLaunched = true;
             assertEquals(ex.getExceptionCode(), MISSING_PARAMETER_VALUE);

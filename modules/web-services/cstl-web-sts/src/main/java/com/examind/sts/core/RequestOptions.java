@@ -132,7 +132,7 @@ public class RequestOptions {
     private boolean isExpand(String entity) {
         return isExpand(entity, null);
     }
-    
+
     private boolean isExpand(String entity, String alternate) {
         for (String ex : expand) {
             if (ex.startsWith(entity) || (alternate != null && ex.startsWith(alternate))) {

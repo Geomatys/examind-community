@@ -30,7 +30,7 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -47,7 +47,7 @@ public class ObservationBlock {
     private final Positions positions;
 
     public final MeasureBuilder cmb;
-    
+
     public final GeoSpatialBound currentSpaBound;
 
     public ObservationBlock(Procedure procedure, String featureID, MeasureBuilder cmb, String observationType) {
@@ -72,7 +72,7 @@ public class ObservationBlock {
         return positions.positions;
     }
 
-    public TemporalGeometricPrimitive getTimeObject() {
+    public TemporalPrimitive getTimeObject() {
         return currentSpaBound.getTimeObject();
     }
 
@@ -91,7 +91,7 @@ public class ObservationBlock {
     public int getResultsCount() {
         return cmb.getMeasureCount();
     }
-    
+
     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues) {
         cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues);
     }

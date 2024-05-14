@@ -24,7 +24,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.ObservationReader;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 import javax.xml.namespace.QName;
 import java.io.IOException;
@@ -316,7 +316,7 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getEventTime() throws DataStoreException {
+    public TemporalPrimitive getEventTime() throws DataStoreException {
         return null;
     }
 
@@ -324,7 +324,7 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
+    public TemporalPrimitive getFeatureOfInterestTime(final String samplingFeatureName) throws DataStoreException {
         throw new DataStoreException("The Filesystem implementation of SOS does not support GetFeatureofInterestTime");
     }
 
@@ -356,7 +356,7 @@ public class FileObservationReader extends FileObservationHandler implements Obs
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
+    public TemporalPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet in this implementation.");
     }
 

@@ -35,7 +35,7 @@ import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -69,16 +69,16 @@ public interface ObservationProvider extends DataProvider {
 
     Observation getTemplate(String sensorId) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTimeForProcedure(final String sensorID) throws ConstellationStoreException;
+    TemporalPrimitive getTimeForProcedure(final String sensorID) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTimeForFeatureOfInterest(final String fid) throws ConstellationStoreException;
+    TemporalPrimitive getTimeForFeatureOfInterest(final String fid) throws ConstellationStoreException;
 
-    TemporalGeometricPrimitive getTime() throws ConstellationStoreException;
+    TemporalPrimitive getTime() throws ConstellationStoreException;
 
     void removeProcedure(String procedureID) throws ConstellationStoreException;
 
     void removeObservation(final String observationID) throws ConstellationStoreException;
-    
+
     void removePhenomenon(String phenomenonID) throws ConstellationStoreException;
 
     void writePhenomenons(final List<? extends Phenomenon> phens) throws ConstellationStoreException;

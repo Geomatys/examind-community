@@ -75,7 +75,6 @@ import org.geotoolkit.ogc.xml.v110.SortPropertyType;
 import org.geotoolkit.ows.xml.v100.AcceptFormatsType;
 import org.geotoolkit.ows.xml.v100.AcceptVersionsType;
 import org.geotoolkit.ows.xml.v100.SectionsType;
-import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.metadata.Datatype;
 import org.opengis.metadata.ExtendedElementInformation;
 import org.opengis.metadata.citation.Role;
@@ -94,8 +93,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
@@ -2863,7 +2864,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
         obj = response.getSearchResults().getAny().get(0);
         if (obj instanceof DefaultMetadata meta) {
-            assertEquals(TemporalUtilities.parseDateSafe("2009-01-26T13:00:00+02:00",true, true), meta.getDateStamp());
+            assertEquals(OffsetDateTime.parse("2009-01-26T13:00:00+02:00").toInstant(), meta.getDateStamp().toInstant());
         } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
@@ -2892,7 +2893,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
         obj = response.getSearchResults().getAny().get(0);
         if (obj instanceof DefaultMetadata meta) {
-            assertEquals(TemporalUtilities.parseDateSafe("2009-01-18T14:00:00+02:00",true, true), meta.getDateStamp());
+            assertEquals(OffsetDateTime.parse("2009-01-18T14:00:00+02:00").toInstant(), meta.getDateStamp().toInstant());
         } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);
             assertEquals(1, dateNodes.size());
@@ -2946,7 +2947,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
         final DefaultMetadata newMeta = new DefaultMetadata();
         newMeta.setFileIdentifier("42292_9s_19900610041000");
-        newMeta.setDateStamp(TemporalUtilities.parseDateSafe("2012-01-01T15:00:00+02:00",true, true));
+        newMeta.setDateStamp(Date.from(OffsetDateTime.parse("2012-01-01T15:00:00+02:00").toInstant()));
 
         final Node originalnewMeta = writeMetadataInDom(newMeta);
 
@@ -2967,7 +2968,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
 
         obj = response.getSearchResults().getAny().get(0);
         if (obj instanceof DefaultMetadata meta) {
-            assertEquals(TemporalUtilities.parseDateSafe("2012-01-01T15:00:00+02:00",true, true), meta.getDateStamp());
+            assertEquals(OffsetDateTime.parse("2012-01-01T15:00:00+02:00").toInstant(), meta.getDateStamp().toInstant());
             assertEquals(newMeta, meta);
 
         } else if (obj instanceof Node isoNode) {
@@ -2991,7 +2992,7 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
         obj = resp.getAny().get(0);
         if (obj instanceof DefaultMetadata meta) {
 
-            assertEquals(TemporalUtilities.parseDateSafe("2012-01-01T15:00:00+02:00",true, true), meta.getDateStamp());
+            assertEquals(OffsetDateTime.parse("2012-01-01T15:00:00+02:00").toInstant(), meta.getDateStamp().toInstant());
             assertEquals(newMeta, meta);
         } else if (obj instanceof Node isoNode) {
             final List<Node> dateNodes = getNodes("dateStamp/DateTime", isoNode);

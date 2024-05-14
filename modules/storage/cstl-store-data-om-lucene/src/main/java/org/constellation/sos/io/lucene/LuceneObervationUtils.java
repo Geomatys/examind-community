@@ -21,12 +21,15 @@ package org.constellation.sos.io.lucene;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.Temporal;
 import java.util.Date;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationStoreException;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import org.geotoolkit.temporal.object.ISODateParser;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 
 /**
  *
@@ -34,12 +37,23 @@ import org.geotoolkit.temporal.object.ISODateParser;
  */
 public class LuceneObervationUtils {
 
+    public static String getLuceneTimeValue(final org.opengis.temporal.Instant time) throws DataStoreException {
+        return getLuceneTimeValue(TemporalUtilities.toTemporal(time));
+    }
+
+    public static String getLuceneTimeValue(final Temporal time) throws DataStoreException {
+        return getLuceneTimeValue((time != null) ? Date.from(TemporalUtilities.toInstant(time)) : null);
+    }
+
     /**
      * return a SQL formatted timestamp
      *
      * @param time a GML time position object.
      * @throws org.apache.sis.storage.DataStoreException
+     *
+     * @deprecated Use {@link Instant} instead.
      */
+    @Deprecated
     public static String getLuceneTimeValue(final Date time) throws DataStoreException {
         if (time != null) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SS");

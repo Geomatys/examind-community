@@ -35,7 +35,7 @@ import org.codehaus.jettison.mapped.Configuration;
 import org.codehaus.jettison.mapped.MappedNamespaceConvention;
 import org.codehaus.jettison.mapped.MappedXMLStreamWriter;
 import org.geotoolkit.gml.xml.GMLMarshallerPool;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -47,7 +47,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometricPrimitive> {
+public class TimeObjectConverter implements HttpMessageConverter<TemporalPrimitive> {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
@@ -58,7 +58,7 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
 
     @Override
     public boolean canWrite(Class<?> type, MediaType mt) {
-        return TemporalGeometricPrimitive.class.isAssignableFrom(type);
+        return TemporalPrimitive.class.isAssignableFrom(type);
     }
 
     @Override
@@ -67,12 +67,12 @@ public class TimeObjectConverter implements HttpMessageConverter<TemporalGeometr
     }
 
     @Override
-    public TemporalGeometricPrimitive read(Class<? extends TemporalGeometricPrimitive> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+    public TemporalPrimitive read(Class<? extends TemporalPrimitive> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void write(TemporalGeometricPrimitive r, MediaType mt, HttpOutputMessage hom) throws IOException, HttpMessageNotWritableException {
+    public void write(TemporalPrimitive r, MediaType mt, HttpOutputMessage hom) throws IOException, HttpMessageNotWritableException {
         try {
             // if it's a json POST, create a JSonMarshaller.
             if (mt.equals(MediaType.APPLICATION_JSON)) {

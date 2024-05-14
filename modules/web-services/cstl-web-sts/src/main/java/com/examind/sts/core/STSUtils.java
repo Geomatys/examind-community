@@ -28,11 +28,12 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.ws.CstlServiceException;
+import org.geotoolkit.gml.xml.GMLPeriod;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
-import org.opengis.temporal.TemporalObject;
+import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.lang.Nullable;
 
 /**
@@ -74,7 +75,7 @@ public class STSUtils {
         }
     }
 
-    public static TemporalObject parseTemporalLong(String to) {
+    public static TemporalPrimitive parseTemporalLong(String to) {
         int index = to.indexOf('/');
         if (index != -1) {
             Date begin = new Date(Long.parseLong(to.substring(0, index)));
@@ -86,33 +87,32 @@ public class STSUtils {
         }
     }
 
-    public static TemporalObject buildTemporalObj(Date to) {
+    public static TemporalPrimitive buildTemporalObj(Date to) {
         return OMUtils.buildTime("t", to, null);
     }
 
-    
-    private static List<Object> temporalkey(TemporalObject to) {
+
+    private static List<Object> temporalkey(TemporalPrimitive to) {
         List<Object> results = null;
-        if (to instanceof Period tp) {
+        GMLPeriod tp = GMLPeriod.castOrWrap(to).orElse(null);
+        if (tp != null) {
             results = new ArrayList<>();
-            Instant beginI = tp.getBeginning();
-            Instant endI   = tp.getEnding();
-            Date begin     = beginI.getDate();
-            Date end       = endI.getDate();
+            var beginI = tp.getBeginPosition();
+            var endI   = tp.getEndPosition();
+            Date begin = beginI.getDate();
+            Date end   = endI.getDate();
             if (begin != null) {
                 results.add(begin);
-            } else if (beginI.getTemporalPosition() != null &&
-                       beginI.getTemporalPosition().getIndeterminatePosition() != null){
-                results.add(beginI.getTemporalPosition().getIndeterminatePosition().name());
+            } else if (beginI.getIndeterminatePosition().isPresent()){
+                results.add(beginI.getIndeterminatePosition().get().name());
             }
             if (end != null) {
                 results.add(end);
-            } else if (endI.getTemporalPosition() != null &&
-                       endI.getTemporalPosition().getIndeterminatePosition() != null){
-                results.add(endI.getTemporalPosition().getIndeterminatePosition().name());
+            } else if (endI.getIndeterminatePosition().isPresent()) {
+                results.add(endI.getIndeterminatePosition().get().name());
             }
         } else if (to instanceof Instant ti) {
-            results = Arrays.asList(ti.getDate());
+            results = Arrays.asList(TemporalUtilities.toDate(ti));
         } else if (to != null) {
             LOGGER.log(Level.WARNING, "Unexpected temporal object:{0}", to.getClass().getName());
         }
@@ -131,7 +131,7 @@ public class STSUtils {
      * @return A String representation of the temporal object or @{code null} if the input object is null or a non-handled temporal type.
      */
     @Nullable
-    public static String temporalObjToString(TemporalObject time, Map<List<Object>, String> cached) {
+    public static String temporalObjToString(TemporalPrimitive time, Map<List<Object>, String> cached) {
         List<Object> key = temporalkey(time);
         if (key == null || key.isEmpty()) return null;
         return cached.computeIfAbsent(key, to -> {

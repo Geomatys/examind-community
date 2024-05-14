@@ -22,10 +22,15 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.time.temporal.Temporal;
+import java.util.Date;
 import java.util.UUID;
 import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.AfterClass;
+import org.opengis.temporal.Instant;
 
 /**
  *
@@ -49,5 +54,19 @@ public class AbstractCsvStoreTest {
         Path dir = Files.createDirectories(DATA_DIRECTORY.resolve(dirName));
         writeResourceDataFile(dir, "com/examind/process/sos/" + fileName, fileName);
         return dir.resolve(fileName);
+    }
+    
+    private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    
+    protected static String format(Temporal t) {
+        return SDF.format(TemporalUtilities.toDate(t));
+    }
+    
+    protected static String format(Instant t) {
+        return SDF.format(Date.from(TemporalUtilities.toInstant(t)));
+    }
+    
+    protected static String format(SimpleDateFormat sdf,Instant t) {
+        return sdf.format(Date.from(TemporalUtilities.toInstant(t)));
     }
 }

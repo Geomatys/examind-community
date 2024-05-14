@@ -24,7 +24,7 @@ import org.locationtech.jts.io.ParseException;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.ObservationReader;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.temporal.TemporalGeometricPrimitive;
+import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
 import javax.sql.DataSource;
@@ -35,9 +35,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import org.apache.sis.temporal.TemporalObjects;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
@@ -61,6 +62,7 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import static org.geotoolkit.observation.model.ObservationUtils.setIdentifier;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -69,13 +71,9 @@ import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 import org.geotoolkit.observation.query.IdentifierQuery;
-import org.geotoolkit.temporal.object.DefaultInstant;
-import org.geotoolkit.temporal.object.DefaultPeriod;
-import org.geotoolkit.temporal.object.DefaultTemporalPosition;
 import org.opengis.metadata.quality.Element;
-import static org.opengis.referencing.IdentifiedObject.NAME_KEY;
 import org.opengis.temporal.IndeterminateValue;
-import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
 
 /**
  * Default Observation reader for Postgrid O&amp;M database.
@@ -327,10 +325,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
+    public TemporalPrimitive getProcedureTime(final String sensorID) throws DataStoreException {
         final String query = "SELECT \"time_begin\", \"time_end\" "
                            + "FROM \"" + schemaPrefix + "om\".\"offerings\" "
                            + "WHERE \"procedure\"=?";
+        String sId = sensorID;
+        if (sId.startsWith(sensorIdBase)) {
+            sId = sId.substring(sensorIdBase.length());
+        }
         try(final Connection c          = source.getConnection();
             final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, sensorID);
@@ -338,7 +340,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 if (rs.next()) {
                     final Timestamp begin = rs.getTimestamp(1);
                     final Timestamp end = rs.getTimestamp(2);
-                    return buildTime(sensorID, begin, end);
+                    return buildTime(sId, begin, end);
                 }
             }
         } catch (SQLException ex) {
@@ -421,7 +423,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final String procedure;
             final String foi;
             final int oid;
-            TemporalGeometricPrimitive time = null;
+            TemporalPrimitive time = null;
 
             try(final PreparedStatement stmt  = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
                 stmt.setString(1, identifier);
@@ -431,9 +433,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         final Date b = rs.getTimestamp(3);
                         final Date e = rs.getTimestamp(4);
                         if (b != null && e == null) {
-                            time = buildTime(observationID, b, null);
+                            time = buildTime(obsID, b, null);
                         } else if (b != null && e != null) {
-                            time = buildTime(observationID, b, e);
+                            time = buildTime(obsID, b, e);
                         }
                         observedProperty = rs.getString(5);
                         procedure = rs.getString(6);
@@ -480,11 +482,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     resultQuality = buildResultQuality(pi, identifier, measureId, selectedField, c);
                     result = getResult(pi, oid, resultModel, measureId, selectedField, c);
                     if ("timeseries".equals(pi.type)) {
-                        time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId);
+                        time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId, fieldIndex);
                     }
                 }
                 omType = getOmTypeFromFieldType(selectedField.type);
-                
+
             } else {
                 omType        = COMPLEX_OBSERVATION;
                 resultQuality = new ArrayList<>();
@@ -517,7 +519,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     /**
      * Return the time value (main field) for the specified measure.
      * Work only for timeseries.
-     * 
+     *
      * @param identifier Observation identifier.
      * @param c A SQL connection.
      * @param measureId identifier od the measure.
@@ -525,15 +527,20 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @return the time value (main field) for the specified measure.
      * @throws SQLException
      */
-    private TemporalGeometricPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId) throws SQLException {
+    private TemporalPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId, int fieldId) throws SQLException {
         FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, null, true, false, false, false, false);
+        String obsId = identifier;
+        if (obsId.startsWith(observationIdBase)) {
+            obsId = obsId.substring(observationIdBase.length());
+        }
+        obsId = "obs-" + obsId + '-' + fieldId + '-' + measureId;
         query.append(" AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = ").appendValue(measureId);
         try (final SQLResult rs  = query.execute(c)) {
             int tableNum = rs.getFirstTableNumber();
             if (rs.next()) {
                 final Timestamp t = rs.getTimestamp(pti.mainField.name, tableNum);
-                return buildTime(identifier, t, null);
+                return buildTime(obsId, t, null);
             }
         }
         return null;
@@ -599,7 +606,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 featureID = fois.iterator().next();
                 feature = getFeatureOfInterest(featureID, c);
             }
-            TemporalGeometricPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID);
+            TemporalPrimitive tempTime = getTimeForTemplate(c, procedure, null, featureID);
             List<Field> fields = readFields(procedure, c);
             Map<String, Object> properties = new HashMap<>();
             properties.put("type", getProcedureOMType(procedure, c));
@@ -649,11 +656,15 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         // do nothing
     }
 
+    private static Instant toInstant(Date t) {
+        return (t != null) ? t.toInstant() : null;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getFeatureOfInterestTime(final String identifier) throws DataStoreException {
+    public TemporalPrimitive getFeatureOfInterestTime(final String identifier) throws DataStoreException {
         final String query = "SELECT min(\"time_begin\") as mib, max(\"time_begin\") as mab, max(\"time_end\") as mae "
                            + "FROM \"" + schemaPrefix + "om\".\"observations\" "
                            + "WHERE \"foi\"=?";
@@ -661,29 +672,22 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final PreparedStatement stmt = c.prepareStatement(query)) {//NOSONAR
             stmt.setString(1, identifier);
             try (final ResultSet rs = stmt.executeQuery()) {
-                final TemporalGeometricPrimitive time;
+                final TemporalPrimitive time;
                 if (rs.next()) {
-                    final Timestamp mib = rs.getTimestamp(1);
-                    final Timestamp mab = rs.getTimestamp(2);
-                    final Timestamp mae = rs.getTimestamp(3);
-                    Map<String, ?> props = Collections.singletonMap(NAME_KEY, identifier + "-time");
+                    final Instant mib = toInstant(rs.getTimestamp(1));
+                    final Instant mab = toInstant(rs.getTimestamp(2));
+                    final Instant mae = toInstant(rs.getTimestamp(3));
                     if (mib != null && mae == null) {
                         if (mab != null && !mib.equals(mab)) {
-                            time = new DefaultPeriod(props,
-                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
-                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mab));
+                            time = createPeriod(identifier, mib, mab);
                         } else {
-                            time = new DefaultInstant(props, mib);
+                            time = createInstant(identifier, mib);
                         }
                     } else if (mib != null && mae != null) {
-                        if (mab != null && mab.after(mae)) {
-                            time = new DefaultPeriod(props, 
-                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
-                                                     new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mab));
+                        if (mab != null && mab.isAfter(mae)) {
+                            time = createPeriod(identifier, mib, mab);
                         } else {
-                            time = new DefaultPeriod(props, 
-                                                    new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-st"), mib),
-                                                    new DefaultInstant(Collections.singletonMap(NAME_KEY, identifier + "-time-en"), mae));
+                            time = createPeriod(identifier, mib, mae);
                         }
                     } else {
                         time = null;
@@ -698,27 +702,47 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
     }
 
+    private static org.opengis.temporal.Instant createInstant(String identifier, Instant t) {
+        org.opengis.temporal.Instant r = TemporalObjects.createInstant(t);
+        setIdentifier(r, identifier + "-time");
+        return r;
+    }
+
+    private static Period createPeriod(String identifier, Instant t1, Instant t2) {
+        var start = TemporalObjects.createInstant(t1);
+        var end   = TemporalObjects.createInstant(t2);
+        setIdentifier(start, identifier + "-time-st");
+        setIdentifier(end,   identifier + "-time-en");
+        Period r = TemporalObjects.createPeriod(start, end);
+        setIdentifier(r, identifier + "-time");
+        return r;
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public TemporalGeometricPrimitive getEventTime() throws DataStoreException {
+    public TemporalPrimitive getEventTime() throws DataStoreException {
         try(final Connection c   = source.getConnection();
             final Statement stmt = c.createStatement();
             final ResultSet rs   = stmt.executeQuery("SELECT min(\"time_begin\"), max(\"time_end\") FROM \"" + schemaPrefix + "om\".\"offerings\"")) {//NOSONAR
-            Instant start        = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-st"), new DefaultTemporalPosition(IndeterminateValue.UNKNOWN));
-            Instant end          = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-en"), new DefaultTemporalPosition(IndeterminateValue.NOW));
+            var start = TemporalObjects.createInstant(IndeterminateValue.UNKNOWN);
+            var end   = TemporalObjects.createInstant(IndeterminateValue.NOW);
             if (rs.next()) {
-                Timestamp ts = rs.getTimestamp(1);
+                Instant ts = toInstant(rs.getTimestamp(1));
                 if (ts != null) {
-                    start = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-st"), ts);
+                    start = TemporalObjects.createInstant(ts);
                 }
-                ts = rs.getTimestamp(2);
+                ts = toInstant(rs.getTimestamp(2));
                 if (ts != null) {
-                    end = new DefaultInstant(Collections.singletonMap(NAME_KEY, "event-time-en"), ts);
+                    end = TemporalObjects.createInstant(ts);
                 }
             }
-            return new DefaultPeriod(Collections.singletonMap(NAME_KEY, "event-time"), start, end);
+            setIdentifier(start, "event-time-st");
+            setIdentifier(end,   "event-time-en");
+            Period r = TemporalObjects.createPeriod(start, end);
+            setIdentifier(r, "event-time");
+            return r;
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon names.", ex);
         }

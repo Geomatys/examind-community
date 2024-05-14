@@ -20,6 +20,7 @@ package org.constellation.json.metadata;
 
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -42,7 +43,6 @@ import static org.constellation.dto.metadata.JsonMetadataConstants.DATE_READ_ONL
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.util.ReflectionUtilities;
 import org.opengis.metadata.identification.CharacterSet;
-import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.util.ControlledVocabulary;
 
@@ -143,7 +143,7 @@ public class TemplateWriter extends AbstractTemplateHandler {
     }
 
     private Object getValue(final ValueNode node, Object metadata,  Map<String, Set<Object>> excluded, boolean overwrite) throws ParseException {
-        if (metadata instanceof AbstractMetadata && !(metadata instanceof Period) && !(metadata instanceof Instant)) {
+        if (metadata instanceof AbstractMetadata && !(metadata instanceof Period) && !(metadata instanceof Instant) && !(metadata instanceof org.opengis.temporal.Instant)) {
             Object obj = asFullMap(metadata).get(node.name);
             if (obj instanceof Collection) {
                 final Collection result = new ArrayList<>();
@@ -280,6 +280,18 @@ public class TemplateWriter extends AbstractTemplateHandler {
                     synchronized (dateFormat) {
                         p = dateFormat.format(value);
                     }
+                }
+            } else if (value instanceof Instant i) {
+                if (DATE_READ_ONLY.equals(n.render)) {
+                    String dateTime = instantHourFormat.format(i);
+                    // remove uneccesary time
+                    if (dateTime.endsWith(" 00:00:00")) {
+                        p = dateTime.substring(0, dateTime.lastIndexOf(" 00:00:00"));
+                    } else {
+                        p = dateTime;
+                    }
+                } else {
+                    p = instantFormat.format(i);
                 }
             } else if (value instanceof Locale) {
                 String language;

@@ -50,8 +50,6 @@ import org.geotoolkit.swes.xml.InsertSensor;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.filter.Filter;
 import org.opengis.observation.ObservationCollection;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -104,6 +102,10 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.geotoolkit.filter.FilterUtilities;
+import org.geotoolkit.gml.xml.GMLInstant;
+import org.geotoolkit.gml.xml.GMLPeriod;
+import org.opengis.filter.FilterFactory;
 import org.opengis.filter.SpatialOperator;
 
 
@@ -117,6 +119,8 @@ import org.opengis.filter.SpatialOperator;
 @Controller
 @RequestMapping("sos/{serviceId:.+}")
 public class SOService extends OGCWebService<SOSworker> {
+
+    protected final FilterFactory<?,?,?> ff = FilterUtilities.FF;
 
     /**
      * Build a new Restfull SOS service.
@@ -737,11 +741,11 @@ public class SOService extends OGCWebService<SOSworker> {
         if (slash != -1) {
             final String dateBegin = part[1].substring(0, slash);
             final String dateEnd   = part[1].substring(slash + 1);
-            final Period period    = buildTimePeriod("2.0.0", null, dateBegin, dateEnd);
-            return buildTimeDuring("2.0.0", valueReference, period);
+            final GMLPeriod period = buildTimePeriod("2.0.0", null, dateBegin, dateEnd);
+            return buildTimeDuring("2.0.0", valueReference, ff.literal(period));
         } else {
-            final Instant instant = buildTimeInstant("2.0.0", null, part[1]);
-            return buildTimeEquals("2.0.0", valueReference, instant);
+            final GMLInstant instant = buildTimeInstant("2.0.0", null, part[1]);
+            return buildTimeEquals("2.0.0", valueReference, ff.literal(instant));
         }
     }
 }

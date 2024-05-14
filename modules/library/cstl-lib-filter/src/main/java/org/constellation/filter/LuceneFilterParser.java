@@ -26,12 +26,15 @@ import javax.xml.namespace.QName;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.Temporal;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TimeZone;
 import org.apache.lucene.search.Query;
 import org.geotoolkit.index.LogicalFilterType;
@@ -49,7 +52,6 @@ import org.geotoolkit.ogc.xml.UnaryLogicOperator;
 import org.geotoolkit.ogc.xml.XMLFilter;
 import org.opengis.filter.Literal;
 import org.opengis.filter.ValueReference;
-import org.opengis.temporal.Instant;
 
 
 /**
@@ -370,16 +372,20 @@ public class LuceneFilterParser extends AbstractFilterParser {
      * @return A formatted date representation.
      * @throws FilterParserException if the specified string can not be parsed.
      */
-    protected String extractDateValue(final Object literal) throws FilterParserException {
+    protected String extractDateValue(Object literal) throws FilterParserException {
         if (literal != null) {
+            if (literal instanceof Literal<?,?> lit) {
+                literal = lit.getValue();
+            }
             try {
                 synchronized(luceneDateFormat) {
-                    if (literal instanceof Instant inst) {
-                        return luceneDateFormat.format(inst.getDate());
+                    Optional<Temporal> opt = TemporalUtilities.toTemporal(literal);
+                    if (opt.isPresent()) {
+                        return luceneDateFormat.format(Date.from(TemporalUtilities.toInstant(opt.get())));
                     } else if (literal instanceof Date dt) {
                         return luceneDateFormat.format(dt);
                     } else if (literal instanceof TemporalAccessor ta) {
-                        java.time.Instant inst = java.time.Instant.from(ta);
+                        Instant inst = Instant.from(ta);
                         return luceneDateFormat.format(Date.from(inst));
                     } else {
                         Calendar c = TemporalUtilities.parseDateCal(String.valueOf(literal));
