@@ -91,8 +91,8 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName("date_format")
-            .setRequired(true)
-            .create(String.class, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final ParameterDescriptor<String> LONGITUDE_COLUMN = PARAM_BUILDER
             .addName("longitude_column")

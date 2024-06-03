@@ -172,7 +172,10 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             int lineNumber = 1;
 
             // spatial / temporal boundaries
-            final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
+            DateFormat sdf = null;
+            if (this.dateFormat != null) {
+                sdf = new SimpleDateFormat(this.dateFormat);
+            }
 
             // -- single observation related variables --
             String currentFoi                     = null;
@@ -376,6 +379,11 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             if (directColumnIndex && noHeader && !obsPropIds.isEmpty()) {
                 measureFields.addAll(obsPropIds);
             }
+            
+            DateFormat sdf = null;
+            if (this.dateFormat != null) {
+                sdf = new SimpleDateFormat(this.dateFormat);
+            }
 
             Map<String, ProcedureDataset> result = new HashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
@@ -414,7 +422,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
 
                 // update temporal interval
                 if (!dateIndexes.isEmpty()) {
-                    Optional<Long> d = parseDate(line, null, dateIndexes, new SimpleDateFormat(this.dateFormat), lineNumber);
+                    Optional<Long> d = parseDate(line, null, dateIndexes, sdf, lineNumber);
                     if (d.isEmpty()) {
                         continue;
                     } else {

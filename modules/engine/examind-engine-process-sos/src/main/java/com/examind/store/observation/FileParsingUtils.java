@@ -58,6 +58,8 @@ public class FileParsingUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation");
 
     private static final NumberFormat FR_FORMAT = DecimalFormat.getNumberInstance(Locale.FRANCE);
+    
+    private static final NumberFormat NF = new DecimalFormat("#");
 
     private static final GeometryFactory GF = new GeometryFactory();
 
@@ -147,16 +149,26 @@ public class FileParsingUtils {
     public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) {
         return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, null);
     }
-
+    
     public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
+        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, maxIndex, null);
+    }
+
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, List<String> fixedValues) {
         List<Integer> results = new ArrayList<>();
+        int cpt = 0;
         if (directColumnIndex) {
             for (String columnName : columnNames) {
                 int index = Integer.parseInt(columnName);
                 results.add(computeMaxValue(index, maxIndex));
-                if (headers != null) {
-                    appendName.add(removeBom(headers[index]));
+                if (appendName != null) {
+                    if (fixedValues != null) {
+                        appendName.add(fixedValues.get(cpt));
+                    } else if (headers != null) {
+                        appendName.add(removeBom(headers[index]));
+                    }
                 }
+                cpt++;
             }
             return results;
         }
@@ -165,8 +177,13 @@ public class FileParsingUtils {
             if (columnNames.contains(header)) {
                 results.add(computeMaxValue(i, maxIndex));
                 if (appendName != null) {
-                    appendName.add(header);
+                    if (fixedValues != null && !fixedValues.isEmpty()) {
+                        appendName.add(fixedValues.get(cpt));
+                    } else {
+                        appendName.add(header);
+                    }
                 }
+                cpt++;
             }
             
         }
@@ -484,9 +501,22 @@ public class FileParsingUtils {
 
     public static long parseObjectDate(Object dateObj, DateFormat sdf) throws ParseException {
         if (dateObj instanceof Double db) {
-            return dateFromDouble(db).getTime();
+            // with some date format, xls/x parser return a double. like for an input like: '20240101'
+            // more, it will a representation like 2.0240101E-7
+            if (sdf != null) {
+                String str = NF.format(db);
+                synchronized(sdf) {
+                    return sdf.parse(str).getTime();
+                }
+                
+            // DBF case.
+            } else {
+                return dateFromDouble(db).getTime();
+            }
         } else if (dateObj instanceof String str) {
-            return sdf.parse(str).getTime();
+            synchronized(sdf) {
+                return sdf.parse(str).getTime();
+            }
         } else if (dateObj instanceof Date d) {
             return d.getTime();
         } else if (dateObj instanceof Long l) {
@@ -523,16 +553,23 @@ public class FileParsingUtils {
     public static String asString(Object value) {
         return asString(value, null);
     }
+    
+    
 
     public static String asString(Object value, DateFormat df) {
         if (value == null) return null;
         if (value instanceof String s) {
             return s.trim();
-        } else if (value instanceof Number) {
-            return value.toString().replaceFirst("\\.0*$", "");
+        } else if (value instanceof Number n) {
+            synchronized (NF) {
+                return NF.format(n);
+            }
+           // return value.toString().replaceFirst("\\.0*$", "");
         } else if (value instanceof Date d) {
             if (df == null) throw new IllegalArgumentException("asString for a date must provide a DateFormat");
-            return df.format(d);
+            synchronized (df) {
+                return df.format(d);
+            }
         } else {
             return value.toString();
         }

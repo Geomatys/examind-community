@@ -153,8 +153,6 @@ public class DbfObservationStoreTest {
         params.parameter(DbfObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("time");
         params.parameter(DbfObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("time");
 
-        params.parameter(DbfObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
-
         params.parameter(DbfObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("latitude");
         params.parameter(DbfObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("longitude");
 

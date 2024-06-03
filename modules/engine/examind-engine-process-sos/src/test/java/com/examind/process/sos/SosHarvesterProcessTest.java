@@ -1012,7 +1012,6 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time");
         in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time");
 
-        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss'Z'");
         in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("latitude");
         in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("longitude");
 

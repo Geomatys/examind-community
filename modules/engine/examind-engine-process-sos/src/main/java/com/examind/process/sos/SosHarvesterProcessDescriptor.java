@@ -239,8 +239,8 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
     public static final ParameterDescriptor<String> DATE_FORMAT = PARAM_BUILDER
             .addName(DATE_FORMAT_NAME)
             .setRemarks(DATE_FORMAT_DESC)
-            .setRequired(true)
-            .create(String.class, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String LONGITUDE_COLUMN_NAME = FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();
     public static final String LONGITUDE_COLUMN_DESC = FileParsingObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode();

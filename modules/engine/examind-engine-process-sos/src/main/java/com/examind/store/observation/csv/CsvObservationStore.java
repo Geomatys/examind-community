@@ -424,7 +424,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
             // used to fill measure Fields list
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex, obsPropIds);
             final Map<Integer, MeasureField> obsPropFields = new HashMap<>();
             for (int i = 0; i < obsPropIndexes.size(); i++) {
                 FieldType ft = FieldType.QUANTITY;
