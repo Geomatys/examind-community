@@ -43,7 +43,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
     @Override
     public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
         // calculate step
-        final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), c, width, OMEntity.RESULT, procedure);
+        final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), fields, c, width, OMEntity.RESULT, procedure);
         final long step;
         if (profile) {
             // choose the first step

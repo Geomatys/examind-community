@@ -1105,7 +1105,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
-            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
+            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, null, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
 
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
@@ -1142,7 +1142,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         try (final Connection c = source.getConnection()) {
 
             // calculate the first date and the time step for each procedure.
-            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
+            final Map<Object, long[]> times = OM2Utils.getMainFieldStep(stepRequest, null, c, nbCell, OMEntity.HISTORICAL_LOCATION, null);
             LOGGER.fine(sqlRequest.toString());
             try(final SQLResult rs = sqlRequest.execute(c)) {
                 final SensorLocationProcessor processor = new SensorLocationDecimatorV2(envelopeFilter, nbCell, times, dialect);

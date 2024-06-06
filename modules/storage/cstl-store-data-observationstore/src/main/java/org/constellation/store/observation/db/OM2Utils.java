@@ -24,14 +24,17 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
@@ -236,56 +239,75 @@ public class OM2Utils {
      *  - the mnimal value
      *  - the step value
      */
-    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
+    public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
         final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
         final Boolean profile = getLoc ? null : "profile".equals(proc.type);
         if (getLoc) {
             request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
-            request.append(" group by hl.\"procedure\" order by hl.\"procedure\"");
+            request.append(" GROUP BY hl.\"procedure\" order by hl.\"procedure\"");
 
         } else {
             if (profile) {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
-                request.append(" group by o.\"id\" order by o.\"id\"");
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), m.\"id_observation\" ");
+                request.append(" GROUP BY m.\"id_observation\"");
             } else {
                 request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
             }
+            
+            // apend filter on null values
+            Map<Integer, List<String>> tableConditions = new HashMap<>();
+            for (Field f : measureFields) {
+                if (f instanceof DbField df) {
+                    // index 0 are non measure fields
+                    if (df.index != 0 && !df.name.equals(mainField.name)) {
+                        List<String> tf = tableConditions.computeIfAbsent(df.tableNumber, k -> new ArrayList<>());
+                        tf.add(df.name);
+                    }
+                } else {
+                    throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+                }
+            }
+            for (Entry<Integer, List<String>> entry : tableConditions.entrySet()) {
+                if (!entry.getValue().isEmpty()) {
+                    StringBuilder s = new StringBuilder("(");
+                    for (String tf : entry.getValue()) {
+                        s.append(" \"").append(tf).append("\" IS NOT NULL OR ");
+                    }
+                    s.delete(s.length() - 3, s.length());
+                    s.append(")");
+                    request.appendCondition(entry.getKey(), s.toString());
+                }
+            }
+            
         }
         LOGGER.fine(request.toString());
         try (final SQLResult rs = request.execute(c)) {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
-                if (FieldType.TIME.equals(mainField.type)) {
-                    final Timestamp minT = rs.getTimestamp(1, 0);
-                    final Timestamp maxT = rs.getTimestamp(2, 0);
-                    if (minT != null && maxT != null) {
-                        final long min = minT.getTime();
-                        final long max = maxT.getTime();
+                switch (mainField.type) {
+                    case TIME -> {
+                        final Timestamp minT = rs.getTimestamp(1, 0);
+                        final Timestamp maxT = rs.getTimestamp(2, 0);
+                        if (minT != null && maxT != null) {
+                            final long min = minT.getTime();
+                            final long max = maxT.getTime();
+                            result[0] = min;
+                            long step = (max - min) / width;
+                            result[1] = step;
+                        }
+                    }
+                    case QUANTITY -> {
+                        final Double minT = rs.getDouble(1, 0);
+                        final Double maxT = rs.getDouble(2, 0);
+                        final long min    = minT.longValue();
+                        final long max    = maxT.longValue();
                         result[0] = min;
                         long step = (max - min) / width;
-                        /* step should always be positive
-                        if (step <= 0) {
-                            step = 1;
-                        }*/
                         result[1] = step;
                     }
-                } else if (FieldType.QUANTITY.equals(mainField.type)) {
-                    final Double minT = rs.getDouble(1, 0);
-                    final Double maxT = rs.getDouble(2, 0);
-                    final long min    = minT.longValue();
-                    final long max    = maxT.longValue();
-                    result[0] = min;
-                    long step = (max - min) / width;
-                    /* step should always be positive
-                    if (step <= 0) {
-                        step = 1;
-                    }*/
-                    result[1] = step;
-
-                } else {
-                    throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
+                    default -> throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
                 }
                 final Object key;
                 if (getLoc) {

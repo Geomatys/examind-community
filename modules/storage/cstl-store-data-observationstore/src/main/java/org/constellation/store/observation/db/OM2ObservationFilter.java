@@ -1121,7 +1121,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected FilterSQLRequest applyFilterOnMeasureRequest(int offset, List<Field> fields, ProcedureInfo pti) {
         // some time filter may have already been set in the measure request
         MultiFilterSQLRequest result = new MultiFilterSQLRequest();
-        for (int curTable = 1; curTable < pti.nbTable + 1; curTable++) {
+        for (int tableNum = 1; tableNum < pti.nbTable + 1; tableNum++) {
             SingleFilterSQLRequest single = sqlMeasureRequest.clone();
 
             // $time will be present only for timeseries
@@ -1147,7 +1147,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 int extraFilter = -1;
                 for (int i = offset; i < fields.size(); i++) {
                     DbField field = (DbField) fields.get(i);
-                    if (field.tableNumber == curTable) {
+                    if (field.tableNumber == tableNum) {
                         if (matchType(param, field)) {
                             sb.append(" AND (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
                             extraFilter++;
@@ -1173,7 +1173,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
-                if (field.tableNumber == curTable) {
+                if (field.tableNumber == tableNum) {
                     for (Field qField : field.qualityFields) {
                         final String allQPhenKeyword = "${allphen_quality_" + qField.name;
                         List<Param> allQPhenParams = single.getParamsByName("allphen_quality_" + qField.name);
@@ -1237,7 +1237,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
                 int pIndex = (i - offset);
-                treatPhenFilterForField(field, pIndex, single, curTable, null);
+                treatPhenFilterForField(field, pIndex, single, tableNum, null);
             }
 
             /**
@@ -1261,7 +1261,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 single.replaceFirst(block, " AND FALSE  ");
 
             }
-            result.addRequest(single);
+            result.addRequest(tableNum, single);
         }
         
         return result;

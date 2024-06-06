@@ -23,7 +23,10 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *
@@ -31,25 +34,25 @@ import java.util.List;
  */
 public class MultiFilterSQLRequest implements FilterSQLRequest {
 
-    private final List<FilterSQLRequest> requests = new ArrayList<>();
+    private final Map<Integer, FilterSQLRequest> requests = new HashMap<>();
 
     public MultiFilterSQLRequest() {
 
     }
     
-    public void addRequest(FilterSQLRequest request) {
-        requests.add(request);
+    public void addRequest(Integer tableNumber, FilterSQLRequest request) {
+        requests.put(tableNumber, request);
     }
 
     @Override
     public FilterSQLRequest append(String s) {
-        requests.forEach(r -> r.append(s));
+        requests.values().forEach(r -> r.append(s));
         return this;
     }
 
     @Override
     public FilterSQLRequest append(String s, boolean conditional) {
-        requests.forEach(r -> r.append(s, conditional));
+        requests.values().forEach(r -> r.append(s, conditional));
         return this;
     }
 
@@ -61,80 +64,80 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
                 this.requests.get(i).append(mf.requests.get(i));
             }
         } else {
-            requests.forEach(r -> r.append(s));
+            requests.values().forEach(r -> r.append(s));
         }
         return this;
     }
 
     @Override
     public FilterSQLRequest append(FilterSQLRequest s, boolean conditional) {
-        requests.forEach(r -> r.append(s, conditional));
+        requests.values().forEach(r -> r.append(s, conditional));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(String value) {
-        requests.forEach(r -> r.appendValue(value));
+        requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(String value, boolean conditional) {
-        requests.forEach(r -> r.appendValue(value, conditional));
+        requests.values().forEach(r -> r.appendValue(value, conditional));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(int value) {
-        requests.forEach(r -> r.appendValue(value));
+        requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(int value, boolean conditional) {
-        requests.forEach(r -> r.appendValue(value, conditional));
+        requests.values().forEach(r -> r.appendValue(value, conditional));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(Timestamp value) {
-        requests.forEach(r -> r.appendValue(value));
+        requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(Timestamp value, boolean conditional) {
-        requests.forEach(r -> r.appendValue(value, conditional));
+        requests.values().forEach(r -> r.appendValue(value, conditional));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValues(Collection<String> values) {
-        requests.forEach(r -> r.appendValues(values));
+        requests.values().forEach(r -> r.appendValues(values));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValues(Collection<String> values, boolean conditional) {
-        requests.forEach(r -> r.appendValues(values, conditional));
+        requests.values().forEach(r -> r.appendValues(values, conditional));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendObjectValue(Object value) {
-        requests.forEach(r -> r.appendObjectValue(value));
+        requests.values().forEach(r -> r.appendObjectValue(value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendNamedObjectValue(String name, Object value) {
-        requests.forEach(r -> r.appendNamedObjectValue(name, value));
+        requests.values().forEach(r -> r.appendNamedObjectValue(name, value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendObjectValue(String name, Object value, boolean conditional) {
-        requests.forEach(r -> r.appendObjectValue(name, value, conditional));
+        requests.values().forEach(r -> r.appendObjectValue(name, value, conditional));
         return this;
     }
 
@@ -149,39 +152,39 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public FilterSQLRequest replaceFirst(String text, String replacement) {
-        requests.forEach(r -> r.replaceFirst(text, replacement));
+        requests.values().forEach(r -> r.replaceFirst(text, replacement));
         return this;
     }
 
     @Override
     public FilterSQLRequest replaceSelect(String replacement) {
-       requests.forEach(r -> r.replaceSelect(replacement));
+       requests.values().forEach(r -> r.replaceSelect(replacement));
         return this;
     }
 
     @Override
     public FilterSQLRequest replaceAll(String text, String replacement) {
-       requests.forEach(r -> r.replaceAll(text, replacement));
+       requests.values().forEach(r -> r.replaceAll(text, replacement));
         return this;
     }
 
     @Override
     public FilterSQLRequest join(List<TableJoin> joins, boolean firstFilter) {
-        requests.forEach(r -> r.join(joins, firstFilter));
+        requests.values().forEach(r -> r.join(joins, firstFilter));
         return this;
     }
 
     @Override
     public FilterSQLRequest deleteLastChar(int nbChar) {
-        requests.forEach(r -> r.deleteLastChar(nbChar));
+        requests.values().forEach(r -> r.deleteLastChar(nbChar));
         return this;
     }
 
     @Override
     public FilterSQLRequest clone() {
         MultiFilterSQLRequest results = new MultiFilterSQLRequest();
-        for (FilterSQLRequest request : requests) {
-            results.addRequest(request.clone());
+        for (Entry<Integer, FilterSQLRequest> entry : requests.entrySet()) {
+            results.addRequest(entry.getKey(), entry.getValue().clone());
         }
         return results;
     }
@@ -189,7 +192,7 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public SQLResult execute(Connection c) throws SQLException {
         List<SQLResult> sqlr = new ArrayList<>();
-        for (FilterSQLRequest request : requests) {
+        for (FilterSQLRequest request : requests.values()) {
             sqlr.add(request.execute(c));
         }
         return new SQLResult(sqlr);
@@ -197,17 +200,24 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public boolean isEmpty() {
-        for (FilterSQLRequest request : requests) {
+        for (FilterSQLRequest request : requests.values()) {
             if (!request.isEmpty()) return false;
         }
         return true;
     }
 
     @Override
+    public void appendCondition(Integer queryIndex, String condition) {
+        FilterSQLRequest request = requests.get(queryIndex);
+        request.appendCondition(0, condition);
+    }
+
+    
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < requests.size(); i++) {
-            sb.append("Request ").append(i).append(":\n").append(requests.get(i)).append("\n");
+        for (Entry<Integer, FilterSQLRequest> entry : requests.entrySet()) {
+            sb.append("Request ").append(entry.getKey()).append(":\n").append(entry.getValue()).append("\n");
         }
         return sb.toString();
     }

@@ -78,6 +78,8 @@ public interface FilterSQLRequest {
 
     boolean isEmpty();
 
+    void appendCondition(Integer queryIndex, String condition);
+
     public static class TableJoin {
         public final String tablename;
         public final String joinStmt;

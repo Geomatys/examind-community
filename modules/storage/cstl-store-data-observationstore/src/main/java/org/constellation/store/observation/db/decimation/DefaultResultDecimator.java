@@ -60,7 +60,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
 
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
-        times = OM2Utils.getMainFieldStep(fieldRequest, c, width, OMEntity.RESULT, procedure);
+        times = OM2Utils.getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
 
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);

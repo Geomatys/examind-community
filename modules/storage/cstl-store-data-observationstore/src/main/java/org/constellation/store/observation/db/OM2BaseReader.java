@@ -1095,13 +1095,13 @@ public class OM2BaseReader {
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
-        for (int i = 0; i < pti.nbTable; i++) {
+        for (int tableNum = 1; tableNum < pti.nbTable + 1; tableNum++) {
             String baseTableName = "mesure" + pti.pid;
             final FilterSQLRequest measureRequest;
             boolean whereSet = false;
             
             // first main table
-            if (i == 0) {
+            if (tableNum == 1) {
                 String select;
                 if (idOnly) {
                     select = "m.\"id\"";
@@ -1111,7 +1111,7 @@ public class OM2BaseReader {
                     for (Field f : queryFields) {
                         if (f instanceof DbField df) {
                             // index 0 are non measure fields
-                            if (df.index != 0 && df.tableNumber == i + 1) {
+                            if (df.index != 0 && df.tableNumber == tableNum && !df.name.equals(pti.mainField.name)) {
                                 select = select + ", m.\"" + df.name + "\"";
                                 
                                 // add also quality fields (TODO disable for decimation ?)
@@ -1147,7 +1147,7 @@ public class OM2BaseReader {
                 
             // other tables
             } else {
-                String tableName = baseTableName + "_" + (i + 1);
+                String tableName = baseTableName + "_" + tableNum;
                 String select;
                 if (idOnly) {
                     select = "m2.\"id\"";
@@ -1157,7 +1157,7 @@ public class OM2BaseReader {
                     for (Field f : queryFields) {
                         if (f instanceof DbField df) {
                             // index 0 are non measure fields
-                            if (df.index != 0 && df.tableNumber == i + 1) {
+                            if (df.index != 0 && df.tableNumber == tableNum) {
                                 select = select + ", m2.\"" + df.name + "\"";
                                 
                                 // add also quality fields (TODO disable for decimation ?)
@@ -1194,7 +1194,7 @@ public class OM2BaseReader {
                 FilterSQLRequest clone = measureFilter.clone();
                 if (!whereSet) clone.replaceFirst("AND", "WHERE");
                 if (clone instanceof MultiFilterSQLRequest mf) {
-                    measureRequest.append(mf.getRequest(i), !profile);
+                    measureRequest.append(mf.getRequest(tableNum), !profile);
                 } else {
                     measureRequest.append(clone, !profile);
                 }
@@ -1202,7 +1202,7 @@ public class OM2BaseReader {
             if (addOrderBy) {
                 measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
             }
-            measureRequests.addRequest(measureRequest);
+            measureRequests.addRequest(tableNum, measureRequest);
         }
         return measureRequests;
     }

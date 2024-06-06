@@ -432,6 +432,33 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         return s;
     }
 
+    @Override
+    public void appendCondition(Integer queryIndex, String condition) {
+        if (queryIndex > 0) {
+            throw new IllegalArgumentException("Query index can not be > 0 for Single Filter Request");
+        }
+        int stIndex = -1;
+        String query = sqlRequest.toString().toUpperCase();
+        int obIndex = query.indexOf("ORDER BY");
+        if (obIndex != -1) {
+            stIndex = obIndex;
+        }
+        int gbIndex = query.indexOf("GROUP BY");
+        if (gbIndex != -1) {
+            stIndex = gbIndex;
+        }
+        if (query.contains("WHERE")) {
+            condition = " AND " + condition;
+        } else {
+            condition = " WHERE " + condition;
+        }
+        if (stIndex != -1) {
+            sqlRequest.insert(stIndex, condition);
+        } else {
+            sqlRequest.append(condition);
+        }
+    }
+
     public static class Param {
         public String name;
         public Object value;
