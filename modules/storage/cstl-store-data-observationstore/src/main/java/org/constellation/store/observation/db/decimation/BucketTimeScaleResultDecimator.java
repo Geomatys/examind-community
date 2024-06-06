@@ -71,7 +71,9 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
                 select.append(", o.\"time_begin\" ");
             }
         }
-        sqlRequest.replaceFirst("m.*", select.toString());
+        
+        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
+        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
 
         if (profile) {
             sqlRequest.append(" GROUP BY step, \"oid\" ORDER BY \"oid\", step");

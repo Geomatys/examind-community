@@ -6072,6 +6072,127 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(expectedResult, result);
     }
+    
+    @Test
+    public void getResultsMultiTableTest() throws Exception {
+        // sensor 17 no decimation
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                          "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
+                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
+                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
+                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
+                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
+                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0@@"
+                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0@@"
+                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 17 no decimation + time and id
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        query.setIncludeTimeForProfile(true);
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
+                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
+                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
+                + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
+                + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
+                + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
+                + "urn:ogc:object:observation:GEOM:8003-1,2000-01-03T00:00:00.0,1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0@@"
+                + "urn:ogc:object:observation:GEOM:8003-2,2000-01-03T00:00:00.0,2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0@@"
+                + "urn:ogc:object:observation:GEOM:8003-3,2000-01-03T00:00:00.0,3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0@@";
+
+        assertEquals(expectedResult, result);
+
+        /* sensor 17 with decimation
+        
+         THROW AN ERROR FOR NOW BECAUSE WE TRY TO DECIMATE ON NON-DOUBLE FIELD
+        
+        TODO => THROW PROPER ERROR
+        
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        query.setDecimationSize(10);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
+                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
+                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
+                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
+                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
+                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0@@"
+                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0@@"
+                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0@@";
+
+        assertEquals(expectedResult, result);*/
+        
+        // sensor 17 no decimation on field age
+        Filter f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:17-5"));
+        query = new ResultQuery(f,null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                          "27.0,37.0@@"
+                        + "28.0,38.0@@"
+                        + "29.0,39.1@@"
+                        + "16.3,16.3@@"
+                        + "26.4,25.4@@"
+                        + "30.0,28.1@@"
+                        + "11.0,0.0@@"
+                        + "22.0,0.0@@"
+                        + "33.0,0.0@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 17 decimation on field age
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:17-5"));
+        query = new ResultQuery(f,null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        query.setDecimationSize(10);
+        
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        // quality fields are removed
+        expectedResult =
+                  "27.0@@"
+                + "28.0@@"
+                + "29.0@@"
+                + "16.3@@"
+                + "26.4@@"
+                + "30.0@@"
+                + "11.0@@"
+                + "22.0@@"
+                + "33.0@@";
+
+        assertEquals(expectedResult, result);
+    }
 
     @Test
     public void getResultsProfileTest() throws Exception {

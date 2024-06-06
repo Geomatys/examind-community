@@ -292,7 +292,7 @@ public class OM2Utils {
                     key = rs.getString(3);
                 } else {
                     if (profile) {
-                        key = rs.getInt(3);
+                        key = rs.getInt(3, 0);
                     } else {
                         key = 1; // single in time series
                     }

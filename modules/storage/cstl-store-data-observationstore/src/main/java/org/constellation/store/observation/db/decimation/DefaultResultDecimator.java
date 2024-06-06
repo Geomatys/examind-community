@@ -62,7 +62,8 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
         times = OM2Utils.getMainFieldStep(fieldRequest, c, width, OMEntity.RESULT, procedure);
 
-        StringBuilder select  = new StringBuilder("m.*");
+        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
+        StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         if (profile) {
             select.append(", o.\"id\" as oid ");
@@ -74,7 +75,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         
         // always order by main field
         orderBy.append("\"").append(procedure.mainField.name).append("\"");
-        sqlRequest.replaceFirst("m.*", select.toString());
+        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         sqlRequest.append(orderBy.toString());
 
         if (firstFilter) {

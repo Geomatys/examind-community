@@ -284,8 +284,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
-                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, Arrays.asList(field), pti);
-                    MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, null, false, false, true, true);
+                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
+                    MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         if (rs2.next()) {
                             int count = rs2.getInt(1, field.tableNumber -1);
@@ -433,7 +433,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 */
                 int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
                 final FilterSQLRequest measureFilter        = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
-                final MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, oid, false, true, false, false);
+                final MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
                 LOGGER.fine(measureRequests.toString());
                 
                 final String name = rs.getString("identifier");
@@ -587,9 +587,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type);
-
-                final FilterSQLRequest measureFilter       = applyFilterOnMeasureRequest(0, new ArrayList<>(fieldPhen.keySet()), pti);
-                final MultiFilterSQLRequest measureRequest =  buildMesureRequests(pti, measureFilter, oid, false, true, false, false);
+                List<Field> fields = new ArrayList<>(fieldPhen.keySet());
+                final FilterSQLRequest measureFilter       = applyFilterOnMeasureRequest(0, fields, pti);
+                final MultiFilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
 
                 /**
                  * coherence verification
@@ -735,7 +735,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
             FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
 
-            measureRequest = buildMesureRequests(currentProcedure, measureFilter, null, obsJoin, false, false, false);
+            measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, false);
             measureRequest.append(sqlRequest);
             
             ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix);

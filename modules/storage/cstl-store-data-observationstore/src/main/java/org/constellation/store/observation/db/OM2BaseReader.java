@@ -1021,7 +1021,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
 
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, measureFilter,  oid, false, true, false, false);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
 
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
         try (SQLResult rs = queries.execute(c)) {
@@ -1082,54 +1082,48 @@ public class OM2BaseReader {
      * so we build a select request for eache measure table, join with the main field of the primary table.
      *
      * @param pti Informations abut the measure tables.
+     * @param queryFields List of measure fields we want to read (do not include id or main fields in this list).
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
      * @param addOrderBy If true, an order by main filed wille be applied.
      * @param idOnly If true, only the measure identifier will be selected.
+     * @param count
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         for (int i = 0; i < pti.nbTable; i++) {
             String baseTableName = "mesure" + pti.pid;
             final FilterSQLRequest measureRequest;
             boolean whereSet = false;
-            if (i > 0) {
-                String tableName = baseTableName + "_" + (i + 1);
-                String select;
-                if (idOnly) {
-                    select = "m2.\"id\"";
-                } else {
-                    select = "m2.*, m.\"" + pti.mainField.name + "\"";
-                }
-                measureRequest = new SingleFilterSQLRequest("SELECT ");
-                if (count) {
-                    measureRequest.append("COUNT(").append(select).append(")");
-                } else {
-                    measureRequest.append(select);
-                }
-                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
-                if (obsJoin) {
-                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
-                }
-                measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
-                whereSet = true;
-                if (oid != null) {
-                    measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
-                }
-                if (obsJoin) {
-                    measureRequest.append(" AND o.\"id\" = m2.\"id_observation\" ");
-                }
-
-            } else {
+            
+            // first main table
+            if (i == 0) {
                 String select;
                 if (idOnly) {
                     select = "m.\"id\"";
                 } else {
-                    select = "m.*";
+                    // add always id and main field
+                    select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
+                    for (Field f : queryFields) {
+                        if (f instanceof DbField df) {
+                            // index 0 are non measure fields
+                            if (df.index != 0 && df.tableNumber == i + 1) {
+                                select = select + ", m.\"" + df.name + "\"";
+                                
+                                // add also quality fields (TODO disable for decimation ?)
+                                for (Field qf : df.qualityFields) {
+                                    select = select + ", m.\"" + df.name + "_quality_" + qf.name + "\"";
+                                }
+                            }
+                        } else {
+                            throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+                        }
+                    }
+                    
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ");
                 if (count) {
@@ -1149,6 +1143,51 @@ public class OM2BaseReader {
                     String where = whereSet ? " AND " : " WHERE ";
                     measureRequest.append(where).append(" o.\"id\" = m.\"id_observation\" ");
                     whereSet = true;
+                }
+                
+            // other tables
+            } else {
+                String tableName = baseTableName + "_" + (i + 1);
+                String select;
+                if (idOnly) {
+                    select = "m2.\"id\"";
+                } else {
+                    // add always id and main field
+                    select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
+                    for (Field f : queryFields) {
+                        if (f instanceof DbField df) {
+                            // index 0 are non measure fields
+                            if (df.index != 0 && df.tableNumber == i + 1) {
+                                select = select + ", m2.\"" + df.name + "\"";
+                                
+                                // add also quality fields (TODO disable for decimation ?)
+                                for (Field qf : df.qualityFields) {
+                                    select = select + ", m2.\"" + df.name + "_quality_" + qf.name + "\"";
+                                }
+                            }
+                        } else {
+                            throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+                        }
+                    }
+                    
+                }
+                measureRequest = new SingleFilterSQLRequest("SELECT ");
+                if (count) {
+                    measureRequest.append("COUNT(").append(select).append(")");
+                } else {
+                    measureRequest.append(select);
+                }
+                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+                if (obsJoin) {
+                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
+                }
+                measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+                whereSet = true;
+                if (oid != null) {
+                    measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
+                }
+                if (obsJoin) {
+                    measureRequest.append(" AND o.\"id\" = m2.\"id_observation\" ");
                 }
             }
             if (measureFilter != null) {

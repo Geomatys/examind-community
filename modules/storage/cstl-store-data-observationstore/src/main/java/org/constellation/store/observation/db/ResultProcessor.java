@@ -78,7 +78,8 @@ public class ResultProcessor {
     }
 
     public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
-        StringBuilder select  = new StringBuilder("m.*");
+        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
+        StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         if (profile) {
             select.append(", o.\"id\" as oid ");
@@ -93,7 +94,7 @@ public class ResultProcessor {
         // always order by main field
         orderBy.append("\"").append(procedure.mainField.name).append("\"");
         
-        sqlRequest.replaceFirst("m.*", select.toString());
+        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         sqlRequest.append(orderBy.toString());
 
         if (firstFilter) {

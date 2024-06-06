@@ -1455,8 +1455,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         if (hasMeasureFilter) {
                             final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
                             final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
-                            final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, Arrays.asList(field), pti);
-                            MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, measureFilter, null, false, false, true, true);
+                            final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
+                            MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
                                 if (rs2.next()) {
                                     int count = rs2.getInt(1, field.tableNumber -1);
@@ -1478,7 +1478,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final FilterSQLRequest measureFilter      = applyFilterOnMeasureRequest(0, fields, pti);
-                    final MultiFilterSQLRequest mesureRequest = buildMesureRequests(pti, measureFilter, oid, false, true, idOnly, false);
+                    final MultiFilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false);
                     LOGGER.fine(mesureRequest.toString());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
