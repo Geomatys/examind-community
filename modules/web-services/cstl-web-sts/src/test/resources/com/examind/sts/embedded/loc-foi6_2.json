@@ -7,8 +7,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [-4.144984627896042, 42.38798858151254]
+                    "coordinates": [-4.144984627896044, 42.387988581512545]
                 },
                 "properties": {}
             },
@@ -23,7 +22,6 @@
             "location": {
                 "type": "Feature",
                 "geometry": {
-                    "type": "Point",
                     "type": "Point",
                     "coordinates": [40.0, -3.0]
                 },
@@ -41,8 +39,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [-3.9999999934153996, 42.00000000005154]
+                    "coordinates": [-3.9999999934154027, 42.00000000005155]
                 },
                 "properties": {}
             },
@@ -51,6 +48,22 @@
             "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:14)/Things",
             "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:14)/HistoricalLocations"
         }, {
+            "name": "urn:ogc:object:sensor:GEOM:18",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [40.0, -3.0]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:18",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18)/HistoricalLocations"
+        }, {
             "name": "urn:ogc:object:sensor:GEOM:2",
             "description": "",
             "encodingType": "application/vnd.geo+json",
@@ -58,8 +71,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [-3.9999999934153996, 42.00000000005154]
+                    "coordinates": [-3.9999999934154027, 42.00000000005155]
                 },
                 "properties": {}
             },
@@ -75,8 +87,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [20.00000000001678, 12.00000000309688]
+                    "coordinates": [20.000000000016794, 12.00000000309688]
                 },
                 "properties": {}
             },
@@ -92,8 +103,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [-4.144984627896042, 42.38798858151254]
+                    "coordinates": [-4.144984627896044, 42.387988581512545]
                 },
                 "properties": {}
             },
@@ -109,8 +119,7 @@
                 "type": "Feature",
                 "geometry": {
                     "type": "Point",
-                    "type": "Point",
-                    "coordinates": [-4.144984627896042, 42.38798858151254]
+                    "coordinates": [-4.144984627896044, 42.387988581512545]
                 },
                 "properties": {}
             },
@@ -125,7 +134,6 @@
             "location": {
                 "type": "Feature",
                 "geometry": {
-                    "type": "Point",
                     "type": "Point",
                     "coordinates": [5.0, 10.0]
                 },

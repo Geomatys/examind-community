@@ -76,22 +76,26 @@ public class ObservationStoreProviderRemoveTest extends SpringContextTest {
 
     @Test
     public void removeFullDatasetTest() throws Exception {
+        
+        int NB_OBSERVATION     = 24; // contains the phenomenon directly used in the observations
+        int NB_USED_PHENOMENON = 6;
+        int NB_PHENOMENON      = 11;
+        int NB_COMPOSITE       = 4;
+        int NB_FOI             = 3;  // only 3 because 3 of the recorded procedure have no observations
+        int NB_PROCEDURE       = 18; // include empty procedure
+        int NB_USED_PROCEDURE  = 16; // only 16 because 2 of the recorded procedure have no observation
 
         // get the full content of the store
         ObservationDataset fullDataset = omPr.extractResults(new DatasetQuery());
 
-        Assert.assertEquals(23, fullDataset.getObservations().size());
-        // contains the phenomenon directly used in the observations
-        Assert.assertEquals(6, fullDataset.getPhenomenons().size());
-        // only 3 because 3 of the recorded procedure have no observations
-        Assert.assertEquals(3, fullDataset.getFeatureOfInterest().size());
-        // only 15 because 2 of the recorded procedure have no observation
-        Assert.assertEquals(15, fullDataset.getProcedures().size());
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
-        // include empty procedure
         List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(17, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:2"
@@ -115,16 +119,22 @@ public class ObservationStoreProviderRemoveTest extends SpringContextTest {
 
         // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
+        
+        NB_OBSERVATION = NB_OBSERVATION - 3;  // 3 merged observations has been removed 
+        NB_USED_PROCEDURE--;                  // 1 procedure has been removed
+        NB_PROCEDURE--;
+         // no foi removed, still in use
+         // no phenomenon removed, still in use
 
-        Assert.assertEquals(20, fullDataset.getObservations().size()); // 1 merged observations has been removed
-        Assert.assertEquals(6, fullDataset.getPhenomenons().size()); // no phenomenon removed, still in use
-        Assert.assertEquals(3, fullDataset.getFeatureOfInterest().size());  // no foi removed, still in use
-        Assert.assertEquals(14, fullDataset.getProcedures().size());  // 1 procedure has been removed
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
         // verify that the procedure has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(16, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:13"
@@ -146,19 +156,24 @@ public class ObservationStoreProviderRemoveTest extends SpringContextTest {
         // remove this dataset from the store
         omPr.removeDataset(dataset13);
 
-
         // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
+        
+        NB_OBSERVATION--;                            // 1 merged observations has been removed 
+        NB_USED_PROCEDURE--;                         // 1 procedure has been removed
+        NB_PROCEDURE--;
+         // no foi removed, still in use
+         // no phenomenon removed, still in use
 
-        Assert.assertEquals(19, fullDataset.getObservations().size()); // 1 merged observations has been removed
-        Assert.assertEquals(6, fullDataset.getPhenomenons().size());  // no phenomenon removed, still in use
-        Assert.assertEquals(3, fullDataset.getFeatureOfInterest().size());  // no foi removed, still in use
-        Assert.assertEquals(13, fullDataset.getProcedures().size());  // 1 procedure has been removed
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
          // verify that the procedure has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(15, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:9" AND "urn:ogc:object:sensor:GEOM:8"
@@ -183,16 +198,22 @@ public class ObservationStoreProviderRemoveTest extends SpringContextTest {
 
          // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
+        
+        NB_OBSERVATION = NB_OBSERVATION - 2;        // 1 merged observations has been removed 
+        NB_USED_PROCEDURE = NB_USED_PROCEDURE - 2; // 1 procedure has been removed
+        NB_PROCEDURE = NB_PROCEDURE - 2;
+        NB_FOI--;                                  // 1 foi removed
+         // no phenomenon removed, still in use
 
-        Assert.assertEquals(17, fullDataset.getObservations().size()); // 2 observations has been removed
-        Assert.assertEquals(6, fullDataset.getPhenomenons().size());  // no phenomenon removed, still in use
-        Assert.assertEquals(2, fullDataset.getFeatureOfInterest().size());  // 1 foi removed
-        Assert.assertEquals(11, fullDataset.getProcedures().size());  // 2 procedure has been removed
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
          // verify that the procedure has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(13, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*
         * retrieve the dataset for sensor "urn:ogc:object:sensor:GEOM:multi-type"
@@ -215,15 +236,21 @@ public class ObservationStoreProviderRemoveTest extends SpringContextTest {
 
          // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
+        
+        NB_OBSERVATION--;                            // 1 merged observations has been removed 
+        NB_USED_PROCEDURE--;                         // 1 procedure has been removed
+        NB_PROCEDURE--;
+        NB_USED_PHENOMENON--;                        // 1 phenomenon removed
+         // no foi removed, still in use
 
-        Assert.assertEquals(16, fullDataset.getObservations().size()); // 1 observations has been removed
-        Assert.assertEquals(5, fullDataset.getPhenomenons().size());  // 1 phenomenon removed
-        Assert.assertEquals(2, fullDataset.getFeatureOfInterest().size());  // no foi removed
-        Assert.assertEquals(10, fullDataset.getProcedures().size());  // 1 procedure has been removed
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
          // verify that the procedure has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(12, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
     }
 }

@@ -154,6 +154,7 @@
           <ows:Value>offering-15</ows:Value>
           <ows:Value>offering-16</ows:Value>
           <ows:Value>offering-17</ows:Value>
+          <ows:Value>offering-18</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -180,6 +181,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:18</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -369,6 +371,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:13</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:18</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -535,9 +538,10 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimeInstant>
-            <gml:timePosition>2000-01-01</gml:timePosition>
-          </gml:TimeInstant>
+          <gml:TimePeriod>
+            <gml:beginPosition>2000-01-01</gml:beginPosition>
+            <gml:endPosition>2001-01-01</gml:endPosition>
+          </gml:TimePeriod>
         </sos:time>
         <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:13"/>
         <sos:observedProperty>
@@ -708,6 +712,45 @@
           </ns31:CompositePhenomenon>
         </sos:observedProperty>
         <sos:featureOfInterest xlink:href="station-001"/>
+        <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+        <sos:resultModel>om:Observation</sos:resultModel>
+        <sos:resultModel>om:Measurement</sos:resultModel>
+        <sos:responseMode>inline</sos:responseMode>
+        <sos:responseMode>resultTemplate</sos:responseMode>
+      </sos:ObservationOffering>
+      <sos:ObservationOffering gml:id="offering-18">
+        <gml:name>offering-18</gml:name>
+        <gml:boundedBy>
+          <gml:Null>not_bounded</gml:Null>
+        </gml:boundedBy>
+        <sos:time>
+          <gml:TimePeriod>
+            <gml:beginPosition>2000-01-01</gml:beginPosition>
+            <gml:endPosition>2001-01-01</gml:endPosition>
+          </gml:TimePeriod>
+        </sos:time>
+        <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:18"/>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
+            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+          </ns31:CompositePhenomenon>
+        </sos:observedProperty>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="3" gml:id="aggregatePhenomenon-2">
+            <gml:description>the aggregation of temperature depth, and salinity phenomenons</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2</gml:name>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
+          </ns31:CompositePhenomenon>
+        </sos:observedProperty>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
+        <sos:featureOfInterest xlink:href="station-002"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>
         <sos:resultModel>om:Measurement</sos:resultModel>

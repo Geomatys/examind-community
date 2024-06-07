@@ -40,4 +40,18 @@ public class ProcedureInfo {
         this.type = type;
         this.mainField = mainField;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("[ProcedureInfo]");
+        sb.append("pid: ").append(pid).append('\n');
+        sb.append("nbTable: ").append(nbTable).append('\n');
+        sb.append("procedureId: ").append(procedureId).append('\n');
+        sb.append("procedureName: ").append(procedureName).append('\n');
+        sb.append("type: ").append(type).append('\n');
+        sb.append("mainField:\n").append(mainField).append('\n');
+        return sb.toString();
+    }
+    
+    
 }

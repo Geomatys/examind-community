@@ -65,6 +65,8 @@ import org.opengis.util.GenericName;
  */
 public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
+    private static final int NB_SENSOR = 18;
+    private static final int NB_SF = 6;
     private static DataStore store;
     private static final Set<GenericName> names = new HashSet<>();
     private static final List<ExpectedResult> expecteds = new ArrayList<>();
@@ -76,7 +78,6 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
             names.add(SAMPLINGPOINT_TN);
             names.add(SENSOR_TN);
 
-            int size = 6;
             //BOX(-30.711 -2139360.341789026, 950456.6157569555 2567987)
             GeneralEnvelope envSP = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
             envSP.setRange(0, -30.711,            950456.6157569555);
@@ -84,16 +85,15 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
             CoordinateReferenceSystem crs = CRS.forCode("EPSG:27582");
             FeatureType typeSP = OMFeatureTypes.buildSamplingFeatureFeatureType(SAMPLINGPOINT_TN, crs);
-            final ExpectedResult resSP = new ExpectedResult(SAMPLINGPOINT_TN, typeSP, size, envSP);
+            final ExpectedResult resSP = new ExpectedResult(SAMPLINGPOINT_TN, typeSP, NB_SF, envSP);
             expecteds.add(resSP);
 
-            size = 17;
             // BOX(65400 -2820055.4026983716, 6224894.909802356 1731368)
             GeneralEnvelope envSN = new GeneralEnvelope(CRS.forCode("EPSG:27582"));
             envSN.setRange(0,  65400,            6224894.909802356);
             envSN.setRange(1, -2820055.4026983716, 1731368);
             FeatureType typeSN = OMFeatureTypes.buildSensorFeatureType(SENSOR_TN, crs);
-            final ExpectedResult resSN = new ExpectedResult(SENSOR_TN, typeSN, size, envSN);
+            final ExpectedResult resSN = new ExpectedResult(SENSOR_TN, typeSN, NB_SENSOR, envSN);
             expecteds.add(resSN);
 
         } catch(Exception ex) {
@@ -281,7 +281,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         ObservationStore omStore = (ObservationStore) store;
 
         List<ProcedureDataset> procedures = omStore.getProcedureDatasets(new DatasetQuery());
-        Assert.assertEquals(17, procedures.size());
+        Assert.assertEquals(NB_SENSOR, procedures.size());
     }
 
     @Test

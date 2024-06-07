@@ -1,0 +1,48 @@
+{
+    "id": "obs-18",
+    "name": "urn:ogc:object:observation:template:GEOM:18",
+    "procedure": {
+        "id": "urn:ogc:object:sensor:GEOM:18"
+    },
+    "featureOfInterest": {
+        "id": "station-002",
+        "name": "10972X0137-PLOUF",
+        "description": "Point d'eau BSSS",
+        "properties": {},
+        "sampledFeatureId": "urn:-sandre:object:bdrhf:123X",
+        "geometry": {
+            "crs": "urn:ogc:def:crs:OGC:1.3:CRS84",
+            "geometry": "POINT (5 10)"
+        }
+    },
+    "observedProperty": {
+        "id": "depth",
+        "name": "depth",
+        "definition": "urn:ogc:def:phenomenon:GEOM:depth",
+        "description": "the depth in water"
+    },
+    "result": {
+        "fields": [{
+                "index": 1,
+                "type": "TIME",
+                "name": "Time",
+                "description": "urn:ogc:data:time:iso8601"
+            }, {
+                "index": 2,
+                "type": "QUANTITY",
+                "name": "depth",
+                "description": "urn:ogc:def:phenomenon:GEOM:depth",
+                "uom": "m"
+            }],
+        "textEncodingProperties": {
+            "tokenSeparator": ",",
+            "blockSeparator": "@@",
+            "decimalSeparator": "."
+        }
+    },
+    "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+    "properties": {
+        "type": "timeseries"
+    },
+    "resultQuality": []
+}

@@ -85,30 +85,35 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends SpringCont
     @Test
     public void removePhenomenonTest() throws Exception {
         
+        int NB_OBSERVATION     = 24; // contains the phenomenon directly used in the observations
+        int NB_USED_PHENOMENON = 6;
+        int NB_PHENOMENON      = 11;
+        int NB_COMPOSITE       = 4;
+        int NB_FOI             = 3;  // only 3 because 3 of the recorded procedure have no observations
+        int NB_PROCEDURE       = 18; // include empty procedure
+        int NB_USED_PROCEDURE  = 16; // only 16 because 2 of the recorded procedure have no observation
+        
         // list previous phenomenons
         List<org.opengis.observation.Phenomenon> phenomenons = omPr.getPhenomenon(new ObservedPropertyQuery());
         
-        Assert.assertEquals(11, phenomenons.size());
+        Assert.assertEquals(NB_PHENOMENON, phenomenons.size());
         
         long nbComposite = phenomenons.stream().filter(ph -> ph instanceof CompositePhenomenon).count();
 
-        Assert.assertEquals(4L, nbComposite);
+        Assert.assertEquals(NB_COMPOSITE, nbComposite);
 
         // get the full content of the store
         ObservationDataset fullDataset = omPr.extractResults(new DatasetQuery());
 
-        Assert.assertEquals(23, fullDataset.getObservations().size());
-        // contains the phenomenon directly used in the observations
-        Assert.assertEquals(6, fullDataset.getPhenomenons().size());
-        // only 3 because 3 of the recorded procedure have no observations
-        Assert.assertEquals(3, fullDataset.getFeatureOfInterest().size());
-        // only 15 because 2 of the recorded procedure have no observation
-        Assert.assertEquals(15, fullDataset.getProcedures().size());
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
         // include empty procedure
         List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(17, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*
         * delete the phenomenon "multi-type-phenomenon"
@@ -119,15 +124,21 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends SpringCont
         // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
 
-        Assert.assertEquals(22, fullDataset.getObservations().size()); // 1 merged observations has been removed
-        Assert.assertEquals(4, fullDataset.getPhenomenons().size()); // 4 phenomenon removed (depth + temperature + aggregatePhenomenon + aggregatePhenomenon-2 in which only one component was remaining)
-        Assert.assertEquals(3, fullDataset.getFeatureOfInterest().size());  // no foi removed
-        Assert.assertEquals(14, fullDataset.getProcedures().size());  // one procedure has been removed
+        NB_OBSERVATION--;         // 21 merged observations has been removed
+        NB_USED_PHENOMENON = NB_USED_PHENOMENON - 2;  // ??
+        NB_USED_PROCEDURE--; // one procedure has been removed
+        NB_PROCEDURE--;
+        // no foi removed
+        
+        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
+        Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
+        Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
 
         // verify that the procedures has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
-        Assert.assertEquals(16, procedures.size());
+        Assert.assertEquals(NB_PROCEDURE, procedures.size());
         
         /* 
          * observations phenomenon having previously the phenomenon 'multi-type-phenprofile' is now 'depth' and as only one left field (main :().
@@ -163,10 +174,13 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends SpringCont
         * - multi-type-phenprofile is removed because only one component was remaining
         * - multi-type-phenomenon is removed
         */
-        Assert.assertEquals(5, phenomenons.size());
+        NB_PHENOMENON = NB_PHENOMENON - 6;
+        NB_COMPOSITE = NB_COMPOSITE - 2;
+        
+        Assert.assertEquals(NB_PHENOMENON, phenomenons.size());
         
         nbComposite = phenomenons.stream().filter(ph -> ph instanceof CompositePhenomenon).count();
 
-        Assert.assertEquals(2L, nbComposite);
+        Assert.assertEquals(NB_COMPOSITE, nbComposite);
     }
 }

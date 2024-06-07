@@ -21,21 +21,14 @@ package org.constellation.sos;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 import org.constellation.business.IProviderBusiness;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ObservationProvider;
-import org.constellation.provider.SensorProvider;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.sensor.SensorStore;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
-import org.opengis.filter.FilterFactory;
-import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -47,7 +40,7 @@ public class SOSDatabaseSensorStoreTest  extends SpringContextTest {
     @Autowired
     protected IProviderBusiness providerBusiness;
     
-    private static final long TOTAL_NB_SENSOR = 17;
+    private static final long TOTAL_NB_SENSOR = 18;
 
     private static SensorStore SensPr;
 

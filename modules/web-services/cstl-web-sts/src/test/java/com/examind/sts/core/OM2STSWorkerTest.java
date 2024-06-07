@@ -957,11 +957,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
 
-        Assert.assertEquals(238, result.getValue().size());
+        Assert.assertEquals(261, result.getValue().size());
 
         final Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
-        Assert.assertEquals(238, resultIds.size());
+        Assert.assertEquals(261, resultIds.size());
 
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:13");
         obj = worker.getObservations(request);
@@ -1004,7 +1004,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         result = worker.getObservedPropertyById(request);
 
 
-        Assert.assertEquals(7, result.getDatastreams().size());
+        Assert.assertEquals(8, result.getDatastreams().size());
 
         final Set<String> resultIds = new HashSet<>();
         result.getDatastreams().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -1017,9 +1017,10 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:14-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
         Assert.assertEquals(expectedIds, resultIds);
 
-        Assert.assertEquals(7, result.getMultiDatastreams().size());
+        Assert.assertEquals(8, result.getMultiDatastreams().size());
 
         resultIds.clear();
         result.getMultiDatastreams().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -1032,6 +1033,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:14");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18");
         Assert.assertEquals(expectedIds, resultIds);
 
        /*
@@ -1042,7 +1044,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
        DatastreamsResponse dsResponse = worker.getDatastreams(gd);
 
        resultIds.clear();
-       Assert.assertEquals(7, dsResponse.getValue().size());
+       Assert.assertEquals(8, dsResponse.getValue().size());
 
        dsResponse.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
@@ -1054,6 +1056,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:14-2");
+       expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
        Assert.assertEquals(expectedIds, resultIds);
 
        /*
@@ -1063,7 +1066,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
        gmd.getExtraFilter().put("observedProperty", "temperature");
        MultiDatastreamsResponse mdsResponse = worker.getMultiDatastreams(gmd);
 
-       Assert.assertEquals(7, mdsResponse.getValue().size());
+       Assert.assertEquals(8, mdsResponse.getValue().size());
 
        resultIds.clear();
        mdsResponse.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
@@ -1076,6 +1079,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
        expectedIds.add("urn:ogc:object:observation:template:GEOM:12");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
        expectedIds.add("urn:ogc:object:observation:template:GEOM:14");
+       expectedIds.add("urn:ogc:object:observation:template:GEOM:18");
        Assert.assertEquals(expectedIds, resultIds);
 
     }
@@ -1525,12 +1529,12 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GetDatastreams request = new GetDatastreams();
         DatastreamsResponse result = worker.getDatastreams(request);
 
-        Assert.assertEquals(31, result.getValue().size());
+        Assert.assertEquals(34, result.getValue().size());
 
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(31, resultIds.size());
+        Assert.assertEquals(34, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
@@ -1564,6 +1568,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-4");
         Assert.assertEquals(expectedIds, resultIds);
 
     }
@@ -2046,12 +2053,12 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GetMultiDatastreams request = new GetMultiDatastreams();
         MultiDatastreamsResponse result = worker.getMultiDatastreams(request);
 
-        Assert.assertEquals(15, result.getValue().size());
+        Assert.assertEquals(16, result.getValue().size());
 
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(15, resultIds.size());
+        Assert.assertEquals(16, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1");
@@ -2063,6 +2070,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:14");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:9");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:7");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8");
@@ -2184,7 +2192,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(s -> resultIds.add(s.getIotId()));
 
-        Assert.assertEquals(17, result.getValue().size());
+        Assert.assertEquals(18, result.getValue().size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:6");
@@ -2199,6 +2207,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:13");
         expectedIds.add("urn:ogc:object:sensor:GEOM:14");
         expectedIds.add("urn:ogc:object:sensor:GEOM:17");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:18");
         expectedIds.add("urn:ogc:object:sensor:GEOM:3");
         expectedIds.add("urn:ogc:object:sensor:GEOM:9");
         expectedIds.add("urn:ogc:object:sensor:GEOM:test-id");

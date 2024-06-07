@@ -11,7 +11,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },
@@ -241,7 +241,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [22.000000000075165, 13.000000001902016]
+                            "coordinates": [22.000000000075175, 13.000000001902004]
                         },
                         "properties": {}
                     },
@@ -287,7 +287,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [22.00000000003949, 14.000000000889084]
+                            "coordinates": [22.000000000039496, 14.000000000889086]
                         },
                         "properties": {}
                     },
@@ -333,7 +333,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [18.99999999995756, 11.000000004394957]
+                            "coordinates": [18.99999999995757, 11.000000004394945]
                         },
                         "properties": {}
                     },
@@ -379,7 +379,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [18.99999999995756, 11.000000004394957]
+                            "coordinates": [18.99999999995757, 11.000000004394945]
                         },
                         "properties": {}
                     },
@@ -460,6 +460,52 @@
                 "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:17)/MultiDatastreams"
             }
         }, {
+            "@iot.id": "urn:ogc:object:sensor:GEOM:18-946681200000",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations(urn:ogc:object:sensor:GEOM:18-946681200000)",
+            "time": "1999-12-31T23:00:00Z",
+            "Locations": [{
+                    "name": "urn:ogc:object:sensor:GEOM:18-946681200000",
+                    "description": "",
+                    "encodingType": "application/vnd.geo+json",
+                    "location": {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [40.0, -3.0]
+                        },
+                        "properties": {}
+                    },
+                    "@iot.id": "urn:ogc:object:sensor:GEOM:18-946681200000",
+                    "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18-946681200000)",
+                    "Things": [{
+                            "name": "Sensor 18",
+                            "description": "",
+                            "properties": {
+                                "type": "timeseries"
+                            },
+                            "@iot.id": "urn:ogc:object:sensor:GEOM:18",
+                            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)",
+                            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/HistoricalLocations",
+                            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Datastreams",
+                            "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Locations",
+                            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/MultiDatastreams"
+                        }],
+                    "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18-946681200000)/HistoricalLocations"
+                }],
+            "Thing": {
+                "name": "Sensor 18",
+                "description": "",
+                "properties": {
+                    "type": "timeseries"
+                },
+                "@iot.id": "urn:ogc:object:sensor:GEOM:18",
+                "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)",
+                "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/HistoricalLocations",
+                "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Datastreams",
+                "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Locations",
+                "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/MultiDatastreams"
+            }
+        }, {
             "@iot.id": "urn:ogc:object:sensor:GEOM:2-975625200000",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/HistoricalLocations(urn:ogc:object:sensor:GEOM:2-975625200000)",
             "time": "2000-11-30T23:00:00Z",
@@ -471,7 +517,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [22.000000000075165, 13.000000001902016]
+                            "coordinates": [22.000000000075175, 13.000000001902004]
                         },
                         "properties": {}
                     },
@@ -482,8 +528,8 @@
                             "description": "",
                             "properties": {
                                 "supervisor-code": "00ARGLELES",
-                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                                "type": "profile"
+                                "type": "profile",
+                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                             },
                             "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -499,8 +545,8 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                    "type": "profile"
+                    "type": "profile",
+                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -521,7 +567,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [22.00000000003949, 14.000000000889084]
+                            "coordinates": [22.000000000039496, 14.000000000889086]
                         },
                         "properties": {}
                     },
@@ -532,8 +578,8 @@
                             "description": "",
                             "properties": {
                                 "supervisor-code": "00ARGLELES",
-                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                                "type": "profile"
+                                "type": "profile",
+                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                             },
                             "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -549,8 +595,8 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                    "type": "profile"
+                    "type": "profile",
+                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -571,7 +617,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [18.99999999995756, 11.000000004394957]
+                            "coordinates": [18.99999999995757, 11.000000004394945]
                         },
                         "properties": {}
                     },
@@ -582,8 +628,8 @@
                             "description": "",
                             "properties": {
                                 "supervisor-code": "00ARGLELES",
-                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                                "type": "profile"
+                                "type": "profile",
+                                "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                             },
                             "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -599,8 +645,8 @@
                 "description": "",
                 "properties": {
                     "supervisor-code": "00ARGLELES",
-                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"],
-                    "type": "profile"
+                    "type": "profile",
+                    "bss-code": ["10972X0137/PONT", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:2",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:2)",
@@ -631,8 +677,8 @@
                             "name": "Sensor 3",
                             "description": "",
                             "properties": {
-                                "bss-code": ["10972X0137/SER", "BSS10972X0137"],
-                                "type": "timeseries"
+                                "type": "timeseries",
+                                "bss-code": ["10972X0137/SER", "BSS10972X0137"]
                             },
                             "@iot.id": "urn:ogc:object:sensor:GEOM:3",
                             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)",
@@ -647,8 +693,8 @@
                 "name": "Sensor 3",
                 "description": "",
                 "properties": {
-                    "bss-code": ["10972X0137/SER", "BSS10972X0137"],
-                    "type": "timeseries"
+                    "type": "timeseries",
+                    "bss-code": ["10972X0137/SER", "BSS10972X0137"]
                 },
                 "@iot.id": "urn:ogc:object:sensor:GEOM:3",
                 "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:3)",
@@ -715,7 +761,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [20.00000000001678, 12.00000000309688]
+                            "coordinates": [20.000000000016794, 12.00000000309688]
                         },
                         "properties": {}
                     },
@@ -761,7 +807,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },
@@ -807,7 +853,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },
@@ -853,7 +899,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },
@@ -899,7 +945,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },
@@ -991,7 +1037,7 @@
                         "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-4.144984627896042, 42.38798858151254]
+                            "coordinates": [-4.144984627896044, 42.387988581512545]
                         },
                         "properties": {}
                     },

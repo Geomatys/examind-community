@@ -1,5 +1,4 @@
 {
-    "@iot.count":14,
     "value": [{
             "name": "Sensor 10",
             "description": "",
@@ -60,6 +59,18 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:17)/Datastreams",
             "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:17)/Locations",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:17)/MultiDatastreams"
+        }, {
+            "name": "Sensor 18",
+            "description": "",
+            "properties": {
+                "type": "timeseries"
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:18",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/HistoricalLocations",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Datastreams",
+            "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/Locations",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:18)/MultiDatastreams"
         }, {
             "name": "Sensor 2",
             "description": "",
@@ -171,5 +182,6 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:test-id)/Datastreams",
             "Locations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:test-id)/Locations",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:test-id)/MultiDatastreams"
-        }]
+        }],
+    "@iot.count": 15
 }

@@ -109,7 +109,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path noLineDirectory;
 
 
-    protected static final int ORIGIN_NB_SENSOR = 17;
+    protected static final int ORIGIN_NB_SENSOR = 18;
 
     @BeforeClass
     public static void setUpClass() throws Exception {

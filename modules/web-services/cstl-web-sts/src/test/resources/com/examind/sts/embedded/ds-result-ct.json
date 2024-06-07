@@ -1,5 +1,5 @@
 {
-    "@iot.count": 2,
+    "@iot.count": 3,
     "value": [{
             "description": "",
             "unitOfMeasurement": {
@@ -40,5 +40,25 @@
             "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:13-3)/Sensors",
             "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:13-3)/ObservedProperties",
             "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:13-3)/Observations"
+        }, {
+            "description": "",
+            "unitOfMeasurement": {
+                "name": "°C",
+                "symbol": "°C",
+                "definition": "°C"
+            },
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [5.0, 10.0]
+            },
+            "phenomenonTime": "1999-12-31T23:00:00Z/2000-12-31T23:00:00Z",
+            "resultTime": "1999-12-31T23:00:00Z/2000-12-31T23:00:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:18-3",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:18-3)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:18-3)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:18-3)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:18-3)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:18-3)/Observations"
         }]
 }

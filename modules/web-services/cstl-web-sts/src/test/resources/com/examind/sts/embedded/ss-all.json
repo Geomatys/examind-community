@@ -48,6 +48,14 @@
             "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:17)/Datastreams",
             "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:17)/MultiDatastreams"
         }, {
+            "description": "",
+            "name": "Sensor 18",
+            "encodingType": "http://www.opengis.net/doc/IS/SensorML/2.0",
+            "@iot.id": "urn:ogc:object:sensor:GEOM:18",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:18)",
+            "Datastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:18)/Datastreams",
+            "MultiDatastreams@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:18)/MultiDatastreams"
+        }, {
             "description": "GEOM 2",
             "name": "GEOM 2",
             "encodingType": "http://www.opengis.net/doc/IS/SensorML/2.0",
