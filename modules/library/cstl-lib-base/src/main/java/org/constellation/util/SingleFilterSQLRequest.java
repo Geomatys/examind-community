@@ -344,10 +344,26 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             stmt = c.prepareStatement(getRequest());
             fillParams(stmt);
             rs = stmt.executeQuery();
-            return new SQLResult(stmt, rs);
+            return new SQLResult(stmt, rs, 1);
         } catch (SQLException ex) {
-            if (stmt != null) try {stmt.close();} catch (SQLException ex1) {}
-            if (rs != null)   try {rs.close();}   catch (SQLException ex1) {}
+            if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            
+            throw ex;
+        }
+    }
+    
+    public SQLResult execute(Connection c, int tableNum) throws SQLException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = c.prepareStatement(getRequest());
+            fillParams(stmt);
+            rs = stmt.executeQuery();
+            return new SQLResult(stmt, rs, tableNum);
+        } catch (SQLException ex) {
+            if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
             throw ex;
         }
     }

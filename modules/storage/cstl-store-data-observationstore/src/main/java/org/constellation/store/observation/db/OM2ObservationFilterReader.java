@@ -288,7 +288,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         if (rs2.next()) {
-                            int count = rs2.getInt(1, field.tableNumber -1);
+                            int count = rs2.getInt(1, field.tableNumber);
                             // TODO pagination broken
                             if (count == 0) continue;
                         }
@@ -469,7 +469,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
                                 final ComplexResult result = buildComplexResult(fields, nbValue, values);
                                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
-                                final String measureID = rs2.getString("id", 0);
+                                final String measureID = rs2.getString("id");
                                 final String singleObsID = "obs-" + oid + '-' + measureID;
                                 final String singleName  = name + '-' + measureID;
                                 observation = new Observation(singleObsID,
@@ -596,14 +596,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                  */
                 LOGGER.fine(measureRequest.toString());
                 try (final SQLResult rs2 = measureRequest.execute(c)) {
+                    // get the first for now
+                    int tableNum = rs2.getFirstTableNumber();
+            
                     while (rs2.nextOnField(pti.mainField.name)) {
-                        final Integer rid = rs2.getInt("id", 0);
+                        final Integer rid = rs2.getInt("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalGeometricPrimitive measureTime;
                             if (profile) {
                                 measureTime = time;
                             } else {
-                                final Date mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, 0));
+                                final Date mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
                                 measureTime = buildTime(oid + "-" + rid, mt, null);
                             }
 
@@ -612,7 +615,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                 DbField field    = (DbField) entry.getKey();
                                 FieldType fType  = field.type;
                                 String fName     = field.name;
-                                int rsIndex      = field.tableNumber - 1;
+                                int rsIndex      = field.tableNumber;
                                 final String observationType = getOmTypeFromFieldType(fType);
                                 final String value = rs2.getString(fName, rsIndex);
                                 if (value != null) {

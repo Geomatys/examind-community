@@ -525,12 +525,13 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @throws SQLException
      */
     private TemporalGeometricPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId) throws SQLException {
-        FilterSQLRequest query  = buildMesureRequests(pti, List.of(), null, null, true, false, false, false);
+        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, null, true, false, false, false);
         query.append(" AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = ").appendValue(measureId);
         try (final SQLResult rs  = query.execute(c)) {
+            int tableNum = rs.getFirstTableNumber();
             if (rs.next()) {
-                final Timestamp t = rs.getTimestamp(pti.mainField.name, 0);
+                final Timestamp t = rs.getTimestamp(pti.mainField.name, tableNum);
                 return buildTime(identifier, t, null);
             }
         }

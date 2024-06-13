@@ -3825,15 +3825,22 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         count = omPr.getCount(query);
         assertEquals(2L, count);
 
+    }
+    
+    @Test
+    public void getMeasurementTemplateResult2FilterTest() throws Exception {
+        
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
          // get all the sensor templates that have at least ONE field value less or equals to 4.0
-        filter = ff.lessOrEqual(ff.property("result") , ff.literal(4.0));
+        Filter filter = ff.lessOrEqual(ff.property("result") , ff.literal(4.0));
+        
         query.setSelection(filter);
-        results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
 
-        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        Set<String> resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(6, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
@@ -3843,7 +3850,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         Assert.assertEquals(expectedIds, resultIds);
 
-        count = omPr.getCount(query);
+        long count = omPr.getCount(query);
         assertEquals(6L, count);
 
         // test pagination
@@ -3886,7 +3893,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
 
     @Test
-    public void getMeasurementTemplateResult2FilterTest() throws Exception {
+    public void getMeasurementTemplateResult3FilterTest() throws Exception {
 
          // get all the sensor templates that have at least ONE qflag quality field value equals to 'ok'
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -5149,7 +5156,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(expectedResult, result);
     }
-
+    
     @Test
     public void getObservationsNanTest() throws Exception {
         assertNotNull(omPr);
@@ -6410,6 +6417,185 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                   "2000-08-01T00:00:00.0,1.1@@"
                 + "2000-09-10T16:00:00.0,1.1@@"
                 + "2000-09-20T20:00:00.0,1.3@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsSingleNanMultiTableTest() throws Exception {
+        
+        // sensor 13 decimation on field depth
+        Filter f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-2"));
+        ResultQuery query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        query.setDecimationSize(5);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "2000-01-01T00:00:00.0,4.5@@"
+                + "2000-04-01T08:40:00.0,4.9@@"
+                + "2000-07-01T16:20:00.0,5.0@@"
+                + "2000-08-16T08:10:00.0,5.4@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 18 decimation on field temperature
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-3"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        query.setDecimationSize(5);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-01-01T00:00:00.0,96.5@@"
+                + "2000-05-02T01:00:00.0,98.5@@"
+                + "2000-09-01T01:00:00.0,77.5@@"
+                + "2001-01-01T00:00:00.0,99.5@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 18 decimation on field salinity
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-4"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        query.setDecimationSize(5);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-08-01T00:00:00.0,1.1@@"
+                + "2000-09-10T16:00:00.0,1.1@@"
+                + "2000-09-20T20:00:00.0,1.3@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsSingleNanMultiTable2Test() throws Exception {
+        
+        // sensor 18 no decimation on field depth
+        Filter f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-2"));
+        ResultQuery query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "2000-01-01T00:00:00.0,4.5@@"
+                + "2000-02-01T00:00:00.0,4.6@@"
+                + "2000-03-01T00:00:00.0,4.7@@"
+                + "2000-04-01T00:00:00.0,4.8@@"
+                + "2000-05-01T00:00:00.0,4.9@@"
+                + "2000-06-01T00:00:00.0,5.0@@"
+                + "2000-07-01T00:00:00.0,5.1@@"
+                + "2000-08-01T00:00:00.0,5.2@@"
+                + "2000-09-01T00:00:00.0,5.3@@"
+                + "2000-10-01T00:00:00.0,5.4@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 18 no decimation on field temperature
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-3"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-01-01T00:00:00.0,98.5@@"
+                + "2000-02-01T00:00:00.0,97.5@@"
+                + "2000-03-01T00:00:00.0,97.5@@"
+                + "2000-04-01T00:00:00.0,96.5@@"
+                + "2000-08-01T00:00:00.0,98.5@@"
+                + "2000-09-01T00:00:00.0,87.5@@"
+                + "2000-10-01T00:00:00.0,77.5@@"
+                + "2000-11-01T00:00:00.0,96.5@@"
+                + "2000-12-01T00:00:00.0,99.5@@"
+                + "2001-01-01T00:00:00.0,96.5@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 18 no decimation on field salinity
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-4"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-08-01T00:00:00.0,1.1@@"
+                + "2000-09-01T00:00:00.0,1.1@@"
+                + "2000-10-01T00:00:00.0,1.3@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    
+    @Test
+    public void getResultsSingleNanMultiTable3Test() throws Exception {
+        
+        // sensor 12 decimation on field depth
+        Filter f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:12-2"));
+        ResultQuery query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setDecimationSize(5);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "2000-12-01T00:00:00.0,2.5@@"
+                + "2008-12-15T00:00:00.0,5.9@@"
+                + "2012-12-22T00:00:00.0,9.9@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 12 decimation on field temperature
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:12-3"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setDecimationSize(5);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-12-01T00:00:00.0,98.5@@"
+                + "2008-12-15T00:00:00.0,1.5@@"
+                + "2012-12-22T00:00:00.0,78.5@@";
+
+        assertEquals(expectedResult, result);
+        
+        // sensor 12 decimation on field salinity
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:12-4"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:12", "csv");
+        query.setDecimationSize(5);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "2000-12-01T00:00:00.0,4.0@@"
+                + "2008-12-15T00:00:00.0,0.0@@"
+                + "2012-12-22T00:00:00.0,3.0@@";
 
         assertEquals(expectedResult, result);
     }

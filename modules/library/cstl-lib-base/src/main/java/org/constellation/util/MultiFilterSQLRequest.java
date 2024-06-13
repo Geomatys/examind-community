@@ -34,13 +34,13 @@ import java.util.Map.Entry;
  */
 public class MultiFilterSQLRequest implements FilterSQLRequest {
 
-    private final Map<Integer, FilterSQLRequest> requests = new HashMap<>();
+    private final Map<Integer, SingleFilterSQLRequest> requests = new HashMap<>();
 
     public MultiFilterSQLRequest() {
 
     }
     
-    public void addRequest(Integer tableNumber, FilterSQLRequest request) {
+    public void addRequest(Integer tableNumber, SingleFilterSQLRequest request) {
         requests.put(tableNumber, request);
     }
 
@@ -183,7 +183,7 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest clone() {
         MultiFilterSQLRequest results = new MultiFilterSQLRequest();
-        for (Entry<Integer, FilterSQLRequest> entry : requests.entrySet()) {
+        for (Entry<Integer, SingleFilterSQLRequest> entry : requests.entrySet()) {
             results.addRequest(entry.getKey(), entry.getValue().clone());
         }
         return results;
@@ -192,8 +192,8 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public SQLResult execute(Connection c) throws SQLException {
         List<SQLResult> sqlr = new ArrayList<>();
-        for (FilterSQLRequest request : requests.values()) {
-            sqlr.add(request.execute(c));
+        for (Entry<Integer, SingleFilterSQLRequest> request : requests.entrySet()) {
+            sqlr.add(request.getValue().execute(c, request.getKey()));
         }
         return new SQLResult(sqlr);
     }
@@ -216,7 +216,7 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (Entry<Integer, FilterSQLRequest> entry : requests.entrySet()) {
+        for (Entry<Integer, SingleFilterSQLRequest> entry : requests.entrySet()) {
             sb.append("Request ").append(entry.getKey()).append(":\n").append(entry.getValue()).append("\n");
         }
         return sb.toString();

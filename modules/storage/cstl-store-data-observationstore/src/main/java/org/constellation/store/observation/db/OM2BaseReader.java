@@ -955,7 +955,7 @@ public class OM2BaseReader {
         List<Element> results = new ArrayList<>();
         if (parent.qualityFields != null) {
             for (Field field : parent.qualityFields) {
-                int rsIndex = ((DbField)field).tableNumber - 1;
+                int rsIndex = ((DbField)field).tableNumber;
                 String fieldName = parent.name + "_quality_" + field.name;
                 Object value = null;
                 if (rs != null) {
@@ -1074,6 +1074,32 @@ public class OM2BaseReader {
             throw new DataStoreException("Unable ta parse the result value as a double");
         }
     }
+    
+    private static Map<Integer, List<DbField>> extractTableFields(String mainFieldName, List<Field> queryFields) {
+        final Map<Integer, List<DbField>> results = new HashMap<>();
+        
+        // add a special where the only field requested is the main.
+        if (queryFields.size() == 1 && queryFields.get(0).name.equals(mainFieldName)) {
+            if (queryFields.get(0) instanceof DbField df) {
+                return Map.of(df.tableNumber, List.of(df));
+            }  else {
+                throw new IllegalStateException("Unexpected field implementation: " + queryFields.get(0).getClass().getName());
+            } 
+        }
+        
+        for (Field f : queryFields) {
+            if (f instanceof DbField df) {
+                // index 0 are non measure fields
+                if (df.index != 0 && !df.name.equals(mainFieldName)) {
+                    List<DbField> fields = results.computeIfAbsent(df.tableNumber, tn -> new ArrayList<>());
+                    fields.add(df);
+                }
+            } else {
+                throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+            }
+        }
+        return results;
+    }
 
     /**
      * Build one or more SQL request on the measure(s) tables.
@@ -1082,11 +1108,11 @@ public class OM2BaseReader {
      * so we build a select request for eache measure table, join with the main field of the primary table.
      *
      * @param pti Informations abut the measure tables.
-     * @param queryFields List of measure fields we want to read (do not include id or main fields in this list).
+     * @param queryFields List of measure fields we want to read (id or main fields will be excluded).
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
-     * @param addOrderBy If true, an order by main filed wille be applied.
+     * @param addOrderBy If true, an order by main filed will be applied.
      * @param idOnly If true, only the measure identifier will be selected.
      * @param count
      * 
@@ -1094,10 +1120,17 @@ public class OM2BaseReader {
      */
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
+        final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
+        final Map<Integer, List<DbField>> queryTableFields = extractTableFields(mainFieldName, queryFields);
+        
         for (int tableNum = 1; tableNum < pti.nbTable + 1; tableNum++) {
+            
+            // skip the table if none query fields are requested (multi table procedure only) (what about filters???)
+            if (!queryTableFields.containsKey(tableNum) && pti.nbTable > 1) continue;
+            
             String baseTableName = "mesure" + pti.pid;
-            final FilterSQLRequest measureRequest;
+            final SingleFilterSQLRequest measureRequest;
             boolean whereSet = false;
             
             // first main table
@@ -1108,22 +1141,18 @@ public class OM2BaseReader {
                 } else {
                     // add always id and main field
                     select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
-                    for (Field f : queryFields) {
-                        if (f instanceof DbField df) {
-                            // index 0 are non measure fields
-                            if (df.index != 0 && df.tableNumber == tableNum && !df.name.equals(pti.mainField.name)) {
+                    if (queryTableFields.containsKey(tableNum)) {
+                        for (DbField df : queryTableFields.get(tableNum)) {
+                            if (!df.name.equals(mainFieldName)) {
                                 select = select + ", m.\"" + df.name + "\"";
-                                
+
                                 // add also quality fields (TODO disable for decimation ?)
                                 for (Field qf : df.qualityFields) {
                                     select = select + ", m.\"" + df.name + "_quality_" + qf.name + "\"";
                                 }
                             }
-                        } else {
-                            throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
                         }
                     }
-                    
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ");
                 if (count) {
@@ -1154,22 +1183,14 @@ public class OM2BaseReader {
                 } else {
                     // add always id and main field
                     select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
-                    for (Field f : queryFields) {
-                        if (f instanceof DbField df) {
-                            // index 0 are non measure fields
-                            if (df.index != 0 && df.tableNumber == tableNum) {
-                                select = select + ", m2.\"" + df.name + "\"";
-                                
-                                // add also quality fields (TODO disable for decimation ?)
-                                for (Field qf : df.qualityFields) {
-                                    select = select + ", m2.\"" + df.name + "_quality_" + qf.name + "\"";
-                                }
-                            }
-                        } else {
-                            throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
+                    for (DbField df : queryTableFields.get(tableNum)) {
+                        select = select + ", m2.\"" + df.name + "\"";
+
+                        // add also quality fields (TODO disable for decimation ?)
+                        for (Field qf : df.qualityFields) {
+                            select = select + ", m2.\"" + df.name + "_quality_" + qf.name + "\"";
                         }
                     }
-                    
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ");
                 if (count) {

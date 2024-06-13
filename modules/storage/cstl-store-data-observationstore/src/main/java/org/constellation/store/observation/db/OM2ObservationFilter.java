@@ -1459,7 +1459,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
                                 if (rs2.next()) {
-                                    int count = rs2.getInt(1, field.tableNumber -1);
+                                    int count = rs2.getInt(1, field.tableNumber);
                                     // WARNING if we set a proper SQL pagination, this will broke it;
                                     if (count == 0) continue;
                                 }
@@ -1484,13 +1484,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (MEASUREMENT_QNAME.equals(resultModel)) {
                         
                         try (final SQLResult rs2 = mesureRequest.execute(c)) {
+                            int tNum = rs2.getFirstTableNumber();
                             while (rs2.nextOnField("id")) {
-                                final Integer rid = rs2.getInt("id", 0);
+                                final Integer rid = rs2.getInt("id", tNum);
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     for (int i = 0; i < fields.size(); i++) {
                                         DbField field = (DbField) fields.get(i);
                                         // in measurement mode we only want the non empty measure
-                                        final String value = rs2.getString(field.name, field.tableNumber -1);
+                                        final String value = rs2.getString(field.name, field.tableNumber);
                                         if (value != null) {
                                             results.add(name + '-' + field.index + '-' + rid);
                                         }
@@ -1506,7 +1507,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     } else {
                         try (final SQLResult rs2 = mesureRequest.execute(c)) {
                             while (rs2.nextOnField("id")) {
-                                final Integer rid = rs2.getInt("id", 0);
+                                int tNum = rs2.getFirstTableNumber();
+                                final Integer rid = rs2.getInt("id", tNum);
                                 if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                                     results.add(name + '-' + rid);
                                 }

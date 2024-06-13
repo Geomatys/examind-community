@@ -109,7 +109,7 @@ public class ResultProcessor {
         FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
-                String name = rs.getString("identifier", 0);
+                String name = rs.getString("identifier", 1);
                 parser.setName(name + idSuffix);
             }
             parser.parseLine(rs, fieldOffset);

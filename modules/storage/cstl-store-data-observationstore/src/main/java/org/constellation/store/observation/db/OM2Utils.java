@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
@@ -283,13 +284,16 @@ public class OM2Utils {
         }
         LOGGER.fine(request.toString());
         try (final SQLResult rs = request.execute(c)) {
+            // get the first for now
+            int tableNum = rs.getFirstTableNumber();
+            
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
                 switch (mainField.type) {
                     case TIME -> {
-                        final Timestamp minT = rs.getTimestamp(1, 0);
-                        final Timestamp maxT = rs.getTimestamp(2, 0);
+                        final Timestamp minT = rs.getTimestamp(1, tableNum);
+                        final Timestamp maxT = rs.getTimestamp(2, tableNum);
                         if (minT != null && maxT != null) {
                             final long min = minT.getTime();
                             final long max = maxT.getTime();
@@ -299,8 +303,8 @@ public class OM2Utils {
                         }
                     }
                     case QUANTITY -> {
-                        final Double minT = rs.getDouble(1, 0);
-                        final Double maxT = rs.getDouble(2, 0);
+                        final Double minT = rs.getDouble(1, tableNum);
+                        final Double maxT = rs.getDouble(2, tableNum);
                         final long min    = minT.longValue();
                         final long max    = maxT.longValue();
                         result[0] = min;
@@ -314,7 +318,7 @@ public class OM2Utils {
                     key = rs.getString(3);
                 } else {
                     if (profile) {
-                        key = rs.getInt(3, 0);
+                        key = rs.getInt(3, tableNum);
                     } else {
                         key = 1; // single in time series
                     }

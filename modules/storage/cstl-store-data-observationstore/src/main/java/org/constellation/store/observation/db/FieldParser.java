@@ -85,23 +85,26 @@ public class FieldParser {
            fieldName = field.name;
            isMeasureField = fieldIndex >= offset;
         }
-        int rsIndex = field.tableNumber - 1;
+        int rsIndex = field.tableNumber;
         switch (field.type) {
             case TIME:
                 // profile with time field
                 if (profileWithTime && fieldIndex < offset) {
                     values.appendTime(firstTime, isMeasureField, field);
                 } else {
-                    Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
-                    values.appendTime(t, isMeasureField, field);
-                    
+                    Date t;
+                    // main timeseries field
                     if (fieldIndex < offset) {
+                        t = dateFromTS(rs.getTimestamp(fieldName)); // main field is present in every table request
                         if (first) {
                             firstTime = t;
                             first = false;
                         }
                         lastTime = t;
+                    } else {
+                        t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                     }
+                    values.appendTime(t, isMeasureField, field);
                 }
                 break;
             case QUANTITY:

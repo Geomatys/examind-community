@@ -102,7 +102,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         while (rs.nextOnField(procedure.mainField.name)) {
             Integer currentObs;
             if (profile) {
-                currentObs = rs.getInt("oid", 0);
+                currentObs = rs.getInt("oid");
             } else {
                 currentObs = 1;
             }
@@ -134,7 +134,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
             for (int i = 0; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
-                int rsIndex = field.tableNumber -1;
+                int rsIndex = field.tableNumber;
 
                 // already extracted
                 if (i == mainFieldIndex) {
@@ -297,14 +297,16 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     }
 
     private long extractMainValue(Field field, SQLResult rs) throws SQLException {
-        if (FieldType.TIME.equals(field.type)) {
-            final Timestamp currentTime = rs.getTimestamp(field.name, 0);
-            return currentTime.getTime();
-        } else if (FieldType.QUANTITY.equals(field.type)) {
-                final double d = rs.getDouble(field.name, 0);
+        switch(field.type) {
+            case TIME -> {
+                final Timestamp currentTime = rs.getTimestamp(field.name);
+                return currentTime.getTime();
+            }
+            case QUANTITY -> {
+                final double d = rs.getDouble(field.name);
                 return (long) d;
-        } else {
-            throw new IllegalArgumentException("Main field should be time or quantity type :" + field);
+            }
+            default -> throw new IllegalArgumentException("Main field should be time or quantity type :" + field);
         }
     }
 
