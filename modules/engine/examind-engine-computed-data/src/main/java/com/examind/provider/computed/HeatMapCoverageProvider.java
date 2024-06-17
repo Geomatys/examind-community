@@ -51,6 +51,7 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
     private final Dimension tilingDimension;
     private final float distanceX, distanceY;
     private final HeatMapImage.Algorithm algorithm;
+    private final boolean directPoint;
 
     public HeatMapCoverageProvider(String providerId, DataProviderFactory service, ParameterValueGroup param) throws FactoryException {
         super(providerId, service, param);
@@ -72,7 +73,8 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
 
         distanceX = input.getValue(DISTANCE_X);
         distanceY = input.getValue(DISTANCE_Y);
-
+        
+        directPoint = input.getValue(DIRECT_POINT);
         algorithm = HeatMapImage.Algorithm.valueOf(input.getValue(ALGORITHM));
 
 
@@ -96,7 +98,7 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
                     .orElseThrow(() -> new ConstellationException("No spring context available"));
             final Data<?> data = getData(repo, dataIds[0]);
             if (data instanceof FeatureData featureData) {
-                return new FeatureSetAsPointsCloud(featureData.getOrigin());
+                return new FeatureSetAsPointsCloud(featureData.getOrigin(), directPoint);
             } else {
                 throw new ConfigurationException("A FeatureSet data was expected for HeatMap computation.");
             }

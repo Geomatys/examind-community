@@ -59,10 +59,10 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
     private final FeatureSet source;
     private final String geometryProperty;
     private final Envelope envelope;
-
+    private final boolean directPoint;
     private final CoordinateReferenceSystem dataCRS;
 
-    public FeatureSetAsPointsCloud(final FeatureSet source) throws DataStoreException, PropertyNotFoundException {
+    public FeatureSetAsPointsCloud(final FeatureSet source, boolean directPoint) throws DataStoreException, PropertyNotFoundException {
         this.source = Objects.requireNonNull(source, "Source feature set");
 
         final PropertyType defaultGeometryProp = FeatureExt.getDefaultGeometry(source.getType());
@@ -80,14 +80,19 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
         if (defaultCrs == null) defaultCrs = envelope.getCoordinateReferenceSystem();
         if (defaultCrs == null) throw new DataStoreException("Cannot infer datasource CRS");
         this.dataCRS = defaultCrs;
+        this.directPoint = directPoint;
     }
 
     private void checkGeometryType(final AttributeType<?> defaultGeometry, final FeatureSet source) throws DataStoreException {
-
+        final FeatureQuery query = new FeatureQuery();
+        query.setProjection(geometryProperty);
+        
         final Class<?> GeomClass = defaultGeometry.getValueClass();
         if (!org.locationtech.jts.geom.Point.class.isAssignableFrom(GeomClass)) {
             if (org.locationtech.jts.geom.Geometry.class.equals(GeomClass)) { //Still it can be a point
-                final Optional<Boolean> geom = source.features(false)
+                final Optional<Boolean> geom = source
+                        .subset(query)
+                        .features(false)
                         .findAny()
                         .map(f -> f.getPropertyValue(geometryProperty) instanceof Point);
 
@@ -100,7 +105,7 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
         }
     }
 
-    private static Optional<Envelope> inferEnvelope(final FeatureSet source, final PropertyType defaultGeometryProp) throws DataStoreException {
+    private Optional<Envelope> inferEnvelope(final FeatureSet source, final PropertyType defaultGeometryProp) throws DataStoreException {
         final Optional<Envelope> env = source.getEnvelope();
         if (env.isPresent()) {
             return env;
@@ -108,8 +113,13 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
             var dataCRS = FeatureExt.getCRS(defaultGeometryProp);
 
             if (dataCRS == null) {
+                final FeatureQuery query = new FeatureQuery();
+                query.setProjection(geometryProperty);
+        
                 var geomName = defaultGeometryProp.getName().toString();
-                dataCRS = source.features(false)
+                dataCRS = source
+                        .subset(query)
+                        .features(false)
                         .map(feature -> feature.getPropertyValue(geomName))
                         .filter(Objects::nonNull)
                         .findAny()
@@ -136,9 +146,11 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
             query.setSelection(filter);
         }
 
-        // TODO: if we are **sure** that data source always return points in data CRS, we could remove the transform expression
-        // query.setProjection(geometryProperty);
-        query.setProjection(new FeatureQuery.NamedExpression(FF.function(SQLMM.ST_Transform.name(), FF.property(geometryProperty), FF.literal(dataCRS)), geometryProperty));
+        if (directPoint) {
+            query.setProjection(geometryProperty);
+        } else {
+            query.setProjection(new FeatureQuery.NamedExpression(FF.function(SQLMM.ST_Transform.name(), FF.property(geometryProperty), FF.literal(dataCRS)), geometryProperty));
+        }
 
         return source.subset(query)
                 .features(parallel)
@@ -174,7 +186,7 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
                         break;
                     }
                     var pos = iterator.next();
-                    final double c1 = pos.getX(), c2 = pos.getY();
+                    final double c1 = pos.getCoordinate().x, c2 = pos.getCoordinate().y;
                     chunk[j++] = c1;
                     chunk[j++] = c2;
                 }

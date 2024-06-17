@@ -60,7 +60,7 @@ public class FeaturesToHeatMapProcess extends AbstractDataCombineProcess {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
         INPUT = builder.addName("input")
-                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM);
+                .createGroup(DATA_NAME, TARGET_DATASET, DATA ,TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM, DIRECT_POINT);
 
         OUTPUT = builder.addName("output")
                 .createGroup();

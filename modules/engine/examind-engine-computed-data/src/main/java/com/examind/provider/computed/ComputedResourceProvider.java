@@ -230,7 +230,10 @@ public abstract class ComputedResourceProvider extends AbstractDataProvider {
         });
 
         if (data instanceof Success s) return s.value();
-        else return null;
+        else if (data instanceof Error e) {
+            LOGGER.log(Level.WARNING, "Attempt to acquire data failed", e.cause());
+            return null;
+        } else return null;
     }
 
     /**

@@ -49,7 +49,7 @@ public final class HeatMapImageTest {
     @Test
     public void functionalTest() throws Exception {
         final FeatureSet featureSet = createTestFeatureSet();
-        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(featureSet);
+        final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(featureSet, false);
 
         Envelope2D env = new Envelope2D(
                 new DirectPosition2D(CommonCRS.defaultGeographic(), 3.212619925176625, 43.2289799480256),

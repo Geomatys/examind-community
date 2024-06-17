@@ -41,11 +41,13 @@ public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderD
 
     public static final ParameterDescriptor<Integer> TILING_DIMENSION_X;
     public static final ParameterDescriptor<Integer> TILING_DIMENSION_Y;
-
+    
     public static final ParameterDescriptor<Float> DISTANCE_X;
     public static final ParameterDescriptor<Float> DISTANCE_Y;
 
     public static final ParameterDescriptor<String> ALGORITHM;
+    
+    public static final ParameterDescriptor<Boolean> DIRECT_POINT;
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR;
 
@@ -77,18 +79,22 @@ public class HeatMapCoverageProviderDescriptor extends ComputedResourceProviderD
 
         DISTANCE_X = builder.addName("distance.x")
                 .setDescription("Distance along the first CRS dimension to take into account for the HeatMap computation")
-                .create(Float.class, null);
+                .create(Float.class, 0f);
 
         DISTANCE_Y = builder.addName("distance.y")
                 .setDescription("Distance along the second CRS dimension to take into account for the HeatMap computation")
-                .create(Float.class, null);
+                .create(Float.class, 0f);
 
         ALGORITHM = builder.addName("algorithm")
                 .setDescription("Algorithm to use to compute the represent the influence of each data points in the heat map.")
                 .createEnumerated(String.class, new String[]{HeatMapImage.Algorithm.GAUSSIAN_MASK.name(), HeatMapImage.Algorithm.GAUSSIAN.name(), HeatMapImage.Algorithm.EUCLIDEAN.name(), HeatMapImage.Algorithm.ONE.name() }, HeatMapImage.Algorithm.GAUSSIAN_MASK.name());
 
+        DIRECT_POINT = builder.addName("direct.point")
+                .setDescription("Set this flag to true if your featureset geometry is point only")
+                .create(Boolean.class, false);
+        
         PARAMETERS_DESCRIPTOR = builder.addName(NAME)
-                .createGroup(IDENTIFIER, DATA_NAME, DATA_IDS, TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM);
+                .createGroup(IDENTIFIER, DATA_NAME, DATA_IDS, TILING_DIMENSION_X, TILING_DIMENSION_Y, DISTANCE_X, DISTANCE_Y, ALGORITHM, DIRECT_POINT);
     }
 
     @Override

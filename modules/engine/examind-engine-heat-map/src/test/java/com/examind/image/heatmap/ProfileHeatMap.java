@@ -397,7 +397,7 @@ public class ProfileHeatMap {
 
         SQLStore store = new SQLStore(new SQLStoreProvider(), new StorageConnector(sqlSource), ResourceDefinition.query("elephantsdemer", "SELECT location FROM elephantsdemer"));
         var dataset = store.findResource("elephantsdemer");
-        return new FeatureSetAsPointsCloud(dataset);
+        return new FeatureSetAsPointsCloud(dataset, false);
     }
 
     public static void main(String[] args) throws Exception {
