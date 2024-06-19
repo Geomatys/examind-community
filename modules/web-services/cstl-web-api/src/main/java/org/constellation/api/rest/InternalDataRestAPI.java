@@ -153,7 +153,8 @@ public class InternalDataRestAPI extends AbstractRestAPI {
                         break;
                     case "jdbc"   :
                         // Workaround: avoid forcing dependency over sis-sql. Check it by name.
-                        if ("sql".equalsIgnoreCase(identifier)) break;
+                        if ("sql".equalsIgnoreCase(identifier)              ||
+                            "sql-point-cloud".equalsIgnoreCase(identifier)) break;
                         else continue;
                     case "service":
                         if (!(p instanceof AbstractClientProvider)) continue;

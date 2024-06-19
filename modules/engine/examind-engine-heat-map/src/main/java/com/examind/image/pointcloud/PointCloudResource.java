@@ -16,30 +16,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.examind.image.heatmap;
+package com.examind.image.pointcloud;
 
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStoreException;
 import org.opengis.geometry.Envelope;
 
-import java.awt.geom.Point2D;
 import java.util.stream.Stream;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public interface PointCloudResource extends DataSet {
-
-    /**
-     *
-     * @param envelope : envelope of the area from which points are requested.
-     * @return stream of the points of the resource included in the input Envelope
-     */
-    Stream<? extends Point2D> points(final Envelope envelope, final boolean parallel) throws DataStoreException;
 
     CoordinateReferenceSystem getCoordinateReferenceSystem();
 
     /**
      * @return a sequence of point batches. Each batch is a densely packed point array, i.e. a double array with interleaved coordinates ([x1, y1, x2, y2, ...xn, yn])
      */
-    Stream<double[]> batch(final Envelope envelope, final boolean parallel, int batchSize) throws DataStoreException;
+    Stream<double[]> batchPoints(final Envelope envelope, final boolean parallel, int batchSize) throws DataStoreException;
 
 }

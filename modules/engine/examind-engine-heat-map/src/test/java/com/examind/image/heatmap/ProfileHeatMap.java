@@ -1,5 +1,7 @@
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.FeatureSetAsPointsCloud;
+import com.examind.image.pointcloud.PointCloudResource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.function.UnaryOperator;
@@ -111,127 +113,12 @@ public class ProfileHeatMap {
             }
 
             @Override
-            public Stream<? extends Point2D> points(Envelope envelope, boolean parallel) {
-                final Envelope env = envelope == null ? null : uncheck(() -> Envelopes.transform(envelope, CRS_84));
-                return Stream.of(env)
-                        .flatMap(bbox -> {
-                            Connection c = null;
-                            PreparedStatement s = null;
-                            ResultSet r = null;
-                            try {
-                                c = sqlSource.getConnection();
-                                if (env == null) {
-                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between '"+START_DATE+"' and '"+END_DATE+"'");
-                                    s.setTimestamp(1, Timestamp.from(start));
-                                    s.setTimestamp(2, Timestamp.from(end));
-                                } else {
-                                    s = c.prepareStatement("SELECT longitude, latitude FROM \"" + table + "\" WHERE \"timestamp\" between ? and ? AND longitude between ? and ? and latitude between ? and ?");
-                                    s.setTimestamp(1, Timestamp.from(start));
-                                    s.setTimestamp(2, Timestamp.from(end));
-                                    s.setDouble(3, env.getMinimum(0));
-                                    s.setDouble(4, env.getMaximum(0));
-                                    s.setDouble(5, env.getMinimum(1));
-                                    s.setDouble(6, env.getMaximum(1));
-                                }
-
-                                // System.out.println("QUERY: "+s);
-                                // WARNING: this is VITAL. Otherwise, all results are buffered in memory, causing high latency and memory footprint...
-                                s.setFetchSize(1_000_000);
-                                r = s.executeQuery();
-                                final ResultSet rs = r;
-                                final Connection finalC = c;
-                                final PreparedStatement finalS = s;
-                                Spliterator<DirectPosition2D> ptsSplit = new Spliterator<>() {
-
-                                    private boolean close() {
-                                        try (AutoCloseable cc = finalC::close; AutoCloseable sc = finalS::close; AutoCloseable rsc = rs::close) {
-                                            // Nothing, we just want to safely close all resources
-                                        } catch (Exception e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                        return false;
-                                    }
-
-                                    @Override
-                                    public boolean tryAdvance(Consumer<? super DirectPosition2D> action) {
-                                        if (uncheck(rs::isClosed)) return false;
-
-                                        while (uncheck(rs::next)) {
-                                            try {
-                                                var lon = rs.getDouble(1);
-                                                if (rs.wasNull()) continue;
-                                                var lat = rs.getDouble(2);
-                                                if (rs.wasNull()) continue;
-                                                action.accept(new DirectPosition2D(CRS_84, lon, lat));
-                                                return true;
-                                            } catch (SQLException e) {
-                                                try {
-                                                    close();
-                                                } catch (RuntimeException bis) {
-                                                    e.addSuppressed(bis);
-                                                }
-                                                throw new BackingStoreException(e);
-                                            }
-                                        }
-                                        return close();
-                                    }
-
-                                    @Override
-                                    public Spliterator<DirectPosition2D> trySplit() {
-                                        return null;
-                                    }
-
-                                    @Override
-                                    public long estimateSize() {
-                                        return Long.MAX_VALUE;
-                                    }
-
-                                    @Override
-                                    public int characteristics() {
-                                        return Spliterator.NONNULL;
-                                    }
-                                };
-
-                                return StreamSupport.stream(ptsSplit, false)
-                                        .onClose(uncheck(r))
-                                        .onClose(uncheck(s))
-                                        .onClose(uncheck(c))
-                                        ;
-
-                            } catch (Exception e) {
-                                if (r != null) {
-                                    try {
-                                        r.close();
-                                    } catch (SQLException ex) {
-                                        e.addSuppressed(ex);
-                                    }
-                                }
-                                if (s != null) {
-                                    try {
-                                        s.close();
-                                    } catch (SQLException ex) {
-                                        e.addSuppressed(ex);
-                                    }
-                                }
-                                if (c != null) {
-                                    try {
-                                        c.close();
-                                    } catch (SQLException ex) {
-                                        e.addSuppressed(ex);
-                                    }
-                                }
-                                throw e instanceof RuntimeException re ? re : new RuntimeException(e);
-                            }
-                        });
-            }
-
-            @Override
             public CoordinateReferenceSystem getCoordinateReferenceSystem() {
                 return CRS_84;
             }
 
             @Override
-            public Stream<double[]> batch(Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
+            public Stream<double[]> batchPoints(Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
 
                 final Envelope env = envelope == null ? null : uncheck(() -> Envelopes.transform(envelope, CRS_84));
                 return Stream.of(env)
@@ -425,7 +312,7 @@ public class ProfileHeatMap {
 
         {
             var startCount = System.nanoTime();
-            System.out.println("Nombre de données : " + points.points(envelope, false).count());
+            System.out.println("Nombre de données : " + points.batchPoints(envelope, false, 1000).count() / 2); // NOPE
             System.out.println("Count in " + (System.nanoTime() - startCount) / 1e9 + " s");
         }
         var targetGrid = new GridGeometry(new GridExtent(2048, 1024), envelope, GridOrientation.DISPLAY);

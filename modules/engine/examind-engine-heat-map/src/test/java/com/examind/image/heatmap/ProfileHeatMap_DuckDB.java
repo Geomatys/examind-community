@@ -1,5 +1,7 @@
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.DuckDbPointCloud;
+import com.examind.image.pointcloud.PointCloudResource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -7,7 +9,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.apache.sis.geometry.Envelope2D;
-import org.apache.sis.util.ArgumentChecks;
 
 import static com.examind.image.heatmap.ProfileHeatMap.CRS_84;
 import static com.examind.image.heatmap.ProfileHeatMap.profilePointCloud;
@@ -59,7 +60,7 @@ public class ProfileHeatMap_DuckDB {
 
         System.out.println("heatMap read:\n==================");*/
         String dbPath = "/home/glegal/Sources/workspace_qualinov/qualinov-app/submodules/examind-community/docker/mount/examind/data/ddb/test.db";
-        final PointCloudResource points = new DuckDbPointCloud(dbPath, "argo", 1000000, "longitude", "latitude");
+        final PointCloudResource points = new DuckDbPointCloud(dbPath, "argo", null, "longitude", "latitude");
         final var env = new Envelope2D(CRS_84, -180, -90, 360, 180);
         /*========================
         * Base HeatMap Computation

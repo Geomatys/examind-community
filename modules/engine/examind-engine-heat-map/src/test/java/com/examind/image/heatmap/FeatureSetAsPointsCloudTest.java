@@ -18,6 +18,7 @@
  */
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.FeatureSetAsPointsCloud;
 import org.apache.sis.feature.builder.AttributeRole;
 import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.DirectPosition2D;
@@ -63,8 +64,8 @@ public final class FeatureSetAsPointsCloudTest {
         final FeatureSet featureSet = createTestFeatureSet();
         final FeatureSetAsPointsCloud pointCloud = new FeatureSetAsPointsCloud(featureSet, false);
 
-        Assert.assertTrue(pointCloud.points(new Envelope2D(new DirectPosition2D(3.791, 43.651), new DirectPosition2D(3.792, 43.652)), false)
-                .anyMatch(p -> Math.abs(p.getX() - 3.791) <0.001 && Math.abs(p.getY() - 43.651) < 0.001 ));
+        Assert.assertTrue(pointCloud.batchPoints(new Envelope2D(new DirectPosition2D(3.791, 43.651), new DirectPosition2D(3.792, 43.652)), false, 1000)
+                .anyMatch(p -> Math.abs(p[0] - 3.791) <0.001 && Math.abs(p[1] - 43.651) < 0.001 ));  // NOPE
 
     }
 

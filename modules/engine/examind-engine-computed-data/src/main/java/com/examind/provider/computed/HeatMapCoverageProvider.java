@@ -18,10 +18,10 @@
  */
 package com.examind.provider.computed;
 
-import com.examind.image.heatmap.FeatureSetAsPointsCloud;
+import com.examind.image.pointcloud.FeatureSetAsPointsCloud;
 import com.examind.image.heatmap.HeatMapImage;
 import com.examind.image.heatmap.HeatMapResource;
-import com.examind.image.heatmap.PointCloudResource;
+import com.examind.image.pointcloud.PointCloudResource;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.iso.Names;
@@ -97,10 +97,12 @@ public class HeatMapCoverageProvider extends ComputedResourceProvider {
             final DataRepository repo = SpringHelper.getBean(DataRepository.class)
                     .orElseThrow(() -> new ConstellationException("No spring context available"));
             final Data<?> data = getData(repo, dataIds[0]);
-            if (data instanceof FeatureData featureData) {
+            if (data.getOrigin() instanceof PointCloudResource pcr) {
+                return pcr;
+            } else if (data instanceof FeatureData featureData) {
                 return new FeatureSetAsPointsCloud(featureData.getOrigin(), directPoint);
             } else {
-                throw new ConfigurationException("A FeatureSet data was expected for HeatMap computation.");
+                throw new ConfigurationException("A FeatureSet or a point cloud data was expected for HeatMap computation.");
             }
         }
     }

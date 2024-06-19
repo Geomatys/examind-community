@@ -18,6 +18,7 @@
  */
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.FeatureSetAsPointsCloud;
 import java.util.Arrays;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;

@@ -16,11 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.examind.image.heatmap;
+package com.examind.image.pointcloud;
 
 import org.apache.sis.feature.Features;
 import org.apache.sis.filter.DefaultFilterFactory;
-import org.apache.sis.geometry.DirectPosition2D;
 import org.apache.sis.geometry.wrapper.Geometries;
 import org.apache.sis.geometry.wrapper.GeometryWrapper;
 import org.apache.sis.filter.sqlmm.SQLMM;
@@ -43,7 +42,6 @@ import org.opengis.metadata.Metadata;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.util.GenericName;
 
-import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -133,12 +131,6 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
         }
     }
 
-    @Override
-    public Stream<? extends Point2D> points(final Envelope envelope, final boolean parallel) throws DataStoreException {
-        return subSet(envelope, parallel)//TODO? convert in expected CRS if needed
-                .map(p -> new DirectPosition2D(p.getX(), p.getY()));
-    }
-
     private Stream<? extends Point> subSet(final Envelope envelope, final boolean parallel) throws DataStoreException {
         final FeatureQuery query = new FeatureQuery();
         if (envelope != null) {
@@ -168,7 +160,7 @@ public class FeatureSetAsPointsCloud implements PointCloudResource {
      * WARNING, currently only support sequential execution.
      */
     @Override
-    public Stream<double[]> batch(final Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
+    public Stream<double[]> batchPoints(final Envelope envelope, boolean parallel, int batchSize) throws DataStoreException {
         if (parallel) throw new UnsupportedOperationException("Current implementation ex");
 
         final var sourceStream = this.subSet(envelope, false);

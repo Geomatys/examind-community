@@ -18,11 +18,11 @@
  */
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.PointCloudResource;
 import com.examind.image.heatmap.HeatMapImage.Algorithm;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.*;
 import org.apache.sis.geometry.DirectPosition2D;
-import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.apache.sis.referencing.operation.transform.MathTransforms;

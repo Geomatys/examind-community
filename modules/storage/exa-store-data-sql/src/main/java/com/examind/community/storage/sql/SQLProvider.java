@@ -49,15 +49,16 @@ public class SQLProvider extends DataStoreProvider {
      * Search for any table containing geometries and/or geographies. Ignore tiger schema because it's a geocoder
      * provided by default. Most of the time, it won"t be used by user.
      */
-    private static final String DEFAULT_TABLE_SEARCH = "SELECT *\n" +
-            "FROM (\n" +
-            "         SELECT f_table_catalog, f_table_schema, f_table_name\n" +
-            "         FROM geometry_columns\n" +
-            "         UNION DISTINCT\n" +
-            "         SELECT f_table_catalog, f_table_schema, f_table_name\n" +
-            "         FROM geography_columns\n" +
-            "     ) as tmp\n" +
-            "WHERE f_table_schema != 'tiger';";
+    private static final String DEFAULT_TABLE_SEARCH = """
+                                                       SELECT *
+                                                       FROM (
+                                                                SELECT f_table_catalog, f_table_schema, f_table_name
+                                                                FROM geometry_columns
+                                                                UNION DISTINCT
+                                                                SELECT f_table_catalog, f_table_schema, f_table_name
+                                                                FROM geography_columns
+                                                            ) as tmp
+                                                       WHERE f_table_schema != 'tiger';""";
 
     public static final ParameterDescriptor<String> LOCATION;
     public static final ParameterDescriptor<String> USER;

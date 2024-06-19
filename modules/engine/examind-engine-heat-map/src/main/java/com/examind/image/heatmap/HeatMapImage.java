@@ -18,6 +18,7 @@
  */
 package com.examind.image.heatmap;
 
+import com.examind.image.pointcloud.PointCloudResource;
 import org.apache.sis.geometry.Envelope2D;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.image.ComputedImage;
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
 public final class HeatMapImage extends ComputedImage {
 
     //TODO make it configurable
-    private static final int BATCH_SIZE = 100_000;
+    private static final int BATCH_SIZE = 60_000_000;
     /**
      * Points source to be used to compute the heatMap
      */
@@ -146,8 +147,7 @@ public final class HeatMapImage extends ComputedImage {
             var data = new double[getTileWidth() * getTileHeight()];
             var roi = Envelopes.transform(this.gridCornerToDataCRS, new Envelope2D(null, startXPixel, startYPixel, tilingDimension.width, tilingDimension.height));
             roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
-            int batch_size = 60_000_000;
-            try (var stream = this.dataSource.batch(roi, false, batch_size)) {
+            try (var stream = this.dataSource.batchPoints(roi, false, BATCH_SIZE)) {
                 stream.forEach(geoPts -> {
                     final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk
                     if (nbValues < 2) return;
@@ -176,7 +176,7 @@ public final class HeatMapImage extends ComputedImage {
             roi.setCoordinateReferenceSystem(dataSource.getCoordinateReferenceSystem());
 
 
-            try (final Stream<double[]> points = this.dataSource.batch(roi, false, BATCH_SIZE)) {
+            try (final Stream<double[]> points = this.dataSource.batchPoints(roi, false, BATCH_SIZE)) {
                 var data = new double[getTileWidth() * getTileHeight()];
                 points.forEach(geoPts -> {
                     final int nbValues = geoPts.length; //it is not necessary equals to BATCH_SIZE/2 for the last chunk

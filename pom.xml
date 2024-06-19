@@ -47,7 +47,9 @@
         <xstream.version>1.4.18</xstream.version>
         <antlr.version>4.11.1</antlr.version>
         <poi.version>5.2.3</poi.version>
-        <duckdb.version>0.10.1</duckdb.version>
+        <duckdb.version>0.10.2</duckdb.version>
+        <!-- this one is blocked by other dependencies -->
+        <arrow.version>15.0.2</arrow.version> 
         <!-- @{argLine} necessary for jacoco generation, we must declare
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
@@ -238,6 +240,21 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-vector</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-memory-unsafe</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-c-data</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi</artifactId>
