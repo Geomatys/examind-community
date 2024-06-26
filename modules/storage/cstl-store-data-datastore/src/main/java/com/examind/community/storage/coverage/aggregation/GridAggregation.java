@@ -516,31 +516,53 @@ public class GridAggregation extends DataStore implements GridCoverageResource {
 
         //long timeCell = Period.between(tropicalYearOrigin.atOffset(ZoneOffset.UTC).toLocalDate(), date.toLocalDate()).getYears();
 
-        final GridExtent ext = source.getExtent();
-        //var expandedExtent = ext.insertDimension(ext.getDimension(), DimensionNameType.TIME, timeCell, timeCell, true);
-        var expandedExtent = ext.insertDimension(ext.getDimension(), DimensionNameType.TIME, 0, 0, true);
-        final int targetDim = expandedExtent.getDimension();
-        var timeConversionMatrix = Matrices.createIdentity(targetDim + 1);
-
-        // time offset
-        //timeConversionMatrix.setElement(targetDim - 1, targetDim, tropicalYearOrigin.toEpochMilli());
-        timeConversionMatrix.setElement(targetDim - 1, targetDim, date.toEpochMilli());
-        // time scale
-        //timeConversionMatrix.setElement(targetDim - 1, targetDim -1, offset);
-        timeConversionMatrix.setElement(targetDim - 1, targetDim -1, timeSpan.toMillis());
-
-        var expandedGrid2Crs = MathTransforms.concatenate(
-                MathTransforms.linear(timeConversionMatrix),
-                MathTransforms.passThrough(0, source.getGridToCRS(PixelInCell.CELL_CORNER), 1)
-        );
-
-        CoordinateReferenceSystem expandedCrs;
-        try {
-            expandedCrs = CRS.compound(source.getCoordinateReferenceSystem(), CommonCRS.Temporal.JAVA.crs());
-        } catch (FactoryException e) {
-            throw new IllegalStateException("Cannot add time dimension to data CRS", e);
+        int timeAxis = -1;
+        for(int i=0; i<source.getDimension(); i++) {
+            if(source.getExtent().getAxisType(i).orElse(null) == DimensionNameType.TIME) {
+                timeAxis = i;
+            }
         }
-        return new GridGeometry(expandedExtent, PixelInCell.CELL_CORNER, expandedGrid2Crs, expandedCrs);
+
+        final GridExtent ext = source.getExtent();
+
+        if (timeAxis == -1) {
+            //var expandedExtent = ext.insertDimension(ext.getDimension(), DimensionNameType.TIME, timeCell, timeCell, true);
+            var resultExtent = ext.insertDimension(ext.getDimension(), DimensionNameType.TIME, 0, 0, true);
+            final int targetDim = resultExtent.getDimension();
+            var timeConversionMatrix = Matrices.createIdentity(targetDim + 1);
+
+            // time offset
+            //timeConversionMatrix.setElement(targetDim - 1, targetDim, tropicalYearOrigin.toEpochMilli());
+            timeConversionMatrix.setElement(targetDim - 1, targetDim, date.toEpochMilli());
+            // time scale
+            //timeConversionMatrix.setElement(targetDim - 1, targetDim -1, offset);
+            timeConversionMatrix.setElement(targetDim - 1, targetDim -1, timeSpan.toMillis());
+
+            var expandedGrid2Crs = MathTransforms.concatenate(
+                    MathTransforms.linear(timeConversionMatrix),
+                    MathTransforms.passThrough(0, source.getGridToCRS(PixelInCell.CELL_CORNER), 1)
+            );
+
+            CoordinateReferenceSystem expandedCrs;
+            try {
+                expandedCrs = CRS.compound(source.getCoordinateReferenceSystem(), CommonCRS.Temporal.JAVA.crs());
+            } catch (FactoryException e) {
+                throw new IllegalStateException("Cannot add time dimension to data CRS", e);
+            }
+            return new GridGeometry(resultExtent, PixelInCell.CELL_CORNER, expandedGrid2Crs, expandedCrs);
+        }
+        else {
+            int dim = source.getExtent().getDimension();
+            var gridToCrs = source.getGridToCRS(PixelInCell.CELL_CORNER);
+            var matrixGridToCrs = Matrices.copy(MathTransforms.getMatrix(gridToCrs));
+
+            matrixGridToCrs.setElement(timeAxis , timeAxis + 1, date.toEpochMilli());
+            matrixGridToCrs.setElement(timeAxis, timeAxis, timeSpan.toMillis());
+
+            var newGridToCrs = MathTransforms.linear(matrixGridToCrs);
+
+            return new GridGeometry(source.getExtent(), PixelInCell.CELL_CORNER, newGridToCrs, source.getCoordinateReferenceSystem());
+        }
     }
 
     /**
