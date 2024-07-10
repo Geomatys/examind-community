@@ -63,7 +63,7 @@ public final class ConfigDirectory {
             this.dataUserUploads = builder.dataUserUploads;
             this.dataServices = builder.dataServices;
             this.testing = builder.testing;
-
+            this.process = builder.process;
         }
 
         private static class Builder {
@@ -71,9 +71,11 @@ public final class ConfigDirectory {
             private Path data;
             private Path dataIntegrated;
             private Path dataServices;
+            private Path process;
 
             private URI homeLocation;
             private URI dataLocation;
+            private URI processLocation;
             private Path dataUserUploads;
             private boolean testing;
 
@@ -82,11 +84,18 @@ public final class ConfigDirectory {
                 this.homeLocation = Paths.get(exaHome).toUri();
                 String exaData = Application.getProperty(AppProperty.CSTL_DATA, exaHome + File.separator +  "data");
                 this.dataLocation = Paths.get(exaData).toUri();
+                String exaProcess = Application.getProperty(AppProperty.CSTL_PROCESS, null);
+                this.processLocation = exaProcess != null ? Paths.get(exaProcess).toUri() : null;
             }
 
             Config build() {
                 this.home = initFolder(homeLocation);
                 this.data = initFolder(dataLocation);
+                if (processLocation != null) {
+                    this.process = initFolder(processLocation);
+                } else {
+                    this.process = initDataSubFolder("process");
+                }
                 this.dataIntegrated = initDataSubFolder("integrated");
                 this.dataUserUploads = initDataSubFolder("user", "uploads");
                 this.dataServices = initDataSubFolder("services");
@@ -135,6 +144,7 @@ public final class ConfigDirectory {
         final Path dataUserUploads;
         final boolean testing;
         final Path dataServices;
+        final Path process;
     }
 
     /**
@@ -183,6 +193,10 @@ public final class ConfigDirectory {
      */
     public static Path getDataIntegratedDirectory() {
         return config.dataIntegrated;
+    }
+    
+    public static Path getProcessDirectory() {
+        return config.process;
     }
 
     /**

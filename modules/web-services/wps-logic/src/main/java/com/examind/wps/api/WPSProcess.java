@@ -50,7 +50,7 @@ public interface WPSProcess {
 
     List<JobControlOptions> getJobControlOptions();
 
-    ProcessOffering getProcessOffering(Locale loc) throws WPSException;
+    ProcessOffering getProcessOffering(String version, Locale loc, List<DataInput> inputs) throws WPSException;
 
     void checkValidInputOuputRequest(Execute request) throws IOParameterException;
 

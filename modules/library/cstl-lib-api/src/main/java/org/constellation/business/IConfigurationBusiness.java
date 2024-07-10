@@ -51,6 +51,14 @@ public interface IConfigurationBusiness {
      * @return never {@code null}.
      */
     Path getAssetsDirectory();
+    
+    /**
+     *
+     * Return the process directory (CSTL_DATA).
+     *
+     * @return never {@code null}.
+     */
+    Path getProcessDirectory();
 
     /**
      * Return the specific directory for the specified OGC web service.

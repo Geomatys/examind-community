@@ -1,0 +1,11 @@
+{
+    "inputs": [{
+            "id": "urn:exa:wps:examind::test.param.dependency:input:country",
+            "input": {
+                "dataType": {
+                    "name": "String"
+                },
+                "value": "France"
+            }
+        }]
+}

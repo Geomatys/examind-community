@@ -402,5 +402,10 @@
             <ows:Abstract>Echo different input to output.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:examind::test.echo</ows:Identifier>
         </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Examind : Test.param.dependency</ows:Title>
+            <ows:Abstract>Param used to test parameter value dependencies.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:examind::test.param.dependency</ows:Identifier>
+        </wps:ProcessSummary>
     </wps:Contents>
 </wps:Capabilities>

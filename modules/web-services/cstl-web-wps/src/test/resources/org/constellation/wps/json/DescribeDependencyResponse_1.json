@@ -1,0 +1,95 @@
+{
+    "id": "urn:exa:wps:examind::test.param.dependency",
+    "title": "Examind : Test.param.dependency",
+    "version": "1.0.0",
+    "jobControlOptions": ["sync-execute", "async-execute", "dismiss"],
+    "outputTransmission": ["reference", "value"],
+    "inputs": [{
+            "id": "urn:exa:wps:examind::test.param.dependency:input:country",
+            "title": "Country",
+            "description": "Country.",
+            "minOccurs": "1",
+            "maxOccurs": "1",
+            "input": {
+                "literalDataDomains": [{
+                        "allowedValues": {
+                            "allowedValues": ["France", "Espagne", "Belgique"]
+                        },
+                        "dataType": {
+                            "name": "String",
+                            "reference": "http://www.w3.org/TR/xmlschema-2/#string"
+                        }
+                    }]
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.param.dependency:input:city",
+            "title": "City",
+            "description": "City.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "literalDataDomains": [{
+                        "allowedValues": {
+                            "allowedValues": ["Barcelone", "Gognies-Chaussée", "Paris"]
+                        },
+                        "dataType": {
+                            "name": "String",
+                            "reference": "http://www.w3.org/TR/xmlschema-2/#string"
+                        }
+                    }]
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.param.dependency:input:district",
+            "title": "District",
+            "description": "District.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "literalDataDomains": [{
+                        "allowedValues": {
+                            "allowedValues": ["1", "2", "3", "4"]
+                        },
+                        "dataType": {
+                            "name": "Integer",
+                            "reference": "http://www.w3.org/TR/xmlschema-2/#integer"
+                        }
+                    }]
+            }
+        }, {
+            "id": "urn:exa:wps:examind::test.param.dependency:input:boundary",
+            "title": "Boundary",
+            "description": "Boundary.",
+            "minOccurs": "0",
+            "maxOccurs": "1",
+            "input": {
+                "supportedCRS": [{
+                        "crs": "EPSG:4326",
+                        "default": true
+                    }, {
+                        "crs": "CRS:84",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3395",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:3857",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27571",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27572",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27573",
+                        "default": false
+                    }, {
+                        "crs": "EPSG:27574",
+                        "default": false
+                    }]
+            }
+        }],
+    "outputs": [],
+    "executeEndpoint": "http://localhost:9090/WS/wps/default/processes/urn:exa:wps:examind::test.param.dependency/jobs",
+    "abstract": "Param used to test parameter value dependencies."
+}

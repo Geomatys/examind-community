@@ -27,6 +27,7 @@ com.examind.process.test.MultipleTypeDescriptor
 com.examind.process.test.MapContextInputDescriptor
 com.examind.process.test.PathHandlingDescriptor
 com.examind.process.test.ParameterGroupDescriptor
+com.examind.process.test.ParamDependencyDescriptor
 org.constellation.process.data.DataInfoCacheProcessDescriptor
 org.constellation.process.sensor.DeleteSensorDescriptor
 org.constellation.process.datasource.DeleteDatasourceDescriptor

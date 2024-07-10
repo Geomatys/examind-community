@@ -3647,4 +3647,76 @@
             </wps:Output>
         </wps:Process>
     </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Examind : Test.param.dependency</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Param used to test parameter value dependencies.</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:examind::test.param.dependency</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Country</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Country.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.param.dependency:input:country</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>France</ows:Value>
+                            <ows:Value>Espagne</ows:Value>
+                            <ows:Value>Belgique</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">City</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">City.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.param.dependency:input:city</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>Barcelone</ows:Value>
+                            <ows:Value>Gognies-Chaussée</ows:Value>
+                            <ows:Value>Paris</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">District</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">District.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.param.dependency:input:district</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AllowedValues>
+                            <ows:Value>1</ows:Value>
+                            <ows:Value>2</ows:Value>
+                            <ows:Value>3</ows:Value>
+                            <ows:Value>4</ows:Value>
+                        </ows:AllowedValues>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#integer">Integer</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Boundary</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundary.</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:examind::test.param.dependency:input:boundary</ows:Identifier>
+                <wps:BoundingBoxData>
+                    <wps:Format mimeType="text/xml" default="true"/>
+                    <wps:SupportedCRS default="true">EPSG:4326</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">CRS:84</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3395</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:3857</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27571</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27572</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27573</wps:SupportedCRS>
+                    <wps:SupportedCRS default="false">EPSG:27574</wps:SupportedCRS>
+                </wps:BoundingBoxData>
+            </wps:Input>
+        </wps:Process>
+    </wps:ProcessOffering>
 </wps:ProcessOfferings>

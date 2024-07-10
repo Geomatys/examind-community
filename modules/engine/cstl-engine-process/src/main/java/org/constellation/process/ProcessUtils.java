@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.apache.sis.parameter.Parameters;
+import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterValue;
@@ -33,7 +34,7 @@ import org.opengis.parameter.ParameterValueGroup;
  */
 public class ProcessUtils {
 
-    public static List getMultipleValues(final ParameterValueGroup pvg, final ParameterDescriptor desc) {
+    public static List getMultipleValues(final ParameterValueGroup pvg, final GeneralParameterDescriptor desc) {
         Parameters param = Parameters.castOrWrap(pvg);
         return getMultipleValues(param, desc);
     }
@@ -43,7 +44,7 @@ public class ProcessUtils {
         return getMultipleValues(param, descCode);
     }
     
-    public static List getMultipleValues(final Parameters param, final ParameterDescriptor desc) {
+    public static List getMultipleValues(final Parameters param, final GeneralParameterDescriptor desc) {
         String descCode = desc.getName().getCode();
         return getMultipleValues(param, descCode);
     }

@@ -103,14 +103,30 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
             final Path hostedDirectory = configDirectory.resolve("hosted");
             Files.createDirectories(hostedDirectory);
-
+    
             writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom1.xml", "inputGeom1.xml");
             writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/inputGeom2.xml", "inputGeom2.xml");
             writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
+            
+            Path processDirectory = ConfigDirectory.getProcessDirectory();
+            Path conditionalParamFile = processDirectory.resolve("test.param.dependency.csv");
+            
+            String cpfContent = """
+                                country;city;district;boundary:bbox
+                                France;Paris;1;2.2,48.8,2.4,48.9,EPSG:4326
+                                France;Paris;2;2.2,48.8,2.4,48.9,EPSG:4326
+                                France;Paris;3;2.2,48.8,2.4,48.9,EPSG:4326
+                                France;Paris;4;2.2,48.8,2.4,48.9,EPSG:4326
+                                France;Gognies-Chaussée;;3.9,50.3,3.9,50.3,EPSG:4326
+                                Belgique;Gognies-Chaussée;;3.9,50.3,3.9,50.3,EPSG:4326
+                                Espagne;Barcelone;X;0.8,40.9,3.4,41.9,EPSG:4326
+                                """;
+            IOUtilities.writeString(cpfContent, conditionalParamFile);
 
             ProcessFactory geotkFacto = new ProcessFactory("geotoolkit", true);
             ProcessFactory exaFacto = new ProcessFactory("examind", false);
             exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.echo"));
+            exaFacto.getInclude().add(new org.constellation.dto.service.config.wps.Process("test.param.dependency"));
             final List<ProcessFactory> process = Arrays.asList(geotkFacto, exaFacto);
             final Processes processes = new Processes(process);
             final ProcessContext config = new ProcessContext(processes);
@@ -814,6 +830,77 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
         String expected = getStringFromFile("org/constellation/wps/json/DescribeEcho.json");
         compareJSON(expected, result);
     }
+    
+    @Test
+    @Order(order=10)
+    public void testWPSDescribeProcessConditional() throws Exception {
+
+        initWPSServer();
+
+       /*
+        * Empty inputs
+        */
+        URL descProUrl = new URL("http://localhost:"+ getCurrentPort() +"/WS/wps/default/processes/urn:exa:wps:examind::test.param.dependency");
+        URLConnection conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_1.json", "application/json");
+        
+        String result = getStringResponse(conec);
+        String expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_1.json");
+        compareJSON(expected, result);
+        
+        
+        /*
+        * country = France
+        */
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_2.json", "application/json");
+        
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_2.json");
+        compareJSON(expected, result);
+        
+        /*
+        * country = Belgique, city = Gognies-Chaussée
+        */
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_3.json", "application/json");
+        
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_3.json");
+        compareJSON(expected, result);
+        
+        /*
+        * country = Espagne
+        */
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_4.json", "application/json");
+        
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_4.json");
+        compareJSON(expected, result);
+        
+        /*
+        * Boundary = BBOX on montpellier (2.8,43.3,4.9,44.1)
+        * => no match
+        */
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_5.json", "application/json");
+        
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_5.json");
+        compareJSON(expected, result);
+        
+        /*
+        * Boundary = BBOX on france and spain (1.5,41.1,3.4,49.2)
+        * => paris and bcn match
+        */
+        conec = descProUrl.openConnection();
+        postRequestFile(conec, "org/constellation/wps/json/DescribeDependencyRequest_6.json", "application/json");
+        
+        result = getStringResponse(conec);
+        expected = getStringFromFile("org/constellation/wps/json/DescribeDependencyResponse_6.json");
+        compareJSON(expected, result);
+    }
 
     @Test
     @Order(order=11)
@@ -939,8 +1026,8 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0", "2.0.0");
-        instances.add(new Instance(1, "default", "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 79, ServiceStatus.STARTED, "null/wps/default"));
-        instances.add(new Instance(2, "test",    "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 79, ServiceStatus.STARTED, "null/wps/test"));
+        instances.add(new Instance(1, "default", "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/default"));
+        instances.add(new Instance(2, "test",    "WPS server", "WPS server developed by Geomatys for Constellation SDI.", "wps", versions, 80, ServiceStatus.STARTED, "null/wps/test"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

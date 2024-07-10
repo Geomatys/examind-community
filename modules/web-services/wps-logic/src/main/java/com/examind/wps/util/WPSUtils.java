@@ -52,12 +52,19 @@ import java.util.stream.Stream;
 import javax.measure.Unit;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
+import java.io.File;
+import java.util.HashSet;
+import javax.measure.UnitConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.citation.Citations;
+import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
@@ -67,6 +74,7 @@ import org.constellation.exception.ConstellationException;
 import org.constellation.provider.DataProviders;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.feature.xml.jaxb.JAXBFeatureTypeWriter;
+import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.ows.xml.v200.AdditionalParameter;
 import org.geotoolkit.ows.xml.v200.AdditionalParametersType;
@@ -82,14 +90,19 @@ import org.geotoolkit.wps.io.WPSIO;
 import org.geotoolkit.wps.io.WPSIO.FormatSupport;
 import org.geotoolkit.wps.xml.WPSMarshallerPool;
 import org.geotoolkit.wps.xml.v200.ComplexData;
+import org.geotoolkit.wps.xml.v200.Data;
 import org.geotoolkit.wps.xml.v200.DataInput;
 import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.Format;
+import org.geotoolkit.wps.xml.v200.LiteralValue;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
 import org.geotoolkit.wps.xml.v200.ProcessSummary;
+import org.geotoolkit.wps.xml.v200.Reference;
 import org.geotoolkit.xsd.xml.v2001.Schema;
 import org.geotoolkit.xsd.xml.v2001.XSDMarshallerPool;
+import org.opengis.feature.Feature;
 import org.opengis.feature.FeatureType;
+import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Identifier;
 import org.opengis.metadata.citation.Citation;
 import org.opengis.metadata.lineage.Algorithm;
@@ -97,6 +110,9 @@ import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterNotFoundException;
+import org.opengis.parameter.ParameterValue;
+import org.opengis.parameter.ParameterValueGroup;
+import org.opengis.util.FactoryException;
 import org.opengis.util.InternationalString;
 import org.opengis.util.NoSuchIdentifierException;
 
@@ -890,6 +906,268 @@ public class WPSUtils {
 
         builder.append(end);
         return builder.toString();
+    }
+    
+    /**
+     * Parse an envelope from a WPS input bbox data.
+     * 
+     * @param inputId AN input id (used for error identification)
+     * @param bBox A non {@code null} wps bbox input.
+     * 
+     * @return An envelope.
+     * @throws IOParameterException 
+     */
+    public static Envelope parseBBOXData(final String inputId, final BoundingBox bBox) throws IOParameterException {
+            List<Double> tmpLc = bBox.getLowerCorner();
+            List<Double> tmpUc = bBox.getUpperCorner();
+            if (tmpLc.isEmpty()) {
+                throw new IOParameterException("Invalid bbox: no lower corner given.", false, true, inputId);
+            } else if (tmpUc.isEmpty()) {
+                throw new IOParameterException("Invalid bbox: no upper corner given.", false, true, inputId);
+            } else if (tmpLc.size() != tmpUc.size()) {
+                throw new IOParameterException(String.format(
+                        "Invalid bbox: Lower corner and upper corner dimension mismatch.%nLower=%d, Upper=%d",
+                        tmpLc.size(), tmpUc.size()
+                ), inputId);
+            }
+
+            final GeneralEnvelope env;
+            try {
+                env = new GeneralEnvelope(
+                        tmpLc.stream().mapToDouble(d -> d).toArray(),
+                        tmpUc.stream().mapToDouble(d -> d).toArray()
+                );
+            } catch (NullPointerException e) {
+                throw new IOParameterException("A null value has been found in bbox ordinates", inputId);
+            }
+
+            String crs = bBox.getCrs();
+            /* WPS 2 specification states that CRS is mandatory. Text can be found in section 7.3.3.2 (BoundingBox Values):
+             * "Values for bounding boxes are specified in the BoundingBox data type from OWS Common [OGC 06-121r9].
+             * For consistency with the BoundingBoxData description, the specification of a CRS is mandatory."
+             * Link: http://docs.opengeospatial.org/is/14-065/14-065.html#30
+             *
+             */
+            if (crs == null || (crs =crs.trim()).isEmpty()) {
+                throw new IOParameterException("A CRS must be specified for input bounding box (see WPS Spec 2.0, section 7.3.3.2)", false, true, inputId);
+            }
+
+            try {
+                env.setCoordinateReferenceSystem(CRS.forCode(crs));
+            } catch (FactoryException ex) {
+                throw new IOParameterException("Invalid data input : CRS not supported: " + crs, ex, true, inputId);
+            }
+
+            return env;
+    }
+    
+    /**
+     * For each inputs in Execute request, this method will find corresponding {@link ParameterDescriptor ParameterDescriptor} input in the
+     * process and fill the {@link ParameterValueGroup ParameterValueGroup} with the data.
+     *
+     * @param in
+     * @param requestInputData
+     * @param processInputDesc
+     * @param files
+     * @throws IOParameterException
+     */
+    public static void fillProcessInputFromRequest(final ProcessDescriptor descriptor, final String version, final ParameterValueGroup in, final List<DataInput> requestInputData,
+            final List<GeneralParameterDescriptor> processInputDesc, List<Path> files) throws IOParameterException {
+
+        ArgumentChecks.ensureNonNull("in", in);
+        ArgumentChecks.ensureNonNull("requestInputData", requestInputData);
+        Set<String> alreadySet = new HashSet();
+        for (final DataInput inputRequest : requestInputData) {
+
+            final String inputId = inputRequest.getId();
+            if (inputId == null || inputId.isEmpty()) {
+                throw new IOParameterException("Empty input Identifier.", null);
+            }
+
+            String inputIdCode = WPSUtils.extractProcessIOCode(descriptor, inputId);
+
+            //Check if it's a valid input identifier and hold it if found.
+            GeneralParameterDescriptor inputDescriptor = null;
+            for (final GeneralParameterDescriptor processInput : processInputDesc) {
+                if (processInput.getName().getCode().equals(inputIdCode) ||
+                    processInput.getName().getCode().equals(inputId)) {
+                    inputDescriptor = processInput;
+                    inputIdCode = processInput.getName().getCode();
+                    break;
+                }
+            }
+            if (inputDescriptor == null) {
+                throw new IOParameterException("Invalid or unknown input identifier " + inputId + ".", inputId);
+            }
+
+            boolean isReference = false;
+            boolean isBBox = false;
+            boolean isComplex = false;
+            boolean isLiteral = false;
+
+            if (inputRequest.getReference() != null) {
+                isReference = true;
+            } else {
+                final Data dataType = inputRequest.getData();
+                if (dataType != null) {
+
+                    if (dataType.getBoundingBoxData() != null) {
+                        isBBox = true;
+
+                    // issue here : we don't need to have a literal value. the value can be directly in content
+                    // TODO see dirty patch added below
+                    } else if (dataType.getLiteralData() != null) {
+                        isLiteral = true;
+                    } else {
+                        isComplex = true;
+                    }
+                } else {
+                    throw new IOParameterException("Input doesn't have data or reference.", inputId);
+                }
+            }
+
+            /*
+             * Get expected input Class from the process input
+             */
+            Class expectedClass;
+            if(inputDescriptor instanceof ParameterDescriptor) {
+                expectedClass = ((ParameterDescriptor)inputDescriptor).getValueClass();
+            } else {
+                expectedClass = Feature.class;
+            }
+
+            // quick dirty patch for literal values without LiteralData
+            if (WPSIO.isSupportedLiteralInputClass(expectedClass) && inputRequest.getData().getContent().size() == 1 &&
+                inputRequest.getData().getContent().get(0) instanceof String) {
+                isLiteral = true;
+                isComplex = false;
+            }
+
+            Object dataValue = null;
+
+            /**
+             * Handle referenced input data.
+             */
+            if (isReference) {
+
+                //Check if the expected class is supported for reference using
+                if (!WPSIO.isSupportedReferenceInputClass(expectedClass)) {
+                    throw new IOParameterException("The input" + inputId + " can't handle reference.", inputId);
+                }
+                final Reference requestedRef = inputRequest.getReference();
+                if (requestedRef.getHref() == null) {
+                    throw new IOParameterException("Invalid reference input : href can't be null.", inputId);
+                }
+                try {
+                    dataValue = WPSConvertersUtils.convertFromReference(requestedRef, expectedClass);
+                } catch (UnconvertibleObjectException ex) {
+                    throw new IOParameterException("Error during conversion of reference input : "  + inputId + " : " + ex.getMessage(), ex, inputId);
+                }
+
+                if (files != null) {
+                    if (dataValue instanceof File file) {
+                        files.add(file.toPath());
+                    }
+                    if (dataValue instanceof Path path) {
+                        files.add(path);
+                    }
+                }
+            }
+
+            /**
+             * Handle Bbox input data.
+             */
+            if (isBBox) {
+                final BoundingBox bBox = inputRequest.getData().getBoundingBoxData();
+                dataValue = WPSUtils.parseBBOXData(inputId, bBox);
+            }
+
+            /**
+             * Handle Complex input data.
+             */
+            if (isComplex) {
+                //Check if the expected class is supported for complex using
+                if (!WPSIO.isSupportedComplexInputClass(expectedClass)) {
+                    throw new IOParameterException("Complex value expected", inputId);
+                }
+
+                if (inputRequest.getData().getContent() == null || inputRequest.getData().getContent().size() <= 0) {
+                    throw new IOParameterException("Missing data input value.", inputId);
+
+                } else {
+
+                    try {
+                        dataValue = WPSConvertersUtils.convertFromComplex(version, inputRequest.getData(), expectedClass);
+                    } catch (IllegalArgumentException ex) {
+                        throw new IOParameterException("Error during conversion of complex input " + inputId + " : " + ex.getMessage(), ex, inputId);
+                    }
+                }
+            }
+
+            /**
+             * Handle Literal input data.
+             */
+            if (isLiteral) {
+                //Check if the expected class is supported for literal using
+                if (!WPSIO.isSupportedLiteralInputClass(expectedClass)) {
+                    throw new IOParameterException("Literal value expected", inputId);
+                }
+
+                if(!(inputDescriptor instanceof ParameterDescriptor)) {
+                    throw new IOParameterException("Invalid parameter type.", inputId);
+                }
+
+                final LiteralValue literal = inputRequest.getData().getLiteralData();
+                if (literal != null) {
+                    final String data = literal.getValue();
+
+                    final Unit paramUnit = ((ParameterDescriptor)inputDescriptor).getUnit();
+                    if (paramUnit != null) {
+                        final Unit requestedUnit = Units.valueOf(literal.getUom());
+                        final UnitConverter converter = requestedUnit.getConverterTo(paramUnit);
+                        dataValue = converter.convert(Double.valueOf(data));
+
+                    } else {
+                        try {
+                            dataValue = WPSConvertersUtils.convertFromString(data, expectedClass);
+                        } catch (UnconvertibleObjectException ex) {
+                            throw new IOParameterException("Error during conversion of literal input : " +  inputId + " : " + ex.getMessage(), ex, inputId);
+                        }
+                    }
+
+                // dirty patch, la suite
+                } else {
+                    try {
+                        final String data = (String) inputRequest.getData().getContent().get(0);
+                        dataValue = WPSConvertersUtils.convertFromString(data, expectedClass);
+                    } catch (UnconvertibleObjectException ex) {
+                        throw new IOParameterException("Error during conversion of literal input : " + inputId + " : " + ex.getMessage(), ex, inputId);
+                    }
+                }
+            }
+
+            try {
+                if(inputDescriptor instanceof ParameterDescriptor) {
+                    if (alreadySet.contains(inputIdCode)) {
+                        ParameterValue newOccurence = ((ParameterDescriptor)inputDescriptor).createValue();
+                        newOccurence.setValue(dataValue);
+                        in.values().add(newOccurence);
+                    } else {
+                        in.parameter(inputIdCode).setValue(dataValue);
+                        alreadySet.add(inputIdCode);
+                    }
+
+                } else if(inputDescriptor instanceof ParameterDescriptorGroup && dataValue instanceof Feature) {
+                    WPSConvertersUtils.featureToParameterGroup(version,
+                            (Feature)dataValue,
+                            in.addGroup(inputIdCode));
+                } else {
+                    throw new Exception();
+                }
+            } catch (Exception ex) {
+                throw new IOParameterException("Invalid data input value.", ex, inputId);
+            }
+        }
     }
 
     /**

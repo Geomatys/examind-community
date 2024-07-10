@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <wps:Capabilities xmlns:ns14="http://www.opengis.net/wps/1.0.0" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:ns12="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ns10="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gco="http://www.isotc211.org/2005/gco" service="WPS" version="1.0.0" updateSequence="1530631338678" xml:lang="en-EN">
-    <ows:ServiceIdentification>
+<ows:ServiceIdentification>
         <ows:Title>WPS server</ows:Title>
         <ows:Abstract>WPS server developed by Geomatys for Constellation SDI.</ows:Abstract>
         <ows:Keywords>
@@ -496,6 +496,11 @@
             <ns10:Identifier>urn:exa:wps:examind::test.echo</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Examind : Test.echo</ows:Title>
             <ows:Abstract>Echo different input to output.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:examind::test.param.dependency</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Examind : Test.param.dependency</ows:Title>
+            <ows:Abstract>Param used to test parameter value dependencies.</ows:Abstract>
         </wps:Process>
     </wps:ProcessOfferings>
     <wps:Languages>

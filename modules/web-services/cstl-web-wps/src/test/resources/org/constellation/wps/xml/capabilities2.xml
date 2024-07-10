@@ -497,6 +497,11 @@
             <ows:Title xml:lang="en-EN">Examind : Test.echo</ows:Title>
             <ows:Abstract>Echo different input to output.</ows:Abstract>
         </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:examind::test.param.dependency</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Examind : Test.param.dependency</ows:Title>
+            <ows:Abstract>Param used to test parameter value dependencies.</ows:Abstract>
+        </wps:Process>
     </wps:ProcessOfferings>
     <wps:Languages>
         <wps:Default>

@@ -1,0 +1,9 @@
+{
+    "inputs": [{
+            "id": "urn:exa:wps:examind::test.param.dependency:input:boundary",
+            "input": {
+                "bbox": [2.8, 43.3, 4.9, 44.1],
+                "crs": "EPSG:4326"
+            }
+        }]
+}

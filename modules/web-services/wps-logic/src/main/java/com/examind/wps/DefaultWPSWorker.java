@@ -143,6 +143,7 @@ import org.geotoolkit.wps.xml.v200.DataDescription;
 import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
 import org.geotoolkit.wps.xml.v200.Deploy;
 import org.geotoolkit.wps.xml.v200.DeployResult;
+import org.geotoolkit.wps.xml.v200.DescribeProcessExt;
 import org.geotoolkit.wps.xml.v200.Format;
 import org.geotoolkit.wps.xml.v200.InputDescription;
 import org.geotoolkit.wps.xml.v200.JobControlOptions;
@@ -163,6 +164,7 @@ import org.geotoolkit.wps.xml.v200.LiteralData;
 import org.geotoolkit.wps.xml.v200.OutputDescription;
 import org.geotoolkit.wps.xml.v200.ProcessDescription;
 import org.geotoolkit.wps.xml.v200.ProcessDescriptionChoiceType;
+import org.geotoolkit.wps.xml.v200.ProcessInput;
 import org.geotoolkit.wps.xml.v200.Quotation;
 import org.geotoolkit.wps.xml.v200.QuotationList;
 import org.geotoolkit.wps.xml.v200.Undeploy;
@@ -211,6 +213,8 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
     private String productURL;
 
     private URI schemaFolder;
+    
+    private Path processDescriptionFolder;
     private String schemaURL;
 
     /**
@@ -265,6 +269,8 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 LOGGER.log(Level.WARNING,  "Error while reading custom output directory", ex);
             }
         }
+        
+        this.processDescriptionFolder = configBusiness.getProcessDirectory();
 
         //prepare folder where job products will be stored
         try {
@@ -406,7 +412,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
         for (ProcessDescriptor descriptor : linkedDescriptors) {
             if (WPSUtils.isSupportedProcess(descriptor)) {
-                WPSProcess proc = new GeotkProcess(descriptor, schemaFolder, schemaURL, overridenProperties.get(descriptor), activatePrefix);
+                WPSProcess proc = new GeotkProcess(descriptor, schemaFolder, schemaURL, overridenProperties.get(descriptor), processDescriptionFolder, activatePrefix);
                 try {
                     proc.checkForSchemasToStore();
                     processList.put(proc.getIdentifier(), proc);
@@ -564,6 +570,17 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
         if (request.getLanguage() != null) {
             lang = Locale.forLanguageTag(request.getLanguage());
         }
+        
+        Map<CodeType, List<DataInput>> inputMap = new HashMap<>();
+        if (request instanceof DescribeProcessExt requestExt) {
+            for (ProcessInput pIn : requestExt.getInput()) {
+                CodeType identifier = pIn.getIdentifier();
+                if (identifier == null) {
+                    throw new CstlServiceException("Empty input Identifier.", MISSING_PARAMETER_VALUE);
+                }
+                inputMap.put(identifier, pIn.getInput());
+            }
+        }
 
         final List<CodeType> identifiers;
         // if no identifier is supplied or the special value "all" we return all the process description
@@ -578,7 +595,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
             // Find the process and verify if the descriptor is linked to the WPS instance
             final WPSProcess process = getWPSProcess(identifier.getValue());
             try {
-                descriptions.add(process.getProcessOffering(lang));
+                descriptions.add(process.getProcessOffering(currentVersion, lang, inputMap.get(identifier)));
             } catch (WPSException ex) {
                 throw new CstlServiceException(ex);
             }

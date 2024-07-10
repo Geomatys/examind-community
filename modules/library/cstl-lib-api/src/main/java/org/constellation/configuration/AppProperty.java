@@ -116,6 +116,11 @@ public enum AppProperty {
      * Application data directory
      */
     CSTL_DATA("cstl.data"),
+    
+    /**
+     * Application process description directory
+     */
+    CSTL_PROCESS("cstl.process"),
 
     /**
      * Constellation service URL

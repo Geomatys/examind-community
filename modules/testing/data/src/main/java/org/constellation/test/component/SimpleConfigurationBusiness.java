@@ -97,12 +97,21 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
     @Override
     public Path getAssetsDirectory() {
         final Path folder = ConfigDirectory.getDataDirectory().resolve("assets");
-        if (!Files.exists(folder)) {
-            try {
-                Files.createDirectories(folder);
-            } catch (IOException ex) {
-                throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
-            }
+        try {
+            Files.createDirectories(folder);
+        } catch (IOException ex) {
+            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
+        }
+        return folder;
+    }
+    
+    @Override
+    public Path getProcessDirectory() {
+        final Path folder = ConfigDirectory.getDataDirectory().resolve("process");
+        try {
+            Files.createDirectories(folder);
+        } catch (IOException ex) {
+            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
         }
         return folder;
     }

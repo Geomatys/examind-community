@@ -91,6 +91,7 @@ import org.geotoolkit.wps.xml.v200.DataTransmissionMode;
 import org.geotoolkit.wps.xml.v200.Deploy;
 import org.geotoolkit.wps.xml.v200.DeployResult;
 import org.geotoolkit.wps.xml.v200.DescribeProcess;
+import org.geotoolkit.wps.xml.v200.DescribeProcessExt;
 import org.geotoolkit.wps.xml.v200.Dismiss;
 import org.geotoolkit.wps.xml.v200.Execute;
 import org.geotoolkit.wps.xml.v200.Execute.Response;
@@ -100,6 +101,7 @@ import org.geotoolkit.wps.xml.v200.GetResult;
 import org.geotoolkit.wps.xml.v200.GetStatus;
 import org.geotoolkit.wps.xml.v200.LiteralValue;
 import org.geotoolkit.wps.xml.v200.OutputDefinition;
+import org.geotoolkit.wps.xml.v200.ProcessInput;
 import org.geotoolkit.wps.xml.v200.ProcessOfferings;
 import org.geotoolkit.wps.xml.v200.Quotation;
 import org.geotoolkit.wps.xml.v200.QuotationList;
@@ -387,7 +389,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
         final String sectionsParam = getParameter(SECTIONS_PARAMETER, false);
         if (sectionsParam != null) {
             final String[] acceptSections = sectionsParam.split(",");
-            sections = new SectionsType(Arrays.asList(acceptSections));
+            sections = new SectionsType(List.of(acceptSections));
         }
         final GetCapabilitiesType.AcceptLanguages languages = new GetCapabilitiesType.AcceptLanguages(language);
         return new GetCapabilities(versions, sections, formats, updateSequence, service, languages);
@@ -1000,6 +1002,35 @@ public class WPSService extends OGCWebService<WPSWorker> {
         }
         return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
     }
+    
+    @RequestMapping(path = "processes/{id}", method = RequestMethod.POST)
+    public ResponseEntity describeProcessRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId, 
+            @RequestBody(required = false) org.geotoolkit.wps.json.DescribeProcess request) {
+        putServiceIdParam(serviceId);
+        WPSWorker worker = getWorker(serviceId);
+        if (worker != null) {
+            try {
+                final DescribeProcess dp;
+                if (request != null) {
+                    dp = convertDescribeProcessRequestToXML(processId, request);
+                } else {
+                    dp = new DescribeProcess("WPS", "2.0.0", null, List.of(new CodeType(processId)));
+                }
+                ProcessOfferings offering = worker.describeProcess(dp);
+
+                org.geotoolkit.wps.json.Process process = new org.geotoolkit.wps.json.Process(offering.getProcessOffering().get(0));
+
+                // update executEndpoint
+                process.setExecuteEndpoint(getServiceURL() + "/wps/" + serviceId + "/processes/" + process.getId() + "/jobs");
+
+                return new ResponseObject(process, MediaType.APPLICATION_JSON).getResponseEntity();
+            
+            } catch (Exception ex) {
+                return processExceptionResponse(ex, ServiceDef.WPS_2_0_0, worker, MediaType.APPLICATION_JSON).getResponseEntity();
+            }
+        }
+        return new ResponseObject(HttpStatus.NOT_FOUND).getResponseEntity();
+    }
 
     @RequestMapping(path = "processes/{id}/jobs/{jobID}", method = RequestMethod.GET)
     public ResponseEntity getStatusInfoRestful(@PathVariable("serviceId") String serviceId, @PathVariable("id") String processId,
@@ -1402,41 +1433,27 @@ public class WPSService extends OGCWebService<WPSWorker> {
     }
 
 
+    private static DescribeProcess convertDescribeProcessRequestToXML(String processId, org.geotoolkit.wps.json.DescribeProcess request) throws CstlServiceException {
+        final List<DataInput> inputs = new ArrayList<>();
+        if (request.getInputs() != null) {
+            for (org.geotoolkit.wps.json.Input inputG : request.getInputs()) {
+                DataInput inputData = convertDataInputToXML(inputG);
+                inputs.add(inputData);
+            }
+            CodeType identifier = new CodeType(processId);
+            ProcessInput input = new ProcessInput(identifier, inputs);
+            return new DescribeProcessExt("WPS", "2.0.0", null, List.of(new CodeType(processId)), List.of(input));
+        } else  {
+            return new DescribeProcess("WPS", "2.0.0", null, List.of(new CodeType(processId)));
+        }
+    }
+    
     private static Execute convertExecuteRequestToXML(String processId, org.geotoolkit.wps.json.Execute request) throws CstlServiceException {
         final List<DataInput> inputs = new ArrayList<>();
         final List<OutputDefinition> outputs = new ArrayList<>();
         for (org.geotoolkit.wps.json.Input inputG : request.getInputs()) {
-            InputBase input = inputG.getInput();
-            Format format = null;
-            Object value;
-            if ((input instanceof ComplexInput) && ((ComplexInput)input).getFormat() != null) {
-                ComplexInput cInput = (ComplexInput) input;
-                if (cInput.getFormat() != null) {
-                    format = new Format(cInput.getFormat().getEncoding(), cInput.getFormat().getMimeType(), cInput.getFormat().getSchema(), null);
-                }
-                if (cInput.getValue()!= null && cInput.getValue().getInlineValue() != null) {
-                    value = cInput.getValue().getInlineValue();
-                } else if (cInput.getValue()!= null && cInput.getValue().getHref() != null) {
-                    value = cInput.getValue().getHref();
-                } else {
-                    throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + inputG.getId(), INVALID_PARAMETER_VALUE);
-                }
-            } else if (input instanceof LiteralInput) {
-                LiteralInput lInput = (LiteralInput) input;
-                value = lInput.getValue();
-            } else if (input instanceof BoundingBoxInput) {
-                BoundingBoxInput bbInput = (BoundingBoxInput) input;
-                if (bbInput.getBbox() != null && !bbInput.getBbox().isEmpty() && bbInput.getBbox().size() == 4) {
-                    value = new BoundingBoxType(bbInput.getCrs(), bbInput.getBbox().get(0), bbInput.getBbox().get(1), bbInput.getBbox().get(2), bbInput.getBbox().get(3));
-                } else {
-                    throw new CstlServiceException("Malformed input bbox coordinate." + inputG.getId(), INVALID_PARAMETER_VALUE);
-                }
-            } else {
-                throw new CstlServiceException("Nested input are not yet supported:" + inputG.getId(), INVALID_PARAMETER_VALUE);
-            }
-
-            Data inputData = new Data(format, value);
-            inputs.add(new DataInput(inputG.getId(), inputData));
+            DataInput inputData = convertDataInputToXML(inputG);
+            inputs.add(inputData);
         }
 
         for (org.geotoolkit.wps.json.Output output : request.getOutputs()) {
@@ -1451,6 +1468,37 @@ public class WPSService extends OGCWebService<WPSWorker> {
         Execute exec = new Execute("WPS", "2.0.0", null, new CodeType(processId), inputs, outputs, request.getResponse());
         exec.setMode(request.getMode());
         return exec;
+    }
+    
+    private static DataInput convertDataInputToXML(org.geotoolkit.wps.json.Input inputG) throws CstlServiceException {
+        InputBase input = inputG.getInput();
+        Format format = null;
+        Object value;
+        if (input instanceof ComplexInput cInput && cInput.getFormat() != null) {
+            org.geotoolkit.wps.json.Format cFormat = cInput.getFormat();
+            format = new Format(cFormat.getEncoding(), cFormat.getMimeType(), cFormat.getSchema(), null);
+            ValueType cvalue = cInput.getValue();
+            if (cvalue != null && cvalue.getInlineValue() != null) {
+                value = cvalue.getInlineValue();
+            } else if (cvalue != null && cvalue.getHref() != null) {
+                value = cvalue.getHref();
+            } else {
+                throw new CstlServiceException("Missing input valueReference/inlineValue for parameter:" + inputG.getId(), INVALID_PARAMETER_VALUE);
+            }
+        } else if (input instanceof LiteralInput lInput) {
+            value = lInput.getValue();
+        } else if (input instanceof BoundingBoxInput bbInput) {
+            if (bbInput.getBbox() != null && !bbInput.getBbox().isEmpty() && bbInput.getBbox().size() == 4) {
+                value = new BoundingBoxType(bbInput.getCrs(), bbInput.getBbox().get(0), bbInput.getBbox().get(1), bbInput.getBbox().get(2), bbInput.getBbox().get(3));
+            } else {
+                throw new CstlServiceException("Malformed input bbox coordinate." + inputG.getId(), INVALID_PARAMETER_VALUE);
+            }
+        } else {
+            throw new CstlServiceException("Nested input are not yet supported:" + inputG.getId(), INVALID_PARAMETER_VALUE);
+        }
+
+        Data inputData = new Data(format, value);
+        return new DataInput(inputG.getId(), inputData);
     }
 
     private static org.geotoolkit.wps.json.Execute convertExecuteRequestToJson(Execute request) throws CstlServiceException {

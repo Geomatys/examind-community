@@ -43,7 +43,7 @@
                 <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume:input:GridCoverageResource</ns9:Identifier>
                 <ows:Title xml:lang="fr-FR">GridCoverageResource</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">GridCoverageResource which contain Digital Elevation model to compute bulk.</ows:Abstract>
-                <ComplexData maximumMegabytes="100"/>
+                <ComplexData maximumMegabytes="100"></ComplexData>
             </Input>
             <Input minOccurs="1" maxOccurs="1">
                 <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:computeVolume:input:Geometry</ns9:Identifier>
@@ -7310,5 +7310,73 @@
                 </ComplexOutput>
             </Output>
         </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:examind::test.param.dependency</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Examind : Test.param.dependency</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Param used to test parameter value dependencies.</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.param.dependency:input:country</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Country</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Country.</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>France</ows:Value>
+                        <ows:Value>Espagne</ows:Value>
+                        <ows:Value>Belgique</ows:Value>
+                    </ows:AllowedValues>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.param.dependency:input:city</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">City</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">City.</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>Barcelone</ows:Value>
+                        <ows:Value>Gognies-Chaussée</ows:Value>
+                        <ows:Value>Paris</ows:Value>
+                    </ows:AllowedValues>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.param.dependency:input:district</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">District</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">District.</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#integer">Integer</ows:DataType>
+                    <ows:AllowedValues>
+                        <ows:Value>1</ows:Value>
+                        <ows:Value>2</ows:Value>
+                        <ows:Value>3</ows:Value>
+                        <ows:Value>4</ows:Value>
+                    </ows:AllowedValues>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:examind::test.param.dependency:input:boundary</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Boundary</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Boundary.</ows:Abstract>
+                <BoundingBoxData>
+                    <Default>
+                        <CRS>EPSG:4326</CRS>
+                    </Default>
+                    <Supported>
+                        <CRS>EPSG:4326</CRS>
+                        <CRS>CRS:84</CRS>
+                        <CRS>EPSG:3395</CRS>
+                        <CRS>EPSG:3857</CRS>
+                        <CRS>EPSG:27571</CRS>
+                        <CRS>EPSG:27572</CRS>
+                        <CRS>EPSG:27573</CRS>
+                        <CRS>EPSG:27574</CRS>
+                    </Supported>
+                </BoundingBoxData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs></ProcessOutputs>
     </ProcessDescription>
 </wps:ProcessDescriptions>
