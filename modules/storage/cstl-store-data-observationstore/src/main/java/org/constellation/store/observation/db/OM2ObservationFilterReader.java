@@ -419,11 +419,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     // add the time for profile in the dataBlock if requested
                     if (profileWithTime) {
-                        fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
+                        fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, -1));
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
+                        fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, -1));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -725,11 +725,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, 1));
+                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, -1));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, 1));
+                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, -1));
             }
 
             /**

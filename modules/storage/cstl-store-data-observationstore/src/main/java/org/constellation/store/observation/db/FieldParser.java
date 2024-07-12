@@ -119,9 +119,12 @@ public class FieldParser {
                 values.appendBoolean(bvalue, isMeasureField, field);
                 break;
             default:
-                String svalue = rs.getString(fieldName, rsIndex);
+                String svalue;
+                // id field is present in all th resultSets
                 if (includeID && fieldName.equals("id")) {
-                    svalue = name + '-' + svalue;
+                    svalue =  name + '-' + rs.getString(fieldName);
+                } else {
+                    svalue = rs.getString(fieldName, rsIndex);
                 }
                 values.appendString(svalue, isMeasureField, field);
                 break;

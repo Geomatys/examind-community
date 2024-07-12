@@ -4765,7 +4765,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(12.0, mr.getValue());
     }
-
+    
     @Test
     public void getObservationsTimeDisorderTest() throws Exception {
         assertNotNull(omPr);
@@ -6476,6 +6476,42 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                 + "2000-09-20T20:00:00.0,1.3@@";
 
         assertEquals(expectedResult, result);
+        
+        // sensor 18 no decimation on field salinity with id
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-4"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        query.setIncludeIdInDataBlock(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "urn:ogc:object:observation:GEOM:9002-1,2000-08-01T00:00:00.0,1.1@@"
+                + "urn:ogc:object:observation:GEOM:9002-2,2000-09-01T00:00:00.0,1.1@@"
+                + "urn:ogc:object:observation:GEOM:9002-3,2000-10-01T00:00:00.0,1.3@@";
+        assertEquals(expectedResult, result);
+         
+        // sensor 18 decimation on field salinity with id
+        f = ff.equal(ff.property("observationId"), ff.literal("urn:ogc:object:observation:template:GEOM:18-4"));
+        query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:18", "csv");
+        query.setIncludeIdInDataBlock(true);
+        query.setDecimationSize(5);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                  "urn:ogc:object:sensor:GEOM:18-dec-0,2000-08-01T00:00:00.0,1.1@@"
+                + "urn:ogc:object:sensor:GEOM:18-dec-1,2000-09-10T16:00:00.0,1.1@@"
+                + "urn:ogc:object:sensor:GEOM:18-dec-2,2000-09-20T20:00:00.0,1.3@@";
+
+        assertEquals(expectedResult, result);       
+        
+        
     }
     
     @Test

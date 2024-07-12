@@ -139,9 +139,9 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 // already extracted
                 if (i == mainFieldIndex) {
 
-                // time for profile field
+                // time for profile field (present in all resultSets)
                 } else if (i < fieldOffset && field.type == FieldType.TIME) {
-                    t = dateFromTS(rs.getTimestamp(field.name, rsIndex));
+                    t = dateFromTS(rs.getTimestamp(field.name));
 
                 // identifier field
                 } else if (i < fieldOffset && field.type == FieldType.TEXT) {

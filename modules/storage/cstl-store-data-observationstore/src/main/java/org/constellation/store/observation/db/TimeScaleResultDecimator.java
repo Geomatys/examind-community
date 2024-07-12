@@ -70,6 +70,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                 }
                 switch (field.type) {
                     case TIME -> {
+                        // TODO verify if we must include rsInde for profile
                         Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
                         values.appendTime(t, true, field);
                     }
