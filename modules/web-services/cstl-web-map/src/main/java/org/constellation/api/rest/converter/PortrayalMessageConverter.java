@@ -55,6 +55,9 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
 
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+        if (mediaType != null && !getSupportedMediaTypes().contains(mediaType)) {
+            return false;
+        }
         return PortrayalResponse.class.isAssignableFrom(clazz);
     }
 
@@ -63,7 +66,8 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
         return Arrays.asList(
                 MediaType.IMAGE_PNG,
                 MediaType.IMAGE_GIF,
-                MediaType.IMAGE_JPEG);
+                MediaType.IMAGE_JPEG,
+                MediaType.parseMediaType("image/bmp"));
     }
 
     @Override
@@ -74,7 +78,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
     @Override
     public void write(PortrayalResponse r, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
         try (final ByteArrayOutputStream out = new ByteArrayOutputStream()){
-            
+
             OutputDef outdef = r.getOutputDef();
             if(outdef == null){
                 List<String> outFormats = outputMessage.getHeaders().get("Content-Type");
