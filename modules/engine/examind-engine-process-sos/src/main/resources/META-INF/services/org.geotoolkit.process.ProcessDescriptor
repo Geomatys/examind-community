@@ -2,3 +2,4 @@ com.examind.process.sos.SosHarvesterProcessDescriptor
 com.examind.process.sos.HarvesterPreProcessDescriptor
 com.examind.process.sos.HarvesterCleanerDescriptor
 com.examind.process.sos.FieldNameCorrectorDescriptor
+com.examind.process.sos.STADownloaderDescriptor
