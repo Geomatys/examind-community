@@ -290,7 +290,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     }
 
     /**
-     * overridden while geotk does not handle sensorId filter
+     * overridden while geotk does not handle proper omType
      */
     @Override
     public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
@@ -299,14 +299,14 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         final ObservationFilterReader procFilter = getFilter();
         
         procFilter.init(new ProcedureQuery());
-        // TODO  <start> move up to geotk
         procFilter.setProcedure(query.getSensorIds());
-        // TODO  <end> move up to geotk
         
         for (org.opengis.observation.Process p : procFilter.getProcesses()) {
 
             final Procedure proc  =  (Procedure) p;
+            // TODO  <start> move up to geotk
             final String omType = (String) proc.getProperties().getOrDefault("type", "timeseries");
+            // TODO  <end> move up to geotk
             final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), "Component", omType, new ArrayList<>(), null);
 
             Observation template = (Observation) getReader().getTemplateForProcedure(proc.getId());
