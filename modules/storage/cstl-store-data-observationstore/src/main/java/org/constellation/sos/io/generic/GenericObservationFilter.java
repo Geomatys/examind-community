@@ -73,6 +73,7 @@ import org.opengis.util.CodeList;
 import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
+import org.opengis.filter.BinarySpatialOperator;
 
 /**
  *
@@ -419,7 +420,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setBoundingBox(final Envelope e) throws DataStoreException {
+    public void setBoundingBox(final BinarySpatialOperator e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
     }
 

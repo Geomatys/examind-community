@@ -61,6 +61,7 @@ import org.constellation.util.SingleFilterSQLRequest.Param;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.*;
 import static org.geotoolkit.observation.OMUtils.*;
@@ -77,6 +78,7 @@ import org.geotoolkit.observation.query.ResultQuery;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.ComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Literal;
@@ -1909,8 +1911,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public void setBoundingBox(final Envelope e) throws DataStoreException {
+    public void setBoundingBox(final BinarySpatialOperator box) throws DataStoreException {
         if (LOCATION.equals(objectType) || HISTORICAL_LOCATION.equals(objectType)) {
+            Envelope e = OMUtils.getEnvelopeFromBBOXFilter(box);
             envelopeFilter = new GeneralEnvelope(e);
         } else {
             throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");

@@ -52,6 +52,7 @@ import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
@@ -509,7 +510,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setBoundingBox(Envelope e) throws DataStoreException {
+    public void setBoundingBox(BinarySpatialOperator e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
     }
 
