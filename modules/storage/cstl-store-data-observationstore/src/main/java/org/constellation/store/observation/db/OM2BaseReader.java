@@ -856,6 +856,14 @@ public class OM2BaseReader {
             }
         }
     }
+    
+    protected Optional<ProcedureInfo> getPIDFromProcedureSafe(final String procedureId, final Connection c) throws RuntimeException {
+        try {
+            return getPIDFromProcedure(procedureId, c);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to fetch procedure attributes from ID: " + procedureId, ex);
+        }
+    }
 
     /**
      * Return the observation internal id for the specified observation identifier.

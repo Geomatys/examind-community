@@ -30,7 +30,6 @@ import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -260,9 +259,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<org.opengis.observation.Observation> observations = new ArrayList<>();
 
         // various cache map to avoid reading multiple time the same data
-        final Map<String, Procedure> processMap = new HashMap<>();
-        final Map<String, Phenomenon> phenMap = new HashMap<>();
-        final Map<String, Map<String, Object>> obsPropMap  = new HashMap<>();
+        final Map<String, Procedure> processMap               = new HashMap<>();
+        final Map<String, Phenomenon> phenMap                 = new HashMap<>();
+        final Map<String, Map<String, Object>> obsPropMap     = new HashMap<>();
+        final Map<String, ProcedureInfo> ptiMap               = new HashMap<>();
+        final Map<String, TemporalGeometricPrimitive> timeMap = new HashMap<>();
 
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
@@ -283,7 +284,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final DbField field   = getFieldByIndex(procedure, fieldIndex, true, c);
 
                 if (hasMeasureFilter) {
-                    ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
+                    ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                     final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
                     MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
@@ -306,12 +307,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 });
                 
 
-                final Phenomenon phen = phenMap.computeIfAbsent(observedProperty,op -> {return getPhenomenonSafe(op, c);});
-                String featureID = null;
-                SamplingFeature feature = null;
+                final Phenomenon phen = phenMap.computeIfAbsent(observedProperty, op -> {return getPhenomenonSafe(op, c);});
+                final String featureID;
+                final SamplingFeature feature;
                 if (includeFoiInTemplate) {
                     featureID = rs.getString("foi");
-                    feature = getFeatureOfInterest(featureID, c);
+                    feature   = getFeatureOfInterest(featureID, c);
+                } else {
+                    featureID = null;
+                    feature   = null;
                 }
 
                 /*
@@ -321,7 +325,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 
                 TemporalGeometricPrimitive tempTime = null;
                 if (includeTimeInTemplate) {
-                    tempTime = getTimeForTemplate(c, procedure, observedProperty, featureID);
+                    String timeKey =  procedure + "-" + observedProperty + "-" + featureID;
+                    tempTime = timeMap.computeIfAbsent(timeKey, k -> getTimeForTemplate(c, procedure, observedProperty, featureID));
                 }
                 final String observationType      = getOmTypeFromFieldType(field.type);
                 MeasureResult result              = new MeasureResult(field, null);
@@ -358,6 +363,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Procedure> processMap     = new LinkedHashMap<>();
         final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
+        final Map<String, ProcedureInfo> ptiMap     = new HashMap<>();
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
@@ -376,7 +382,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String featureID   = rs.getString("foi");
                 final int oid            = rs.getInt("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
-                ProcedureInfo pti        = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
+                ProcedureInfo pti        = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                 boolean profile          = "profile".equals(pti.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
 
@@ -563,6 +569,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
         final Map<String, Map<Field, Phenomenon>> phenMap = new HashMap<>();
+        final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
@@ -575,7 +582,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String obsID = "obs-" + oid;
                 final String featureID = rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
-                final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow();// we know that the procedure exist
+                final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
                 final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
                 final TemporalGeometricPrimitive time = buildTime(obsID, startTime, endTime);

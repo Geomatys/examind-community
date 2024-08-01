@@ -1440,6 +1440,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
              final SQLResult rs = sqlRequest.execute(c)) {
+            final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
             final Map<String, List<Field>> fieldMap = new HashMap<>();
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
@@ -1454,7 +1455,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         final int fieldIndex = rs.getInt("order");
                         if (hasMeasureFilter) {
                             final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
-                            final ProcedureInfo pti = getPIDFromProcedure(procedure, c).orElseThrow(IllegalStateException::new); // we know that the procedure exist
+                            final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                             final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
                             MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
@@ -1474,7 +1475,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final int oid            = rs.getInt("id");
                     final String name        = rs.getString("identifier");
                     final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters));
-                    final ProcedureInfo pti  = getPIDFromProcedure(procedure, c).orElseThrow(); // we know that the procedure exist
+                    final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final FilterSQLRequest measureFilter      = applyFilterOnMeasureRequest(0, fields, pti);
@@ -1525,6 +1526,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString() + '\n' + ex.getMessage());
             throw new DataStoreException("the service has throw a SQL Exception.");
+        } catch (RuntimeException ex) {
+            throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
         return results;
     }
