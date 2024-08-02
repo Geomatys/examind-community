@@ -19,10 +19,10 @@
 package org.constellation.store.observation.db.decimation;
 
 import java.util.Map;
-import org.apache.sis.geometry.GeneralEnvelope;
 import org.constellation.store.observation.db.model.OMSQLDialect;
 import org.constellation.store.observation.db.SensorLocationProcessor;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.opengis.geometry.Envelope;
 
 /**
  *
@@ -36,7 +36,7 @@ public abstract class AbstractSensorLocationDecimator extends SensorLocationProc
 
     protected final Map<Object, long[]> times;
 
-    public AbstractSensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+    public AbstractSensorLocationDecimator(Envelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
         super(envelopeFilter, dialect);
         this.nbCell = width;
         this.times = times;

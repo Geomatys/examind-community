@@ -313,7 +313,7 @@ public final class ODataFilterParser {
                 WKTReader reader = new WKTReader();
                 try {
                     Geometry geom = reader.read(geomStr);
-                    geom.setUserData(CommonCRS.WGS84.geographic());
+                    geom.setUserData(CommonCRS.WGS84.normalizedGeographic());
                     Envelope e = JTS.toEnvelope(geom);
                     return ff.bbox(ff.property("location"), e);
                 } catch (ParseException ex) {

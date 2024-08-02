@@ -1,0 +1,23 @@
+{
+    "value": [{
+            "description": "",
+            "unitOfMeasurement": {
+                "name": "°C",
+                "symbol": "°C",
+                "definition": "°C"
+            },
+            "observationType": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
+            "observedArea": {
+                "type": "Point",
+                "coordinates": [5.0, 10.0]
+            },
+            "phenomenonTime": "2007-05-01T14:59:00Z",
+            "resultTime": "2007-05-01T14:59:00Z",
+            "@iot.id": "urn:ogc:object:observation:template:GEOM:7-2",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)",
+            "Thing@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Things",
+            "Sensor@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Sensors",
+            "ObservedProperty@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/ObservedProperties",
+            "Observations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:7-2)/Observations"
+        }]
+}

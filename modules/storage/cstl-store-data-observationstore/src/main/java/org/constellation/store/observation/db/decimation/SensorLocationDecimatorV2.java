@@ -26,21 +26,16 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
-import org.apache.sis.util.Utilities;
 import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.model.OMSQLDialect;
-import org.geotoolkit.geometry.GeometricUtilities;
-import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
+import static org.geotoolkit.observation.OMUtils.geometryMatchEnvelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
 import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
+import org.opengis.geometry.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 
 /**
@@ -49,29 +44,21 @@ import org.opengis.util.FactoryException;
  */
 public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
 
-    public SensorLocationDecimatorV2(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+    public SensorLocationDecimatorV2(Envelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
         super(envelopeFilter, width, times, dialect);
     }
 
     @Override
     public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
-        Geometry spaFilter = null;
-        final CoordinateReferenceSystem envCRS;
-        if (envelopeFilter != null) {
-            envCRS = envelopeFilter.getCoordinateReferenceSystem();
-            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
-        } else {
-            envCRS = CommonCRS.WGS84.normalizedGeographic();
-        }
         Map<String, Map<Integer, List>> procedureCells = new HashMap<>();
         Map<Integer, List> currentGeoms = null;
         long start = -1;
         long step  = -1;
         String prevProc = null;
         int tIndex = 0; //dates are ordened
-        final WKBReader reader = new WKBReader(JTS_GEOM_FACTORY);
-        while (rs.next()) {
-            try {
+        try {
+            while (rs.next()) {
+            
                 final String procedure = rs.getString("procedure");
 
                 if (!procedure.equals(prevProc)) {
@@ -84,24 +71,14 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                 prevProc = procedure;
 
                 org.locationtech.jts.geom.Geometry geom = readGeom(rs, 3);
-                if (geom != null) {
-                    final int srid = rs.getInt(4);
-                    final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
-                    JTS.setCRS(geom, currentCRS);
-                    // reproject geom to envelope CRS if needed
-                    if (!Utilities.equalsIgnoreMetadata(currentCRS, envCRS)) {
-                        try {
-                            geom = org.apache.sis.geometry.wrapper.jts.JTS.transform(geom, envCRS);
-                        } catch (TransformException ex) {
-                            throw new DataStoreException(ex);
-                        }
-                    }
-                } else {
-                    continue;
-                }
-
+                if (geom == null) continue;
+                
+                final int srid = rs.getInt(4);
+                final CoordinateReferenceSystem currentCRS = OM2Utils.parsePostgisCRS(srid);
+                JTS.setCRS(geom, currentCRS);
+                
                 // exclude from spatial filter  (will be removed when postgis filter will be set in request)
-                if (spaFilter != null && !spaFilter.intersects(geom)) {
+                if (envelopeFilter != null && !geometryMatchEnvelope(geom, envelopeFilter)) {
                     continue;
                 }
 
@@ -118,10 +95,9 @@ public class SensorLocationDecimatorV2 extends AbstractSensorLocationDecimator {
                     geoms.add(geom);
                     currentGeoms.put(tIndex, geoms);
                 }
-
-            } catch (ParseException | FactoryException ex) {
-                throw new DataStoreException(ex);
             }
+        } catch (ParseException | FactoryException ex) {
+            throw new DataStoreException(ex);
         }
 
         Map<String, Map<Date, Geometry>> locations = new LinkedHashMap<>();

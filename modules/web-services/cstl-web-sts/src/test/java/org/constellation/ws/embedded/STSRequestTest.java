@@ -1574,6 +1574,93 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String expResult = getStringFromFile("com/examind/sts/embedded/loc-th2.json");
         compareJSON(expResult, result);
     }
+    
+    @Test
+    public void getThingsGeoFilterTest() throws Exception {
+        initPool();
+
+        String filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/th-bbox.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-top.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$skip=2&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-top2.json");
+        compareJSON(expResult, result);
+        
+        /*
+         * Test on count
+         */
+        
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-top-ct.json");
+        compareJSON(expResult, result);
+
+        filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Things?$count=true&$skip=2&$top=2&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-top2-ct.json");
+        compareJSON(expResult, result);
+    }
+        
+    @Test
+    public void getEntityGeoFilterTest() throws Exception {
+        initPool();
+
+        // smal box arround sensor 7
+        String filter = "st_contains(location, geography'POLYGON ((19 10, 21 10, 21 13, 19 13, 19 10))')".replace(" ", "%20");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Things?$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/th-bbox-2.json");
+        compareJSON(expResult, result);
+        
+        // bbox on observations endpoint apply a thing filter
+        filter = "st_contains(location, geography'POLYGON ((19 10, 21 10, 21 13, 19 13, 19 10))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Observations?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-bbox.json");
+        compareJSON(expResult, result);
+        
+        // bbox on Datastreams endpoint apply a thing filter
+        filter = "st_contains(location, geography'POLYGON ((19 10, 21 10, 21 13, 19 13, 19 10))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-bbox.json");
+        compareJSON(expResult, result);
+        
+        // bbox on Observed properties endpoint apply a thing filter
+        filter = "st_contains(location, geography'POLYGON ((19 10, 21 10, 21 13, 19 13, 19 10))')".replace(" ", "%20");
+        getFoiUrl = new URL(getDefaultURL() + "/ObservedProperties?$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obsprop-bbox.json");
+        compareJSON(expResult, result);
+    }
 
     @Test
     public void getLocationsTest() throws Exception {
@@ -1621,6 +1708,8 @@ public class STSRequestTest extends AbstractGrizzlyServer {
     public void getLocationsGeoFilterTest() throws Exception {
         initPool();
 
+       // String filter = "st_contains(location, geography'POLYGON ((10 -3, 40 -3, 40 40, 10 40, 10 -3))')".replace(" ", "%20");
+       
         String filter = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')".replace(" ", "%20");
         URL getFoiUrl = new URL(getDefaultURL() + "/Locations?$filter=" + filter);
 
@@ -1666,7 +1755,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/loc-bbox-top2-ct.json");
         compareJSON(expResult, result);
     }
-
+    
     @Test
     public void getLocationsFilterTest() throws Exception {
         initPool();

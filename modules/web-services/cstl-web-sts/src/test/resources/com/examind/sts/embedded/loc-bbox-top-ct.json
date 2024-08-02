@@ -32,6 +32,6 @@
             "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18)/Things",
             "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:18)/HistoricalLocations"
         }],
-    "@iot.count": 4,
+    "@iot.count": 5,
     "@iot.nextLink": "http://localhost:9090/WS/sts/default/v1.1/Locations?$skip=2&$top=2&$filter=st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')&$count=true"
 }

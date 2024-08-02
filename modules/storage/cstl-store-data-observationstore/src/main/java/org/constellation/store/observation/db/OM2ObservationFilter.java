@@ -46,7 +46,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
-import org.apache.sis.geometry.GeneralEnvelope;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
@@ -58,8 +57,6 @@ import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.constellation.util.SingleFilterSQLRequest.Param;
-import org.geotoolkit.geometry.GeometricUtilities;
-import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
@@ -75,7 +72,6 @@ import org.geotoolkit.observation.query.HistoricalLocationQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ResultQuery;
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
@@ -147,7 +143,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected List<Integer> measureIdFilters = new ArrayList<>();
 
-    protected GeneralEnvelope envelopeFilter = null;
+    protected Envelope envelopeFilter = null;
 
     protected Long limit     = null;
     protected Long offset    = null;
@@ -1560,6 +1556,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             return filterSensorLocations(forCount).count;
         }
     }
+    
+    protected boolean entityMatchEnvelope(final SQLResult rs, String geomColumn, String crsColumn) throws SQLException, DataStoreException, ParseException, FactoryException {
+        if (envelopeFilter != null) {
+            final org.locationtech.jts.geom.Geometry geom = readGeom(rs, geomColumn);
+            if (geom == null) return false;
+            final int srid = rs.getInt(crsColumn);
+            final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
+            JTS.setCRS(geom, crs);
+
+            return geometryMatchEnvelope(geom, envelopeFilter);
+        }
+        return true;
+    }
 
     private CountOrIdentifiers filterSensorLocations(boolean forCount) throws DataStoreException {
         CountOrIdentifiers results = new CountOrIdentifiers(forCount);
@@ -1569,16 +1578,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         sqlRequest.join(joins, firstFilter);
         
-         // will be removed when postgis filter will be set in request
-        Geometry spaFilter = null;
-        if (envelopeFilter != null) {
-            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
-        }
         if (!forCount) {
             sqlRequest.append(" ORDER BY \"id\"");
         }
         boolean applyPostPagination = true;
-        if (spaFilter == null) {
+        if (envelopeFilter == null) {
             applyPostPagination = false;
             sqlRequest = appendPaginationToRequest(sqlRequest);
         }
@@ -1591,19 +1595,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String procedure = rs.getString("id");
                     
                      // exclude from spatial filter (will be removed when postgis filter will be set in request)
-                    if (spaFilter != null) {
-                        final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
-                        if (geom != null) {
-                            final int srid = rs.getInt(3);
-                            final CoordinateReferenceSystem crs= OM2Utils.parsePostgisCRS(srid);
-                            JTS.setCRS(geom, crs);
-                        } else {
-                            continue;
-                        }
-                   
-                        if (!spaFilter.intersects(geom)) {
-                            continue;
-                        }
+                    if (!entityMatchEnvelope(rs, "location", "crs")) {
+                        continue;
                     }
                     results.add(procedure);
                 } catch (FactoryException | ParseException ex) {
@@ -1639,14 +1632,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         sqlRequest.join(joins, firstFilter);
 
-        // will be removed when postgis filter will be set in request
-        Geometry spaFilter = null;
-        if (envelopeFilter != null) {
-            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
-        }
-        
         boolean applyPostPagination = true;
-        if (spaFilter == null) {
+        if (envelopeFilter == null) {
             applyPostPagination = false;
             sqlRequest = appendPaginationToRequest(sqlRequest);
         }
@@ -1660,19 +1647,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String procedure = rs.getString("procedure");
                     final long time = rs.getTimestamp("time").getTime();
 
-                    if (envelopeFilter != null) {
-                        final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
-                        if (geom != null) {
-                            final int srid = rs.getInt(4);
-                            final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                            JTS.setCRS(geom, crs);
-                        } else {
-                            continue;
-                        }
-                        // exclude from spatial filter (will be removed when postgis filter will be set in request)
-                        if (spaFilter != null && !spaFilter.intersects(geom)) {
-                            continue;
-                        }
+                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                    if (!entityMatchEnvelope(rs, "location", "crs")) {
+                        continue;
                     }
                     final String hlid = procedure + "-" + time;
 
@@ -1697,7 +1674,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return results;
     }
 
-    private String getFeatureOfInterestRequest() {
+    private List<String> filterFeatureOfInterest() throws DataStoreException {
         sqlRequest = appendPaginationToRequest(sqlRequest);
         List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
@@ -1720,7 +1697,39 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             sqlRequest.replaceAll("${phen-prop-join}", "offop.\"phenomenon\"");
         }
         sqlRequest.join(joins, firstFilter);
-        return sqlRequest.toString();
+        
+        boolean applyPostPagination = true;
+        if (envelopeFilter == null) {
+            applyPostPagination = false;
+            sqlRequest = appendPaginationToRequest(sqlRequest);
+        }
+
+        LOGGER.fine(sqlRequest.toString());
+        List<String> results            = new ArrayList<>();
+        try(final Connection c = source.getConnection();
+            final SQLResult rs = sqlRequest.execute(c)) {
+            while (rs.next()) {
+                try {
+                    final String id = rs.getString("id");
+                    
+                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                    if (!entityMatchEnvelope(rs, "shape", "crs")) {
+                        continue;
+                    }
+                    results.add(id);
+
+                } catch (FactoryException | ParseException ex) {
+                    throw new DataStoreException(ex);
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            throw new DataStoreException("the service has throw a SQL Exception.", ex);
+        }
+        if (applyPostPagination) {
+            results = applyPostPagination(results);
+        }
+        return results;
     }
 
     private String getPhenomenonRequest() {
@@ -1845,10 +1854,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         String request;
         switch (objectType) {
-            case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(); break;
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(); break;
             case PROCEDURE:           request = getProcedureRequest(); break;
             case OFFERING:            request = getOfferingRequest(); break;
+            case FEATURE_OF_INTEREST: return new LinkedHashSet<>(filterFeatureOfInterest());
             case OBSERVATION:         return new LinkedHashSet(filterObservation(false).identifiers);
             case LOCATION:            return new LinkedHashSet(filterSensorLocations(false).identifiers);
             case HISTORICAL_LOCATION: return new LinkedHashSet(filterHistoricalSensorLocations());
@@ -1880,11 +1889,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         String request;
         switch (objectType) {
-            case FEATURE_OF_INTEREST: request = getFeatureOfInterestRequest(); break;
             case OBSERVED_PROPERTY:   request = getPhenomenonRequest(); break;
             case PROCEDURE:           request = getProcedureRequest(); break;
             case OFFERING:            request = getOfferingRequest(); break;
             case HISTORICAL_LOCATION: request = getHistoricalLocationRequest();break;
+            case FEATURE_OF_INTEREST: return filterFeatureOfInterest().size();
             case OBSERVATION:         return filterObservation(true).count;
             case RESULT:              return filterResult().size();
             case LOCATION:            return getSensorLocationCount(true);
@@ -1912,9 +1921,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     @Override
     public void setBoundingBox(final BinarySpatialOperator box) throws DataStoreException {
-        if (LOCATION.equals(objectType) || HISTORICAL_LOCATION.equals(objectType)) {
+        if (LOCATION.equals(objectType) || HISTORICAL_LOCATION.equals(objectType) || FEATURE_OF_INTEREST.equals(objectType)) {
             Envelope e = OMUtils.getEnvelopeFromBBOXFilter(box);
-            envelopeFilter = new GeneralEnvelope(e);
+            envelopeFilter = e;
         } else {
             throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
         }
@@ -2018,7 +2027,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             throw new DataStoreException(ex);
         }
     }
-
+    
     protected List applyPostPagination(List full) {
         if (offset == null && limit == null) return full;
         

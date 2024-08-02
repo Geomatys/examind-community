@@ -25,7 +25,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.store.observation.db.OM2Utils;
@@ -49,7 +50,7 @@ import org.opengis.util.FactoryException;
  */
 public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
 
-    public SensorLocationDecimator(GeneralEnvelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
+    public SensorLocationDecimator(org.opengis.geometry.Envelope envelopeFilter, int width, final Map<Object, long[]> times, OMSQLDialect dialect) {
         super(envelopeFilter, width, times, dialect);
     }
 
@@ -57,13 +58,19 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
     public Map<String, Map<Date, Geometry>> processLocations(SQLResult rs) throws SQLException, DataStoreException {
 
         final Envelope[][] geoCells = new Envelope[nbCell][nbCell];
+        org.opengis.geometry.Envelope envelope;
+        if (envelopeFilter != null) {
+            envelope = envelopeFilter;
+        } else {
+            envelope = CRS.getDomainOfValidity(CommonCRS.WGS84.geographic());
+        }
 
         // prepare geometrie cells
-        final CoordinateReferenceSystem envCRS = envelopeFilter.getCoordinateReferenceSystem();
-        final double envMinx = envelopeFilter.getMinimum(0);
-        final double envMiny = envelopeFilter.getMinimum(1);
-        final double xStep = envelopeFilter.getSpan(0) / nbCell;
-        final double yStep = envelopeFilter.getSpan(1) / nbCell;
+        final CoordinateReferenceSystem envCRS = envelope.getCoordinateReferenceSystem();
+        final double envMinx = envelope.getMinimum(0);
+        final double envMiny = envelope.getMinimum(1);
+        final double xStep = envelope.getSpan(0) / nbCell;
+        final double yStep = envelope.getSpan(1) / nbCell;
         for (int i = 0; i < nbCell; i++) {
             double minx = envMinx + i*xStep;
             double maxx = minx + xStep;
@@ -81,8 +88,8 @@ public class SensorLocationDecimator extends AbstractSensorLocationDecimator {
         List<NarrowEnvelope> nEnvs = new ArrayList<>();
         int reduce = 10;
         int tmpNbCell = nbCell/reduce;
-        final double fLvlXStep = envelopeFilter.getSpan(0) / tmpNbCell;
-        final double flvlyStep = envelopeFilter.getSpan(1) / tmpNbCell;
+        final double fLvlXStep = envelope.getSpan(0) / tmpNbCell;
+        final double flvlyStep = envelope.getSpan(1) / tmpNbCell;
         for (int i = 0; i < tmpNbCell; i++) {
             double minx = envMinx + i*fLvlXStep;
             double maxx = minx + fLvlXStep;

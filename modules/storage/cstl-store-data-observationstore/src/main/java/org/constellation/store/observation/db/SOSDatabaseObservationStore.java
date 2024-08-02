@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 
@@ -53,9 +54,15 @@ import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
+import org.geotoolkit.observation.model.OMEntity;
+import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
+import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 
 import org.geotoolkit.observation.model.ResponseMode;
+import org.geotoolkit.observation.query.LocationQuery;
 import org.geotoolkit.storage.DataStores;
+import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ValueReference;
 
 /**
  *
@@ -268,6 +275,35 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             return false;
         } catch (SQLException | IOException ex) {
             throw new DataStoreException("Erro while building OM2 datasource", ex);
+        }
+    }
+    
+    @Override
+    protected void handleBBOXFilter(OMEntity mode, final ObservationFilterReader localOmFilter, List<String> fois, List<String> procedures, BinarySpatialOperator bbox) throws DataStoreException {
+        switch (mode) {
+            case LOCATION, HISTORICAL_LOCATION, FEATURE_OF_INTEREST ->  localOmFilter.setBoundingBox(bbox);
+            default       -> {
+                if (getCapabilities().isBoundedObservation) {
+                    localOmFilter.setBoundingBox(bbox);
+                } else {
+                    if (bbox.getOperand1() instanceof ValueReference ref && ref.getXPath() != null && ref.getXPath().endsWith("location")) {
+                        LocationQuery query = new LocationQuery(bbox);
+                        Set<String> locIds = getEntityNames(query);
+                        if (!locIds.isEmpty()) {
+                            procedures.addAll(locIds);
+                        } else {
+                            procedures.add("unexisting-proc");
+                        }
+                    } else {
+                        Collection<String> allfoi = getFeaturesOfInterestForBBOX(bbox);
+                        if (!allfoi.isEmpty()) {
+                            fois.addAll(allfoi);
+                        } else {
+                           fois.add("unexisting-foi");
+                        }
+                    }
+                }
+            }
         }
     }
 }

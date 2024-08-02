@@ -590,7 +590,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
     }
-
+    
     @Test
     public void getFeatureOfInterestIdsBBOXTest() throws Exception {
         assertNotNull(omPr);

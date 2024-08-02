@@ -55,6 +55,7 @@ import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -74,6 +75,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.observation.Process;
+import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 
@@ -826,30 +828,46 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.replaceAll("${phen-prop-join}",  "offop.\"phenomenon\"");
         }
         sqlRequest.join(joins, firstFilter);
-        sqlRequest = appendPaginationToRequest(sqlRequest);
+        
+        boolean applyPostPagination = true;
+        if (envelopeFilter == null) {
+            applyPostPagination = false;
+            sqlRequest = appendPaginationToRequest(sqlRequest);
+        }
+        
         LOGGER.fine(sqlRequest.toString());
-        final List<org.opengis.observation.sampling.SamplingFeature> features = new ArrayList<>();
+        List<org.opengis.observation.sampling.SamplingFeature> results = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
-                final String id = rs.getString("id");
+                final String id   = rs.getString("id");
                 final String name = rs.getString("name");
                 final String desc = rs.getString("description");
-                final String sf = rs.getString("sampledfeature");
-                final int srid = rs.getInt("crs");
+                final String sf   = rs.getString("sampledfeature");
+                final int srid    = rs.getInt("crs");
                 final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "shape");
                 if (geom != null) {
                     final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
                     JTS.setCRS(geom, crs);
+                    
+                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                    if (envelopeFilter != null && !geometryMatchEnvelope(geom, envelopeFilter)) {
+                        continue;
+                    }
+                } else if (envelopeFilter != null) {
+                    continue;
                 }
                 final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
-                features.add(new SamplingFeature(id, name, desc, properties, sf, geom));
+                results.add(new SamplingFeature(id, name, desc, properties, sf, geom));
             }
         } catch (SQLException | FactoryException | ParseException ex) {
             LOGGER.log(Level.WARNING, "Exception while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("Error while reading feature of interests.", ex);
         }
-        return features;
+        if (applyPostPagination) {
+            results = applyPostPagination(results);
+        }
+        return results;
     }
 
     @Override
@@ -1000,15 +1018,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         sqlRequest.join(joins, firstFilter);
         
-         // will be removed when postgis filter will be set in request
-        Geometry spaFilter = null;
-        if (envelopeFilter != null) {
-            spaFilter = GeometricUtilities.toJTSGeometry(envelopeFilter, WrapResolution.NONE);
-        }
         sqlRequest.append(" ORDER BY pr.\"id\"");
 
         boolean applyPostPagination = true;
-        if (spaFilter == null) {
+        if (envelopeFilter == null) {
             applyPostPagination = false;
             sqlRequest = appendPaginationToRequest(sqlRequest);
         }
@@ -1021,15 +1034,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 try {
                     final String procedure = rs.getString("id");
                     final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "location");
-                    if (geom != null) {
-                        final int srid = rs.getInt(3);
-                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                        JTS.setCRS(geom, crs);
-                    } else {
-                        continue;
-                    }
+
+                    // this must not happen. it will break the pagination
+                    if (geom == null) continue;
+                    final int srid = rs.getInt(3);
+                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
+                    JTS.setCRS(geom, crs);
+                    
                     // exclude from spatial filter (will be removed when postgis filter will be set in request)
-                    if (spaFilter != null && !spaFilter.intersects(geom)) {
+                    if (envelopeFilter != null && !geometryMatchEnvelope(geom, envelopeFilter)) {
                         continue;
                     }
                     locations.put(procedure, geom);
