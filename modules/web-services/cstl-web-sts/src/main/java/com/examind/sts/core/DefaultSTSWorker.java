@@ -253,15 +253,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             selfLink = selfLink + "&$filter=" + req.getFilter();
         }
         if (hasNext && req.getExpand() != null && !req.getExpand().isEmpty()) {
-            StringBuilder sb = new StringBuilder("&$expand=");
-            for (int i = 0; i < req.getExpand().size(); i++) {
-                if (i != 0) {
-                    sb.append(',');
-                }
-                sb.append(req.getExpand().get(i));
-            }
-            selfLink = selfLink + sb.toString();
+            selfLink += req.getExpand().stream().collect(Collectors.joining(",", "&$expand=", ""));
         }
+        
         if (hasNext && req.getCount()) {
             selfLink = selfLink + "&$count=true";
         }

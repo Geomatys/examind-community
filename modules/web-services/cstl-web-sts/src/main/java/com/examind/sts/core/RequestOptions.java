@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
 import org.geotoolkit.sts.STSRequest;
-import org.opengis.temporal.TemporalObject;
 
 /**
  * temporary replace of {@link org.geotoolkit.sts.ExpandOptions} which has the problem of infinite sublevel of expand.
@@ -147,19 +146,42 @@ public class RequestOptions {
         if (topLevel) {
             return new RequestOptions(new ArrayList<>(expand), new ArrayList<>(select), false, sensorArea, timesCache);
         }
-        forEntity = forEntity.toLowerCase();
+        List<String> entityNames = alternates(forEntity);
         List<String> newExpand = new ArrayList<>();
         for (String ex : expand) {
-            if (ex.startsWith(forEntity + '/')) {
-                newExpand.add(ex.substring(forEntity.length() + 1));
+            for (String entityName : entityNames) {
+                if (ex.startsWith(entityName + '/')) {
+                    newExpand.add(ex.substring(entityName.length() + 1));
+                }
             }
         }
         List<String> newSelect = new ArrayList<>();
         for (String sel : select) {
-            if (sel.startsWith(forEntity + '/')) {
-                newSelect.add(sel.substring(forEntity.length() + 1));
+            for (String entityName : entityNames) {
+                if (sel.startsWith(entityName + '/')) {
+                    newSelect.add(sel.substring(entityName.length() + 1));
+                }
             }
         }
         return new RequestOptions(newExpand, newSelect, false, sensorArea, timesCache);
+    }
+    
+    private List<String> alternates(String entity) {
+        entity = entity.toLowerCase();
+        switch(entity) {
+            case "multidatastreams"    : return List.of("multidatastreams");
+            case "featureofinterest"   :
+            case"featuresofinterest"   : return List.of("featureofinterest", "featuresofinterest");
+            case "datastreams"         : return List.of("datastreams");
+            case "observedproperties"  :
+            case "observedproperty"    : return List.of("observedproperties", "observedproperty");
+            case "observations"        : return List.of("observations");
+            case "sensors"             : return List.of("sensors");
+            case "things"              :
+            case "thing"               : return List.of("things", "thing");
+            case "historicallocations" : return List.of("historicallocations");
+            case "locations"           : return List.of("locations");
+            default: throw new IllegalArgumentException("Invalid entity label: " + entity);
+        }
     }
 }
