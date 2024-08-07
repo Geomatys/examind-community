@@ -625,14 +625,19 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     }
 
     /**
-     * TODO optimize
      * 
-     * @param href
+     * @param sensorId
      * @return
      * @throws DataStoreException
      */
-    private boolean existProcedure(final String href) throws DataStoreException {
-        return getProcedureNames().contains(href);
+    private boolean existProcedure(final String sensorId) throws DataStoreException {
+        try(final Connection c   = source.getConnection();
+            final Statement stmt = c.createStatement();
+            final ResultSet rs   = stmt.executeQuery("SELECT \"id\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\" = '" + sensorId + "' fetch first 1 rows only")) {//NOSONAR
+            return rs.next();
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while retrieving procedure names.", ex);
+        }
     }
 
     /**

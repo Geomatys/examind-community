@@ -1355,7 +1355,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     private class CountOrIdentifiers {
         private List<String> identifiers = new ArrayList<>();
-        private int count = 0;
+        private long count = 0;
 
         private final boolean forCount;
 
@@ -1531,6 +1531,34 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         return results;
     }
+    
+    private long getSensorLocationCount(boolean forCount) throws DataStoreException {
+        // optimization with a count request if there is no bbox filter.
+        if (forCount && envelopeFilter == null) {
+            List<TableJoin> joins = new ArrayList<>();
+            if (obsJoin) {
+                joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
+            }
+            sqlRequest.join(joins, firstFilter);
+        
+            String request = "SELECT COUNT(*) FROM (" + sqlRequest.toString() + ") AS sub";
+
+            LOGGER.fine(request);
+            try(final Connection c               = source.getConnection();
+                final Statement currentStatement = c.createStatement();
+                final ResultSet result           = currentStatement.executeQuery(request)) {
+                if (result.next()) {
+                    return result.getLong(1);
+                }
+                throw new DataStoreException("the count request does not return anything!");
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", request);
+                throw new DataStoreException("the service has throw a SQL Exception:" + ex.getMessage());
+            }
+        } else {
+            return filterSensorLocations(forCount).count;
+        }
+    }
 
     private CountOrIdentifiers filterSensorLocations(boolean forCount) throws DataStoreException {
         CountOrIdentifiers results = new CountOrIdentifiers(forCount);
@@ -1575,11 +1603,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         if (!spaFilter.intersects(geom)) {
                             continue;
                         }
-                    }
-                    // can it happen? if so the pagination will be broken
-                    // we temporarly throw an exception to see if this happen. if not remove this "IF"
-                    if (results.identifiers.contains(procedure)) {
-                        throw new IllegalArgumentException("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
                     }
                     results.add(procedure);
                 } catch (FactoryException | ParseException ex) {
@@ -1863,7 +1886,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             case HISTORICAL_LOCATION: request = getHistoricalLocationRequest();break;
             case OBSERVATION:         return filterObservation(true).count;
             case RESULT:              return filterResult().size();
-            case LOCATION:            return filterSensorLocations(true).count;
+            case LOCATION:            return getSensorLocationCount(true);
             default: throw new DataStoreException("unexpected object type:" + objectType);
         }
 
