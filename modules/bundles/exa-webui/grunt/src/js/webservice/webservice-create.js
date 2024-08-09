@@ -254,7 +254,8 @@ angular.module('cstl-webservice-create', [
             'createData':false,
             'generateSensor': false,
             'directProvider':false,
-            'readOnly':false
+            'readOnly':false,
+            'mode':'default'
         };
 
         self.initSource = function() {
@@ -342,7 +343,8 @@ angular.module('cstl-webservice-create', [
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
+                            'mode': self.guiConfig.mode
                         }
                     };
             } else if (self.guiConfig.className === 'org.duckdb.DuckDBDriver') {
@@ -357,7 +359,8 @@ angular.module('cstl-webservice-create', [
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
+                            'mode': self.guiConfig.mode
                         }
                     };
             } else if (self.guiConfig.className === 'org.apache.derby.jdbc.EmbeddedDriver') {
@@ -372,7 +375,8 @@ angular.module('cstl-webservice-create', [
                             'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
                             'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
                             'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:"
+                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
+                            'mode': self.guiConfig.mode
                         }
                     };
             }

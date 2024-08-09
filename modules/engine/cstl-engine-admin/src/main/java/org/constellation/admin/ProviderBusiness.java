@@ -496,6 +496,7 @@ public class ProviderBusiness implements IProviderBusiness {
                     dbObsParams.parameter("user").setValue(inParams.get("user"));
                     dbObsParams.parameter("password").setValue(inParams.get("password"));
                     dbObsParams.parameter("schema-prefix").setValue(inParams.get("schema-prefix"));
+                    dbObsParams.parameter("mode").setValue(inParams.get("mode"));
                     if (inParams.get("timescaledb") != null) {
                         dbObsParams.parameter("timescaledb").setValue(Boolean.parseBoolean(inParams.get("timescaledb")));
                     }

@@ -107,7 +107,7 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     public static final String TIMESCALEDB_NAME = "timescaledb";
     public static final ParameterDescriptor<Boolean> TIMESCALEDB =
              BUILDER.addName(TIMESCALEDB_NAME).setRemarks("timescale db").setRequired(false).create(Boolean.class, false);
-
+    
     /**
      * Max field by table, Optional.
      * Maximum number of field by measure table.
@@ -126,10 +126,14 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
     public static final String PASSWD_NAME = "password";
     public static final ParameterDescriptor<String> PASSWD =
              BUILDER.addName(PASSWD_NAME).setRemarks("Password").setRequired(false).create(String.class, null);
+    
+    public static final String MODE_NAME = "mode";
+    public static final ParameterDescriptor<String> MODE =
+             BUILDER.addName(MODE_NAME).setRemarks(MODE_NAME).setRequired(false).create(String.class, "default");
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
             .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
-                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY);
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY, MODE);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {
