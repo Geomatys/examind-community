@@ -116,10 +116,26 @@ CREATE TABLE "$SCHEMAom"."offering_foi" (
 
 CREATE TABLE "$SCHEMAom"."observations" (
     "identifier"        character varying(200) NOT NULL,
-    "id"                integer PRIMARY KEY,
+    "id"                bigint PRIMARY KEY,
     "time_begin"        timestamp,
     "time_end"          timestamp,
     "observed_property" character varying(200) REFERENCES "$SCHEMAom"."observed_properties"("id"),
     "procedure"         character varying(200) REFERENCES "$SCHEMAom"."procedures"("id"),
     "foi"               character varying(200) REFERENCES "$SCHEMAom"."sampling_features"("id")
 );
+
+CREATE OR REPLACE FUNCTION getpid(tid)
+    AS (select "pid"
+	from "$SCHEMAom"."procedures"
+	where "id" = tid
+       );    
+
+CREATE OR REPLACE FUNCTION getobservationidpr(tid, t)
+    AS (select t * 1000000  + getpid(tid));
+
+CREATE OR REPLACE FUNCTION getmesureidpr(z_value, t)
+    AS (select EPOCH(t::TIMESTAMP)::BIGINT  * 1000000  + z_value * 1000);
+
+CREATE OR REPLACE FUNCTION getmesureidts(t)
+    AS (select EPOCH(t::TIMESTAMP));
+

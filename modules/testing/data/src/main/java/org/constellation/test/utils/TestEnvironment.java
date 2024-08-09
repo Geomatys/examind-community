@@ -239,6 +239,7 @@ public class TestEnvironment {
         public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
         public static final TestResource OM2_DB_NO_DATA = new TestResource(null, TestEnvironment::createOM2DatabaseProviderNoData);
         public static final TestResource OM2_DB_DUCK = new TestResource(null,  TestEnvironment::createOM2DatabaseDDBProviderNoData);
+        public static final TestResource OM2_DB_DUCK_MIXED = new TestResource(null,  TestEnvironment::createOM2DatabaseDDBMixedProvider);
 
 
         public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
@@ -805,12 +806,13 @@ public class TestEnvironment {
         }
     }
 
-    private static String buildEmbeddedOM2Database(String providerIdentifier, boolean withData, boolean ddb) throws Exception {
+    private static String buildEmbeddedOM2Database(String providerIdentifier, boolean withData, boolean ddb, String mode) throws Exception {
         final String url;
         String urlSuffix = "";
         String fileSuffix = "";
         if (ddb) {
-            url = "jdbc:duckdb:";
+            var tmpFile = Files.createTempDirectory(providerIdentifier).resolve("om-ddb.db");
+            url = "jdbc:duckdb:" + tmpFile.toAbsolutePath();
             fileSuffix = "_ddb";
         }else {
             /* you can pass in file mode for debugging purpose
@@ -826,6 +828,9 @@ public class TestEnvironment {
             sql = sql.replace("$SCHEMA", "");
             sr.run(sql);
             if (withData) {
+                if (mode.equals("mixed")) {
+                    fileSuffix = "_mixed";
+                }
                 sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2" + fileSuffix + ".sql"));
             }
         }
@@ -850,21 +855,25 @@ public class TestEnvironment {
     }
 
     private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, true, false);
+        return createOM2DatabaseProvider(providerBusiness, p, true, false, "default");
     }
 
     private static Integer createOM2DatabaseProviderNoData(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, false, false);
+        return createOM2DatabaseProvider(providerBusiness, p, false, false, "default");
     }
 
     private static Integer createOM2DatabaseDDBProviderNoData(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, false, true);
+        return createOM2DatabaseProvider(providerBusiness, p, false, true, "default");
+    }
+    
+    private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, Path p) {
+        return createOM2DatabaseProvider(providerBusiness, p, true, true, "mixed");
     }
 
-    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData, boolean ddb) {
+    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData, boolean ddb, String mode) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb, mode);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -879,6 +888,8 @@ public class TestEnvironment {
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
             config.parameter("max-field-by-table").setValue(10);
+            config.parameter("database-readonly").setValue(false);
+            config.parameter("mode").setValue(mode);
 
             return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
@@ -889,7 +900,7 @@ public class TestEnvironment {
     private static DataStore createOM2DatabaseStore(Path p) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -913,7 +924,7 @@ public class TestEnvironment {
     private static DataStore createOM2DatabaseSensorStore(Path p) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
-            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
 
             final DataProviderFactory sensorFactory = DataProviders.getFactory("sensor-store");
             final ParameterValueGroup source    = sensorFactory.getProviderDescriptor().createValue();
@@ -938,7 +949,7 @@ public class TestEnvironment {
         try {
             final String providerIdentifier = "omGenericDBSrc-" + UUID.randomUUID().toString();
 
-            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
 
             MarshallerPool pool = GenericDatabaseMarshallerPool.getInstance();
             Unmarshaller unmarshaller = pool.acquireUnmarshaller();
@@ -1068,7 +1079,7 @@ public class TestEnvironment {
         boolean ddb = false; // TODO
         try {
             final String providerIdentifier = "omSensorSrc-" + UUID.randomUUID().toString();
-            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb);
+            final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb, "default");
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();

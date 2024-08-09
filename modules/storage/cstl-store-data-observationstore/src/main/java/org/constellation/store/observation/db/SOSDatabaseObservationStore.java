@@ -49,6 +49,7 @@ import static org.constellation.store.observation.db.SOSDatabaseObservationStore
 import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
+import org.constellation.store.observation.db.mixed.MixedObservationFilterReader;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
 import org.geotoolkit.observation.OMUtils;
@@ -99,6 +100,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     protected ObservationFilterReader filter;
     protected final DataSource source;
     protected final String schemaPrefix;
+    protected final String mode;
     protected final Version timescaleDBVersion;
     protected final String decimationAlgorithm;
     protected final int maxFieldByTable;
@@ -110,7 +112,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
         try {
             source  =  SOSDatabaseParamsUtils.extractOM2Datasource(params);
             dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
-           
+            mode    = params.getValue(SOSDatabaseObservationStoreFactory.MODE);
             boolean timescaleDB = params.getValue(SOSDatabaseObservationStoreFactory.TIMESCALEDB);
 
             String sp = params.getValue(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX);
@@ -250,11 +252,19 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
      */
     @Override
     public synchronized ObservationFilterReader getFilter() throws DataStoreException {
-        if (filter == null) {
-            final Map<String,Object> properties = getBasicProperties();
-            filter = new OM2ObservationFilterReader(source, properties);
+        if (mode.equals("mixed")) {
+            if (filter == null) {
+                final Map<String,Object> properties = getBasicProperties();
+                filter = new MixedObservationFilterReader(source, properties);
+            }
+            return new MixedObservationFilterReader((OM2ObservationFilter) filter);
+        } else {
+            if (filter == null) {
+                final Map<String,Object> properties = getBasicProperties();
+                filter = new OM2ObservationFilterReader(source, properties);
+            }
+            return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
         }
-        return new OM2ObservationFilterReader((OM2ObservationFilter) filter);
     }
 
     @Override
