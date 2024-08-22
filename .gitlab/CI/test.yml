@@ -5,19 +5,29 @@
   retry:
     when: script_failure
     max: 1
+  variables:
+    TEST_DATABASE_URL: "NOT SET"
+  script:
+    - mvn install -ntp -s $MAVEN_SETTINGS
+  artifacts:
+    # We want test report when job fails
+    when: always
+    paths:
+      - "**/target/surefire-reports/"
+    reports:
+      junit: "**/target/surefire-reports/TEST-*.xml"
 
 test:hsqldb:
   extends: .test:base
-  script:
-    - mvn install -ntp -Dtest.database.url="jdbc:hsqldb:mem:admin" -s $MAVEN_SETTINGS
+  variables:
+    TEST_DATABASE_URL: "jdbc:hsqldb:mem:admin"
 
 test:postgresql:
   extends: .test:base
   variables:
+    TEST_DATABASE_URL: "jdbc:postgresql://postgres:5432/admin?user=exa&password=exa"
     POSTGRES_DB: admin
     POSTGRES_USER: exa
     POSTGRES_PASSWORD: exa
   services:
     - name: postgres:13.4-alpine3.14
-  script:
-    - mvn install -ntp -Dtest.database.url="jdbc:postgresql://postgres:5432/admin?user=exa&password=exa" -s $MAVEN_SETTINGS
