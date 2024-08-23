@@ -19,7 +19,7 @@ import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.storage.sql.ResourceDefinition;
-import org.apache.sis.storage.sql.SQLStore;
+import org.apache.sis.storage.sql.SimpleFeatureStore;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.collection.BackingStoreException;
 import org.geotoolkit.math.XMath;
@@ -283,7 +283,7 @@ public class ProfileHeatMap {
 
         DataSource sqlSource = new HikariDataSource(dbConf);
 
-        SQLStore store = new SQLStore(new SQLStoreProvider(), new StorageConnector(sqlSource), ResourceDefinition.query("elephantsdemer", "SELECT location FROM elephantsdemer"));
+        SimpleFeatureStore store = new SimpleFeatureStore(new SQLStoreProvider(), new StorageConnector(sqlSource), ResourceDefinition.query("elephantsdemer", "SELECT location FROM elephantsdemer"));
         var dataset = store.findResource("elephantsdemer");
         return new FeatureSetAsPointsCloud(dataset, false);
     }
