@@ -76,7 +76,7 @@
             <artifactId>cstl-store-data-datastore</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <!-- for sensor API -->
         <dependency>
             <groupId>org.geotoolkit</groupId>

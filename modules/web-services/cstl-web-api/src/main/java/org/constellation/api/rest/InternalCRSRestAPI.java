@@ -66,7 +66,7 @@ public class InternalCRSRestAPI extends AbstractRestAPI {
             final Map<String, String> crsList = CRSUtilities.getCRSCodes(null);
             final List<CoordinateReferenceSystem> crss = new ArrayList<>();
             for (Entry<String, String> entry : crsList.entrySet()) {
-                crss.add(new CoordinateReferenceSystem("EPSG:" + entry.getKey(), entry.getValue()));
+                crss.add(new CoordinateReferenceSystem(entry.getKey(), entry.getValue()));
             }
             return new ResponseEntity(crss, HttpStatus.OK);
         } catch (Exception ex) {

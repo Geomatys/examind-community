@@ -2,7 +2,7 @@
  *    Constellation - An open source and standard compliant SDI
  *    http://www.constellation-sdi.org
  *
- * Copyright 2015 Geomatys.
+ * Copyright 2024 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,46 +18,42 @@
  */
 package org.constellation.dto;
 
-import java.io.Serializable;
-
 /**
- * Simple DTO that expose a CoorinateReferenceSystem code and description.
  *
- * @author Quentin Boileau (Geomatys)
+ * @author Johann Sorel (Geomatys)
  */
-public class CoordinateReferenceSystem implements Serializable {
-
+public final class GridExtent {
     /**
-     * EPSG code like "EPSG:4326"
+     * Inclusive
      */
-    private String code;
-
+    private long[] lower;
     /**
-     * CRS description or name like "EPSG:4326 - WGS 84"
+     * Inclusive
      */
-    private String desc;
+    private long[] upper;
 
-    public CoordinateReferenceSystem() {
+    public GridExtent() {
     }
 
-    public CoordinateReferenceSystem(String code, String desc) {
-        this.code = code;
-        this.desc = desc;
+    public GridExtent(long[] lower, long[] upper) {
+        this.lower = lower;
+        this.upper = upper;
     }
 
-    public String getCode() {
-        return code;
+    public long[] getLower() {
+        return lower;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setLower(long[] lower) {
+        this.lower = lower;
     }
 
-    public String getDesc() {
-        return desc;
+    public long[] getUpper() {
+        return upper;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc;
+    public void setUpper(long[] upper) {
+        this.upper = upper;
     }
+
 }

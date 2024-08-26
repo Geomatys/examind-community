@@ -66,7 +66,7 @@ public class CRSUtilities {
             wktCrsList = new TreeMap<>();
             crsList    = new LinkedHashMap<>();
             try {
-                final CRSAuthorityFactory factory = CRS.getAuthorityFactory("EPSG");
+                final CRSAuthorityFactory factory = CRS.getAuthorityFactory(null);//list all crs, not just EPSG
                 final Collection<String> codes = factory.getAuthorityCodes(CoordinateReferenceSystem.class);
 
                 for (final String code : codes) {
@@ -78,7 +78,9 @@ public class CRSUtilities {
                         crsList.put(code, codeAndName);
                         final IdentifiedObject obj = factory.createObject(code);
                         final String wkt = obj.getName().toString();
-                        wktCrsList.put(wkt + " - EPSG:" + code, code);
+                        if (code.startsWith("EPSG")) {
+                            wktCrsList.put(wkt + " - EPSG:" + code, code);
+                        }
                     } catch (Exception ex) {
                         //some objects can not be expressed in WKT, we skip them
                         if (LOGGER.isLoggable(Level.FINEST)) {
@@ -217,9 +219,9 @@ public class CRSUtilities {
      *
      * @param crs a CRS identifier.
      * @param forceConvention If set to {@code true} The CRS is returned with a forced convention of AxesConvention.RIGHT_HANDED.
-     * 
+     *
      * @return A CoordinateReferenceSystem or {@code Optional.empty()} if the input parameter "crs" is null or empty.
-     * 
+     *
      * @throws ConstellationException If the CRS code is invalid.
      */
     public static Optional<CoordinateReferenceSystem>  verifyCrs(String crs, boolean forceConvention) throws ConstellationException {
