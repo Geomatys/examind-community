@@ -281,8 +281,10 @@ public class GalaxyScheduler {
             else if (identifier.equalsIgnoreCase("inputs"))
             {
                 ObjectMapper inputsMapper = new ObjectMapper();
+                TypeFactory typeFactory = inputsMapper.getTypeFactory();
+                MapType mapType = typeFactory.constructMapType(Map.class, String.class, Map.class);
                 try {
-                    Map<String, Object> result = inputsMapper.readValue((String) value, Map.class);
+                    Map<String, Map<String, Object>> result = inputsMapper.readValue((String) value, mapType);
                     request.setInputs(result);
                 } catch (JsonProcessingException ex) {
                     throw new GalaxyException("Failed to parse json for parameters :" + ex.getMessage());

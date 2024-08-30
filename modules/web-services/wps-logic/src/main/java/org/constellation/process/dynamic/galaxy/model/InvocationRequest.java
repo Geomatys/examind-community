@@ -18,7 +18,7 @@ public class InvocationRequest {
     @JsonProperty("use_cached_job")
     private boolean useCachedJob = false;
     @JsonProperty("inputs")
-    private Map<String, Object> inputs = new HashMap<>();
+    private Map<String, Map<String, Object>> inputs = new HashMap<>();
     @JsonProperty("parameters")
     private Map<String, Map<String, Object>> parameters = new HashMap<>();
     @JsonProperty("parameters_normalized")
@@ -60,11 +60,11 @@ public class InvocationRequest {
         this.useCachedJob = useCachedJob;
     }
 
-    public Map<String, Object> getInputs() {
+    public Map<String, Map<String, Object>> getInputs() {
         return inputs;
     }
 
-    public void setInputs(Map<String, Object> inputs) {
+    public void setInputs(Map<String, Map<String, Object>> inputs) {
         this.inputs = inputs;
     }
 
