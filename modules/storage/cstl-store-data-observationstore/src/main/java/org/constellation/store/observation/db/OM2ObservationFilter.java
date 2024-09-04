@@ -34,7 +34,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1456,8 +1455,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         if (hasMeasureFilter) {
                             final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
                             final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                            final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                            MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
+                            final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(0, List.of(field), pti);
+                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
                                 if (rs2.next()) {
                                     int count = rs2.getInt(1, field.tableNumber);
@@ -1478,8 +1477,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
-                    final FilterSQLRequest measureFilter      = applyFilterOnMeasureRequest(0, fields, pti);
-                    final MultiFilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false);
+                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
+                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false);
                     LOGGER.fine(mesureRequest.toString());
 
                     if (MEASUREMENT_QNAME.equals(resultModel)) {

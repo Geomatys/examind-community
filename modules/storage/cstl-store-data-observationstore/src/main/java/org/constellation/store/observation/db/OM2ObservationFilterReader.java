@@ -50,7 +50,6 @@ import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
-import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.GeometricUtilities;
 import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
@@ -285,8 +284,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                    final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                    MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
+                    final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(0, List.of(field), pti);
+                    final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         if (rs2.next()) {
                             int count = rs2.getInt(1, field.tableNumber);
@@ -438,8 +437,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 * Compute procedure measure request
                 */
                 int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
-                final FilterSQLRequest measureFilter        = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
-                final MultiFilterSQLRequest measureRequests = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
+                final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
+                final FilterSQLRequest measureRequests = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
                 LOGGER.fine(measureRequests.toString());
                 
                 final String name = rs.getString("identifier");
@@ -595,8 +594,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type);
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
-                final FilterSQLRequest measureFilter       = applyFilterOnMeasureRequest(0, fields, pti);
-                final MultiFilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
+                final FilterSQLRequest measureFilter  = applyFilterOnMeasureRequest(0, fields, pti);
+                final FilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
 
                 /**
                  * coherence verification

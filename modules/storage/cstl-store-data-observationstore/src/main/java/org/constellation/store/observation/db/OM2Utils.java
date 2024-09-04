@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.sis.referencing.CRS;
@@ -62,7 +61,7 @@ public class OM2Utils {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
-    private static Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
+    public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
 
     public static Timestamp getInstantTimestamp(Instant inst) {
         if (inst != null && inst.getDate() != null) {

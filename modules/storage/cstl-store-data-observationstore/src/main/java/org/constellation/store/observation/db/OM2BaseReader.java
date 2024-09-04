@@ -1029,7 +1029,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
 
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
+        final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
 
         final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
         try (SQLResult rs = queries.execute(c)) {
@@ -1126,7 +1126,7 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
+    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();

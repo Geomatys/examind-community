@@ -49,7 +49,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     private static final SimpleDateFormat debugSDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-    private Map<Object, long[]> times = null;
+    protected Map<Object, long[]> times = null;
 
     public DefaultResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters,  boolean includeTimeInProfile, ProcedureInfo procedure) {
         // as this algorithm may produce two point by cell, we cut the size in 2
@@ -160,7 +160,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         appendValue(t, cpt, mapValues, first, true, fieldOffset);
     }
 
-    private class StepValues {
+    protected class StepValues {
 
         public final Set<Long> mainValues = new LinkedHashSet<>();
 
@@ -184,7 +184,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
         }
 
-        private void addToMapVal(final Long main, final String field, final double current) {
+        protected void addToMapVal(final Long main, final String field, final double current) {
 
             mainValues.add(main);
             
@@ -226,7 +226,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     }
 
-    private void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last, int fieldOffset) throws DataStoreException {
+    protected void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last, int fieldOffset) throws DataStoreException {
         if (sv == null) {
             return;
         }
@@ -259,7 +259,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         first.set(false);
     }
 
-    private void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index, int fieldOffset) throws DataStoreException {
+    protected void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index, int fieldOffset) throws DataStoreException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
@@ -296,7 +296,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         values.endBlock();
     }
 
-    private long extractMainValue(Field field, SQLResult rs) throws SQLException {
+    protected long extractMainValue(Field field, SQLResult rs) throws SQLException {
         switch(field.type) {
             case TIME -> {
                 final Timestamp currentTime = rs.getTimestamp(field.name);
