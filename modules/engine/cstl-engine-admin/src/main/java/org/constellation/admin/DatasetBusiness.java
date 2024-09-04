@@ -272,8 +272,6 @@ public class DatasetBusiness implements IDatasetBusiness {
         }
     }
 
-
-
     @Override
     public DataSetBrief getDatasetBrief(Integer dataSetId, List<DataBrief> children) {
         final DataSet dataset = datasetRepository.findById(dataSetId);
@@ -333,15 +331,7 @@ public class DatasetBusiness implements IDatasetBusiness {
 
     @Override
     public List<DatasetProcessReference> getAllDatasetReference() {
-        final List<DatasetProcessReference> datasetPRef = new ArrayList<>();
-        final List<DataSet> datasets = datasetRepository.findAll();
-        for (final DataSet ds : datasets) {
-            final DatasetProcessReference ref = new DatasetProcessReference();
-            ref.setId(ds.getId());
-            ref.setIdentifier(ds.getIdentifier());
-            datasetPRef.add(ref);
-        }
-        return datasetPRef;
+        return datasetRepository.findAll().stream().map(ds -> new DatasetProcessReference(ds)).toList();
     }
 
     /**
@@ -353,6 +343,16 @@ public class DatasetBusiness implements IDatasetBusiness {
         for (final Data data : datas) {
             data.setDatasetId(dataset.getId());
             dataRepository.update(data);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateDatasetIdentifier(int datasetId, String newIdentifier) {
+        DataSet ds = datasetRepository.findById(datasetId);
+        if (ds != null) {
+            ds.setIdentifier(newIdentifier);
+            datasetRepository.update(ds);
         }
     }
 }

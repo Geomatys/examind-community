@@ -129,4 +129,6 @@ public interface IDatasetBusiness {
     Map.Entry<Integer, List<DataSetBrief>> filterAndGetBrief(Map<String, Object> filterMap, Map.Entry<String, String> sortEntry, int pageNumber, int rowsPerPage);
 
     DataSetBrief getSingletonDatasetBrief(DataSetBrief dsItem, List<DataBrief> items);
+    
+    void updateDatasetIdentifier(int datasetId, String newIdentifier);
 }

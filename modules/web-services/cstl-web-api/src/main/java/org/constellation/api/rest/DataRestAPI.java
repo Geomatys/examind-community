@@ -215,7 +215,7 @@ public class DataRestAPI extends AbstractRestAPI{
             return new ErrorMessage(ex).build();
         }
     }
-
+    
     /**
      * Used to open metadata editor form.
      * the metadata.prune() should never be called in this method.

@@ -20,6 +20,7 @@ package org.constellation.dto.process;
 
 import java.io.Serializable;
 import java.util.Objects;
+import org.constellation.dto.DataSet;
 import org.constellation.dto.Identifiable;
 
 /**
@@ -35,6 +36,13 @@ public class DatasetProcessReference extends Identifiable implements Serializabl
 
     public DatasetProcessReference() {
 
+    }
+    
+    public DatasetProcessReference(DataSet ds) {
+        super(ds);
+        if (ds != null) {
+            this.identifier = ds.getIdentifier();
+        }
     }
 
     public DatasetProcessReference(Integer id, String identifier) {

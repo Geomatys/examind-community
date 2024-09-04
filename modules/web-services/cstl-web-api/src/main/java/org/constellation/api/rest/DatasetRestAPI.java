@@ -60,6 +60,8 @@ import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -272,6 +274,23 @@ public class DatasetRestAPI extends AbstractRestAPI {
             for (Integer dataId : dataIds) {
                 dataBusiness.updateDataDataSetId(dataId, dsId);
             }
+            return new ResponseEntity(OK);
+        } catch(Exception ex) {
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
+    
+    @RequestMapping(value="/datasets/{datasetId}/identifier/{newIdentifier}",method=POST)
+    public ResponseEntity updateDatasetIdentifier(@PathVariable(value = "datasetId") int datasetId, @PathVariable(value = "newIdentifier") String newIdentifier) {
+        try {
+            if (!datasetBusiness.existsById(datasetId)) {
+                return new ResponseEntity(NOT_FOUND);
+            }
+            if (datasetBusiness.existsByName(newIdentifier)) {
+                return new ResponseEntity("Dataset identifier already in use", HttpStatus.BAD_REQUEST);
+            }
+            datasetBusiness.updateDatasetIdentifier(datasetId, newIdentifier);
             return new ResponseEntity(OK);
         } catch(Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
