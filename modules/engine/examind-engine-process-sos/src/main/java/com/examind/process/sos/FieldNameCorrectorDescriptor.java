@@ -63,7 +63,7 @@ public class FieldNameCorrectorDescriptor extends AbstractProcessDescriptor{
             PARAM_BUILDER.addName("OutputParameters").createGroup();
 
     /** Instance */
-    public static final ProcessDescriptor INSTANCE = new HarvesterPreProcessDescriptor();
+    public static final ProcessDescriptor INSTANCE = new FieldNameCorrectorDescriptor();
 
     public FieldNameCorrectorDescriptor() {
         super(NAME, ExamindProcessFactory.IDENTIFICATION,
