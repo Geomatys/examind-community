@@ -81,6 +81,7 @@ public class DataInfoCacheProcess extends AbstractCstlProcess {
                 fireWarningOccurred(msg, i * part, ex);
                 dataErrors++;
             }
+            i++;
         }
 
         outputParameters.getOrCreate(DATA_ERRORS).setValue(dataErrors);
