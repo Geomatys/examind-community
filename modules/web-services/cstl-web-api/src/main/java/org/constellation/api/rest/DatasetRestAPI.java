@@ -32,6 +32,9 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.apache.commons.io.IOUtils;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.constellation.api.ProviderType;
@@ -42,6 +45,7 @@ import org.constellation.business.IDatasetBusiness;
 import org.constellation.business.IMetadataBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IStyleBusiness;
+import org.constellation.dto.Data;
 import org.constellation.dto.Filter;
 import org.constellation.dto.Page;
 import org.constellation.dto.PagedSearch;
@@ -53,15 +57,20 @@ import org.constellation.json.metadata.bean.TemplateResolver;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ProviderParameters;
+import org.geotoolkit.nio.IOUtilities;
+import org.geotoolkit.nio.ZipUtilities;
 import org.opengis.parameter.GeneralParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import org.springframework.http.MediaType;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -525,5 +534,60 @@ public class DatasetRestAPI extends AbstractRestAPI {
             }
         }
         return results;
+    }
+    
+    @RequestMapping(value="/datasets/{datasetId}/export",method=POST,produces=MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity exportDataset(@PathVariable("datasetId") int datasetId) {
+        try {
+
+            final Path archive = Files.createTempDirectory("export-datas");
+            final List<Path> toSend = new ArrayList<>();
+            final List<Integer> dataIds = dataBusiness.getDataIdsFromDatasetId(datasetId, true, false);
+
+            // has for now exporting a data will export in fact all the data in the provider
+            // we export only one data by provider to avoid having doublon.
+            // TODO remove this hack when the data will be properly exported
+            Set<Integer> alreadyVisitedProvider = new HashSet<>();
+            for (Integer dataId : dataIds) {
+                try {
+                    Data d = dataBusiness.getData(dataId);
+                    Integer pid = d.getProviderId();
+                    if (!alreadyVisitedProvider.contains(pid)) {
+                        final Path[] dataFiles = dataBusiness.exportData(dataId);
+                        alreadyVisitedProvider.add(pid);
+                        if (dataFiles.length == 0) {
+                            LOGGER.warning("No files for the data " + d.getId() + " to export.");
+                        } else {
+                            Path dataDir = archive.resolve(pid + "_" + d.getName());
+                            Files.createDirectory(dataDir);
+                            for (Path f : dataFiles) {
+                                Path dst = dataDir.resolve(f.getFileName());
+                                IOUtilities.copy(f, dst);
+                            }
+                            toSend.add(dataDir);
+                        }
+                    }
+
+                } catch (ConstellationException | IOException ex) {
+                    LOGGER.log(Level.WARNING, "Error while trying to export data: " + dataId, ex);
+                    return new ErrorMessage(ex).build();
+                }
+            }
+        
+            //create ZIP
+            final Path zip = Files.createTempFile("exported_data" , ".zip");
+            Files.deleteIfExists(zip);
+            ZipUtilities.zipNIO(zip, toSend.toArray(Path[]::new));
+
+            final FileSystemResource r = new FileSystemResource(zip.toFile());
+
+            final HttpHeaders header = new HttpHeaders();
+            header.set("Content-Disposition", "attachment; filename=exported_data.zip");
+
+            return new ResponseEntity(r, header, OK);
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING,"Error while zipping data",ex);
+            return new ErrorMessage(ex).build();
+        }
     }
 }

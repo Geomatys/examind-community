@@ -700,7 +700,7 @@ public class DataRestAPI extends AbstractRestAPI{
             final List<Path> toSend = new ArrayList<>();
 
             // has for now exporting a data will export in fact all the data in the provider
-            // we export only one data by provider to avoid havind doublon.
+            // we export only one data by provider to avoid having doublon.
             // TODO remove this hack when the data will be properly exported
             Set<Integer> alreadyVisitedProvider = new HashSet<>();
             for (Integer dataId : dataIds) {
@@ -965,7 +965,7 @@ public class DataRestAPI extends AbstractRestAPI{
      * @return
      */
     @RequestMapping(value = "/datas/{dataId}/compute/info", method = GET)
-    public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam("refresh") final boolean refresh) {
+    public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam(name = "refresh", required = false) final Boolean refresh) {
         try {
             dataBusiness.cacheDataInformation(dataId, refresh);
             return new ResponseEntity(OK);
