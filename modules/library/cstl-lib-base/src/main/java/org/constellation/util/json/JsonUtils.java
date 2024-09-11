@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,12 +39,10 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ServiceLoader;
@@ -63,7 +62,7 @@ public class JsonUtils extends Static {
     private static SimpleModule CUSTOM_MODULE = null;
 
     private static Set<Class> RAW_CLASSES = new HashSet<>();
-    
+
     /**
      * Find all json Converters defined in META-INF/service files.
      */
@@ -171,6 +170,7 @@ public class JsonUtils extends Static {
     static Object readValue(JsonNode node, Class binding, String parameterName) throws IOException {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             // special case with custom converter
             Module module = findCustomConverters();
             mapper.registerModule(module);
@@ -182,7 +182,7 @@ public class JsonUtils extends Static {
                 }
             }
             return mapper.treeToValue(node, binding);
-            
+
         } catch (JsonProcessingException ex) {
             if (node.isTextual()) {
                 try {
