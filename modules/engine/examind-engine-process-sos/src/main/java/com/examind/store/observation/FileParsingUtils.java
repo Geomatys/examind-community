@@ -549,17 +549,63 @@ public class FileParsingUtils {
         long l = TIME_AT_2000 + i;
         return new Date(l);
     }
-
+    
+    /**
+     * Return the string representation of a cell content.
+     * This method will throw an @{@link IllegalArgumentException} if you supplied a Date object.
+     * In this case you must use the asString method with a DateFormat in parameters.
+     * 
+     * @param value The cell content.
+     * 
+     * @return A string representation of a cell content.
+     */
     public static String asString(Object value) {
-        return asString(value, null);
+        return asString(value, null, false);
     }
     
+    /**
+     * Return the string representation of a cell content.
+     * This method will throw an @{@link IllegalArgumentException} if you supplied a Date object.
+     * In this case you must use the asString method with a DateFormat in parameters.
+     * 
+     * @param value The cell content.
+     * @param emptyAsNull If set to true, an empty string value will return null instead of the empty string.
+     * 
+     * @return A string representation of a cell content.
+     */
+    public static String asString(Object value, boolean emptyAsNull) {
+        return asString(value, null, emptyAsNull);
+    }
     
-
+    /**
+     * Return the string representation of a cell content.
+     * This method will allow Date objects.
+     * 
+     * @param value The cell content.
+     * @param df A dateFormat use to format Date values.
+     * 
+     * @return A string representation of a cell content.
+     */
     public static String asString(Object value, DateFormat df) {
+        return asString(value, df, false);
+    }
+
+    /**
+     * Return the string representation of a cell content.
+     * This method will allow Date objects.
+     * 
+     * @param value The cell content.
+     * @param df A dateFormat use to format Date values.
+     * @param emptyAsNull If set to true, an empty string value will return null instead of the empty string.
+     * 
+     * @return A string representation of a cell content. 
+     */
+    public static String asString(Object value, DateFormat df, boolean emptyAsNull) {
         if (value == null) return null;
         if (value instanceof String s) {
-            return s.trim();
+            s = s.trim();
+            if (s.isEmpty() && emptyAsNull) return null;
+            return s;
         } else if (value instanceof Number n) {
             synchronized (NF) {
                 return NF.format(n);
