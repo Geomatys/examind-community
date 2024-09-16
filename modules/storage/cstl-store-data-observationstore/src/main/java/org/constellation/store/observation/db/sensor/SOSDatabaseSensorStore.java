@@ -27,9 +27,11 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX_NAME;
 import org.constellation.store.observation.db.SOSDatabaseParamsUtils;
+import org.constellation.store.observation.db.model.OMSQLDialect;
 import org.constellation.util.Util;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE;
@@ -61,6 +63,7 @@ public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resou
                     throw new DataStoreException("Invalid schema prefix value");
                 }
             }
+            OMSQLDialect dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
             
             final Map<String,Object> properties = new HashMap<>();
             extractParameter(config, PHENOMENON_ID_BASE, properties);
@@ -68,6 +71,7 @@ public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resou
             extractParameter(config, OBSERVATION_TEMPLATE_ID_BASE, properties);
             extractParameter(config, SENSOR_ID_BASE, properties);
             properties.put(SCHEMA_PREFIX_NAME, schemaPrefix);
+            properties.put(SQL_DIALECT, dialect);
         
             this.reader = new OM2SensorReader(source, properties);
         } catch (RuntimeException | IOException ex) {

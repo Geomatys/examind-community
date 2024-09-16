@@ -102,7 +102,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean template = false;
 
     protected boolean firstFilter = true;
-
+    
     // flag set to true if there is measure filter
     // (but time filter is not counted has one, because time filter can be used on observatio,n)
     protected boolean hasMeasureFilter = false;
@@ -1558,7 +1558,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
     
     protected boolean entityMatchEnvelope(final SQLResult rs, String geomColumn, String crsColumn) throws SQLException, DataStoreException, ParseException, FactoryException {
-        if (envelopeFilter != null) {
+        if (!spatialOperatorsEnable && envelopeFilter != null) {
             final org.locationtech.jts.geom.Geometry geom = readGeom(rs, geomColumn);
             if (geom == null) return false;
             final int srid = rs.getInt(crsColumn);
@@ -1923,7 +1923,37 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     public void setBoundingBox(final BinarySpatialOperator box) throws DataStoreException {
         if (LOCATION.equals(objectType) || HISTORICAL_LOCATION.equals(objectType) || FEATURE_OF_INTEREST.equals(objectType)) {
             Envelope e = OMUtils.getEnvelopeFromBBOXFilter(box);
-            envelopeFilter = e;
+            if (spatialOperatorsEnable) {
+                if (!firstFilter) {
+                    sqlRequest.append(" AND ");
+                } else  {
+                    firstFilter = false;
+                }
+                String geomColum = switch(objectType) {
+                    case LOCATION,FEATURE_OF_INTEREST     -> "\"shape\"";
+                    case HISTORICAL_LOCATION -> "\"location\"";
+                    default -> throw new IllegalArgumentException(objectType + " is not a valid gemetric entity type");
+                };
+                switch(dialect) {
+                    case POSTGRES -> 
+                        sqlRequest.append(" ( ").append(geomColum).append(" && ST_MakeEnvelope (")
+                            .append(Double.toString(e.getMinimum(0))).append(",")
+                            .append(Double.toString(e.getMinimum(1))).append(",")
+                            .append(Double.toString(e.getMaximum(0))).append(",")
+                            .append(Double.toString(e.getMaximum(1))).append(",")
+                            .append("4326").append(" )) ");
+                    case DUCKDB   -> 
+                        sqlRequest.append(" ( ST_Intersects(").append(geomColum) .append(", ST_MakeEnvelope (")
+                            .append(Double.toString(e.getMinimum(0))).append(",")
+                            .append(Double.toString(e.getMinimum(1))).append(",")
+                            .append(Double.toString(e.getMaximum(0))).append(",")
+                            .append(Double.toString(e.getMaximum(1))).append("))) ");
+                    case DERBY    -> throw new DataStoreException("No spatial operators for derby datase") ;
+                }
+                
+            } else {
+                envelopeFilter = e;
+            }
         } else {
             throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
         }

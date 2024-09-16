@@ -131,6 +131,8 @@ public class OM2BaseReader {
 
     protected final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
     protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+    
+    protected final boolean spatialOperatorsEnable;
 
     public OM2BaseReader(final Map<String, Object> properties, final boolean cacheEnabled) throws DataStoreException {
         this.dialect                   = (OMSQLDialect) properties.getOrDefault(SQL_DIALECT, null);
@@ -142,7 +144,8 @@ public class OM2BaseReader {
         this.observationTemplateIdBase = (String) properties.getOrDefault(OBSERVATION_TEMPLATE_ID_BASE_NAME, "urn:observation:template:");
         this.observationIdBase         = (String) properties.getOrDefault(OBSERVATION_ID_BASE_NAME, "");
         this.schemaPrefix              = (String)  properties.getOrDefault(SCHEMA_PREFIX_NAME, "");
-        this.cacheEnabled = cacheEnabled;
+        this.cacheEnabled              = cacheEnabled;
+        this.spatialOperatorsEnable    = dialect.equals(OMSQLDialect.DUCKDB) || dialect.equals(OMSQLDialect.POSTGRES);
     }
 
     public OM2BaseReader(final OM2BaseReader that) {
@@ -156,6 +159,7 @@ public class OM2BaseReader {
         this.timescaleDB               = that.timescaleDB;
         this.timescaleDBVersion        = that.timescaleDBVersion;
         this.decimationAlgorithm       = that.decimationAlgorithm;
+        this.spatialOperatorsEnable    = that.spatialOperatorsEnable;
     }
 
     /**
