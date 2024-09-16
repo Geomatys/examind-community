@@ -42,6 +42,10 @@ public interface FilterSQLRequest {
 
     FilterSQLRequest appendValue(String value, boolean conditional);
 
+    FilterSQLRequest appendValue(long value);
+
+    FilterSQLRequest appendValue(long value, boolean conditional);
+    
     FilterSQLRequest appendValue(int value);
 
     FilterSQLRequest appendValue(int value, boolean conditional);

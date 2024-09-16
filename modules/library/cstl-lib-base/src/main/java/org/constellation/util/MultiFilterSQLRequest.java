@@ -98,6 +98,18 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         requests.values().forEach(r -> r.appendValue(value, conditional));
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest appendValue(long value) {
+        requests.values().forEach(r -> r.appendValue(value));
+        return this;
+    }
+
+    @Override
+    public FilterSQLRequest appendValue(long value, boolean conditional) {
+        requests.values().forEach(r -> r.appendValue(value, conditional));
+        return this;
+    }
 
     @Override
     public FilterSQLRequest appendValue(Timestamp value) {

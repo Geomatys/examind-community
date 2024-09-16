@@ -381,7 +381,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 int nbValue = 0;
                 final String procedure   = rs.getString("procedure");
                 final String featureID   = rs.getString("foi");
-                final int oid            = rs.getInt("id");
+                final long oid           = rs.getLong("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
                 ProcedureInfo pti        = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                 boolean profile          = "profile".equals(pti.type);
@@ -576,11 +576,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
                 final String procedure = rs.getString("procedure");
-                final Date startTime = dateFromTS(rs.getTimestamp("time_begin"));
-                final Date endTime = dateFromTS(rs.getTimestamp("time_end"));
-                final int oid = rs.getInt("id");
-                final String name = rs.getString("identifier");
-                final String obsID = "obs-" + oid;
+                final Date startTime   = dateFromTS(rs.getTimestamp("time_begin"));
+                final Date endTime     = dateFromTS(rs.getTimestamp("time_end"));
+                final long oid         = rs.getLong("id");
+                final String name      = rs.getString("identifier");
+                final String obsID     = "obs-" + oid;
                 final String featureID = rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist

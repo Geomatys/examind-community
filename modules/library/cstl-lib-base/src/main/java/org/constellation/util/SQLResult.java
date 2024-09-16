@@ -248,6 +248,18 @@ public class SQLResult implements AutoCloseable {
          return rss.get(resultSetIndex).wasNull();
     }
     
+    public long getLong(String fieldName) throws SQLException {
+        return getFirstResultSet().getLong(fieldName);
+    }
+
+    public long getLong(int fieldIndex, int resultSetIndex) throws SQLException {
+        return rss.get(resultSetIndex).getLong(fieldIndex);
+    }
+
+    public long getLong(String fieldName, int resultSetIndex) throws SQLException {
+        return rss.get(resultSetIndex).getLong(fieldName);
+    }
+    
     @Override
     public void close() throws SQLException {
         SQLException first = null;

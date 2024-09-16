@@ -161,6 +161,23 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         }
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest appendValue(long value) {
+        return this.appendValue(value, false);
+    }
+
+    @Override
+    public FilterSQLRequest appendValue(long value, boolean conditional) {
+        if (conditional) {
+            this.conditionalRequest.append("?");
+            this.conditionalParams.add(new Param(value, Long.class));
+        } else {
+            this.sqlRequest.append(" ? ");
+            this.params.add(new Param(value, Long.class));
+        }
+        return this;
+    }
 
     @Override
     public FilterSQLRequest appendValue(Timestamp value) {

@@ -1022,7 +1022,7 @@ public class OM2BaseReader {
         }
     }
 
-    private ComplexResult buildComplexResult(final ProcedureInfo ti, final int oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
+    private ComplexResult buildComplexResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
         final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>(), new ArrayList<>());
         int nbValue                 = 0;
@@ -1130,7 +1130,7 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Integer oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
+    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();

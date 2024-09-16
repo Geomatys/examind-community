@@ -1469,7 +1469,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         results.add(name);
                     }
                 } else {
-                    final int oid            = rs.getInt("id");
+                    final long oid           = rs.getLong("id");
                     final String name        = rs.getString("identifier");
                     final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters));
                     final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
