@@ -297,6 +297,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public FilterSQLRequest replaceSelect(String replacement) {
+        // this method has an issues if the select from contains a sub FROM
         String s = this.sqlRequest.toString();
         int fromPos = s.indexOf(" FROM");
         if (fromPos == -1) throw new IllegalArgumentException("No from clause found.");
@@ -526,6 +527,10 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             hash = 71 * hash + Objects.hashCode(this.value);
             hash = 71 * hash + Objects.hashCode(this.type);
             return hash;
+        }
+        
+        public String toString() {
+            return "[Param]\n name = " + name + "\nvalue = " + value + "\ntype = " + type.getSimpleName();
         }
 
     }

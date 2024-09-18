@@ -99,7 +99,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     @Autowired
     protected IProviderBusiness providerBusiness;
     
-    private static final long TOTAL_NB_SENSOR = 17;
+    private static final long TOTAL_NB_SENSOR = 18;
+    
+    private static final long TOTAL_NB_TEMPLATE = 17;
     
     private static final long TOTAL_NB_OBS = 261;
 
@@ -141,7 +143,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(omPr);
 
         List<ProcedureDataset> procs = omPr.getProcedureTrees(null);
-        assertEquals(TOTAL_NB_SENSOR + 1, procs.size());
+        assertEquals(TOTAL_NB_SENSOR, procs.size());
 
         Set<String> resultIds = new HashSet<>();
         procs.stream().forEach(s -> resultIds.add(s.getId()));
@@ -2020,10 +2022,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         LocationQuery query = new LocationQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
 
-        assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
 
         long count = omPr.getCount(query);
-        assertEquals(TOTAL_NB_SENSOR + 1, count);
+        assertEquals(TOTAL_NB_SENSOR, count);
 
         /**
          * procedure filter
@@ -2055,7 +2057,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         LocationQuery query = new LocationQuery();
         Map<String, Geometry> results = omPr.getLocation(query);
 
-        assertEquals(TOTAL_NB_SENSOR + 1, results.size());
+        assertEquals(TOTAL_NB_SENSOR, results.size());
 
         /**
          * procedure filter
@@ -2090,7 +2092,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new ProcedureQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:1");
@@ -2114,7 +2116,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR + 1);
+        assertEquals(result, TOTAL_NB_SENSOR);
 
         /**
          * sensor type filter
@@ -2135,9 +2137,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
         result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR);
+        assertEquals(result, TOTAL_NB_SENSOR - 1);
 
         /*
         * by id filter
@@ -2368,7 +2370,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         List<Process> results = omPr.getProcedures(query);
 
         Set<String> resultIds = getProcessIds(results);
-        assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:1");
@@ -2412,7 +2414,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getProcedures(query);
 
         resultIds = getProcessIds(results);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
 
         /*
         * by id filter
@@ -2635,7 +2637,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new OfferingQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR + 1, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("offering-1");
@@ -2659,7 +2661,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR + 1);
+        assertEquals(result, TOTAL_NB_SENSOR);
 
         /*
         * sensor type filter
@@ -2678,12 +2680,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
 
         assertFalse(resultIds.contains("offering-2"));
 
         result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR);
+        assertEquals(result, TOTAL_NB_SENSOR - 1);
 
         /*
         * procedure filter
@@ -2742,7 +2744,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new OfferingQuery();
         List<Offering> results = omPr.getOfferings(query);
-        assertEquals(TOTAL_NB_SENSOR + 1, results.size());
+        assertEquals(TOTAL_NB_SENSOR, results.size());
 
         Set<String> resultIds = results.stream().map(off -> off.getId()).collect(Collectors.toSet());
 
@@ -2768,7 +2770,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR + 1);
+        assertEquals(result, TOTAL_NB_SENSOR);
 
         /*
         * sensor type filter
@@ -2786,7 +2788,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getOfferings(query);
 
-        assertEquals(TOTAL_NB_SENSOR, results.size());
+        assertEquals(TOTAL_NB_SENSOR - 1, results.size());
 
         resultIds = results.stream().map(off -> off.getId()).collect(Collectors.toSet());
 
@@ -3223,7 +3225,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeTimeInTemplate(false);
 
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(TOTAL_NB_SENSOR, results.size());
+        assertEquals(TOTAL_NB_TEMPLATE, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -4814,14 +4816,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(omPr);
 
        /*
-        * we got TOTAL_NB_SENSOR observations because some of them are regrouped if they have all their properties in common:
+        * we got TOTAL_NB_TEMPLATE observations because some of them are regrouped if they have all their properties in common:
         * - observed property
         * - foi
         */
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         query.setSeparatedProfileObservation(false);
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(TOTAL_NB_SENSOR, results.size());
+        assertEquals(TOTAL_NB_TEMPLATE, results.size());
 
         Set<String> resultIds = new LinkedHashSet<>();
         for (Observation p : results) {
@@ -6893,91 +6895,5 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertTrue(cr.getNbValues() != null);
         assertEquals((Integer)5, cr.getNbValues());
-    }
-
-    private static String getPhenomenonId(Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
-        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
-
-        assertNotNull(template.getObservedProperty());
-        return template.getObservedProperty().getId();
-    }
-
-    private static String getPhenomenonId(Phenomenon phen) {
-        assertTrue(phen instanceof org.geotoolkit.observation.model.Phenomenon);
-        return ((org.geotoolkit.observation.model.Phenomenon)phen).getId();
-    }
-    
-    private static List<String> getPhenomenonIds(List<Phenomenon> phens) {
-        return phens.stream().map(phen -> getPhenomenonId(phen)).toList();
-    }
-
-    private static String getProcessId(Process proc) {
-        assertTrue(proc instanceof org.geotoolkit.observation.model.Procedure);
-        return ((org.geotoolkit.observation.model.Procedure)proc).getId();
-    }
-
-    private static Set<String> getProcessIds(List<Process> procs) {
-        return procs.stream().map(p -> getProcessId(p)).collect(Collectors.toSet());
-    }
-
-    private static String getFOIId(Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
-        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
-
-        assertNotNull(template.getFeatureOfInterest());
-        return template.getFeatureOfInterest().getId();
-    }
-
-    private static String getFOIId(SamplingFeature sf) {
-        assertTrue(sf instanceof org.geotoolkit.observation.model.SamplingFeature);
-        return ((org.geotoolkit.observation.model.SamplingFeature)sf).getId();
-    }
-
-    private static Set<String> getFOIIds(List<SamplingFeature> sfs) {
-        return sfs.stream().map(sf -> getFOIId(sf)).collect(Collectors.toSet());
-    }
-
-    private static String getResultValues(Observation obs) {
-        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
-        ComplexResult cr = (ComplexResult) obs.getResult();
-        return cr.getValues();
-    }
-
-    private static int countElementInMap(Map<String, Map<Date, Geometry>> map) {
-        int i = 0;
-        for (Map sub : map.values()) {
-            i = i + sub.size();
-        }
-        return i;
-    }
-
-    private static int countElementInMapList(Map<String, Set<Date>> map) {
-        int i = 0;
-        for (Set sub : map.values()) {
-            i = i + sub.size();
-        }
-        return i;
-    }
-
-    private static Set<String> getHistoricalLocationIds(Map<String, Map<Date, Geometry>> map) {
-        Set<String> results = new HashSet<>();
-        for (Entry<String, Map<Date, Geometry>> entry : map.entrySet()) {
-            String procedure = entry.getKey();
-            for (Date d : entry.getValue().keySet()) {
-                results.add(procedure + '-' + d.getTime());
-            }
-        }
-        return results;
-    }
-
-    private static Set<Long> getHistoricalTimeDate(Map<String, Set<Date>> map) {
-        Set<Long> results = new HashSet<>();
-        for (Entry<String, Set<Date>> entry : map.entrySet()) {
-            for (Date d : entry.getValue()) {
-                results.add(d.getTime());
-            }
-        }
-        return results;
     }
 }

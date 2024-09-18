@@ -294,6 +294,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             // TODO pagination broken
                             if (count == 0) continue;
                         }
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequests.toString());
+                        throw new DataStoreException("the service has throw a SQL Exception.", ex);
                     }
                 }
 
@@ -368,7 +371,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (resultMode == null) {
             resultMode = ResultMode.CSV;
         }
-        final ResultBuilder values = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
@@ -444,6 +446,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequests.toString());
                 
                 final String name = rs.getString("identifier");
+                final ResultBuilder values = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
                 final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
 
                 // profile oservation are instant
@@ -560,7 +563,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return applyPostPagination(new ArrayList<>(observations.values()));
     }
 
-    private List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
+    protected List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
@@ -661,15 +664,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
-        } catch (DataStoreException ex) {
+        } catch (DataStoreException | RuntimeException ex) {
             throw new DataStoreException("the service has throw an Exception:" + ex.getMessage(), ex);
-        } catch (RuntimeException ex) {
-            throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
         // TODO make a real pagination
         return applyPostPagination(observations);
     }
-
+    
     /**
      * Return the index of the first measure fields.
      *

@@ -23,20 +23,27 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.metadata.quality.QuantitativeResult;
 import org.opengis.metadata.quality.Result;
+import org.opengis.observation.Phenomenon;
+import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
@@ -247,5 +254,91 @@ public class ObservationTestUtils {
         }
         Assert.fail(obsId + " observation not found in dataset");
         return null; // unreachable
+    }
+    
+    public static String getPhenomenonId(org.opengis.observation.Observation o) {
+        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
+        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
+
+        assertNotNull(template.getObservedProperty());
+        return template.getObservedProperty().getId();
+    }
+
+    public static String getPhenomenonId(Phenomenon phen) {
+        assertTrue(phen instanceof org.geotoolkit.observation.model.Phenomenon);
+        return ((org.geotoolkit.observation.model.Phenomenon)phen).getId();
+    }
+    
+    public static List<String> getPhenomenonIds(List<Phenomenon> phens) {
+        return phens.stream().map(phen -> getPhenomenonId(phen)).toList();
+    }
+
+    public static String getProcessId(org.opengis.observation.Process proc) {
+        assertTrue(proc instanceof org.geotoolkit.observation.model.Procedure);
+        return ((org.geotoolkit.observation.model.Procedure)proc).getId();
+    }
+
+    public static Set<String> getProcessIds(List<org.opengis.observation.Process> procs) {
+        return procs.stream().map(p -> getProcessId(p)).collect(Collectors.toSet());
+    }
+
+    public static String getFOIId(org.opengis.observation.Observation o) {
+        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
+        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
+
+        assertNotNull(template.getFeatureOfInterest());
+        return template.getFeatureOfInterest().getId();
+    }
+
+    public static String getFOIId(SamplingFeature sf) {
+        assertTrue(sf instanceof org.geotoolkit.observation.model.SamplingFeature);
+        return ((org.geotoolkit.observation.model.SamplingFeature)sf).getId();
+    }
+
+    public static Set<String> getFOIIds(List<SamplingFeature> sfs) {
+        return sfs.stream().map(sf -> getFOIId(sf)).collect(Collectors.toSet());
+    }
+
+    public static String getResultValues(org.opengis.observation.Observation obs) {
+        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) obs.getResult();
+        return cr.getValues();
+    }
+
+    public static int countElementInMap(Map<String, Map<Date, Geometry>> map) {
+        int i = 0;
+        for (Map sub : map.values()) {
+            i = i + sub.size();
+        }
+        return i;
+    }
+
+    public static int countElementInMapList(Map<String, Set<Date>> map) {
+        int i = 0;
+        for (Set sub : map.values()) {
+            i = i + sub.size();
+        }
+        return i;
+    }
+
+    public static Set<String> getHistoricalLocationIds(Map<String, Map<Date, Geometry>> map) {
+        Set<String> results = new HashSet<>();
+        for (Map.Entry<String, Map<Date, Geometry>> entry : map.entrySet()) {
+            String procedure = entry.getKey();
+            for (Date d : entry.getValue().keySet()) {
+                results.add(procedure + '-' + d.getTime());
+            }
+        }
+        return results;
+    }
+
+    public static Set<Long> getHistoricalTimeDate(Map<String, Set<Date>> map) {
+        Set<Long> results = new HashSet<>();
+        for (Map.Entry<String, Set<Date>> entry : map.entrySet()) {
+            for (Date d : entry.getValue()) {
+                results.add(d.getTime());
+            }
+        }
+        return results;
     }
 }

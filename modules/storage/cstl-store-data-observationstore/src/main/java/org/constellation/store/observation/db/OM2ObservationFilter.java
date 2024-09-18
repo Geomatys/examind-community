@@ -1134,34 +1134,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             * The filter should be applied on each field separately
             * Actually the filter is apply on each field with a "AND"
             */
-            final String allPhenKeyword = "${allphen ";
-            List<Param> allPhenParams = single.getParamsByName("allphen");
-            for (Param param : allPhenParams) {
-                // it must be one ${allphen ...} for each "allPhen" param
-                if (!single.contains(allPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
-                String block = extractAllPhenBlock(single, allPhenKeyword);
-                StringBuilder sb = new StringBuilder();
-                int extraFilter = -1;
-                for (int i = offset; i < fields.size(); i++) {
-                    DbField field = (DbField) fields.get(i);
-                    if (field.tableNumber == tableNum) {
-                        if (matchType(param, field)) {
-                            sb.append(" AND (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
-                            extraFilter++;
-                        } else {
-                            LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.type);
-                            sb.append(" AND FALSE ");
-                        }
-                    }
-                }
-                single.replaceFirst(block, sb.toString());
-                if (extraFilter == -1) {
-                    // the filter has been removed, we need to remove the param
-                    single.removeNamedParam(param);
-                } else {
-                    single.duplicateNamedParam(param, extraFilter);
-                }
-            }
+            handleAllPhenParam(single, tableNum, fields, offset);
 
             /**
             * 2) Look for measure filter applying on all result quality  fields.
@@ -1263,15 +1236,46 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         
         return result;
     }
+    
+    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, int offset) {
+        final String allPhenKeyword = "${allphen ";
+        List<Param> allPhenParams = single.getParamsByName("allphen");
+        for (Param param : allPhenParams) {
+            // it must be one ${allphen ...} for each "allPhen" param
+            if (!single.contains(allPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
+            String block = extractAllPhenBlock(single, allPhenKeyword);
+            StringBuilder sb = new StringBuilder();
+            int extraFilter = -1;
+            for (int i = offset; i < fields.size(); i++) {
+                DbField field = (DbField) fields.get(i);
+                if (field.tableNumber == tableNum) {
+                    if (matchType(param, field)) {
+                        sb.append(" AND (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
+                        extraFilter++;
+                    } else {
+                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.type);
+                        sb.append(" AND FALSE ");
+                    }
+                }
+            }
+            single.replaceFirst(block, sb.toString());
+            if (extraFilter == -1) {
+                // the filter has been removed, we need to remove the param
+                single.removeNamedParam(param);
+            } else {
+                single.duplicateNamedParam(param, extraFilter);
+            }
+        }
+    }
 
-    private String extractAllPhenBlock(SingleFilterSQLRequest request, String keyword) {
+    protected String extractAllPhenBlock(SingleFilterSQLRequest request, String keyword) {
         String measureFilter = request.getRequest();
         int opos = measureFilter.indexOf(keyword);
         int cpos = measureFilter.indexOf("}", opos + keyword.length());
         return measureFilter.substring(opos, cpos + 1);
     }
     
-    private static boolean matchType(Param param, Field field) {
+    protected static boolean matchType(Param param, Field field) {
         //we want to let pass different numbers type
         if (Number.class.isAssignableFrom(param.type) &&
             Number.class.isAssignableFrom(field.type.getJavaType()))  {
@@ -1280,7 +1284,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return param.type.isAssignableFrom(field.type.getJavaType());
     }
 
-    private void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent) {
+    protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent) {
         String columnName;
         String qualitySuffix;
         if (parent != null) {
