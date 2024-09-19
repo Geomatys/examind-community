@@ -64,7 +64,7 @@ public class CommonConstants {
     public static final String SENSORML_101_FORMAT_V100 = "text/xml;subtype=\"sensorML/1.0.1\"";
     public static final String SENSORML_100_FORMAT_V200 = "http://www.opengis.net/sensorML/1.0.0";
     public static final String SENSORML_101_FORMAT_V200 = "http://www.opengis.net/sensorML/1.0.1";
-
+    
     public static final String SENSOR_ID_BASE = "sensor-id-base";
     public static final String ALWAYS_FEATURE_COLLECTION = "alwaysFeatureCollection";
     public static final String SHEMA_PREFIX = "schemaPrefix";
@@ -102,8 +102,9 @@ public class CommonConstants {
      */
     public static final QName OBSERVATION_QNAME = new QName(OM_NAMESPACE, "Observation", "om");
 
-    public static final String OBSERVATION_MODEL = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
-    public static final String MEASUREMENT_MODEL = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+    public static final String OBSERVATION_MODEL   = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation";
+    public static final String MEASUREMENT_MODEL   = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+    public static final String COMPLEX_OBSERVATION = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
 
     /**
      * The base Qname for measurement observation.

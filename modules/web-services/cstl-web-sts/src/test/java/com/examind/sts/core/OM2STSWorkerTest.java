@@ -22,7 +22,6 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +34,9 @@ import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
+import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
 import org.constellation.business.IProviderBusiness;
@@ -422,7 +423,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .resultTime("2007-05-01T00:59:00Z/2007-05-01T19:59:00Z")
                 .phenomenonTime("2007-05-01T00:59:00Z/2007-05-01T19:59:00Z")
                 .description("")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .observationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:3-2)/Observations")
@@ -1121,7 +1122,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .description("")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-1-2)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2007-05-01T10:59:00Z/2007-05-01T14:59:00Z")
@@ -1289,7 +1290,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .description("")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:10-2)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:04:00Z")
@@ -1417,7 +1418,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .description("")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:test-id-2)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2009-05-01T11:47:00Z/2009-05-01T12:03:00Z")
@@ -1610,9 +1611,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:8)/Things");
-                expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
-                expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement",
-                                                                     "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservationType(COMPLEX_OBSERVATION);
+                expResult.setMultiObservationDataTypes(Arrays.asList(MEASUREMENT_MODEL,
+                                                                     MEASUREMENT_MODEL));
                 expResult.setObservedArea(polygon);
 
         Assert.assertEquals(expResult.getMultiObservationDataTypes(), result.getMultiObservationDataTypes());
@@ -1797,8 +1798,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:10)/Things");
-                expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
-                expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservationType(COMPLEX_OBSERVATION);
+                expResult.setMultiObservationDataTypes(Arrays.asList(MEASUREMENT_MODEL));
                 expResult.setObservedArea(polygon);
 
         Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
@@ -1938,8 +1939,8 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 expResult.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Observations");
                 expResult.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Sensors");
                 expResult.setThingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:test-id)/Things");
-                expResult.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
-                expResult.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+                expResult.setObservationType(COMPLEX_OBSERVATION);
+                expResult.setMultiObservationDataTypes(Arrays.asList(MEASUREMENT_MODEL));
                 expResult.setObservedArea(point);
 
         Assert.assertTrue(DeltaComparable.equals(expResult.getObservedArea(), result.getObservedArea(), 0.0001f));
@@ -2113,7 +2114,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .description("")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-1)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("m", "m", "m"))
                 .resultTime("2000-11-30T23:00:00Z/2000-12-21T23:00:00Z")
@@ -2127,7 +2128,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 .description("")
                 .observedPropertyIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/ObservedProperties")
                 .iotSelfLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)")
-                .observationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement")
+                .observationType(MEASUREMENT_MODEL)
                 .thingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/Datastreams(urn:ogc:object:observation:template:GEOM:2-2)/Things")
                 .unitOfMeasurement(new UnitOfMeasure("°C", "°C", "°C"))
                 .resultTime("2000-11-30T23:00:00Z/2000-12-21T23:00:00Z")
@@ -2154,11 +2155,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expMDs1.setObservationsIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Observations");
         expMDs1.setSensorIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Sensors");
         expMDs1.setThingIotNavigationLink("http://test.geomatys.com/sts/default/v1.1/MultiDatastreams(urn:ogc:object:observation:template:GEOM:2)/Things");
-        expMDs1.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
+        expMDs1.setObservationType(COMPLEX_OBSERVATION);
         expMDs1.setObservedArea(point);
 
         // vertical profile issue
-        expMDs1.setMultiObservationDataTypes(Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement"));
+        expMDs1.setMultiObservationDataTypes(Arrays.asList(MEASUREMENT_MODEL, MEASUREMENT_MODEL));
 
         expResult.addMultiDatastreamsItem(expMDs1);
         expResult.setMultiDatastreamsIotNavigationLink(null);

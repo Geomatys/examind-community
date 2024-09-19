@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 import org.apache.sis.metadata.iso.quality.DefaultQuantitativeResult;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.util.Utilities;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -1086,7 +1087,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (exp.isSelected("PhenomenonTime")) datastream.setPhenomenonTime(time);
         }
 
-        if (exp.isSelected("ObservationType")) datastream.setObservationType("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation");
+        if (exp.isSelected("ObservationType")) datastream.setObservationType(COMPLEX_OBSERVATION);
 
         List<UnitOfMeasure> uoms = new ArrayList<>();
         if (obs.getResult() instanceof ComplexResult cr) {

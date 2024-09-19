@@ -46,6 +46,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.Resource;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
 import org.geotoolkit.nio.IOUtilities;
@@ -416,7 +417,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         result.observations.add(new Observation(oid,
                                                 oid,
                                                 null, null,
-                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                COMPLEX_OBSERVATION,
                                                 ob.procedure,
                                                 ob.getTimeObject(),
                                                 sp,

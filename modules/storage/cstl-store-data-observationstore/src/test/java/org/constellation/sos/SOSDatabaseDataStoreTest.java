@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasObservation;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsMeasurement;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertEqualsObservation;
@@ -135,7 +137,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         Observation result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         ComplexResult resultDAP = (ComplexResult)result.getResult();
@@ -157,7 +159,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         resultDAP = (ComplexResult)result.getResult();
@@ -175,7 +177,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+        Assert.assertEquals(MEASUREMENT_MODEL, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof MeasureResult);
         MeasureResult resultMeas = (MeasureResult)result.getResult();
@@ -198,7 +200,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         Observation result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
         
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         ComplexResult resultDAP = (ComplexResult)result.getResult();
@@ -214,7 +216,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+        Assert.assertEquals(MEASUREMENT_MODEL, result.getType());
         
         Assert.assertTrue(result.getResult() instanceof MeasureResult);
         MeasureResult resultMeas = (MeasureResult)result.getResult();
@@ -296,7 +298,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         Observation result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         ComplexResult resultDAP = (ComplexResult)result.getResult();
@@ -320,7 +322,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         resultDAP = (ComplexResult)result.getResult();
@@ -340,7 +342,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement", result.getType());
+        Assert.assertEquals(MEASUREMENT_MODEL, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof MeasureResult);
         MeasureResult resultMeas = (MeasureResult)result.getResult();
@@ -363,7 +365,7 @@ public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
         Assert.assertTrue(obs instanceof Observation);
         Observation result = (Observation) obs;
 
-        Assert.assertEquals("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation", result.getType());
+        Assert.assertEquals(COMPLEX_OBSERVATION, result.getType());
 
         Assert.assertTrue(result.getResult() instanceof ComplexResult);
         ComplexResult resultDAP = (ComplexResult)result.getResult();

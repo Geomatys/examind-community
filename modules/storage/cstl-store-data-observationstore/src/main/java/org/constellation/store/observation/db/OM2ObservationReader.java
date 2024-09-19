@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
@@ -485,7 +486,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 omType = getOmTypeFromFieldType(selectedField.type);
                 
             } else {
-                omType        = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
+                omType        = COMPLEX_OBSERVATION;
                 resultQuality = new ArrayList<>();
                 resultPhen    = phen;
                 if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
@@ -611,7 +612,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                                     name,
                                     null,
                                     null,
-                                    "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                    COMPLEX_OBSERVATION,
                                     proc,
                                     tempTime,
                                     feature,

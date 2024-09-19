@@ -1199,7 +1199,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
             /**
-             * 2) Look for measure filter applying on specific fields.
+             * 4) Look for measure filter applying on specific fields.
              *
              *  Replace phenomenon index filter by the real field name.
              *  Handle also filter on quality fields.
@@ -1211,7 +1211,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
             /**
-             * 3) Look for left over out of index result field filter.
+             * 5) Look for left over out of index result field filter.
              *
              *  Invalidate query if there are filter on unexisting fields.
              *  Handle also filter on quality fields.

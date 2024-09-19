@@ -126,6 +126,7 @@ import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
 import java.util.Optional;
 import java.util.Objects;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import org.constellation.api.WorkerState;
@@ -1804,7 +1805,7 @@ public class SOSworker extends SensorWorker {
                                                                                 null, // name
                                                                                 "Template for procedure " + procedure.getId(),
                                                                                 null,
-                                                                                "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                                                COMPLEX_OBSERVATION,
                                                                                 procedure,
                                                                                 null, // sampling time
                                                                                 featureOfInterest,

@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import org.apache.sis.referencing.CRS;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
@@ -523,10 +525,10 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
             final Result result = getResult(resultID, resultModel);
             String type;
             if (resultModel.equals(OBSERVATION_QNAME)) {
-                type = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation";
+                type = COMPLEX_OBSERVATION;
             } else {
                 // TODO here we don't handle specific result type, but the getResult actually return only measure.
-                type = "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement";
+                type = MEASUREMENT_MODEL;
             }
             final Procedure procedure = new Procedure(proc);
             return new Observation(obsID,

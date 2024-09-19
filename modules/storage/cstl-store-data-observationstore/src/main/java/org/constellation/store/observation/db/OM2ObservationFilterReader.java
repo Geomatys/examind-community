@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import org.constellation.store.observation.db.model.ProcedureInfo;
@@ -200,7 +201,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 Observation observation = new Observation(obsID,
                                                           name,
                                                           null, null,
-                                                          "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                          COMPLEX_OBSERVATION,
                                                           proc,
                                                           tempTime,
                                                           feature,
@@ -457,11 +458,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     final SamplingFeature feature = getFeatureOfInterest(featureID,  c);
                     final Phenomenon phen         = getGlobalCompositePhenomenon(c, procedure);
 
-                    if (profile) {
-                        // profile observation are instant
-                        parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
-                    }
-
                     /*
                      *  BUILD RESULT
                      */
@@ -473,16 +469,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                              * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
                              */
                             if (separatedMeasure) {
-                                final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
-                                final ComplexResult result = parser.buildComplexResult();
-                                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                                 final String measureID = rs2.getString("id");
                                 final String singleObsID = "obs-" + oid + '-' + measureID;
+                                final TemporalGeometricPrimitive time = buildTime(singleObsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
+                                final ComplexResult result = parser.buildComplexResult();
+                                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                                 final String singleName  = name + '-' + measureID;
                                 observation = new Observation(singleObsID,
                                                               singleName,
                                                               null, null,
-                                                              "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                              COMPLEX_OBSERVATION,
                                                               proc,
                                                               time,
                                                               feature,
@@ -509,7 +505,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         observation = new Observation(obsID,
                                                       name,
                                                       null, null,
-                                                      "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
+                                                      COMPLEX_OBSERVATION,
                                                       proc,
                                                       time,
                                                       feature,

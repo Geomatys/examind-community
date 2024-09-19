@@ -62,6 +62,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
+import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
+import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._Envelope_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._TimeInstant_QNAME;
 import static org.geotoolkit.gml.xml.v311.ObjectFactory._TimePeriod_QNAME;
@@ -441,8 +443,8 @@ public final class SOSConstants {
         final List<String> procedureFormat = Arrays.asList("http://www.opengis.net/sensorML/1.0.1");
         SUPPORTED_FOI_TYPES = Arrays.asList("http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingPoint",
                                                                  "http://www.opengis.net/def/samplingFeatureType/OGC-OM/2.0/SF_SamplingCurve");
-        SUPPORTED_OBS_TYPES = Arrays.asList("http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation",
-                                                           "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Measurement");
+        SUPPORTED_OBS_TYPES = Arrays.asList(OBSERVATION_MODEL,
+                                            MEASUREMENT_MODEL);
         final List<String> supportedEncoding = Arrays.asList("http://www.opengis.net/swe/2.0/TextEncoding");
         final InsertionCapabilitiesType icapa = new InsertionCapabilitiesType(procedureFormat, SUPPORTED_FOI_TYPES, SUPPORTED_OBS_TYPES, supportedEncoding);
         INSERTION_CAPABILITIES = new InsertionCapabilitiesPropertyType(icapa);
