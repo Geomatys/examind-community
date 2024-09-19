@@ -22,6 +22,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import jakarta.annotation.PostConstruct;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.dto.service.config.sos.ObservationDataset;
 import org.constellation.dto.service.config.sos.ProcedureDataset;
@@ -29,6 +32,7 @@ import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.castToModel;
+import static org.constellation.provider.observationstore.ObservationTestUtils.getPhenomenonId;
 import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment;
@@ -129,8 +133,15 @@ public class ObservationStoreProviderRemoveCompositePhenTest extends SpringConte
         NB_USED_PROCEDURE = NB_USED_PROCEDURE - 13;   // 13 procedure has been removed
         NB_PROCEDURE = NB_PROCEDURE - 13;
         NB_FOI--;                                     // one foi removed
+        
+        Set<String> expectedResultIds = new HashSet<>();
+        expectedResultIds.add("urn:ogc:object:observation:GEOM:3000");
+        expectedResultIds.add("urn:ogc:object:observation:GEOM:4002");
+        expectedResultIds.add("urn:ogc:object:observation:GEOM:7001");
+        
+        Set<String> resultIds = fullDataset.getObservations().stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
 
-        Assert.assertEquals(NB_OBSERVATION,     fullDataset.getObservations().size());
+        Assert.assertEquals("expected:" + expectedResultIds + " but was " + resultIds, NB_OBSERVATION,     fullDataset.getObservations().size());
         Assert.assertEquals(NB_USED_PHENOMENON, fullDataset.getPhenomenons().size());
         Assert.assertEquals(NB_FOI,             fullDataset.getFeatureOfInterest().size());
         Assert.assertEquals(NB_USED_PROCEDURE,  fullDataset.getProcedures().size());
