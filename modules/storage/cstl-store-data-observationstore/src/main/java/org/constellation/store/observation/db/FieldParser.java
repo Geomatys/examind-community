@@ -23,9 +23,13 @@ import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.ResultMode;
+import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 
 /**
  *
@@ -35,13 +39,13 @@ public class FieldParser {
 
     public Date firstTime = null;
     public Date lastTime  = null;
-    public int nbValue    = 0;
+    private int nbParsed  = 0;
     
     private final List<Field> fields;
     private final boolean profileWithTime;
     private final boolean includeID;
     private final boolean includeQuality;
-    private final ResultBuilder values;
+    public  final ResultBuilder values;
     private String name;
 
     private boolean first = true;
@@ -54,11 +58,23 @@ public class FieldParser {
         this.name = name;
         this.values = values;
     }
+    
+    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
+        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, name);
+    }
 
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Parse a measure line from an sql result.
+     * 
+     * @param rs A SQL result set.
+     * @param offset The index of the first measure field, in the field list.
+     * 
+     * @throws SQLException 
+     */
     public void parseLine(SQLResult rs, int offset) throws SQLException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
@@ -72,7 +88,7 @@ public class FieldParser {
                 }
             }
         }
-        nbValue = values.endBlock();
+        nbParsed = nbParsed + values.endBlock();
     }
 
     private void parseField(DbField field, SQLResult rs, int fieldIndex, int offset, Field parent) throws SQLException {
@@ -130,5 +146,17 @@ public class FieldParser {
                 break;
         }
     }
+    
+    public ComplexResult buildComplexResult() {
+        return OMUtils.buildComplexResult(fields, nbParsed, values);
+    }
+    
+    public void clear() {
+        nbParsed = 0;
+        values.clear();
+    }
 
+    public int getNbValueParsed() {
+        return nbParsed;
+    }
 }

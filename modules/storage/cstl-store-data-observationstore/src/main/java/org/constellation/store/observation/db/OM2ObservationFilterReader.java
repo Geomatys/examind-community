@@ -380,7 +380,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             final SQLResult rs = sqlRequest.execute(c)) {
 
             while (rs.next()) {
-                int nbValue = 0;
                 final String procedure   = rs.getString("procedure");
                 final String featureID   = rs.getString("foi");
                 final long oid           = rs.getLong("id");
@@ -446,8 +445,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequests.toString());
                 
                 final String name = rs.getString("identifier");
-                final ResultBuilder values = new ResultBuilder(resultMode, DEFAULT_ENCODING, false);
-                final FieldParser parser = new FieldParser(fields, values, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
+                final FieldParser parser = new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
 
                 // profile oservation are instant
                 if (profile) {
@@ -470,14 +468,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         while (rs2.nextOnField(pti.mainField.name)) {
                             parser.parseLine(rs2, fieldOffset);
-                            nbValue = nbValue + parser.nbValue;
 
                             /**
                              * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
                              */
                             if (separatedMeasure) {
                                 final TemporalGeometricPrimitive time = buildTime(obsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
-                                final ComplexResult result = buildComplexResult(fields, nbValue, values);
+                                final ComplexResult result = parser.buildComplexResult();
                                 final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                                 final String measureID = rs2.getString("id");
                                 final String singleObsID = "obs-" + oid + '-' + measureID;
@@ -494,8 +491,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                               result,
                                                               properties);
                                 observations.put(procedure + '-' + name + '-' + measureID, observation);
-                                values.clear();
-                                nbValue = 0;
+                                parser.clear();
                             }
                         }
                     } catch (SQLException ex) {
@@ -508,7 +504,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     */
                     if (!separatedMeasure) {
                         final TemporalGeometricPrimitive time = buildTime(obsID, parser.firstTime, parser.lastTime);
-                        final ComplexResult result = buildComplexResult(fields, nbValue, values);
+                        final ComplexResult result = parser.buildComplexResult();
                         final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
                         observation = new Observation(obsID,
                                                       name,
@@ -536,22 +532,21 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         while (rs2.next()) {
                             parser.parseLine(rs2, fieldOffset);
-                            nbValue = nbValue + parser.nbValue;
                         }
                     }
 
                     // update observation result and sampling time
                     ComplexResult cr = (ComplexResult) observation.getResult();
-                    cr.setNbValues(cr.getNbValues() + nbValue);
+                    cr.setNbValues(cr.getNbValues() + parser.getNbValueParsed());
                     switch (resultMode) {
-                        case DATA_ARRAY: cr.getDataArray().addAll(values.getDataArray()); break;
-                        case CSV:        cr.setValues(cr.getValues() + values.getStringValues()); break;
+                        case DATA_ARRAY -> cr.getDataArray().addAll(parser.values.getDataArray());
+                        case CSV        -> cr.setValues(cr.getValues() + parser.values.getStringValues());
                     }
                     // observation can be instant
                     observation.extendSamplingTime(parser.firstTime);
                     observation.extendSamplingTime(parser.lastTime);
                 }
-                values.clear();
+                parser.clear();
             }
 
         } catch (Exception ex) {

@@ -1025,23 +1025,18 @@ public class OM2BaseReader {
     private ComplexResult buildComplexResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
         final List<Field> fields    = readFields(ti.procedureId, false, c, new ArrayList<>(), new ArrayList<>());
-        int nbValue                 = 0;
-        final ResultBuilder values  = new ResultBuilder(ResultMode.CSV, DEFAULT_ENCODING, false);
 
         FilterSQLRequest measureFilter = null;
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-
         final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
-
-        final FieldParser parser    = new FieldParser(fields, values, false, false, true, null);
+        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, null);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
                 parser.parseLine(rs, 0);
-                nbValue = nbValue + parser.nbValue;
             }
-            return OMUtils.buildComplexResult(fields, nbValue, values);
+            return parser.buildComplexResult();
         }
     }
 
