@@ -255,8 +255,10 @@ public class OM2Utils {
                 request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
             }
             
-            // apend filter on null values
+            // append filter on null values
             Map<Integer, List<String>> tableConditions = new HashMap<>();
+            
+            // 1. we sort the field identified as measure field along their table number
             for (Field f : measureFields) {
                 if (f instanceof DbField df) {
                     // index 0 are non measure fields
@@ -268,6 +270,7 @@ public class OM2Utils {
                     throw new IllegalStateException("Unexpected field implementation: " + f.getClass().getName());
                 }
             }
+            // 2. we add the filter to each table request
             for (Entry<Integer, List<String>> entry : tableConditions.entrySet()) {
                 if (!entry.getValue().isEmpty()) {
                     StringBuilder s = new StringBuilder("(");

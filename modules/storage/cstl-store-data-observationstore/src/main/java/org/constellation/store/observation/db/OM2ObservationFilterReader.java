@@ -526,7 +526,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     * complete the previous observation with new measures.
                     */
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
-                        while (rs2.next()) {
+                        while (rs2.nextOnField(pti.mainField.name)) {
                             parser.parseLine(rs2, fieldOffset);
                         }
                     }

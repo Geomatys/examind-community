@@ -1131,10 +1131,16 @@ public class OM2BaseReader {
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         final Map<Integer, List<DbField>> queryTableFields = extractTableFields(mainFieldName, queryFields);
         
+        final boolean multiTable = pti.nbTable > 1;
+        
+        
         for (int tableNum = 1; tableNum < pti.nbTable + 1; tableNum++) {
             
             // skip the table if none query fields are requested (multi table procedure only) (what about filters???)
             if (!queryTableFields.containsKey(tableNum) && pti.nbTable > 1) continue;
+            
+            // this can be null
+            List<DbField> tableFields = queryTableFields.get(tableNum);
             
             String baseTableName = "mesure" + pti.pid;
             final SingleFilterSQLRequest measureRequest;
@@ -1147,9 +1153,9 @@ public class OM2BaseReader {
                     select = "m.\"id\"";
                 } else {
                     // add always id and main field
-                    select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
-                    if (queryTableFields.containsKey(tableNum)) {
-                        for (DbField df : queryTableFields.get(tableNum)) {
+                    select = "m.\"id\", m.\"" + mainFieldName + "\"";
+                    if (tableFields != null) {
+                        for (DbField df : tableFields) {
                             if (!df.name.equals(mainFieldName)) {
                                 select = select + ", m.\"" + df.name + "\"";
 
@@ -1181,6 +1187,33 @@ public class OM2BaseReader {
                     whereSet = true;
                 }
                 
+                /*
+                 * append filter on null values
+                 *  
+                 * Deactivated on multi- table for now.
+                 * TODO maybe add the main field on each extra table to solve this problem.
+                 */
+                if (!multiTable && tableFields != null) {
+                    boolean nullFilterApplied = false;
+
+                    // 1. we sort the field identified as measure field along their table number
+                    StringBuilder s = new StringBuilder("(");
+                    for (DbField df : tableFields) {
+                        // index 0 are non measure fields
+                        if (df.index != 0 && !df.name.equals(mainFieldName)) {
+                            s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
+                            nullFilterApplied = true;
+                        }
+                    }
+                    if (nullFilterApplied) {
+                        s.delete(s.length() - 3, s.length());
+                        s.append(")");
+                        String where = whereSet ? " AND " : " WHERE ";
+                        measureRequest.append(where).append(s.toString());
+                        whereSet = true;
+                    }
+                }
+                        
             // other tables
             } else {
                 String tableName = baseTableName + "_" + tableNum;
@@ -1217,7 +1250,37 @@ public class OM2BaseReader {
                 if (obsJoin) {
                     measureRequest.append(" AND o.\"id\" = m2.\"id_observation\" ");
                 }
+                
+               /*
+                 * append filter on null values
+                 *  
+                 * Deactivated on multi- table for now.
+                 * TODO maybe add the main field on each extra table to solve this problem.
+                 */
+                if (!multiTable && tableFields != null) {
+                    boolean nullFilterApplied = false;
+
+                    // 1. we sort the field identified as measure field along their table number
+                    StringBuilder s = new StringBuilder("(");
+                    for (DbField df : tableFields) {
+                        // index 0 are non measure fields
+                        if (df.index != 0 && !df.name.equals(mainFieldName)) {
+                            s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
+                            nullFilterApplied = true;
+                        }
+                    }
+                    if (nullFilterApplied) {
+                        s.delete(s.length() - 3, s.length());
+                        s.append(")");
+                        measureRequest.append(" AND ").append(s.toString());
+                        whereSet = true;
+                    }
+                }
             }
+            
+            /*
+            * Append measure filter on each measure request
+            */
             if (measureFilter != null) {
                 FilterSQLRequest clone = measureFilter.clone();
                 if (!whereSet) clone.replaceFirst("AND", "WHERE");
@@ -1227,9 +1290,14 @@ public class OM2BaseReader {
                     measureRequest.append(clone, !profile);
                 }
             }
+            
+            /*
+            * Append order by on main field
+            */
             if (addOrderBy) {
                 measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
             }
+            
             measureRequests.addRequest(tableNum, measureRequest);
         }
         return measureRequests;

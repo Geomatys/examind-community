@@ -28,7 +28,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.annotation.PostConstruct;
@@ -103,7 +102,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     
     private static final long TOTAL_NB_TEMPLATE = 17;
     
-    private static final long TOTAL_NB_OBS = 261;
+    private static final long TOTAL_NB_OBS_NAME = 133; // with nan value removed it should be 123. TODO verify count ?;
+    
+    private static final long TOTAL_NB_MEAS = 261; // with nan value removed it should be  247. TODO verify count ?;
 
     private static final FilterFactory ff = FilterUtilities.FF;
 
@@ -4325,17 +4326,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_OBS, resultIds.size());
+        assertEquals(TOTAL_NB_MEAS, resultIds.size());
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_OBS);
+        assertEquals(result, TOTAL_NB_MEAS);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(133, resultIds.size());
+        assertEquals(TOTAL_NB_OBS_NAME, resultIds.size());
 
         result = omPr.getCount(query);
-        assertEquals(result, 133L);
+        assertEquals(result, TOTAL_NB_OBS_NAME);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
@@ -4650,7 +4651,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(TOTAL_NB_OBS, results.size());
+        assertEquals(TOTAL_NB_MEAS, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -6383,7 +6384,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                   "2000-01-01T00:00:00.0,4.5@@"
                 + "2000-04-01T08:40:00.0,4.9@@"
                 + "2000-07-01T16:20:00.0,5.0@@"
-                + "2000-08-16T08:10:00.0,5.4@@";
+                + "2000-10-01T00:00:00.0,5.4@@";
 
         assertEquals(expectedResult, result);
         
@@ -6418,7 +6419,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedResult =
                   "2000-08-01T00:00:00.0,1.1@@"
                 + "2000-09-10T16:00:00.0,1.1@@"
-                + "2000-09-20T20:00:00.0,1.3@@";
+                + "2000-10-01T00:00:00.0,1.3@@";
 
         assertEquals(expectedResult, result);
     }
@@ -6440,7 +6441,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                   "2000-01-01T00:00:00.0,4.5@@"
                 + "2000-04-01T08:40:00.0,4.9@@"
                 + "2000-07-01T16:20:00.0,5.0@@"
-                + "2000-08-16T08:10:00.0,5.4@@";
+                + "2000-08-16T08:10:00.0,5.4@@"; // should be "2000-10-01T00:00:00.0,5.4@@" but we can't exclude empty field in multi table mode for now
 
         assertEquals(expectedResult, result);
         
@@ -6475,7 +6476,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedResult =
                   "2000-08-01T00:00:00.0,1.1@@"
                 + "2000-09-10T16:00:00.0,1.1@@"
-                + "2000-09-20T20:00:00.0,1.3@@";
+                + "2000-09-20T20:00:00.0,1.3@@"; // should be "2000-10-01T00:00:00.0,1.3@@" but we can't exclude empty field in multi table mode for now
 
         assertEquals(expectedResult, result);
         
@@ -6509,7 +6510,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedResult =
                   "urn:ogc:object:sensor:GEOM:18-dec-0,2000-08-01T00:00:00.0,1.1@@"
                 + "urn:ogc:object:sensor:GEOM:18-dec-1,2000-09-10T16:00:00.0,1.1@@"
-                + "urn:ogc:object:sensor:GEOM:18-dec-2,2000-09-20T20:00:00.0,1.3@@";
+                + "urn:ogc:object:sensor:GEOM:18-dec-2,2000-09-20T20:00:00.0,1.3@@"; // should be "urn:ogc:object:sensor:GEOM:18-dec-2,2000-10-01T00:00:00.0,1.3" but we can't exclude empty field in multi table mode for now
 
         assertEquals(expectedResult, result);       
         
