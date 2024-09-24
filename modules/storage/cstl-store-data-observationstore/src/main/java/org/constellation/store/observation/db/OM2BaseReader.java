@@ -1031,10 +1031,10 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
         final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
-        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, null);
+        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
-                parser.parseLine(rs, 0);
+                parser.parseLine(rs);
             }
             return parser.buildComplexResult();
         }

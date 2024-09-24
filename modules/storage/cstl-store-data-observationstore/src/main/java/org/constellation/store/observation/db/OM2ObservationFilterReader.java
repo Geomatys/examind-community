@@ -389,9 +389,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 boolean profile          = "profile".equals(pti.type);
                 final boolean profileWithTime = profile && includeTimeForProfile;
 
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type);
-                
                /*
                 * Compute procedure fields
                 */
@@ -440,107 +437,48 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                /*
                 * Compute procedure measure request
                 */
-                int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+                final int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
                 final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
                 final FilterSQLRequest measureRequests = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
                 LOGGER.fine(measureRequests.toString());
                 
-                final String name = rs.getString("identifier");
-                final FieldParser parser = new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, name);
+                final String obsName = rs.getString("identifier");
+                final FieldParser parser = buildFieldParser(fields, profileWithTime, obsName, fieldOffset);
 
                 // profile oservation are instant
                 if (profile) {
-                    parser.firstTime = dateFromTS(rs.getTimestamp("time_begin"));
+                    parser.setFirstTime(dateFromTS(rs.getTimestamp("time_begin")));
                 }
 
                 if (observation == null) {
-                    final String obsID            = "obs-" + oid;
                     final SamplingFeature feature = getFeatureOfInterest(featureID,  c);
                     final Phenomenon phen         = getGlobalCompositePhenomenon(c, procedure);
-
-                    /*
-                     *  BUILD RESULT
-                     */
+                    final Procedure proc          = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
+                    
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
-                        while (rs2.nextOnField(pti.mainField.name)) {
-                            parser.parseLine(rs2, fieldOffset);
-
-                            /**
-                             * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
-                             */
-                            if (separatedMeasure) {
-                                final String measureID = rs2.getString("id");
-                                final String singleObsID = "obs-" + oid + '-' + measureID;
-                                final TemporalGeometricPrimitive time = buildTime(singleObsID, parser.lastTime != null ? parser.lastTime : parser.firstTime, null);
-                                final ComplexResult result = parser.buildComplexResult();
-                                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
-                                final String singleName  = name + '-' + measureID;
-                                observation = new Observation(singleObsID,
-                                                              singleName,
-                                                              null, null,
-                                                              COMPLEX_OBSERVATION,
-                                                              proc,
-                                                              time,
-                                                              feature,
-                                                              phen,
-                                                              null,
-                                                              result,
-                                                              properties);
-                                observations.put(procedure + '-' + name + '-' + measureID, observation);
-                                parser.clear();
-                            }
+                       /**
+                        * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
+                        */
+                        if (separatedMeasure) {
+                            observations.putAll(parser.parseSingleMeasureObservation(rs2, oid, pti, proc, feature, phen));
+                        /**
+                         * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
+                         */
+                        } else {
+                            Entry<String, Observation> entry = parser.parseComplexObservation(rs2, oid, pti, proc, feature, phen, separatedProfileObs);
+                            observations.put(entry.getKey(), entry.getValue());
                         }
                     } catch (SQLException ex) {
-                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequests.toString());
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the measure query: {0}", measureRequests.toString());
                         throw new DataStoreException("the service has throw a SQL Exception.", ex);
-                    }
-
-                    /**
-                    * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
-                    */
-                    if (!separatedMeasure) {
-                        final TemporalGeometricPrimitive time = buildTime(obsID, parser.firstTime, parser.lastTime);
-                        final ComplexResult result = parser.buildComplexResult();
-                        final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
-                        observation = new Observation(obsID,
-                                                      name,
-                                                      null, null,
-                                                      COMPLEX_OBSERVATION,
-                                                      proc,
-                                                      time,
-                                                      feature,
-                                                      phen,
-                                                      null,
-                                                      result,
-                                                      properties);
-                        if (separatedProfileObs && profile) {
-                            synchronized (format2) {
-                                observations.put(procedure + '-' + featureID + '-' + format2.format(parser.firstTime), observation);
-                            }
-                        } else {
-                            observations.put(procedure + '-' + featureID, observation);
-                        }
                     }
                 } else {
                    /**
                     * complete the previous observation with new measures.
                     */
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
-                        while (rs2.nextOnField(pti.mainField.name)) {
-                            parser.parseLine(rs2, fieldOffset);
-                        }
+                        parser.completeObservation(rs2, pti, observation);
                     }
-
-                    // update observation result and sampling time
-                    ComplexResult cr = (ComplexResult) observation.getResult();
-                    cr.setNbValues(cr.getNbValues() + parser.getNbValueParsed());
-                    switch (resultMode) {
-                        case DATA_ARRAY -> cr.getDataArray().addAll(parser.values.getDataArray());
-                        case CSV        -> cr.setValues(cr.getValues() + parser.values.getStringValues());
-                    }
-                    // observation can be instant
-                    observation.extendSamplingTime(parser.firstTime);
-                    observation.extendSamplingTime(parser.lastTime);
                 }
                 parser.clear();
             }
@@ -552,6 +490,20 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         
         // TODO make a real pagination
         return applyPostPagination(new ArrayList<>(observations.values()));
+    }
+    
+    /**
+     * Allow to override the field parser for different observations.
+     * 
+     * @param fields Procedure fields.
+     * @param profileWithTime Flag indicating if the time must be included for profile observations.
+     * @param obsName Observation base identifier.
+     * @param fieldOffset index of the first measure field in the field list.
+     * 
+     * @return A field parser. 
+     */
+    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
+        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, obsName, fieldOffset);
     }
 
     protected List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
@@ -671,7 +623,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * 
      * @return The index where starts the measure fields.
      */
-    private  int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
+    private static int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
         int fieldOffset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
         if (profileWithTime) {
             fieldOffset++;

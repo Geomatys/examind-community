@@ -21,15 +21,31 @@ package org.constellation.store.observation.db;
 import org.constellation.store.observation.db.model.DbField;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.AbstractMap;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.OMUtils;
+import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
+import static org.geotoolkit.observation.model.ResultMode.CSV;
+import static org.geotoolkit.observation.model.ResultMode.DATA_ARRAY;
+import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
+import org.opengis.temporal.TemporalGeometricPrimitive;
 
 /**
  *
@@ -37,50 +53,79 @@ import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENC
  */
 public class FieldParser {
 
-    public Date firstTime = null;
-    public Date lastTime  = null;
+    private final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+    
+    private Date firstTime = null;
+    private Date lastTime  = null;
     private int nbParsed  = 0;
     
     private final List<Field> fields;
     private final boolean profileWithTime;
     private final boolean includeID;
     private final boolean includeQuality;
-    public  final ResultBuilder values;
-    private String name;
+    private final ResultBuilder values;
+    private String obsName;
+    private final int fieldOffset;
 
     private boolean first = true;
 
-    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
+    /**
+     * Build a new parser to transform SQL result in An exploitable STA result.
+     * 
+     * @param fields List of available fields in the SQL result.
+     * @param values Result builder that will be append.
+     * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
+     * @param includeID A flag indicating if we must include measure identifier.
+     * @param includeQuality A flag indicating if we must include quality field for measure.
+     * @param obsName Main observation identifier (used to build measure identifier).
+     * @param fieldOffset The index of the first measure field, in the field list.
+     */
+    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String obsName, int fieldOffset) {
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
         this.includeQuality = includeQuality;
-        this.name = name;
+        this.obsName = obsName;
         this.values = values;
+        this.fieldOffset = fieldOffset;
     }
     
-    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, String name) {
-        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, name);
+    /**
+     * Build a new parser to transform SQL result in An exploitable STA result.
+     * 
+     * @param fields List of available fields in the SQL result.
+     * @param resultMode Result mode in order to build a ResultBuilder.
+     * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
+     * @param includeID A flag indicating if we must include measure identifier.
+     * @param includeQuality A flag indicating if we must include quality field for measure.
+     * @param obsName Main observation identifier (used to build measure identifier).
+     * @param fieldOffset The index of the first measure field, in the field list.
+     */
+    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, String obsName, int fieldOffset) {
+        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, obsName, fieldOffset);
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.obsName = name;
+    }
+    
+    public void setFirstTime(Date firstTime) {
+        this.firstTime = firstTime;
     }
 
     /**
      * Parse a measure line from an sql result.
      * 
      * @param rs A SQL result set.
-     * @param offset The index of the first measure field, in the field list.
      * 
      * @throws SQLException 
      */
-    public void parseLine(SQLResult rs, int offset) throws SQLException {
+    public void parseLine(SQLResult rs) throws SQLException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
 
             DbField field = (DbField) fields.get(i);
-            parseField(field, rs, i, offset, null);
+            parseField(field, rs, i, fieldOffset, null);
 
             if (includeQuality && field.qualityFields != null) {
                 for (Field qField : field.qualityFields) {
@@ -138,7 +183,7 @@ public class FieldParser {
                 String svalue;
                 // id field is present in all th resultSets
                 if (includeID && fieldName.equals("id")) {
-                    svalue =  name + '-' + rs.getString(fieldName);
+                    svalue =  obsName + '-' + rs.getString(fieldName);
                 } else {
                     svalue = rs.getString(fieldName, rsIndex);
                 }
@@ -158,5 +203,87 @@ public class FieldParser {
 
     public int getNbValueParsed() {
         return nbParsed;
+    }
+    
+    public Map<String, Observation> parseSingleMeasureObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen) throws SQLException {
+        final Map<String, Observation> observations = new LinkedHashMap<>();
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("type", pti.type);
+                
+        while (rs2.nextOnField(pti.mainField.name)) {
+            parseLine(rs2);
+
+            /**
+             * In "separated observation" mode we create an observation for each measure and don't merge it into a single obervation by procedure/foi.
+             */
+            final String measureID                = rs2.getString("id");
+            final String singleObsID              = "obs-" + oid + '-' + measureID;
+            final TemporalGeometricPrimitive time = buildTime(singleObsID, lastTime != null ? lastTime : firstTime, null);
+            final ComplexResult result            = buildComplexResult();
+            final String singleName               = obsName + '-' + measureID;
+            final Observation observation = new Observation(singleObsID,
+                                          singleName,
+                                          null, null,
+                                          COMPLEX_OBSERVATION,
+                                          proc,
+                                          time,
+                                          feature,
+                                          phen,
+                                          null,
+                                          result,
+                                          properties);
+            observations.put(pti.procedureId + '-' + obsName + '-' + measureID, observation);
+            clear();
+        }
+        return observations;
+    }
+    
+    public Entry<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
+        final String obsID             = "obs-" + oid;
+        boolean profile                = "profile".equals(pti.type);
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("type", pti.type);
+        
+        while (rs2.nextOnField(pti.mainField.name)) {
+            parseLine(rs2);
+        }
+        
+        final TemporalGeometricPrimitive time = buildTime(obsID, firstTime, lastTime);
+        final ComplexResult result = buildComplexResult();
+        final Observation observation = new Observation(obsID,
+                                                      obsName,
+                                                      null, null,
+                                                      COMPLEX_OBSERVATION,
+                                                      proc,
+                                                      time,
+                                                      feature,
+                                                      phen,
+                                                      null,
+                                                      result,
+                                                      properties);
+        if (separatedProfileObs && profile) {
+            synchronized (format2) {
+                return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId() + '-' + format2.format(firstTime), observation);
+            }
+        } else {
+            return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId(), observation);
+        }
+    }
+    
+    public void completeObservation(final SQLResult rs2, final ProcedureInfo pti, Observation observation) throws SQLException {
+        while (rs2.nextOnField(pti.mainField.name)) {
+            parseLine(rs2);
+        }
+
+        // update observation result and sampling time
+        ComplexResult cr = (ComplexResult) observation.getResult();
+        cr.setNbValues(cr.getNbValues() + getNbValueParsed());
+        switch (values.getMode()) {
+            case DATA_ARRAY -> cr.getDataArray().addAll(values.getDataArray());
+            case CSV        -> cr.setValues(cr.getValues() + values.getStringValues());
+        }
+        // observation can be instant
+        observation.extendSamplingTime(firstTime);
+        observation.extendSamplingTime(lastTime);
     }
 }

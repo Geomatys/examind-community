@@ -106,13 +106,13 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null);
+        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null, fieldOffset);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString("identifier");
                 parser.setName(name + idSuffix);
             }
-            parser.parseLine(rs, fieldOffset);
+            parser.parseLine(rs);
         }
     }
 }
