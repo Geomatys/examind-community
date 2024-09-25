@@ -53,21 +53,21 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  */
 public class FieldParser {
 
-    private final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+    protected final SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
     
-    private Date firstTime = null;
-    private Date lastTime  = null;
-    private int nbParsed  = 0;
+    protected Date firstTime = null;
+    protected Date lastTime  = null;
+    protected int nbParsed  = 0;
     
-    private final List<Field> fields;
-    private final boolean profileWithTime;
-    private final boolean includeID;
-    private final boolean includeQuality;
-    private final ResultBuilder values;
-    private String obsName;
-    private final int fieldOffset;
+    protected final List<Field> fields;
+    protected final boolean profileWithTime;
+    protected final boolean includeID;
+    protected final boolean includeQuality;
+    protected final ResultBuilder values;
+    protected String obsName;
+    protected final int fieldOffset;
 
-    private boolean first = true;
+    protected boolean first = true;
 
     /**
      * Build a new parser to transform SQL result in An exploitable STA result.

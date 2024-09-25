@@ -184,7 +184,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
         }
 
-        protected void addToMapVal(final Long main, final String field, final double current) {
+        public void addToMapVal(final Long main, final String field, final double current) {
 
             mainValues.add(main);
             

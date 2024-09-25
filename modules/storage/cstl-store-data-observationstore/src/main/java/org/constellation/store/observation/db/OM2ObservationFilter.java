@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -141,7 +142,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected List<Integer> fieldIndexFilters = new ArrayList<>();
 
-    protected List<Integer> measureIdFilters = new ArrayList<>();
+    protected List<Long> measureIdFilters = new ArrayList<>();
 
     protected Envelope envelopeFilter = null;
 
@@ -611,7 +612,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             procDescJoin = true;
 
                             // mid is not really used in that case we should look for existence and none emptiness but it will be costly
-                            int mid = Integer.parseInt(component[2]);
+                            long mid = Long.parseLong(component[2]);
                             measureIdFilters.add(mid);
                             
 
@@ -619,7 +620,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             oid = component[0];
                            
                             // mid is not really used in that case we should look for existence and none emptiness but it will be costly
-                            int mid = Integer.parseInt(component[1]);
+                            long mid = Long.parseLong(component[1]);
                             measureIdFilters.add(mid);
                         }
                         procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
@@ -704,10 +705,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 fieldIndexFilters.add(fieldId);
                                 fieldSb.append("(pd.\"order\"=").appendValue(fieldId).append(") OR");
                                 procDescJoin = true;
-                                measureIdFilters.add(Integer.valueOf(component[2]));
+                                measureIdFilters.add(Long.valueOf(component[2]));
                             } else if (component.length == 2) {
                                 oid = component[0];
-                                measureIdFilters.add(Integer.valueOf(component[1]));
+                                measureIdFilters.add(Long.valueOf(component[1]));
                             }
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                         } else {
@@ -758,10 +759,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             if (component.length == 3) {
                                 oid = component[0];
                                 fieldIndexFilters.add(Integer.valueOf(component[1]));
-                                measureIdFilters.add(Integer.valueOf(component[2]));
+                                measureIdFilters.add(Long.valueOf(component[2]));
                             } else if (component.length == 2) {
                                 oid = component[0];
-                                measureIdFilters.add(Integer.valueOf(component[1]));
+                                measureIdFilters.add(Long.valueOf(component[1]));
                             }
                             procSb.append("(o.\"identifier\"=").appendValue(oid).append(") OR");
                             obsJoin = true;
@@ -1134,7 +1135,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             * The filter should be applied on each field separately
             * Actually the filter is apply on each field with a "AND"
             */
-            handleAllPhenParam(single, tableNum, fields, offset);
+            handleAllPhenParam(single, tableNum, fields, offset, pti);
 
             /**
             * 2) Look for measure filter applying on all result quality  fields.
@@ -1237,7 +1238,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return result;
     }
     
-    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, int offset) {
+    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, int offset, ProcedureInfo pti) {
         final String allPhenKeyword = "${allphen ";
         List<Param> allPhenParams = single.getParamsByName("allphen");
         for (Param param : allPhenParams) {
@@ -1354,7 +1355,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * Used for either entity identifier listing or enytity count.
      * Just reduce the memory usage by not storing a list of identifiers.
      */
-    private class CountOrIdentifiers {
+    protected class CountOrIdentifiers {
         private List<String> identifiers = new ArrayList<>();
         private long count = 0;
 
@@ -1369,6 +1370,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 count++;
             } else {
                 identifiers.add(identifier);
+            }
+        }
+        
+        public void addAll(Collection<String> identifiers) {
+            if (forCount) {
+                count = count + identifiers.size();
+            } else {
+                this.identifiers.addAll(identifiers);
             }
         }
 
@@ -1483,42 +1492,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final FilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false);
                     LOGGER.fine(mesureRequest.toString());
 
-                    if (MEASUREMENT_QNAME.equals(resultModel)) {
-                        
-                        try (final SQLResult rs2 = mesureRequest.execute(c)) {
-                            int tNum = rs2.getFirstTableNumber();
-                            while (rs2.nextOnField("id")) {
-                                final Integer rid = rs2.getInt("id", tNum);
-                                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                                    for (int i = 0; i < fields.size(); i++) {
-                                        DbField field = (DbField) fields.get(i);
-                                        // in measurement mode we only want the non empty measure
-                                        final String value = rs2.getString(field.name, field.tableNumber);
-                                        if (value != null) {
-                                            results.add(name + '-' + field.index + '-' + rid);
-                                        }
-                                    }
-                                }
-                            }
-                        } catch (SQLException ex) {
-                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
-                            throw new DataStoreException("the service has throw a SQL Exception.");
-                        }
-                        
-
-                    } else {
-                        try (final SQLResult rs2 = mesureRequest.execute(c)) {
-                            while (rs2.nextOnField("id")) {
-                                int tNum = rs2.getFirstTableNumber();
-                                final Integer rid = rs2.getInt("id", tNum);
-                                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
-                                    results.add(name + '-' + rid);
-                                }
-                            }
-                        } catch (SQLException ex) {
-                            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
-                            throw new DataStoreException("the service has throw a SQL Exception.");
-                        }
+                    try (final SQLResult rs2 = mesureRequest.execute(c)) {
+                        extractObservationIds(rs2, fields, results, name);
+                    } catch (SQLException ex) {
+                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", mesureRequest.toString() + '\n' + ex.getMessage());
+                        throw new DataStoreException("the service has throw a SQL Exception.");
                     }
                 }
             }
@@ -1531,6 +1509,32 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             throw new DataStoreException("the service has throw a Runtime Exception:" + ex.getMessage(), ex);
         }
         return results;
+    }
+    
+    protected void extractObservationIds(SQLResult rs2, List<Field> fields, final CountOrIdentifiers results, String name) throws SQLException {
+        int tNum = rs2.getFirstTableNumber();
+        if (MEASUREMENT_QNAME.equals(resultModel)) {
+            while (rs2.nextOnField("id")) {
+                final Long rid = rs2.getLong("id", tNum);
+                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                    for (int i = 0; i < fields.size(); i++) {
+                        DbField field = (DbField) fields.get(i);
+                        // in measurement mode we only want the non empty measure
+                        final String value = rs2.getString(field.name, field.tableNumber);
+                        if (value != null) {
+                            results.add(name + '-' + field.index + '-' + rid);
+                        }
+                    }
+                }
+            }
+        } else {
+            while (rs2.nextOnField("id")) {
+                final Long rid = rs2.getLong("id", tNum);
+                if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
+                    results.add(name + '-' + rid);
+                }
+            }
+        }
     }
     
     private long getSensorLocationCount(boolean forCount) throws DataStoreException {

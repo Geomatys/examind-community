@@ -125,7 +125,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public boolean isEmpty() {
-        return this.sqlRequest.length() == 0;
+        return this.sqlRequest.isEmpty() && this.conditionalRequest.isEmpty();
     }
 
     @Override

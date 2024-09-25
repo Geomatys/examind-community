@@ -3774,23 +3774,30 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         count = omPr.getCount(query);
         assertEquals(4L, count);
+    }
+    
+    @Test
+    public void getMeasurementTemplateResultFilterTextFieldTest() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
 
         // get all the sensor templates that have at least ONE color value equals to 'blue'
-        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
-        eqRes = ff.equal(ff.property("result") , ff.literal("blue"));
-        filter = ff.and(eqObs, eqRes);
+        BinaryComparisonOperator eqObs = ff.equal(ff.property("observedProperty") , ff.literal("color"));
+        BinaryComparisonOperator eqRes = ff.equal(ff.property("result") , ff.literal("blue"));
+        Filter filter = ff.and(eqObs, eqRes);
         query.setSelection(filter);
-        results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
 
-        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        Set<String> resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
         assertEquals(2, resultIds.size());
 
-        expectedIds = new HashSet<>();
+        Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         Assert.assertEquals(expectedIds, resultIds);
 
-        count = omPr.getCount(query);
+        long count = omPr.getCount(query);
         assertEquals(2L, count);
 
         // get all the sensor templates that have at least ONE color value equals to 'yellow'
@@ -3865,8 +3872,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        
+        Assert.assertEquals(expectedIds, resultIds);
 
         // test pagination
         query.setLimit(2);
@@ -3878,8 +3887,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-4");
+        
+        Assert.assertEquals(expectedIds, resultIds);
 
         // test pagination
         query.setLimit(2);
@@ -3891,8 +3902,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-4");
-
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-1");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-4");
+        Assert.assertEquals(expectedIds, resultIds);
     }
 
     @Test
@@ -6096,17 +6108,20 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
 
         assertEquals(expectedResult, result);
+    }
 
+    @Test
+    public void getResultsMultiFilterQualityTest() throws Exception {
         // sensor quality no decimation
-        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
         query.setIncludeQualityFields(true);
-        results = omPr.getResults(query);
+        Object results = omPr.getResults(query);
         assertTrue(results instanceof ComplexResult);
-        cr = (ComplexResult) results;
+        ComplexResult cr = (ComplexResult) results;
         assertNotNull(cr.getValues());
-        result = cr.getValues();
+        String result = cr.getValues();
 
-        expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
+        String expectedResult =  "1980-03-01T21:52:00.0,6.56,ok,3.1@@"
                         + "1981-03-01T21:52:00.0,6.56,ko,3.2@@"
                         + "1982-03-01T21:52:00.0,6.56,ok,3.3@@"
                         + "1983-03-01T21:52:00.0,6.56,ko,3.4@@"
@@ -6135,7 +6150,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         // sensor quality no decimation with filter on quality field
         query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:quality_sensor", "csv");
         query.setIncludeQualityFields(true);
-        filter = ff.equal(ff.property("result[0].qflag") , ff.literal("ok"));
+        Filter filter = ff.equal(ff.property("result[0].qflag") , ff.literal("ok"));
         query.setSelection(filter);
 
         results = omPr.getResults(query);

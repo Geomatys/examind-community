@@ -52,11 +52,8 @@ import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import org.constellation.util.SQLResult;
-import org.geotoolkit.geometry.GeometricUtilities;
-import org.geotoolkit.geometry.GeometricUtilities.WrapResolution;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.geometry.jts.JTS;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -76,7 +73,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.observation.Process;
-import org.opengis.referencing.operation.TransformException;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.FactoryException;
 
@@ -295,9 +291,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             // TODO pagination broken
                             if (count == 0) continue;
                         }
-                    } catch (SQLException ex) {
-                        LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", measureRequests.toString());
-                        throw new DataStoreException("the service has throw a SQL Exception.", ex);
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", measureRequests.toString());
+                        throw new DataStoreException("the service has throw a Exception.", ex);
                     }
                 }
 
@@ -554,7 +550,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     int tableNum = rs2.getFirstTableNumber();
             
                     while (rs2.nextOnField(pti.mainField.name)) {
-                        final Integer rid = rs2.getInt("id", tableNum);
+                        final Long rid = rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalGeometricPrimitive measureTime;
                             if (profile) {
@@ -623,7 +619,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * 
      * @return The index where starts the measure fields.
      */
-    private static int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
+    protected int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
         int fieldOffset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
         if (profileWithTime) {
             fieldOffset++;
