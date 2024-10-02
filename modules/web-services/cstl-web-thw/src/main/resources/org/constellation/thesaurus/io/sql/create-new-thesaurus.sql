@@ -17,7 +17,7 @@ CREATE TABLE "{schema}"."propriete_concept" (
     "uri_concept" character varying(250) NOT NULL,
     "predicat"    character varying(250) NOT NULL,
     "objet"       character varying(100000) NOT NULL,
-    "graphid"     integer
+    "graphid"     integer NOT NULL DEFAULT 0
 );
 
 CREATE TABLE "{schema}"."terme_completion" (
@@ -40,7 +40,7 @@ ALTER TABLE "{schema}"."propriete_thesaurus" ADD CONSTRAINT "pk_propriete_thesau
 
 ALTER TABLE "{schema}"."language" ADD CONSTRAINT "pk_language" PRIMARY KEY ("language_iso");
 
-ALTER TABLE "{schema}"."propriete_concept" ADD CONSTRAINT "pk_propriete_concept" PRIMARY KEY ("uri_concept", "predicat", "objet");
+ALTER TABLE "{schema}"."propriete_concept" ADD CONSTRAINT "pk_propriete_concept" PRIMARY KEY ("uri_concept", "predicat", "objet", "graphid");
 
 ALTER TABLE "{schema}"."terme_completion" ADD CONSTRAINT "pk_terme_completion" PRIMARY KEY ("uri_concept", "label", "type_terme", "langage_iso");
 
