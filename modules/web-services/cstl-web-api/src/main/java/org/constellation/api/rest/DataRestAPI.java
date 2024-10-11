@@ -965,7 +965,7 @@ public class DataRestAPI extends AbstractRestAPI{
      * @return
      */
     @RequestMapping(value = "/datas/{dataId}/compute/info", method = GET)
-    public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam(name = "refresh", required = false) final Boolean refresh) {
+    public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam(name = "refresh", required = false, defaultValue = "false") final Boolean refresh) {
         try {
             dataBusiness.cacheDataInformation(dataId, refresh);
             return new ResponseEntity(OK);

@@ -1230,7 +1230,7 @@ public class DataBusiness implements IDataBusiness {
                 dims       = providerData.getSampleValueRanges();
             }
         } catch (Exception ex) {
-            LOGGER.log(Level.FINER, ex.getMessage(), ex);
+            LOGGER.log(Level.WARNING, "Error while trying to cache data information for data:" + dataId, ex);
         }
 
         // cache data informations in the database

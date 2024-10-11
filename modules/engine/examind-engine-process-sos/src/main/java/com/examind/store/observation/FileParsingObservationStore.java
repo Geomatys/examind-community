@@ -516,7 +516,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * @return A LAT / LON double array or an empty array if not found
      * @throws ParseException if the values of lat or lon column can not be parsed as a double
      */
-    protected double[] extractLinePosition(int latitudeIndex, int longitudeIndex, String procedure, Object[] line) throws ParseException, NumberFormatException {
+    protected double[] extractLinePosition(int latitudeIndex, int longitudeIndex, String procedure, Object[] line) throws ParseException, NumberFormatException, DataStoreException {
         if (latitudeIndex != -1 && longitudeIndex != -1) {
             final double latitude = parseDouble(line[latitudeIndex]);
             final double longitude = parseDouble(line[longitudeIndex]);
