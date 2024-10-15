@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db.mixed;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.ResultProcessor;
 import org.constellation.store.observation.db.model.ProcedureInfo;
+import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
@@ -59,6 +61,28 @@ public class MixedResultProcessor extends ResultProcessor {
         } else {
             onlyMain = false;
             mainIncluded = true;
+        }
+    }
+    
+    @Override
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
+        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
+        StringBuilder select  = new StringBuilder(mainFieldSelect);
+        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
+        if (profile) {
+            if (includeTimeInProfile) {
+                select.append(", m.\"time\" ");
+            }
+            orderBy.append(" m.\"time\", ");
+        }
+        // always order by main field
+        orderBy.append("\"").append(procedure.mainField.name).append("\"");
+        
+        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
+        sqlRequest.append(orderBy.toString());
+
+        if (firstFilter) {
+            sqlRequest.replaceFirst("WHERE", "");
         }
     }
     
@@ -105,9 +129,9 @@ public class MixedResultProcessor extends ResultProcessor {
                 for (int i = 0; i < fields.size(); i++) {
                     Field f = fields.get(i);
                     if (includeId && f.name.equals("id")) {
-                        values.appendString(rs.getString("identifier") + idSuffix + '-' + rs.getLong("id"), false, f);
+                        values.appendString("urn:ogc:object:observation:GEOM:" + procedure.pid + idSuffix + '-' + rs.getLong("id"), false, f);
                     } else if (f.type.equals(FieldType.TIME) && profile) {
-                        values.appendTime(dateFromTS(rs.getTimestamp(f.name)), false, f);
+                        values.appendTime(dateFromTS(rs.getTimestamp("time")), false, f);
                     }
                 }
                 // handle main field

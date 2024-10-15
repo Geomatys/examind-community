@@ -81,7 +81,6 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.TemporalOperator;
-import org.opengis.metadata.Identifier;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.sampling.SamplingFeature;
@@ -103,9 +102,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
     
     private static final long TOTAL_NB_TEMPLATE = 16;
     
-    private static final long TOTAL_NB_OBS_NAME = 115; //TODO verify number
+    private static final long TOTAL_NB_OBS_NAME = 122; //TODO verify number
     
-    private static final long TOTAL_NB_MEAS = 201; // TODO verify number
+    private static final long TOTAL_NB_MEAS = 208; // number looks legit since the flat_csv_data table has 208 lines
 
     private static final FilterFactory ff = FilterUtilities.FF;
 
@@ -4401,11 +4400,11 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(5, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1178024340");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1178027940");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1178031540");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1178035140");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-2-1178038740");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-2-1178024340");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-2-1178027940");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-2-1178031540");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-2-1178035140");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-2-1178038740");
         Assert.assertEquals(expectedIds, resultIds);
 
         result = omPr.getCount(query);
@@ -4417,11 +4416,11 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(5, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1178024340");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1178027940");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1178031540");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1178035140");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507-1178038740");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-1178024340");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-1178027940");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-1178031540");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-1178035140");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5-1178038740");
         Assert.assertEquals(expectedIds, resultIds);
 
         result = omPr.getCount(query);
@@ -4435,29 +4434,29 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(23, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-946684800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-946684800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-949363200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-949363200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-951868800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-951868800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-954547200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-954547200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-957139200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-959817600");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-962409600");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-965088000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-965088000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-4-965088000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-967766400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-967766400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-4-967766400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-2-970358400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-970358400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-4-970358400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-973036800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-975628800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-3-978307200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-946684800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-946684800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-949363200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-949363200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-951868800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-951868800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-954547200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-954547200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-957139200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-959817600");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-962409600");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-965088000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-965088000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-4-965088000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-967766400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-967766400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-4-967766400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-2-970358400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-970358400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-4-970358400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-973036800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-975628800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-3-978307200");
 
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -4470,19 +4469,19 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(13, resultIds.size());
 
         expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-946684800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-949363200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-951868800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-954547200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-957139200");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-959817600");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-962409600");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-965088000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-967766400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-970358400");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-973036800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-975628800");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000-978307200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-946684800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-949363200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-951868800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-954547200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-957139200");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-959817600");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-962409600");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-965088000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-967766400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-970358400");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-973036800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-975628800");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13-978307200");
         Assert.assertEquals(expectedIds, resultIds);
 
         result = omPr.getCount(query);
@@ -4633,8 +4632,8 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         
         /* TODO this test doesn't work because of the fiter applying only one field instead of all
         
-        expectedIds.add("urn:ogc:object:observation:GEOM:1001-1241185620");
-        expectedIds.add("urn:ogc:object:observation:GEOM:2000-1241185620");
+        expectedIds.add("urn:ogc:object:observation:GEOM:10-1241185620");
+        expectedIds.add("urn:ogc:object:observation:GEOM:11-1241185620");
 
         Assert.assertEquals(expectedIds, resultIds);
         assertEquals(2, resultIds.size());*/
@@ -4652,8 +4651,8 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         TODO list and verify
         
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:1001-2-1");
-        expectedIds.add("urn:ogc:object:observation:GEOM:2000-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:10-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:11-2-1");
 
         Assert.assertEquals(expectedIds, resultIds);*/
         
@@ -4670,9 +4669,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(3, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:3000-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:3000-5");
-        expectedIds.add("urn:ogc:object:observation:GEOM:801-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8-1");
 
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -4689,8 +4688,8 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:3000-2");
-        expectedIds.add("urn:ogc:object:observation:GEOM:801-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8-1");
 
         Assert.assertEquals(expectedIds, resultIds);
 
@@ -4776,7 +4775,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(omPr);
 
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:GEOM:6001-2-320795520"));
+        Filter filter = ff.equal(ff.property("observationId") , ff.literal("urn:ogc:object:observation:GEOM:15-2-320795520"));
         query.setSelection(filter);
         List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
@@ -4811,7 +4810,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         }
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:4000-4-965088000", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:13-4-965088000", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("salinity", getPhenomenonId(result));
@@ -4831,7 +4830,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:801-3-1178024340", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:8-3-1178024340", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("temperature", getPhenomenonId(result));
@@ -4859,7 +4858,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         }
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:4000", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:13", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon-2", getPhenomenonId(result));
@@ -4905,22 +4904,22 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         }
 
         Set<String> expectedIds = new LinkedHashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:201");
-        expectedIds.add("urn:ogc:object:observation:GEOM:4000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:3000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:2000");
-        expectedIds.add("urn:ogc:object:observation:GEOM:801");
-        expectedIds.add("urn:ogc:object:observation:GEOM:1001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:901");
-        expectedIds.add("urn:ogc:object:observation:GEOM:406");
-        expectedIds.add("urn:ogc:object:observation:GEOM:304");
-        expectedIds.add("urn:ogc:object:observation:GEOM:507");
-        expectedIds.add("urn:ogc:object:observation:GEOM:702");
-        expectedIds.add("urn:ogc:object:observation:GEOM:5001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:6001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:7001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:8001");
-        expectedIds.add("urn:ogc:object:observation:GEOM:9000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:13");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12");
+        expectedIds.add("urn:ogc:object:observation:GEOM:11");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8");
+        expectedIds.add("urn:ogc:object:observation:GEOM:10");
+        expectedIds.add("urn:ogc:object:observation:GEOM:9");
+        expectedIds.add("urn:ogc:object:observation:GEOM:4");
+        expectedIds.add("urn:ogc:object:observation:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:7");
+        expectedIds.add("urn:ogc:object:observation:GEOM:14");
+        expectedIds.add("urn:ogc:object:observation:GEOM:15");
+        expectedIds.add("urn:ogc:object:observation:GEOM:16");
+        expectedIds.add("urn:ogc:object:observation:GEOM:17");
+        expectedIds.add("urn:ogc:object:observation:GEOM:18");
 
         assertEquals(expectedIds, resultIds);
 
@@ -4935,7 +4934,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:304", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:3", result.getName().getCode());
         
         assertNotNull(result.getObservedProperty());
         assertEquals("depth", getPhenomenonId(result));
@@ -4976,7 +4975,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:201", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:2", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
@@ -5034,7 +5033,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:507", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:5", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
@@ -5063,7 +5062,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:801", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:8", result.getName().getCode());
 
         assertNotNull(result.getObservedProperty());
         assertEquals("aggregatePhenomenon", getPhenomenonId(result));
@@ -5094,15 +5093,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         for (Observation p : results) {
             String obsId = p.getName().getCode();
             resultIds.add(obsId);
-            if ("urn:ogc:object:observation:GEOM:304".equals(obsId)) {
+            if ("urn:ogc:object:observation:GEOM:3".equals(obsId)) {
                 result = p;
             }
         }
         assertEquals(2, resultIds.size());
 
         expectedIds = new HashSet<>();
-        expectedIds.add("urn:ogc:object:observation:GEOM:304");
-        expectedIds.add("urn:ogc:object:observation:GEOM:3000");
+        expectedIds.add("urn:ogc:object:observation:GEOM:3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:12");
         Assert.assertEquals(expectedIds, resultIds);
 
         assertNotNull(result);
@@ -5209,14 +5208,17 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
                         + "384.0,384.0,31.4@@"
                         + "768.0,768.0,35.1@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-01T00:00:00Z", (TemporalGeometricPrimitive) results.get(0).getSamplingTime());
 
         result = getResultValues(results.get(1));
         expectedResult  = "12.0,12.0,18.5@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-11T00:00:00Z", (TemporalGeometricPrimitive) results.get(1).getSamplingTime());
 
         result = getResultValues(results.get(2));
         expectedResult  = "12.0,12.0,18.5@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-22T00:00:00Z", (TemporalGeometricPrimitive) results.get(2).getSamplingTime());
 
         /*
         * TODO
@@ -5256,7 +5258,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:4000-4-965088000", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:13-4-965088000", result.getName().getCode());
         assertNotNull(result.getObservedProperty());
         assertEquals("salinity", getPhenomenonId(result));
         assertTrue(result.getResult() instanceof MeasureResult);
@@ -5264,13 +5266,13 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertEquals(1.1, mr.getValue());
 
         result = results.get(1);
-        assertEquals("urn:ogc:object:observation:GEOM:4000-4-967766400", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:13-4-967766400", result.getName().getCode());
         assertTrue(result.getResult() instanceof MeasureResult);
         mr = (MeasureResult) result.getResult();
         assertEquals(1.1, mr.getValue());
 
         result = results.get(2);
-        assertEquals("urn:ogc:object:observation:GEOM:4000-4-970358400", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:13-4-970358400", result.getName().getCode());
         assertTrue(result.getResult() instanceof MeasureResult);
         mr = (MeasureResult) result.getResult();
         assertEquals(1.3, mr.getValue());
@@ -5321,7 +5323,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
 
         Observation result = results.get(0);
         assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
-        assertEquals("urn:ogc:object:observation:GEOM:5003-4-977443200018500", result.getName().getCode());
+        assertEquals("urn:ogc:object:observation:GEOM:14-4-977443200018500", result.getName().getCode());
         assertNotNull(result.getObservedProperty());
         assertEquals("salinity", getPhenomenonId(result));
         assertTrue(result.getResult() instanceof MeasureResult);
@@ -5394,15 +5396,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-1-975628800012000,12.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800024000,24.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800048000,48.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800096000,96.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800192000,192.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800384000,384.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800768000,768.0@@"
-                        + "urn:ogc:object:observation:GEOM:202-1-976492800012000,12.0@@"
-                        + "urn:ogc:object:observation:GEOM:203-1-977443200012000,12.0@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-1-975628800012000,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800024000,24.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800048000,48.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800096000,96.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800192000,192.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800384000,384.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800768000,768.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-976492800012000,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-977443200012000,12.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -5436,15 +5438,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-1-975628800012000,2000-12-01T00:00:00.0,12.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800024000,2000-12-01T00:00:00.0,24.0@"
-                        + "@urn:ogc:object:observation:GEOM:201-1-975628800048000,2000-12-01T00:00:00.0,48.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800096000,2000-12-01T00:00:00.0,96.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800192000,2000-12-01T00:00:00.0,192.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800384000,2000-12-01T00:00:00.0,384.0@@"
-                        + "urn:ogc:object:observation:GEOM:201-1-975628800768000,2000-12-01T00:00:00.0,768.0@@"
-                        + "urn:ogc:object:observation:GEOM:202-1-976492800012000,2000-12-11T00:00:00.0,12.0@@"
-                        + "urn:ogc:object:observation:GEOM:203-1-977443200012000,2000-12-22T00:00:00.0,12.0@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-1-975628800012000,2000-12-01T00:00:00.0,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800024000,2000-12-01T00:00:00.0,24.0@"
+                        + "@urn:ogc:object:observation:GEOM:2-1-975628800048000,2000-12-01T00:00:00.0,48.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800096000,2000-12-01T00:00:00.0,96.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800192000,2000-12-01T00:00:00.0,192.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800384000,2000-12-01T00:00:00.0,384.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-975628800768000,2000-12-01T00:00:00.0,768.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-976492800012000,2000-12-11T00:00:00.0,12.0@@"
+                        + "urn:ogc:object:observation:GEOM:2-1-977443200012000,2000-12-22T00:00:00.0,12.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -5563,15 +5565,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-3-975628800012000,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800024000,19.7@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800048000,21.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800096000,23.9@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800192000,26.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800384000,31.4@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800768000,35.1@@"
-                        + "urn:ogc:object:observation:GEOM:202-3-976492800012000,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:203-3-977443200012000,18.5@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-3-975628800012000,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800024000,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800048000,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800096000,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800192000,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800384000,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800768000,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-976492800012000,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-977443200012000,18.5@@";
 
         assertEquals(expectedResult, result);
 
@@ -5605,15 +5607,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-3-975628800012000,2000-12-01T00:00:00.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800024000,2000-12-01T00:00:00.0,19.7@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800048000,2000-12-01T00:00:00.0,21.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800096000,2000-12-01T00:00:00.0,23.9@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800192000,2000-12-01T00:00:00.0,26.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800384000,2000-12-01T00:00:00.0,31.4@@"
-                        + "urn:ogc:object:observation:GEOM:201-3-975628800768000,2000-12-01T00:00:00.0,35.1@@"
-                        + "urn:ogc:object:observation:GEOM:202-3-976492800012000,2000-12-11T00:00:00.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:203-3-977443200012000,2000-12-22T00:00:00.0,18.5@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-3-975628800012000,2000-12-01T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800024000,2000-12-01T00:00:00.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800048000,2000-12-01T00:00:00.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800096000,2000-12-01T00:00:00.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800192000,2000-12-01T00:00:00.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800384000,2000-12-01T00:00:00.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-975628800768000,2000-12-01T00:00:00.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-976492800012000,2000-12-11T00:00:00.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-3-977443200012000,2000-12-22T00:00:00.0,18.5@@";
 
         assertEquals(expectedResult, result);
 
@@ -5764,21 +5766,21 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:304-1177988340,2007-05-01T02:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1177991940,2007-05-01T03:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1177995540,2007-05-01T04:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1177999140,2007-05-01T05:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178002740,2007-05-01T06:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178006340,2007-05-01T07:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178009940,2007-05-01T08:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178013540,2007-05-01T09:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178017140,2007-05-01T10:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178020740,2007-05-01T11:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178042340,2007-05-01T17:59:00.0,6.56@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178045940,2007-05-01T18:59:00.0,6.55@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178049540,2007-05-01T19:59:00.0,6.55@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178053140,2007-05-01T20:59:00.0,6.55@@"
-                        + "urn:ogc:object:observation:GEOM:304-1178056740,2007-05-01T21:59:00.0,6.55@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:3-1177988340,2007-05-01T02:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1177991940,2007-05-01T03:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1177995540,2007-05-01T04:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1177999140,2007-05-01T05:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178002740,2007-05-01T06:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178006340,2007-05-01T07:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178009940,2007-05-01T08:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178013540,2007-05-01T09:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178017140,2007-05-01T10:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178020740,2007-05-01T11:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178042340,2007-05-01T17:59:00.0,6.56@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178045940,2007-05-01T18:59:00.0,6.55@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178049540,2007-05-01T19:59:00.0,6.55@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178053140,2007-05-01T20:59:00.0,6.55@@"
+                        + "urn:ogc:object:observation:GEOM:3-1178056740,2007-05-01T21:59:00.0,6.55@@";
 
         assertEquals(expectedResult, result);
 
@@ -5920,9 +5922,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:801-5,2007-05-01T14:59:00.0,6.56,14.0@@"
-                        + "urn:ogc:object:observation:GEOM:801-7,2007-05-01T15:59:00.0,6.56,15.0@@"
-                        + "urn:ogc:object:observation:GEOM:801-9,2007-05-01T16:59:00.0,6.56,16.0@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:8-5,2007-05-01T14:59:00.0,6.56,14.0@@"
+                        + "urn:ogc:object:observation:GEOM:8-7,2007-05-01T15:59:00.0,6.56,15.0@@"
+                        + "urn:ogc:object:observation:GEOM:8-9,2007-05-01T16:59:00.0,6.56,16.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6057,9 +6059,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:3000-1,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                          "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:12-1,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
+                          "urn:ogc:object:observation:GEOM:12-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                          "urn:ogc:object:observation:GEOM:12-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6095,10 +6097,10 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
         assertTrue(result instanceof String);
 
-        expectedResult = "urn:ogc:object:observation:GEOM:3000-1259676000,2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-1260540060,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-1260885720,2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-1356134400,2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        expectedResult = "urn:ogc:object:observation:GEOM:12-1259676000,2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
+                         "urn:ogc:object:observation:GEOM:12-1260540060,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
+                         "urn:ogc:object:observation:GEOM:12-1260885720,2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
+                         "urn:ogc:object:observation:GEOM:12-1356134400,2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6311,9 +6313,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
+                  "urn:ogc:object:observation:GEOM:17-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
+                + "urn:ogc:object:observation:GEOM:17-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
+                + "urn:ogc:object:observation:GEOM:17-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
                 + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
                 + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
                 + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
@@ -6436,19 +6438,19 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                  "urn:ogc:object:observation:GEOM:4000-946684800,2000-01-01T00:00:00.0,4.5,98.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-949363200,2000-02-01T00:00:00.0,4.6,97.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-951868800,2000-03-01T00:00:00.0,4.7,97.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-954547200,2000-04-01T00:00:00.0,4.8,96.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-957139200,2000-05-01T00:00:00.0,4.9,,@@"
-                + "urn:ogc:object:observation:GEOM:4000-959817600,2000-06-01T00:00:00.0,5.0,,@@"
-                + "urn:ogc:object:observation:GEOM:4000-962409600,2000-07-01T00:00:00.0,5.1,,@@"
-                + "urn:ogc:object:observation:GEOM:4000-965088000,2000-08-01T00:00:00.0,5.2,98.5,1.1@@"
-                + "urn:ogc:object:observation:GEOM:4000-967766400,2000-09-01T00:00:00.0,5.3,87.5,1.1@@"
-                + "urn:ogc:object:observation:GEOM:4000-970358400,2000-10-01T00:00:00.0,5.4,77.5,1.3@@"
-                + "urn:ogc:object:observation:GEOM:4000-973036800,2000-11-01T00:00:00.0,,96.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-975628800,2000-12-01T00:00:00.0,,99.5,@@"
-                + "urn:ogc:object:observation:GEOM:4000-978307200,2001-01-01T00:00:00.0,,96.5,@@";
+                  "urn:ogc:object:observation:GEOM:13-946684800,2000-01-01T00:00:00.0,4.5,98.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-949363200,2000-02-01T00:00:00.0,4.6,97.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-951868800,2000-03-01T00:00:00.0,4.7,97.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-954547200,2000-04-01T00:00:00.0,4.8,96.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-957139200,2000-05-01T00:00:00.0,4.9,,@@"
+                + "urn:ogc:object:observation:GEOM:13-959817600,2000-06-01T00:00:00.0,5.0,,@@"
+                + "urn:ogc:object:observation:GEOM:13-962409600,2000-07-01T00:00:00.0,5.1,,@@"
+                + "urn:ogc:object:observation:GEOM:13-965088000,2000-08-01T00:00:00.0,5.2,98.5,1.1@@"
+                + "urn:ogc:object:observation:GEOM:13-967766400,2000-09-01T00:00:00.0,5.3,87.5,1.1@@"
+                + "urn:ogc:object:observation:GEOM:13-970358400,2000-10-01T00:00:00.0,5.4,77.5,1.3@@"
+                + "urn:ogc:object:observation:GEOM:13-973036800,2000-11-01T00:00:00.0,,96.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-975628800,2000-12-01T00:00:00.0,,99.5,@@"
+                + "urn:ogc:object:observation:GEOM:13-978307200,2001-01-01T00:00:00.0,,96.5,@@";
 
         assertEquals(expectedResult, result);
 
@@ -6601,9 +6603,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                  "urn:ogc:object:observation:GEOM:9000-965088000,2000-08-01T00:00:00.0,1.1@@"
-                + "urn:ogc:object:observation:GEOM:9000-967766400,2000-09-01T00:00:00.0,1.1@@"
-                + "urn:ogc:object:observation:GEOM:9000-970358400,2000-10-01T00:00:00.0,1.3@@";
+                  "urn:ogc:object:observation:GEOM:18-965088000,2000-08-01T00:00:00.0,1.1@@"
+                + "urn:ogc:object:observation:GEOM:18-967766400,2000-09-01T00:00:00.0,1.1@@"
+                + "urn:ogc:object:observation:GEOM:18-970358400,2000-10-01T00:00:00.0,1.3@@";
         assertEquals(expectedResult, result);
          
         // sensor 18 decimation on field salinity with id
@@ -6782,15 +6784,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-975628800012000,12.0,12.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800024000,24.0,24.0,19.7@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800048000,48.0,48.0,21.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800096000,96.0,96.0,23.9@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800192000,192.0,192.0,26.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800384000,384.0,384.0,31.4@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800768000,768.0,768.0,35.1@@"
-                        + "urn:ogc:object:observation:GEOM:202-976492800012000,12.0,12.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:203-977443200012000,12.0,12.0,18.5@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-975628800012000,12.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800024000,24.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800048000,48.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800096000,96.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800192000,192.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800384000,384.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800768000,768.0,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:2-976492800012000,12.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-977443200012000,12.0,12.0,18.5@@";
 
         assertEquals(expectedResult, result);
 
@@ -6824,15 +6826,15 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:201-975628800012000,2000-12-01T00:00:00.0,12.0,12.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800024000,2000-12-01T00:00:00.0,24.0,24.0,19.7@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800048000,2000-12-01T00:00:00.0,48.0,48.0,21.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800096000,2000-12-01T00:00:00.0,96.0,96.0,23.9@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800192000,2000-12-01T00:00:00.0,192.0,192.0,26.2@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800384000,2000-12-01T00:00:00.0,384.0,384.0,31.4@@"
-                        + "urn:ogc:object:observation:GEOM:201-975628800768000,2000-12-01T00:00:00.0,768.0,768.0,35.1@@"
-                        + "urn:ogc:object:observation:GEOM:202-976492800012000,2000-12-11T00:00:00.0,12.0,12.0,18.5@@"
-                        + "urn:ogc:object:observation:GEOM:203-977443200012000,2000-12-22T00:00:00.0,12.0,12.0,18.5@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:2-975628800012000,2000-12-01T00:00:00.0,12.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800024000,2000-12-01T00:00:00.0,24.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800048000,2000-12-01T00:00:00.0,48.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800096000,2000-12-01T00:00:00.0,96.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800192000,2000-12-01T00:00:00.0,192.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800384000,2000-12-01T00:00:00.0,384.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:2-975628800768000,2000-12-01T00:00:00.0,768.0,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:2-976492800012000,2000-12-11T00:00:00.0,12.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:2-977443200012000,2000-12-22T00:00:00.0,12.0,12.0,18.5@@";
 
         assertEquals(expectedResult, result);
 

@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,10 +53,12 @@ import static org.geotoolkit.observation.model.FieldType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldType.TEXT;
 import static org.geotoolkit.observation.model.FieldType.TIME;
 import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.geotoolkit.observation.query.ResultQuery;
 import org.opengis.metadata.quality.Element;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 
@@ -73,7 +76,33 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
 
     public MixedObservationFilterReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
-        super(source, properties);
+        super(source, properties, true);
+    }
+    
+    @Override
+    protected void initFilterGetResult(ResultQuery query) throws DataStoreException {
+        this.includeTimeForProfile = query.isIncludeTimeForProfile();
+        this.responseMode          = query.getResponseMode();
+        this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
+        this.includeQualityFields  = query.isIncludeQualityFields();
+        this.responseFormat        = query.getResponseFormat();
+        this.decimationSize        = query.getDecimationSize();
+        this.resultModel           = query.getResultModel();
+
+        this.firstFilter = false;
+        try (final Connection c = source.getConnection()) {
+            currentProcedure = getPIDFromProcedure(query.getProcedure(), c).orElseThrow(() -> new DataStoreException("Unexisting procedure:" + query.getProcedure()));
+
+            /*
+             * in this implementation, we do not need to join observation for get result.
+             * some filter may set on observation table (obsJoin flag will be set as true later in this case)
+             */
+            obsJoin = false;
+            sqlRequest = new SingleFilterSQLRequest();
+            
+        } catch (SQLException ex) {
+            throw new DataStoreException("Error while initailizing getResultFilter", ex);
+        }
     }
     
     @Override
@@ -139,15 +168,12 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @return A Multi filter request on measure tables.
      */
     @Override
-    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
+    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         
-        if (oid != null) {
-            obsJoin = true;
-        }
-        
+        // OID is no longer relevant in this implementation as there is one observation by procedure
         boolean onlyMain = false;
         if (profile) {
             int mainFieldIndex = queryFields.indexOf(pti.mainField);
@@ -160,21 +186,27 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             }
         }
         
-        
         String select;
-        if (profile) {
-                select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\", getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
-        } else {
-            select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", getmesureidts(m.\"time\") as \"id\" ";
-        }
         String where  = "WHERE \"thing_id\" = '" + pti.procedureId + "'";
         if (idOnly) {
             if (profile) {
-                select = "getmesureidpr(\"z_value\", \"time\") as \"id\"";  // TODO
+                select = "getmesureidpr(\"z_value\", \"time\") as \"id\"";
             } else {
                 select = "getmesureidts(\"time\") as \"id\"";
             }
         } else {
+            if (profile) {
+                select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
+            } else {
+                select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
+            }
+            if (!decimate) {
+                if (profile) {
+                    select = select + ", getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
+                } else {
+                    select = select + ", getmesureidts(m.\"time\") as \"id\" ";
+                }
+            }
             // we skip special case for mainfield only request (profile case)
             if (!onlyMain) {
                 where = where + " AND ( ";
@@ -200,18 +232,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         measureRequest.append(" FROM \"" + schemaPrefix + "main\".\"" + TABLE_NAME + "\" m ");
         if (obsJoin) {
             measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
-        }
-        
-        if (oid != null) {
-            //measureRequest.append(" WHERE m.\"id_observation\" = ").appendValue(oid);
-            where = where + " AND o.id = " + oid + " ";
-        }
-        if (obsJoin) {
-            if (profile) {
-                where = where + " AND o.id = getobservationidpr(m.\"thing_id\" , EXTRACT(EPOCH FROM m.\"time\")) ";
-            } else {
-                where = where + " AND o.id = getpid(m.\"thing_id\") ";
-            }
+            where = where + " AND o.id = getpid(m.\"thing_id\") ";
         }
         measureRequest.append(where);
         
@@ -226,7 +247,11 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             }
         }
         if (addOrderBy) {
-            measureRequests.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
+            measureRequests.append(" ORDER BY ");
+            if (profile) {
+                measureRequests.append("m.\"time\",");
+            }
+            measureRequests.append("m.\"" + pti.mainField.name + "\"");
         }
         return measureRequests;
     }
@@ -269,7 +294,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 properties.put("type", pti.type);
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final FilterSQLRequest measureFilter  = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false);
+                final FilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
 
                 /**
                  * coherence verification
@@ -450,5 +475,49 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         }
         return fieldOffset;
     }
+
+    @Override
+    protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
+        single.replaceAll("$time", "time");
+    }
     
+    /**
+     * the point of this method override is to avoid to join with observation in case of a result request.
+     * 
+     * @param phenomenon A list of phenomenon filter.
+     */
+    @Override
+    public void setObservedProperties(final List<String> phenomenon) {
+        if (objectType.equals(OMEntity.RESULT)) {
+            if (phenomenon != null && !phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
+                final FilterSQLRequest sb;
+                final Set<String> fields    = new HashSet<>();
+                final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
+                final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"obsprop_id\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                for (String p : phenomenon) {
+                    sbPheno.append(" \"obsprop_id\"=").appendValue(p).append(" OR ");
+                    sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
+                    fields.addAll(getFieldsForPhenomenon(p));
+                }
+                sbPheno.deleteLastChar(3);
+                sbCompo.deleteLastChar(3);
+                sbCompo.append(")");
+                sb = sbPheno.append(sbCompo);
+                obsJoin = false;
+            
+                for (String field : fields) {
+                    fieldIdFilters.add(field);
+                }
+            
+                if (!firstFilter) {
+                    sqlRequest.append(" AND( ").append(sb).append(") ");
+                } else {
+                    sqlRequest.append(" ( ").append(sb).append(") ");
+                    firstFilter = false;
+                }
+            }
+        } else {
+            super.setObservedProperties(phenomenon);
+        }
+    }
 }

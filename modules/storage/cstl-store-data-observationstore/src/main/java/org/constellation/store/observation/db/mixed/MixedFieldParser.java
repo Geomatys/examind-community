@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -188,15 +189,17 @@ public class MixedFieldParser extends FieldParser {
     }
     
     @Override
-    public Map.Entry<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
-        final String obsID             = "obs-" + oid;
-        boolean profile                = "profile".equals(pti.type);
-        int mainFieldIndex             = fields.indexOf(pti.mainField);
-        Object previousKey             = null;
-        boolean hasData                = false;
-        Map<String, Object> blocValues = createNewBlocValues(profile, mainFieldIndex);
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type);
+    public Map<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
+        final String obsID               = "obs-" + oid;
+        boolean profile                  = "profile".equals(pti.type);
+        int mainFieldIndex               = fields.indexOf(pti.mainField);
+        Object prevLineKey               = null;
+        Object prevObsKey                = null;
+        boolean hasData                  = false;
+        Map<String, Object> blocValues   = createNewBlocValues(profile, mainFieldIndex);
+        Map<String, Object> properties   = Map.of("type", pti.type);
+        Map<String, Observation> results = new HashMap<>();
+        boolean separated                = (separatedProfileObs && profile);
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
@@ -217,20 +220,30 @@ public class MixedFieldParser extends FieldParser {
             lastTime = dateFromTS(time);
             
             // observations for profile are a combination of the time and the z_value
-            Object mainKey;
+            Object lineKey;
+            Object obsKey;
             if (profile) {
-                mainKey = time.getTime() + '-' + mainValue.toString();
+                lineKey = time.getTime() + '-' + mainValue.toString();
+                obsKey  = time.getTime();
             } else {
-                mainKey = mainValue;
+                lineKey = mainValue;
+                obsKey  = null;
             }
             
             // start new line
-            if (!Objects.equals(mainKey, previousKey)) {
+            if (!Objects.equals(lineKey, prevLineKey)) {
                 
                 // close previous block
-                if (previousKey != null) {
+                if (prevLineKey != null) {
                     endBlock(blocValues);
                     blocValues = createNewBlocValues(profile, mainFieldIndex);
+                    
+                    // close profile observation
+                    if (separated && !Objects.equals(obsKey, prevObsKey)) {
+                        final TemporalGeometricPrimitive timeObs = buildTime(obsID, firstTime, null);
+                        Entry<String, Observation> entry = buildObservation(obsID, proc, feature, phen, timeObs, properties, separated);
+                        results.put(entry.getKey(), entry.getValue());
+                    }
                 }
                 
                 values.newBlock();
@@ -261,32 +274,48 @@ public class MixedFieldParser extends FieldParser {
                     blocValues.put(fieldName, value);
                 }
             }
-            previousKey    = mainKey;
+            prevLineKey    = lineKey;
+            prevObsKey     = obsKey;
         }
         // close last block if any
         if (hasData) {
             endBlock(blocValues);
         }
-        final TemporalGeometricPrimitive time = buildTime(obsID, firstTime, lastTime);
-        final ComplexResult result = buildComplexResult();
-        final Observation observation = new Observation(obsID,
-                                                      obsName,
-                                                      null, null,
-                                                      COMPLEX_OBSERVATION,
-                                                      proc,
-                                                      time,
-                                                      feature,
-                                                      phen,
-                                                      null,
-                                                      result,
-                                                      properties);
-        if (separatedProfileObs && profile) {
+        final TemporalGeometricPrimitive timeObs = buildTime(obsID, firstTime, lastTime);
+        Entry<String, Observation> entry = buildObservation(obsID, proc, feature, phen, timeObs, properties, separated);
+        results.put(entry.getKey(), entry.getValue());
+        return results;
+    }
+    
+    private Entry<String, Observation> buildObservation(String obsID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final TemporalGeometricPrimitive time, Map<String, Object> properties, boolean separatedObs) {
+        String observationKey;
+        if (separatedObs) {
             synchronized (format2) {
-                return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId() + '-' + format2.format(firstTime), observation);
+                observationKey = proc.getId() + '-' + feature.getId() + '-' + format2.format(firstTime);
             }
         } else {
-            return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId(), observation);
+            observationKey = proc.getId() + '-' + feature.getId();
         }
+        final ComplexResult result = buildComplexResult();
+        
+        // reset
+        firstTime = null;
+        lastTime  = null;
+        values.clear();
+        
+        Observation observation = new Observation(obsID,
+                                                  obsName,
+                                                  null, null,
+                                                  COMPLEX_OBSERVATION,
+                                                  proc,
+                                                  time,
+                                                  feature,
+                                                  phen,
+                                                  null,
+                                                  result,
+                                                  properties);
+        
+        return new AbstractMap.SimpleEntry<>(observationKey, observation);
     }
     
     @Override

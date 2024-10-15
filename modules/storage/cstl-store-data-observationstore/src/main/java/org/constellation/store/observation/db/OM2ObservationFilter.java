@@ -246,7 +246,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private void initFilterGetResult(ResultQuery query) throws DataStoreException {
+    protected void initFilterGetResult(ResultQuery query) throws DataStoreException {
         this.includeTimeForProfile = query.isIncludeTimeForProfile();
         this.responseMode          = query.getResponseMode();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
@@ -435,7 +435,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private boolean allPhenonenon(final List<String> phenomenons) {
+    protected boolean allPhenonenon(final List<String> phenomenons) {
         return phenomenons.size() == 1 && phenomenons.get(0).equals(phenomenonIdBase + "ALL");
     }
 
@@ -447,46 +447,46 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (phenomenon != null && !phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
             final FilterSQLRequest sb;
             final Set<String> fields    = new HashSet<>();
-            boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
-            boolean getFOI  = OMEntity.FEATURE_OF_INTEREST.equals(objectType);
-            if (getPhen) {
-                final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
-                for (String p : phenomenon) {
-                    sbPheno.append(" op.\"id\" =").appendValue(p).append(" OR ");
-                    // try to be flexible and allow to call this ommiting phenomenon id base
-                    if (!p.startsWith(phenomenonIdBase)) {
-                        sbPheno.append(" op.\"id\" =").appendValue(phenomenonIdBase + p).append(" OR ");
-                    }
-                    fields.addAll(getFieldsForPhenomenon(p));
-                }
-                sbPheno.deleteLastChar(3);
-                sb = sbPheno;
-            } else {
-                if (singleObservedPropertyInTemplate) {
+            switch(objectType) {
+                case OBSERVED_PROPERTY ->  {
                     final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
                     for (String p : phenomenon) {
-                        sbPheno.append(" pd.\"field_name\" = ").appendValue(p).append(" OR ");
+                        sbPheno.append(" op.\"id\" =").appendValue(p).append(" OR ");
+                        // try to be flexible and allow to call this ommiting phenomenon id base
+                        if (!p.startsWith(phenomenonIdBase)) {
+                            sbPheno.append(" op.\"id\" =").appendValue(phenomenonIdBase + p).append(" OR ");
+                        }
                         fields.addAll(getFieldsForPhenomenon(p));
                     }
                     sbPheno.deleteLastChar(3);
                     sb = sbPheno;
-                } else {
-                    final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
-                    final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
-                    for (String p : phenomenon) {
-                        sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
-                        sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
-                        fields.addAll(getFieldsForPhenomenon(p));
-                    }
-                    sbPheno.deleteLastChar(3);
-                    sbCompo.deleteLastChar(3);
-                    sbCompo.append(")");
-                    sb = sbPheno.append(sbCompo);
-                    obsJoin = true;
                 }
-               
+                default -> {
+                    if (singleObservedPropertyInTemplate) {
+                        final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
+                        for (String p : phenomenon) {
+                            sbPheno.append(" pd.\"field_name\" = ").appendValue(p).append(" OR ");
+                            fields.addAll(getFieldsForPhenomenon(p));
+                        }
+                        sbPheno.deleteLastChar(3);
+                        sb = sbPheno;
+                    } else {
+                        final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
+                        final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"observed_property\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+                        for (String p : phenomenon) {
+                            sbPheno.append(" \"observed_property\"=").appendValue(p).append(" OR ");
+                            sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
+                            fields.addAll(getFieldsForPhenomenon(p));
+                        }
+                        sbPheno.deleteLastChar(3);
+                        sbCompo.deleteLastChar(3);
+                        sbCompo.append(")");
+                        sb = sbPheno.append(sbCompo);
+                        obsJoin = true;
+                    }
+                }
             }
-            if (!getFOI) {
+            if (!OMEntity.FEATURE_OF_INTEREST.equals(objectType)) {
                 for (String field : fields) {
                     fieldIdFilters.add(field);
                 }
@@ -500,7 +500,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
 
-    private Set<String> getFieldsForPhenomenon(final String phenomenon) {
+    protected Set<String> getFieldsForPhenomenon(final String phenomenon) {
         final Set<String> results = new HashSet<>();
         try(final Connection c = source.getConnection()) {
             final Phenomenon phen = getPhenomenon(phenomenon, c);
@@ -1480,7 +1480,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
                             final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                             final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true);
+                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true, false);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
                                 if (rs2.next()) {
                                     int count = rs2.getInt(1, field.tableNumber);
@@ -1502,7 +1502,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false);
+                    final FilterSQLRequest mesureRequest = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false, false);
                     LOGGER.fine(mesureRequest.toString());
 
                     try (final SQLResult rs2 = mesureRequest.execute(c)) {

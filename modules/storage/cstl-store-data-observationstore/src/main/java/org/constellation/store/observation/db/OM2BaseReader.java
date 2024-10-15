@@ -1030,7 +1030,7 @@ public class OM2BaseReader {
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-        final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false);
+        final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
         final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
@@ -1122,10 +1122,11 @@ public class OM2BaseReader {
      * @param addOrderBy If true, an order by main filed will be applied.
      * @param idOnly If true, only the measure identifier will be selected.
      * @param count
+     * @param decimate Indicate if we are in a decimation context.
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count) {
+    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();

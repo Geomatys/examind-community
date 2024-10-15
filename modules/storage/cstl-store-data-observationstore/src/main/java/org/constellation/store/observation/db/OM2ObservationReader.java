@@ -526,7 +526,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @throws SQLException
      */
     private TemporalGeometricPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId) throws SQLException {
-        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, null, true, false, false, false);
+        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, null, true, false, false, false, false);
         query.append(" AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = ").appendValue(measureId);
         try (final SQLResult rs  = query.execute(c)) {
@@ -546,7 +546,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, null, true, false, false, false);
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, null, true, false, false, false, false);
         query.append("AND o.\"identifier\"=").appendValue(identifier);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");

@@ -78,11 +78,10 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         if (profile) {
-            select.append(", o.\"id\" as oid ");
             if (includeTimeInProfile) {
-                select.append(", o.\"time_begin\" ");
+                select.append(", m.\"time\" ");
             }
-            orderBy.append(" o.\"time_begin\", ");
+            orderBy.append(" m.\"time\", ");
         }
         
         // always order by main field
@@ -105,8 +104,8 @@ public class MixedResultDecimator extends DefaultResultDecimator {
 
         } else {
             if (profile) {
-                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), o.\"id\" ");
-                request.append(" GROUP BY o.\"id\"");
+                request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\"), m.\"time\" ");
+                request.append(" GROUP BY m.\"time\"");
             } else {
                 request.replaceSelect(" MIN(\"" + mainField.name + "\"), MAX(\"" + mainField.name + "\") ");
             }
@@ -147,7 +146,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
                     key = rs.getString(3);
                 } else {
                     if (profile) {
-                        key = rs.getInt(3, tableNum);
+                        key = rs.getTimestamp(3, tableNum);
                     } else {
                         key = 1; // single in time series
                     }
@@ -172,7 +171,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         StepValues mapValues = null;
         long start = -1;
         long step  = -1;
-        Integer prevObs = null;
+        Object prevObs = null;
         Date time = null;
         Date prevTime = null;
         AtomicInteger cpt = new AtomicInteger();
@@ -181,9 +180,9 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         Long previousMainValue = null;
         
         while (rs.nextOnField(procedure.mainField.name)) {
-            final Integer currentObs;
+            final Object currentObs;
             if (profile) {
-                currentObs = rs.getInt("oid");
+                currentObs = rs.getTimestamp("time");
             } else {
                 currentObs = 1;
             }
