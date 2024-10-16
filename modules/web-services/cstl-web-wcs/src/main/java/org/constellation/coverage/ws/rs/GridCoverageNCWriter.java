@@ -43,6 +43,9 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  */
 public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCoverage, SpatialMetadata>> {
 
+    static final String TOTO = "not used";
+
+
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
         return false;
