@@ -22,13 +22,11 @@ import org.constellation.store.observation.db.model.DbField;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.OMUtils;
@@ -238,7 +236,7 @@ public class FieldParser {
         return observations;
     }
     
-    public Entry<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
+    public Map<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
         final String obsID             = "obs-" + oid;
         boolean profile                = "profile".equals(pti.type);
         Map<String, Object> properties = new HashMap<>();
@@ -261,13 +259,15 @@ public class FieldParser {
                                                       null,
                                                       result,
                                                       properties);
+        String observationKey;
         if (separatedProfileObs && profile) {
             synchronized (format2) {
-                return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId() + '-' + format2.format(firstTime), observation);
+                observationKey = pti.procedureId + '-' + feature.getId() + '-' + format2.format(firstTime);
             }
         } else {
-            return new AbstractMap.SimpleEntry<>(pti.procedureId + '-' + feature.getId(), observation);
+            observationKey = pti.procedureId + '-' + feature.getId();
         }
+        return Map.of(observationKey, observation);
     }
     
     public void completeObservation(final SQLResult rs2, final ProcedureInfo pti, Observation observation) throws SQLException {

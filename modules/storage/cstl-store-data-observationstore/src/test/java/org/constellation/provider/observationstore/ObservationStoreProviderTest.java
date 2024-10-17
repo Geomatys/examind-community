@@ -5145,14 +5145,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                         + "384.0,31.4@@"
                         + "768.0,35.1@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-01T00:00:00Z", (TemporalGeometricPrimitive) results.get(0).getSamplingTime());
 
         result = getResultValues(results.get(1));
         expectedResult  = "12.0,18.5@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-11T00:00:00Z", (TemporalGeometricPrimitive) results.get(1).getSamplingTime());
 
         result = getResultValues(results.get(2));
         expectedResult  = "12.0,18.5@@";
         assertEquals(expectedResult, result);
+        assertInstantEquals("2000-12-22T00:00:00Z", (TemporalGeometricPrimitive) results.get(2).getSamplingTime());
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         f1 = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:2"));

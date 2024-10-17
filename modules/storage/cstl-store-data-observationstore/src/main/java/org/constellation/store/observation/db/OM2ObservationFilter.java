@@ -148,6 +148,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     protected Long limit     = null;
     protected Long offset    = null;
+    
+    // a flag set by implementation.
+    protected final boolean includeTimeInprofileMeasureRequest;
 
     /**
      * Clone a new Observation Filter.
@@ -158,14 +161,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         super(omFilter);
         this.source                    = omFilter.source;
         this.template                  = false;
-        resultModel                    = null;
+        this.resultModel               = null;
+        this.includeTimeInprofileMeasureRequest = omFilter.includeTimeInprofileMeasureRequest;
 
     }
 
-    public OM2ObservationFilter(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
+    public OM2ObservationFilter(final DataSource source, final Map<String, Object> properties, boolean includeTimeInprofileMeasureRequest) throws DataStoreException {
         super(properties, true);
         this.source     = source;
         resultModel     = null;
+        this.includeTimeInprofileMeasureRequest = includeTimeInprofileMeasureRequest;
         try {
             // try if the connection is valid
             try (final Connection c = this.source.getConnection()) {}
@@ -811,16 +816,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         String currentOMType = currentProcedure != null ? currentProcedure.type : null;
         boolean skipforResult = false;
         final String tableAlias;
-        if (objectType == OMEntity.OFFERING) {
-            tableAlias = "off";
-        } else if (objectType == OMEntity.HISTORICAL_LOCATION) {
-            tableAlias = "hl";
-        } else if (objectType == OMEntity.RESULT) {
-            tableAlias = "o";
-            skipforResult = !obsJoin;
-        } else {
-            tableAlias = "o";
-            obsJoin = true;
+        switch (objectType) {
+            case OFFERING            -> tableAlias = "off";
+            case HISTORICAL_LOCATION -> tableAlias = "hl";
+            case RESULT              -> {
+                    tableAlias = "o";
+                    skipforResult = !obsJoin;
+                }
+            default -> {
+                tableAlias = "o";
+                obsJoin = true;
+            }
         }
         FilterSQLRequest timeRequest = new SingleFilterSQLRequest();
 
@@ -874,8 +880,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (!skipforResult) {
                         timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"<=").appendValue(position);
                     }
-                    if (!"profile".equals(currentOMType)) {
-                        boolean conditional = (currentOMType == null);
+                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                        boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\"<=", conditional).appendValue(position, conditional).append(")", conditional);
                     }
                 }
@@ -898,8 +904,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         timeRequest.append(tableAlias).append(".\"time_end\" IS NULL AND ").append(tableAlias).append(".\"time_begin\" >=").appendValue(position).append(")");
                     }
                     
-                    if (!"profile".equals(currentOMType)) {
-                        boolean conditional = (currentOMType == null);
+                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                        boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         sqlMeasureRequest.append(" AND (\"$time\">=", conditional).appendValue(position, conditional).append(")", conditional);
                     }
                 }
@@ -920,8 +926,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         OM2Utils.addtimeDuringSQLFilter(timeRequest, tp, tableAlias);
                     }
 
-                    if (!"profile".equals(currentOMType)) {
-                        boolean conditional = (currentOMType == null);
+                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                        boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         sqlMeasureRequest.append(" AND ( \"$time\">=", conditional).appendValue(begin, conditional)
                                          .append(" AND \"$time\"<= ", conditional).appendValue(end, conditional).append(")", conditional);
                     }
@@ -1122,13 +1128,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         for (int tableNum = 1; tableNum < pti.nbTable + 1; tableNum++) {
             SingleFilterSQLRequest single = sqlMeasureRequest.clone();
 
-            // $time will be present only for timeseries
-            if ("timeseries".equals(pti.type) || "timeserie".equals(pti.type)) {
-                single.replaceAll("$time", pti.mainField.name);
-            }
+            /**
+             * 1) Replace time filter field variable ($time) in the request.
+             */
+            handleTimeMeasureFilterInRequest(single, pti);
 
            /**
-            * 1) Look for measure filter applying on all result fields.
+            * 2)  Look for measure filter applying on all result fields.
             * For each filter we replace it by a filter on each field.
             *
             * NB: There is an issue here in a measurement observations context.
@@ -1138,7 +1144,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             handleAllPhenParam(single, tableNum, fields, offset, pti);
 
             /**
-            * 2) Look for measure filter applying on all result quality  fields.
+            * 3)  Look for measure filter applying on all result quality  fields.
             * 
             */
             Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
@@ -1178,7 +1184,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
 
             /**
-             * 3) Look for left over unexisting quality field filter.
+             * 4)  Look for left over unexisting quality field filter.
              *
              *  Invalidate query if there are filter on unexisting fields.
              *  Handle also filter on quality fields.
@@ -1200,7 +1206,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
             /**
-             * 4) Look for measure filter applying on specific fields.
+             * 5)  Look for measure filter applying on specific fields.
              *
              *  Replace phenomenon index filter by the real field name.
              *  Handle also filter on quality fields.
@@ -1212,7 +1218,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             }
 
             /**
-             * 5) Look for left over out of index result field filter.
+             * 6)  Look for left over out of index result field filter.
              *
              *  Invalidate query if there are filter on unexisting fields.
              *  Handle also filter on quality fields.
@@ -1236,6 +1242,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         
         return result;
+    }
+    
+    protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
+        // $time will be present only for timeseries in this implementation
+        if ("timeseries".equals(pti.type) || "timeserie".equals(pti.type)) {
+            single.replaceAll("$time", pti.mainField.name);
+        }
     }
     
     protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, int offset, ProcedureInfo pti) {

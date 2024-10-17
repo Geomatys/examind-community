@@ -88,9 +88,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     public OM2ObservationFilterReader(final OM2ObservationFilter omFilter) {
         super(omFilter);
     }
+    
+    public OM2ObservationFilterReader(final DataSource source, final Map<String, Object> properties, boolean includeTimeInprofileMeasureRequest) throws DataStoreException {
+        super(source, properties, includeTimeInprofileMeasureRequest);
+    }
 
     public OM2ObservationFilterReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
-        super(source, properties);
+        super(source, properties, false);
     }
 
     @Override
@@ -461,8 +465,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                          * we create an observation with all the measures and keep it so we can extend it if another observation for the same procedure/foi appears.
                          */
                         } else {
-                            Entry<String, Observation> entry = parser.parseComplexObservation(rs2, oid, pti, proc, feature, phen, separatedProfileObs);
-                            observations.put(entry.getKey(), entry.getValue());
+                            observations.putAll(parser.parseComplexObservation(rs2, oid, pti, proc, feature, phen, separatedProfileObs));
                         }
                     } catch (SQLException ex) {
                         LOGGER.log(Level.SEVERE, "SQLException while executing the measure query: {0}", measureRequests.toString());
