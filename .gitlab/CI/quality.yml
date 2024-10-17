@@ -16,3 +16,6 @@ sonar:
 
 include:
   - component: $CI_SERVER_FQDN/amanin/qodana-inspection/qodana-inspection@0.1.1
+
+qodana-inspection:
+  needs: [ 'build' ]
