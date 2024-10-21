@@ -284,11 +284,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String UOM_ID_NAME = "uom_id";
     public static final String UOM_ID_DESC = "assigned uom id";
-    public static final ParameterDescriptor<String> UOM_ID = PARAM_BUILDER
-            .addName(UOM_ID_NAME)
-            .setRemarks(UOM_ID_DESC)
-            .setRequired(false)
-            .create(String.class, null);
+    public static final ParameterDescriptor<String> UOM_ID = new ExtendedParameterDescriptor<>(
+            UOM_ID_NAME,
+            UOM_ID_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
 
     public static final String REMOVE_PREVIOUS_NAME = "remove_previous_integration";
     public static final String REMOVE_PREVIOUS_DESC = "remove previous integration";
@@ -330,11 +332,13 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
 
     public static final String OBS_PROP_ID_NAME = "observed_properties_id";
     public static final String OBS_PROP_ID_DESC = "Fixed observed property identifier (used with csv-flat)";
-    public static final ParameterDescriptor<String> OBS_PROP_ID = PARAM_BUILDER
-            .addName(OBS_PROP_ID_NAME)
-            .setRemarks(OBS_PROP_ID_DESC)
-            .setRequired(false)
-            .create(String.class, null);
+    public static final ParameterDescriptor<String> OBS_PROP_ID = new ExtendedParameterDescriptor<>(
+            OBS_PROP_ID_NAME,
+            OBS_PROP_ID_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
 
     public static final String OBS_PROP_COLUMN_NAME = "observed_properties_columns";
     public static final String OBS_PROP_COLUMN_DESC = "Columns containing the observed properties";

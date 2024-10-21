@@ -3143,4 +3143,137 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         int nbMeasure = getNbMeasure(stsWorker, sensorId);
         Assert.assertEquals(3020, nbMeasure);
     }
+    
+    @Test
+    public void harvestCSVMultiFixedTest() throws Exception {
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:mf1";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(multiFixedDirectory.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("date");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("date");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        ParameterValue valOPC1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        valOPC1.setValue("col1");
+        in.values().add(valOPC1);
+        ParameterValue valOPC2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        valOPC2.setValue("col2");
+        in.values().add(valOPC2);
+        
+        ParameterValue valOPI1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_ID_NAME).createValue();
+        valOPI1.setValue("temperature");
+        in.values().add(valOPI1);
+        ParameterValue valOPI2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_ID_NAME).createValue();
+        valOPI2.setValue("salinity");
+        in.values().add(valOPI2);
+
+        ParameterValue valUOM1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.UOM_ID_NAME).createValue();
+        valUOM1.setValue("°C");
+        in.values().add(valUOM1);
+        ParameterValue valUOM2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.UOM_ID_NAME).createValue();
+        valUOM2.setValue("msu");
+        in.values().add(valUOM2);
+
+
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("proc");
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        ParameterValue serv1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        serv1.setValue(new ServiceProcessReference(sc));
+        in.values().add(serv1);
+        ParameterValue serv2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).createValue();
+        serv2.setValue(new ServiceProcessReference(sc2));
+        in.values().add(serv2);
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        ParameterValueGroup results = proc.call();
+
+        List<String> insertedFiles = ProcessUtils.getMultipleValues(results, SosHarvesterProcessDescriptor.FILE_INSERTED_NAME);
+        int nbInserted = (Integer) results.parameter(SosHarvesterProcessDescriptor.FILE_INSERTED_COUNT_NAME).getValue();
+
+        Assert.assertEquals(1, nbInserted);
+        Assert.assertTrue(insertedFiles.contains("/multi-fixed-1.csv"));
+
+        // verify that the dataset has been created
+        Assert.assertNotNull(datasetBusiness.getDatasetId(datasetId));
+
+        // verify that the sensor has been created
+        Sensor sensor = sensorBusiness.getSensor(sensorId);
+        Assert.assertNotNull(sensor);
+        Assert.assertEquals(sensorId, sensor.getIdentifier());
+        Assert.assertEquals(sensorId, sensor.getName());
+
+        Thing t = getThing(stsWorker, sensorId);
+        Assert.assertNotNull(t);
+        Assert.assertEquals(sensorId, t.getName());
+
+        ObservationOffering offp = getOffering(sosWorker, sensorId);
+        Assert.assertNotNull(offp);
+
+        Assert.assertTrue(offp.getTime() instanceof TimePeriodType);
+        TimePeriodType time = (TimePeriodType) offp.getTime();
+
+        Assert.assertEquals("1980-03-01T21:52:00.000", time.getBeginPosition().getValue());
+        Assert.assertEquals("1980-03-02T21:53:00.000", time.getEndPosition().getValue());
+
+        Assert.assertEquals(1, offp.getFeatureOfInterestIds().size());
+
+        Assert.assertEquals(3, offp.getObservedProperties().size());
+        assertTrue(offp.getObservedProperties().contains("temperature"));
+        assertTrue(offp.getObservedProperties().contains("salinity"));
+        
+        String observedProperty = getCompositePhenomenon(offp);
+        assertNotNull(observedProperty);
+        String foi = offp.getFeatureOfInterestIds().get(0);
+
+
+        /*
+        * Verify an inserted profile
+        */
+        String result = getMeasure(sosWorker, offp.getId(), observedProperty, foi);
+        String expectedResult = getResourceAsString("com/examind/process/sos/multi-fixed-values-1.txt");
+        Assert.assertEquals(expectedResult, result);
+
+        int nbMeasure = getNbMeasure(stsWorker, sensorId);
+        Assert.assertEquals(2, nbMeasure);
+
+        verifyAllObservedProperties(stsWorker, sensorId, Arrays.asList("temperature", "salinity"));
+        
+        MultiDatastream mds = stsWorker.getMultiDatastreamById(new GetMultiDatastreamById("urn:ogc:object:observation:template:GEOM:" + sensorId));
+        Assert.assertNotNull(mds);
+
+        assertTrue(mds.getUnitOfMeasurement() instanceof List);
+
+        List listUom = (List) mds.getUnitOfMeasurement();
+
+        Assert.assertEquals(2, listUom.size());
+
+        List<String> expectedUoms = Arrays.asList("°C", "msu");
+        for (Object uomObj : listUom) {
+            assertTrue(uomObj instanceof UnitOfMeasure);
+            UnitOfMeasure uom = (UnitOfMeasure) uomObj;
+            String uomName = uom.getName();
+            Assert.assertNotNull(uomName);
+            Assert.assertTrue("unexpected uom:" + uomName, expectedUoms.contains(uomName));
+        }
+    }
 }

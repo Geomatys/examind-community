@@ -166,7 +166,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         // csv-flat special
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
         final String valueColumn = inputParameters.getValue(RESULT_COLUMN);
-        final String obsPropId   = inputParameters.getValue(OBS_PROP_ID);
+        final List<String> obsPropId   = getMultipleValues(inputParameters, OBS_PROP_ID);
         final List<String> obsPropColumns     = getMultipleValues(inputParameters,OBS_PROP_COLUMN);
         final List<String> obsPropColumnTypes = getMultipleValues(inputParameters,OBS_PROP_COLUMN_TYPE);
         final String obsPropRegex = inputParameters.getValue(OBS_PROP_REGEX);
@@ -176,7 +176,7 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
 
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
-        final String uomID       = inputParameters.getValue(UOM_ID);
+        final List<String> uomIDs   = getMultipleValues(inputParameters, UOM_ID);
         final int userId         = 1; // always admin for now
 
         final SosHarvestFileChecker customChecker   = inputParameters.getValue(FILE_CHECKER);
@@ -351,13 +351,13 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME.getName().toString(), procedureName);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC.getName().toString(), procedureDesc);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_REGEX.getName().toString(), uomRegex);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_ID.getName().toString(), uomID);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(uomIDs));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_REGEX.getName().toString(), procedureRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
-            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), obsPropId);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropId));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropColumnTypes));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME.getName().toString(), obsPropName);

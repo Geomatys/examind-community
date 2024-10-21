@@ -107,6 +107,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
 
     protected static Path warningUomDirectory;
     protected static Path noLineDirectory;
+    protected static Path multiFixedDirectory;
 
 
     protected static final int ORIGIN_NB_SENSOR = 19;
@@ -158,6 +159,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         Files.createDirectories(warningUomDirectory);
         noLineDirectory = DATA_DIRECTORY.resolve("no-valid-line");
         Files.createDirectories(noLineDirectory);
+        multiFixedDirectory = DATA_DIRECTORY.resolve("multi-fixed");
+        Files.createDirectories(multiFixedDirectory);
 
         writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
         writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
@@ -186,6 +189,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         writeResourceDataFile(errorUnitConvertDirectory, "com/examind/process/sos/unit-convert-error-2.csv", "unit-convert-error-2.csv");
         writeResourceDataFile(warningUomDirectory, "com/examind/process/sos/warning-uom.csv", "warning-uom.csv");
         writeResourceDataFile(noLineDirectory, "com/examind/process/sos/no-valid-lines.csv", "no-valid-lines.csv");
+        writeResourceDataFile(multiFixedDirectory, "com/examind/process/sos/multi-fixed-1.csv", "multi-fixed-1.csv");
 
         mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
 

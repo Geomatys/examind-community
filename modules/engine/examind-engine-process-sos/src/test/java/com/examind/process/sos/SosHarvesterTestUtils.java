@@ -82,7 +82,7 @@ public class SosHarvesterTestUtils {
         }
         return results;
     }
-
+    
     public static Thing getThing(STSWorker stsWorker, String sensorId) throws CstlServiceException {
         GetThingById request = new GetThingById();
         request.setId(sensorId);
