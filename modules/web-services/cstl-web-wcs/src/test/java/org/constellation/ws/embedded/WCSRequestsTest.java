@@ -744,7 +744,7 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
         domCompare(actual, expected, Arrays.asList("http://www.opengis.net/gml/3.2:id"));
     }
 
-    protected static void verifyTiff(Path p, String expectedCRS, double[] expectedBbox) throws Exception {
+    public static void verifyTiff(Path p, String expectedCRS, double[] expectedBbox) throws Exception {
         String resourceName = IOUtilities.filenameWithoutExtension(p);
         TiffProvider geotkTiff = new TiffProvider();
         DataStore result = geotkTiff.open(new StorageConnector(p));

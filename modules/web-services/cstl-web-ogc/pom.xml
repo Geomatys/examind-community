@@ -37,6 +37,16 @@
         </dependency>
 
         <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-store-provider</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.geotoolkit</groupId>
             <artifactId>geotk-xml-ows</artifactId>
         </dependency>
@@ -52,6 +62,18 @@
         <dependency>
             <groupId>com.examind.community</groupId>
             <artifactId>cstl-test-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geotoolkit</groupId>
+            <artifactId>geotk-xml-kml</artifactId>
+            <version>24.09.04</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-test-embedded</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

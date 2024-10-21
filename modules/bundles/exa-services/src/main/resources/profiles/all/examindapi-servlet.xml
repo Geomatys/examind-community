@@ -35,6 +35,7 @@
     <mvc:path-matching path-helper="pathHelper"/>
     <mvc:message-converters>
         <bean class="org.constellation.api.rest.converter.CoverageResponseConverter" />
+        <bean class="com.examind.ogc.api.rest.common.converter.CommonResponseConverter" />
         <bean class="org.constellation.api.rest.converter.MapContextMessageConverter" />
         <bean class="org.constellation.api.rest.converter.StyleMessageConverter" />
         <bean class="org.constellation.api.rest.converter.JsonStyleMessageConverter" />
@@ -52,6 +53,6 @@
   </mvc:annotation-driven>
 
   <context:component-scan base-package="org.constellation.api.rest" scoped-proxy="interfaces" />
-
+  <context:component-scan base-package="com.examind.ogc.api.rest" scoped-proxy="interfaces" />
 
 </beans>

@@ -128,6 +128,7 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.ws.rs.provider",
             "org.constellation.coverage.ws.rs",
             "org.constellation.wfs.ws.rs",
+            "com.examind.ogc.api.rest.coverages",
             "org.constellation.sos.ws.rs",
             "org.constellation.sos.ws.rs.provider",
             "org.constellation.wmts.ws.rs",

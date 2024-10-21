@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<LandingPage xmlns:ns2="http://www.w3.org/2005/Atom">
+    <ns2:link href="http://localhost:9090/WS/coverage/default/api" rel="service-desc" title="the API definition"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default?f=application/xml" rel="self" type="application/vnd.ogc.xml" title="this document"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default" rel="alternate" type="application/json" title="this document as JSON"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default/conformance" rel="conformance" type="application/json" title="OGC API conformance classes implemented by this server as JSON"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default/conformance?f=application/xml" rel="conformance" type="application/vnd.ogc.xml" title="OGC API conformance classes implemented by this server as XML"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default/collections" rel="data" type="application/json" title="Information about the feature collections as JSON"/>
+    <ns2:link href="http://localhost:9090/WS/coverage/default/collections?f=application/xml" rel="data" type="application/vnd.ogc.xml" title="Information about the feature collections as XML"/>
+</LandingPage>

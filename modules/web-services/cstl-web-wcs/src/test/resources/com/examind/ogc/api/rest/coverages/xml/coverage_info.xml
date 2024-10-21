@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><ns2:Collections xmlns:ns2="http://www.opengis.net/ogcapi-commons-1/1.0" xmlns="http://www.w3.org/2005/Atom">
+    <ns2:Collection>
+        <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage" rel="items" title="test_tif" type="image/tiff"/>
+        <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=image/tiff" rel="items" title="test_tif" type="image/tiff"/>
+        <link href="http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=application/x-netcdf" rel="items" title="test_tif" type="application/x-netcdf"/>
+        <ns2:Id>test_tif</ns2:Id>
+        <ns2:Name>test_tif</ns2:Name>
+        <ns2:Title>test_tif</ns2:Title>
+        <ns2:Extent>
+            <ns2:crs>http://www.opengis.net/def/crs/OGC/1.3/CRS84</ns2:crs>
+            <ns2:spatial>
+                <ns2:LowerCorner>-61.6166811325793 14.259315787550134</ns2:LowerCorner>
+                <ns2:UpperCorner>-60.69076201948624 15.029229808265578</ns2:UpperCorner>
+            </ns2:spatial>
+        </ns2:Extent>
+        <ns2:Crs>http://www.opengis.net/def/crs/OGC/1.3/CRS84</ns2:Crs>
+        <ns2:StorageCrs>http://www.opengis.net/def/crs/OGC/1.3/CRS84</ns2:StorageCrs>
+    </ns2:Collection>
+</ns2:Collections>

@@ -47,6 +47,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.StyledLayerBrief;
@@ -57,6 +58,7 @@ import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.util.NamesExt;
 import org.geotoolkit.util.StringUtilities;
 import org.opengis.util.GenericName;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Utility methods of general use.
@@ -425,5 +427,26 @@ public final class Util {
 
     public static String encodeSlash(String s) {
         return s.replace("/", "%2F");
+    }
+
+    /**
+     * Very specific workaround that builds a URI from a root (Ex: http://localhost:8080:myServer/) and the list of
+     * path fragments (concatenated in order).
+     * The only cleanup/check done is verifying that no concatenation of path fragment produces a doublon slash ('//').
+     * <em>Warning:</em> path fragment content is <em>not</em> verified.
+     *
+     * @param base          URI root/start. Must not be null.
+     * @param pathFragments Path fragments to append/concatenate to base URI. They must embed all necessary '/'
+     *                      separators. If null or empty, base is directly returned.
+     * @return Concatenation of input strings.
+     * @see UriComponentsBuilder#path(String)
+     */
+    public static String uri(final String base, String... pathFragments) {
+        ArgumentChecks.ensureNonNull("URI base", base);
+        if (pathFragments == null || pathFragments.length < 1) return base;
+
+        final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(base);
+        for (String fragment : pathFragments) builder.path(fragment);
+        return builder.build(true).toUriString();
     }
 }

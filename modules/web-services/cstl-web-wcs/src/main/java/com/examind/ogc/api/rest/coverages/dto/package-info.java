@@ -1,0 +1,2 @@
+@jakarta.xml.bind.annotation.XmlSchema(namespace = "http://www.opengis.net/ogcapi-coverages-1/1.0", elementFormDefault = jakarta.xml.bind.annotation.XmlNsForm.QUALIFIED)
+package com.examind.ogc.api.rest.coverages.dto;

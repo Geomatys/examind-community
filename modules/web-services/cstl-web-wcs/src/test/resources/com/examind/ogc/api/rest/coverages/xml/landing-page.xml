@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><ns2:LandingPage xmlns:ns2="http://www.opengis.net/ogcapi-commons-1/1.0" xmlns="http://www.w3.org/2005/Atom">
+    <link href="http://localhost:9090/WS/coverage/default/api" rel="service-desc" title="the API definition"/>
+    <link href="http://localhost:9090/WS/coverage/default?f=application/xml" rel="self" title="this document" type="application/vnd.ogc.xml"/>
+    <link href="http://localhost:9090/WS/coverage/default" rel="alternate" title="this document as JSON" type="application/json"/>
+    <link href="http://localhost:9090/WS/coverage/default/conformance" rel="conformance" title="OGC API conformance classes implemented by this server as JSON" type="application/json"/>
+    <link href="http://localhost:9090/WS/coverage/default/conformance?f=application/xml" rel="conformance" title="OGC API conformance classes implemented by this server as XML" type="application/vnd.ogc.xml"/>
+    <link href="http://localhost:9090/WS/coverage/default/collections" rel="data" title="Information about the feature collections as JSON" type="application/json"/>
+    <link href="http://localhost:9090/WS/coverage/default/collections?f=application/xml" rel="data" title="Information about the feature collections as XML" type="application/vnd.ogc.xml"/>
+</ns2:LandingPage>

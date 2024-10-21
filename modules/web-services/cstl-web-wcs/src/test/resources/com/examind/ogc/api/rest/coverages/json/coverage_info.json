@@ -1,0 +1,36 @@
+{
+  "links" : [ {
+    "href" : "http://localhost:9090/WS/coverage/default/collections/test_tif/coverage",
+    "rel" : "items",
+    "type" : "image/tiff",
+    "hreflang" : null,
+    "title" : "test_tif",
+    "length" : null
+  }, {
+    "href" : "http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=image/tiff",
+    "rel" : "items",
+    "type" : "image/tiff",
+    "hreflang" : null,
+    "title" : "test_tif",
+    "length" : null
+  }, {
+    "href" : "http://localhost:9090/WS/coverage/default/collections/test_tif/coverage?f=application/x-netcdf",
+    "rel" : "items",
+    "type" : "application/x-netcdf",
+    "hreflang" : null,
+    "title" : "test_tif",
+    "length" : null
+  } ],
+  "id" : "test_tif",
+  "name" : "test_tif",
+  "title" : "test_tif",
+  "extent" : {
+    "srs" : "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    "crs" : "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    "spatial" : {
+      "bbox" : [ [ -61.6166811325793, 14.259315787550134, -60.69076201948624, 15.029229808265578 ] ]
+    }
+  },
+  "crs" : [ "http://www.opengis.net/def/crs/OGC/1.3/CRS84" ],
+  "storageCrs" : "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+}

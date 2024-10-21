@@ -19,7 +19,6 @@
 package org.constellation.ws.embedded;
 
 import java.util.List;
-import org.constellation.api.rest.converter.CoverageResponseConverter;
 import org.constellation.ws.rs.provider.RenderedImageWriter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -39,7 +38,6 @@ public class RestApiTestControllerConfig  extends WebMvcConfigurationSupport {
 
     @Override
     protected void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new CoverageResponseConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
         converters.add(new RenderedImageWriter());
     }

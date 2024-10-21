@@ -25,29 +25,61 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.logging.Level;
+
+import com.examind.ogc.api.rest.common.dto.Collection;
+import com.examind.ogc.api.rest.common.dto.Extent;
+import com.examind.ogc.api.rest.common.dto.SpatialCRS;
+import com.examind.ogc.api.rest.coverages.dto.DataRecord;
+import com.examind.ogc.api.rest.coverages.dto.Axis;
+import com.examind.ogc.api.rest.coverages.dto.DataRecordField;
+import com.examind.ogc.api.rest.coverages.dto.DomainSet;
+import com.examind.ogc.api.rest.coverages.dto.EncodingInfo;
+import com.examind.ogc.api.rest.coverages.dto.GeneralGrid;
+import com.examind.ogc.api.rest.coverages.dto.GridLimits;
+import com.examind.ogc.api.rest.coverages.dto.IndexAxis;
+import com.examind.ogc.api.rest.coverages.dto.RegularAxis;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
-import java.util.Locale;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridCoverageBuilder;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
+import org.apache.sis.image.ImageProcessor;
+import org.apache.sis.image.Interpolation;
+import org.apache.sis.math.Statistics;
 import org.apache.sis.measure.NumberRange;
+import org.apache.sis.measure.Units;
+import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
@@ -57,6 +89,8 @@ import org.apache.sis.util.Utilities;
 import org.constellation.api.DataType;
 import org.constellation.api.QueryConstants;
 import org.constellation.api.ServiceDef;
+
+import static org.constellation.coverage.core.AtomLinkBuilder.BuildCoverageLink;
 import static org.constellation.coverage.core.WCSConstant.ASCII_GRID;
 import static org.constellation.coverage.core.WCSConstant.GEOTIFF;
 import static org.constellation.coverage.core.WCSConstant.INTERPOLATION_V100;
@@ -97,6 +131,7 @@ import org.constellation.ws.LayerCache;
 import org.constellation.ws.LayerWorker;
 import org.constellation.ws.MimeType;
 import org.constellation.ws.rs.MultiPart;
+import org.geotoolkit.atom.xml.Link;
 import org.geotoolkit.display.PortrayalException;
 import org.geotoolkit.display2d.service.CanvasDef;
 import org.geotoolkit.display2d.service.SceneDef;
@@ -114,16 +149,8 @@ import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.map.MapLayers;
 import static org.constellation.map.util.MapUtils.combine;
-import org.constellation.util.Util;
-import org.constellation.util.CRSUtilities;
-import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
-import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
-import org.geotoolkit.ows.xml.AbstractServiceIdentification;
-import org.geotoolkit.ows.xml.AbstractServiceProvider;
-import org.geotoolkit.ows.xml.AcceptFormats;
-import org.geotoolkit.ows.xml.AcceptVersions;
-import org.geotoolkit.ows.xml.BoundingBox;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
+import static org.geotoolkit.ows.xml.OWSExceptionCode.FILE_SIZE_EXCEEDED;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_CRS;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_DIMENSION_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_FORMAT;
@@ -134,11 +161,25 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.LAYER_NOT_QUERYABLE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED;
+
+import org.constellation.util.Util;
+import org.constellation.util.CRSUtilities;
+import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
+import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
+import org.geotoolkit.ows.xml.AbstractServiceIdentification;
+import org.geotoolkit.ows.xml.AbstractServiceProvider;
+import org.geotoolkit.ows.xml.AcceptFormats;
+import org.geotoolkit.ows.xml.AcceptVersions;
+import org.geotoolkit.ows.xml.BoundingBox;
 import org.geotoolkit.ows.xml.Sections;
 import org.geotoolkit.ows.xml.v110.BoundingBoxType;
+import org.geotoolkit.ows.xml.v110.CodeType;
 import org.geotoolkit.ows.xml.v110.SectionsType;
 import org.geotoolkit.ows.xml.v110.WGS84BoundingBoxType;
+import org.geotoolkit.process.ProcessException;
+import org.geotoolkit.processing.coverage.bandselect.BandSelectProcess;
 import org.geotoolkit.resources.Errors;
+import org.geotoolkit.storage.ResourceProcessor;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.swe.xml.v200.AllowedValuesPropertyType;
 import org.geotoolkit.swe.xml.v200.AllowedValuesType;
@@ -165,6 +206,7 @@ import org.geotoolkit.wcs.xml.v100.DomainSetType;
 import org.geotoolkit.wcs.xml.v100.InterpolationMethod;
 import org.geotoolkit.wcs.xml.v100.LonLatEnvelopeType;
 import org.geotoolkit.wcs.xml.v100.RangeSetType;
+import org.geotoolkit.wcs.xml.v100.SpatialDomainType;
 import org.geotoolkit.wcs.xml.v100.SupportedCRSsType;
 import org.geotoolkit.wcs.xml.v100.SupportedFormatsType;
 import org.geotoolkit.wcs.xml.v100.SupportedInterpolationsType;
@@ -181,11 +223,12 @@ import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
 import org.opengis.coverage.grid.RectifiedGrid;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.metadata.spatial.DimensionNameType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.TransformException;
-import org.opengis.style.Style;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -350,8 +393,8 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
             }
 
-            final org.geotoolkit.wcs.xml.v100.SpatialDomainType spatialDomain =
-                new org.geotoolkit.wcs.xml.v100.SpatialDomainType(envelopes, Arrays.asList(grid));
+            final SpatialDomainType spatialDomain =
+                new SpatialDomainType(envelopes, Arrays.asList(grid));
 
             // temporal metadata
             final List<Object> times = WCSUtils.formatDateList(layer.getAvailableTimes());
@@ -442,7 +485,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             final String thematic = "";
             final RangeType range = new RangeType(new FieldType(thematic,
-                    null, new org.geotoolkit.ows.xml.v110.CodeType("0.0"), interpolations));
+                    null, new CodeType("0.0"), interpolations));
 
             //supported CRS
             final List<String> supportedCRS = Arrays.asList("urn:ogc:def:crs:EPSG::4326");
@@ -1277,6 +1320,236 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         }
     }
 
+    @Override
+    public Object getCoverage(String collectionId, String format, List<Double> bbox, String scaleData, List<String> subsetData, List<String> properties) throws CstlServiceException {
+        try {
+            final CoverageData data = getCoverageData(collectionId);
+            GeneralEnvelope readEnv = getGeneralEnvelope(data);
+
+            CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+            final SpatialMetadata metadata;
+            try {
+                metadata = data.getSpatialMetadata();
+            } catch (ConstellationStoreException ex) {
+                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+            }
+
+            processBbox(readEnv, bbox);
+            GridGeometry originGeometry = data.getGeometry();
+            DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+            for(String subsetString : subsetData) {
+                String[] split = subsetString.split("\\(",2);
+                String axisName = split[0];
+                String[] values = split[1].replace(")", "").split(":",2);
+
+                if (values.length >= 3) { //Not supported
+                    throw new CstlServiceException("This subset is not valid (only support slicing [value] or simple subset [value1:value2].", INVALID_SUBSETTING);
+                }
+
+                Integer axisID = null;
+                for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
+                    CoordinateSystemAxis axis = crs.getCoordinateSystem().getAxis(i);
+                    if (axisName.equalsIgnoreCase(axis.getAbbreviation())) {
+                        axisID = i;
+                        break;
+                    }
+                }
+                if (axisID == null) {
+                    throw new CstlServiceException("This subset is not valid, axis doesn't exist : " + axisName, INVALID_SUBSETTING);
+                }
+
+                DimensionNameType axisType = originGeometry.getExtent().getAxisType(axisID).orElse(null);
+                double minVal = readEnv.getMinimum(axisID);
+                double maxVal = readEnv.getMaximum(axisID);
+                double firstValue = 0.0;
+                double secondValue = 0.0;
+
+                if (axisType == DimensionNameType.TIME) {
+                    if (values.length == 1) { //In case of slice
+                        LocalDateTime dateTime = LocalDateTime.parse(values[0], dateFormat);
+                        firstValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
+                        secondValue = firstValue;
+                    } else if (values.length == 2) { //In case of subset
+                        LocalDateTime dateTime = LocalDateTime.parse(values[0], dateFormat);
+                        firstValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
+                        dateTime = LocalDateTime.parse(values[1], dateFormat);
+                        secondValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
+                    }
+                } else {
+                    if (values.length == 1) { //In case of slice
+                        firstValue = Double.parseDouble(values[0]);
+                        secondValue = firstValue;
+                    } else if (values.length == 2) { //In case of subset
+                        firstValue = Double.parseDouble(values[0]);
+                        secondValue = Double.parseDouble(values[1]);
+                    }
+                }
+
+                if ((firstValue < minVal || firstValue > maxVal) && (secondValue < minVal || secondValue > maxVal)) {
+                    throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                            INVALID_SUBSETTING);
+                }
+                readEnv.setRange(axisID, firstValue, secondValue);
+            }
+
+            /////////////////////////////////////////////////////////////////////////////////
+
+            //Get time and vertical dimensions
+            int timeDimensionId = -1;
+            int verticalDimensionId = -1;
+            int dimensionSize = originGeometry.getDimension();
+            for (int dimIdx = 0; dimIdx < dimensionSize; dimIdx++) {
+                CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
+                String abbreviation = csa.getAbbreviation().toLowerCase();
+                DimensionNameType axisType = originGeometry.getExtent().getAxisType(dimIdx).orElse(null);
+
+                if (timeDimensionId == -1 && (axisType == DimensionNameType.TIME || abbreviation.equals("t") || abbreviation.equals("time"))) {
+                    timeDimensionId = dimIdx;
+                }
+                if (verticalDimensionId == -1 && (axisType == DimensionNameType.VERTICAL)) {
+                    verticalDimensionId = dimIdx;
+                }
+            }
+
+            boolean timeAlreadySliced = false;
+            boolean verticalAlreadySliced = false;
+            if(timeDimensionId == -1) timeAlreadySliced = true;
+            else {
+                double min = readEnv.getMinimum(timeDimensionId);
+                double max = readEnv.getMaximum(timeDimensionId);
+                if (min == max) {
+                    timeAlreadySliced = true;
+                }
+            }
+            if(verticalDimensionId == -1) verticalAlreadySliced = true;
+            else {
+                double min = readEnv.getMinimum(verticalDimensionId);
+                double max = readEnv.getMaximum(verticalDimensionId);
+                if (min == max) {
+                    verticalAlreadySliced = true;
+                }
+            }
+            if (!format.equalsIgnoreCase(MimeType.NETCDF) && !timeAlreadySliced && !verticalAlreadySliced) {
+                //Slice over time and vertical axis
+                if (timeDimensionId != -1) {
+                    //Slice time :
+                    double minVal = readEnv.getMinimum(timeDimensionId);
+                    double maxVal = readEnv.getMaximum(timeDimensionId);
+                    double pt = readEnv.getLower(timeDimensionId);
+
+                    //verif that trim value does not overlap envelope
+                    if (pt < minVal || pt > maxVal) {
+                        throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                                INVALID_SUBSETTING);
+                    }
+                    readEnv.setRange(timeDimensionId, pt, pt);
+                }
+                if (verticalDimensionId != -1) {
+                    //Slice vertical dimension :
+                    double minVal = readEnv.getMinimum(verticalDimensionId);
+                    double maxVal = readEnv.getMaximum(verticalDimensionId);
+                    double pt = readEnv.getLower(verticalDimensionId);
+
+                    //verif that trim value does not overlap envelope
+                    if (pt < minVal || pt > maxVal) {
+                        throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                                INVALID_SUBSETTING);
+                    }
+                    readEnv.setRange(verticalDimensionId, pt, pt);
+                }
+            }
+
+            GridGeometry readGg = getGridGeometry(data, readEnv, scaleData);
+            GridCoverage gridCoverageSource = null;
+            try {
+                var processor = new ResourceProcessor();
+                processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+                GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
+                gridCoverageSource = coverageResourceResampled.read(readGg);
+            } catch (Exception ex) {
+                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+            }
+
+            if (properties != null && !properties.isEmpty()) {
+                List<Integer> ids = new ArrayList<>();
+                int i = 0;
+                for(SampleDimension sm : gridCoverageSource.getSampleDimensions()) {
+                    if(properties.contains(sm.getName().toString())) {
+                        ids.add(i);
+                    }
+                    i++;
+                }
+
+                int[] idsArray = new int[ids.size()];
+                for (i = 0; i < ids.size(); i++) {
+                    idsArray[i] = ids.get(i);
+                }
+
+                if (!ids.isEmpty()) {
+                    BandSelectProcess bandSelectProcess = new BandSelectProcess(gridCoverageSource, idsArray);
+                    gridCoverageSource = bandSelectProcess.executeNow();
+                }
+            }
+
+            if (format.equalsIgnoreCase(MimeType.NETCDF)) {
+//                try {
+                    //TODO : Reuse data.getCoverage(readEnv,null) when we will use Apache SIS Tiff writer
+                    final GridCoverage coverage = gridCoverageSource; //data.getCoverage(readEnv, null);
+                    final SimpleEntry response = new SimpleEntry(coverage, metadata);
+                    return response;
+
+//                } catch (ConstellationStoreException ex) {
+//                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+//                }
+            }
+            else if (format.equalsIgnoreCase(MimeType.IMAGE_TIFF)) {
+                try {
+                    final GeotiffResponse response = new GeotiffResponse();
+
+                    ////////////////////////////////////////////////
+                    // QUICK FIX : SOLVE COLORMODEL = NULL EXCEPTION
+                    ////////////////////////////////////////////////
+                    RenderedImage imageStatistics = new ImageProcessor().statistics(gridCoverageSource.render(null), null, null);
+                    Statistics[] statistics = (Statistics[]) imageStatistics.getProperty("org.apache.sis.Statistics");
+
+                    int i = 0;
+                    List<SampleDimension> resultSdList = new ArrayList<>();
+                    for(SampleDimension sourceSD : gridCoverageSource.getSampleDimensions()) {
+                        SampleDimension.Builder sdb = new SampleDimension.Builder();
+                        sdb.addQuantitative(sourceSD.getName().toString(), statistics[i].minimum(), statistics[i].maximum(), sourceSD.getUnits().orElse(Units.UNITY));
+                        resultSdList.add(sdb.build());
+                    }
+
+                    GridCoverageBuilder gcb = new GridCoverageBuilder();
+                    gcb.setDomain(gridCoverageSource.getGridGeometry());
+                    gcb.setValues(gridCoverageSource.render(null).getData()); //TODO : Delete getData() when we will use Apache SIS Tiff writer
+                    gcb.setRanges(resultSdList);
+                    response.coverage = gcb.build();
+                    response.metadata = metadata;
+                    response.outputCRS = crs;
+                    return response;
+
+                } catch (Exception ex) {
+                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+                }
+
+            } else {
+                throw new CstlServiceException("The format is not valid, we only support geotiff",
+                        INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
+            }
+        } catch (OutOfMemoryError ex) {
+            throw new CstlServiceException("OutOfMemory : the coverage is too big with these parameters",
+                    FILE_SIZE_EXCEEDED, KEY_COVERAGE.toLowerCase());
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException("Error : Coverage geometry is not found",
+                    NO_APPLICABLE_CODE, KEY_COVERAGE.toLowerCase());
+        } catch (ProcessException e) {
+            throw new CstlServiceException("Error : Coverage band selection (properties) as an error",
+                    NO_APPLICABLE_CODE, KEY_COVERAGE.toLowerCase());
+        }
+    }
+
     /**
      * {@inheritDoc }
      */
@@ -1285,6 +1558,354 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
        AcceptVersions versions = WCSXmlFactory.buildAcceptVersion(version, Arrays.asList(version));
        GetCapabilities request = WCSXmlFactory.createGetCapabilities(version, versions, null, null, null, "WCS");
        return getCapabilities(request);
+    }
+
+    @Override
+    public List<Collection> getCollections(List<String> names) throws CstlServiceException {
+        final String userLogin  = getUserLogin();
+        final List<LayerCache> layers;
+        if (names.isEmpty()) {
+            // return all layers
+            layers = getLayerCaches(userLogin, true);
+        } else {
+            layers = new ArrayList<>();
+            for (String name : names) {
+                final QName collName = Util.parseQName(name);
+                layers.add(getLayerCache(userLogin, collName));
+            }
+        }
+        return layers.stream().map(r -> dataToCollection(r)).collect(Collectors.toList());
+    }
+
+    private Collection dataToCollection(LayerCache layer) {
+        final Data data = layer.getData();
+        final List<Link> links = new ArrayList<>();
+        final Extent extent = new Extent();
+
+        Envelope envelope = null;
+        try {
+            envelope = data.getEnvelope();
+            extent.setFromCoordinateReferenceSystem(envelope.getCoordinateReferenceSystem());
+        } catch (ConstellationStoreException ex) {
+            LOGGER.log(Level.WARNING, "No envelope - " + ex.getLocalizedMessage(), ex);
+        }
+
+        //TODO : change with data crs + dynamically get the crs
+        List<String> crs = Collections.singletonList(extent.getCrs());
+        String storageCrs = extent.getCrs();
+
+        try {
+            final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
+            gbox.setBounds(data.getEnvelope());
+
+            SpatialCRS spatialCRS = new SpatialCRS();
+            double[] boundingBox = {gbox.getWestBoundLongitude(), gbox.getSouthBoundLatitude(), gbox.getEastBoundLongitude(), gbox.getNorthBoundLatitude()};
+            double[][] globalBoundingBox = new double[1][4];
+            System.arraycopy(boundingBox, 0, globalBoundingBox[0], 0, boundingBox.length);
+            spatialCRS.setBbox(globalBoundingBox);
+            extent.setSpatial(spatialCRS);
+
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Cannot set spatial extent of data " + data.getName(), ex);
+            extent.setSpatial(null);
+        }
+
+        final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+        try {
+            SortedSet<Date> dates = data.getDateRange();
+            if (dates != null) {
+                com.examind.ogc.api.rest.common.dto.TemporalCRS temporalCRS = new com.examind.ogc.api.rest.common.dto.TemporalCRS();
+                String[][] temporalInterval = new String[1][2];
+                temporalInterval[0][0] = ISO8601_FORMAT.format(dates.first());
+                temporalInterval[0][1] = ISO8601_FORMAT.format(dates.last());
+                temporalCRS.setInterval(temporalInterval);
+                extent.setTemporal(temporalCRS);
+            } else {
+                extent.setTemporal(null);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Cannot set temporal extent of data " + data.getName(), e);
+            extent.setTemporal(null);
+        }
+        String identifier = identifier(layer);
+        String title      = layer.getConfiguration().getTitle();
+        if (title == null) {
+            title = identifier;
+        }
+        String wfsUrl = getServiceUrl();
+        String url    = wfsUrl.replace("/wcs", "/coverage").replace("?", "");
+        BuildCoverageLink(url, identifier, title, links);
+        // String itemType = "VECTOR" set item type to null for now as it does not appears in official xsd at http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd
+        // but it appears at https://github.com/opengeospatial/ogcapi-features/blob/master/core/xml/core.xsd
+        return new Collection(identifier, links, title, null, title, extent, crs, storageCrs);
+    }
+
+    @Override
+    public DomainSet getDomainSet(String collectionId, List<Double> bbox) throws CstlServiceException {
+        CoverageData data = getCoverageData(collectionId);
+
+        final Extent extent = new Extent();
+
+        GeneralEnvelope readEnv = getGeneralEnvelope(data);
+        CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+
+        extent.setFromCoordinateReferenceSystem(crs);
+
+        processBbox(readEnv, bbox);
+        GridGeometry readGg = getGridGeometry(data, readEnv);
+
+        List<Axis> axisList = new ArrayList<>();
+        List<IndexAxis> indexAxisList = new ArrayList<>();
+        char firstLetter = 'i';
+
+        DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        int dimensionSize = crs.getCoordinateSystem().getDimension();
+        for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
+            CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
+            String abbreviation = csa.getAbbreviation().toLowerCase();
+            DimensionNameType axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
+
+            Object lower = readEnv.getLower(dimIdx);
+            Object upper = readEnv.getUpper(dimIdx);
+            if (axisType == DimensionNameType.TIME || abbreviation.equals("t") || abbreviation.equals("time")) {
+                Instant[] instants = readGg.getTemporalExtent();
+
+                LocalDateTime dateTime = LocalDateTime.ofInstant(instants[0], ZoneOffset.UTC);
+                lower = dateTime.format(dateFormat);
+
+                dateTime = LocalDateTime.ofInstant(instants[1], ZoneOffset.UTC);
+                upper = dateTime.format(dateFormat);
+            }
+
+            RegularAxis regularAxis = new RegularAxis(abbreviation, lower,
+                    upper, csa.getUnit().getName(), readGg.getResolution(true)[dimIdx]);
+            axisList.add(regularAxis);
+            try {
+                char letter = (char) (firstLetter + dimIdx);
+                String letterStr = String.valueOf(Character.valueOf(letter));
+                IndexAxis indexAxis = new IndexAxis(letterStr, data.getGeometry().getExtent().getLow(dimIdx), data.getGeometry().getExtent().getHigh(dimIdx));
+                indexAxisList.add(indexAxis);
+            } catch (ConstellationStoreException e) {
+                throw new CstlServiceException(e, NO_APPLICABLE_CODE);
+            }
+        }
+
+        //In the case of some dimensions are not in the crs (TIME, ROW, COLUMN are in the crs, others dimensions sometimes not)
+        int extentDimensionSize = readGg.getDimension();
+        int effectiveIndex = 0;
+        if(dimensionSize < extentDimensionSize) {
+            for(int dimIdx=0; dimIdx<extentDimensionSize; dimIdx++) {
+                Optional<DimensionNameType> dimensionNameType = readGg.getExtent().getAxisType(dimIdx);
+                if (dimensionNameType.isPresent()) {
+                    if (!dimensionNameType.get().equals(DimensionNameType.ROW) && !dimensionNameType.get().equals(DimensionNameType.COLUMN) &&
+                        !dimensionNameType.get().equals(DimensionNameType.TIME)) {
+
+                        RegularAxis regularAxis = new RegularAxis(dimensionNameType.get().name(), readGg.getExtent().getLow(dimIdx),
+                                readGg.getExtent().getHigh(dimIdx), "no unit specified", 1.0);
+                        axisList.add(regularAxis);
+                        char letter = (char) (firstLetter + (effectiveIndex + dimensionSize));
+                        String letterStr = String.valueOf(Character.valueOf(letter));
+                        IndexAxis indexAxis = new IndexAxis(letterStr, readGg.getExtent().getLow(dimIdx), readGg.getExtent().getHigh(dimIdx));
+                        indexAxisList.add(indexAxis);
+                        effectiveIndex++;
+                    }
+                }
+            }
+        }
+
+        //TODO : change with data crs + dynamically get the crs
+        String srsName = extent.getSrs();
+
+        GeneralGrid generalGrid = new GeneralGrid(srsName, axisList, new GridLimits(indexAxisList));
+        return new DomainSet(generalGrid);
+    }
+
+    @Override
+    public DataRecord getDataRecord(String collectionId) throws CstlServiceException {
+        CoverageData data = getCoverageData(collectionId);
+
+        List<DataRecordField> dataRecordFields = new ArrayList<>();
+
+        try {
+            List<SampleDimension> sampleDimensions = data.getSampleDimensions();
+
+            for (SampleDimension smp : sampleDimensions) {
+                Class<?> type;
+                if(smp.getBackground().isPresent()) {
+                    type = smp.getBackground().get().getClass();
+                } else {
+                    type = null;
+                }
+
+                EncodingInfo encodingInfo = new EncodingInfo(EncodingInfo.getOpenGisLink(type));
+                dataRecordFields.add(new DataRecordField(smp.getName().toString(), smp.getName().toString(), encodingInfo));
+            }
+
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+
+        return new DataRecord(dataRecordFields);
+    }
+
+    public List<String> getDimensionsNames(String collectionId) throws CstlServiceException {
+        CoverageData data = getCoverageData(collectionId);
+
+        GeneralEnvelope readEnv = getGeneralEnvelope(data);
+        CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+
+        List<String> dimensionsNames = new ArrayList<>();
+
+        int dimensionSize = crs.getCoordinateSystem().getDimension();
+        for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
+            CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
+            dimensionsNames.add(csa.getAbbreviation());
+        }
+
+        return dimensionsNames;
+    }
+
+    private CoverageData getCoverageData(String collectionId) throws CstlServiceException {
+        final String userLogin = getUserLogin();
+        final QName tmpName = Util.parseQName(collectionId);
+        final LayerCache layer = getLayerCache(userLogin, tmpName);
+
+        if (!layer.isQueryable(ServiceDef.Query.WCS_ALL) || layer.getDataType().equals(DataType.VECTOR)) {
+            throw new CstlServiceException("You are not allowed to request the layer \"" +
+                    layer.getName() + "\".", INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
+        }
+
+        if (!(layer.getData() instanceof CoverageData)) {
+            // Should not occurs, since we have previously verified the type of layer.
+            throw new CstlServiceException("The requested layer is not a coverage. WCS is not able to handle it.",
+                    LAYER_NOT_DEFINED, KEY_COVERAGE.toLowerCase());
+        }
+
+        CoverageData data = (CoverageData) layer.getData();
+        return data;
+    }
+
+    private GeneralEnvelope getGeneralEnvelope(CoverageData data) throws CstlServiceException {
+        final GridCoverageResource ref = data.getOrigin();
+        GeneralEnvelope readEnv;
+        try {
+            Optional<Envelope> refEnv = ref.getEnvelope();
+            if (refEnv.isPresent()) {
+                readEnv = new GeneralEnvelope(refEnv.get());
+            } else {
+                final GridGeometry gridGeometry = ref.getGridGeometry();
+                readEnv = new GeneralEnvelope(gridGeometry.getEnvelope());
+            }
+
+            final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
+            final CoordinateReferenceSystem temporalCRS = CRS.getTemporalComponent(readEnv.getCoordinateReferenceSystem());
+            final CoordinateReferenceSystem verticalCRS = CRS.getVerticalComponent(readEnv.getCoordinateReferenceSystem(), true);
+
+            final CoordinateReferenceSystem finalCRS;
+            if(temporalCRS != null && verticalCRS == null) finalCRS = CRS.compound(epsg4326, temporalCRS);
+            else if(temporalCRS == null && verticalCRS != null) finalCRS = CRS.compound(epsg4326, verticalCRS);
+            else if(temporalCRS != null && verticalCRS != null) finalCRS = CRS.compound(epsg4326, verticalCRS, temporalCRS);
+            else finalCRS = epsg4326;
+
+            if (!Utilities.equalsIgnoreMetadata(epsg4326, readEnv.getCoordinateReferenceSystem())) {
+                readEnv = CRSUtilities.reprojectWithNoInfinity(readEnv, finalCRS);
+            }
+
+        } catch (DataStoreException | FactoryException | TransformException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+
+        return readEnv;
+    }
+
+    private Map<String,Double> parseResolutions(String stringResolutions) {
+        Map<String,Double> resolutions = new HashMap<>();
+
+        if(stringResolutions != null) {
+            Pattern pattern = Pattern.compile("(\\w+)\\((\\d+\\.\\d+)\\)");
+            Matcher matcher = pattern.matcher(stringResolutions);
+
+            while (matcher.find()) {
+                String axisName = matcher.group(1);
+                double scaleValue = Double.parseDouble(matcher.group(2));
+
+                resolutions.put(axisName.toLowerCase(), scaleValue);
+            }
+        }
+
+        return resolutions;
+    }
+
+    private GridGeometry getGridGeometry(CoverageData data, GeneralEnvelope env, String resolution) throws CstlServiceException {
+        Map<String,Double> resolutionsParsed = parseResolutions(resolution);
+
+        CoordinateSystem cs = env.getCoordinateReferenceSystem().getCoordinateSystem();
+
+        int dimensionSize = cs.getDimension();
+        double[] resolutionsArr = new double[dimensionSize];
+
+        for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
+            CoordinateSystemAxis csa = cs.getAxis(dimIdx);
+            String abbreviation = csa.getAbbreviation().toLowerCase();
+
+                //We can't change the resolution on time axis
+            if (!abbreviation.equalsIgnoreCase("t") && !abbreviation.equalsIgnoreCase("time") && resolutionsParsed.containsKey(abbreviation.toLowerCase())) {
+                resolutionsArr[dimIdx] = resolutionsParsed.get(abbreviation);
+            } else {
+                resolutionsArr[dimIdx] = -1.0; //A resolution can't be negative, so -1 in our case is for the default value
+            }
+        }
+
+        return getGridGeometry(data, env, resolutionsArr);
+    }
+
+    private GridGeometry getGridGeometry(CoverageData data, GeneralEnvelope env, double... resolution) throws CstlServiceException {
+        try {
+            if (resolution == null || resolution.length < 1) return data.getGeometry().derive().subgrid(env).build();
+
+            var base = data.getGeometry();
+            double [] targetResolution = base.getResolution(true);
+            for (int i = 0 ; i < resolution.length && i < targetResolution.length ; i++) {
+                var target = resolution[i];
+                if (Double.isFinite(target) && target > 0) targetResolution[i] = target;
+            }
+
+            return base.derive().subgrid(env, targetResolution).build();
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
+    }
+
+    private void processBbox(GeneralEnvelope readEnv, List<Double> bbox) throws CstlServiceException {
+         if (bbox != null) {
+            CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
+            int dimensionSize = crs.getCoordinateSystem().getDimension();
+            if (bbox.size() == 4 || bbox.size() == 6) {
+                for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
+                    double minVal = readEnv.getLower(dimIdx);
+                    double maxVal = readEnv.getUpper(dimIdx);
+
+                    //double low = toAxisValue(trim.getTrimLow(), crs, dimIdx, minVal);
+                    //double high = toAxisValue(trim.getTrimHigh(), crs, dimIdx, maxVal);
+                    if(dimIdx < bbox.size()/2) {
+                        double low = bbox.get(dimIdx);
+                        double high = bbox.get(dimIdx + bbox.size()/2);
+
+                        //verif that trim value does not overlap envelope
+                        if (low < minVal || low > maxVal || high > maxVal || high < minVal) {
+                            throw new CstlServiceException("Subsetting params overlap the envelope extent",
+                                    INVALID_SUBSETTING, KEY_COVERAGE.toLowerCase());
+                        }
+                        readEnv.setRange(dimIdx, low, high);
+                    }
+                }
+            } else if (!bbox.isEmpty()) {
+                throw new CstlServiceException("bbox specified is not correct (only accept 4 or 6 values)",
+                        INVALID_PARAMETER_VALUE, KEY_COVERAGE.toLowerCase());
+            }
+        }
     }
 
     private static int dimensionIndex(final String dimension, final CoordinateReferenceSystem crs) {

@@ -18,6 +18,9 @@
  */
 package org.constellation.coverage.core;
 
+import com.examind.ogc.api.rest.common.dto.Collection;
+import com.examind.ogc.api.rest.coverages.dto.DataRecord;
+import com.examind.ogc.api.rest.coverages.dto.DomainSet;
 import org.constellation.ws.CstlServiceException;
 import org.constellation.ws.Worker;
 import org.geotoolkit.wcs.xml.DescribeCoverage;
@@ -25,6 +28,8 @@ import org.geotoolkit.wcs.xml.DescribeCoverageResponse;
 import org.geotoolkit.wcs.xml.GetCapabilities;
 import org.geotoolkit.wcs.xml.GetCapabilitiesResponse;
 import org.geotoolkit.wcs.xml.GetCoverage;
+
+import java.util.List;
 
 /**
  *
@@ -37,4 +42,14 @@ public interface WCSWorker extends Worker{
     DescribeCoverageResponse describeCoverage(final DescribeCoverage request) throws CstlServiceException;
 
     Object getCoverage(final GetCoverage request) throws CstlServiceException;
+
+    List<Collection> getCollections(List<String> collectionIds) throws CstlServiceException;
+
+    Object getCoverage(String collectionId, String format, List<Double> bbox, String scaleData, List<String> subsetData, List<String> properties) throws CstlServiceException;
+
+    DomainSet getDomainSet(String collectionId, List<Double> bbox) throws CstlServiceException;
+
+    DataRecord getDataRecord(String collectionId) throws CstlServiceException;
+
+    List<String> getDimensionsNames(String collectionId) throws CstlServiceException;
 }

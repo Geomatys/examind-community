@@ -42,7 +42,7 @@ public class RestAPIControllerConfig extends WebMvcConfigurationSupport {
 //        converters.add(new StyleMessageConverter());
 //        converters.add(new PortrayalMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
-        
+
         final XStreamMarshaller marshaller = new XStreamMarshaller();
         converters.add(new MarshallingHttpMessageConverter(marshaller,marshaller));
     }

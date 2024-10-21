@@ -14,6 +14,11 @@ resources to operate a platform of sensors that feeds back information in real t
 * **WPS** : 1.0.0
 * **WCS** : 1.0.0
 
+#### Available [OGC API](https://ogcapi.ogc.org/)
+- **Coverages** ([link](https://ogcapi.ogc.org/coverages/)) : Part 1 - Core
+- **Styles** ([link](https://ogcapi.ogc.org/styles/)) : Part 1 - Core
+- **Common** ([link](https://ogcapi.ogc.org/common/)) : Part 1 - Core | Part 2 - Collections
+
 #### Supported input data
 * Vector :
   * Shapefiles

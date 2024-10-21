@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ConformsTo xmlns:ns2="http://www.w3.org/2005/Atom">
+    <conformsTo>https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json</conformsTo>
+    <conformsTo>http://www.opengis.net/spec/ogcapi-coverages-1/1.0/conf/core</conformsTo>
+</ConformsTo>

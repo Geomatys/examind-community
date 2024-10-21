@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><ns2:ConformsTo xmlns:ns2="http://www.opengis.net/ogcapi-commons-1/1.0" xmlns="http://www.w3.org/2005/Atom">
+    <link href="https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core"/>
+    <link href="http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page"/>
+    <link href="http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json"/>
+    <link href="http://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30"/>
+    <link href="http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections"/>
+    <link href="http://www.opengis.net/spec/ogcapi-common-2/1.0/conf/json"/>
+    <link href="http://www.opengis.net/spec/ogcapi-coverages-1/1.0/conf/core"/>
+</ns2:ConformsTo>

@@ -1,0 +1,29 @@
+{
+  "type": "DataRecord",
+  "field": [
+    {
+      "type": "Quantity",
+      "name": "Red",
+      "description": "Red",
+      "encodingInfo": {
+        "dataType": "https://www.opengis.net/def/data-type/ogc/0/unsigned-byte"
+      }
+    },
+    {
+      "type": "Quantity",
+      "name": "Green",
+      "description": "Green",
+      "encodingInfo": {
+        "dataType": "https://www.opengis.net/def/data-type/ogc/0/unsigned-byte"
+      }
+    },
+    {
+      "type": "Quantity",
+      "name": "Blue",
+      "description": "Blue",
+      "encodingInfo": {
+        "dataType": "https://www.opengis.net/def/data-type/ogc/0/unsigned-byte"
+      }
+    }
+  ]
+}

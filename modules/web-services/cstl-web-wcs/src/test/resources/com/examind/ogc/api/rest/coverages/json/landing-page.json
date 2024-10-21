@@ -1,0 +1,60 @@
+{
+  "links": [
+    {
+      "href": "http://localhost:9090/WS/coverage/default/api",
+      "rel": "service-desc",
+      "type": null,
+      "hreflang": null,
+      "title": "the API definition",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default",
+      "rel": "self",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "this document",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default?f=application/xml",
+      "rel": "alternate",
+      "type": "application/vnd.ogc.xml",
+      "hreflang": null,
+      "title": "this document as XML",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default/conformance",
+      "rel": "conformance",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "OGC API conformance classes implemented by this server as JSON",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default/conformance?f=application/xml",
+      "rel": "conformance",
+      "type": "application/vnd.ogc.xml",
+      "hreflang": null,
+      "title": "OGC API conformance classes implemented by this server as XML",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default/collections",
+      "rel": "data",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "Information about the feature collections as JSON",
+      "length": null
+    },
+    {
+      "href": "http://localhost:9090/WS/coverage/default/collections?f=application/xml",
+      "rel": "data",
+      "type": "application/vnd.ogc.xml",
+      "hreflang": null,
+      "title": "Information about the feature collections as XML",
+      "length": null
+    }
+  ]
+}

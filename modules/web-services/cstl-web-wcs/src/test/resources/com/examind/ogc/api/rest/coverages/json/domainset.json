@@ -1,0 +1,51 @@
+{
+  "type": "DomainSet",
+  "generalGrid": {
+    "type": "GeneralGridCoverage",
+    "srsName": "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+    "axisLabels": [
+      "lon",
+      "lat"
+    ],
+    "axis": [
+      {
+        "type": "RegularAxis",
+        "axisLabel": "lon",
+        "lowerBound": -61.6166811325793,
+        "upperBound": -60.69076201948624,
+        "uomLabel": "degré",
+        "resolution": 0.001444491596089012
+      },
+      {
+        "type": "RegularAxis",
+        "axisLabel": "lat",
+        "lowerBound": 14.259315787550134,
+        "upperBound": 15.029229808265578,
+        "uomLabel": "degré",
+        "resolution": 0.001444491596089012
+      }
+    ],
+    "gridLimits": {
+      "type": "GridLimits",
+      "srsName": "http://www.opengis.net/def/crs/OGC/0/Index4D",
+      "axisLabels": [
+        "i",
+        "j"
+      ],
+      "axis": [
+        {
+          "type": "IndexAxis",
+          "axisLabel": "i",
+          "lowerBound": 0,
+          "upperBound": 640
+        },
+        {
+          "type": "IndexAxis",
+          "axisLabel": "j",
+          "lowerBound": 0,
+          "upperBound": 532
+        }
+      ]
+    }
+  }
+}

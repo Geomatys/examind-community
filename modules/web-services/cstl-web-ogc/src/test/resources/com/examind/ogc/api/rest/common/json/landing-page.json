@@ -1,0 +1,36 @@
+{
+  "links": [
+    {
+      "href": "http://localhost:8080/examind/API/ogc/",
+      "rel": "self",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "this document",
+      "length": null
+    },
+    {
+      "href": "http://localhost:8080/examind/API/ogc/api",
+      "rel": "service-desc",
+      "type": "application/openapi+json;version=3.0",
+      "hreflang": null,
+      "title": "the API definition",
+      "length": null
+    },
+    {
+      "href": "http://localhost:8080/examind/API/ogc/conformance",
+      "rel": "conformance",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "OGC conformance classes implemented by this API",
+      "length": null
+    },
+    {
+      "href": "http://localhost:8080/examind/API/ogc/collections",
+      "rel": "http://www.opengis.net/def/rel/ogc/1.0/data",
+      "type": "application/json",
+      "hreflang": null,
+      "title": "Metadata about the resource collections",
+      "length": null
+    }
+  ]
+}

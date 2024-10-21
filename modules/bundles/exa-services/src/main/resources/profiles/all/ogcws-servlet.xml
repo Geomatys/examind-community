@@ -72,5 +72,6 @@
     <context:component-scan base-package="org.constellation.wps.ws.rs" scoped-proxy="interfaces" />
     <context:component-scan base-package="org.constellation.thesaurus.ws.rs" scoped-proxy="interfaces" />
     <context:component-scan base-package="com.examind.sts.ws.rs" scoped-proxy="interfaces" />
+    <context:component-scan base-package="com.examind.ogc.api.rest" scoped-proxy="interfaces" />
 
 </beans>
