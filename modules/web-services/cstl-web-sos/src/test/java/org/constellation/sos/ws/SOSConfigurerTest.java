@@ -411,6 +411,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         expResults.add("urn:ogc:object:sensor:GEOM:14");
         expResults.add("urn:ogc:object:sensor:GEOM:17");
         expResults.add("urn:ogc:object:sensor:GEOM:18");
+        expResults.add("urn:ogc:object:sensor:GEOM:19");
         expResults.add("urn:ogc:object:sensor:GEOM:2");
         expResults.add("urn:ogc:object:sensor:GEOM:3");
         expResults.add("urn:ogc:object:sensor:GEOM:4");

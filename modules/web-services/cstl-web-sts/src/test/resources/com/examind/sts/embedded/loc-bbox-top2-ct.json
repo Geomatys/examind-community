@@ -1,5 +1,21 @@
 {
     "value": [{
+            "name": "urn:ogc:object:sensor:GEOM:19",
+            "description": "",
+            "encodingType": "application/vnd.geo+json",
+            "location": {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [40.0, -3.0]
+                },
+                "properties": {}
+            },
+            "@iot.id": "urn:ogc:object:sensor:GEOM:19",
+            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:19)",
+            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:19)/Things",
+            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:19)/HistoricalLocations"
+        }, {
             "name": "urn:ogc:object:sensor:GEOM:3",
             "description": "",
             "encodingType": "application/vnd.geo+json",
@@ -15,23 +31,7 @@
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)",
             "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)/Things",
             "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:3)/HistoricalLocations"
-        }, {
-            "name": "urn:ogc:object:sensor:GEOM:4",
-            "description": "",
-            "encodingType": "application/vnd.geo+json",
-            "location": {
-                "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [10.0, 10.0]
-                },
-                "properties": {}
-            },
-            "@iot.id": "urn:ogc:object:sensor:GEOM:4",
-            "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:4)",
-            "Things@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:4)/Things",
-            "HistoricalLocations@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Locations(urn:ogc:object:sensor:GEOM:4)/HistoricalLocations"
         }],
-    "@iot.count": 5,
+    "@iot.count": 6,
     "@iot.nextLink": "http://localhost:9090/WS/sts/default/v1.1/Locations?$skip=4&$top=2&$filter=st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')&$count=true"
 }

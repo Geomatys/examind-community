@@ -40,7 +40,7 @@ public class SOSDatabaseSensorStoreTest  extends SpringContextTest {
     @Autowired
     protected IProviderBusiness providerBusiness;
     
-    private static final long TOTAL_NB_SENSOR = 18;
+    private static final long TOTAL_NB_SENSOR = 19;
 
     private static SensorStore SensPr;
 

@@ -155,6 +155,7 @@
           <ows:Value>offering-16</ows:Value>
           <ows:Value>offering-17</ows:Value>
           <ows:Value>offering-18</ows:Value>
+          <ows:Value>offering-19</ows:Value>
           <ows:Value>offering-2</ows:Value>
           <ows:Value>offering-3</ows:Value>
           <ows:Value>offering-4</ows:Value>
@@ -182,6 +183,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:18</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:19</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -372,6 +374,7 @@
           <ows:Value>urn:ogc:object:sensor:GEOM:14</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:17</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:18</ows:Value>
+          <ows:Value>urn:ogc:object:sensor:GEOM:19</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:2</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:3</ows:Value>
           <ows:Value>urn:ogc:object:sensor:GEOM:4</ows:Value>
@@ -751,6 +754,24 @@
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:salinity"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:featureOfInterest xlink:href="station-002"/>
+        <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
+        <sos:resultModel>om:Observation</sos:resultModel>
+        <sos:resultModel>om:Measurement</sos:resultModel>
+        <sos:responseMode>inline</sos:responseMode>
+        <sos:responseMode>resultTemplate</sos:responseMode>
+      </sos:ObservationOffering>
+      <sos:ObservationOffering gml:id="offering-19">
+        <gml:name>offering-19</gml:name>
+        <gml:boundedBy>
+          <gml:Null>not_bounded</gml:Null>
+        </gml:boundedBy>
+        <sos:time>
+          <gml:TimeInstant>
+            <gml:timePosition>2000-01-01</gml:timePosition>
+          </gml:TimeInstant>
+        </sos:time>
+        <sos:procedure xlink:href="urn:ogc:object:sensor:GEOM:19"/>
+        <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:temperature"/>
         <sos:responseFormat>text/xml; subtype="om/1.0.0"</sos:responseFormat>
         <sos:resultModel>om:Observation</sos:resultModel>
         <sos:resultModel>om:Measurement</sos:resultModel>

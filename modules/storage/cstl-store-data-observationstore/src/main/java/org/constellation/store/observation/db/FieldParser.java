@@ -260,12 +260,13 @@ public class FieldParser {
                                                       result,
                                                       properties);
         String observationKey;
+        String fid = feature != null ? feature.getId() : "null";
         if (separatedProfileObs && profile) {
             synchronized (format2) {
-                observationKey = pti.procedureId + '-' + feature.getId() + '-' + format2.format(firstTime);
+                observationKey = pti.procedureId + '-' + fid + '-' + format2.format(firstTime);
             }
         } else {
-            observationKey = pti.procedureId + '-' + feature.getId();
+            observationKey = pti.procedureId + '-' + fid;
         }
         return Map.of(observationKey, observation);
     }

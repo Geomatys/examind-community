@@ -6,6 +6,7 @@ services :
        restart: "no"
        volumes:
          - exa-db-volume:/var/lib/postgresql/data/
+         - "./mount/exa-db/:/usr/local/exa-db/:Z"
        ports:
          - "5440:5432"
        environment:

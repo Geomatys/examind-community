@@ -67,7 +67,7 @@ import org.opengis.util.GenericName;
  */
 public class SOSDatabaseDataStoreTest extends AbstractReadingTests{
 
-    private static final int NB_SENSOR = 18;
+    private static final int NB_SENSOR = 19;
     private static final int NB_SF = 6;
     private static DataStore store;
     private static final Set<GenericName> names = new HashSet<>();

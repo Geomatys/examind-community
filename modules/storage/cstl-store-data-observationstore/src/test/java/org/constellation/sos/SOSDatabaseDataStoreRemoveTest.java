@@ -67,12 +67,12 @@ public class SOSDatabaseDataStoreRemoveTest {
         // get the full content of the store
         ObservationDataset fullDataset = store.getDataset(new DatasetQuery());
         
-        int NB_OBSERVATION    = 24; // contains the phenomenon directly used in the observations
+        int NB_OBSERVATION    = 25; // contains the phenomenon directly used in the observations
         int NB_PHENOMENON     = 6;
-        int NB_OFFERING       = 18;
+        int NB_OFFERING       = 19;
         int NB_FOI            = 3; // only 3 because 3 of the recorded procedure have no observations
-        int NB_PROCEDURE      = 18;
-        int NB_USED_PROCEDURE = 16; // only 16 because 2 of the recorded procedure have no observation
+        int NB_PROCEDURE      = 19;
+        int NB_USED_PROCEDURE = 17; // only 16 because 2 of the recorded procedure have no observation
 
         Assert.assertEquals(NB_OBSERVATION,    fullDataset.observations.size());
         Assert.assertEquals(NB_PHENOMENON,     fullDataset.phenomenons.size());

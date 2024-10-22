@@ -16,6 +16,6 @@
     "Datastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:10)/Datastreams",
     "MultiDatastreams@iot.navigationLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors(urn:ogc:object:sensor:GEOM:10)/MultiDatastreams"
   } ],
-  "@iot.count" : 18,
+  "@iot.count" : 19,
   "@iot.nextLink" : "http://localhost:9090/WS/sts/default/v1.1/Sensors?$skip=2&$top=2&$count=true"
 }

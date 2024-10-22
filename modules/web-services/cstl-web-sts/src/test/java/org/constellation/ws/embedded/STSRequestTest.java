@@ -74,7 +74,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
 
     private static boolean initialized = false;
-
+    
     private static String getDefaultURL() {
         return "http://localhost:" +  getCurrentPort() + "/WS/sts/default/v1.1";
     }
@@ -426,7 +426,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "261");
+        expResult = expResult.replace("\"{count}\"", "262");
         compareJSON(expResult, result);
     }
     
@@ -1020,7 +1020,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-skip.json");
         compareJSON(expResult, result);
 
-        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$skip=34");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$skip=35");
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
@@ -1042,7 +1042,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "34");
+        expResult = expResult.replace("\"{count}\"", "35");
         compareJSON(expResult, result);
     }
 
@@ -1213,7 +1213,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "16");
+        expResult = expResult.replace("\"{count}\"", "17");
         compareJSON(expResult, result);
     }
 
@@ -1319,7 +1319,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "18");
+        expResult = expResult.replace("\"{count}\"", "19");
         compareJSON(expResult, result);
     }
 
@@ -1470,7 +1470,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "18");
+        expResult = expResult.replace("\"{count}\"", "19");
         compareJSON(expResult, result);
     }
 
@@ -1700,7 +1700,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/empty-count.json");
-        expResult = expResult.replace("\"{count}\"", "18");
+        expResult = expResult.replace("\"{count}\"", "19");
         compareJSON(expResult, result);
     }
 
@@ -2321,7 +2321,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         final Set<Instance> instances = new HashSet<>();
         final List<String> versions = Arrays.asList("1.0.0");
-        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 18, ServiceStatus.STARTED, "null/sts/default/v1.1"));
+        instances.add(new Instance(1, "default", "Examind STS Server", "Examind STS Server", "sts", versions, 19, ServiceStatus.STARTED, "null/sts/default/v1.1"));
         InstanceReport expResult2 = new InstanceReport(instances);
         assertEquals(expResult2, obj);
 

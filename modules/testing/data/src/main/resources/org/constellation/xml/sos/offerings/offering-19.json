@@ -1,0 +1,20 @@
+{
+    "id": "offering-19",
+    "name": "offering-19",
+    "properties": {},
+    "time": {
+        "id": "5586f35a-114e-4a22-902b-3bb77ebcd5da-time",
+        "beginning": {
+            "id": "3f5b4cf9-22d6-42f3-925e-f08369ec99f3-time",
+            "date": "2000-11-01T00:00:00.000Z"
+        },
+        "ending": {
+            "id": "c6e491e1-0385-45bf-9254-2f9a2016ddca-time",
+            "indeterminatePosition": "NOW"
+        }
+    },
+    "srsNames": [],
+    "procedure": "urn:ogc:object:sensor:GEOM:19",
+    "featureOfInterestIds": [],
+    "observedProperties": ["temperature"]
+}
