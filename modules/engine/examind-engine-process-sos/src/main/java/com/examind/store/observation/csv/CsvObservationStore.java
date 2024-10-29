@@ -111,8 +111,9 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> mainIndexes = getColumnIndexes(mainColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
             if (mainIndexes.isEmpty()) {
                 throw new DataStoreException("Unable to find main column(s): " + mainColumns);
@@ -134,12 +135,27 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final Map<Integer, MeasureField> obsPropFields = new LinkedHashMap<>();
+            final List<MeasureField> obsPropFields = new ArrayList<>();
             for (int i = 0; i < obsPropIndexes.size(); i++) {
                 int index = obsPropIndexes.get(i);
                 FieldType ft = FieldType.QUANTITY;
                 if (i < obsPropColumnsTypes.size()) {
                     ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                }
+                // for now we handle only one quality field by field
+                List<MeasureField> qualityFields = new ArrayList<>();
+                if (i < qualityColumns.size()) {
+                    int qIndex = qualityIndexes.get(i);
+                    String qName = headers[qIndex];
+                    if (i < qualityColumnsIds.size()) {
+                        qName = qualityColumnsIds.get(i);
+                    }
+                    qName = normalizeFieldName(qName);
+                    FieldType qtype = FieldType.TEXT;
+                    if (i < qualityColumnsTypes.size()) {
+                        qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                    }
+                    qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
                 }
                 String fieldName;
                 if (i < obsPropIds.size()) {
@@ -147,8 +163,8 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 } else {
                     fieldName = headers[index];
                 }
-                MeasureField mf = new MeasureField(fieldName, ft, new ArrayList<>());
-                obsPropFields.put(index, mf);
+                MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields);
+                obsPropFields.add(mf);
             }
 
             // special case where there is no header, and a specified observation property identifier
@@ -163,8 +179,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
             }
 
-            List<MeasureField> qualityFields = buildQualityFields();
-            MeasureColumns measureColumns    = new MeasureColumns(measureFields, obsPropColumnsTypes, mainColumns, observationType, qualityFields);
+            MeasureColumns measureColumns    = new MeasureColumns(obsPropFields, mainColumns, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();
@@ -272,29 +287,33 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 // loop over columns to build measure string
-                for (Map.Entry<Integer, MeasureField> fieldEntry : obsPropFields.entrySet()) {
-                    int index          = fieldEntry.getKey();
-                    Object lineVal     = line[index];
-                    MeasureField field = fieldEntry.getValue();
+                for (MeasureField field : obsPropFields) {
+                    int index          = field.columnIndex;
+                    Object value       = line[index];
 
                     try {
                         final Object measureValue;
-                        if (lineVal == null) {
+                        if (value == null) {
                             measureValue = null;
                         } else {
                             measureValue = switch (field.type) {
-                                case BOOLEAN  -> parseBoolean(lineVal);
-                                case QUANTITY -> parseDouble(lineVal);
-                                case TEXT     -> lineVal instanceof String ? lineVal : lineVal.toString();
-                                case TIME     -> parseObjectDate(lineVal, sdf);
+                                case BOOLEAN  -> parseBoolean(value);
+                                case QUANTITY -> parseDouble(value);
+                                case TEXT     -> value instanceof String ? value : value.toString();
+                                case TIME     -> parseObjectDate(value, sdf);
                             };
                         }
+                        
+                        String[] qValues = new String[field.qualityFields.size()];
+                        for (int i = 0; i < qValues.length; i++) {
+                            MeasureField qField = field.qualityFields.get(i);
+                            qValues[i] = asString(line[qField.columnIndex]);
+                        }
 
-                        // TODO quality values
-                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, new String[0]);
+                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues);
                     } catch (ParseException | NumberFormatException ex) {
-                        if (!(lineVal instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.type.toString(), lineNumber, index, lineVal));
+                        if (!(value instanceof String str && str.isEmpty())) {
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.type.toString(), lineNumber, index, value));
                         }
                     }
                 }
@@ -425,13 +444,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
             // used to fill measure Fields list
             final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex, obsPropIds);
-            final Map<Integer, MeasureField> obsPropFields = new HashMap<>();
+            final List<MeasureField> obsPropFields = new ArrayList<>();
             for (int i = 0; i < obsPropIndexes.size(); i++) {
                 FieldType ft = FieldType.QUANTITY;
                 if (i < obsPropColumnsTypes.size()) {
                     ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
                 }
-                obsPropFields.put(obsPropIndexes.get(i), new MeasureField("unknow", ft, new ArrayList<>()));
+                obsPropFields.add(new MeasureField(obsPropIndexes.get(i), "unknow", ft, new ArrayList<>()));
             }
 
             // special case where there is no header, and a specified observation peorperty identifier

@@ -29,6 +29,7 @@ import org.geotoolkit.observation.model.FieldType;
  */
 public class MeasureField {
 
+    public final int columnIndex;
     public final String name;
     public final FieldType type;
     public final List<MeasureField> qualityFields;
@@ -41,8 +42,9 @@ public class MeasureField {
     public String description;
     public Map<String, Object> properties;
 
-    public MeasureField(String name, FieldType type, List<MeasureField> qualityFields) {
+    public MeasureField(int columnIndex, String name, FieldType type, List<MeasureField> qualityFields) {
         ArgumentChecks.ensureNonNull("type", type);
+        this.columnIndex = columnIndex;
         this.name = name;
         this.type = type;
         this.qualityFields = qualityFields;

@@ -30,8 +30,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -287,10 +285,10 @@ public class FileParsingUtils {
      *
      * @return {@code true} if the line is considered empty.
      */
-    public static boolean verifyEmptyLine(Object[] line, int lineNumber, Map<Integer, MeasureField> typedFields, DateFormat sdf) {
-        for (Entry<Integer, MeasureField> fieldEntry : typedFields.entrySet()) {
-            int i = fieldEntry.getKey();
-            FieldType ft = fieldEntry.getValue().type;
+    public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<MeasureField> typedFields, DateFormat sdf) {
+        for (MeasureField field : typedFields) {
+            int i = field.columnIndex;
+            FieldType ft = field.type;
             try {
                 Object value = line[i];
                 if (value == null) continue;
@@ -330,7 +328,7 @@ public class FileParsingUtils {
                
             } catch (NumberFormatException | ParseException | ClassCastException ex) {
                 if (!((String)line[i]).isEmpty()) {
-                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", fieldEntry.getValue(), lineNumber, i, line[i]));
+                    LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field, lineNumber, i, line[i]));
                 }
             }
         }
@@ -497,6 +495,15 @@ public class FileParsingUtils {
             case "application/dbase; subtype=\"om\"":
             default: return new DBFDataFileReader(dataFile);
         }
+    }
+    
+    // TODO, does DBF need lock?
+    private static List<String> LOCKED_MIME_TYPE = List.of("xlsx-flat", "xlsx", "xls-flat", "xls", "application/vnd.ms-excel; subtype=\"om\"", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; subtype=\"om\"");
+    
+    public static boolean needLock(String mimeType) throws IOException {
+        // if we have no informations, we lock by security
+        if (mimeType == null) return true;
+        return LOCKED_MIME_TYPE.contains(mimeType);
     }
 
     public static long parseObjectDate(Object dateObj, DateFormat sdf) throws ParseException {

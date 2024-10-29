@@ -137,7 +137,7 @@ public class MeasureBuilder {
             if (mainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            filteredMeasure.add(new MeasureField(mainColumns.get(0), FieldType.QUANTITY, new ArrayList<>()));
+            filteredMeasure.add(new MeasureField(-1, mainColumns.get(0), FieldType.QUANTITY, new ArrayList<>()));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {

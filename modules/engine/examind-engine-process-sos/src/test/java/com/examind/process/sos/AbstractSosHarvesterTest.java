@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
 import org.constellation.admin.SpringHelper;
 import org.constellation.admin.WSEngine;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
@@ -108,6 +109,9 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path warningUomDirectory;
     protected static Path noLineDirectory;
     protected static Path multiFixedDirectory;
+    
+    protected static Path qualityCSVDirectory;
+    protected static Path multiQualityCSVDirectory;
 
 
     protected static final int ORIGIN_NB_SENSOR = 19;
@@ -116,85 +120,45 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     public static void setUpClass() throws Exception {
 
         final Path configDir = Paths.get("target");
-        DATA_DIRECTORY      = configDir.resolve("data" + UUID.randomUUID());
-        argoDirectory       = DATA_DIRECTORY.resolve("argo-profile");
-        Files.createDirectories(argoDirectory);
-        fmlwDirectory       = DATA_DIRECTORY.resolve("fmlw-traj");
-        Files.createDirectories(fmlwDirectory);
-        mooDirectory       = DATA_DIRECTORY.resolve("moo-ts");
-        Files.createDirectories(mooDirectory);
-        ltDirectory       = DATA_DIRECTORY.resolve("lt-ts");
-        Files.createDirectories(ltDirectory);
-        rtDirectory       = DATA_DIRECTORY.resolve("rt-ts");
-        Files.createDirectories(rtDirectory);
-        multiPlatDirectory = DATA_DIRECTORY.resolve("multi-plat");
-        Files.createDirectories(multiPlatDirectory);
-        bigdataDirectory = DATA_DIRECTORY.resolve("bigdata-profile");
-        Files.createDirectories(bigdataDirectory);
-        survalDirectory = DATA_DIRECTORY.resolve("surval");
-        Files.createDirectories(survalDirectory);
-        xDataDirectory = DATA_DIRECTORY.resolve("xdata");
-        Files.createDirectories(xDataDirectory);
-        noHeadDirectory = DATA_DIRECTORY.resolve("noHead");
-        Files.createDirectories(noHeadDirectory);
-        disjointDirectory = DATA_DIRECTORY.resolve("disjoint");
-        Files.createDirectories(disjointDirectory);
-        tsvDirectory = DATA_DIRECTORY.resolve("tsv");
-        Files.createDirectories(tsvDirectory);
-        tsvFlatDirectory = DATA_DIRECTORY.resolve("tsv-flat");
-        Files.createDirectories(tsvFlatDirectory);
-        xDataFlatDirectory = DATA_DIRECTORY.resolve("xlsx-flat");
-        Files.createDirectories(xDataFlatDirectory);
-        errorHeaderDirectory = DATA_DIRECTORY.resolve("error-dir");
-        Files.createDirectories(errorHeaderDirectory);
-        errorHeaderDirectory_1 = errorHeaderDirectory.resolve("error-head-dir1");
-        Files.createDirectories(errorHeaderDirectory_1);
-        errorHeaderDirectory_2 = errorHeaderDirectory.resolve("error-head-dir2");
-        Files.createDirectories(errorHeaderDirectory_2);
-        errorHeaderDirectory2 = DATA_DIRECTORY.resolve("error-dir-2");
-        Files.createDirectories(errorHeaderDirectory2);
-        errorUnitConvertDirectory = DATA_DIRECTORY.resolve("error-unit-convert");
-        Files.createDirectories(errorUnitConvertDirectory);
-        warningUomDirectory = DATA_DIRECTORY.resolve("warning-uom");
-        Files.createDirectories(warningUomDirectory);
-        noLineDirectory = DATA_DIRECTORY.resolve("no-valid-line");
-        Files.createDirectories(noLineDirectory);
-        multiFixedDirectory = DATA_DIRECTORY.resolve("multi-fixed");
-        Files.createDirectories(multiFixedDirectory);
-
-        writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
-        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
-        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-2.csv", "tsg-FMLW-2.csv");
-        writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-3.csv", "tsg-FMLW-3.csv");
-        writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
-        writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_001.dbf", "LakeTile_001.dbf");
-        writeResourceDataFile(ltDirectory,   "com/examind/process/sos/LakeTile_002.dbf", "LakeTile_002.dbf");
-        writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_001.dbf", "rivertile_001.dbf");
-        writeResourceDataFile(rtDirectory,   "com/examind/process/sos/rivertile_002.dbf", "rivertile_002.dbf");
-        writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
-        writeResourceDataFile(multiPlatDirectory,   "com/examind/process/sos/multiplatform-2.csv", "multiplatform-2.csv");
-        writeResourceDataFile(bigdataDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
-        writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
-        writeResourceDataFile(xDataDirectory, "com/examind/process/sos/xdata.xlsx", "xdata.xlsx");
-        writeResourceDataFile(noHeadDirectory, "com/examind/process/sos/nohead.csv", "nohead.csv");
-        writeResourceDataFile(disjointDirectory, "com/examind/process/sos/disjoint-1.csv", "disjoint-1.csv");
-        writeResourceDataFile(tsvDirectory, "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
-        writeResourceDataFile(tsvFlatDirectory, "com/examind/process/sos/tabulation-flat.tsv", "tabulation-flat.tsv");
-        writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/test-flat.xlsx", "test-flat.xlsx");
-        writeResourceDataFile(errorHeaderDirectory_1, "com/examind/process/sos/error-header.csv", "error-header.csv");
-        writeResourceDataFile(errorHeaderDirectory_2, "com/examind/process/sos/error-header.csv", "error-header.csv");
-        writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header.csv", "error-header.csv");
-        writeResourceDataFile(errorHeaderDirectory2, "com/examind/process/sos/error-header-2.csv", "error-header-2.csv");
-        writeResourceDataFile(errorUnitConvertDirectory, "com/examind/process/sos/unit-convert-error-1.csv", "unit-convert-error-1.csv");
-        writeResourceDataFile(errorUnitConvertDirectory, "com/examind/process/sos/unit-convert-error-2.csv", "unit-convert-error-2.csv");
-        writeResourceDataFile(warningUomDirectory, "com/examind/process/sos/warning-uom.csv", "warning-uom.csv");
-        writeResourceDataFile(noLineDirectory, "com/examind/process/sos/no-valid-lines.csv", "no-valid-lines.csv");
-        writeResourceDataFile(multiFixedDirectory, "com/examind/process/sos/multi-fixed-1.csv", "multi-fixed-1.csv");
-
-        mooFile = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
-
+        DATA_DIRECTORY            = configDir.resolve("data" + UUID.randomUUID());
+        errorHeaderDirectory      = DATA_DIRECTORY.resolve("error-dir");
+        
+        
+        argoDirectory             = writeResourceFileInDir("argo-profile", "argo-profiles-2902402-1.csv");
+        fmlwDirectory             = writeResourceFileInDir("fmlw-traj", "tsg-FMLW-1.csv", "tsg-FMLW-2.csv", "tsg-FMLW-3.csv");
+        mooDirectory              = writeResourceFileInDir("moo-ts", "mooring-buoys-time-series-62069.csv");
+        ltDirectory               = writeResourceFileInDir("lt-ts", "LakeTile_001.dbf", "LakeTile_002.dbf");
+        rtDirectory               = writeResourceFileInDir("rt-ts",  "rivertile_001.dbf", "rivertile_002.dbf");
+        multiPlatDirectory        = writeResourceFileInDir("multi-plat", "multiplatform-1.csv", "multiplatform-2.csv");
+        bigdataDirectory          = writeResourceFileInDir("bigdata-profile", "bigdata-1.csv");
+        survalDirectory           = writeResourceFileInDir("surval", "surval-small.csv");
+        xDataDirectory            = writeResourceFileInDir("xdata", "xdata.xlsx");
+        noHeadDirectory           = writeResourceFileInDir("noHead", "nohead.csv");
+        disjointDirectory         = writeResourceFileInDir("disjoint", "disjoint-1.csv");
+        tsvDirectory              = writeResourceFileInDir("tsv", "tabulation.tsv");
+        tsvFlatDirectory          = writeResourceFileInDir("tsv-flat", "tabulation-flat.tsv");
+        xDataFlatDirectory        = writeResourceFileInDir("xlsx-flat", "test-flat.xlsx");
+        errorHeaderDirectory_1    = writeResourceFileInDir("error-dir/error-head-dir1", "error-header.csv");
+        errorHeaderDirectory_2    = writeResourceFileInDir("error-dir/error-head-dir2", "error-header.csv");
+        errorHeaderDirectory2     = writeResourceFileInDir("error-dir-2", "error-header.csv", "error-header-2.csv");
+        errorUnitConvertDirectory = writeResourceFileInDir("error-unit-convert", "unit-convert-error-1.csv", "unit-convert-error-2.csv");
+        warningUomDirectory       = writeResourceFileInDir("warning-uom", "warning-uom.csv");
+        noLineDirectory           = writeResourceFileInDir("no-valid-line", "no-valid-lines.csv");
+        multiFixedDirectory       = writeResourceFileInDir("multi-fixed", "multi-fixed-1.csv");
+        qualityCSVDirectory       = writeResourceFileInDir("single-quality-csv", "single-csv-qual.csv");
+        multiQualityCSVDirectory  = writeResourceFileInDir("muti-quality-csv", "multi-csv-qual.csv");
+        
+        mooFile               = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
         errorUnitConvertFile1 = errorUnitConvertDirectory.resolve("unit-convert-error-1.csv");
         errorUnitConvertFile2 = errorUnitConvertDirectory.resolve("unit-convert-error-2.csv");
+    }
+    
+    private static Path writeResourceFileInDir(String dirName, String... fileNames) throws IOException {
+        Path dir = Files.createDirectories(DATA_DIRECTORY.resolve(dirName));
+        for (String fileName : fileNames) {
+            writeResourceDataFile(dir, "com/examind/process/sos/" + fileName, fileName);
+        }
+        return dir;
     }
 
     protected ServiceComplete sc;

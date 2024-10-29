@@ -146,6 +146,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected final boolean laxHeader;
     protected final boolean computeFoi;
+    
+    protected final boolean needLock;
 
     protected static final GeometryFactory GF = new GeometryFactory();
 
@@ -196,6 +198,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
         this.procedureName = (String) params.parameter(PROCEDURE_NAME.getName().toString()).getValue();
         this.procedureDesc = (String) params.parameter(PROCEDURE_DESC.getName().toString()).getValue();
+        
+        this.needLock = FileParsingUtils.needLock(mimeType);
     }
 
     @Override
@@ -273,40 +277,13 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         public final List<MeasureField> measureFields;
         public final List<String> mainColumns;
 
-        public MeasureColumns(List<String> measureColumns, List<String> measureTypes, List<String> mainColumns, String observationType, List<MeasureField> qualityFields) {
+        public MeasureColumns(List<MeasureField> measureFields, List<String> mainColumns, String observationType) {
             this.observationType = observationType;
             this.isProfile = observationType.equals("Profile");
             this.mainColumns = mainColumns;
-            this.measureFields = new ArrayList<>();
-            // initialize description
-            int offset = isProfile ? 1 : 0;
-            for (int j = 0, k = offset; j < measureColumns.size(); j++, k++) {
-                String mc = measureColumns.get(j);
-                FieldType type = FieldType.QUANTITY;
-                if ((!isProfile && j == 0) && k < measureTypes.size()) {
-                    type = FieldType.valueOf(measureTypes.get(k));
-                }
-                measureFields.add(new MeasureField(mc, type, qualityFields));
-            }
+            this.measureFields = measureFields;
         }
     }
-
-    protected List<MeasureField> buildQualityFields() {
-            List<MeasureField> results = new ArrayList<>();
-            for (int i = 0; i < qualityColumns.size(); i++) {
-                String qName = qualityColumns.get(i);
-                if (i < qualityColumnsIds.size()) {
-                    qName = qualityColumnsIds.get(i);
-                }
-                qName = normalizeFieldName(qName);
-                FieldType qtype = FieldType.TEXT;
-                if (i < qualityColumnsTypes.size()) {
-                    qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
-                }
-                results.add(new MeasureField(qName, qtype, new ArrayList<>()));
-            }
-            return results;
-        }
 
     protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, MeasureColumns measColumns) {
         String key = procedure.getId() + '-' + foiID + '-' + time;

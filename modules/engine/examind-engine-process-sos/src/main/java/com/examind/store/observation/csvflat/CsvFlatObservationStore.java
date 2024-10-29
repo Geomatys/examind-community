@@ -48,6 +48,7 @@ import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservedProperty;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.constellation.exception.ConstellationStoreException;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -232,7 +233,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                     currentMainColumns = mainColumns;
                 }
                 MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
-                    return new MeasureColumns(sortedMeasureColumns, new ArrayList<>(), currentMainColumns, cot, qualityFields);
+                    List<MeasureField> measureFields = new ArrayList<>();
+                     // initialize description
+                    int offset = "Profile".equals(observationType) ? 1 : 0;
+                    for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
+                        String mc = sortedMeasureColumns.get(j);
+                        FieldType type = FieldType.QUANTITY;
+                        measureFields.add(new MeasureField(-1, mc, type, qualityFields));
+                    }
+                    return new MeasureColumns(measureFields, currentMainColumns, cot);
                 });
 
 
@@ -577,6 +586,23 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         } catch (IOException ex) {
             throw new DataStoreException("Problem reading csv file", ex);
         }
+    }
+    
+    protected List<MeasureField> buildQualityFields() {
+        List<MeasureField> results = new ArrayList<>();
+        for (int i = 0; i < qualityColumns.size(); i++) {
+            String qName = qualityColumns.get(i);
+            if (i < qualityColumnsIds.size()) {
+                qName = qualityColumnsIds.get(i);
+            }
+            qName = normalizeFieldName(qName);
+            FieldType qtype = FieldType.TEXT;
+            if (i < qualityColumnsTypes.size()) {
+                qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+            }
+            results.add(new MeasureField(- 1, qName, qtype, new ArrayList<>()));
+        }
+        return results;
     }
 
     /**
