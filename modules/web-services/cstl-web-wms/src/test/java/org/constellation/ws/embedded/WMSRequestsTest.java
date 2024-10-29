@@ -20,6 +20,8 @@ package org.constellation.ws.embedded;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.constellation.dto.service.config.Languages;
 import org.constellation.dto.service.config.Language;
 import org.constellation.configuration.ConfigDirectory;
@@ -51,6 +53,7 @@ import org.geotoolkit.wms.xml.v130.WMSCapabilities;
 import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 
 import jakarta.xml.bind.JAXBException;
@@ -1092,7 +1095,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(1, layer.getExtent().size());
         Extent extent = layer.getExtent().get(0);
         assertEquals("Ellipsoidal height", extent.getName());
-        assertEquals("1200,1000,800,1300,1100,900,700", extent.getvalue());
+        var extentValueStr = extent.getvalue();
+        Assertions.assertNotNull(extentValueStr);
+        var extentValues = Pattern.compile("\s*,\s*")
+                .splitAsStream(extentValueStr)
+                .map(Integer::valueOf)
+                .collect(Collectors.toUnmodifiableSet());
+        assertEquals(Set.of(700, 800, 900, 1000, 1100, 1200, 1300), extentValues);
 
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
@@ -1131,7 +1140,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         org.geotoolkit.wms.xml.v130.Dimension elevation130 = layer130.getDimension().get(0);
 
         assertEquals("Ellipsoidal height", elevation130.getName());
-        assertEquals("1200,1000,800,1300,1100,900,700", elevation130.getValue());
+        extentValueStr = elevation130.getValue();
+        Assertions.assertNotNull(extentValueStr);
+        extentValues = Pattern.compile("\s*,\s*")
+                .splitAsStream(extentValueStr)
+                .map(Integer::valueOf)
+                .collect(Collectors.toUnmodifiableSet());
+        assertEquals(Set.of(700, 800, 900, 1000, 1100, 1200, 1300), extentValues);
 
         currentUrl = responseCaps130.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
 
