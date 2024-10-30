@@ -106,7 +106,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix) {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) {
         // for now we don't handle timescaledb case, has we assume we are in a duckdb context
         ResultProcessor processor;
         if (decimate) {

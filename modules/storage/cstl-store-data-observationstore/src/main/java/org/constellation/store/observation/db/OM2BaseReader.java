@@ -73,8 +73,6 @@ import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.SamplingFeature;
-import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
-import org.geotoolkit.observation.result.ResultBuilder;
 import org.locationtech.jts.io.WKTReader;
 
 import org.opengis.metadata.quality.Element;
@@ -299,6 +297,33 @@ public class OM2BaseReader {
             }
         }
         return results;
+    }
+    
+    protected Object readProperty(String tableName, String columnName, String propertyName, String id, Connection c) throws SQLException {
+        String request = "SELECT \"value\" FROM \"" + schemaPrefix + "om\".\"" + tableName + "\" WHERE \"" + columnName + "\" = ? AND \"property_name\" = ? ORDER BY \"value\"";
+        LOGGER.fine(request);
+        Object result = null;
+        try(final PreparedStatement stmt = c.prepareStatement(request)) {//NOSONAR
+            stmt.setString(1, id);
+            stmt.setString(2, propertyName);
+            try (final ResultSet rs   = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String pValue = rs.getString("value");
+                    if (result instanceof List ls) {
+                        ls.add(pValue);
+                    // transform single value into a list
+                    } else if (result != null) {
+                        List ls = new ArrayList<>();
+                        ls.add(result);
+                        ls.add(pValue);
+                        result = ls;
+                    } else {
+                        result = pValue;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     @SuppressWarnings("squid:S2695")
@@ -962,7 +987,7 @@ public class OM2BaseReader {
             }
         }
     }
-
+    
     protected List<Element> buildResultQuality(Field parent, SQLResult rs) throws SQLException {
         List<Element> results = new ArrayList<>();
         if (parent.qualityFields != null) {

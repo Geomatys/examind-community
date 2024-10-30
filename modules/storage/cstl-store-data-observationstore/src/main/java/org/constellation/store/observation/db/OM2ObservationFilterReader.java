@@ -692,7 +692,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, false, decimate);
             measureRequest.append(sqlRequest);
             
-            ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix);
+            ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix, c);
             processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);
             LOGGER.fine(measureRequest.toString());
 
@@ -715,7 +715,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
     
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix) {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) throws SQLException {
         ResultProcessor processor;
         if (decimate) {
             if (timescaleDB) {
