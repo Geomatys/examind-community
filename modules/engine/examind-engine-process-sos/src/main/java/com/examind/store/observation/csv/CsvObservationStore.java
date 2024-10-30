@@ -47,7 +47,6 @@ import com.examind.store.observation.ObservedProperty;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -326,14 +325,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             final Set<Phenomenon> phenomenons = new HashSet<>();
             final Set<SamplingFeature> samplingFeatures = new HashSet<>();
             int obsCpt = 0;
-            final String fileName = dataFile.getFileName().toString();
             for (ObservationBlock ob : observationBlock.values()) {
-                final String oid = fileName + '-' + obsCpt;
+                final String oid = dataFileName + '-' + obsCpt;
                 obsCpt++;
                 buildObservation(result, oid, ob, phenomenons, samplingFeatures, query.getResponseFormat());
             }
             return result;
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -383,7 +381,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 result.add(procedureId + procId);
             }
             return result;
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -410,7 +408,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
 
             return measureFields;
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -526,7 +524,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
             }
 
             return new ArrayList<>(result.values());
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             throw new DataStoreException("Problem reading csv file", ex);
         }
     }

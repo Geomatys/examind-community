@@ -321,7 +321,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             final Set<Phenomenon> phenomenons = new HashSet<>();
             final Set<SamplingFeature> samplingFeatures = new HashSet<>();
             int obsCpt = 0;
-            final String fileName = dataFile.getFileName().toString();
+            final String fileName = dataFileName;
             for (ObservationBlock ob : observationBlock.values()) {
                 final String oid = fileName + '-' + obsCpt;
                 obsCpt++;
@@ -329,7 +329,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             }
             return result;
             
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             throw new DataStoreException("problem reading dbf file", ex);
         }
     }
@@ -358,7 +358,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 }
             }
             return result;
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -474,7 +474,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             }
 
             return new ArrayList<>(result.values());
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }

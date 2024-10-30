@@ -39,6 +39,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.parameter.Parameters;
@@ -61,7 +63,6 @@ import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
@@ -88,12 +89,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 
-    // main file is not protected in CSVStore.
-    protected final Path dataFile;
+    private final Path dataFile;
+    protected final String dataFileName;
 
-    // separator is nor protected in CSVStore.
-    protected final char delimiter;
-    protected final char quotechar;
+    private final char delimiter;
+    private final char quotechar;
 
     protected final List<String> mainColumns;
 
@@ -147,7 +147,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final boolean laxHeader;
     protected final boolean computeFoi;
     
-    protected final boolean needLock;
+    protected final ReentrantLock fileLock;
 
     protected static final GeometryFactory GF = new GeometryFactory();
 
@@ -155,6 +155,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         super(params);
 
         this.dataFile = Paths.get((URI) params.parameter(PATH.getName().toString()).getValue());
+        this.dataFileName = dataFile.getFileName().toString();
+        
         Character sep = Parameters.castOrWrap(params).getValue(SEPARATOR);
         this.delimiter = sep != null ? sep : 0;
         Character qc =  Parameters.castOrWrap(params).getValue(CHARQUOTE);
@@ -199,7 +201,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.procedureName = (String) params.parameter(PROCEDURE_NAME.getName().toString()).getValue();
         this.procedureDesc = (String) params.parameter(PROCEDURE_DESC.getName().toString()).getValue();
         
-        this.needLock = FileParsingUtils.needLock(mimeType);
+        if (FileParsingUtils.needLock(mimeType)) {
+            fileLock = new ReentrantLock();
+        } else fileLock = null;
     }
 
     @Override
@@ -443,7 +447,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             }
             return result.getTimeObject();
             
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new DataStoreException("Failed extracting dates from input file: " + ex.getMessage(), ex);
         }
     }
@@ -529,8 +533,40 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         }
     }
     
-    protected DataFileReader getDataFileReader() throws IOException {
-        return FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar);
+    protected DataFileReader getDataFileReader() throws InterruptedException, IOException {
+        return new LockingDataFileReader(FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar));
+    }
+    
+    private class LockingDataFileReader implements DataFileReader {
+        private final DataFileReader delegate;
+        
+        public LockingDataFileReader(DataFileReader delegate) throws InterruptedException, IOException {
+            this.delegate = delegate;
+            if (fileLock != null) {
+                if (!(fileLock.tryLock() || fileLock.tryLock(3, TimeUnit.MINUTES))) {
+                    throw new IOException("Unable to aquire lock on file:" + dataFileName);
+                }
+            }
+        }
+
+        @Override
+        public Iterator<Object[]> iterator(boolean skipHeaders) {
+            return delegate.iterator(skipHeaders);
+        }
+
+        @Override
+        public String[] getHeaders() throws IOException {
+            return delegate.getHeaders();
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (fileLock != null) {
+                fileLock.unlock();
+            }
+            delegate.close();
+        }
+        
     }
 
     /**

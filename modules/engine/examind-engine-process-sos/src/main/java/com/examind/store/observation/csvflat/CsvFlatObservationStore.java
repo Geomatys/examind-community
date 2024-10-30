@@ -104,10 +104,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             // special case for * measure columns
             // if the store is open with missing mime type we skip this part.
             } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
-                try {
-                    this.obsPropColumns = extractCodes(mimeType, dataFile, csvFlatobsPropColumns, delimiter, quotechar, noHeader, directColumnIndex);
+                try (final DataFileReader reader = getDataFileReader()) {
+                    this.obsPropColumns = extractCodes(reader, csvFlatobsPropColumns, noHeader, directColumnIndex);
                 } catch (ConstellationStoreException ex) {
                     throw new DataStoreException(ex.getMessage(), ex);
+                } catch (IOException | IndexOutOfBoundsException | InterruptedException ex) {
+                    throw new DataStoreException("problem reading csv file", ex);
                 }
             } else {
                  this.obsPropColumns = obsPropFilterColumns;
@@ -340,14 +342,13 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             final Set<Phenomenon> phenomenons = new HashSet<>();
             final Set<SamplingFeature> samplingFeatures = new HashSet<>();
             int obsCpt = 0;
-            final String fileName = dataFile.getFileName().toString();
             for (ObservationBlock ob : observationBlock.values()) {
-                final String oid = fileName + '-' + obsCpt;
+                final String oid = dataFileName + '-' + obsCpt;
                 obsCpt++;
                 buildObservation(result, oid, ob, phenomenons, samplingFeatures, query.getResponseFormat());
             }
             return result;
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -439,7 +440,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
             return result;
 
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
@@ -583,7 +584,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             }
 
             return new ArrayList<>(result.values());
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException ex) {
             throw new DataStoreException("Problem reading csv file", ex);
         }
     }
