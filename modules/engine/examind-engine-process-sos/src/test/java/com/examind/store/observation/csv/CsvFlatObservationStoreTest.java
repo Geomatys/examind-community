@@ -20,17 +20,12 @@ package com.examind.store.observation.csv;
 
 import com.examind.store.observation.csvflat.CsvFlatObservationStore;
 import com.examind.store.observation.csvflat.CsvFlatObservationStoreFactory;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
@@ -41,7 +36,6 @@ import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,45 +48,31 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CsvFlatObservationStoreTest {
+public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
 
-    private static Path DATA_DIRECTORY;
-    
     private static Path survalFile;
     private static Path tsvFile;
-    protected static Path bigdataFile;
-    protected static Path xDataFile;
-    protected static Path qualSpaceFile;
-    protected static Path diffLengthFile;
-    protected static Path diffLengthFile2;
-    protected static Path incompLineFile;
+    private static Path tsvTimeSepFile;
+    private static Path bigdataFile;
+    private static Path xDataFile;
+    private static Path qualSpaceFile;
+    private static Path diffLengthFile;
+    private static Path diffLengthFile2;
+    private static Path incompLineFile;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-
-        final Path configDir = Paths.get("target");
-        DATA_DIRECTORY      = configDir.resolve("data" + UUID.randomUUID());
-        Path survalDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("surval"));
-        Path tsvDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("tsv-flat"));
-        Path bgDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("bigdata-profile"));
-        Path xDataFlatDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("xlsx-flat"));
-        Path qualSpaceFlatDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("qual-space-flat"));
-        Path diffLengthDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("diff-length"));
-        Path incompLineDirectory = Files.createDirectories(DATA_DIRECTORY.resolve("incomp-line"));
-
-        survalFile      = writeResourceDataFile(survalDirectory, "com/examind/process/sos/surval-small.csv", "surval-small.csv");
-        tsvFile         = writeResourceDataFile(tsvDirectory, "com/examind/process/sos/tabulation-flat.tsv", "tabulation-flat.tsv");
-        bigdataFile     = writeResourceDataFile(bgDirectory, "com/examind/process/sos/bigdata-1.csv", "bigdata-1.csv");
-        xDataFile       = writeResourceDataFile(xDataFlatDirectory, "com/examind/process/sos/test-flat.xlsx", "test-flat.xlsx");
-        qualSpaceFile   = writeResourceDataFile(qualSpaceFlatDirectory, "com/examind/process/sos/quality-space-flat.csv", "quality-space-flat.csv");
-        diffLengthFile  = writeResourceDataFile(diffLengthDirectory, "com/examind/process/sos/flat-diff-length.csv", "flat-diff-length.csv");
-        diffLengthFile2 = writeResourceDataFile(diffLengthDirectory, "com/examind/process/sos/flat-diff-length-2.csv", "flat-diff-length-2.csv");
-        incompLineFile  = writeResourceDataFile(incompLineDirectory, "com/examind/process/sos/incomplete-line-flat.csv", "incomplete-line-flat.csv");
-    }
-    
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        IOUtilities.deleteSilently(DATA_DIRECTORY);
+        AbstractCsvStoreTest.setUpClass();
+        
+        survalFile      = writeResourceFileInDir("surval", "surval-small.csv");
+        tsvFile         = writeResourceFileInDir("tsv-flat", "tabulation-flat.tsv");
+        tsvTimeSepFile  = writeResourceFileInDir("tsv-flat", "tabulation-timesep-flat.tsv");
+        bigdataFile     = writeResourceFileInDir("bigdata-profile", "bigdata-1.csv");
+        xDataFile       = writeResourceFileInDir("xlsx-flat", "test-flat.xlsx");
+        qualSpaceFile   = writeResourceFileInDir("qual-space-flat", "quality-space-flat.csv");
+        diffLengthFile  = writeResourceFileInDir("diff-length", "flat-diff-length.csv");
+        diffLengthFile2 = writeResourceFileInDir("diff-length", "flat-diff-length-2.csv");
+        incompLineFile  = writeResourceFileInDir("incomp-line", "incomplete-line-flat.csv");
     }
 
     @Test
@@ -186,6 +166,71 @@ public class CsvFlatObservationStoreTest {
         params.parameter(CsvFlatObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("TIME");
 
         params.parameter(CsvFlatObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LAT");
+        params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LON");
+
+        params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+
+        params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue(sensorId);
+        params.parameter(CsvFlatObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("tsv");
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf('\t'));
+
+        CsvFlatObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sid = procedureNames.iterator().next();
+        Assert.assertEquals(sensorId, sid);
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalGeometricPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Period);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+        Period tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.000" , sdf.format(tp.getEnding().getDate()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        Assert.assertEquals(1, results.procedures.get(0).spatialBound.getHistoricalLocations().size());
+
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+        Assert.assertEquals(1, procedures.size());
+
+        ProcedureDataset pt = procedures.get(0);
+        Assert.assertEquals(1, pt.spatialBound.getHistoricalLocations().size());
+
+        time = pt.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00.000" , sdf.format(tp.getBeginning().getDate()));
+        Assert.assertEquals("1980-03-02T21:52:00.000" , sdf.format(tp.getEnding().getDate()));
+    }
+    
+    @Test
+    public void csvStoreTSVTimeSeparatedTest() throws Exception {
+
+        String sensorId = "urn:sensor:tsv-ts-1";
+        CsvFlatObservationStoreFactory factory = new CsvFlatObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvFlatObservationStoreFactory.LOCATION).setValue(tsvTimeSepFile.toUri().toString());
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("DATE,TIME");
+        params.parameter(CsvFlatObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("DATE,TIME");
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-ddHH:mm:ss.S");
 
         params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LAT");
         params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LON");

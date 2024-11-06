@@ -18,16 +18,11 @@
  */
 package com.examind.store.observation.csv;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
-import static org.constellation.test.utils.TestResourceUtils.writeResourceDataFile;
 import org.geotoolkit.data.csv.CSVProvider;
-import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
@@ -39,7 +34,6 @@ import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -53,9 +47,8 @@ import org.opengis.temporal.TemporalGeometricPrimitive;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class CsvObservationStoreTest {
+public class CsvObservationStoreTest extends AbstractCsvStoreTest {
 
-    private static Path DATA_DIRECTORY;
     private static Path argoFile;
     private static Path fmlwFile;
     private static Path mooFile;
@@ -67,32 +60,16 @@ public class CsvObservationStoreTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-
-        final Path configDir = Paths.get("target");
-        DATA_DIRECTORY       = configDir.resolve("data"  + UUID.randomUUID());
-        Path argoDirectory    = Files.createDirectories(DATA_DIRECTORY.resolve("argo-profile"));
-        Path fmlwDirectory    = Files.createDirectories(DATA_DIRECTORY.resolve("fmlw-traj"));
-        Path mooDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("moo-ts"));
-        Path bopDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("bool-prof"));
-        Path tsvDirectory     = Files.createDirectories(DATA_DIRECTORY.resolve("tsv"));
-        Path mpDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("multiPlat"));
-        Path qsDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("qual-space"));
-        Path icDirectory      = Files.createDirectories(DATA_DIRECTORY.resolve("incomplete-line"));
-
-        argoFile      = writeResourceDataFile(argoDirectory, "com/examind/process/sos/argo-profiles-2902402-1.csv", "argo-profiles-2902402-1.csv");
-        fmlwFile      = writeResourceDataFile(fmlwDirectory, "com/examind/process/sos/tsg-FMLW-1.csv", "tsg-FMLW-1.csv");
-        mooFile       = writeResourceDataFile(mooDirectory,  "com/examind/process/sos/mooring-buoys-time-series-62069.csv", "mooring-buoys-time-series-62069.csv");
-        boolProfFile  = writeResourceDataFile(bopDirectory,  "com/examind/process/sos/boolean-profile.csv", "boolean-profile.csv");
-        tsvFile       = writeResourceDataFile(tsvDirectory,  "com/examind/process/sos/tabulation.tsv", "tabulation.tsv");
-        multiPlatFile = writeResourceDataFile(mpDirectory,   "com/examind/process/sos/multiplatform-1.csv", "multiplatform-1.csv");
-        qualSpaceFile = writeResourceDataFile(qsDirectory,   "com/examind/process/sos/quality-space.csv", "quality-space.csv");
-        inCompLineFile = writeResourceDataFile(icDirectory,   "com/examind/process/sos/incomplete-line.csv", "incomplete-line.csv");
-    }
-
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        IOUtilities.deleteSilently(DATA_DIRECTORY);
+        AbstractCsvStoreTest.setUpClass();
+        
+        argoFile       = writeResourceFileInDir("argo-profile", "argo-profiles-2902402-1.csv");
+        fmlwFile       = writeResourceFileInDir("fmlw-traj", "tsg-FMLW-1.csv");
+        mooFile        = writeResourceFileInDir("moo-ts", "mooring-buoys-time-series-62069.csv");
+        boolProfFile   = writeResourceFileInDir("bool-prof", "boolean-profile.csv");
+        tsvFile        = writeResourceFileInDir("tsv", "tabulation.tsv");
+        multiPlatFile  = writeResourceFileInDir("multiPlat", "multiplatform-1.csv");
+        qualSpaceFile  = writeResourceFileInDir("qual-space", "quality-space.csv");
+        inCompLineFile = writeResourceFileInDir("incomplete-line", "incomplete-line.csv");
     }
 
     @Test
