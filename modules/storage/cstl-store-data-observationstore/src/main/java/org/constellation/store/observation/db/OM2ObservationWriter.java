@@ -1811,17 +1811,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>(), new ArrayList<>());
 
         List<String> rmSQLs = new ArrayList<>();
-        StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m");
-        StringBuilder where = new StringBuilder(" WHERE ");
+        StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m ");
         rmSQLs.add("DELETE FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" WHERE \"id\" = ? AND \"id_observation\" = ?");
         for (int i = 1; i < pi.nbTable; i++) {
             String tableName = "mesure" + pi.pid + "_" + (i + 1);
-            sb.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m" + i + " ");
-            where.append(" m" + i + ".\"id\" = m.\"id\" AND ");
+            sb.append("LEFT JOIN \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m" + i + " ON m.\"id\" = m" + i + ".\"id\" AND m.\"id_observation\" = m" + i + ".\"id_observation\"");
             rmSQLs.add("DELETE FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" WHERE \"id\" = ? AND \"id_observation\" = ?");
         }
-        sb.append(where);
-        sb.append(" m.\"id_observation\" = ? ");
+        sb.append("WHERE m.\"id_observation\" = ? ");
         for (Field f : fields) {
             sb.append(" AND \"").append(f.name).append("\" IS NULL");
         }
@@ -2247,12 +2244,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     // 1. direct phenomenon / subset observations => full removal
                     if (isEqualsOrSubset(cdt.phenomenon, phenToRemove)) {
                         removeObservation(cdt.identifier, cdt.pi, c);
-                        LOGGER.info("removed:" + cdt.identifier);
+                        LOGGER.fine("removed direct:" + cdt.identifier);
                         
                     // 2. main field is contained in the phenomenon to remove => full removal
                     } else if (containField(cdt.pi.mainField, phenToRemove)) {
                         removeObservation(cdt.identifier, cdt.pi, c);
-                        LOGGER.info("Main field removed:" + cdt.identifier);
+                        LOGGER.fine("Main field removed:" + cdt.identifier);
                         
                      // 3. At least one component of the observation phenomenon is involved => update observed property
                      } else if (isPartOf(cdt.phenomenon, phenToRemove)) {
@@ -2267,7 +2264,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             updateObservationTemporalBounds(cdt, c);
                             updateObservationPhenomenon(cdt, fieldsToRemove, c);
                         } else {
-                            LOGGER.info("removed:" + cdt.identifier);
+                            LOGGER.fine("removed empty:" + cdt.identifier);
                         }
                     }
                 }

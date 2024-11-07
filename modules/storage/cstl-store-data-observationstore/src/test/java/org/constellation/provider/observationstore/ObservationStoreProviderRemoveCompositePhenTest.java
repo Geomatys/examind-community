@@ -87,16 +87,17 @@ public class ObservationStoreProviderRemoveCompositePhenTest extends AbstractObs
         // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
         
-        nb_observation     = nb_observation    - 22;  // 22 merged observations has been removed
+        nb_observation     = nb_observation    - 21;  // 21 merged observations has been removed
         nb_used_phenomenon = nb_used_phenomenon - 4;  // 4 phenomenon removed (depth + temperature + aggregatePhenomenon + aggregatePhenomenon-2 in which only one component was remaining)
-        nb_used_procedure  = nb_used_procedure - 14;  // 14 procedure has been removed
-        nb_procedure       = nb_procedure      - 14;
+        nb_used_procedure  = nb_used_procedure - 13;  // 13 procedure has been removed
+        nb_procedure       = nb_procedure      - 13;
         nb_foi--;                                     // one foi removed
         
         Set<String> expectedResultIds = new HashSet<>();
         expectedResultIds.add("urn:ogc:object:observation:GEOM:3000");
         expectedResultIds.add("urn:ogc:object:observation:GEOM:4002");
         expectedResultIds.add("urn:ogc:object:observation:GEOM:7001");
+        expectedResultIds.add("urn:ogc:object:observation:GEOM:9002");
         
         Set<String> resultIds = fullDataset.getObservations().stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
 
