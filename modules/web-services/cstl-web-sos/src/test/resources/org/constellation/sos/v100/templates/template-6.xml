@@ -6,14 +6,17 @@
     <om:observedProperty>
         <swe:CompositePhenomenon dimension="2" gml:id="aggregatePhenomenon">
             <gml:name>urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon</gml:name>
+            <gml:description>the aggregation of temperature and depth phenomenons</gml:description>
             <swe:component>
                  <swe:Phenomenon gml:id="depth">
                     <gml:name>urn:ogc:def:phenomenon:GEOM:depth</gml:name>
+                    <gml:description>the depth in water</gml:description>
                  </swe:Phenomenon>
             </swe:component>
             <swe:component>
                 <swe:Phenomenon gml:id="temperature">
                     <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
+                    <gml:description>the temperature in celcius degree</gml:description>
                 </swe:Phenomenon>
             </swe:component>
         </swe:CompositePhenomenon>
@@ -27,10 +30,10 @@
             </gml:boundedBy>
             <sa:sampledFeature  xlink:href="urn:-sandre:object:bdrhf:123X"/>
             <sa:position>
-                <gml:Point gml:id="STATION-LOCALISATION">
-                    <gml:pos srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:27582" srsDimension="2">65400.0 1731368.0</gml:pos>
-                </gml:Point>
-            </sa:position>
+            <gml:Point srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2" gml:id="STATION-LOCALISATION">
+                <gml:pos srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2">5.0 10.0</gml:pos>
+            </gml:Point>
+    </sa:position>
         </sa:SamplingPoint>
     </om:featureOfInterest>
     <om:result xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="swe:DataArrayPropertyType">
@@ -48,6 +51,11 @@
                     <swe:field name="depth">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:depth">
                             <swe:uom code="m"/>
+                        </swe:Quantity>
+                    </swe:field>
+                    <swe:field name="temperature">
+                        <swe:Quantity definition="temperature">
+                            <swe:uom code="°C"/>
                         </swe:Quantity>
                     </swe:field>
                 </swe:SimpleDataRecord>

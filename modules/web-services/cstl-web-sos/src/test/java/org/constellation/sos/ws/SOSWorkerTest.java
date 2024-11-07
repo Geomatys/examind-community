@@ -2373,25 +2373,6 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         InsertObservation request = new InsertObservation("1.0.0", "urn:ogc:object:sensor:GEOM:3", template);
         worker.insertObservation(request);
 
-         /**
-         *   getObservation with procedure urn:ogc:object:sensor:GEOM:4
-         *           with resultTemplate mode
-         */
-        GetObservation GOrequest  = new GetObservation("1.0.0",
-                                      "offering-3",
-                                      null,
-                                      Arrays.asList("urn:ogc:object:sensor:GEOM:3"),
-                                      Arrays.asList("depth"),
-                                      null,
-                                      null,
-                                      "text/xml; subtype=\"om/1.0.0\"",
-                                      OBSERVATION_QNAME,
-                                      ResponseModeType.RESULT_TEMPLATE,
-                                      null);
-        ObservationCollectionType obsColl = (ObservationCollectionType) worker.getObservation(GOrequest);
-
-
-
         String templateId = "urn:ogc:object:observation:template:GEOM:3-0";
         GetResult GRrequest = new GetResult(templateId, null, "1.0.0");
         GetResultResponse result = (GetResultResponse) worker.getResult(GRrequest);
@@ -2499,7 +2480,22 @@ public abstract class SOSWorkerTest extends SpringContextTest {
         SensorML expResult = (SensorML) sensorDescription;
 
         MetadataUtilities.systemSMLEquals(expResult, result);
+        
+        /**
+         * Test 2 insert observation for the new sensor
+         */
+        TimePeriodType period = new TimePeriodType(new TimePositionType("2007-06-01T01:00:00.00"), new TimePositionType("2007-06-01T03:00:00.00"));
+        obsTemplate.setSamplingTime(period);
 
+        // and we fill the result object
+        DataArrayPropertyType arrayP = (DataArrayPropertyType) obsTemplate.getResult();
+        DataArrayType array = arrayP.getDataArray();
+        array.setElementCount(3);
+        array.setValues("2007-06-01T01:01:00.0,6.56,12.0@@2007-06-01T02:00:00.0,6.55,13.0@@2007-06-01T03:00:00.0,6.55,14.0@@");
+
+        InsertObservation requestIO = new InsertObservation("1.0.0", "urn:ogc:object:sensor:GEOM:66", obsTemplate);
+        worker.insertObservation(requestIO);
+        
         marshallerPool.recycle(unmarshaller);
     }
 
