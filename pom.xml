@@ -523,6 +523,11 @@
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>
+		<groupId>org.geotoolkit</groupId>
+		<artifactId>geotk-xml-kml</artifactId>
+		<version>${geotoolkit.version}</version>
+	    </dependency>
+            <dependency>
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-xml-wmc</artifactId>
                 <version>${geotoolkit.version}</version>
