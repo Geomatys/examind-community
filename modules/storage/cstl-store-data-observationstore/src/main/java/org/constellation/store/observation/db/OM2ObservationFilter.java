@@ -237,12 +237,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 sqlRequest.append(" WHERE ");
                 firstFilter = true;
             }
-
             template = true;
         } else {
             sqlRequest = new SingleFilterSQLRequest("SELECT o.\"id\", o.\"identifier\", \"observed_property\", o.\"procedure\", \"foi\", \"time_begin\", \"time_end\" FROM \"");
-            sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE \"identifier\" NOT LIKE ").appendValue(observationTemplateIdBase + '%').append(" ");
-            firstFilter = false;
+            sqlRequest.append(schemaPrefix).append("om\".\"observations\" o WHERE ");
+            firstFilter = true;
         }
     }
 

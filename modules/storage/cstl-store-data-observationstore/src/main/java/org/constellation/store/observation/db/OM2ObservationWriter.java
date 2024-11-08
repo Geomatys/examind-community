@@ -673,6 +673,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
         int pid;
         int nbTable;
+        ProcedureInfo pi;
         try(final PreparedStatement stmtExist = c.prepareStatement("SELECT \"pid\", \"nb_table\" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
             stmtExist.setString(1, procedureID);
             try(final ResultSet rs = stmtExist.executeQuery()) {
@@ -737,6 +738,12 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                     // write properties
                     writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
+                    
+                    // write procedure description
+                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
+                    if (!procedure.fields.isEmpty()) {
+                        buildMeasureTable(pi, procedure.fields, c);
+                    }
 
                     // write locations
                     try(final PreparedStatement stmtInsert = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"historical_locations\" VALUES(?,?," + geomField + ",?)")) {//NOSONAR
@@ -747,6 +754,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 } else {
                     pid = rs.getInt(1);
                     nbTable = rs.getInt(2);
+                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
                     /*
                     * Update historical locations, add new ones if not already recorded (do not remove disappeared ones)
                     */
@@ -826,7 +834,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             writeProcedure(child, procedureID, c);
         }
         // we don't fill the mainField at this point
-        return new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
+        return pi;
     }
 
     private void insertHistoricalLocation(PreparedStatement stmtInsert, String procedureId, Entry<Date, Geometry> entry) throws SQLException {

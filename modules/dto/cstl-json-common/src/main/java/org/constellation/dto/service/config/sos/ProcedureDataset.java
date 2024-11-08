@@ -66,6 +66,17 @@ public class ProcedureDataset {
     public ProcedureDataset() {
 
     }
+    
+    public ProcedureDataset(String id, String name, String description, String type, String omType, List<String> fields, Map<String, Object> properties) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.omType = omType;
+        this.fields = fields;
+
+        this.properties = properties;
+    }
 
     public ProcedureDataset(String id, String name, String description, String type, String omType, Date dateStart, Date dateEnd, 
             Double minx, Double maxx, Double miny, Double maxy, List<String> fields, Geometry geom, Map<String, Object> properties) {

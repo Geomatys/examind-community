@@ -34,8 +34,11 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import static java.nio.file.StandardOpenOption.*;
+import java.util.HashMap;
 import org.geotoolkit.nio.IOUtilities;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
+import static org.geotoolkit.observation.AbstractObservationStoreFactory.SENSOR_ID_BASE_NAME;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.Offering;
@@ -55,11 +58,12 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
     private LuceneObservationIndexer indexer;
 
     private final String observationTemplateIdBase;
+    private final String sensorIdBase;
 
     public FileObservationWriter(final Path dataDirectory, final Path configDirectory, final Map<String, Object> properties) throws DataStoreException {
         super(dataDirectory, properties);
         this.observationTemplateIdBase = (String) properties.get(OBSERVATION_TEMPLATE_ID_BASE_NAME);
-        
+        this.sensorIdBase              = (String) properties.get(SENSOR_ID_BASE_NAME);
         try {
             indexer        = new LuceneObservationIndexer(dataDirectory, configDirectory, "", true);
         } catch (IndexingException ex) {
@@ -239,7 +243,29 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
 
     @Override
     public void writeProcedure(ProcedureDataset procedure) throws DataStoreException {
-        // do nothing
+        final String procId = procedure.getId();
+        final String procedureID;
+        if (procId.startsWith(sensorIdBase)) {
+            procedureID = procId.substring(sensorIdBase.length());
+        } else {
+            procedureID = procId;
+        }
+        
+        ComplexResult result = new ComplexResult(procedure.fields, List.of(), 0);
+        
+        // write a new template
+        Observation template = new Observation("obs-" + procedureID,
+                                               observationTemplateIdBase + procedureID, 
+                                               "template for procedure " + procId,
+                                               null,
+                                               procedure.type, 
+                                               new Procedure(procedure), 
+                                               procedure.spatialBound.getTimeObject(), 
+                                               null,
+                                               null, 
+                                               null, result, new HashMap<>());
+        writeObservation(template);
+        
     }
 
     /**

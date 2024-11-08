@@ -126,10 +126,10 @@ import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
 import java.util.Optional;
 import java.util.Objects;
-import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import org.constellation.api.WorkerState;
+import org.constellation.dto.service.config.sos.ProcedureDataset;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.OMUtils;
@@ -140,10 +140,10 @@ import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.ObservationTransformUtils.toXML;
 import static org.geotoolkit.observation.model.ObservationTransformUtils.toModel;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
-import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.observation.query.IdentifierQuery;
 import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
@@ -160,7 +160,6 @@ import org.geotoolkit.swe.xml.AbstractEncoding;
 import org.geotoolkit.swe.xml.DataArray;
 import org.geotoolkit.swe.xml.DataArrayProperty;
 import org.geotoolkit.swe.xml.DataRecord;
-import org.geotoolkit.swe.xml.Phenomenon;
 import org.geotoolkit.swe.xml.PhenomenonProperty;
 import org.geotoolkit.swe.xml.TextBlock;
 import org.geotoolkit.swes.xml.DeleteSensor;
@@ -604,7 +603,7 @@ public class SOSworker extends SensorWorker {
             List<PhenomenonProperty> phen100 = new ArrayList<>();
             if ("1.0.0".equals(version)) {
                 for (String op : off.getObservedProperties()) {
-                    Phenomenon xmlPhen =  (Phenomenon) toXML(getPhenomenon(op), version);
+                    var xmlPhen = toXML(getPhenomenon(op), version);
                     phen100.add(buildPhenomenonProperty(version, xmlPhen));
                 }
             }
@@ -1770,51 +1769,35 @@ public class SOSworker extends SensorWorker {
 
             //we assign the new capteur oid to the observations template
             temp.setName(UUID.randomUUID().toString());
-
-            if (omProvider != null) {
-                //we write the observations template in the O&M database
-                Observation template;
-                if (currentVersion.equals("1.0.0")) {
-                    template = toModel(temp.getObservation());
-                } else {
-                    List<org.geotoolkit.observation.model.Phenomenon> phens = temp.getFullObservedProperties()
+            
+            List<org.geotoolkit.observation.model.Phenomenon> phens = temp.getFullObservedProperties()
                                                                                   .stream()
                                                                                   .map(phenProp -> toModel(phenProp.getPhenomenon()))
                                                                                   .filter(Objects::nonNull)
                                                                                   .toList();
-                    final org.geotoolkit.observation.model.Phenomenon phenomenon;
-                    if (phens.size() == 1) {
-                        phenomenon = phens.get(0);
-                    } else if (phens.size() > 1) {
-                        String phenId = "phen-" + UUID.randomUUID();
-                        phenomenon = new CompositePhenomenon(phenId, phenId, null, null, null, phens);
-                    } else {
-                        phenomenon = null;
-                    }
-                    org.geotoolkit.observation.model.SamplingFeature featureOfInterest = null;
-                    if (temp.getFeatureOfInterest() != null) {
-                        featureOfInterest = getFeatureOfInterest(temp.getFeatureOfInterest());
-                    }
+            final org.geotoolkit.observation.model.Phenomenon phenomenon;
+            if (phens.size() == 1) {
+                phenomenon = phens.get(0);
+            } else if (phens.size() > 1) {
+                String phenId = "phen-" + UUID.randomUUID();
+                phenomenon = new CompositePhenomenon(phenId, phenId, null, null, null, phens);
+            } else {
+                phenomenon = null;
+            }
+            // we assume a time series
+            List<Field> fields = OMUtils.getPhenomenonsFields(phenomenon);
+            fields.add(0, new Field(1, OMUtils.TIME_FIELD));
 
-                    // we assume a time series
-                    List<Field> fields = OMUtils.getPhenomenonsFields(phenomenon);
-                    fields.add(0, OMUtils.TIME_FIELD);
-                    ComplexResult result = new ComplexResult(fields, TextEncoderProperties.CSV_ENCODING, null, null);
-                    
-                    template = new org.geotoolkit.observation.model.Observation(null, // oid
-                                                                                null, // name
-                                                                                "Template for procedure " + procedure.getId(),
-                                                                                null,
-                                                                                COMPLEX_OBSERVATION,
-                                                                                procedure,
-                                                                                null, // sampling time
-                                                                                featureOfInterest,
-                                                                                phenomenon,
-                                                                                null,
-                                                                                result,
-                                                                                new HashMap<>());
-                }
-                omProvider.writeObservation(template);
+            if (omProvider != null) {
+                //we write the observations template in the O&M database
+                ProcedureDataset procDataset = new ProcedureDataset(procedure.getId(),
+                                                       name,
+                                                       desc, 
+                                                       smlType, 
+                                                       omType, 
+                                                       fields.stream().map(f -> f.name).toList(), // TODO lost informations 
+                                                       new HashMap<>());
+                omProvider.writeProcedure(procDataset);
                 omProvider.writeLocation(procedure.getId(), position);
                 assignedOffering = addSensorToOffering(procedure.getId(), temp);
                 clearCapabilitiesCache();
@@ -1830,7 +1813,7 @@ public class SOSworker extends SensorWorker {
         LOGGER.log(Level.FINE, "registerSensor processed in {0}ms", (System.currentTimeMillis() - start));
         return buildInsertSensorResponse(currentVersion, procedure.getId(), assignedOffering);
     }
-
+    
     /**
      * Web service operation which insert a new Observation for the specified sensor
      * in the O&amp;M database.
@@ -1902,17 +1885,19 @@ public class SOSworker extends SensorWorker {
                 }
 
                 //we record the observations in the O&M database
+               org.geotoolkit.observation.model.Observation obsModel = toModel(obs);
                final String oid;
                 if (currentVersion.equals("2.0.0")) {
-                    oid = omProvider.writeObservation(toModel(obs));
+                    oid = omProvider.writeObservation(obsModel);
                 } else {
                     if (obs instanceof Measurement) {
-                        oid = omProvider.writeObservation(toModel(obs));
+                        oid = omProvider.writeObservation(obsModel);
                     } else {
                         //in first we verify that the observations is conform to the template
-                        final Observation template = omProvider.getTemplate(sensorId);
+                        // here we already have a model but for now the toModel() will do the cast.
+                        final org.geotoolkit.observation.model.Observation template = toModel(omProvider.getTemplate(sensorId));
                         //if the observations to insert match the template we can insert it in the OM db
-                        if (obs.matchTemplate(toXML(template, currentVersion))) {
+                        if (matchTemplate(template, obsModel)) {
                             if (obs.getSamplingTime() != null && obs.getResult() != null) {
                                 oid = omProvider.writeObservation(toModel(obs));
                                 LOGGER.log(Level.FINE, "new observation inserted: id = {0} for the sensor {1}", new Object[]{oid, obs.getProcedure()});
@@ -1937,7 +1922,35 @@ public class SOSworker extends SensorWorker {
         }
         return buildInsertObservationResponse(currentVersion, ids);
     }
-
+    
+    private boolean matchTemplate(org.geotoolkit.observation.model.Observation template, org.geotoolkit.observation.model.Observation candidate) {
+        // observed properties does not need to match. we support multi observed property for one procedure
+        // feature of interest does not need to match. we support multi feature of interest for one procedure
+        
+        // main field must be consistent
+        if (template.getResult() instanceof ComplexResult tmpResult &&
+            candidate.getResult() instanceof ComplexResult cdtResult) {
+            // should not happen , but just in case
+            if (tmpResult.getFields().isEmpty() || cdtResult.getFields().isEmpty()) {
+                throw new IllegalStateException("template has no fields");
+            }
+            Field tmpMainField = tmpResult.getFields().get(0);
+            Field cdtMainField = cdtResult.getFields().get(0);
+            // look onlly for id and type because definition can vary
+            if (!(Objects.equals(tmpMainField.name, cdtMainField.name) &&
+                  Objects.equals(tmpMainField.type, cdtMainField.type))) {
+                return false;
+            }
+        }
+        Procedure cdtProc = candidate.getProcedure();
+        Procedure tmpProc = template.getProcedure();
+        if (cdtProc != null && tmpProc != null) {
+            return Objects.equals(cdtProc.getId(), tmpProc.getId());
+        } else {
+            return cdtProc == null && tmpProc == null;
+        }
+    }
+    
     /**
      *
      *
