@@ -53,5 +53,6 @@
 
   <context:component-scan base-package="org.constellation.api.rest" scoped-proxy="interfaces" />
   <context:component-scan base-package="com.examind.ogc.api.rest" scoped-proxy="interfaces" />
+  <context:component-scan base-package="com.examind.openeo.api.rest" scoped-proxy="interfaces" />
 
 </beans>

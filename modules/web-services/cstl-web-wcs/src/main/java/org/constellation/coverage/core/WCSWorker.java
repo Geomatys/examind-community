@@ -43,7 +43,7 @@ public interface WCSWorker extends Worker{
 
     Object getCoverage(final GetCoverage request) throws CstlServiceException;
 
-    List<Collection> getCollections(List<String> collectionIds) throws CstlServiceException;
+    List<Collection> getCollections(List<String> collectionIds, boolean forOpenEO) throws CstlServiceException;
 
     Object getCoverage(String collectionId, String format, List<Double> bbox, String scaleData, List<String> subsetData, List<String> properties) throws CstlServiceException;
 

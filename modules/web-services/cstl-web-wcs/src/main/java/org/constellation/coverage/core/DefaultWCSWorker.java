@@ -1561,7 +1561,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     }
 
     @Override
-    public List<Collection> getCollections(List<String> names) throws CstlServiceException {
+    public List<Collection> getCollections(List<String> names, boolean forOpenEO) throws CstlServiceException {
         final String userLogin  = getUserLogin();
         final List<LayerCache> layers;
         if (names.isEmpty()) {
@@ -1574,10 +1574,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 layers.add(getLayerCache(userLogin, collName));
             }
         }
-        return layers.stream().map(r -> dataToCollection(r)).collect(Collectors.toList());
+        return layers.stream().map(r -> dataToCollection(r, forOpenEO)).collect(Collectors.toList());
     }
 
-    private Collection dataToCollection(LayerCache layer) {
+    private Collection dataToCollection(LayerCache layer, boolean forOpenEO) {
         final Data data = layer.getData();
         final List<Link> links = new ArrayList<>();
         final Extent extent = new Extent();
@@ -1638,7 +1638,13 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         BuildCoverageLink(url, identifier, title, links);
         // String itemType = "VECTOR" set item type to null for now as it does not appears in official xsd at http://schemas.opengis.net/ogcapi/features/part1/1.0/xml/core.xsd
         // but it appears at https://github.com/opengeospatial/ogcapi-features/blob/master/core/xml/core.xsd
-        return new Collection(identifier, links, title, null, title, extent, crs, storageCrs);
+
+        if(forOpenEO) {
+            return new com.examind.openeo.api.rest.data.discovery.dto.Collection(identifier, links, title, null, title, extent, crs, storageCrs,
+                    "1.0.0", Set.of(), List.of(), false, "no licence specified");
+        } else {
+            return new com.examind.ogc.api.rest.common.dto.Collection(identifier, links, title, null, title, extent, crs, storageCrs);
+        }
     }
 
     @Override

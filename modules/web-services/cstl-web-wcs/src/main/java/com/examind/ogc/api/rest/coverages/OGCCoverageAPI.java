@@ -18,7 +18,10 @@
  */
 package com.examind.ogc.api.rest.coverages;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 
 import com.examind.ogc.api.rest.common.ConformanceProvider;
@@ -39,12 +42,15 @@ import org.constellation.ws.Worker;
 import org.constellation.ws.rs.GridWebService;
 import org.constellation.ws.rs.ResponseObject;
 import org.geotoolkit.atom.xml.Link;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import static org.constellation.coverage.core.AtomLinkBuilder.buildDocumentLinks;
@@ -183,7 +189,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
 
         if (worker != null) {
             try {
-                List<com.examind.ogc.api.rest.common.dto.Collection> layers = worker.getCollections(new ArrayList<>());
+                List<com.examind.ogc.api.rest.common.dto.Collection> layers = worker.getCollections(new ArrayList<>(), false);
                 com.examind.ogc.api.rest.common.dto.Collections response = new com.examind.ogc.api.rest.common.dto.Collections();
 
                 response.setCollections(layers);
@@ -223,7 +229,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         if (worker != null) {
             try {
                 // if the layer does not exist an exception will be thrown
-                final List<Collection> layers = worker.getCollections(Collections.singletonList(collectionId));
+                final List<Collection> layers = worker.getCollections(Collections.singletonList(collectionId), false);
                 final boolean asJson = format.contains(MimeType.APP_JSON);
                 Object result;
                 MediaType media;
