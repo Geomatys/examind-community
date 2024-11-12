@@ -50,22 +50,10 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     
     // used for case like "only-main"
     private final Set<String> includedFields; 
-    private boolean onlyMain;
     
     public MixedResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
         super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
-        if (profile) {
-            onlyMain = true;
-            for (Field field : fields) {
-                if (field.index > mainFieldIndex + 1) {
-                    onlyMain = false;
-                    break;
-                }
-            }
-        } else {
-            onlyMain = false;
-        }
     }
     
     @Override

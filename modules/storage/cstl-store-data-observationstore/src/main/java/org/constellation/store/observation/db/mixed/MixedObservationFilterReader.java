@@ -163,7 +163,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @param obsJoin If true, a join with the observation table will be applied.
      * @param addOrderBy If true, an order by main filed will be applied.
      * @param idOnly If true, only the measure identifier will be selected.
-     * @param count
+     * @param count If true, forge a count request instead of a select one.
      * 
      * @return A Multi filter request on measure tables.
      */
@@ -324,14 +324,13 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                             final String observationType = getOmTypeFromFieldType(fType);
                             final String value = rs2.getString("result", rsIndex);
                             if (value != null) {
-                                Object resultValue;
-                                switch (fType) {
-                                    case QUANTITY: resultValue = rs2.getDouble("result", rsIndex); break;
-                                    case BOOLEAN:  resultValue = rs2.getBoolean("result", rsIndex); break;
-                                    case TIME:     resultValue = new Date(rs2.getTimestamp("result", rsIndex).getTime()); break;
-                                    case TEXT:
-                                    default: resultValue = value; break;
-                                }
+                                Object resultValue = 
+                                    switch (fType) {
+                                        case QUANTITY -> rs2.getDouble("result", rsIndex);
+                                        case BOOLEAN  -> rs2.getBoolean("result", rsIndex);
+                                        case TIME     -> new Date(rs2.getTimestamp("result", rsIndex).getTime());
+                                        case TEXT     -> value;
+                                    };
                                 MeasureResult result = new MeasureResult(field, resultValue);
                                 final String measId =  obsID + '-' + field.index + '-' + rid;
                                 final String measName = name + '-' + field.index + '-' + rid;
@@ -374,7 +373,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 return entry;
             }
         }
-        return null;
+        // shold not happen
+        throw new IllegalStateException("Unable to find the phenomenon for field name: " + name);
     }
     
     @Override
@@ -387,7 +387,6 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             if (!single.contains(allPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
             String block = extractAllPhenBlock(single, allPhenKeyword);
             StringBuilder sb = new StringBuilder();
-            boolean first = true;
             int extraFilter = -1;
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
@@ -505,9 +504,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 sb = sbPheno.append(sbCompo);
                 obsJoin = false;
             
-                for (String field : fields) {
-                    fieldIdFilters.add(field);
-                }
+                fieldIdFilters.addAll(fields);
             
                 if (!firstFilter) {
                     sqlRequest.append(" AND( ").append(sb).append(") ");
