@@ -56,9 +56,8 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
         if (profile && includeTimeInProfile) {
             select.append(", o.\"time_begin\" ");
         }
+        sqlRequest.replaceSelect(select.toString());
         
-        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
-        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         if (firstFilter) {
             sqlRequest.replaceFirst("WHERE", "");
         }

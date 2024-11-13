@@ -51,7 +51,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
             for (int i = 0; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
                 String fieldName = field.name;
-                int rsIndex = field.tableNumber -1;
+                int rsIndex = field.tableNumber;
 
                 // main field
                 if (i == mainFieldIndex) {
@@ -70,9 +70,15 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                 }
                 switch (field.type) {
                     case TIME -> {
-                        // TODO verify if we must include rsInde for profile
-                        Date t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
-                        values.appendTime(t, true, field);
+                        boolean measureField = i >= fieldOffset;
+                        Date t;
+                        // time for profile
+                        if (!measureField) {
+                            t = dateFromTS(rs.getTimestamp(fieldName));
+                        } else {
+                            t = dateFromTS(rs.getTimestamp(fieldName, rsIndex));
+                        }
+                        values.appendTime(t, measureField, field);
                     }
                     case QUANTITY -> {
                         double dvalue = rs.getDouble(fieldName, rsIndex);
