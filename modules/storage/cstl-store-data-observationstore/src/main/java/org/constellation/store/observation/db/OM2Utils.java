@@ -320,9 +320,9 @@ public class OM2Utils {
                     key = rs.getString(3);
                 } else {
                     if (profile) {
-                        key = rs.getInt(3, tableNum);
+                        key = rs.getLong(3, tableNum);
                     } else {
-                        key = 1; // single in time series
+                        key = 1L; // single in time series
                     }
                 }
                 results.put(key, result);

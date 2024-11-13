@@ -93,18 +93,18 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             throw new DataStoreException("computeRequest(...) must be called before processing the results");
         }
         StepValues mapValues = null;
-        long start = -1;
-        long step  = -1;
-        Integer prevObs = null;
-        Date t = null;
-        AtomicInteger cpt = new AtomicInteger();
-        AtomicBoolean first = new AtomicBoolean(true);
+        long start           = -1;
+        long step            = -1;
+        Long prevObs         = null;
+        Date t               = null;
+        AtomicInteger cpt    = new AtomicInteger();
+        AtomicBoolean first  = new AtomicBoolean(true);
         while (rs.nextOnField(procedure.mainField.name)) {
-            Integer currentObs;
+            Long currentObs;
             if (profile) {
-                currentObs = rs.getInt("oid");
+                currentObs = rs.getLong("oid");
             } else {
-                currentObs = 1;
+                currentObs = 1L;
             }
             if (!currentObs.equals(prevObs)) {
                 if (prevObs != null) {
