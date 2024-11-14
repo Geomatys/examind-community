@@ -417,7 +417,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     /**
-     * TODO NOT WORKING
+     * TODO NOT WORKING (unless for z_value field)
      * 
      * @param field
      * @param pIndex
@@ -427,7 +427,13 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      */
     @Override
     protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent) {
-        String replacement = "obsprop_id\" = '" + field.name + "' AND m.\"result";
+         String replacement;
+        // special case for profile main field
+        if (field.name.equals("z_value")) {
+            replacement = "z_value";
+        } else {
+            replacement = "obsprop_id\" = '" + field.name + "' AND m.\"result";
+        }
        
         final String phenKeyword = " AND (\"$phen" + pIndex;
         List<SingleFilterSQLRequest.Param> phenParams = single.getParamsByName("phen" + pIndex);
@@ -463,19 +469,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, obsName, fieldOffset);
     }
     
-    @Override
-    protected int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
-        int fieldOffset = 1; // int this implementation the first field is always a non-measure field
-        if (profileWithTime) {
-            fieldOffset++;
-        }
-        if (includeIDInDataBlock) {
-            fieldOffset++;
-        }
-        return fieldOffset;
-    }
-
-    @Override
+  @Override
     protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
         single.replaceAll("$time", "time");
     }
