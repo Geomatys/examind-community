@@ -8,7 +8,7 @@
 .maven-deploy:
   extends: .publish
   script:
-    - mvn package source:jar deploy -DskipTests -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
+    - mvn package deploy -DskipTests -s $MAVEN_SETTINGS -DaltDeploymentRepository=$DEPLOY_SERVER
 
 maven-deploy-tag:
   extends: .maven-deploy
