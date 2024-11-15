@@ -17,6 +17,7 @@
 
 package com.examind.store.observation.csv;
 
+import com.examind.store.observation.AbstractCsvStore;
 import com.examind.store.observation.DataFileReader;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -31,16 +32,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.storage.DataStores;
 
 import static com.examind.store.observation.FileParsingUtils.*;
-import com.examind.store.observation.FileParsingObservationStore;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_ID;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservationBlock;
 import com.examind.store.observation.ObservedProperty;
@@ -52,7 +48,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -68,23 +64,17 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Guilhem Legal (Geomatys)
  *
  */
-public class CsvObservationStore extends FileParsingObservationStore implements ObservationStore {
-
-    protected final List<String> obsPropColumnsTypes;
-
-    protected final List<String> uomIds;
+public class CsvObservationStore extends AbstractCsvStore {
 
     public CsvObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
-        this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
-        this.uomIds = getMultipleValuesList(params, UOM_ID.getName().getCode());
     }
 
     @Override
     public DataStoreProvider getProvider() {
         return DataStores.getProviderById(CsvObservationStoreFactory.NAME);
     }
-
+    
     @Override
     public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
         
@@ -134,37 +124,7 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final List<MeasureField> obsPropFields = new ArrayList<>();
-            for (int i = 0; i < obsPropIndexes.size(); i++) {
-                int index = obsPropIndexes.get(i);
-                FieldType ft = FieldType.QUANTITY;
-                if (i < obsPropColumnsTypes.size()) {
-                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
-                }
-                // for now we handle only one quality field by field
-                List<MeasureField> qualityFields = new ArrayList<>();
-                if (i < qualityColumns.size()) {
-                    int qIndex = qualityIndexes.get(i);
-                    String qName = headers[qIndex];
-                    if (i < qualityColumnsIds.size()) {
-                        qName = qualityColumnsIds.get(i);
-                    }
-                    qName = normalizeFieldName(qName);
-                    FieldType qtype = FieldType.TEXT;
-                    if (i < qualityColumnsTypes.size()) {
-                        qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
-                    }
-                    qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
-                }
-                String fieldName;
-                if (i < obsPropIds.size()) {
-                    fieldName = obsPropIds.get(i);
-                } else {
-                    fieldName = headers[index];
-                }
-                MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields);
-                obsPropFields.add(mf);
-            }
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
 
             // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = new ArrayList<>();
@@ -431,30 +391,19 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
 
             // prepare spatial/time column indices
             final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
-            final List<String> measureFields = new ArrayList<>();
             
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
             int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
             int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
             int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
-
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader, maxIndex);
-            // used to fill measure Fields list
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex, obsPropIds);
-            final List<MeasureField> obsPropFields = new ArrayList<>();
-            for (int i = 0; i < obsPropIndexes.size(); i++) {
-                FieldType ft = FieldType.QUANTITY;
-                if (i < obsPropColumnsTypes.size()) {
-                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
-                }
-                obsPropFields.add(new MeasureField(obsPropIndexes.get(i), "unknow", ft, new ArrayList<>()));
-            }
-
-            // special case where there is no header, and a specified observation peorperty identifier
-            if (directColumnIndex && noHeader && !obsPropIds.isEmpty()) {
-                measureFields.addAll(obsPropIds);
-            }
+           
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
+            final List<Field>fields                = toFields(obsPropFields, observationType);
 
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions  = new HashSet<>();
@@ -489,7 +438,13 @@ public class CsvObservationStore extends FileParsingObservationStore implements 
                 }
 
                 if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null));
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), 
+                            pid -> new ProcedureDataset(currentProc.getId(), 
+                                                        currentProc.getName(), 
+                                                        currentProc.getDescription(), 
+                                                        PROCEDURE_TREE_TYPE, 
+                                                        observationType.toLowerCase(), 
+                                                        fields, null));
                 }
 
                 // update temporal interval

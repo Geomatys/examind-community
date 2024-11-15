@@ -69,12 +69,13 @@ import org.constellation.provider.DataProviders;
 import org.constellation.business.IProviderBusiness.SPI_NAMES;
 import org.constellation.dto.SensorReference;
 import org.constellation.business.IUserBusiness;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.Data;
 import org.constellation.provider.SensorData;
 import org.constellation.provider.SensorProvider;
+import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.storage.DataStores;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.parameter.ParameterValueGroup;
@@ -646,38 +647,41 @@ public class SensorBusiness implements ISensorBusiness {
         if (providerID == null) {
             providerID = getDefaultInternalProviderID();
         }
-
+        GeoSpatialBound bound = process.spatialBound;
+        
         final Properties prop = new Properties();
         prop.put("id",         process.getId());
-        if (process.getDateStart() != null) {
-            prop.put("beginTime",  process.getDateStart());
+        if (bound != null) {
+            if (bound.dateStart != null) {
+                prop.put("beginTime",  bound.dateStart);
+            }
+            if (bound.dateEnd != null) {
+                prop.put("endTime",    bound.dateEnd);
+            }
+            if (bound.minx != null) {
+                prop.put("longitude",  bound.minx);
+            }
+            if (bound.miny != null) {
+                prop.put("latitude",   bound.miny);
+            }
         }
-        if (process.getDateEnd() != null) {
-            prop.put("endTime",    process.getDateEnd());
-        }
-        if (process.getMinx() != null) {
-            prop.put("longitude",  process.getMinx());
-        }
-        if (process.getMiny() != null) {
-            prop.put("latitude",   process.getMiny());
-        }
-        prop.put("phenomenon", process.getFields());
+        prop.put("phenomenon", process.fields.stream().map(f  -> f.name).toList());
 
         Sensor sensor = getSensor(process.getId());
         Integer sid;
         if (sensor == null) {
-            sid = create(process.getId(), process.getName(), process.getDescription(), process.getType(), process.getOmType(), parentID, null, System.currentTimeMillis(), providerID);
+            sid = create(process.getId(), process.getName(), process.getDescription(), process.type, process.omType, parentID, null, System.currentTimeMillis(), providerID);
         } else {
             sid = sensor.getId();
         }
 
         final List<String> component = new ArrayList<>();
-        for (ProcedureDataset child : process.getChildren()) {
+        for (ProcedureDataset child : process.children) {
             component.add(child.getId());
             generateSensor(child, providerID, process.getId(), dataID);
         }
         prop.put("component", component);
-        final String sml = MetadataUtilities.getTemplateSensorMLString(prop, process.getType());
+        final String sml = MetadataUtilities.getTemplateSensorMLString(prop, process.type);
 
         // update sensor metadata
         updateSensorMetadata(sid, sml);

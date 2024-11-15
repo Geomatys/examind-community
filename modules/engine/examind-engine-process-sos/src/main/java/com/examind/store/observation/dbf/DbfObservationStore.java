@@ -17,11 +17,8 @@
 
 package com.examind.store.observation.dbf;
 
+import com.examind.store.observation.AbstractCsvStore;
 import com.examind.store.observation.DataFileReader;
-import com.examind.store.observation.FileParsingObservationStore;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN_TYPE;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_ID;
-import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import static com.examind.store.observation.FileParsingUtils.*;
 import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservationBlock;
@@ -46,7 +43,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.observation.ObservationStore;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
 import static org.geotoolkit.observation.model.FieldType.QUANTITY;
@@ -68,16 +65,10 @@ import org.opengis.parameter.ParameterValueGroup;
  *
  * @author Samuel Andrés (Geomatys)
  */
-public class DbfObservationStore extends FileParsingObservationStore implements ObservationStore {
-
-    protected final List<String> obsPropColumnsTypes;
-
-    protected final List<String> uomIds;
+public class DbfObservationStore extends AbstractCsvStore {
 
     public DbfObservationStore(final ParameterValueGroup params) throws DataStoreException,IOException {
         super(params);
-        this.obsPropColumnsTypes = getMultipleValuesList(params, OBS_PROP_COLUMN_TYPE.getName().getCode());
-        this.uomIds = getMultipleValuesList(params, UOM_ID.getName().getCode());
     }
 
     @Override
@@ -393,9 +384,13 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
             int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
             int procDescIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
 
-            final List<Integer> dateIndexes = getColumnIndexes(dateColumns, headers, directColumnIndex, laxHeader);
-            // used to fill measure Fields list
-            final List<Integer> doubleFields = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader);
+            
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
+            final List<Field> fields               = toFields(obsPropFields, observationType);
+            
 
             // special case where there is no header, and a specified observation peorperty identifier
             if (directColumnIndex && noHeader && !obsPropIds.isEmpty()) {
@@ -417,7 +412,7 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 final Object[] line   = it.next();
 
                 // verify that the line is not empty (meaning that not all of the measure value selected are empty)
-                if (verifyEmptyLine(line, lineNumber, doubleFields)) {
+                if (verifyEmptyLine(line, lineNumber, obsPropIndexes)) {
                     LOGGER.fine("skipping line due to none expected variable present.");
                     continue;
                 }
@@ -439,7 +434,13 @@ public class DbfObservationStore extends FileParsingObservationStore implements 
                 String currentProcDesc = asString(getColumnValue(procDescIndex, line, currentProc));
 
                 if (!currentProc.equals(previousProc) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc, procedure -> new ProcedureDataset(procedure, currentProcDesc, null, PROCEDURE_TREE_TYPE, observationType.toLowerCase(), measureFields, null));
+                    currentPTree = result.computeIfAbsent(currentProc, 
+                            procedure -> new ProcedureDataset(procedure, 
+                                                              currentProcDesc, 
+                                                              null, 
+                                                              PROCEDURE_TREE_TYPE, 
+                                                              observationType.toLowerCase(),
+                                                              fields, null));
                 }
 
                 // update temporal interval

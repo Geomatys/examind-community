@@ -32,6 +32,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
 import org.junit.Assert;
@@ -80,6 +81,15 @@ public class ObservationTestUtils {
         } else {
             throw new AssertionError("Not a time period");
         }
+    }
+    
+    public static void assertPeriodEquals(String begin, String end, GeoSpatialBound bound) throws ParseException {
+        if (bound == null) throw new AssertionError("No time bounds");
+        if (bound.dateStart == null || bound.dateEnd == null ) throw new AssertionError("Not a time period");
+        
+        String msg = "expected <" + begin + '/' + end + "> but was <" +  ISO_8601_FORMATTER.format(bound.dateStart) + "/" + ISO_8601_FORMATTER.format(bound.dateEnd) + ">\n";
+        assertEquals(msg, ISO_8601_FORMATTER.parse(begin), bound.dateStart);
+        assertEquals(msg, ISO_8601_FORMATTER.parse(end),   bound.dateEnd);
     }
 
     public static void assertPeriodEquals(String begin, String end, Date dateStart, Date dateEnd) throws ParseException {
@@ -246,7 +256,7 @@ public class ObservationTestUtils {
         return null; // unreacheable
     }
     
-    public static org.opengis.observation.Observation getObservationById(String obsId, List<org.opengis.observation.Observation> observations) {
+    public static org.opengis.observation.Observation getObservationById(String obsId, List<? extends org.opengis.observation.Observation> observations) {
         for (org.opengis.observation.Observation obs : observations) {
             if (obsId.equals(obs.getName().getCode())) {
                 return obs;

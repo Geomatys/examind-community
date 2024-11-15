@@ -26,7 +26,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.SensorReference;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationException;
 

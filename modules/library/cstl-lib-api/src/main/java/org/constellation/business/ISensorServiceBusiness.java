@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
@@ -82,7 +82,7 @@ public interface ISensorServiceBusiness {
 
     void importObservationsFromData(final Integer sid, final Integer dataID) throws ConstellationException;
 
-    void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException;
+    void importObservations(final Integer id, final List<? extends Observation> observations, final List<? extends Phenomenon> phenomenons) throws ConfigurationException;
 
     Collection<String> getObservedPropertiesIds(Integer id) throws ConfigurationException;
 

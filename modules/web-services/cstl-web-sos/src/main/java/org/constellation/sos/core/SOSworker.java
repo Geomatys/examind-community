@@ -120,7 +120,7 @@ import static org.geotoolkit.sos.xml.SOSXmlFactory.*;
 import org.geotoolkit.sos.xml.SosInsertionMetadata;
 import org.geotoolkit.sos.xml.GetFeatureOfInterestTime;
 import org.constellation.dto.Sensor;
-import org.constellation.dto.service.config.sos.Offering;
+import org.geotoolkit.observation.model.Offering;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import com.examind.sensor.ws.SensorUtils;
@@ -129,7 +129,7 @@ import java.util.Objects;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.api.CommonConstants.OBSERVATION_MODEL;
 import org.constellation.api.WorkerState;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.gml.GeometrytoJTS;
 import org.geotoolkit.gml.xml.AbstractGeometry;
 import org.geotoolkit.observation.OMUtils;
@@ -581,19 +581,19 @@ public class SOSworker extends SensorWorker {
 
             final List<String> resultModelV200        = Arrays.asList(OBSERVATION_MODEL, MEASUREMENT_MODEL);
             final List<String> procedureDescription   = acceptedSensorMLFormats.get(version);
-            TemporalGeometricPrimitive time           = null;
+            TemporalGeometricPrimitive time           = off.getTime();
             // v2.0.0 force Timeperiod
             if ("2.0.0".equals(version)) {
-                if (off.getTime().size() == 1) {
-                    time = buildTimePeriod(version, off.getTime().get(0), TimeIndeterminateValueType.NOW);
-                } else if (off.getTime().size() == 2) {
-                    time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+                if (time instanceof Instant ti) {
+                    time = buildTimePeriod(version, ti.getDate(), TimeIndeterminateValueType.NOW);
+                } else if (time instanceof Period tp) {
+                    time = buildTimePeriod(version, tp.getBeginning().getDate(), tp.getEnding().getDate());
                 }
             } else {
-                if (off.getTime().size() == 1) {
-                    time = buildTimeInstant(version, off.getTime().get(0));
-                } else if (off.getTime().size() == 2) {
-                    time = buildTimePeriod(version, off.getTime().get(0), off.getTime().get(1));
+                if (time instanceof Instant ti) {
+                    time = buildTimeInstant(version, ti.getDate());
+                } else if (time instanceof Period tp) {
+                    time = buildTimePeriod(version, tp.getBeginning().getDate(), tp.getEnding().getDate());
                 }
             }
             final List<ResponseModeType> responseModes = new ArrayList<>();
@@ -612,12 +612,12 @@ public class SOSworker extends SensorWorker {
                                  off.getId(),
                                  off.getName(),
                                  off.getDescription(),
-                                 off.getAvailableSrs(),
+                                 off.getSrsNames(),
                                  time,
                                  off.getProcedure(),
                                  phen100,
                                  off.getObservedProperties(),
-                                 off.getFeatureOfInterest(),
+                                 off.getFeatureOfInterestIds(),
                                  acceptedResponseFormat.get(version),
                                  resultModels,
                                  resultModelV200,
@@ -864,9 +864,9 @@ public class SOSworker extends SensorWorker {
             //we verify that the srsName (if there is one) is advertised in the offering
             if (requestObservation.getSrsName() != null) {
                 for (Offering off : offerings) {
-                    if (!off.getAvailableSrs().contains(requestObservation.getSrsName())) {
+                    if (!off.getSrsNames().contains(requestObservation.getSrsName())) {
                         final StringBuilder availableSrs = new StringBuilder();
-                        off.getAvailableSrs().stream().forEach((s) -> {
+                        off.getSrsNames().stream().forEach((s) -> {
                             availableSrs.append(s).append('\n');
                         });
                         throw new CstlServiceException("This srs name is not advertised in the offering.\n" +
@@ -1795,7 +1795,7 @@ public class SOSworker extends SensorWorker {
                                                        desc, 
                                                        smlType, 
                                                        omType, 
-                                                       fields.stream().map(f -> f.name).toList(), // TODO lost informations 
+                                                       fields,
                                                        new HashMap<>());
                 omProvider.writeProcedure(procDataset);
                 omProvider.writeLocation(procedure.getId(), position);
@@ -2200,8 +2200,8 @@ public class SOSworker extends SensorWorker {
 
             // we add the feature of interest (station) to the offering
             if (template.getFeatureOfInterest() != null) {
-                if (!offering.getFeatureOfInterest().contains(template.getFeatureOfInterest())) {
-                    offering.getFeatureOfInterest().add(template.getFeatureOfInterest());
+                if (!offering.getFeatureOfInterestIds().contains(template.getFeatureOfInterest())) {
+                    offering.getFeatureOfInterestIds().add(template.getFeatureOfInterest());
                 }
             }
         } else {
@@ -2227,7 +2227,7 @@ public class SOSworker extends SensorWorker {
                 description = "Base offering containing all the sensors.";
             }
             // we create a the new Offering
-            offering = new Offering(offeringId, offeringId, description, srsName, procedureId, Arrays.asList(featureOfInterest), observedProperties, null);
+            offering = new Offering(offeringId, offeringId, description, null, null, srsName, null, procedureId, observedProperties, Arrays.asList(featureOfInterest));
         }
         omProvider.writeOffering(offering);
         return offeringId;

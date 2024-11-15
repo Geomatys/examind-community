@@ -49,8 +49,8 @@ import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.ISensorServiceBusiness;
 import org.constellation.dto.service.Service;
-import org.constellation.dto.service.config.sos.ObservationDataset;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -354,10 +354,10 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
         final ObservationDataset result = omProvider.extractResults(new DatasetQuery());
 
         // import in O&M database
-        importObservations(sid, result.getObservations(), result.getPhenomenons());
+        importObservations(sid, result.observations, result.phenomenons);
 
         // SensorML generation
-        for (ProcedureDataset process : result.getProcedures()) {
+        for (ProcedureDataset process : result.procedures) {
             sensorBusiness.generateSensor(process, smlId, null, dataID);
             updateSensorLocation(sid, process);
         }
@@ -366,17 +366,17 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
     private void updateSensorLocation(final Integer serviceId, final ProcedureDataset sensor) throws ConstellationException {
         final ObservationProvider pr = getSensorProvider(serviceId, ObservationProvider.class);
         //record location
-        final Geometry location = sensor.getGeom();
+        final Geometry location = sensor.spatialBound.getLastGeometry();;
         if (location != null) {
             pr.writeLocation(sensor.getId(), location);
         }
-        for (ProcedureDataset child : sensor.getChildren()) {
+        for (ProcedureDataset child : sensor.children) {
             updateSensorLocation(serviceId, child);
         }
     }
 
     @Override
-    public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
+    public void importObservations(final Integer id, final List<? extends Observation> observations, final List<? extends Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
             final long start = System.currentTimeMillis();
@@ -542,12 +542,12 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
                 final ObservationDataset result = omProvider.extractResults(new DatasetQuery(sensorIds));
 
                 // update sensor location
-                for (ProcedureDataset process : result.getProcedures()) {
+                for (ProcedureDataset process : result.procedures) {
                     writeProcedure(id, process);
                 }
 
                 // import in O&M database
-                importObservations(id, result.getObservations(), result.getPhenomenons());
+                importObservations(id, result.observations, result.phenomenons);
             } else {
                 return false;
             }

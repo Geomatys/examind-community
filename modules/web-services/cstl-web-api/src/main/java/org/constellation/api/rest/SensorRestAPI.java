@@ -65,7 +65,7 @@ import org.constellation.provider.DataProviders;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.sml.xml.AbstractSensorML;
 import org.geotoolkit.sml.xml.SensorMLUtilities;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.Service;
 import org.constellation.exception.ConstellationException;
 import org.constellation.provider.ObservationProvider;

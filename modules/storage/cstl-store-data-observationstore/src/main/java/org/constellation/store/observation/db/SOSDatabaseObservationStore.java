@@ -25,8 +25,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +50,6 @@ import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.store.observation.db.mixed.MixedObservationFilterReader;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
@@ -61,22 +58,10 @@ import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
-import org.geotoolkit.observation.model.Observation;
-import org.geotoolkit.observation.model.ObservationDataset;
-import org.geotoolkit.observation.model.Phenomenon;
-import org.geotoolkit.observation.model.Procedure;
-import org.geotoolkit.observation.model.ProcedureDataset;
 
 import org.geotoolkit.observation.model.ResponseMode;
-import org.geotoolkit.observation.model.SamplingFeature;
-import org.geotoolkit.observation.query.DatasetQuery;
-import org.geotoolkit.observation.query.HistoricalLocationQuery;
 import org.geotoolkit.observation.query.LocationQuery;
-import org.geotoolkit.observation.query.ObservationQuery;
-import static org.geotoolkit.observation.query.ObservationQueryUtilities.buildQueryForSensor;
-import org.geotoolkit.observation.query.OfferingQuery;
 import org.geotoolkit.storage.DataStores;
-import org.locationtech.jts.geom.Geometry;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.ValueReference;
 
@@ -330,69 +315,5 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
                 }
             }
         }
-    }
-    
-    /**
-     * Temporary override until fix on null FOI wil be fixed on geotk AbstractFilteredObservationStore.
-     * TODO remove me when geotk will be updated
-     */
-    @Override
-    public ObservationDataset getDataset(DatasetQuery query) throws DataStoreException {
-
-        if (query.getAffectedSensorID() != null) {
-            LOGGER.warning("This ObservationStore does not allow to override sensor ID");
-        }
-
-        ObservationFilterReader currentFilter = (ObservationFilterReader) getFilter();
-        final List<String> sensorIDs = query.getSensorIds();
-        ObservationQuery observationQuery = new ObservationQuery(query.getResultModel(), query.getResponseMode(), query.getResponseFormat());
-        observationQuery.setIncludeTimeForProfile(query.isIncludeTimeForProfile());
-        observationQuery.setSeparatedProfileObservation(query.isSeparatedProfileObservation());
-        currentFilter.init(observationQuery);
-        currentFilter.setProcedure(sensorIDs);
-        List<Observation> observations = currentFilter.getObservations().stream().map(obs -> (Observation)obs).toList();
-
-        final ObservationDataset result = new ObservationDataset();
-        result.spatialBound.initBoundary();
-
-        for (Observation obs : observations) {
-            final Procedure proc =  obs.getProcedure();
-            String type         = obs.getProperties().getOrDefault("type", "timeseries").toString();
-            String sensorType   = obs.getProperties().getOrDefault("sensorType", "Component").toString();
-
-            if (sensorIDs.isEmpty() || sensorIDs.contains(proc.getId())) {
-                final Phenomenon phen = obs.getObservedProperty();
-                if (!result.phenomenons.contains(phen)) {
-                    result.phenomenons.add(phen);
-                }
-                List<String> fields = OMUtils.getPhenomenonsFieldIdentifiers(phen);
-                final ProcedureDataset procedure = new ProcedureDataset(proc.getId(), proc.getName(), proc.getDescription(), sensorType, type, fields, null);
-                if (!result.procedures.contains(procedure)) {
-                    result.procedures.add(procedure);
-                }
-                SamplingFeature foi = obs.getFeatureOfInterest();
-                // fix here
-                if (foi != null && !result.featureOfInterest.contains(foi)) {
-                    result.featureOfInterest.add(foi);
-                }
-                result.spatialBound.appendLocation(obs.getSamplingTime(), foi);
-                procedure.spatialBound.appendLocation(obs.getSamplingTime(), foi);
-
-                // get historical locations for sensor
-                HistoricalLocationQuery hquery = (HistoricalLocationQuery) buildQueryForSensor(OMEntity.HISTORICAL_LOCATION, proc.getId());
-                Map<Date, Geometry> sensorLocations = getHistoricalSensorLocations(hquery).getOrDefault(proc.getId(), Collections.EMPTY_MAP);
-                procedure.spatialBound.getHistoricalLocations().putAll(sensorLocations);
-
-                result.observations.add(obs);
-            }
-        }
-
-        // fill also offerings
-        currentFilter = (ObservationFilterReader) getFilter();
-        currentFilter.init(new OfferingQuery());
-        currentFilter.setProcedure(sensorIDs);
-        result.offerings.addAll(currentFilter.getOfferings());
-
-        return result;
     }
 }

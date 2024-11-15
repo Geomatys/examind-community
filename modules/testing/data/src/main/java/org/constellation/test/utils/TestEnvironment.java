@@ -30,7 +30,7 @@ import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.service.config.generic.Automatic;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;

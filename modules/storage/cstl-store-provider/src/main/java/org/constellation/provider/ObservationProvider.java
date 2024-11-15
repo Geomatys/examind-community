@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.sis.storage.Query;
-import org.constellation.dto.service.config.sos.ObservationDataset;
-import org.constellation.dto.service.config.sos.Offering;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationStoreException;
@@ -81,7 +81,7 @@ public interface ObservationProvider extends DataProvider {
     
     void removePhenomenon(String phenomenonID) throws ConstellationStoreException;
 
-    void writePhenomenons(final List<Phenomenon> phens) throws ConstellationStoreException;
+    void writePhenomenons(final List<? extends Phenomenon> phens) throws ConstellationStoreException;
 
     String writeObservation(final Observation observation) throws ConstellationStoreException;
 

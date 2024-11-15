@@ -20,8 +20,8 @@ package org.constellation.provider.observationstore;
 
 import java.util.Arrays;
 import java.util.List;
-import org.constellation.dto.service.config.sos.ObservationDataset;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.castToModel;
 import org.constellation.store.observation.db.OM2Utils;
@@ -65,11 +65,11 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         // get the full content of the store
         ObservationDataset fullDataset = omPr.extractResults(new DatasetQuery());
 
-        Assert.assertEquals(nb_observation,     fullDataset.getObservations().size());
-        Assert.assertEquals(nb_used_phenomenon, fullDataset.getPhenomenons().size());
-        Assert.assertEquals(nb_foi,             fullDataset.getFeatureOfInterest().size());
-        Assert.assertEquals(nb_used_procedure,  fullDataset.getProcedures().size());
-        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
+        Assert.assertEquals(nb_observation,     fullDataset.observations.size());
+        Assert.assertEquals(nb_used_phenomenon, fullDataset.phenomenons.size());
+        Assert.assertEquals(nb_foi,             fullDataset.featureOfInterest.size());
+        Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
+        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
         // include empty procedure
         List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
@@ -90,11 +90,11 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         nb_procedure--;
         // no foi removed
         
-        Assert.assertEquals(nb_observation,     fullDataset.getObservations().size());
-        Assert.assertEquals(nb_used_phenomenon, fullDataset.getPhenomenons().size());
-        Assert.assertEquals(nb_foi,             fullDataset.getFeatureOfInterest().size());
-        Assert.assertEquals(nb_used_procedure,  fullDataset.getProcedures().size());
-        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
+        Assert.assertEquals(nb_observation,     fullDataset.observations.size());
+        Assert.assertEquals(nb_used_phenomenon, fullDataset.phenomenons.size());
+        Assert.assertEquals(nb_foi,             fullDataset.featureOfInterest.size());
+        Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
+        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
         // verify that the procedures has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
@@ -104,7 +104,7 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
          * observations phenomenon having previously the phenomenon 'multi-type-phenprofile' is now 'depth' and as only one left field (main :().
          */
         List<String> modifiedProcedures = Arrays.asList("urn:ogc:object:sensor:GEOM:17");
-        for (Observation obs : fullDataset.getObservations()) {
+        for (Observation obs : fullDataset.observations) {
             Procedure p = castToModel(obs.getProcedure(), Procedure.class);
             if (modifiedProcedures.contains(p.getId())) {
                 Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
@@ -116,10 +116,10 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
             }
         }
 
-        for (ProcedureDataset pd : fullDataset.getProcedures()) {
+        for (ProcedureDataset pd : fullDataset.procedures) {
             if (modifiedProcedures.contains(pd.getId())) {
                 // the main field is included (for profile)
-                Assert.assertEquals(1, pd.getFields().size());
+                Assert.assertEquals(1, pd.fields.size());
             }
         }
         

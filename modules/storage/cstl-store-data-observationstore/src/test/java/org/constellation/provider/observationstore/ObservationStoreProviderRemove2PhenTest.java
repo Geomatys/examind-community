@@ -20,8 +20,8 @@ package org.constellation.provider.observationstore;
 
 import java.util.Arrays;
 import java.util.List;
-import org.constellation.dto.service.config.sos.ObservationDataset;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import static org.constellation.provider.observationstore.ObservationTestUtils.castToModel;
 import static org.constellation.provider.observationstore.ObservationTestUtils.getObservationById;
@@ -66,11 +66,11 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         // get the full content of the store
         ObservationDataset fullDataset = omPr.extractResults(new DatasetQuery());
 
-        Assert.assertEquals(nb_observation,     fullDataset.getObservations().size());
-        Assert.assertEquals(nb_used_phenomenon, fullDataset.getPhenomenons().size());
-        Assert.assertEquals(nb_foi,             fullDataset.getFeatureOfInterest().size());
-        Assert.assertEquals(nb_used_procedure,  fullDataset.getProcedures().size());
-        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
+        Assert.assertEquals(nb_observation,     fullDataset.observations.size());
+        Assert.assertEquals(nb_used_phenomenon, fullDataset.phenomenons.size());
+        Assert.assertEquals(nb_foi,             fullDataset.featureOfInterest.size());
+        Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
+        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
         List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
         Assert.assertEquals(nb_procedure, procedures.size());
@@ -89,11 +89,11 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         nb_procedure       = nb_procedure - 2;
          // no foi removed, still in use
 
-        Assert.assertEquals(nb_observation,     fullDataset.getObservations().size());
-        Assert.assertEquals(nb_used_phenomenon, fullDataset.getPhenomenons().size());
-        Assert.assertEquals(nb_foi,             fullDataset.getFeatureOfInterest().size());
-        Assert.assertEquals(nb_used_procedure,  fullDataset.getProcedures().size());
-        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.getDateStart(), fullDataset.getDateEnd());
+        Assert.assertEquals(nb_observation,     fullDataset.observations.size());
+        Assert.assertEquals(nb_used_phenomenon, fullDataset.phenomenons.size());
+        Assert.assertEquals(nb_foi,             fullDataset.featureOfInterest.size());
+        Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
+        assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
         // verify that the procedures has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
@@ -105,7 +105,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
          */
         List<String> depthObservations = Arrays.asList("urn:ogc:object:observation:GEOM:201", "urn:ogc:object:observation:GEOM:507");
         for (String obsId : depthObservations) {
-            Observation obs = getObservationById(obsId, fullDataset.getObservations());
+            Observation obs = getObservationById(obsId, fullDataset.observations);
             Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
             Assert.assertEquals("depth", phen.getId());
             
@@ -130,7 +130,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
                                                            "urn:ogc:object:observation:GEOM:5003", 
                                                            "urn:ogc:object:observation:GEOM:5004");
         for (String obsId : aggregateObservations) {
-            Observation obs = getObservationById(obsId, fullDataset.getObservations());
+            Observation obs = getObservationById(obsId, fullDataset.observations);
             Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
             Assert.assertTrue(phen.getId().startsWith("computed"));
             
@@ -145,8 +145,8 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
             }
         }
 
-        for (ProcedureDataset pd : fullDataset.getProcedures()) {
-            Assert.assertFalse(pd.getFields().contains("temperature"));
+        for (ProcedureDataset pd : fullDataset.procedures) {
+            Assert.assertFalse(pd.fields.contains("temperature"));
         }
         
         // list all phenomenons

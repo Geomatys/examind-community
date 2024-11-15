@@ -36,8 +36,8 @@ import org.apache.sis.storage.Query;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.Utilities;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import org.constellation.dto.service.config.sos.Offering;
-import org.constellation.dto.service.config.sos.ProcedureDataset;
+import org.geotoolkit.observation.model.Offering;
+import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.exception.ConstellationStoreException;
 import org.constellation.provider.IndexedNameDataProvider;
@@ -45,20 +45,16 @@ import org.constellation.provider.Data;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.ObservationProvider;
 import org.geotoolkit.observation.ObservationStore;
-import org.constellation.dto.service.config.sos.ObservationDataset;
+import org.geotoolkit.observation.model.ObservationDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
-import org.geotoolkit.observation.model.GeoSpatialBound;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.observation.Observation;
 import org.opengis.observation.Phenomenon;
 import org.opengis.observation.Process;
 import org.opengis.observation.sampling.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
-import org.opengis.temporal.Instant;
-import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalGeometricPrimitive;
 import org.opengis.util.GenericName;
-import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.model.OMEntity;
@@ -146,7 +142,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             throw new ConstellationStoreException("Query must be an Dataset Query");
         }
         try {
-            return ((ObservationStore)getMainStore()).getProcedureDatasets((DatasetQuery) q).stream().map(p -> toDto(p)).toList();
+            return ((ObservationStore)getMainStore()).getProcedureDatasets((DatasetQuery) q);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
@@ -256,9 +252,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     public Offering getOffering(String offeringId) throws ConstellationStoreException {
         try {
             OfferingQuery query = (OfferingQuery) ObservationQueryUtilities.buildQueryForIdentifier(OMEntity.OFFERING, offeringId);
-            List<org.geotoolkit.observation.model.Offering> off = ((ObservationStore)getMainStore()).getOfferings(query);
+            List<Offering> off = ((ObservationStore)getMainStore()).getOfferings(query);
             if (off.size() == 1) {
-                return buildOfferingDto(off.get(0));
+                return off.get(0);
             } else if (off.size() > 1) {
                 throw new ConstellationStoreException("Multiple offering has been found for a single identifier");
             }
@@ -278,60 +274,19 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
                 throw new ConstellationStoreException("Query must be an Offering Query");
             }
 
-            List<org.geotoolkit.observation.model.Offering> offerings =  ((ObservationStore)getMainStore()).getOfferings((OfferingQuery) q);;
-            for (org.geotoolkit.observation.model.Offering off : offerings) {
-                if (off != null) {
-                    results.add(buildOfferingDto(off));
-                }
-            }
+            results.addAll(((ObservationStore)getMainStore()).getOfferings((OfferingQuery) q));
+            
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
         return results;
     }
 
-    private Offering buildOfferingDto(final org.geotoolkit.observation.model.Offering off) {
-        final List<Date> times = new ArrayList<>();
-        if (off.getTime() instanceof Period p) {
-            times.add(p.getBeginning().getDate());
-            times.add(p.getEnding().getDate());
-        } else if (off.getTime() instanceof Instant inst) {
-            times.add(inst.getDate());
-        }
-        return new Offering(off.getId(),
-                            off.getName(),
-                            off.getDescription(),
-                            off.getSrsNames(),
-                            off.getProcedure(),
-                            off.getFeatureOfInterestIds(),
-                            off.getObservedProperties(),
-                            times);
-    }
-
-
     @Override
     public void writeOffering(Offering offering) throws ConstellationStoreException {
         try {
             if (offering != null) {
-
-                TemporalGeometricPrimitive time = null;
-                if (offering.getTime() != null && offering.getTime().size() == 2) {
-                    time = buildTime(offering.getId(), offering.getTime().get(0), offering.getTime().get(1));
-                }
-
-                ((ObservationStore)getMainStore()).getWriter().writeOffering(
-                                   new org.geotoolkit.observation.model.Offering(
-                                                offering.getId(),
-                                                offering.getName(),
-                                                offering.getDescription(),
-                                                null,
-                                                null, // bounds
-                                                offering.getAvailableSrs(),
-                                                time,
-                                                offering.getProcedure(),
-                                                offering.getObservedProperties(),
-                                                offering.getFeatureOfInterest()));
-
+                ((ObservationStore)getMainStore()).getWriter().writeOffering(offering);
                 ((ObservationStore)getMainStore()).getFilter().refresh();
             }
         } catch (DataStoreException ex) {
@@ -408,7 +363,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     @Override
     public List<String> removeDataset(ObservationDataset dataset) throws ConstellationStoreException {
         try {
-            return ((ObservationStore)getMainStore()).getWriter().removeDataSet(toGeotk(dataset));
+            return ((ObservationStore)getMainStore()).getWriter().removeDataSet(dataset);
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
@@ -417,7 +372,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     @Override
     public void writeProcedure(ProcedureDataset procedure) throws ConstellationStoreException {
         try {
-            ((ObservationStore)getMainStore()).getWriter().writeProcedure(toGeotk(procedure));
+            ((ObservationStore)getMainStore()).getWriter().writeProcedure(procedure);
         } catch (DataStoreException ex) {
              throw new ConstellationStoreException(ex.getMessage(), ex);
         }
@@ -453,7 +408,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public void writePhenomenons(List<Phenomenon> observedProperties) throws ConstellationStoreException {
+    public void writePhenomenons(List<? extends Phenomenon> observedProperties) throws ConstellationStoreException {
         try {
             final List<org.geotoolkit.observation.model.Phenomenon> obsProps = new ArrayList<>();
             for (Object obsProp : observedProperties) {
@@ -560,85 +515,13 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             } else if (query != null) {
                 throw new ConstellationStoreException("Only DatasetQuery are supported");
             }
-            ObservationDataset results = toDto(((ObservationStore)getMainStore()).getDataset(dq));
+            ObservationDataset results = ((ObservationStore)getMainStore()).getDataset(dq);
             return results;
         } catch (DataStoreException ex) {
             throw new ConstellationStoreException(ex.getMessage(), ex);
         }
     }
 
-
-    private ObservationDataset toDto(org.geotoolkit.observation.model.ObservationDataset ext) {
-        final List<ProcedureDataset> procedures = new ArrayList<>();
-        for (org.geotoolkit.observation.model.ProcedureDataset pt: ext.procedures) {
-            procedures.add(toDto(pt));
-        }
-        ObservationDataset result = new ObservationDataset(new ArrayList<>(ext.observations), new ArrayList<>(ext.phenomenons), new ArrayList<>(ext.featureOfInterest), procedures);
-        result.setDateStart(ext.spatialBound.dateStart);
-        result.setDateEnd(ext.spatialBound.dateEnd);
-        result.setMinx(ext.spatialBound.minx);
-        result.setMiny(ext.spatialBound.miny);
-        result.setMaxx(ext.spatialBound.maxx);
-        result.setMaxy(ext.spatialBound.maxy);
-        return result;
-    }
-
-    private ProcedureDataset toDto(org.geotoolkit.observation.model.ProcedureDataset pt) {
-        GeoSpatialBound bound = pt.spatialBound;
-        final Geometry geom = bound.getLastGeometry();
-        ProcedureDataset result  = new ProcedureDataset(pt.getId(),
-                                                  pt.getName(),
-                                                  pt.getDescription(),
-                                                  pt.type,
-                                                  pt.omType,
-                                                  bound.dateStart,
-                                                  bound.dateEnd,
-                                                  bound.minx,
-                                                  bound.maxx,
-                                                  bound.miny,
-                                                  bound.maxy,
-                                                  pt.fields,
-                                                  geom,
-                                                  pt.getProperties());
-
-        final Map<Date, Geometry> historicalLocations = pt.spatialBound.getHistoricalLocations();
-        result.setHistoricalLocations(historicalLocations);
-        for (org.geotoolkit.observation.model.ProcedureDataset child: pt.children) {
-            result.getChildren().add(toDto(child));
-        }
-        return result;
-    }
-
-    private org.geotoolkit.observation.model.ProcedureDataset toGeotk(ProcedureDataset pt) {
-        if (pt == null) return null;
-        org.geotoolkit.observation.model.ProcedureDataset result =
-                new org.geotoolkit.observation.model.ProcedureDataset(pt.getId(), pt.getName(), pt.getDescription(), pt.getType(), pt.getOmType(), pt.getFields(), pt.getProperties());
-        result.spatialBound.addDate(pt.getDateStart());
-        result.spatialBound.addDate(pt.getDateEnd());
-        result.spatialBound.addGeometry(pt.getGeom());
-        result.spatialBound.getHistoricalLocations().putAll( pt.getHistoricalLocations());
-
-        for (ProcedureDataset child : pt.getChildren()) {
-            result.children.add(toGeotk(child));
-        }
-        return result;
-    }
-
-    private org.geotoolkit.observation.model.ObservationDataset toGeotk(ObservationDataset ods) {
-        if (ods == null) return null;
-        org.geotoolkit.observation.model.ObservationDataset result = new org.geotoolkit.observation.model.ObservationDataset();
-        result.featureOfInterest.addAll(ods.getFeatureOfInterest().stream().map(f -> (org.geotoolkit.observation.model.SamplingFeature) f).toList());
-        result.observations.addAll(ods.getObservations().stream().map(f -> (org.geotoolkit.observation.model.Observation) f).toList());
-        // TODO offering ?
-        result.phenomenons.addAll(ods.getPhenomenons().stream().map(f -> (org.geotoolkit.observation.model.Phenomenon) f).toList());
-        result.procedures.addAll(ods.getProcedures().stream().map(f -> toGeotk(f)).toList());
-
-        result.spatialBound.addDate(ods.getDateStart());
-        result.spatialBound.addDate(ods.getDateEnd());
-        result.spatialBound.addXYCoordinate(ods.getMinx(), ods.getMiny());
-        result.spatialBound.addXYCoordinate(ods.getMaxx(), ods.getMaxy());
-        return result;
-    }
 
     @Override
     public synchronized void dispose() {

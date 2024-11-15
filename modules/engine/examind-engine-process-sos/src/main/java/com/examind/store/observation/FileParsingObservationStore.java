@@ -326,19 +326,18 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             return new CompositePhenomenon(compositeId, name, name, null, null, components);
         }
     }
-
-    protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
-            Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
-
-        // On extrait les types de mesure trouvées dans la donnée
-        Set<MeasureField> measureFields = ob.getUsedFields();
-
-        if (measureFields.isEmpty() || ("Profile".equals(ob.observationType) && measureFields.size() == 1)) {
-            LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
-            return;
+    
+    protected void addMainField(String observationType, List<Field> fields) {
+        switch (observationType) {
+            case "Timeserie", "Trajectory"  -> fields.add(0, OMUtils.TIME_FIELD);
+            case "Profile"    -> {}
+            default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
-
+    }
+    
+    protected List<Field> toFields(Collection<MeasureField> measureFields, String observationType) {
         final List<Field> fields = new ArrayList<>();
+        addMainField(observationType, fields);
         int i = 1;
         for (final MeasureField mf : measureFields) {
             String name     = mf.name;
@@ -355,6 +354,21 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             fields.add(new Field(i, mf.type, name, label, null, uom, qualityFields));
             i++;
         }
+        return fields;
+    }
+
+    protected void buildObservation(ObservationDataset result, String oid, ObservationBlock ob,
+            Set<Phenomenon> phenomenons, final Set<SamplingFeature> samplingFeatures, String responseFormat) {
+
+        // On extrait les types de mesure trouvées dans la donnée
+        Set<MeasureField> measureFields = ob.getUsedFields();
+
+        if (measureFields.isEmpty() || ("Profile".equals(ob.observationType) && measureFields.size() == 1)) {
+            LOGGER.log(Level.FINE, "no measure available for {0}", ob.procedure.getId());
+            return;
+        }
+
+        final List<Field> fields = toFields(measureFields, ob.observationType);
 
         // Get existing or create a new Phenomenon
         Phenomenon phenomenon = buildPhenomenon(measureFields, "", phenomenons);
@@ -378,14 +392,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                 samplingFeatures.add(sp);
             }
         }
-
-        switch (ob.observationType) {
-            case "Timeserie"  -> fields.add(0, OMUtils.TIME_FIELD);
-            case "Trajectory" -> fields.add(0, OMUtils.TIME_FIELD);
-            case "Profile"    -> {}
-            default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
-        }
-
+        
         // Construction du measureStringBuilder à partir des données collectées dans le hashmap
         final ResultMode resultMode = DATA_ARRAY.equals(responseFormat) ? ResultMode.DATA_ARRAY : ResultMode.CSV;
         ResultBuilder msb = ob.getResults(resultMode);

@@ -731,7 +731,7 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals("2018-10-30T00:29:00.000" , sdf.format(tp.getBeginning().getDate()));
         Assert.assertEquals("2018-11-30T11:59:00.000" , sdf.format(tp.getEnding().getDate()));
 
-        Assert.assertEquals(2, pt.fields.size());
+        Assert.assertEquals(3, pt.fields.size());
     }
 
     @Test

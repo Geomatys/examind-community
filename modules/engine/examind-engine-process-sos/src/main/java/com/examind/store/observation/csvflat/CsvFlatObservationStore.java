@@ -21,7 +21,6 @@ import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.ObservationBlock;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
-import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.storage.DataStores;
@@ -48,6 +47,7 @@ import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservedProperty;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.constellation.exception.ConstellationStoreException;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -63,7 +63,7 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author Guilhem Legal (Geomatys)
  *
  */
-public class CsvFlatObservationStore extends FileParsingObservationStore implements ObservationStore {
+public class CsvFlatObservationStore extends FileParsingObservationStore {
 
     private final String valueColumn;
     private final Set<String> csvFlatobsPropColumns;
@@ -194,7 +194,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
             String currentFoi                     = null;
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
-            List<MeasureField> qualityFields      = buildQualityFields();
+            List<MeasureField> qualityFields      = buildQualityMeasureFields();
 
             final Map<String, MeasureColumns> measureColumnsMap = new HashMap<>();
 
@@ -217,7 +217,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 // checks if row matches the observed data types
                 final List<String> currentMainColumns;
-                if (typeColumnIndex!=-1) {
+                if (typeColumnIndex != -1) {
                     if (!obsTypeCodes.contains(asString(line[typeColumnIndex]))) continue;
                     if (observationType == null) {
                         currentObstType = getObservationTypeFromCode(asString(line[typeColumnIndex]));
@@ -234,6 +234,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 } else {
                     currentMainColumns = mainColumns;
                 }
+                
                 MeasureColumns measureColums = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     List<MeasureField> measureFields = new ArrayList<>();
                      // initialize description
@@ -456,7 +457,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
     public List<ProcedureDataset> getProcedureDatasets(DatasetQuery query) throws DataStoreException {
         // pre-load the obsProp columns has we don't want to open twice the file
         // some DataFileReader are not concurrent (like xlsx) ans this will cause issue
-        final Set<String> obspropColumnFilters = getObsPropColumns();
+        final List<String> sortedMeasureColumns = getObsPropColumns().stream().sorted().collect(Collectors.toList());
 
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
@@ -486,12 +487,15 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
             String fixedObsId    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
-            final List<String> obsTypeCodes   = getObsTypeCodes();
+            final Map<String, Map<String, Field>> measureColumnsMap = new HashMap<>();
+            
+            final List<String> obsTypeCodes      = getObsTypeCodes();
+            final List<Field> qualityFields      = buildQualityFields();
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();
             final Set<String> knownPositions     = new HashSet<>();
             Procedure previousProc               = null;
             ProcedureDataset currentPTree        = null;
-            int lineNumber                    = 1;
+            int lineNumber                       = 1;
             
             final Iterator<Object[]> it = reader.iterator(!noHeader);
             while (it.hasNext()) {
@@ -539,18 +543,40 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
 
                 final String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
                 
+                Map<String, Field> fieldMap = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
+                    Map<String, Field> measureFields = new HashMap<>();
+                     // initialize description
+                    int offset = "Profile".equals(observationType) ? 1 : 0;
+                    for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
+                        String mc = sortedMeasureColumns.get(j);
+                        FieldType type = FieldType.QUANTITY;
+                        measureFields.put(mc, new Field(k, type, mc, mc, null, null, qualityFields));
+                    }
+                    return measureFields;
+                });
+                
+                
                 // checks if row matches the observed properties wanted
-                if (!obspropColumnFilters.contains(observedProperty)) {
+                if (!sortedMeasureColumns.contains(observedProperty)) {
                     continue;
                 }
 
                 if (previousProc == null || !Objects.equals(currentProc.getId(), previousProc.getId()) || currentPTree == null) {
-                    currentPTree = result.computeIfAbsent(currentProc.getId(), pid -> new ProcedureDataset(currentProc.getId(), currentProc.getName(), currentProc.getDescription(), PROCEDURE_TREE_TYPE, currentObstType, new ArrayList<>(), null));
+                    List<Field> fields = new ArrayList<>();
+                    addMainField(currentObstType, fields);
+                    currentPTree = result.computeIfAbsent(currentProc.getId(), 
+                            pid -> new ProcedureDataset(currentProc.getId(), 
+                                                        currentProc.getName(),
+                                                        currentProc.getDescription(), 
+                                                        PROCEDURE_TREE_TYPE, 
+                                                        currentObstType, 
+                                                        fields, null));
                 }
 
                 // add used field
-                if (!currentPTree.fields.contains(observedProperty)) {
-                    currentPTree.fields.add(observedProperty);
+                Field f = fieldMap.get(observedProperty);
+                if (!currentPTree.fields.contains(f)) {
+                    currentPTree.fields.add(f);
                 }
 
                 // update temporal interval
@@ -589,7 +615,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
         }
     }
     
-    protected List<MeasureField> buildQualityFields() {
+    protected List<MeasureField> buildQualityMeasureFields() {
         List<MeasureField> results = new ArrayList<>();
         for (int i = 0; i < qualityColumns.size(); i++) {
             String qName = qualityColumns.get(i);
@@ -602,6 +628,23 @@ public class CsvFlatObservationStore extends FileParsingObservationStore impleme
                 qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
             }
             results.add(new MeasureField(- 1, qName, qtype, new ArrayList<>()));
+        }
+        return results;
+    }
+    
+    protected List<Field> buildQualityFields() {
+        List<Field> results = new ArrayList<>();
+        for (int i = 0; i < qualityColumns.size(); i++) {
+            String qName = qualityColumns.get(i);
+            if (i < qualityColumnsIds.size()) {
+                qName = qualityColumnsIds.get(i);
+            }
+            qName = normalizeFieldName(qName);
+            FieldType qtype = FieldType.TEXT;
+            if (i < qualityColumnsTypes.size()) {
+                qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+            }
+            results.add(new Field(- 1, qtype, qName, qName, null, null));
         }
         return results;
     }
