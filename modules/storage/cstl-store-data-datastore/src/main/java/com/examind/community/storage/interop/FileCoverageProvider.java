@@ -13,7 +13,7 @@ import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.base.Capability;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
+import org.apache.sis.storage.Resource.FileSet;
 import org.apache.sis.storage.base.StoreMetadata;
 import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.parameter.ParameterBuilder;
@@ -206,13 +206,13 @@ public class FileCoverageProvider extends DataStoreProvider {
         }
     }
 
-    private static class FileCoverageStore extends DataStore implements GridCoverageResource, ResourceOnFileSystem {
+    private static class FileCoverageStore extends DataStore implements GridCoverageResource {
 
         private final DataStore source;
 
         private final GridCoverageResource dataset;
 
-        private final Path[] files;
+        private final FileSet files;
 
         private FileCoverageStore(FileCoverageProvider provider, StorageConnector connector, DataStore source) throws DataStoreException {
             super(provider, connector);
@@ -227,9 +227,9 @@ public class FileCoverageProvider extends DataStoreProvider {
                 else throw new IllegalArgumentException("Decorated data store does not provide any grid coverage resource");
             } else throw new IllegalArgumentException("Decorated data store does not provide any grid coverage resource");
 
-            if (source instanceof ResourceOnFileSystem rof) files = rof.getComponentFiles();
             // GeoTiff datastore is not a resource on file-system, but its component is one.
-            else if (dataset instanceof ResourceOnFileSystem rof) files = rof.getComponentFiles();
+            FileSet fs = source.getFileSet().orElse(source.getFileSet().orElse(null));
+            if (fs != null) files = fs;
             // At this point, the storage connector is already closed, so we cannot use it anymore to get storage as path.
             else throw new IllegalArgumentException("Cannot determine file-system resources used.");
         }
@@ -240,8 +240,8 @@ public class FileCoverageProvider extends DataStoreProvider {
         }
 
         @Override
-        public Path[] getComponentFiles() {
-            return Arrays.copyOf(files, files.length);
+        public Optional<FileSet> getFileSet() {
+            return Optional.of(files);
         }
 
         @Override

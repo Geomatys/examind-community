@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStore;
@@ -39,6 +38,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
+import org.apache.sis.storage.Resource.FileSet;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.style.Style;
 import org.apache.sis.util.Static;
@@ -462,26 +462,17 @@ public final class DataProviders extends Static{
     }
 
     public static boolean proceedToCreatePrj(final DataProvider provider, final Map<String,String> epsgCode) throws DataStoreException,FactoryException,IOException {
-        final ResourceOnFileSystem dataFileStore;
+        final Resource dataFileStore;
         try {
             final DataStore datastore = provider.getMainStore();
-            if (datastore instanceof ResourceOnFileSystem) {
-                dataFileStore = (ResourceOnFileSystem) datastore;
-
-            } else if(datastore instanceof ExtendedFeatureStore) {
-
-                final ExtendedFeatureStore efs = (ExtendedFeatureStore) datastore;
-                if (efs.getWrapped() instanceof ResourceOnFileSystem) {
-                    dataFileStore = (ResourceOnFileSystem)efs.getWrapped();
-                } else {
-                    return false;
-                }
-            } else {
-                return false;
+            if (datastore == null) return false;
+            if (datastore instanceof ExtendedFeatureStore efs) {
+                dataFileStore = efs.getWrapped();
             }
 
-            Path[] dataFiles = dataFileStore.getComponentFiles();
-            if (dataFiles == null) return false;
+            FileSet fs = datastore.getFileSet().orElse(null);
+            if (fs == null) return false;
+            Path[] dataFiles = fs.getPaths().toArray(new Path[fs.getPaths().size()]);
             if (dataFiles.length == 1 && Files.isDirectory(dataFiles[0])) {
                 List<Path> dirPaths = new ArrayList<>();
                 try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataFiles[0])) {

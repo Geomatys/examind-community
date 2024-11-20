@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
@@ -151,8 +150,9 @@ public class StreamResponseWriter implements HttpMessageConverter<Tile>  {
             } else {
                 throw new HttpMessageNotWritableException("Tile image SPI in undefined");
             }
-        } else if (t instanceof ResourceOnFileSystem rof) {
-            final Path[] files = rof.getComponentFiles();
+        } else if (t instanceof Resource r && r.getFileSet().isPresent()) {
+            Resource.FileSet fs = r.getFileSet().get();
+            final Path[] files = fs.getPaths().toArray(new Path[fs.getPaths().size()]);
             if (files.length == 1) {
                 final Path file = files[0];
                 if (match(file, mt)) {

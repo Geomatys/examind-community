@@ -52,10 +52,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.util.collection.Cache;
 import org.constellation.business.IConfigurationBusiness;
@@ -742,10 +742,11 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             if (dsProvider != null) {
                 StorageConnector sc = new StorageConnector(p);
                 try (DataStore dstore = dsProvider.open(sc)) {
-                    if (dstore instanceof ResourceOnFileSystem) {
-                        storeFiles = ((ResourceOnFileSystem) dstore).getComponentFiles();
+                    Resource.FileSet fs = dstore.getFileSet().orElse(null);
+                    if (fs != null) {
+                        storeFiles = fs.getPaths().toArray(new Path[fs.getPaths().size()]);
                     } else {
-                        LOGGER.log(Level.WARNING, "{0} (TODO: implements ResourceOnFileSystem) Using only selected Path",storeId);
+                        LOGGER.log(Level.WARNING, "{0} (TODO: implements getFileSet()) Using only selected Path",storeId);
                         storeFiles = new Path[]{p};
                     }
                 } catch (DataStoreException ex) {

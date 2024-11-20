@@ -42,7 +42,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
@@ -85,7 +84,7 @@ import org.opengis.util.GenericName;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore, ResourceOnFileSystem {
+public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
 
@@ -580,7 +579,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * {@inheritDoc }
      */
     @Override
-    public Path[] getComponentFiles() throws DataStoreException {
-        return new Path[]{dataFile};
+    public Optional<FileSet> getFileSet() throws DataStoreException {
+        return Optional.of(new FileSet(dataFile));
     }
 }

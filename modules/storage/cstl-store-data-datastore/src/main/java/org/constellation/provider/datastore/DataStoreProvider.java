@@ -38,7 +38,6 @@ import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.opengis.util.GenericName;
 
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
@@ -47,6 +46,7 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import static org.apache.sis.storage.DataStoreProvider.LOCATION;
 import org.apache.sis.storage.IllegalNameException;
+import org.apache.sis.storage.Resource;
 import org.geotoolkit.referencing.ReferencingUtilities;
 import org.geotoolkit.storage.DataStoreFactory;
 import org.geotoolkit.storage.DataStores;
@@ -187,9 +187,9 @@ public class DataStoreProvider extends AbstractDataProvider {
     public boolean isSensorAffectable() {
         try (Session session = storage.read()) {
             final DataStore store = session.handle().store;
-            if (store instanceof ResourceOnFileSystem) {
-                final ResourceOnFileSystem dfStore = (ResourceOnFileSystem) store;
-                final Path[] files = dfStore.getComponentFiles();
+            Resource.FileSet fs = store.getFileSet().orElse(null);
+            if (fs != null) {
+                final Path[] files = fs.getPaths().toArray(new Path[fs.getPaths().size()]);
                 if (files.length > 0) {
                     boolean isNetCDF = true;
                     for (Path f : files) {
@@ -213,22 +213,25 @@ public class DataStoreProvider extends AbstractDataProvider {
             if (currentStore instanceof ExtendedFeatureStore) {
                 currentStore = (DataStore) ((ExtendedFeatureStore) currentStore).getWrapped();
             }
-            if (currentStore instanceof ResourceOnFileSystem fileStore) {
-                return fileStore.getComponentFiles();
+            if (currentStore != null) {
+                Resource.FileSet fs = currentStore.getFileSet().orElse(null);
+                if (fs != null) {
+                    return fs.getPaths().toArray(new Path[fs.getPaths().size()]);
 
-            // fallback LOCATION parameter (because of SIS tiff not implementing the interface)
-            } else if (currentStore != null) {
-                try {
-                   Object location = currentStore.getOpenParameters().map(params -> params.parameter(LOCATION).getValue()).orElse(null);
-                    if (location instanceof URI uri) {
-                        return new Path[] {Paths.get(uri)};
-                    } else if (location instanceof Path p) {
-                        return new Path[] {p};
-                    } else if (location instanceof File f) {
-                        return new Path[] {f.toPath()};
+                // fallback LOCATION parameter (because of SIS tiff not implementing the interface)
+                } else {
+                    try {
+                       Object location = currentStore.getOpenParameters().map(params -> params.parameter(LOCATION).getValue()).orElse(null);
+                        if (location instanceof URI uri) {
+                            return new Path[] {Paths.get(uri)};
+                        } else if (location instanceof Path p) {
+                            return new Path[] {p};
+                        } else if (location instanceof File f) {
+                            return new Path[] {f.toPath()};
+                        }
+                    } catch (ParameterNotFoundException ex) {
+                        LOGGER.fine("No location parameter avaiable on store:" + currentStore);
                     }
-                } catch (ParameterNotFoundException ex) {
-                    LOGGER.fine("No location parameter avaiable on store:" + currentStore);
                 }
             }
             throw new ConstellationException("Unable to extract files from store: " + id);

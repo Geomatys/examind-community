@@ -24,10 +24,10 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Level;
-import org.apache.sis.storage.base.ResourceOnFileSystem;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
+import org.apache.sis.storage.Resource.FileSet;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationStoreException;
 import static org.constellation.provider.AbstractDataProvider.LOGGER;
@@ -229,13 +229,12 @@ public abstract class IndexedNameDataProvider<T extends DataStore> extends Abstr
     @Override
     public Path[] getFiles() throws ConstellationException {
         DataStore currentStore = getMainStore();
-        if (!(currentStore instanceof ResourceOnFileSystem)) {
-            throw new ConstellationException("Store is not made of files.");
-        }
-
-        final ResourceOnFileSystem fileStore = (ResourceOnFileSystem)currentStore;
         try {
-            return fileStore.getComponentFiles();
+            FileSet fs = currentStore.getFileSet().orElse(null);
+            if (fs == null) {
+                throw new ConstellationException("Store is not made of files.");
+            }
+            return fs.getPaths().toArray(new Path[fs.getPaths().size()]);
         } catch (DataStoreException ex) {
             throw new ConstellationException(ex);
         }
