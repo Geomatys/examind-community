@@ -5,7 +5,7 @@
     xmlns:ows="http://www.opengis.net/ows/2.0"
     xmlns:gml="http://www.opengis.net/gml/3.2"
     xsi:schemaLocation="http://www.opengis.net/wps/2.0 http://schemas.opengis.net/wps/2.0/wps.xsd"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">    
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">        
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Math:min</ows:Title>
@@ -290,6 +290,52 @@
                 <ows:Title xml:lang="fr-FR">Coverage_out</ows:Title>
                 <ows:Abstract xml:lang="fr-FR">Output coverage </ows:Abstract>
                 <ows:Identifier>urn:exa:wps:geotoolkit::coverage:straighten:output:coverage_out</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:multiplyWithValue</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Mulitply a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:coverage</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:value</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:output:result</ows:Identifier>
                 <wps:ComplexData>
                     <wps:Format mimeType="image/x-geotiff" default="true"/>
                     <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
@@ -756,6 +802,145 @@
                     <LiteralDataDomain>
                         <ows:AnyValue/>
                         <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Arrays.createDoubleValues</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Create an Array of double with maximum 10 different inputs</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues</ows:Identifier>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:first</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:second</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Third</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Third value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:third</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Fourth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Fourth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:fourth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Fifth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Fifth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:fifth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Sixth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sixth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:sixth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Seventh</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Seventh value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:seventh</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Eighth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Eighth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:eighth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Ninth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Ninth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:ninth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Input minOccurs="0" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Tenth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Tenth value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:tenth</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Set</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Set of double</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:output:set</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
                     </LiteralDataDomain>
                 </wps:LiteralData>
             </wps:Output>
@@ -2005,6 +2190,52 @@
     </wps:ProcessOffering>
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:sumWithValue</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Sum a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:coverage</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:value</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Jts:boundary</ows:Title>
             <ows:Abstract xml:lang="fr-FR">Return boundarty geometry of an input JTS geometry</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ows:Identifier>
@@ -2748,6 +2979,55 @@
     </wps:ProcessOffering>
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:sum</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Sum single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A+B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:first</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A+B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:second</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:clip</ows:Title>
             <ows:Abstract xml:lang="fr-FR">Return the result FeatureCollection of clipping</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:clip</ows:Identifier>
@@ -3226,6 +3506,104 @@
     </wps:ProcessOffering>
     <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
         <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:divide</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Divide single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A/B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:first</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A/B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:second</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:substract</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Substract single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A-B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:first</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A-B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:second</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
             <ows:Title xml:lang="fr-FR">Geotoolkit : Jts:buffer</ows:Title>
             <ows:Abstract xml:lang="fr-FR">Apply JTS buffer to a geometry.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:buffer</ows:Identifier>
@@ -3507,6 +3885,147 @@
                     <wps:Format mimeType="text/gml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
                     <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.1.1/base/feature.xsd"/>
                     <wps:Format mimeType="text/xml" encoding="utf-8" schema="http://schemas.opengis.net/gml/3.2.1/feature.xsd"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:divideWithValue</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Divide a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:coverage</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:value</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:substractWithValue</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Substract a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:coverage</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:value</ows:Identifier>
+                <wps:LiteralData>
+                    <wps:Format mimeType="text/plain" default="true"/>
+                    <LiteralDataDomain>
+                        <ows:AnyValue/>
+                        <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    </LiteralDataDomain>
+                </wps:LiteralData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
+                </wps:ComplexData>
+            </wps:Output>
+        </wps:Process>
+    </wps:ProcessOffering>
+    <wps:ProcessOffering jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native" processVersion="1.0.0">
+        <wps:Process>
+            <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:multiply</ows:Title>
+            <ows:Abstract xml:lang="fr-FR">Multiply single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply</ows:Identifier>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A*B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:first</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Input minOccurs="1" maxOccurs="1">
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A*B)</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:second</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" maximumMegabytes="100" default="true"/>
+                    <wps:Format mimeType="application/netcdf" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/netcdf" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="application/x-ogc-grib" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" maximumMegabytes="100"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64" maximumMegabytes="100"/>
+                </wps:ComplexData>
+            </wps:Input>
+            <wps:Output>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:output:result</ows:Identifier>
+                <wps:ComplexData>
+                    <wps:Format mimeType="image/x-geotiff" default="true"/>
+                    <wps:Format mimeType="application/x-ogc-wms" encoding="utf-8"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff" encoding="base64"/>
+                    <wps:Format mimeType="image/tiff;subtype=geotiff"/>
+                    <wps:Format mimeType="image/x-geotiff" encoding="base64"/>
                 </wps:ComplexData>
             </wps:Output>
         </wps:Process>

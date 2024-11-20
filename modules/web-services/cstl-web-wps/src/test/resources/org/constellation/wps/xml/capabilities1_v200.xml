@@ -157,6 +157,11 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::coverage:straighten</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:multiplyWithValue</ows:Title>
+            <ows:Abstract>Mulitply a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:union</ows:Title>
             <ows:Abstract>Computes a union Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:union</ows:Identifier>
@@ -205,6 +210,11 @@
             <ows:Title xml:lang="en-EN">Geotoolkit : Math:acos</ows:Title>
             <ows:Abstract>Return arc cosinus of a double.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::math:acos</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Arrays.createDoubleValues</ows:Title>
+            <ows:Abstract>Create an Array of double with maximum 10 different inputs</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clipGeometry</ows:Title>
@@ -342,6 +352,11 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:diffGeometry</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:sumWithValue</ows:Title>
+            <ows:Abstract>Sum a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:boundary</ows:Title>
             <ows:Abstract>Return boundarty geometry of an input JTS geometry</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ows:Identifier>
@@ -427,6 +442,11 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:spatialjoin</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:sum</ows:Title>
+            <ows:Abstract>Sum single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clip</ows:Title>
             <ows:Abstract>Return the result FeatureCollection of clipping</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:clip</ows:Identifier>
@@ -482,6 +502,16 @@
             <ows:Identifier>urn:exa:wps:geotoolkit::coverage:CoverageToVector</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:divide</ows:Title>
+            <ows:Abstract>Divide single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:substract</ows:Title>
+            <ows:Abstract>Substract single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:buffer</ows:Title>
             <ows:Abstract>Apply JTS buffer to a geometry.</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::jts:buffer</ows:Identifier>
@@ -510,6 +540,21 @@
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:intersection</ows:Title>
             <ows:Abstract>Return a new FeatureCollection where each Feature is create from an intersection Geometry</ows:Abstract>
             <ows:Identifier>urn:exa:wps:geotoolkit::vector:intersection</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:divideWithValue</ows:Title>
+            <ows:Abstract>Divide a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:substractWithValue</ows:Title>
+            <ows:Abstract>Substract a Coverage with a single value</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue</ows:Identifier>
+        </wps:ProcessSummary>
+        <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:multiply</ows:Title>
+            <ows:Abstract>Multiply single specified band of each coverage in a result coverage</ows:Abstract>
+            <ows:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply</ows:Identifier>
         </wps:ProcessSummary>
         <wps:ProcessSummary processVersion="1.0.0" jobControlOptions="sync-execute async-execute dismiss" outputTransmission="reference value" processModel="native">
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:affinetransform</ows:Title>

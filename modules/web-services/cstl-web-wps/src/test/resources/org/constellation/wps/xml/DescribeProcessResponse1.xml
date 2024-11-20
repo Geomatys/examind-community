@@ -483,6 +483,98 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:multiplyWithValue</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Mulitply a Coverage with a single value</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:coverage</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:input:value</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::jts:union</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Jts:union</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Computes a union Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
@@ -1453,6 +1545,113 @@
                 <ows:Abstract xml:lang="fr-FR">Arc cosinus result</ows:Abstract>
                 <LiteralOutput>
                     <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                </LiteralOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Arrays.createDoubleValues</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Create an Array of double with maximum 10 different inputs</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:first</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:second</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:third</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Third</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Third value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:fourth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Fourth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Fourth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:fifth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Fifth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Fifth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:sixth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Sixth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Sixth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:seventh</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Seventh</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Seventh value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:eighth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Eighth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Eighth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:ninth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Ninth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Ninth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+            <Input minOccurs="0" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:input:tenth</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Tenth</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Tenth value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues:output:set</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Set</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Set of double</ows:Abstract>
+                <LiteralOutput>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">String</ows:DataType>
                 </LiteralOutput>
             </Output>
         </ProcessOutputs>
@@ -4129,6 +4328,98 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:sumWithValue</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Sum a Coverage with a single value</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:coverage</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:input:value</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Jts:boundary</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Return boundarty geometry of an input JTS geometry</ows:Abstract>
@@ -5553,6 +5844,131 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:sum</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Sum single specified band of each coverage in a result coverage</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:first</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A+B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:input:second</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A+B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::vector:clip</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Vector:clip</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Return the result FeatureCollection of clipping</ows:Abstract>
@@ -6578,6 +6994,256 @@
         </ProcessOutputs>
     </ProcessDescription>
     <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:divide</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Divide single specified band of each coverage in a result coverage</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:first</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A/B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:input:second</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A/B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:substract</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Substract single specified band of each coverage in a result coverage</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:first</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A-B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:input:second</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A-B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
         <ns9:Identifier>urn:exa:wps:geotoolkit::jts:buffer</ns9:Identifier>
         <ows:Title xml:lang="fr-FR">Geotoolkit : Jts:buffer</ows:Title>
         <ows:Abstract xml:lang="fr-FR">Apply JTS buffer to a geometry.</ows:Abstract>
@@ -7005,6 +7671,315 @@
                             <MimeType>text/xml</MimeType>
                             <Encoding>utf-8</Encoding>
                             <Schema>http://schemas.opengis.net/gml/3.2.1/feature.xsd</Schema>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:divideWithValue</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Divide a Coverage with a single value</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:coverage</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:input:value</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:substractWithValue</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Substract a Coverage with a single value</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:coverage</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Coverage</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input coverage</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:input:value</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Value</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Input value</ows:Abstract>
+                <LiteralData>
+                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#double">Double</ows:DataType>
+                    <ows:AnyValue/>
+                </LiteralData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexOutput>
+            </Output>
+        </ProcessOutputs>
+    </ProcessDescription>
+    <ProcessDescription wps:processVersion="1.0.0">
+        <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply</ns9:Identifier>
+        <ows:Title xml:lang="fr-FR">Geotoolkit : Coverage:math:multiply</ows:Title>
+        <ows:Abstract xml:lang="fr-FR">Multiply single specified band of each coverage in a result coverage</ows:Abstract>
+        <DataInputs>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:first</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">First</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">First Coverage (A in A*B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+            <Input minOccurs="1" maxOccurs="1">
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:input:second</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Second</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Second Coverage (B in A*B)</ows:Abstract>
+                <ComplexData maximumMegabytes="100">
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/netcdf</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-grib</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                    </Supported>
+                </ComplexData>
+            </Input>
+        </DataInputs>
+        <ProcessOutputs>
+            <Output>
+                <ns9:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply:output:result</ns9:Identifier>
+                <ows:Title xml:lang="fr-FR">Result</ows:Title>
+                <ows:Abstract xml:lang="fr-FR">Result as a coverage</ows:Abstract>
+                <ComplexOutput>
+                    <Default>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                    </Default>
+                    <Supported>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>application/x-ogc-wms</MimeType>
+                            <Encoding>utf-8</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                            <Encoding>base64</Encoding>
+                        </Format>
+                        <Format>
+                            <MimeType>image/tiff;subtype=geotiff</MimeType>
+                        </Format>
+                        <Format>
+                            <MimeType>image/x-geotiff</MimeType>
+                            <Encoding>base64</Encoding>
                         </Format>
                     </Supported>
                 </ComplexOutput>

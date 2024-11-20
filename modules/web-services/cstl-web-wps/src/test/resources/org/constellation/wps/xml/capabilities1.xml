@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <wps:Capabilities xmlns:ns14="http://www.opengis.net/wps/1.0.0" xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:ns12="http://www.opengis.net/gml" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ns10="http://www.opengis.net/ows/1.1" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmx="http://www.isotc211.org/2005/gmx" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gco="http://www.isotc211.org/2005/gco" service="WPS" version="1.0.0" updateSequence="1530631338678" xml:lang="en-EN">
-<ows:ServiceIdentification>
+    <ows:ServiceIdentification>
         <ows:Title>WPS server</ows:Title>
         <ows:Abstract>WPS server developed by Geomatys for Constellation SDI.</ows:Abstract>
         <ows:Keywords>
@@ -133,6 +133,11 @@
             <ows:Abstract>Straighten a coverage, make a coverage with regular scale and no rotation.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiplyWithValue</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:multiplyWithValue</ows:Title>
+            <ows:Abstract>Mulitply a Coverage with a single value</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:union</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:union</ows:Title>
             <ows:Abstract>Computes a union Geometry between the source geometry (geom1) and the other (geom2).</ows:Abstract>
@@ -181,6 +186,11 @@
             <ns10:Identifier>urn:exa:wps:geotoolkit::math:acos</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Math:acos</ows:Title>
             <ows:Abstract>Return arc cosinus of a double.</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::arrays.createDoubleValues</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Arrays.createDoubleValues</ows:Title>
+            <ows:Abstract>Create an Array of double with maximum 10 different inputs</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:clipGeometry</ns10:Identifier>
@@ -318,6 +328,11 @@
             <ows:Abstract>Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:sumWithValue</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:sumWithValue</ows:Title>
+            <ows:Abstract>Sum a Coverage with a single value</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:boundary</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:boundary</ows:Title>
             <ows:Abstract>Return boundarty geometry of an input JTS geometry</ows:Abstract>
@@ -403,6 +418,11 @@
             <ows:Abstract>Return the target FeatureCollection with source FeatureCollection attributes.The link between target and source depend of method used (Intersect or Nearest)</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:sum</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:sum</ows:Title>
+            <ows:Abstract>Sum single specified band of each coverage in a result coverage</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:clip</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:clip</ows:Title>
             <ows:Abstract>Return the result FeatureCollection of clipping</ows:Abstract>
@@ -458,6 +478,16 @@
             <ows:Abstract>Transform a coverage in features by agregating pixels as geometries when they are in the same range.</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:divide</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:divide</ows:Title>
+            <ows:Abstract>Divide single specified band of each coverage in a result coverage</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:substract</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:substract</ows:Title>
+            <ows:Abstract>Substract single specified band of each coverage in a result coverage</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::jts:buffer</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Jts:buffer</ows:Title>
             <ows:Abstract>Apply JTS buffer to a geometry.</ows:Abstract>
@@ -486,6 +516,21 @@
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:intersection</ns10:Identifier>
             <ows:Title xml:lang="en-EN">Geotoolkit : Vector:intersection</ows:Title>
             <ows:Abstract>Return a new FeatureCollection where each Feature is create from an intersection Geometry</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:divideWithValue</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:divideWithValue</ows:Title>
+            <ows:Abstract>Divide a Coverage with a single value</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:substractWithValue</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:substractWithValue</ows:Title>
+            <ows:Abstract>Substract a Coverage with a single value</ows:Abstract>
+        </wps:Process>
+        <wps:Process wps:processVersion="1.0.0">
+            <ns10:Identifier>urn:exa:wps:geotoolkit::coverage:math:multiply</ns10:Identifier>
+            <ows:Title xml:lang="en-EN">Geotoolkit : Coverage:math:multiply</ows:Title>
+            <ows:Abstract>Multiply single specified band of each coverage in a result coverage</ows:Abstract>
         </wps:Process>
         <wps:Process wps:processVersion="1.0.0">
             <ns10:Identifier>urn:exa:wps:geotoolkit::vector:affinetransform</ns10:Identifier>
