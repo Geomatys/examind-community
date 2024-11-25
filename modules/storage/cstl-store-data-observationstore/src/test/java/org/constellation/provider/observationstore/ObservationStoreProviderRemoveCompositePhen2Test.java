@@ -34,7 +34,7 @@ import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.Assert;
 import org.junit.Test;
-import org.opengis.observation.Observation;
+import org.geotoolkit.observation.model.Observation;
 
 /**
  *
@@ -54,7 +54,7 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         int nb_used_procedure  = NB_USED_PROCEDURE;
         
         // list previous phenomenons
-        List<org.opengis.observation.Phenomenon> phenomenons = omPr.getPhenomenon(new ObservedPropertyQuery());
+        List<Phenomenon> phenomenons = omPr.getPhenomenon(new ObservedPropertyQuery());
         
         Assert.assertEquals(nb_phenomenon, phenomenons.size());
         
@@ -72,7 +72,7 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
         // include empty procedure
-        List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
+        List<Procedure> procedures = omPr.getProcedures(new ProcedureQuery());
         Assert.assertEquals(nb_procedure, procedures.size());
 
         /*

@@ -23,6 +23,7 @@ import java.util.List;
 import org.geotoolkit.observation.model.ObservationDataset;
 import static org.constellation.provider.observationstore.ObservationTestUtils.assertPeriodEquals;
 import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.Assert;
@@ -54,7 +55,7 @@ public class ObservationStoreProviderRemoveTest extends AbstractObservationStore
         Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
 
-        List<org.opengis.observation.Process> procedures = omPr.getProcedures(new ProcedureQuery());
+        List<Procedure> procedures = omPr.getProcedures(new ProcedureQuery());
         Assert.assertEquals(nb_procedure, procedures.size());
 
         /*

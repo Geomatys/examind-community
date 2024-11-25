@@ -38,7 +38,6 @@ import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.observation.Process;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
@@ -169,7 +168,7 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         String sensorId = procedureNames.iterator().next();
         Assert.assertEquals("urn:sensor:3", sensorId);
 
-        List<Process> sensors = store.getProcedures(new ProcedureQuery());
+        List<Procedure> sensors = store.getProcedures(new ProcedureQuery());
         Assert.assertEquals(1, sensors.size());
         Procedure proc = (Procedure) sensors.get(0);
 
@@ -661,7 +660,7 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         String sensorId = procedureNames.iterator().next();
         Assert.assertEquals("urn:sensor:fixed", sensorId);
 
-        List<Process> sensors = store.getProcedures(new ProcedureQuery());
+        List<Procedure> sensors = store.getProcedures(new ProcedureQuery());
         Assert.assertEquals(1, sensors.size());
         Procedure proc = (Procedure) sensors.get(0);
 

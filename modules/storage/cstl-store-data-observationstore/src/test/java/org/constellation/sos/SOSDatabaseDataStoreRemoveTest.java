@@ -35,7 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.observation.Process;
+import org.geotoolkit.observation.model.Procedure;
 import org.opengis.temporal.Period;
 
 /**
@@ -83,7 +83,7 @@ public class SOSDatabaseDataStoreRemoveTest {
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound.getTimeObject());
 
         // include empty procedure
-        List<Process> procedures = store.getProcedures(new ProcedureQuery());
+        List<Procedure> procedures = store.getProcedures(new ProcedureQuery());
         Assert.assertEquals(NB_PROCEDURE, procedures.size());
 
         /*

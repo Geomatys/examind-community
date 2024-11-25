@@ -72,7 +72,6 @@ import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.observation.Process;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.FactoryException;
 
@@ -98,7 +97,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<org.opengis.observation.Observation> getObservations() throws DataStoreException {
+    public List<Observation> getObservations() throws DataStoreException {
         if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
             if (MEASUREMENT_QNAME.equals(resultModel)) {
                 return getMesurementTemplates();
@@ -116,7 +115,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private List<org.opengis.observation.Observation> getObservationTemplates() throws DataStoreException {
+    private List<Observation> getObservationTemplates() throws DataStoreException {
         List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (phenPropJoin) {
             /*
@@ -159,7 +158,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.append(" ORDER BY o.\"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
-        final List<org.opengis.observation.Observation> observations = new ArrayList<>();
+        final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
 
         LOGGER.fine(sqlRequest.toString());
@@ -220,7 +219,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return observations;
     }
 
-    private List<org.opengis.observation.Observation> getMesurementTemplates() throws DataStoreException {
+    private List<Observation> getMesurementTemplates() throws DataStoreException {
         List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
             String obsFrom = ",\"" + schemaPrefix + "om\".\"observations\" o  LEFT JOIN \"" + schemaPrefix + "om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\"";
@@ -258,7 +257,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest = appendPaginationToRequest(sqlRequest);
         }
 
-        final List<org.opengis.observation.Observation> observations = new ArrayList<>();
+        final List<Observation> observations = new ArrayList<>();
 
         // various cache map to avoid reading multiple time the same data
         final Map<String, Procedure> processMap               = new HashMap<>();
@@ -364,7 +363,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
 
-    private List<org.opengis.observation.Observation> getComplexObservations() throws DataStoreException {
+    private List<Observation> getComplexObservations() throws DataStoreException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Procedure> processMap     = new LinkedHashMap<>();
         final Map<String, List<Field>> fieldMap     = new LinkedHashMap<>();
@@ -508,7 +507,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, obsName, fieldOffset);
     }
 
-    protected List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
+    protected List<Observation> getMesurements() throws DataStoreException {
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
@@ -756,7 +755,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<org.opengis.observation.sampling.SamplingFeature> getFeatureOfInterests() throws DataStoreException {
+    public List<SamplingFeature> getFeatureOfInterests() throws DataStoreException {
         List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"foi\" = sf.\"id\""));
@@ -785,7 +784,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         
         LOGGER.fine(sqlRequest.toString());
-        List<org.opengis.observation.sampling.SamplingFeature> results = new ArrayList<>();
+        List<SamplingFeature> results = new ArrayList<>();
         try(final Connection c            = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
@@ -820,7 +819,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<org.opengis.observation.Phenomenon> getPhenomenons() throws DataStoreException {
+    public List<Phenomenon> getPhenomenons() throws DataStoreException {
         List<FilterSQLRequest.TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"observed_property\" = op.\"id\""));
@@ -883,7 +882,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             sqlRequest.append(" ORDER BY \"id\"");
         }
         sqlRequest = appendPaginationToRequest(sqlRequest);
-        final List<org.opengis.observation.Phenomenon> phenomenons = new ArrayList<>();
+        final List<Phenomenon> phenomenons = new ArrayList<>();
         LOGGER.fine(sqlRequest.toString());
         try (final Connection c = source.getConnection();
             final SQLResult rs  = sqlRequest.execute(c)) {
@@ -898,7 +897,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     @Override
-    public List<Process> getProcesses() throws DataStoreException {
+    public List<Procedure> getProcesses() throws DataStoreException {
         List<TableJoin> joins = new ArrayList<>();
         if (obsJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
@@ -921,7 +920,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         sqlRequest.join(joins, firstFilter);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
-        final List<Process> results = new ArrayList<>();
+        final List<Procedure> results = new ArrayList<>();
         try(final Connection c = source.getConnection();
             final SQLResult rs =  sqlRequest.execute(c)) {
             while (rs.next()) {

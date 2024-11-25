@@ -257,7 +257,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected List<org.opengis.observation.Observation> getMesurements() throws DataStoreException {
+    protected List<Observation> getMesurements() throws DataStoreException {
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {

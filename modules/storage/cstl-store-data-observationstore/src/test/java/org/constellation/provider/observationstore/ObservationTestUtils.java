@@ -45,8 +45,9 @@ import org.locationtech.jts.geom.Geometry;
 import org.opengis.metadata.quality.Element;
 import org.opengis.metadata.quality.QuantitativeResult;
 import org.opengis.metadata.quality.Result;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
@@ -272,8 +273,8 @@ public class ObservationTestUtils {
         return null; // unreacheable
     }
     
-    public static org.opengis.observation.Observation getObservationById(String obsId, List<? extends org.opengis.observation.Observation> observations) {
-        for (org.opengis.observation.Observation obs : observations) {
+    public static Observation getObservationById(String obsId, List<Observation> observations) {
+        for (Observation obs : observations) {
             if (obsId.equals(obs.getName().getCode())) {
                 return obs;
             }
@@ -282,50 +283,44 @@ public class ObservationTestUtils {
         return null; // unreachable
     }
     
-    public static String getPhenomenonId(org.opengis.observation.Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
-        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
-
+    public static String getPhenomenonId(Observation template) {
         assertNotNull(template.getObservedProperty());
         return template.getObservedProperty().getId();
     }
 
+    @Deprecated
     public static String getPhenomenonId(Phenomenon phen) {
-        assertTrue(phen instanceof org.geotoolkit.observation.model.Phenomenon);
-        return ((org.geotoolkit.observation.model.Phenomenon)phen).getId();
+        return phen.getId();
     }
     
     public static List<String> getPhenomenonIds(List<Phenomenon> phens) {
-        return phens.stream().map(phen -> getPhenomenonId(phen)).toList();
+        return phens.stream().map(phen -> phen.getId()).toList();
+    }
+    
+    @Deprecated
+    public static String getProcessId(Procedure proc) {
+        return proc.getId();
     }
 
-    public static String getProcessId(org.opengis.observation.Process proc) {
-        assertTrue(proc instanceof org.geotoolkit.observation.model.Procedure);
-        return ((org.geotoolkit.observation.model.Procedure)proc).getId();
+    public static Set<String> getProcessIds(List<Procedure> procs) {
+        return procs.stream().map(p -> p.getId()).collect(Collectors.toSet());
     }
 
-    public static Set<String> getProcessIds(List<org.opengis.observation.Process> procs) {
-        return procs.stream().map(p -> getProcessId(p)).collect(Collectors.toSet());
-    }
-
-    public static String getFOIId(org.opengis.observation.Observation o) {
-        assertTrue(o instanceof org.geotoolkit.observation.model.Observation);
-        org.geotoolkit.observation.model.Observation template = (org.geotoolkit.observation.model.Observation) o;
-
+    public static String getFOIId(Observation template) {
         assertNotNull(template.getFeatureOfInterest());
         return template.getFeatureOfInterest().getId();
     }
 
+    @Deprecated
     public static String getFOIId(SamplingFeature sf) {
-        assertTrue(sf instanceof org.geotoolkit.observation.model.SamplingFeature);
-        return ((org.geotoolkit.observation.model.SamplingFeature)sf).getId();
+        return sf.getId();
     }
 
     public static Set<String> getFOIIds(List<SamplingFeature> sfs) {
-        return sfs.stream().map(sf -> getFOIId(sf)).collect(Collectors.toSet());
+        return sfs.stream().map(sf -> sf.getId()).collect(Collectors.toSet());
     }
 
-    public static String getResultValues(org.opengis.observation.Observation obs) {
+    public static String getResultValues(Observation obs) {
         Assert.assertTrue(obs.getResult() instanceof ComplexResult);
         ComplexResult cr = (ComplexResult) obs.getResult();
         return cr.getValues();

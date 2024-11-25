@@ -74,8 +74,8 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.WKTWriter;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -374,7 +374,7 @@ public class SensorServiceBusiness implements ISensorServiceBusiness {
     }
 
     @Override
-    public void importObservations(final Integer id, final List<? extends Observation> observations, final List<? extends Phenomenon> phenomenons) throws ConfigurationException {
+    public void importObservations(final Integer id, final List<Observation> observations, final List<Phenomenon> phenomenons) throws ConfigurationException {
         final ObservationProvider writer = getSensorProvider(id, ObservationProvider.class);
         try {
             final long start = System.currentTimeMillis();

@@ -31,10 +31,10 @@ import org.constellation.dto.service.config.sos.SOSProviderCapabilities;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.constellation.exception.ConstellationStoreException;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.temporal.TemporalPrimitive;
 
 /**
@@ -53,7 +53,7 @@ public interface ObservationProvider extends DataProvider {
 
     List<Observation> getObservations(Query query) throws ConstellationStoreException;
 
-    List<Process> getProcedures(Query query) throws ConstellationStoreException;
+    List<Procedure> getProcedures(Query query) throws ConstellationStoreException;
 
     List<Offering> getOfferings(Query query) throws ConstellationStoreException;
 
@@ -87,7 +87,7 @@ public interface ObservationProvider extends DataProvider {
 
     void writeProcedure(final ProcedureDataset procedure) throws ConstellationStoreException;
 
-    void updateProcedure(Process procedure) throws ConstellationStoreException;
+    void updateProcedure(Procedure procedure) throws ConstellationStoreException;
 
     void writeOffering(Offering offering) throws ConstellationStoreException;
 

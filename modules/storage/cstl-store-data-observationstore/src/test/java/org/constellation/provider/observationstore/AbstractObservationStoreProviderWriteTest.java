@@ -97,7 +97,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         /*
          * get template from reader
          */
-        org.opengis.observation.Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:quality_sensor");
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:quality_sensor");
 
         assertTrue(template instanceof org.geotoolkit.observation.model.Observation);
         org.geotoolkit.observation.model.Observation resultTemplate   = (org.geotoolkit.observation.model.Observation) template;
@@ -112,7 +112,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:quality_sensor"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -186,7 +186,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
           /*
          * get template from reader
          */
-        org.opengis.observation.Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi_table_sensor");
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi_table_sensor");
 
         assertTrue(template instanceof Observation);
         Observation resultTemplate   = (Observation) template;
@@ -201,7 +201,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi_table_sensor"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -345,7 +345,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
            /*
          * get template from reader
          */
-        org.opengis.observation.Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi-type");
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:multi-type");
 
         assertTrue(template instanceof Observation);
         Observation resultTemplate   = (Observation) template;
@@ -360,7 +360,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         query.setIncludeTimeInTemplate(true);
         BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:multi-type"));
         query.setSelection(eqFilter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
         template = results.get(0);
 
@@ -469,7 +469,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:disjoint_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -527,7 +527,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:extend_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -570,7 +570,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:multi_table_extend_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -601,7 +601,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:change_uom_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -630,7 +630,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:overlapping_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -669,7 +669,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:single_instant_extend_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -697,7 +697,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:instant_extend_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -723,7 +723,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:instant_extend_phen_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -784,7 +784,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:intersect_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);
@@ -842,7 +842,7 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:extend2_sensor"));
         query.setSelection(filter);
-        List<org.opengis.observation.Observation> results = omPr.getObservations(query);
+        List<Observation> results = omPr.getObservations(query);
         assertEquals(1, results.size());
 
         assertTrue(results.get(0) instanceof Observation);

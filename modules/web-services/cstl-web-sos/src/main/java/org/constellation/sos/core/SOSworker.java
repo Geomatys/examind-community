@@ -74,7 +74,6 @@ import org.geotoolkit.gml.xml.FeatureCollection;
 import org.geotoolkit.gml.xml.FeatureProperty;
 import org.geotoolkit.gml.xml.TimeIndeterminateValueType;
 import org.geotoolkit.observation.xml.AbstractObservation;
-import org.geotoolkit.observation.xml.Process;
 import org.geotoolkit.ogc.xml.XMLLiteral;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperation;
@@ -185,9 +184,9 @@ import org.opengis.filter.SpatialOperatorName;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.observation.Measurement;
-import org.opengis.observation.Observation;
+import org.geotoolkit.observation.model.Observation;
 import org.opengis.observation.ObservationCollection;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.temporal.IndeterminateValue;
 import org.opengis.temporal.Instant;
 import org.opengis.temporal.Period;
@@ -1095,13 +1094,14 @@ public class SOSworker extends SensorWorker {
                 for (AbstractObservation o : matchingResult) {
                     if (template) {
                         final String temporaryTemplateId = o.getName().getCode() + '-' + getTemplateSuffix(o.getName().getCode());
+                        // TODO remove this method from XML to to model observation
                         final AbstractObservation temporaryTemplate = o.getTemporaryTemplate(temporaryTemplateId, templateTime);
 
                         // Remove the default templateTime
                         if (!pc.isDefaultTemplateTime && templateTime == null) {
                             temporaryTemplate.emptySamplingTime();
                         }
-                        templates.put(temporaryTemplateId, temporaryTemplate);
+                        templates.put(temporaryTemplateId, toModel(temporaryTemplate));
 
                         // we launch a timer which will destroy the template in one hours
                         final Timer t = new Timer();
@@ -1178,7 +1178,7 @@ public class SOSworker extends SensorWorker {
                     throw new CstlServiceException("this template does not exist or is no longer usable",
                                                   INVALID_PARAMETER_VALUE, "ObservationTemplateId");
                 }
-                procedure        = ((Process) template.getProcedure()).getHref();
+                procedure        = template.getProcedure().getId();
                 time             = template.getSamplingTime();
                 final String foi = SensorUtils.extractFOID(template);
                 if (foi != null) {
@@ -1858,8 +1858,8 @@ public class SOSworker extends SensorWorker {
             }
 
             //we get the observations and we assign to it the sensor
-            final List<? extends Observation> observations = request.getObservations();
-            for (Observation observation : observations) {
+            final List<? extends org.opengis.observation.Observation> observations = request.getObservations();
+            for (org.opengis.observation.Observation observation : observations) {
                 final AbstractObservation obs = (AbstractObservation) observation;
                 if (obs != null) {
                     obs.setProcedure(sensorId);
@@ -2208,9 +2208,9 @@ public class SOSworker extends SensorWorker {
 
             //we add the template phenomenon
             final List<String> observedProperties = template.getObservedProperties();
-            final List<org.opengis.observation.Phenomenon> observedPropertiesV100 = template.getFullObservedProperties()
+            final List<Phenomenon> observedPropertiesV100 = template.getFullObservedProperties()
                                                                                             .stream()
-                                                                                            .map(phenP -> (org.opengis.observation.Phenomenon)toModel(phenP.getPhenomenon()))
+                                                                                            .map(phenP -> toModel(phenP.getPhenomenon()))
                                                                                             .filter(Objects::nonNull)
                                                                                             .toList();
             omProvider.writePhenomenons(observedPropertiesV100);

@@ -45,9 +45,9 @@ import org.geotoolkit.observation.xml.ObservationComparator;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.geometry.Envelope;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
 
 /**
@@ -69,11 +69,11 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<org.opengis.observation.Observation> getObservations() throws DataStoreException {
+    public List<Observation> getObservations() throws DataStoreException {
         final List<Observation> observations = new ArrayList<>();
         final Set<String> ids = getIdentifiers();
         for (String id : ids) {
-            observations.add((Observation) reader.getObservation(id, resultModel, responseMode));
+            observations.add(reader.getObservation(id, resultModel, responseMode));
         }
         Collections.sort(observations, new ObservationComparator());
         final List<Observation> results = new ArrayList<>();
@@ -120,8 +120,8 @@ public class LuceneObservationFilterReader extends LuceneObservationFilter imple
     }
 
     @Override
-    public List<Process> getProcesses() throws DataStoreException {
-        final List<Process> results = new ArrayList<>();
+    public List<Procedure> getProcesses() throws DataStoreException {
+        final List<Procedure> results = new ArrayList<>();
         final Set<String> ids = getIdentifiers();
         for (String id : ids) {
             results.add(reader.getProcess(id));

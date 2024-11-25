@@ -65,10 +65,10 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Envelope;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.util.CodeList;
 import static org.geotoolkit.observation.result.ResultTimeNarrower.applyTimeConstraint;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -478,8 +478,8 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public List<Process> getProcesses() throws DataStoreException {
-        final List<Process> results = new ArrayList<>();
+    public List<Procedure> getProcesses() throws DataStoreException {
+        final List<Procedure> results = new ArrayList<>();
         final Set<String> ids = getIdentifiers();
         for (String id : ids) {
             results.add(reader.getProcess(id));

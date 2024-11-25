@@ -49,7 +49,7 @@ import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.process.ProcessDescriptor;
 import org.geotoolkit.process.ProcessException;
-import org.opengis.observation.Observation;
+import org.geotoolkit.observation.model.Observation;
 import org.opengis.parameter.GeneralParameterValue;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
@@ -121,7 +121,7 @@ public class FieldNameCorrectorProcess extends AbstractCstlProcess {
             Map<String, String> phenLabels = new HashMap<>();
             List<Observation> obs = op.getObservations(new ObservationQuery(OMUtils.OBSERVATION_QNAME, ResponseMode.RESULT_TEMPLATE, null));
             for (Observation ob : obs) {
-                String pid = ((org.geotoolkit.observation.model.Procedure)ob.getProcedure()).getId();
+                String pid = ob.getProcedure().getId();
                 try (Connection c = source.getConnection();
                      PreparedStatement stmt = c.prepareStatement("UPDATE \"" + schemPrefix + "om\".\"procedure_descriptions\" SET \"label\"= ? where \"procedure\"= ? AND \"field_name\" = ?")) {
                     stmt.setString(2, pid);

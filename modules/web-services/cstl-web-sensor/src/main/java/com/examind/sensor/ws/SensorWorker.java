@@ -46,9 +46,9 @@ import org.geotoolkit.observation.query.SamplingFeatureQuery;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.BinaryComparisonOperator;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -134,7 +134,7 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         return super.getTransactionalProperty();
     }
 
-    protected org.geotoolkit.observation.model.Phenomenon getPhenomenon(String phenName) throws ConstellationStoreException {
+    protected Phenomenon getPhenomenon(String phenName) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new ObservedPropertyQuery();
         final ResourceId filter = ff.resourceId(phenName);
         subquery.setSelection(filter);
@@ -161,11 +161,11 @@ public abstract class SensorWorker extends AbstractWorker<SOSConfiguration> {
         }
     }
 
-    protected Process getProcess(String procName) throws ConstellationStoreException {
+    protected Procedure getProcess(String procName) throws ConstellationStoreException {
         final AbstractObservationQuery subquery = new ProcedureQuery();
         final ResourceId filter = ff.resourceId(procName);
         subquery.setSelection(filter);
-        Collection<Process> sps = omProvider.getProcedures(subquery);
+        Collection<Procedure> sps = omProvider.getProcedures(subquery);
         if (sps.isEmpty()) {
             return null;
         } else {

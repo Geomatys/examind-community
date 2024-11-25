@@ -38,7 +38,7 @@ import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.observation.Phenomenon;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.Period;
 import org.opengis.temporal.TemporalPrimitive;
@@ -420,9 +420,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("SALINITY"));
 
         List<Phenomenon> phenomenons = store.getPhenomenons(new ObservedPropertyQuery(true));
-        for (Phenomenon phenO : phenomenons) {
-            Assert.assertTrue(phenO  instanceof org.geotoolkit.observation.model.Phenomenon);
-            org.geotoolkit.observation.model.Phenomenon phen = (org.geotoolkit.observation.model.Phenomenon) phenO;
+        for (Phenomenon phen : phenomenons) {
             if (phen.getId().endsWith("TEMP")) {
                 Assert.assertEquals("12", phen.getName());
             } else if (phen.getId().endsWith("SALINITY")) {

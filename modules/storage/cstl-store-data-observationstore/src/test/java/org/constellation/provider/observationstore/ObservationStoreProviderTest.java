@@ -78,10 +78,10 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.ResourceId;
 import org.opengis.filter.TemporalOperator;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.Procedure;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -2368,7 +2368,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          * find all
          */
         AbstractObservationQuery query = new ProcedureQuery();
-        List<Process> results = omPr.getProcedures(query);
+        List<Procedure> results = omPr.getProcedures(query);
 
         Set<String> resultIds = getProcessIds(results);
         assertEquals(TOTAL_NB_SENSOR, resultIds.size());

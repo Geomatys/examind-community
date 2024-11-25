@@ -48,10 +48,9 @@ import org.geotoolkit.observation.ObservationStore;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.constellation.dto.service.config.sos.SensorMLTree;
 import org.geotoolkit.storage.DataStores;
-import org.opengis.observation.Observation;
-import org.opengis.observation.Phenomenon;
-import org.opengis.observation.Process;
-import org.opengis.observation.sampling.SamplingFeature;
+import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.Phenomenon;
+import org.geotoolkit.observation.model.SamplingFeature;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.temporal.TemporalPrimitive;
 import org.opengis.util.GenericName;
@@ -379,7 +378,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public void updateProcedure(Process procedure) throws ConstellationStoreException {
+    public void updateProcedure(Procedure procedure) throws ConstellationStoreException {
         try {
             ((ObservationStore)getMainStore()).getWriter().updateProcedure((Procedure) procedure);
         } catch (DataStoreException ex) {
@@ -463,7 +462,7 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
     }
 
     @Override
-    public List<Process> getProcedures(Query q) throws ConstellationStoreException {
+    public List<Procedure> getProcedures(Query q) throws ConstellationStoreException {
         try {
             if (q == null) {
                 q = new ProcedureQuery();
