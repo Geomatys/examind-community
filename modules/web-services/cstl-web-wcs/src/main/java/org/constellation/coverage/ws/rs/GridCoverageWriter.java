@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -45,6 +46,12 @@ import org.constellation.util.WCSUtils;
 import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.nio.IOUtilities;
 import org.apache.sis.coverage.grid.PixelInCell;
+import org.apache.sis.setup.OptionKey;
+import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStores;
+import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.geotiff.GeoTiffStore;
+import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -142,15 +149,16 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             }
         }
 
-        final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, coverage);
+        //final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, coverage);
 
-        final IIOImage iioimage    = new IIOImage(coverage.render(null), null, spatialMetadata);
-        final ImageWriter iowriter = ImageIO.getImageWritersByFormatName("geotiff").next();
+        //final IIOImage iioimage    = new IIOImage(coverage.render(null), null, spatialMetadata);
+       
 
         // TIFF writer do no support writing in output stream currently, we have to write in a file before
         final File f = File.createTempFile("data", ".tiff");
-        iowriter.setOutput(f);
-        TiffImageWriteParam param = new TiffImageWriteParam(iowriter);
+        //iowriter.setOutput(f);
+        try (final GeoTiffStore iowriter = (GeoTiffStore) DataStores.openWritable(f, "GeoTIFF")) {
+        /*TiffImageWriteParam param = new TiffImageWriteParam(iowriter);
         if (entry.compression != null && !entry.compression.equals("NONE")) {
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             param.setCompressionType(entry.compression);
@@ -159,8 +167,11 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             param.setTilingMode(ImageWriteParam.MODE_EXPLICIT);
             param.setTiling(entry.tileWidth, entry.tileHeight, 0, 0);
         }
-        iowriter.write(null, iioimage, param);
+          iowriter.write(null, iioimage, param);
         iowriter.dispose();
+         */
+        iowriter.append(coverage, null);
+        }
         return f;
     }
 }
