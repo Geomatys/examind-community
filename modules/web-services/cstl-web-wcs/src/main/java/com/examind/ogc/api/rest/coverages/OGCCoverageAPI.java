@@ -271,7 +271,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     public ResponseEntity coverage(@PathVariable("serviceId") String serviceId,
                                    @PathVariable(value = "collectionId") String collectionId,
                                    @RequestParam(name = "f", required = false, defaultValue = MimeType.IMAGE_TIFF) String format,
-                                   @RequestParam(name = "properties", required = false) String properties, //Not used for the moment (selection of bands)
+                                   @RequestParam(name = "properties", required = false) String properties,
                                    @RequestParam(name = "bbox", required = false) List<Double> bbox,
                                    @RequestParam(name = "scaleFactor", required = false) Double scaleFactor,
                                    @RequestParam(name = "scaleAxes", required = false) String scaleAxesQuery,

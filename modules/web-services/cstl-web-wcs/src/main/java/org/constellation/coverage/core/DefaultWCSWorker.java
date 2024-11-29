@@ -71,6 +71,7 @@ import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageBuilder;
+import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
@@ -82,6 +83,7 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
@@ -226,6 +228,7 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.DimensionNameType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.TemporalCRS;
+import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
 import org.opengis.referencing.operation.TransformException;
@@ -1336,14 +1339,28 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             processBbox(readEnv, bbox);
             GridGeometry originGeometry = data.getGeometry();
-            DateTimeFormatter dateFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+            /*
+             * Subset Data can be :
+             * - axisName(80)
+             * - axisName(80:90)
+             * - axisName("2022-10-11T10:00:00Z":"2022-10-13T10:00:00Z")
+             * - axisName("2022-10-11T10:00:00Z")
+             */
             for(String subsetString : subsetData) {
                 String[] split = subsetString.split("\\(",2);
                 String axisName = split[0];
-                String[] values = split[1].replace(")", "").split(":",2);
+                String valuesString = split[1].replace(")", "");
 
-                if (values.length >= 3) { //Not supported
+                List<String> values = new ArrayList<>();
+                Pattern pattern = Pattern.compile("\"[^\"]*\"|[^:]+");
+                Matcher matcher = pattern.matcher(valuesString);
+
+                while (matcher.find()) {
+                    values.add(matcher.group().replace("\"", ""));
+                }
+
+                if (values.size() >= 3) { //Not supported
                     throw new CstlServiceException("This subset is not valid (only support slicing [value] or simple subset [value1:value2].", INVALID_SUBSETTING);
                 }
 
@@ -1360,29 +1377,39 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 }
 
                 DimensionNameType axisType = originGeometry.getExtent().getAxisType(axisID).orElse(null);
+                CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(axisID);
+                AxisDirection axisDirection = csa.getDirection();
                 double minVal = readEnv.getMinimum(axisID);
                 double maxVal = readEnv.getMaximum(axisID);
                 double firstValue = 0.0;
                 double secondValue = 0.0;
 
-                if (axisType == DimensionNameType.TIME) {
-                    if (values.length == 1) { //In case of slice
-                        LocalDateTime dateTime = LocalDateTime.parse(values[0], dateFormat);
-                        firstValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
+                if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || axisName.equalsIgnoreCase("time")) {
+                    TemporalCRS temporalCRS = CRS.getTemporalComponent(crs);
+
+                    if (temporalCRS == null) {
+                        throw new CstlServiceException("No temporal CRS found for axisName : " + axisName, INVALID_SUBSETTING);
+                    }
+
+                    DefaultTemporalCRS defaultTemporalCRS = DefaultTemporalCRS.castOrCopy(temporalCRS);
+
+                    if (values.size() == 1) { //In case of slice
+                        Instant datetime = Instant.parse(values.get(0));
+                        firstValue = defaultTemporalCRS.toValue(datetime);
                         secondValue = firstValue;
-                    } else if (values.length == 2) { //In case of subset
-                        LocalDateTime dateTime = LocalDateTime.parse(values[0], dateFormat);
-                        firstValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
-                        dateTime = LocalDateTime.parse(values[1], dateFormat);
-                        secondValue = dateTime.toEpochSecond(java.time.ZoneOffset.UTC);
+                    } else if (values.size() == 2) { //In case of subset
+                        Instant datetime = Instant.parse(values.get(0));
+                        firstValue = defaultTemporalCRS.toValue(datetime);
+                        datetime = Instant.parse(values.get(1));
+                        secondValue = defaultTemporalCRS.toValue(datetime);
                     }
                 } else {
-                    if (values.length == 1) { //In case of slice
-                        firstValue = Double.parseDouble(values[0]);
+                    if (values.size() == 1) { //In case of slice
+                        firstValue = Double.parseDouble(values.get(0));
                         secondValue = firstValue;
-                    } else if (values.length == 2) { //In case of subset
-                        firstValue = Double.parseDouble(values[0]);
-                        secondValue = Double.parseDouble(values[1]);
+                    } else if (values.size() == 2) { //In case of subset
+                        firstValue = Double.parseDouble(values.get(0));
+                        secondValue = Double.parseDouble(values.get(1));
                     }
                 }
 
@@ -1401,10 +1428,11 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             int dimensionSize = originGeometry.getDimension();
             for (int dimIdx = 0; dimIdx < dimensionSize; dimIdx++) {
                 CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
+                AxisDirection axisDirection = csa.getDirection();
                 String abbreviation = csa.getAbbreviation().toLowerCase();
                 DimensionNameType axisType = originGeometry.getExtent().getAxisType(dimIdx).orElse(null);
 
-                if (timeDimensionId == -1 && (axisType == DimensionNameType.TIME || abbreviation.equals("t") || abbreviation.equals("time"))) {
+                if (timeDimensionId == -1 && (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || abbreviation.equals("time"))) {
                     timeDimensionId = dimIdx;
                 }
                 if (verticalDimensionId == -1 && (axisType == DimensionNameType.VERTICAL)) {
@@ -1430,9 +1458,9 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     verticalAlreadySliced = true;
                 }
             }
-            if (!format.equalsIgnoreCase(MimeType.NETCDF) && !timeAlreadySliced && !verticalAlreadySliced) {
+            if (!format.equalsIgnoreCase(MimeType.NETCDF) && (!timeAlreadySliced || !verticalAlreadySliced)) {
                 //Slice over time and vertical axis
-                if (timeDimensionId != -1) {
+                if (!timeAlreadySliced) {
                     //Slice time :
                     double minVal = readEnv.getMinimum(timeDimensionId);
                     double maxVal = readEnv.getMaximum(timeDimensionId);
@@ -1445,7 +1473,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     }
                     readEnv.setRange(timeDimensionId, pt, pt);
                 }
-                if (verticalDimensionId != -1) {
+                if (!verticalAlreadySliced) {
                     //Slice vertical dimension :
                     double minVal = readEnv.getMinimum(verticalDimensionId);
                     double maxVal = readEnv.getMaximum(verticalDimensionId);
@@ -1671,11 +1699,12 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
             CoordinateSystemAxis csa = crs.getCoordinateSystem().getAxis(dimIdx);
             String abbreviation = csa.getAbbreviation().toLowerCase();
+            AxisDirection axisDirection = csa.getDirection();
             DimensionNameType axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
 
             Object lower = readEnv.getLower(dimIdx);
             Object upper = readEnv.getUpper(dimIdx);
-            if (axisType == DimensionNameType.TIME || abbreviation.equals("t") || abbreviation.equals("time")) {
+            if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || abbreviation.equals("time")) {
                 Instant[] instants = readGg.getTemporalExtent();
 
                 LocalDateTime dateTime = LocalDateTime.ofInstant(instants[0], ZoneOffset.UTC);
@@ -1845,19 +1874,32 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     }
 
     private GridGeometry getGridGeometry(CoverageData data, GeneralEnvelope env, String resolution) throws CstlServiceException {
+        if (resolution == null || resolution.isEmpty()) {
+            return getGridGeometry(data, env);
+        }
+
         Map<String,Double> resolutionsParsed = parseResolutions(resolution);
 
         CoordinateSystem cs = env.getCoordinateReferenceSystem().getCoordinateSystem();
+
+        final GridExtent extent;
+        try {
+            extent = data.getGeometry().getExtent();
+        } catch (ConstellationStoreException ex) {
+            throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
+        }
 
         int dimensionSize = cs.getDimension();
         double[] resolutionsArr = new double[dimensionSize];
 
         for(int dimIdx=0; dimIdx<dimensionSize; dimIdx++) {
             CoordinateSystemAxis csa = cs.getAxis(dimIdx);
+            DimensionNameType axisType = extent.getAxisType(dimIdx).orElse(null);
+            AxisDirection axisDirection = csa.getDirection();
             String abbreviation = csa.getAbbreviation().toLowerCase();
 
                 //We can't change the resolution on time axis
-            if (!abbreviation.equalsIgnoreCase("t") && !abbreviation.equalsIgnoreCase("time") && resolutionsParsed.containsKey(abbreviation.toLowerCase())) {
+            if (axisType != DimensionNameType.TIME && axisDirection != AxisDirection.FUTURE && !abbreviation.equalsIgnoreCase("time") && resolutionsParsed.containsKey(abbreviation.toLowerCase())) {
                 resolutionsArr[dimIdx] = resolutionsParsed.get(abbreviation);
             } else {
                 resolutionsArr[dimIdx] = -1.0; //A resolution can't be negative, so -1 in our case is for the default value
