@@ -31,4 +31,3 @@ com.examind.process.test.ParamDependencyDescriptor
 org.constellation.process.data.DataInfoCacheProcessDescriptor
 org.constellation.process.sensor.DeleteSensorDescriptor
 org.constellation.process.datasource.DeleteDatasourceDescriptor
-com.examind.process.download.UrlDownloaderProcessDescriptor

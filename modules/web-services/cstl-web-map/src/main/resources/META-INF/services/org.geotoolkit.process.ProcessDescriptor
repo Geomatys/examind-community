@@ -2,3 +2,6 @@
 org.constellation.process.service.AddLayerToMapServiceDescriptor
 org.constellation.process.service.RemoveLayerFromMapServiceDescriptor
 org.constellation.process.service.FeatureToGeoJSONDescriptor
+org.constellation.process.utils.coverage.LoadCoverageDescriptor
+org.constellation.process.utils.coverage.LoadCoverageFromResourceDescriptor
+org.constellation.process.utils.coverage.SaveResultCoverageDescriptor
