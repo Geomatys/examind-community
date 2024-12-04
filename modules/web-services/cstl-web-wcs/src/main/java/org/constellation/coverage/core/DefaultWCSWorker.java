@@ -83,7 +83,6 @@ import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
-import org.apache.sis.referencing.crs.AbstractCRS;
 import org.apache.sis.referencing.crs.DefaultTemporalCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.GridCoverageResource;
@@ -150,6 +149,7 @@ import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
 import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.map.MapLayers;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.FILE_SIZE_EXCEEDED;
@@ -231,6 +231,8 @@ import org.opengis.referencing.crs.TemporalCRS;
 import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.cs.CoordinateSystemAxis;
+import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.Matrix;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -457,16 +459,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             GridCrsType grid = null;
             try {
-                SpatialMetadata meta = WCSUtils.adapt(
-                        data.getSpatialMetadata(),
-                        data.getGeometry(),
-                        data.getSampleDimensions().toArray(new SampleDimension[0])
-                );
-                RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
-                if (brutGrid != null) {
-                    grid = new GridCrsType(brutGrid);
+                GridGeometry gg = data.getGeometry();
+                if (gg.isDefined(GridGeometry.EXTENT | GridGeometry.CRS)) {
+                    RectifiedGrid brutGrid = WCSUtils.createRectifiedGrid(gg);
+                    if (brutGrid != null) {
+                        grid = new GridCrsType(brutGrid);
+                    }
                 }
-            } catch (ConstellationStoreException ex) {
+            } catch (ConstellationStoreException | TransformException ex) {
                 LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
             }
 
@@ -522,31 +522,17 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             org.geotoolkit.gml.xml.v321.GridType grid = null;
             try {
-                SpatialMetadata meta = WCSUtils.adapt(
-                        data.getSpatialMetadata(),
-                        data.getGeometry(),
-                        data.getSampleDimensions().toArray(new SampleDimension[0])
-                );
-
-                RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
-                if (brutGrid.getExtent() != null) {
-                    CoordinateReferenceSystem crs = meta.getInstanceForType(CoordinateReferenceSystem.class);
-                    grid = new org.geotoolkit.gml.xml.v321.RectifiedGridType(brutGrid, crs);
+                GridGeometry gg = data.getGeometry();
+                if (gg.isDefined(GridGeometry.EXTENT | GridGeometry.CRS)) {
+                    RectifiedGrid brutGrid = WCSUtils.createRectifiedGrid(gg);
+                    grid = new org.geotoolkit.gml.xml.v321.RectifiedGridType(brutGrid, gg.getCoordinateReferenceSystem());
                     grid.setId("grid-" + identifier.replace(':', '_')); // gml id does not like ':'
 
                     // update native envelope axis labels
-                    if (brutGrid.getAxisNames() != null) {
-                        nativeEnvelope.setAxisLabels(brutGrid.getAxisNames());
-                    } else if (crs != null) {
-                        final List<String> axisNames = new ArrayList<>();
-                        for (int i = 0; i < crs.getCoordinateSystem().getDimension(); i++) {
-                            axisNames.add(crs.getCoordinateSystem().getAxis(i).getAbbreviation());
-                        }
-                        nativeEnvelope.setAxisLabels(axisNames);
-                    }
+                    nativeEnvelope.setAxisLabels(brutGrid.getAxisNames());
                 }
 
-            } catch (ConstellationStoreException ex) {
+            } catch (ConstellationStoreException | TransformException ex) {
                 LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
             }
 

@@ -30,13 +30,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
+import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
+import org.apache.sis.geometry.GeneralDirectPosition;
 import org.apache.sis.referencing.operation.transform.LinearTransform;
+import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
 import org.geotoolkit.filter.FilterUtilities;
@@ -55,11 +59,22 @@ import org.geotoolkit.wcs.xml.RangeSubset;
 import org.geotoolkit.wcs.xml.v100.IntervalType;
 import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
 import org.opengis.coverage.CannotEvaluateException;
+import org.opengis.coverage.grid.GridCell;
+import org.opengis.coverage.grid.GridCoordinates;
+import org.opengis.coverage.grid.GridEnvelope;
+import org.opengis.coverage.grid.GridPoint;
+import org.opengis.coverage.grid.RectifiedGrid;
 import org.opengis.filter.Expression;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.Literal;
+import org.opengis.geometry.DirectPosition;
 import org.opengis.metadata.extent.GeographicBoundingBox;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.cs.CoordinateSystem;
 import org.opengis.referencing.datum.PixelInCell;
+import org.opengis.referencing.operation.MathTransform;
+import org.opengis.referencing.operation.Matrix;
+import org.opengis.referencing.operation.TransformException;
 import org.opengis.style.FeatureTypeStyle;
 import org.opengis.style.Rule;
 import org.opengis.style.Symbolizer;
@@ -320,6 +335,7 @@ public final class WCSUtils {
      * @throws CannotEvaluateException when we cannot safely extract a 2D part of input grid geometry. Note that this is
      * caused due to limitations of the {@link SpatialMetadata} capabilities.
      */
+    @Deprecated
     public static SpatialMetadata adapt(SpatialMetadata source, GridGeometry gg, final SampleDimension[] targetDims) throws IncompleteGridGeometryException, CannotEvaluateException {
         if (source == null) {
             source = new SpatialMetadata(SpatialMetadataFormat.getImageInstance(SpatialMetadataFormat.GEOTK_FORMAT_NAME));
@@ -355,5 +371,97 @@ public final class WCSUtils {
         source.clearInstancesCache();
 
         return source;
+    }
+    
+    public static RectifiedGrid createRectifiedGrid(final GridGeometry gg) throws TransformException {
+        CoordinateReferenceSystem crs = gg.getCoordinateReferenceSystem();
+        MathTransform gridToCRS = gg.getGridToCRS(PixelInCell.CELL_CORNER);
+        DirectPosition origin = gridToCRS.transform(new GeneralDirectPosition(gridToCRS.getSourceDimensions()), null);
+        
+        // compute offset vectors
+        // if not linear only compute the 2 first dimensions
+        Matrix matrix = MathTransforms.getMatrix(gg.getGridToCRS(PixelInCell.CELL_CORNER));
+        if (matrix == null) {
+            GridGeometry mgg = gg.selectDimensions(0,1);
+            matrix = MathTransforms.getMatrix(mgg.getGridToCRS(PixelInCell.CELL_CORNER));
+        }
+        int targetDim = matrix.getNumRow() - 1;
+        int sourceDim = matrix.getNumCol()- 1;
+        
+        double[][] offsetVector = new double[targetDim][];
+        for (int j = 0; j < targetDim; j++) {
+            double[] row = new double[sourceDim];
+            for (int i = 0; i < sourceDim; i++) {
+                row[i] = matrix.getElement(j, i);
+            }
+            offsetVector[j] = row;
+        }
+        
+        return new RectifiedGrid() {
+            @Override
+            public DirectPosition getOrigin() {
+                return origin;
+            }
+
+            @Override
+            public List<double[]> getOffsetVectors() {
+                return List.of(offsetVector);
+            }
+
+            @Override
+            public DirectPosition transformCoordinates(GridCoordinates g) {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+
+            @Override
+            public DirectPosition convertCoordinates(GridCoordinates g) {
+                throw new UnsupportedOperationException("Not supported."); 
+            }
+
+            @Override
+            public GridCoordinates inverseTransformCoordinates(DirectPosition p) {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+
+            @Override
+            public GridCoordinates inverseConvertCoordinates(DirectPosition p) {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+
+            @Override
+            public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+                return crs;
+            }
+
+            @Override
+            public int getDimension() {
+                return crs.getCoordinateSystem().getDimension();
+            }
+
+            @Override
+            public List<String> getAxisNames() {
+                CoordinateSystem cs = crs.getCoordinateSystem();
+                final List<String> axisNames = new ArrayList<>();
+                for (int i = 0; i < cs.getDimension(); i++) {
+                    axisNames.add(cs.getAxis(i).getAbbreviation());
+                }
+                return axisNames;
+            }
+
+            @Override
+            public GridEnvelope getExtent() {
+                return gg.getExtent();
+            }
+
+            @Override
+            public Set<GridPoint> getIntersections() {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+
+            @Override
+            public Set<GridCell> getCells() {
+                throw new UnsupportedOperationException("Not supported.");
+            }
+        };
     }
 }

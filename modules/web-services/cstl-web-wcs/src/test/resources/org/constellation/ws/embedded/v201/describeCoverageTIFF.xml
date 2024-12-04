@@ -19,7 +19,7 @@
                 <gml:axisLabels>Lon Lat</gml:axisLabels>
                 <gml:origin>
                     <gml:Point gml:id="pt--870895216">
-                        <gml:pos>-61.61595888678126 15.028507562467533</gml:pos>
+                        <gml:pos>-61.6166811325793 15.029229808265578</gml:pos>
                     </gml:Point>
                 </gml:origin>
                 <gml:offsetVector>0.001444491596089012 0.0</gml:offsetVector>
@@ -27,7 +27,7 @@
             </gml:RectifiedGrid>
         </gml:gridDomain>
         <ns32:rangeType>
-            <ns33:DataRecord>
+            <ns33:DataRecord updatable="true">
                 <ns33:field name="Red">
                     <ns33:Quantity/>
                 </ns33:field>

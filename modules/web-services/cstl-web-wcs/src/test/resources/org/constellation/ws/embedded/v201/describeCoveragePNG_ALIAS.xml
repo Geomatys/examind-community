@@ -19,7 +19,7 @@
                 <gml:axisLabels>λ φ</gml:axisLabels>
                 <gml:origin>
                     <gml:Point gml:id="pt--1258919745">
-                        <gml:pos>-180.0 90.0</gml:pos>
+                        <gml:pos>-180.17578125 90.17578125</gml:pos>
                     </gml:Point>
                 </gml:origin>
                 <gml:offsetVector>0.3515625 0.0</gml:offsetVector>
@@ -27,7 +27,7 @@
             </gml:RectifiedGrid>
         </gml:gridDomain>
         <ns32:rangeType>
-            <ns33:DataRecord>
+            <ns33:DataRecord updatable="true">
                 <ns33:field name="Color index">
                     <ns33:Quantity/>
                 </ns33:field>
