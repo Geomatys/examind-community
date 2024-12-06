@@ -205,8 +205,35 @@ public class FileParsingUtils {
         }
         return result;
     }
+    
+    /**
+     * Extract a value from a CSV line.
+     * If a fixed value is specified, it will be returned.
+     * Multiple column index can be specified, the result will be a concatenation separated by '-'.
+     * example: value1-value2
+     * 
+     * @param line A csvline.
+     * @param fixedValue If not {@code null} will always be returned.
+     * @param columnsIndexes One or more column indexes (can be {@code nul} or empty if fixedValue is specified).
+     * @return A value.
+     */
+    public static String getMultiOrFixedValue(Object[] line, String fixedValue, List<Integer> columnsIndexes) {
+        return getMultiOrFixedValue(line, fixedValue, columnsIndexes, null);
+    }
 
-     public static String getMultiOrFixedValue(Object[] line, String fixedValue, List<Integer> columnsIndexes) {
+    /**
+    * Extract a value from a CSV line.
+     * If a fixed value is specified, it will be returned.
+     * Multiple column index can be specified, the result will be a concatenation separated by '-'.
+     * example: value1-value2
+     * 
+     * @param line A csvline.
+     * @param fixedValue If not {@code null} will always be returned.
+     * @param columnsIndexes One or more column indexes (can be {@code nul} or empty if fixedValue is specified).
+     * @param regex if specified, a regex will be applied oon the extract value from column(s).
+     * @return A value.
+     */
+    public static String getMultiOrFixedValue(Object[] line, String fixedValue, List<Integer> columnsIndexes, String regex) {
         String result = "";
         if (fixedValue != null && !fixedValue.isEmpty()) {
             // Use fixed value
@@ -220,7 +247,7 @@ public class FileParsingUtils {
                 } else {
                     first = false;
                 }
-                result += asString(line[columnIndex]);
+                result += extractWithRegex(regex, asString(line[columnIndex]));
             }
         }
         return result;

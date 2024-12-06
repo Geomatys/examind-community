@@ -105,7 +105,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             // if the store is open with missing mime type we skip this part.
             } else if (obsPropFilterColumns.isEmpty() && mimeType != null) {
                 try (final DataFileReader reader = getDataFileReader()) {
-                    this.obsPropColumns = extractCodes(reader, csvFlatobsPropColumns, noHeader, directColumnIndex);
+                    this.obsPropColumns = extractCodes(reader, csvFlatobsPropColumns, noHeader, directColumnIndex, obsPropRegex);
                 } catch (ConstellationStoreException ex) {
                     throw new DataStoreException(ex.getMessage(), ex);
                 } catch (IOException | IndexOutOfBoundsException | InterruptedException ex) {
@@ -372,9 +372,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
         String fixedId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
         String fixedName = obsPropNames.isEmpty() ? null : obsPropNames.get(0);
 
-        String observedProperty     = getMultiOrFixedValue(line, fixedId, obsPropColumnIndexes);
+        String observedProperty     = getMultiOrFixedValue(line, fixedId, obsPropColumnIndexes, obsPropRegex);
         String observedPropertyName = getMultiOrFixedValue(line, fixedName, obsPropNameColumnIndexes);
-        String observedPropertyUOM  = asString(getColumnValue(uomColumnIndex, line, null));
+        String observedPropertyUOM  = extractWithRegex(uomRegex, asString(getColumnValue(uomColumnIndex, line, null)));
         return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
     }
 
@@ -431,7 +431,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                 }
 
                 // checks if row matches the observed properties filter
-                String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
+                String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes, obsPropRegex);
                 if (!obspropColumns.contains(observedProperty)) {
                     continue;
                 }
@@ -541,7 +541,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     continue;
                 }
 
-                final String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes);
+                final String observedProperty = getMultiOrFixedValue(line, fixedObsId, obsPropColumnIndexes, obsPropRegex);
                 
                 Map<String, Field> fieldMap = measureColumnsMap.computeIfAbsent(currentObstType, cot -> {
                     Map<String, Field> measureFields = new HashMap<>();

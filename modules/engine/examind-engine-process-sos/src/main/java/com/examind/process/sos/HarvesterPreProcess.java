@@ -158,7 +158,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
 
                     // extract codes
                     if (csvFlat) {
-                        Set<String> currentCodes = extractCodes(format, child, obsPropColumns, separator.charAt(0), charquote == null ? null : charquote.charAt(0), false, false);
+                        Set<String> currentCodes = extractCodes(format, child, obsPropColumns, separator.charAt(0), charquote == null ? null : charquote.charAt(0), false, false, null);
                         codes.addAll(currentCodes);
                     }
                 }

@@ -19,6 +19,7 @@ package com.examind.store.observation.csvflat;
 import com.examind.store.observation.DataFileReader;
 import com.examind.store.observation.FileParsingUtils;
 import static com.examind.store.observation.FileParsingUtils.asString;
+import static com.examind.store.observation.FileParsingUtils.extractWithRegex;
 import static com.examind.store.observation.FileParsingUtils.verifyLineCompletion;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -38,15 +39,15 @@ import org.geotoolkit.util.StringUtilities;
 public class CsvFlatUtils {
     private static final Logger LOGGER = Logger.getLogger("com.examind.store.observation.csvflat");
     
-    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> ObservedPropertiesColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException {
+    public static Set<String> extractCodes(String format, Path dataFile, Collection<String> ObservedPropertiesColumns, Character separator, Character quoteChar, boolean noHeader, boolean directColumnIndex, String regex) throws ConstellationStoreException {
         try (final DataFileReader reader = FileParsingUtils.getDataFileReader(format, dataFile, separator, quoteChar)) {
-            return extractCodes(reader, ObservedPropertiesColumns, noHeader, directColumnIndex);
+            return extractCodes(reader, ObservedPropertiesColumns, noHeader, directColumnIndex, regex);
         } catch (IOException | IndexOutOfBoundsException ex) {
             throw new ConstellationStoreException("problem reading csv file", ex);
         }
     }
 
-    public static Set<String> extractCodes(DataFileReader reader, Collection<String> ObservedPropertiesColumns, boolean noHeader, boolean directColumnIndex) throws ConstellationStoreException, IOException {
+    public static Set<String> extractCodes(DataFileReader reader, Collection<String> ObservedPropertiesColumns, boolean noHeader, boolean directColumnIndex, String regex) throws ConstellationStoreException, IOException {
 
         List<Integer> obsPropIndex = new ArrayList<>();
 
@@ -105,7 +106,7 @@ public class CsvFlatUtils {
             String computed = "";
             boolean first = true;
             for (Integer i : obsPropIndex) {
-                final String nextCode = asString(line[i]);
+                final String nextCode = extractWithRegex(regex, asString(line[i]));
                 if (nextCode == null || nextCode.isEmpty()) {
                     LOGGER.fine("Invalid measure ignore due to missing value at line " + lineNumber + " column " + i);
                     continue line;
