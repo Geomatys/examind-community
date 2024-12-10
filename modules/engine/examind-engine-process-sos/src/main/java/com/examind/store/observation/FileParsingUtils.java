@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.sis.referencing.CommonCRS;
+import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.FieldType;
@@ -127,7 +128,7 @@ public class FileParsingUtils {
         return i;
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex, boolean ignoreCase) throws IOException {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, DataFileReader reader, boolean directColumnIndex, boolean ignoreCase, String qualifier) throws IOException, DataStoreException {
         if (directColumnIndex) {
             List<Integer> results = new ArrayList<>();
             for (String columnName : columnNames) {
@@ -136,26 +137,26 @@ public class FileParsingUtils {
             return results;
         }
         final String[] headers = reader.getHeaders();
-        return getColumnIndexes(columnNames, headers, directColumnIndex, ignoreCase);
+        return getColumnIndexes(columnNames, headers, directColumnIndex, ignoreCase, qualifier);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) {
-        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, null);
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, String qualifier) throws DataStoreException {
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, null, qualifier);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
-        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, maxIndex);
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, String qualifier) throws DataStoreException {
+        return getColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, maxIndex, qualifier);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase) {
-        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, null);
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, String qualifier) throws DataStoreException {
+        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, null, qualifier);
     }
     
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
-        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, maxIndex, null);
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, String qualifier) throws DataStoreException {
+        return getColumnIndexes(columnNames, headers, appendName, directColumnIndex, ignoreCase, maxIndex, null, qualifier);
     }
 
-    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, List<String> fixedValues) {
+    public static List<Integer> getColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, List<String> fixedValues, String qualifier) throws DataStoreException {
         List<Integer> results = new ArrayList<>();
         int cpt = 0;
         if (directColumnIndex) {
@@ -186,7 +187,9 @@ public class FileParsingUtils {
                 }
                 cpt++;
             }
-            
+        }
+        if (columnNames.size() != results.size()) {
+            throw new DataStoreException("Unable to find " + qualifier + " column(s): " + columnNames.toString());
         }
         return results;
     }

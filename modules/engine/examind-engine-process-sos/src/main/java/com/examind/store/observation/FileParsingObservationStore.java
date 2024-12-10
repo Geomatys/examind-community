@@ -88,6 +88,13 @@ import org.opengis.util.GenericName;
 public abstract class FileParsingObservationStore extends AbstractObservationStore implements ObservationStore {
 
     protected static final String PROCEDURE_TREE_TYPE = "Component";
+    
+    protected static final String MAIN_QUALIFIER = "main";
+    protected static final String DATE_QUALIFIER = "date";
+    protected static final String QUALITY_QUALIFIER = "quality";
+    protected static final String OBS_PROP_QUALIFIER = "observed properties";
+    protected static final String OBS_PROP_NAME_QUALIFIER = "observed properties name";
+    protected static final String OBS_PROP_DESC_QUALIFIER = "observed properties desc";
 
     private final Path dataFile;
     protected final String dataFileName;
@@ -442,7 +449,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         try (final DataFileReader reader = getDataFileReader()) {
 
             // prepare time column indices
-            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader, directColumnIndex, laxHeader);
+            List<Integer> dateIndexes = getColumnIndexes(dateColumns, reader, directColumnIndex, laxHeader, DATE_QUALIFIER);
 
             if (dateIndexes.isEmpty()) return null;
 

@@ -26,7 +26,6 @@ import static com.examind.process.sos.SosHarvesterTestUtils.getNbOffering;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.logging.Level;
-import org.constellation.business.IDataBusiness;
 import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.process.ExamindProcessFactory;
 import org.constellation.sos.core.SOSworker;
@@ -38,7 +37,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.parameter.ParameterValue;
 import org.opengis.parameter.ParameterValueGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -127,6 +125,76 @@ public class SOSharvesterProcessCheckTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("""
                             /error-header.csv:
                             Unable to find main column(s): [time]
+                            KO.
+                            
+                            """, error.getMessage());
+        
+        // set hte good separator
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(",");
+        
+        /*
+        * test unexisting main column
+        */
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("timeou");
+        
+        proc = desc.createProcess(in);
+        error = null;
+        try {
+            proc.call();
+        } catch (ProcessException ex) {
+            error = ex;
+        }
+        Assert.assertNotNull(error);
+        // i don't know why the message is prefixed with the type of the exception
+        Assert.assertEquals("""
+                            /error-header.csv:
+                            Unable to find main column(s): [timeou]
+                            KO.
+                            
+                            """, error.getMessage());
+        
+        // restore good value
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time");
+        
+        /*
+        * test unexisting date column
+        */
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("timeou");
+        proc = desc.createProcess(in);
+        error = null;
+        try {
+            proc.call();
+        } catch (ProcessException ex) {
+            error = ex;
+        }
+        Assert.assertNotNull(error);
+        // i don't know why the message is prefixed with the type of the exception
+        Assert.assertEquals("""
+                            /error-header.csv:
+                            Unable to find date column(s): [timeou]
+                            KO.
+                            
+                            """, error.getMessage());
+        
+        // restore good value
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time");
+        
+        /*
+        * test unexisting quality column
+        */
+        in.parameter(SosHarvesterProcessDescriptor.QUALITY_COLUMN_NAME).setValue("qual");
+        proc = desc.createProcess(in);
+        error = null;
+        try {
+            proc.call();
+        } catch (ProcessException ex) {
+            error = ex;
+        }
+        Assert.assertNotNull(error);
+        // i don't know why the message is prefixed with the type of the exception
+        Assert.assertEquals("""
+                            /error-header.csv:
+                            Unable to find quality column(s): [qual]
                             KO.
                             
                             """, error.getMessage());

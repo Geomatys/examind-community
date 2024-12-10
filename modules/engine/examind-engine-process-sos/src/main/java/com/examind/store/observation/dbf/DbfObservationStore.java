@@ -92,9 +92,9 @@ public class DbfObservationStore extends AbstractCsvStore {
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader);
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, MAIN_QUALIFIER);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
 
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
             int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
@@ -117,7 +117,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
 
             if (noHeader && obsPropIds.size() != obsPropColumns.size()) {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
@@ -373,9 +373,9 @@ public class DbfObservationStore extends AbstractCsvStore {
             int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
             int procDescIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
 
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader);
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
             
             final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
             final List<Field> fields               = toFields(obsPropFields, observationType);

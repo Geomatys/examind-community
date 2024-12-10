@@ -113,6 +113,66 @@ public class SOSHarvesterProcessErrorTest extends AbstractSosHarvesterTest {
         Assert.assertEquals("Error while checking sensor service", error.getMessage());
 
     }
+    
+    @Test
+    public void harvestCSVSingleErrorHeaderQualityTest() throws Exception {
+
+        SOSworker sosWorker = (SOSworker) wsEngine.buildWorker("sos", "default");
+        sosWorker.setServiceUrl("http://localhost/examind/");
+
+        STSWorker stsWorker = (STSWorker) wsEngine.buildWorker("sts", "default");
+        stsWorker.setServiceUrl("http://localhost/examind/");
+        
+        int prev = getNbOffering(sosWorker, 0);
+
+        Assert.assertEquals(ORIGIN_NB_SENSOR, prev);
+
+        String sensorId = "urn:sensor:er";
+
+        String datasetId = "SOS_DATA";
+
+        final ProcessDescriptor desc = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, SosHarvesterProcessDescriptor.NAME);
+
+        final ParameterValueGroup in = desc.getInputDescriptor().createValue();
+        in.parameter(SosHarvesterProcessDescriptor.DATASET_IDENTIFIER_NAME).setValue(datasetId);
+        in.parameter(SosHarvesterProcessDescriptor.DATA_FOLDER_NAME).setValue(errorHeaderDirectory_1.toUri().toString());
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_COLUMN_NAME).setValue("time");
+        in.parameter(SosHarvesterProcessDescriptor.MAIN_COLUMN_NAME).setValue("time");
+
+        in.parameter(SosHarvesterProcessDescriptor.DATE_FORMAT_NAME).setValue("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+        in.parameter(SosHarvesterProcessDescriptor.LATITUDE_COLUMN_NAME).setValue("lat");
+        in.parameter(SosHarvesterProcessDescriptor.LONGITUDE_COLUMN_NAME).setValue("lon");
+
+        ParameterValue val1 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val1.setValue("temperature");
+        in.values().add(val1);
+        ParameterValue val2 = (ParameterValue) desc.getInputDescriptor().descriptor(SosHarvesterProcessDescriptor.OBS_PROP_COLUMN_NAME).createValue();
+        val2.setValue("salinity");
+        in.values().add(val2);
+        
+        in.parameter(SosHarvesterProcessDescriptor.QUALITY_COLUMN_NAME).setValue("qual");
+
+        in.parameter(SosHarvesterProcessDescriptor.SEPARATOR_NAME).setValue(",");
+        in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
+        in.parameter(SosHarvesterProcessDescriptor.THING_ID_NAME).setValue(sensorId);
+        in.parameter(SosHarvesterProcessDescriptor.REMOVE_PREVIOUS_NAME).setValue(false);
+        in.parameter(SosHarvesterProcessDescriptor.REMOTE_READ_NAME).setValue(true);
+        in.parameter(SosHarvesterProcessDescriptor.SERVICE_ID_NAME).setValue(new ServiceProcessReference(sc));
+
+        org.geotoolkit.process.Process proc = desc.createProcess(in);
+        ProcessException error = null;
+        try {
+            proc.call();
+        } catch (ProcessException ex) {
+            error = ex;
+        }
+        Assert.assertNotNull(error);
+        // i don't know why the message is prfixed with the type of the exception
+        Assert.assertEquals("/error-header.csv:" + '\n' +
+                           "Unable to find quality column(s): [qual]", error.getMessage());
+    }
 
     @Test
     public void harvestCSVMultiErrorHeaderTest() throws Exception {

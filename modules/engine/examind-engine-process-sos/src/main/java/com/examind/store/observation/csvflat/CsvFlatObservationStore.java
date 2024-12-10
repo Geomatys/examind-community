@@ -174,12 +174,12 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             int procPropMapIndex    = getColumnIndex(procedurePropertiesMapColumn,  headers,      directColumnIndex, laxHeader, maxIndex);
             int obsPropPropMapIndex = getColumnIndex(obsPropPropertiesMapColumn,    headers,      directColumnIndex, laxHeader, maxIndex);
 
-            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex, laxHeader, maxIndex);
-            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex);
-            List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex);
-            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader, maxIndex);
-            List<Integer> obsPropDescColumnIndexes = getColumnIndexes(obsPropDescColumns,        headers, directColumnIndex, laxHeader, maxIndex);
-            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
+            List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
+            List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_NAME_QUALIFIER);
+            List<Integer> obsPropDescColumnIndexes = getColumnIndexes(obsPropDescColumns,        headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_DESC_QUALIFIER);
+            List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
             
             Map<Integer, String> procPropIndexes    = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             Map<Integer, String> obsPropPropIndexes = getNamedColumnIndexes(obsPropPropertieColumns,   headers, directColumnIndex,laxHeader, maxIndex);
@@ -432,7 +432,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             int procIndex       = getColumnIndex(procedureColumn, headers, directColumnIndex, laxHeader, maxIndex);
             int typeColumnIndex = getColumnIndex(typeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
             
-            List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
 
             if (procIndex == -1) throw new DataStoreException("Unable to find the procedure column: " + procedureColumn);
             String fixedObsId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
@@ -502,8 +502,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             final AtomicInteger maxIndex  = new AtomicInteger();
             final List<Integer> doubleFields = new ArrayList<>();
 
-            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,           headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
 
             int procedureIndex   = getColumnIndex(procedureColumn,              headers, directColumnIndex, laxHeader, maxIndex);
             int procNameIndex    = getColumnIndex(procedureNameColumn,          headers, directColumnIndex, laxHeader, maxIndex);

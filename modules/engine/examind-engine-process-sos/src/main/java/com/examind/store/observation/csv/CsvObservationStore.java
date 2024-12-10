@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -79,6 +78,10 @@ public class CsvObservationStore extends AbstractCsvStore {
     @Override
     public ObservationDataset getDataset(final DatasetQuery query) throws DataStoreException {
         
+        if (mainColumns.isEmpty()) {
+            throw new DataStoreException("No main column(s) defined.");
+        }
+        
         // open csv file
         try (final DataFileReader reader = getDataFileReader()) {
 
@@ -102,16 +105,16 @@ public class CsvObservationStore extends AbstractCsvStore {
             int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
 
             if (mainIndexes.isEmpty()) {
                 throw new DataStoreException("Unable to find main column(s): " + mainColumns);
             }
-
+            
             final List<String> measureFields = new ArrayList<>();
             if ("Profile".equals(observationType))   {
                 if (mainColumns.size() > 1) {
@@ -119,7 +122,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
                 measureFields.add(mainColumns.get(0));
             }
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
             if (obsPropIndexes.isEmpty()) {
                 throw new DataStoreException("No observed properties columns have been found in the headers: "+ obsPropColumns.stream().collect(Collectors.joining(", ", "[ ", " ]")));
             }
@@ -356,7 +359,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             final Set<String> measureFields = new HashSet<>();
 
             // used to fill measure Fields list
-            getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader);
+            getColumnIndexes(obsPropColumns, headers, measureFields, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
 
             return measureFields;
         } catch (IOException | InterruptedException ex) {
@@ -390,9 +393,9 @@ public class CsvObservationStore extends AbstractCsvStore {
             int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
            
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
+            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             

@@ -107,7 +107,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path errorUnitConvertDirectory;
     protected static Path errorUnitConvertFile1;
     protected static Path errorUnitConvertFile2;
-
+    
     protected static Path warningUomDirectory;
     protected static Path noLineDirectory;
     protected static Path multiFixedDirectory;
