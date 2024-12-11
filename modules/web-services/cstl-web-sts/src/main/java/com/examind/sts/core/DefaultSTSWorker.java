@@ -288,7 +288,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
         if (req.getFilter() != null) {
             try {
-                filters.add(ODataFilterParser.parseFilter(req.getFilter()));
+                filters.add(ODataFilterParser.parseFilter(subquery.getEntityType(), req.getFilter()));
             } catch (ODataParseException ex) {
                 throw new CstlServiceException(ex, INVALID_PARAMETER_VALUE, "FILTER");
             }

@@ -42,6 +42,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.OMEntity;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -67,15 +68,16 @@ public final class ODataFilterParser {
     private static final String RESULT_TIME = "resulttime";
     private static final String PHENOMENON_TIME = "phenomenontime";
     private static final String PROPERTIES = "properties";
+    private static final String ID = "id";
 
     private ODataFilterParser() {
     }
 
-    public static Expression<Feature,?> parseExpression(String odata) throws ODataParseException {
-        return parseExpression(odata, null);
+    public static Expression<Feature,?> parseExpression(OMEntity entityType, String odata) throws ODataParseException {
+        return parseExpression(entityType, odata, null);
     }
 
-    public static Expression<Feature,?> parseExpression(String odata, FilterFactory factory) throws ODataParseException {
+    public static Expression<Feature,?> parseExpression(OMEntity entityType, String odata, FilterFactory factory) throws ODataParseException {
         final Object obj = AntlrOData.compileExpression(odata);
         Expression<Feature,?> result = null;
         if (obj instanceof ExpressionContext) {
@@ -83,16 +85,16 @@ public final class ODataFilterParser {
             if (factory == null) {
                 factory = FilterUtilities.FF;
             }
-            result = convertExpression(tree, factory);
+            result = convertExpression(entityType, tree, factory);
         }
         return result;
     }
 
-    public static Filter<? super Feature> parseFilter(String odata) throws ODataParseException {
-        return parseFilter(odata, null);
+    public static Filter<? super Feature> parseFilter(OMEntity entityType, String odata) throws ODataParseException {
+        return parseFilter(entityType, odata, null);
     }
 
-    public static Filter<? super Feature> parseFilter(String odata, FilterFactory factory) throws ODataParseException {
+    public static Filter<? super Feature> parseFilter(OMEntity entityType, String odata, FilterFactory factory) throws ODataParseException {
         odata = odata.trim();
 
         // Bypass parsing for inclusive filter.
@@ -106,7 +108,7 @@ public final class ODataFilterParser {
             if (factory == null) {
                 factory = FilterUtilities.FF;
             }
-            result = convertFilter(tree, factory);
+            result = convertFilter(entityType, tree, factory);
         }
         return result;
     }
@@ -114,7 +116,7 @@ public final class ODataFilterParser {
     /**
      * Convert the given tree in an Expression.
      */
-    private static Expression<Feature,?> convertExpression(ParseTree tree, FilterFactory ff) throws ODataParseException {
+    private static Expression<Feature,?> convertExpression(OMEntity entityType, ParseTree tree, FilterFactory ff) throws ODataParseException {
         if (tree instanceof ExpressionContext) {
             //: expression MULT expression
             //| expression UNARY expression
@@ -122,8 +124,8 @@ public final class ODataFilterParser {
             if (tree.getChildCount() == 3) {
                 final String operand = tree.getChild(1).getText();
                 // TODO: unsafe cast.
-                final Expression<? super Feature, ? extends Number> left  = (Expression<? super Feature, ? extends Number>) convertExpression(tree.getChild(0), ff);
-                final Expression<? super Feature, ? extends Number> right = (Expression<? super Feature, ? extends Number>) convertExpression(tree.getChild(2), ff);
+                final Expression<? super Feature, ? extends Number> left  = (Expression<? super Feature, ? extends Number>) convertExpression(entityType, tree.getChild(0), ff);
+                final Expression<? super Feature, ? extends Number> right = (Expression<? super Feature, ? extends Number>) convertExpression(entityType, tree.getChild(2), ff);
                 if (" mul ".equals(operand)) {
                     return ff.multiply(left, right);
                 } else if (" div ".equals(operand)) {
@@ -134,7 +136,7 @@ public final class ODataFilterParser {
                     return ff.subtract(left, right);
                 }
             } else {
-                return convertExpression(tree.getChild(0), ff);
+                return convertExpression(entityType, tree.getChild(0), ff);
             }
         } //        else if(tree instanceof ExpressionStringContext){
         //            //strip start and end '
@@ -161,11 +163,11 @@ public final class ODataFilterParser {
             //| expressionGeometry
             final ExpressionTermContext exp = (ExpressionTermContext) tree;
             if (exp.getChildCount() == 1) {
-                return convertExpression(tree.getChild(0), ff);
+                return convertExpression(entityType, tree.getChild(0), ff);
             }
             // LPAREN expression RPAREN
             if (exp.expression() != null) {
-                return convertExpression(exp.expression(), ff);
+                return convertExpression(entityType, exp.expression(), ff);
             }
             // NAME (LPAREN expressionFctParam? RPAREN)?
             if (exp.NAME() != null) {
@@ -173,14 +175,14 @@ public final class ODataFilterParser {
                 final ExpressionFctParamContext prm = exp.expressionFctParam();
                 if (prm == null) {
                     //handle as property name
-                    String property = getSupportedProperties(name);
+                    String property = getSupportedProperties(entityType, name);
                     return ff.property(property);
                 }
                 // Handle as a function.
                 final List<ExpressionContext> params = prm.expression();
                 final List<Expression<Feature,?>> exps = new ArrayList<>();
                 for (int i = 0, n = params.size(); i < n; i++) {
-                    exps.add(convertExpression(params.get(i), ff));
+                    exps.add(convertExpression(entityType, params.get(i), ff));
                 }
                 return ff.function(name, exps.toArray(new Expression[exps.size()]));
             }
@@ -191,7 +193,7 @@ public final class ODataFilterParser {
 
         } else if (tree instanceof ExpressionNumContext) {
             //: INT | FLOAT ;
-            return convertExpression(tree.getChild(0), ff);
+            return convertExpression(entityType, tree.getChild(0), ff);
         } else if (tree instanceof TerminalNode) {
             final TerminalNode exp = (TerminalNode) tree;
             switch (exp.getSymbol().getType()) {
@@ -199,10 +201,10 @@ public final class ODataFilterParser {
                     // strip start and end "
                     String text = tree.getText();
                     text = text.substring(1, text.length() - 1);
-                    String property = getSupportedProperties(text);
+                    String property = getSupportedProperties(entityType, text);
                     return ff.property(property);
                 }
-                case NAME:  return ff.property(getSupportedProperties(tree.getText()));
+                case NAME:  return ff.property(getSupportedProperties(entityType, tree.getText()));
                 case INT:   return ff.literal(Integer.valueOf(tree.getText()));
                 case FLOAT: return ff.literal(Double.valueOf(tree.getText()));
                 case BOOL:  return ff.literal(Boolean.valueOf(tree.getText()));
@@ -218,7 +220,7 @@ public final class ODataFilterParser {
                     return ff.literal(text.substring(1, text.length() - 1));
                 }
             }
-            return convertExpression(tree.getChild(0), ff);
+            return convertExpression(entityType, tree.getChild(0), ff);
         }
         throw new ODataParseException("Unreconized expression : type=" + tree.getText());
     }
@@ -250,7 +252,7 @@ public final class ODataFilterParser {
     /**
      * Convert the given tree in a Filter.
      */
-    private static Filter<? super Feature> convertFilter(ParseTree tree, FilterFactory ff) throws ODataParseException {
+    private static Filter<? super Feature> convertFilter(OMEntity entityType, ParseTree tree, FilterFactory ff) throws ODataParseException {
         if (tree instanceof FilterContext) {
             //: filter (AND filter)+
             //| filter (OR filter)+
@@ -262,20 +264,20 @@ public final class ODataFilterParser {
 
             //| filterTerm
             if (exp.getChildCount() == 1) {
-                return convertFilter(tree.getChild(0), ff);
+                return convertFilter(entityType, tree.getChild(0), ff);
             } else if (exp.NOT() != null) {
                 //| NOT (filterTerm | ( LPAREN filter RPAREN ))
                 if (exp.filterTerm() != null) {
-                    return ff.not(convertFilter(exp.filterTerm(), ff));
+                    return ff.not(convertFilter(entityType, exp.filterTerm(), ff));
                 } else {
-                    return ff.not(convertFilter(exp.filter(0), ff));
+                    return ff.not(convertFilter(entityType, exp.filter(0), ff));
                 }
 
             } else if (!exp.AND().isEmpty()) {
                 //: filter (AND filter)+
                 final List<Filter<? super Feature>> subs = new ArrayList<>();
                 for (FilterContext f : exp.filter()) {
-                    final Filter<? super Feature> sub = convertFilter(f, ff);
+                    final Filter<? super Feature> sub = convertFilter(entityType, f, ff);
                     if (sub.getOperatorType() == LogicalOperatorName.AND) {
                         subs.addAll(((LogicalOperator<? super Feature>) sub).getOperands());
                     } else {
@@ -287,7 +289,7 @@ public final class ODataFilterParser {
                 //| filter (OR filter)+
                 final List<Filter<? super Feature>> subs = new ArrayList<>();
                 for (FilterContext f : exp.filter()) {
-                    final Filter<? super Feature> sub = convertFilter(f, ff);
+                    final Filter<? super Feature> sub = convertFilter(entityType, f, ff);
                     if (sub.getOperatorType() == LogicalOperatorName.OR) {
                         subs.addAll(((LogicalOperator<? super Feature>) sub).getOperands());
                     } else {
@@ -297,12 +299,12 @@ public final class ODataFilterParser {
                 return ff.or(subs);
             } else if (exp.LPAREN() != null) {
                 //| LPAREN filter RPAREN
-                return convertFilter(exp.filter(0), ff);
+                return convertFilter(entityType, exp.filter(0), ff);
             }
         } else if (tree instanceof FilterGeometryContext) {
             final FilterGeometryContext exp = (FilterGeometryContext) tree;
             if (exp.CONTAINS() != null) {
-                final Expression<Feature,?> exp1 = convertExpression(exp.expression(), ff);
+                final Expression<Feature,?> exp1 = convertExpression(entityType, exp.expression(), ff);
                 String geomStr = exp.TEXT().getText();
                 if (geomStr.startsWith("'")) {
                     geomStr = geomStr.substring(1);
@@ -352,8 +354,8 @@ public final class ODataFilterParser {
             if (exp.COMPARE() != null) {
                 // expression COMPARE expression
                 final String text = exp.COMPARE().getText();
-                final Expression<Feature,?> left  = convertExpression(exps.get(0), ff);
-                final Expression<Feature,?> right = convertExpression(exps.get(1), ff);
+                final Expression<Feature,?> left  = convertExpression(entityType, exps.get(0), ff);
+                final Expression<Feature,?> right = convertExpression(entityType, exps.get(1), ff);
                 if (" eq ".equals(text)) {
                     if (isTemporalProperty(left)) {
                         return ff.tequals(left, right);
@@ -384,12 +386,12 @@ public final class ODataFilterParser {
                 }
             } else if (exp.IN() != null) {
                 // expression NOT? IN LPAREN (expressionFctParam )?  RPAREN
-                final Expression<Feature,?> val = convertExpression(exps.get(0), ff);
+                final Expression<Feature,?> val = convertExpression(entityType, exps.get(0), ff);
                 final ExpressionFctParamContext prm = exp.expressionFctParam();
                 final List<ExpressionContext> params = prm.expression();
                 final List<Expression<Feature,?>> subexps = new ArrayList<>();
                 for (int i = 0, n = params.size(); i < n; i++) {
-                    subexps.add(convertExpression(params.get(i), ff));
+                    subexps.add(convertExpression(entityType, params.get(i), ff));
                 }
                 final int size = subexps.size();
                 final Filter<Feature> selection;
@@ -451,7 +453,7 @@ public final class ODataFilterParser {
         throw new ODataParseException("Error while parsing date value:" + str);
     }
 
-    private static String getSupportedProperties(String xPath) throws ODataParseException {
+    private static String getSupportedProperties(OMEntity entityType, String xPath) throws ODataParseException {
         String[] properties = xPath.split("/");
         String property;
         if (properties.length >= 2) {
@@ -479,6 +481,8 @@ public final class ODataFilterParser {
         }
         if ((property.startsWith(RESULT) || property.startsWith(PROPERTIES)) && !property.equalsIgnoreCase(RESULT_TIME)) {
             return property;
+        } else if (property.equals(ID)) {
+            property = entityType.getName();
         }
         return staToInternalName(property);
     }

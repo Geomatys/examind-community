@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.temporal.Temporal;
 import java.util.TimeZone;
 import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.geotoolkit.observation.model.OMEntity;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -65,7 +66,7 @@ public class ODataFilterParserTest {
     @Test
     public void parseFilterTest() throws Exception {
         String filterStr = "resultTime ge 2005-01-01T00:00:00Z";
-        Filter result = ODataFilterParser.parseFilter(filterStr);
+        Filter result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof TemporalOperator);
         TemporalOperator temp = (TemporalOperator) result;
         Assert.assertEquals(TemporalOperatorName.AFTER, temp.getOperatorType());
@@ -79,7 +80,7 @@ public class ODataFilterParserTest {
         Assert.assertEquals("2005-01-01T00:00:00Z", format(t));
 
         filterStr = "resultTime le 2005-01-01T00:00:00Z";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof TemporalOperator);
         temp = (TemporalOperator) result;
         Assert.assertEquals(TemporalOperatorName.BEFORE, temp.getOperatorType());
@@ -92,8 +93,8 @@ public class ODataFilterParserTest {
         t = TemporalUtilities.toTemporal(lit.getValue()).orElseThrow();
         Assert.assertEquals("2005-01-01T00:00:00Z", format(t));
 
-        filterStr = "Thing/Datastream/ObservedProperty/id eq 'temperature'";
-        result = ODataFilterParser.parseFilter(filterStr);
+        filterStr = "Datastream/ObservedProperty/id eq 'temperature'";
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
         Assert.assertTrue(result instanceof BinaryComparisonOperator);
         BinaryComparisonOperator comp = (BinaryComparisonOperator) result;
         Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
@@ -106,8 +107,8 @@ public class ODataFilterParserTest {
         String str = (String) lit.getValue();
         Assert.assertEquals("temperature", str);
 
-        filterStr = "Thing/Datastream/ObservedProperty/id eq 'temperature' or Thing/Datastream/ObservedProperty/id eq 'depth'";
-        result = ODataFilterParser.parseFilter(filterStr);
+        filterStr = "Datastream/ObservedProperty/id eq 'temperature' or Thing/Datastream/ObservedProperty/id eq 'depth'";
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
         LogicalOperator log = (LogicalOperator) result;
         Assert.assertEquals(LogicalOperatorName.OR, log.getOperatorType());
@@ -138,8 +139,8 @@ public class ODataFilterParserTest {
         Assert.assertEquals("depth", str);
 
 
-        filterStr = "Thing/Datastream/Observation/featureOfInterest/id eq 'station-006'";
-        result = ODataFilterParser.parseFilter(filterStr);
+        filterStr = "Datastream/Observation/featureOfInterest/id eq 'station-006'";
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
         Assert.assertTrue(result instanceof BinaryComparisonOperator);
         comp = (BinaryComparisonOperator) result;
         Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_EQUAL_TO, comp.getOperatorType());
@@ -152,8 +153,8 @@ public class ODataFilterParserTest {
         str = (String) lit.getValue();
         Assert.assertEquals("station-006", str);
 
-        filterStr = "Thing/Datastream/resultTime ge 2005-01-01T00:00:00.356Z and Thing/Datastream/resultTime le 2008-01-01T00:00:00.254Z";
-        result = ODataFilterParser.parseFilter(filterStr);
+        filterStr = "Datastream/resultTime ge 2005-01-01T00:00:00.356Z and Thing/Datastream/resultTime le 2008-01-01T00:00:00.254Z";
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
         log = (LogicalOperator) result;
         Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
@@ -185,7 +186,7 @@ public class ODataFilterParserTest {
 
 
         filterStr = "(time ge 2007-05-01T11:59:00Z and time le 2007-05-01T13:59:00Z) and ObservedProperty/id eq 'temperature'";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
         log = (LogicalOperator) result;
         Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
@@ -227,7 +228,7 @@ public class ODataFilterParserTest {
         Assert.assertEquals("temperature", str);
 
         filterStr = "(time ge 2007-05-01T08:59:00Z and time le 2007-05-01T19:59:00Z)";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
         log = (LogicalOperator) result;
         Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
@@ -256,7 +257,7 @@ public class ODataFilterParserTest {
         Assert.assertEquals("2007-05-01T19:59:00Z", format(t));
 
         filterStr = "(result le 6.55)";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof BinaryComparisonOperator);
         comp = (BinaryComparisonOperator) result;
         Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO, comp.getOperatorType());
@@ -270,7 +271,7 @@ public class ODataFilterParserTest {
         Assert.assertEquals(6.55, db, 0);
 
         filterStr = "(result[1] le 14.0)";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof BinaryComparisonOperator);
         comp = (BinaryComparisonOperator) result;
         Assert.assertEquals(ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO, comp.getOperatorType());
@@ -284,7 +285,7 @@ public class ODataFilterParserTest {
         Assert.assertEquals(14.0, db, 0);
 
         filterStr = "phenomenonTime ge 2000-11-01T00:00:00.000Z and phenomenonTime le 2012-12-23T00:00:00.000Z and (ObservedProperty/id eq 'temperature' or ObservedProperty/id eq 'salinity')";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.OBSERVATION, filterStr);
         Assert.assertTrue(result instanceof LogicalOperator);
         log = (LogicalOperator) result;
         Assert.assertEquals(LogicalOperatorName.AND, log.getOperatorType());
@@ -343,7 +344,7 @@ public class ODataFilterParserTest {
 
 
         filterStr = "st_contains(location, geography'POLYGON ((30 -3, 10 20, 20 40, 40 40, 30 -3))')";
-        result = ODataFilterParser.parseFilter(filterStr);
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
         Assert.assertTrue(result instanceof SpatialOperator);
         SpatialOperator spa = (SpatialOperator) result;
         Assert.assertEquals(SpatialOperatorName.BBOX, spa.getOperatorType());
