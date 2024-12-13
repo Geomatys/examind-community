@@ -562,6 +562,16 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "crs=CRS:84&bbox=-180,-90,180,90&"
             + "layers=" + OM2_LAYER + "&styles=";
     
+    private static final String WMS_GETMAP_130_NP_REQUEST_CQL_FILTER = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&BBOX=0.001,-0.002,0.005,0.003&"
+            + "layers=NamedPlaces&styles=&CQL_FILTER=FID%20%3D%20118";
+    
+    private static final String WMS_GETMAP_130_NP_REQUEST = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=1024&height=512&"
+            + "crs=CRS:84&BBOX=0.001,-0.002,0.005,0.003&"
+            + "layers=NamedPlaces&styles=";
+    
     private static boolean initialized = false;
 
     private static Path CONFIG_DIR;
@@ -2466,6 +2476,39 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         writeInFile(getMapUrl, p);
 
         System.out.println("");
+    }
+    
+    @Test
+    @Order(order = 29)
+    public void testWMSGetMapFeatureFilter() throws Exception {
+        initLayerList();
+        // Creates a valid GetLegendGraphic url.
+        URL getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_NP_REQUEST);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        Path p = CONFIG_DIR.resolve("NP-FULL.png");
+        writeInFile(getMapUrl, p);
+
+        // Creates a valid GetLegendGraphic url.
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_130_NP_REQUEST_CQL_FILTER);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(1024, image.getWidth());
+        assertEquals(512, image.getHeight());
+
+        p = CONFIG_DIR.resolve("NP-FILTER.png");
+        writeInFile(getMapUrl, p);
     }
 
     @Test
