@@ -28,11 +28,13 @@ import java.util.Objects;
 
 import static com.examind.community.storage.coverage.aggregation.GridAggregation.aggregateTimeSeries;
 import static com.examind.community.storage.coverage.aggregation.GridAggregation.resolveSourcesAndSetTime;
+import java.net.URI;
+import java.nio.file.Paths;
 
 public class LinearGridTimeSeries extends DataStoreProvider {
 
     public static final String NAME = "LinearGridTimeSeries";
-    public static final ParameterDescriptor<Path> CONF_PATH;
+    public static final ParameterDescriptor<URI> CONF_PATH;
     public static final ParameterDescriptorGroup OPEN_PARAMS;
     static {
         var builder = new ParameterBuilder();
@@ -40,7 +42,7 @@ public class LinearGridTimeSeries extends DataStoreProvider {
                 .addName(LOCATION)
                 .setDescription("Path to the time-series configuration file.")
                 .setRequired(true)
-                .create(Path.class, null);
+                .create(URI.class, null);
         OPEN_PARAMS = builder.addName("LinearGridTimeSeries").createGroup(CONF_PATH);
     }
 
@@ -61,7 +63,7 @@ public class LinearGridTimeSeries extends DataStoreProvider {
 
     @Override
     public DataStore open(StorageConnector storageConnector) throws DataStoreException {
-        var confFile = Objects.requireNonNull(storageConnector.getStorageAs(Path.class), "No configuration file provided (a java nio Path is expected)");
+        var confFile = Objects.requireNonNull(storageConnector.getStorageAs(URI.class), "No configuration file provided (a java nio URI is expected)");
         return open(confFile);
     }
 
@@ -71,7 +73,8 @@ public class LinearGridTimeSeries extends DataStoreProvider {
         return open(confFile);
     }
 
-    private DataStore open(Path confFile) throws DataStoreException {
+    private DataStore open(URI confUri) throws DataStoreException {
+        Path confFile = Paths.get(confUri);
         final Configuration conf = readConf(confFile);
         final Pair<List<DataStore>,List<Resource>> sources = resolveSourcesAndSetTime(conf);
         //TODO: use this instead of custom time-series, once (and only once) it's stable and work well for time-series management.
@@ -86,17 +89,6 @@ public class LinearGridTimeSeries extends DataStoreProvider {
         mapper.registerModule(new JavaTimeModule());
 
         FileSystem fs = confFile.getFileSystem();
-
-        //TODO: Find why /usr/local/tomcat/file: is added in ServerFile mode in the path (and remove this part when fixed)
-        String filePath = confFile.toString();
-        int separatorPos = filePath.indexOf(":");
-        String partAfterSeparator;
-        if (separatorPos != -1) {
-            partAfterSeparator = filePath.substring(separatorPos + 1);
-            confFile = fs.getPath(partAfterSeparator);
-        }
-        ///////////////
-
         Path confFileDir = confFile.getParent();
 
         SimpleModule module = new SimpleModule();
