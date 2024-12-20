@@ -51,15 +51,7 @@ import java.util.logging.Level;
 import com.examind.ogc.api.rest.common.dto.Collection;
 import com.examind.ogc.api.rest.common.dto.Extent;
 import com.examind.ogc.api.rest.common.dto.SpatialCRS;
-import com.examind.ogc.api.rest.coverages.dto.DataRecord;
-import com.examind.ogc.api.rest.coverages.dto.Axis;
-import com.examind.ogc.api.rest.coverages.dto.DataRecordField;
-import com.examind.ogc.api.rest.coverages.dto.DomainSet;
-import com.examind.ogc.api.rest.coverages.dto.EncodingInfo;
-import com.examind.ogc.api.rest.coverages.dto.GeneralGrid;
-import com.examind.ogc.api.rest.coverages.dto.GridLimits;
-import com.examind.ogc.api.rest.coverages.dto.IndexAxis;
-import com.examind.ogc.api.rest.coverages.dto.RegularAxis;
+import com.examind.ogc.api.rest.coverages.dto.*;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 
@@ -73,6 +65,7 @@ import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.coverage.grid.GridCoverageBuilder;
 import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.geometry.DirectPosition1D;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.ImageProcessor;
@@ -223,6 +216,7 @@ import org.geotoolkit.wcs.xml.v200.DimensionTrimType;
 import org.geotoolkit.wcs.xml.v200.ExtensionType;
 import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
 import org.opengis.coverage.grid.RectifiedGrid;
+import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.DimensionNameType;
@@ -1688,21 +1682,66 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             AxisDirection axisDirection = csa.getDirection();
             DimensionNameType axisType = readGg.getExtent().getAxisType(dimIdx).orElse(null);
 
+            double resolution = readGg.getResolution(false)[dimIdx];
             Object lower = readEnv.getLower(dimIdx);
             Object upper = readEnv.getUpper(dimIdx);
+            List<Object> coordinates = new ArrayList<>();
+
+            //NOTE :
+            //Now, we only manage irregular axis for time or vertical dimensions
+            //For other dimensions, we consider that the axis is regular (lat/lon)
+            //TODO : manage irregular axis for lat/lon dimensions
+
             if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || abbreviation.equals("time")) {
-                Instant[] instants = readGg.getTemporalExtent();
+                try {
+                    SortedSet<Date> dates;
+                    if (!Double.isNaN(resolution)) {
+                        dates = data.getDateRange();
+                    } else {
+                        dates = data.getAvailableTimes();
+                        for (Date date : dates) {
+                            coordinates.add(date.toInstant().atZone(ZoneOffset.UTC).format(dateFormat));
+                        }
+                    }
 
-                LocalDateTime dateTime = LocalDateTime.ofInstant(instants[0], ZoneOffset.UTC);
-                lower = dateTime.format(dateFormat);
+                    if (dates == null) {
+                        throw new CstlServiceException("No date range found for the coverage", NO_APPLICABLE_CODE);
+                    }
 
-                dateTime = LocalDateTime.ofInstant(instants[1], ZoneOffset.UTC);
-                upper = dateTime.format(dateFormat);
+                    Instant[] instants = new Instant[2];
+                    instants[0] = dates.first().toInstant();
+                    instants[1] = dates.last().toInstant();
+
+                    LocalDateTime dateTime = LocalDateTime.ofInstant(instants[0], ZoneOffset.UTC);
+                    lower = dateTime.format(dateFormat);
+
+                    dateTime = LocalDateTime.ofInstant(instants[1], ZoneOffset.UTC);
+                    upper = dateTime.format(dateFormat);
+
+                } catch (ConstellationStoreException e) {
+                    throw new CstlServiceException(e, NO_APPLICABLE_CODE);
+                }
+            } else if (axisType == DimensionNameType.VERTICAL || axisDirection == AxisDirection.UP) {
+                try {
+                    SortedSet<Number> elevations = data.getAvailableElevations();
+                    coordinates.addAll(elevations);
+                } catch (ConstellationStoreException e) {
+                    throw new CstlServiceException(e, NO_APPLICABLE_CODE);
+                }
             }
 
-            RegularAxis regularAxis = new RegularAxis(abbreviation, lower,
-                    upper, csa.getUnit().getName(), readGg.getResolution(true)[dimIdx]);
-            axisList.add(regularAxis);
+            //REGULAR AXIS
+            if (!Double.isNaN(resolution)) {
+
+                RegularAxis regularAxis = new RegularAxis(abbreviation, lower,
+                        upper, csa.getUnit().getName(), resolution);
+                axisList.add(regularAxis);
+            //IRREGULAR AXIS
+            } else {
+                IrregularAxis irregularAxis = new IrregularAxis(abbreviation, lower, upper, csa.getUnit().getName(), coordinates);
+                axisList.add(irregularAxis);
+            }
+
             try {
                 char letter = (char) (firstLetter + dimIdx);
                 String letterStr = String.valueOf(Character.valueOf(letter));
@@ -1897,16 +1936,51 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
     private GridGeometry getGridGeometry(CoverageData data, GeneralEnvelope env, double... resolution) throws CstlServiceException {
         try {
-            if (resolution == null || resolution.length < 1) return data.getGeometry().derive().subgrid(env).build();
-
             var base = data.getGeometry();
-            double [] targetResolution = base.getResolution(true);
-            for (int i = 0 ; i < resolution.length && i < targetResolution.length ; i++) {
-                var target = resolution[i];
-                if (Double.isFinite(target) && target > 0) targetResolution[i] = target;
+            GeneralEnvelope tempEnv = new GeneralEnvelope(env);
+            for (int i = 0 ; i < env.getDimension(); i++ ) {
+                if (env.getMinimum(i) == env.getMaximum(i)) {
+                    tempEnv.setRange(i, base.getEnvelope().getMinimum(i), base.getEnvelope().getMaximum(i));
+                }
             }
 
-            return base.derive().subgrid(env, targetResolution).build();
+            if (resolution == null || resolution.length < 1) {
+                base = base.derive().subgrid(tempEnv).build();
+            } else {
+                double [] targetResolution = base.getResolution(true);
+                for (int i = 0 ; i < resolution.length && i < targetResolution.length ; i++) {
+                    var target = resolution[i];
+                    if (Double.isFinite(target) && target > 0) targetResolution[i] = target;
+                }
+
+                base = base.derive().subgrid(tempEnv, targetResolution).build();
+            }
+
+            for (int i = 0 ; i < env.getDimension(); i++ ) {
+                if (env.getMinimum(i) == env.getMaximum(i)) {
+                    CoordinateSystemAxis csa = env.getCoordinateReferenceSystem().getCoordinateSystem().getAxis(i);
+                    DimensionNameType axisType = base.getExtent().getAxisType(i).orElse(null);
+                    AxisDirection axisDirection = csa.getDirection();
+
+                    CoordinateReferenceSystem crs;
+                    if (axisType == DimensionNameType.LINE || axisType == DimensionNameType.COLUMN) {
+                        crs = CRS.getHorizontalComponent(env.getCoordinateReferenceSystem());
+                    } else if (axisType == DimensionNameType.TIME || axisDirection == AxisDirection.FUTURE || csa.getAbbreviation().equalsIgnoreCase("time")) {
+                        crs = CRS.getTemporalComponent(env.getCoordinateReferenceSystem());
+                    } else if (axisType == DimensionNameType.VERTICAL || axisDirection == AxisDirection.UP) {
+                        crs = CRS.getVerticalComponent(env.getCoordinateReferenceSystem(), true);
+                    } else {
+                        crs = CRS.getComponentAt(env.getCoordinateReferenceSystem(), i, i + 1);
+                    }
+
+                    DirectPosition1D dp1d = new DirectPosition1D(crs);
+                    dp1d.coordinate = env.getMedian(i);
+
+                    base = base.derive().slice(dp1d).build();
+                }
+            }
+
+            return base;
         } catch (ConstellationStoreException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
