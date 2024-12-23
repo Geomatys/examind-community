@@ -1947,10 +1947,16 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             if (resolution == null || resolution.length < 1) {
                 base = base.derive().subgrid(tempEnv).build();
             } else {
-                double [] targetResolution = base.getResolution(true);
+                double [] targetResolution = base.getResolution(false);
                 for (int i = 0 ; i < resolution.length && i < targetResolution.length ; i++) {
                     var target = resolution[i];
-                    if (Double.isFinite(target) && target > 0) targetResolution[i] = target;
+                    if (Double.isFinite(target) && target > 0) targetResolution[i] = targetResolution[i] * target;
+                }
+
+                try {
+                    tempEnv = (GeneralEnvelope) Envelopes.transform(tempEnv, base.getCoordinateReferenceSystem());
+                } catch (TransformException ex) {
+                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
                 }
 
                 base = base.derive().subgrid(tempEnv, targetResolution).build();
