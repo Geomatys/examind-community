@@ -273,9 +273,9 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
                                    @RequestParam(name = "f", required = false, defaultValue = MimeType.IMAGE_TIFF) String format,
                                    @RequestParam(name = "properties", required = false) String properties,
                                    @RequestParam(name = "bbox", required = false) List<Double> bbox,
-                                   @RequestParam(name = "scaleFactor", required = false) Double scaleFactor,
-                                   @RequestParam(name = "scaleAxes", required = false) String scaleAxesQuery,
-                                   @RequestParam(name = "scaleSize", required = false) String scaleSizeQuery,
+                                   @RequestParam(name = "scale-factor", required = false) Double scaleFactor,
+                                   @RequestParam(name = "scale-axes", required = false) String scaleAxesQuery,
+                                   @RequestParam(name = "scale-size", required = false) String scaleSizeQuery,
                                    @RequestParam(name = "subset", required = false) String subset) throws ConstellationException {
 
         putServiceIdParam(serviceId);
