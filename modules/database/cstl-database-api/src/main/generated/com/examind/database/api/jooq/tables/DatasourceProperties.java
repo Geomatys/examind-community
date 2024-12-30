@@ -21,14 +21,13 @@ package com.examind.database.api.jooq.tables;
 
 import com.examind.database.api.jooq.Admin;
 import com.examind.database.api.jooq.Keys;
-import com.examind.database.api.jooq.tables.records.PermissionRecord;
+import com.examind.database.api.jooq.tables.records.DatasourcePropertiesRecord;
 
 import java.util.function.Function;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Function3;
-import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Records;
@@ -45,72 +44,74 @@ import org.jooq.impl.TableImpl;
 
 
 /**
- * Generated DAO object for table admin.permission
+ * Generated DAO object for table admin.datasource_properties
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
-public class Permission extends TableImpl<PermissionRecord> {
+public class DatasourceProperties extends TableImpl<DatasourcePropertiesRecord> {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>admin.permission</code>
+     * The reference instance of <code>admin.datasource_properties</code>
      */
-    public static final Permission PERMISSION = new Permission();
+    public static final DatasourceProperties DATASOURCE_PROPERTIES = new DatasourceProperties();
 
     /**
      * The class holding records for this type
      */
     @Override
-    public Class<PermissionRecord> getRecordType() {
-        return PermissionRecord.class;
+    public Class<DatasourcePropertiesRecord> getRecordType() {
+        return DatasourcePropertiesRecord.class;
     }
 
     /**
-     * The column <code>admin.permission.id</code>.
+     * The column <code>admin.datasource_properties.datasource_id</code>.
      */
-    public final TableField<PermissionRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
+    public final TableField<DatasourcePropertiesRecord, Integer> DATASOURCE_ID = createField(DSL.name("datasource_id"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>admin.permission.name</code>.
+     * The column <code>admin.datasource_properties.key</code>.
      */
-    public final TableField<PermissionRecord, String> NAME = createField(DSL.name("name"), SQLDataType.VARCHAR(32).nullable(false), this, "");
+    public final TableField<DatasourcePropertiesRecord, String> KEY = createField(DSL.name("key"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>admin.permission.description</code>.
+     * The column <code>admin.datasource_properties.value</code>.
      */
-    public final TableField<PermissionRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(512).nullable(false), this, "");
+    public final TableField<DatasourcePropertiesRecord, String> VALUE = createField(DSL.name("value"), SQLDataType.VARCHAR(500).nullable(false), this, "");
 
-    private Permission(Name alias, Table<PermissionRecord> aliased) {
+    private DatasourceProperties(Name alias, Table<DatasourcePropertiesRecord> aliased) {
         this(alias, aliased, null);
     }
 
-    private Permission(Name alias, Table<PermissionRecord> aliased, Field<?>[] parameters) {
+    private DatasourceProperties(Name alias, Table<DatasourcePropertiesRecord> aliased, Field<?>[] parameters) {
         super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
-     * Create an aliased <code>admin.permission</code> table reference
+     * Create an aliased <code>admin.datasource_properties</code> table
+     * reference
      */
-    public Permission(String alias) {
-        this(DSL.name(alias), PERMISSION);
+    public DatasourceProperties(String alias) {
+        this(DSL.name(alias), DATASOURCE_PROPERTIES);
     }
 
     /**
-     * Create an aliased <code>admin.permission</code> table reference
+     * Create an aliased <code>admin.datasource_properties</code> table
+     * reference
      */
-    public Permission(Name alias) {
-        this(alias, PERMISSION);
+    public DatasourceProperties(Name alias) {
+        this(alias, DATASOURCE_PROPERTIES);
     }
 
     /**
-     * Create a <code>admin.permission</code> table reference
+     * Create a <code>admin.datasource_properties</code> table reference
      */
-    public Permission() {
-        this(DSL.name("permission"), null);
+    public DatasourceProperties() {
+        this(DSL.name("datasource_properties"), null);
     }
 
-    public <O extends Record> Permission(Table<O> child, ForeignKey<O, PermissionRecord> key) {
-        super(child, key, PERMISSION);
+    public <O extends Record> DatasourceProperties(Table<O> child, ForeignKey<O, DatasourcePropertiesRecord> key) {
+        super(child, key, DATASOURCE_PROPERTIES);
     }
 
     @Override
@@ -119,52 +120,47 @@ public class Permission extends TableImpl<PermissionRecord> {
     }
 
     @Override
-    public Identity<PermissionRecord, Integer> getIdentity() {
-        return (Identity<PermissionRecord, Integer>) super.getIdentity();
+    public UniqueKey<DatasourcePropertiesRecord> getPrimaryKey() {
+        return Keys.DATASOURCE_PROPERTIES_PK;
     }
 
     @Override
-    public UniqueKey<PermissionRecord> getPrimaryKey() {
-        return Keys.PERMISSION_PK;
+    public DatasourceProperties as(String alias) {
+        return new DatasourceProperties(DSL.name(alias), this);
     }
 
     @Override
-    public Permission as(String alias) {
-        return new Permission(DSL.name(alias), this);
+    public DatasourceProperties as(Name alias) {
+        return new DatasourceProperties(alias, this);
     }
 
     @Override
-    public Permission as(Name alias) {
-        return new Permission(alias, this);
-    }
-
-    @Override
-    public Permission as(Table<?> alias) {
-        return new Permission(alias.getQualifiedName(), this);
+    public DatasourceProperties as(Table<?> alias) {
+        return new DatasourceProperties(alias.getQualifiedName(), this);
     }
 
     /**
      * Rename this table
      */
     @Override
-    public Permission rename(String name) {
-        return new Permission(DSL.name(name), null);
+    public DatasourceProperties rename(String name) {
+        return new DatasourceProperties(DSL.name(name), null);
     }
 
     /**
      * Rename this table
      */
     @Override
-    public Permission rename(Name name) {
-        return new Permission(name, null);
+    public DatasourceProperties rename(Name name) {
+        return new DatasourceProperties(name, null);
     }
 
     /**
      * Rename this table
      */
     @Override
-    public Permission rename(Table<?> name) {
-        return new Permission(name.getQualifiedName(), null);
+    public DatasourceProperties rename(Table<?> name) {
+        return new DatasourceProperties(name.getQualifiedName(), null);
     }
 
     // -------------------------------------------------------------------------

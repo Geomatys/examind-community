@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.internal_sensor
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class InternalSensorRecord extends UpdatableRecordImpl<InternalSensorRecord> implements Record3<Integer, String, String> {
 
     private static final long serialVersionUID = 1L;

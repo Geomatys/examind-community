@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.mapcontext
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class MapcontextRecord extends UpdatableRecordImpl<MapcontextRecord> implements Record10<Integer, String, Integer, String, String, Double, Double, Double, Double, String> {
 
     private static final long serialVersionUID = 1L;

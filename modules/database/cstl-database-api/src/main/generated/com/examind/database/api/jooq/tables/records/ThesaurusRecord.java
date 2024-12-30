@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.thesaurus
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ThesaurusRecord extends UpdatableRecordImpl<ThesaurusRecord> implements Record9<Integer, String, String, String, Long, Boolean, String, String, String> {
 
     private static final long serialVersionUID = 1L;

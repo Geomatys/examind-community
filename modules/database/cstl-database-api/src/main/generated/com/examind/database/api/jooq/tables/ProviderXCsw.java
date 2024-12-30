@@ -48,7 +48,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.provider_x_csw
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ProviderXCsw extends TableImpl<ProviderXCswRecord> {
 
     private static final long serialVersionUID = 1L;

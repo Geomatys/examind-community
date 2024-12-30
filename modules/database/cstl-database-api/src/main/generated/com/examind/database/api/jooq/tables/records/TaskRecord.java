@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.task
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class TaskRecord extends UpdatableRecordImpl<TaskRecord> implements Record10<String, String, String, Long, Long, Integer, String, Integer, Double, String> {
 
     private static final long serialVersionUID = 1L;

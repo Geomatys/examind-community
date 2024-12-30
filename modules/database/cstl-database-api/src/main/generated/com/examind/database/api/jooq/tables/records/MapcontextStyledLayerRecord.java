@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.mapcontext_styled_layer
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class MapcontextStyledLayerRecord extends UpdatableRecordImpl<MapcontextStyledLayerRecord> implements Record15<Integer, Integer, Integer, Integer, Integer, Integer, Boolean, String, String, String, String, String, Boolean, Integer, String> {
 
     private static final long serialVersionUID = 1L;

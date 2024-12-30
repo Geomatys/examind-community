@@ -52,7 +52,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.task_parameter
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class TaskParameter extends TableImpl<TaskParameterRecord> {
 
     private static final long serialVersionUID = 1L;

@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.crs
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class CrsRecord extends UpdatableRecordImpl<CrsRecord> implements Record2<Integer, String> {
 
     private static final long serialVersionUID = 1L;

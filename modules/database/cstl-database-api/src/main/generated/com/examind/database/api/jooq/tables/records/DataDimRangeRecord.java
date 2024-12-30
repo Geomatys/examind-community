@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.data_dim_range
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DataDimRangeRecord extends UpdatableRecordImpl<DataDimRangeRecord> implements Record6<Integer, Integer, Double, Double, String, String> {
 
     private static final long serialVersionUID = 1L;

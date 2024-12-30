@@ -29,7 +29,7 @@ import java.util.Arrays;
 /**
  * Generated DAO object for table admin.scene
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Scene implements Serializable {
 
     private static final long serialVersionUID = 1L;

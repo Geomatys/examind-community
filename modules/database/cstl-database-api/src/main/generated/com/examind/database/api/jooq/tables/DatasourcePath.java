@@ -49,7 +49,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.datasource_path
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DatasourcePath extends TableImpl<DatasourcePathRecord> {
 
     private static final long serialVersionUID = 1L;
@@ -201,7 +201,7 @@ public class DatasourcePath extends TableImpl<DatasourcePathRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row6<Integer, String, String, Boolean, String, Integer> fieldsRow() {
+    public Row6<Integer, String, String, Boolean, String, Long> fieldsRow() {
         return (Row6) super.fieldsRow();
     }
 

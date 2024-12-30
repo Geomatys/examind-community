@@ -18,6 +18,7 @@ import com.examind.database.api.jooq.tables.Dataset;
 import com.examind.database.api.jooq.tables.Datasource;
 import com.examind.database.api.jooq.tables.DatasourcePath;
 import com.examind.database.api.jooq.tables.DatasourcePathStore;
+import com.examind.database.api.jooq.tables.DatasourceProperties;
 import com.examind.database.api.jooq.tables.DatasourceSelectedPath;
 import com.examind.database.api.jooq.tables.DatasourceStore;
 import com.examind.database.api.jooq.tables.InternalMetadata;
@@ -66,6 +67,7 @@ import com.examind.database.api.jooq.tables.records.DataXDataRecord;
 import com.examind.database.api.jooq.tables.records.DatasetRecord;
 import com.examind.database.api.jooq.tables.records.DatasourcePathRecord;
 import com.examind.database.api.jooq.tables.records.DatasourcePathStoreRecord;
+import com.examind.database.api.jooq.tables.records.DatasourcePropertiesRecord;
 import com.examind.database.api.jooq.tables.records.DatasourceRecord;
 import com.examind.database.api.jooq.tables.records.DatasourceSelectedPathRecord;
 import com.examind.database.api.jooq.tables.records.DatasourceStoreRecord;
@@ -114,7 +116,7 @@ import org.jooq.impl.Internal;
  * A class modelling foreign key relationships and constraints of tables in
  * admin.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Keys {
 
     // -------------------------------------------------------------------------
@@ -138,6 +140,7 @@ public class Keys {
     public static final UniqueKey<DatasourceRecord> DATASOURCE_PK = Internal.createUniqueKey(Datasource.DATASOURCE, DSL.name("datasource_pk"), new TableField[] { Datasource.DATASOURCE.ID }, true);
     public static final UniqueKey<DatasourcePathRecord> DATASOURCE_PATH_PK = Internal.createUniqueKey(DatasourcePath.DATASOURCE_PATH, DSL.name("datasource_path_pk"), new TableField[] { DatasourcePath.DATASOURCE_PATH.DATASOURCE_ID, DatasourcePath.DATASOURCE_PATH.PATH }, true);
     public static final UniqueKey<DatasourcePathStoreRecord> DATASOURCE_PATH_STORE_PK = Internal.createUniqueKey(DatasourcePathStore.DATASOURCE_PATH_STORE, DSL.name("datasource_path_store_pk"), new TableField[] { DatasourcePathStore.DATASOURCE_PATH_STORE.DATASOURCE_ID, DatasourcePathStore.DATASOURCE_PATH_STORE.PATH, DatasourcePathStore.DATASOURCE_PATH_STORE.STORE, DatasourcePathStore.DATASOURCE_PATH_STORE.TYPE }, true);
+    public static final UniqueKey<DatasourcePropertiesRecord> DATASOURCE_PROPERTIES_PK = Internal.createUniqueKey(DatasourceProperties.DATASOURCE_PROPERTIES, DSL.name("datasource_properties_pk"), new TableField[] { DatasourceProperties.DATASOURCE_PROPERTIES.DATASOURCE_ID, DatasourceProperties.DATASOURCE_PROPERTIES.KEY }, true);
     public static final UniqueKey<DatasourceSelectedPathRecord> DATASOURCE_SELECTED_PATH_PK = Internal.createUniqueKey(DatasourceSelectedPath.DATASOURCE_SELECTED_PATH, DSL.name("datasource_selected_path_pk"), new TableField[] { DatasourceSelectedPath.DATASOURCE_SELECTED_PATH.DATASOURCE_ID, DatasourceSelectedPath.DATASOURCE_SELECTED_PATH.PATH }, true);
     public static final UniqueKey<DatasourceStoreRecord> DATASOURCE_STORE_PK = Internal.createUniqueKey(DatasourceStore.DATASOURCE_STORE, DSL.name("datasource_store_pk"), new TableField[] { DatasourceStore.DATASOURCE_STORE.DATASOURCE_ID, DatasourceStore.DATASOURCE_STORE.STORE, DatasourceStore.DATASOURCE_STORE.TYPE }, true);
     public static final UniqueKey<InternalMetadataRecord> INTERNAL_METADATA_PK = Internal.createUniqueKey(InternalMetadata.INTERNAL_METADATA, DSL.name("internal_metadata_pk"), new TableField[] { InternalMetadata.INTERNAL_METADATA.ID }, true);

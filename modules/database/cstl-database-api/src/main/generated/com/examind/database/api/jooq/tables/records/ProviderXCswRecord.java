@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.provider_x_csw
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ProviderXCswRecord extends UpdatableRecordImpl<ProviderXCswRecord> implements Record3<Integer, Integer, Boolean> {
 
     private static final long serialVersionUID = 1L;

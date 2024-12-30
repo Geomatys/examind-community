@@ -19,72 +19,72 @@
 package com.examind.database.api.jooq.tables.records;
 
 
-import com.examind.database.api.jooq.tables.Permission;
+import com.examind.database.api.jooq.tables.DatasourceProperties;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import org.jooq.Field;
-import org.jooq.Record1;
+import org.jooq.Record2;
 import org.jooq.Record3;
 import org.jooq.Row3;
 import org.jooq.impl.UpdatableRecordImpl;
 
 
 /**
- * Generated DAO object for table admin.permission
+ * Generated DAO object for table admin.datasource_properties
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
-public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> implements Record3<Integer, String, String> {
+public class DatasourcePropertiesRecord extends UpdatableRecordImpl<DatasourcePropertiesRecord> implements Record3<Integer, String, String> {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>admin.permission.id</code>.
+     * Setter for <code>admin.datasource_properties.datasource_id</code>.
      */
-    public PermissionRecord setId(Integer value) {
+    public DatasourcePropertiesRecord setDatasourceId(Integer value) {
         set(0, value);
         return this;
     }
 
     /**
-     * Getter for <code>admin.permission.id</code>.
+     * Getter for <code>admin.datasource_properties.datasource_id</code>.
      */
-    public Integer getId() {
+    @NotNull
+    public Integer getDatasourceId() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>admin.permission.name</code>.
+     * Setter for <code>admin.datasource_properties.key</code>.
      */
-    public PermissionRecord setName(String value) {
+    public DatasourcePropertiesRecord setKey(String value) {
         set(1, value);
         return this;
     }
 
     /**
-     * Getter for <code>admin.permission.name</code>.
+     * Getter for <code>admin.datasource_properties.key</code>.
      */
     @NotNull
-    @Size(max = 32)
-    public String getName() {
+    public String getKey() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>admin.permission.description</code>.
+     * Setter for <code>admin.datasource_properties.value</code>.
      */
-    public PermissionRecord setDescription(String value) {
+    public DatasourcePropertiesRecord setValue(String value) {
         set(2, value);
         return this;
     }
 
     /**
-     * Getter for <code>admin.permission.description</code>.
+     * Getter for <code>admin.datasource_properties.value</code>.
      */
     @NotNull
-    @Size(max = 512)
-    public String getDescription() {
+    @Size(max = 500)
+    public String getValue() {
         return (String) get(2);
     }
 
@@ -93,8 +93,8 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
     // -------------------------------------------------------------------------
 
     @Override
-    public Record1<Integer> key() {
-        return (Record1) super.key();
+    public Record2<Integer, String> key() {
+        return (Record2) super.key();
     }
 
     // -------------------------------------------------------------------------
@@ -113,69 +113,69 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
 
     @Override
     public Field<Integer> field1() {
-        return Permission.PERMISSION.ID;
+        return DatasourceProperties.DATASOURCE_PROPERTIES.DATASOURCE_ID;
     }
 
     @Override
     public Field<String> field2() {
-        return Permission.PERMISSION.NAME;
+        return DatasourceProperties.DATASOURCE_PROPERTIES.KEY;
     }
 
     @Override
     public Field<String> field3() {
-        return Permission.PERMISSION.DESCRIPTION;
+        return DatasourceProperties.DATASOURCE_PROPERTIES.VALUE;
     }
 
     @Override
     public Integer component1() {
-        return getId();
+        return getDatasourceId();
     }
 
     @Override
     public String component2() {
-        return getName();
+        return getKey();
     }
 
     @Override
     public String component3() {
-        return getDescription();
+        return getValue();
     }
 
     @Override
     public Integer value1() {
-        return getId();
+        return getDatasourceId();
     }
 
     @Override
     public String value2() {
-        return getName();
+        return getKey();
     }
 
     @Override
     public String value3() {
-        return getDescription();
+        return getValue();
     }
 
     @Override
-    public PermissionRecord value1(Integer value) {
-        setId(value);
+    public DatasourcePropertiesRecord value1(Integer value) {
+        setDatasourceId(value);
         return this;
     }
 
     @Override
-    public PermissionRecord value2(String value) {
-        setName(value);
+    public DatasourcePropertiesRecord value2(String value) {
+        setKey(value);
         return this;
     }
 
     @Override
-    public PermissionRecord value3(String value) {
-        setDescription(value);
+    public DatasourcePropertiesRecord value3(String value) {
+        setValue(value);
         return this;
     }
 
     @Override
-    public PermissionRecord values(Integer value1, String value2, String value3) {
+    public DatasourcePropertiesRecord values(Integer value1, String value2, String value3) {
         value1(value1);
         value2(value2);
         value3(value3);
@@ -187,34 +187,34 @@ public class PermissionRecord extends UpdatableRecordImpl<PermissionRecord> impl
     // -------------------------------------------------------------------------
 
     /**
-     * Create a detached PermissionRecord
+     * Create a detached DatasourcePropertiesRecord
      */
-    public PermissionRecord() {
-        super(Permission.PERMISSION);
+    public DatasourcePropertiesRecord() {
+        super(DatasourceProperties.DATASOURCE_PROPERTIES);
     }
 
     /**
-     * Create a detached, initialised PermissionRecord
+     * Create a detached, initialised DatasourcePropertiesRecord
      */
-    public PermissionRecord(Integer id, String name, String description) {
-        super(Permission.PERMISSION);
+    public DatasourcePropertiesRecord(Integer datasourceId, String key, String value) {
+        super(DatasourceProperties.DATASOURCE_PROPERTIES);
 
-        setId(id);
-        setName(name);
-        setDescription(description);
+        setDatasourceId(datasourceId);
+        setKey(key);
+        setValue(value);
         resetChangedOnNotNull();
     }
 
     /**
-     * Create a detached, initialised PermissionRecord
+     * Create a detached, initialised DatasourcePropertiesRecord
      */
-    public PermissionRecord(com.examind.database.api.jooq.tables.pojos.Permission value) {
-        super(Permission.PERMISSION);
+    public DatasourcePropertiesRecord(com.examind.database.api.jooq.tables.pojos.DatasourceProperties value) {
+        super(DatasourceProperties.DATASOURCE_PROPERTIES);
 
         if (value != null) {
-            setId(value.getId());
-            setName(value.getName());
-            setDescription(value.getDescription());
+            setDatasourceId(value.getDatasourceId());
+            setKey(value.getKey());
+            setValue(value.getValue());
             resetChangedOnNotNull();
         }
     }

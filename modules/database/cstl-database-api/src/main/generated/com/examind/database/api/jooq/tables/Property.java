@@ -46,7 +46,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.property
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Property extends TableImpl<PropertyRecord> {
 
     private static final long serialVersionUID = 1L;

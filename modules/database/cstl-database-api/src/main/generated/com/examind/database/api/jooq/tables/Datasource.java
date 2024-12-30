@@ -47,7 +47,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.datasource
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Datasource extends TableImpl<DatasourceRecord> {
 
     private static final long serialVersionUID = 1L;

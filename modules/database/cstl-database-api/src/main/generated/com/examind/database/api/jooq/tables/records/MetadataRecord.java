@@ -31,7 +31,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.metadata
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class MetadataRecord extends UpdatableRecordImpl<MetadataRecord> {
 
     private static final long serialVersionUID = 1L;

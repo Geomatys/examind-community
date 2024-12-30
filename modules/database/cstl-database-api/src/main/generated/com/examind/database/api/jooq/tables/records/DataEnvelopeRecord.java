@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.data_envelope
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DataEnvelopeRecord extends UpdatableRecordImpl<DataEnvelopeRecord> implements Record4<Integer, Integer, Double, Double> {
 
     private static final long serialVersionUID = 1L;

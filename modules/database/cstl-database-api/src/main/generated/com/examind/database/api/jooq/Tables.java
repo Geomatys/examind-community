@@ -18,6 +18,7 @@ import com.examind.database.api.jooq.tables.Dataset;
 import com.examind.database.api.jooq.tables.Datasource;
 import com.examind.database.api.jooq.tables.DatasourcePath;
 import com.examind.database.api.jooq.tables.DatasourcePathStore;
+import com.examind.database.api.jooq.tables.DatasourceProperties;
 import com.examind.database.api.jooq.tables.DatasourceSelectedPath;
 import com.examind.database.api.jooq.tables.DatasourceStore;
 import com.examind.database.api.jooq.tables.InternalMetadata;
@@ -58,7 +59,7 @@ import com.examind.database.api.jooq.tables.UserXRole;
 /**
  * Convenience access to all tables in admin.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Tables {
 
     /**
@@ -130,6 +131,11 @@ public class Tables {
      * The table <code>admin.datasource_path_store</code>.
      */
     public static final DatasourcePathStore DATASOURCE_PATH_STORE = DatasourcePathStore.DATASOURCE_PATH_STORE;
+
+    /**
+     * The table <code>admin.datasource_properties</code>.
+     */
+    public static final DatasourceProperties DATASOURCE_PROPERTIES = DatasourceProperties.DATASOURCE_PROPERTIES;
 
     /**
      * The table <code>admin.datasource_selected_path</code>.

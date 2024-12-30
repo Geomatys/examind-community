@@ -49,7 +49,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.datasource_path_store
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DatasourcePathStore extends TableImpl<DatasourcePathStoreRecord> {
 
     private static final long serialVersionUID = 1L;

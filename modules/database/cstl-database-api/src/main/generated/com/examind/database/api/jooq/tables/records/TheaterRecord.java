@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.theater
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class TheaterRecord extends UpdatableRecordImpl<TheaterRecord> implements Record5<Integer, String, Integer, Integer, String> {
 
     private static final long serialVersionUID = 1L;

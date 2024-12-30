@@ -32,7 +32,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.sensored_data
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class SensoredDataRecord extends UpdatableRecordImpl<SensoredDataRecord> implements Record2<Integer, Integer> {
 
     private static final long serialVersionUID = 1L;

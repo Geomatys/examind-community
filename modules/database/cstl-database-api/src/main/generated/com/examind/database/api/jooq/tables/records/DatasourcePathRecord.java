@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.datasource_path
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DatasourcePathRecord extends UpdatableRecordImpl<DatasourcePathRecord> implements Record6<Integer, String, String, Boolean, String, Long> {
 
     private static final long serialVersionUID = 1L;

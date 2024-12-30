@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.service_extra_config
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ServiceExtraConfigRecord extends UpdatableRecordImpl<ServiceExtraConfigRecord> implements Record3<Integer, String, String> {
 
     private static final long serialVersionUID = 1L;

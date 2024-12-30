@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.datasource
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DatasourceRecord extends UpdatableRecordImpl<DatasourceRecord> implements Record11<Integer, String, String, String, String, String, Boolean, Long, String, String, Boolean> {
 
     private static final long serialVersionUID = 1L;

@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.cstl_user
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class CstlUserRecord extends UpdatableRecordImpl<CstlUserRecord> implements Record18<Integer, String, String, String, String, String, Boolean, String, String, String, String, String, String, String, String, String, String, String> {
 
     private static final long serialVersionUID = 1L;

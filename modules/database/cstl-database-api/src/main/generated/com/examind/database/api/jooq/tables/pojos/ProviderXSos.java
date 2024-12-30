@@ -27,7 +27,7 @@ import java.io.Serializable;
 /**
  * Generated DAO object for table admin.provider_x_sos
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ProviderXSos implements Serializable {
 
     private static final long serialVersionUID = 1L;

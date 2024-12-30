@@ -32,7 +32,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Generated DAO object for table admin.thesaurus_x_service
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ThesaurusXServiceRecord extends TableRecordImpl<ThesaurusXServiceRecord> implements Record2<Integer, Integer> {
 
     private static final long serialVersionUID = 1L;

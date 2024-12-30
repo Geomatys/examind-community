@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.attachment
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class AttachmentRecord extends UpdatableRecordImpl<AttachmentRecord> implements Record4<Integer, byte[], String, String> {
 
     private static final long serialVersionUID = 1L;

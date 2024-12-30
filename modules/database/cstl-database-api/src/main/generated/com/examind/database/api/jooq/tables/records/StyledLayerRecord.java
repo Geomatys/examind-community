@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.styled_layer
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class StyledLayerRecord extends UpdatableRecordImpl<StyledLayerRecord> implements Record6<Integer, Integer, Boolean, String, String, Boolean> {
 
     private static final long serialVersionUID = 1L;

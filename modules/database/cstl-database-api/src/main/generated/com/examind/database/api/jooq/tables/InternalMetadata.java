@@ -50,7 +50,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.internal_metadata
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class InternalMetadata extends TableImpl<InternalMetadataRecord> {
 
     private static final long serialVersionUID = 1L;

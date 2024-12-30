@@ -33,7 +33,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.user_x_role
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class UserXRoleRecord extends UpdatableRecordImpl<UserXRoleRecord> implements Record2<Integer, String> {
 
     private static final long serialVersionUID = 1L;

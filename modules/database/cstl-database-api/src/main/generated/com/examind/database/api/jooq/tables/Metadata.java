@@ -44,7 +44,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.metadata
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Metadata extends TableImpl<MetadataRecord> {
 
     private static final long serialVersionUID = 1L;

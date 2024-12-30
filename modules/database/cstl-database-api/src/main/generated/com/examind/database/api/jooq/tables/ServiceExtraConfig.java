@@ -50,7 +50,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.service_extra_config
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ServiceExtraConfig extends TableImpl<ServiceExtraConfigRecord> {
 
     private static final long serialVersionUID = 1L;

@@ -48,7 +48,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.metadata_x_attachment
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class MetadataXAttachment extends TableImpl<MetadataXAttachmentRecord> {
 
     private static final long serialVersionUID = 1L;

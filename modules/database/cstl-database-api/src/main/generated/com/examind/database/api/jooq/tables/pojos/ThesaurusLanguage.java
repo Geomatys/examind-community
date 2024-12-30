@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * Generated DAO object for table admin.thesaurus_language
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ThesaurusLanguage implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -28,7 +28,7 @@ import java.util.Arrays;
 /**
  * Generated DAO object for table admin.attachment
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Attachment implements Serializable {
 
     private static final long serialVersionUID = 1L;

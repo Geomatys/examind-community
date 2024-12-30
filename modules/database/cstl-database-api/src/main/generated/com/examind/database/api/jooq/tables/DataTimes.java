@@ -48,7 +48,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.data_times
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DataTimes extends TableImpl<DataTimesRecord> {
 
     private static final long serialVersionUID = 1L;

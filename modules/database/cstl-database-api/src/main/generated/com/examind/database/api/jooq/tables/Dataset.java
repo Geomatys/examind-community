@@ -51,7 +51,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.dataset
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Dataset extends TableImpl<DatasetRecord> {
 
     private static final long serialVersionUID = 1L;

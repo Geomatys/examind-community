@@ -49,7 +49,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.internal_sensor
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class InternalSensor extends TableImpl<InternalSensorRecord> {
 
     private static final long serialVersionUID = 1L;

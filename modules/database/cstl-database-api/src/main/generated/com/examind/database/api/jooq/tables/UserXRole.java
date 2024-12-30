@@ -50,7 +50,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.user_x_role
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class UserXRole extends TableImpl<UserXRoleRecord> {
 
     private static final long serialVersionUID = 1L;

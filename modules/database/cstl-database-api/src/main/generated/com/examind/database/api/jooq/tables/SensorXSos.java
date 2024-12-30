@@ -48,7 +48,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.sensor_x_sos
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class SensorXSos extends TableImpl<SensorXSosRecord> {
 
     private static final long serialVersionUID = 1L;

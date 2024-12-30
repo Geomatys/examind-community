@@ -26,37 +26,37 @@ import java.io.Serializable;
 
 
 /**
- * Generated DAO object for table admin.datasource_store
+ * Generated DAO object for table admin.datasource_properties
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
-public class DatasourceStore implements Serializable {
+public class DatasourceProperties implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     private Integer datasourceId;
-    private String store;
-    private String type;
+    private String key;
+    private String value;
 
-    public DatasourceStore() {}
+    public DatasourceProperties() {}
 
-    public DatasourceStore(DatasourceStore value) {
+    public DatasourceProperties(DatasourceProperties value) {
         this.datasourceId = value.datasourceId;
-        this.store = value.store;
-        this.type = value.type;
+        this.key = value.key;
+        this.value = value.value;
     }
 
-    public DatasourceStore(
+    public DatasourceProperties(
         Integer datasourceId,
-        String store,
-        String type
+        String key,
+        String value
     ) {
         this.datasourceId = datasourceId;
-        this.store = store;
-        this.type = type;
+        this.key = key;
+        this.value = value;
     }
 
     /**
-     * Getter for <code>admin.datasource_store.datasource_id</code>.
+     * Getter for <code>admin.datasource_properties.datasource_id</code>.
      */
     @NotNull
     public Integer getDatasourceId() {
@@ -64,43 +64,43 @@ public class DatasourceStore implements Serializable {
     }
 
     /**
-     * Setter for <code>admin.datasource_store.datasource_id</code>.
+     * Setter for <code>admin.datasource_properties.datasource_id</code>.
      */
-    public DatasourceStore setDatasourceId(Integer datasourceId) {
+    public DatasourceProperties setDatasourceId(Integer datasourceId) {
         this.datasourceId = datasourceId;
         return this;
     }
 
     /**
-     * Getter for <code>admin.datasource_store.store</code>.
+     * Getter for <code>admin.datasource_properties.key</code>.
      */
     @NotNull
-    @Size(max = 500)
-    public String getStore() {
-        return this.store;
+    public String getKey() {
+        return this.key;
     }
 
     /**
-     * Setter for <code>admin.datasource_store.store</code>.
+     * Setter for <code>admin.datasource_properties.key</code>.
      */
-    public DatasourceStore setStore(String store) {
-        this.store = store;
+    public DatasourceProperties setKey(String key) {
+        this.key = key;
         return this;
     }
 
     /**
-     * Getter for <code>admin.datasource_store.type</code>.
+     * Getter for <code>admin.datasource_properties.value</code>.
      */
     @NotNull
-    public String getType() {
-        return this.type;
+    @Size(max = 500)
+    public String getValue() {
+        return this.value;
     }
 
     /**
-     * Setter for <code>admin.datasource_store.type</code>.
+     * Setter for <code>admin.datasource_properties.value</code>.
      */
-    public DatasourceStore setType(String type) {
-        this.type = type;
+    public DatasourceProperties setValue(String value) {
+        this.value = value;
         return this;
     }
 
@@ -112,24 +112,24 @@ public class DatasourceStore implements Serializable {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        final DatasourceStore other = (DatasourceStore) obj;
+        final DatasourceProperties other = (DatasourceProperties) obj;
         if (this.datasourceId == null) {
             if (other.datasourceId != null)
                 return false;
         }
         else if (!this.datasourceId.equals(other.datasourceId))
             return false;
-        if (this.store == null) {
-            if (other.store != null)
+        if (this.key == null) {
+            if (other.key != null)
                 return false;
         }
-        else if (!this.store.equals(other.store))
+        else if (!this.key.equals(other.key))
             return false;
-        if (this.type == null) {
-            if (other.type != null)
+        if (this.value == null) {
+            if (other.value != null)
                 return false;
         }
-        else if (!this.type.equals(other.type))
+        else if (!this.value.equals(other.value))
             return false;
         return true;
     }
@@ -139,18 +139,18 @@ public class DatasourceStore implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.datasourceId == null) ? 0 : this.datasourceId.hashCode());
-        result = prime * result + ((this.store == null) ? 0 : this.store.hashCode());
-        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
+        result = prime * result + ((this.key == null) ? 0 : this.key.hashCode());
+        result = prime * result + ((this.value == null) ? 0 : this.value.hashCode());
         return result;
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("DatasourceStore (");
+        StringBuilder sb = new StringBuilder("DatasourceProperties (");
 
         sb.append(datasourceId);
-        sb.append(", ").append(store);
-        sb.append(", ").append(type);
+        sb.append(", ").append(key);
+        sb.append(", ").append(value);
 
         sb.append(")");
         return sb.toString();

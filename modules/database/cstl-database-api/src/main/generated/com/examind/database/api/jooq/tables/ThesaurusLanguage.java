@@ -48,7 +48,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.thesaurus_language
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ThesaurusLanguage extends TableImpl<ThesaurusLanguageRecord> {
 
     private static final long serialVersionUID = 1L;

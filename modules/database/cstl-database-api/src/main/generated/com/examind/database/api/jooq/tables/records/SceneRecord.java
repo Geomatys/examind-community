@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.scene
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class SceneRecord extends UpdatableRecordImpl<SceneRecord> implements Record20<Integer, String, Integer, Integer, Integer, String, Integer[], String, Double, String, Long, Integer, Integer, Double, Double, Double, Double, String, String, Double> {
 
     private static final long serialVersionUID = 1L;

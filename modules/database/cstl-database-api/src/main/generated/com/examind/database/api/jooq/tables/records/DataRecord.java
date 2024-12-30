@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.data
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DataRecord extends UpdatableRecordImpl<DataRecord> implements Record22<Integer, String, String, Integer, String, String, Boolean, Boolean, Long, Integer, String, Integer, String, String, Boolean, String, Boolean, Boolean, Boolean, Boolean, Boolean, String> {
 
     private static final long serialVersionUID = 1L;

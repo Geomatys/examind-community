@@ -32,7 +32,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.metadata_bbox
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class MetadataBboxRecord extends UpdatableRecordImpl<MetadataBboxRecord> implements Record5<Integer, Double, Double, Double, Double> {
 
     private static final long serialVersionUID = 1L;

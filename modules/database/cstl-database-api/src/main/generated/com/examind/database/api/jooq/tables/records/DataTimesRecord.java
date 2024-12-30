@@ -32,7 +32,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.data_times
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class DataTimesRecord extends UpdatableRecordImpl<DataTimesRecord> implements Record2<Integer, Long> {
 
     private static final long serialVersionUID = 1L;

@@ -32,7 +32,7 @@ import org.jooq.impl.TableRecordImpl;
 /**
  * Generated DAO object for table admin.provider_x_sos
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class ProviderXSosRecord extends TableRecordImpl<ProviderXSosRecord> implements Record3<Integer, Integer, Boolean> {
 
     private static final long serialVersionUID = 1L;

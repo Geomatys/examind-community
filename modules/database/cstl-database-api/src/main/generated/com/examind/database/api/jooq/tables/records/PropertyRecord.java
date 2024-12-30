@@ -34,7 +34,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 /**
  * Generated DAO object for table admin.property
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class PropertyRecord extends UpdatableRecordImpl<PropertyRecord> implements Record2<String, String> {
 
     private static final long serialVersionUID = 1L;

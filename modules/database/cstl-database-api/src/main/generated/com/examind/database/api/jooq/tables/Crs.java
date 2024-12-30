@@ -50,7 +50,7 @@ import org.jooq.impl.TableImpl;
 /**
  * Generated DAO object for table admin.crs
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Crs extends TableImpl<CrsRecord> {
 
     private static final long serialVersionUID = 1L;
