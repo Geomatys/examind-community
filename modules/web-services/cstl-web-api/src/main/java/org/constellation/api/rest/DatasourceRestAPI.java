@@ -306,7 +306,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
             }
 
             // 3. record the new datasource
-            DataSource ds = new DataSource(null, "local_files", dsDirectory.toUri().toString(), userName, pwd, null, false, System.currentTimeMillis(), "NOT_STARTED", null, false);
+            DataSource ds = new DataSource(null, "local_files", dsDirectory.toUri().toString(), userName, pwd, null, false, System.currentTimeMillis(), "NOT_STARTED", null, false, Map.of());
             return new ResponseEntity(datasourceBusiness.create(ds), OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

@@ -98,7 +98,7 @@ public class ImportDataAuto extends AbstractCstlProcess {
             final boolean permanent    = false; // we don't keep the datasource in this process.
             final String datasourceURL = dataPath.toUri().toString();
             final String scheme        = dataPath.toUri().getScheme();
-            final DataSource ds        = new DataSource(null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), IDatasourceBusiness.AnalysisState.NOT_STARTED.name(), null, permanent);
+            final DataSource ds        = new DataSource(null, scheme, datasourceURL, null, null, null, remoteFile, System.currentTimeMillis(), IDatasourceBusiness.AnalysisState.NOT_STARTED.name(), null, permanent, Map.of());
             datasourceId               = datasourceBusiness.create(ds);
 
             /**

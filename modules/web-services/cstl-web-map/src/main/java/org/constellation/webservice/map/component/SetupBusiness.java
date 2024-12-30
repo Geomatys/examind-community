@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -238,7 +239,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         String pwd   = infos[2];
         List<DataSource> datasources = datasourceBusiness.search(dbUrl, "NULL", "NULL", user, pwd);
         if (datasources.isEmpty()) {
-            DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true);
+            DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
             datasourceBusiness.create(ds);
         }
     }

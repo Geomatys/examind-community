@@ -30,6 +30,7 @@ import static com.examind.database.api.jooq.Tables.DATASOURCE_PATH;
 import static com.examind.database.api.jooq.Tables.DATASOURCE;
 import static com.examind.database.api.jooq.Tables.DATASOURCE_STORE;
 import static com.examind.database.api.jooq.Tables.DATASOURCE_SELECTED_PATH;
+import static com.examind.database.api.jooq.Tables.DATASOURCE_PROPERTIES;
 import com.examind.database.api.jooq.tables.pojos.DatasourcePathStore;
 import com.examind.database.api.jooq.tables.pojos.DatasourceSelectedPath;
 import org.constellation.dto.DataSource;
@@ -41,8 +42,6 @@ import com.examind.database.api.jooq.tables.pojos.DatasourcePath;
 import com.examind.database.api.jooq.tables.pojos.DatasourceStore;
 import com.examind.database.api.jooq.tables.records.DatasourcePathRecord;
 import com.examind.database.api.jooq.tables.records.DatasourceRecord;
-import org.constellation.business.IDatasourceBusiness;
-import org.constellation.business.IDatasourceBusiness.PathStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,12 +109,23 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
         DatasourceRecord newRecord = dsl.newRecord(DATASOURCE);
         newRecord.from(datasource);
         newRecord.store();
-        return newRecord.into(Datasource.class).getId();
+        int id = newRecord.into(Datasource.class).getId();
+        if (datasource.getProperties() != null) {
+            for (Entry<String, String> entry : datasource.getProperties().entrySet()) {
+                dsl.insertInto(DATASOURCE_PROPERTIES)
+                   .set(DATASOURCE_PROPERTIES.DATASOURCE_ID, id)
+                   .set(DATASOURCE_PROPERTIES.KEY, entry.getKey())
+                   .set(DATASOURCE_PROPERTIES.VALUE, entry.getValue())
+                   .execute();
+            }
+        }
+        return id;
     }
 
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public int delete(Integer id) {
+        dsl.delete(DATASOURCE_PROPERTIES).where(DATASOURCE_PROPERTIES.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_SELECTED_PATH).where(DATASOURCE_SELECTED_PATH.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_PATH_STORE).where(DATASOURCE_PATH_STORE.DATASOURCE_ID.eq(id)).execute();
         dsl.delete(DATASOURCE_PATH).where(DATASOURCE_PATH.DATASOURCE_ID.eq(id)).execute();
@@ -423,6 +433,15 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
            .execute();
     }
 
+    private Map<String, String> getDatasourceProperties(int dsId) {
+        Map<String, String> results = new HashMap<>();
+        dsl.select(DATASOURCE_PROPERTIES.KEY, DATASOURCE_PROPERTIES.VALUE)
+           .from(DATASOURCE_PROPERTIES)
+           .where(DATASOURCE_PROPERTIES.DATASOURCE_ID.eq(dsId))
+           .fetch().stream().forEach(r -> results.put(r.get(DATASOURCE_PROPERTIES.KEY), r.get(DATASOURCE_PROPERTIES.VALUE)));
+        return results;
+    }
+    
     private DataSource convertToDto(Datasource ds) {
         if (ds != null) {
             DataSource dto = new DataSource();
@@ -437,6 +456,7 @@ public class JooqDatasourceRepository extends AbstractJooqRespository<Datasource
             dto.setUrl(ds.getUrl());
             dto.setUsername(ds.getUsername());
             dto.setPermanent(ds.getPermanent());
+            dto.setProperties(getDatasourceProperties(ds.getId()));
             return dto;
         }
         return null;

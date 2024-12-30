@@ -132,7 +132,7 @@ public class HarvesterPreProcess extends AbstractCstlProcess {
         FileSystemReference fs = null;
         try {
             final URI dataUri = URI.create(sourceFolderStr);
-            fs = FileSystemUtilities.getFileSystem(dataUri.getScheme(), sourceFolderStr, user, pwd, null, true);
+            fs = FileSystemUtilities.getFileSystem(dataUri.getScheme(), sourceFolderStr, user, pwd, null, true, Map.of());
 
             Path sourceFolder = FileSystemUtilities.getPath(fs, dataUri.getPath());
 

@@ -136,7 +136,8 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
             name: 'S3',
             connection: {
                 login: '',
-                password: ''
+                password: '',
+                region: ''
             },
             readFromRemote: false,
             scheme: 's3://',
@@ -271,8 +272,15 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
                     dataSource.url = 'file://' + dataSource.url;
                 }
                 // special case for S3 remote
-                if (dataSource.type === 's3' && self.remote.protocol.readFromRemote) {
-                    dataSource.permanent = true;
+                if (dataSource.type === 's3') {
+                    if (self.remote.protocol.readFromRemote) {
+                        dataSource.permanent = true;
+                    }
+                    if (self.remote.protocol.connection.region) {
+                        dataSource.properties = {
+                                                 "aws.region": self.remote.protocol.connection.region
+                                               };
+                    }
                 }
                 explore = true;
                 var reg = new RegExp('file:\/*$');

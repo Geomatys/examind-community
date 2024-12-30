@@ -50,7 +50,7 @@ public class FileSystemUtilities {
 
     private static final Map<String, FileSystemReference> USED_FILESYSTEMS = new HashMap<>();
 
-    public static FileSystemReference getFileSystem(String type, String baseUrl, String userName, String password, Integer refId, boolean create) throws URISyntaxException, IOException {
+    public static FileSystemReference getFileSystem(String type, String baseUrl, String userName, String password, Integer refId, boolean create, Map<String, String> properties) throws URISyntaxException, IOException {
         Map<String, Object> prop = new HashMap<>();
         String userUrl;
         URI baseURI;
@@ -106,7 +106,9 @@ public class FileSystemUtilities {
                 baseURI = new URI(userUrl);
                 userURI = new URI(userUrl);
                 prop.put("aws.secretAccessKey", password);
-                //prop.put("aws.region", );
+                if (properties != null && properties.containsKey("aws.region")) {
+                    prop.put("aws.region", properties.get("aws.region"));
+                }
                 break;
             case "database":
                 prop.put("username", userName);
@@ -160,7 +162,7 @@ public class FileSystemUtilities {
             case "s3":
                 if (baseUrl != null) {
                     try {
-                        FileSystemReference fsr = getFileSystem(type, baseUrl, userName, password, refId, false);
+                        FileSystemReference fsr = getFileSystem(type, baseUrl, userName, password, refId, false, Map.of());
                         if (fsr != null && fsr.closeFs(refId)) {
                             synchronized(USED_FILESYSTEMS) {
                                 USED_FILESYSTEMS.remove(fsr.uri);

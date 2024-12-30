@@ -20,6 +20,7 @@ package org.constellation.dto;
 
 import java.io.Serializable;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 
 /**
  *
@@ -38,13 +39,14 @@ public class DataSource extends Identifiable implements Serializable {
     private String  analysisState;
     private String  format;
     private Boolean permanent;
+    private Map<String, String> properties;
 
     public DataSource() {
     }
 
     public DataSource(Integer id, String type, String url, String username,
             String pwd, String storeId, Boolean readFromRemote, Long dateCreation,
-            String analysisState, String format, Boolean permanent) {
+            String analysisState, String format, Boolean permanent, Map<String, String> properties) {
         this.id = id;
         this.type = type;
         this.url = url;
@@ -56,6 +58,7 @@ public class DataSource extends Identifiable implements Serializable {
         this.analysisState = analysisState;
         this.format = format;
         this.permanent = permanent;
+        this.properties = properties;
     }
 
     /**
@@ -199,5 +202,13 @@ public class DataSource extends Identifiable implements Serializable {
      */
     public void setPermanent(Boolean permanent) {
         this.permanent = permanent;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 }

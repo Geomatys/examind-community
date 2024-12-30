@@ -319,7 +319,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     }
 
     private FileSystemReference getFileSystem(DataSource ds, boolean create) throws URISyntaxException, IOException {
-        return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId(), create);
+        return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId(), create, ds.getProperties());
     }
 
     /**

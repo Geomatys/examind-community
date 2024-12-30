@@ -339,7 +339,7 @@ public class ProviderBusiness implements IProviderBusiness {
             String dbUrl = sgbdtype + "://" + host + ':' + port + '/' + database;
             List<DataSource> dss = datasourceBusiness.search(dbUrl, null, null, user, pwd);
             if (dss.isEmpty()) {
-                DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true);
+                DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
                 datasourceBusiness.create(ds);
             }
         }

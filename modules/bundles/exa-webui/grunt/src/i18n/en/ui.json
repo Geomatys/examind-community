@@ -310,6 +310,7 @@
   "wiz.data.import.step1.label.login": "Login",
   "wiz.data.import.step1.label.secret.key": "Secret key",
   "wiz.data.import.step1.label.access.key": "Access key",
+  "wiz.data.import.step1.label.region": "Region",
   "wiz.data.import.step1.label.protocol": "Protocol",
   "wiz.data.import.step1.label.database": "Database",
   "wiz.data.import.step1.label.tooltip.database.port": "The port number for database",
