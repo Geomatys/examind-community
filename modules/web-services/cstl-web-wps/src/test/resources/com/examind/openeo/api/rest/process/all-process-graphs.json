@@ -1,0 +1,73 @@
+{
+  "processes" : [ {
+    "id" : "examind-dynamic.openeo-evi-sentinel",
+    "summary" : "Computes the Enhanced Vegetation Index (EVI). It is computed with the following formula: `2.5 * (NIR - RED) / (1 + NIR + 6*RED + 7.5*BLUE)`.",
+    "description" : "Computes the Enhanced Vegetation Index (EVI). It is computed with the following formula: `2.5 * (NIR - RED) / (1 + NIR + 6*RED + 7.5*BLUE)`.",
+    "categories" : [ "examind-dynamic" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "dataId",
+      "description" : "Sentinel-2 data id",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "bbox",
+      "description" : "Spatial extent",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Object"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "serviceId",
+      "description" : "[Temp param] WCS service id where the data is",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "bands",
+      "description" : "Bands to load",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "temporal",
+      "description" : "Temporal extent",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Computed EVI.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  } ],
+  "links" : [ ]
+}

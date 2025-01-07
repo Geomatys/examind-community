@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+
 import org.geotoolkit.processing.AbstractProcess;
 import org.geotoolkit.wps.xml.v200.StatusInfo;
 
@@ -60,6 +62,21 @@ public class ExecutionInfo {
 
     public Set<String> getJobs(String processId) {
         return jobMap.get(processId);
+    }
+
+    public Set<String> getAllJobs() {
+        return jobMap.values().stream()
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+    }
+
+    public String processIdAssociated(String jobId) {
+        for (Map.Entry<String, Set<String>> entry : jobMap.entrySet()) {
+            if (entry.getValue().contains(jobId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public void addJob(String processId, String jobId, StatusInfo status, WPSProcess process, Callable callable) {
@@ -106,6 +123,20 @@ public class ExecutionInfo {
         } else {
             throw new WPSException("The job :" + jobId + " is not dismissable");
         }
+    }
+
+    public WPSProcess getJobProcess(String jobId) throws UnknowJobException {
+        if(!processMap.containsKey(jobId)) {
+            throw new UnknowJobException("There is no job registrered in the service with the id:" + jobId);
+        }
+        return processMap.get(jobId).process;
+    }
+
+    public Callable getJobCallable(String jobId) throws UnknowJobException {
+        if(!processMap.containsKey(jobId)) {
+            throw new UnknowJobException("There is no job registrered in the service with the id:" + jobId);
+        }
+        return processMap.get(jobId).callable;
     }
 
     private static class ProcessAndCallable {

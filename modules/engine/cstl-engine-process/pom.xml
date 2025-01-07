@@ -41,7 +41,7 @@
             <artifactId>cstl-store-provider</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
+
         <!-- for pyramid process -->
         <dependency>
             <groupId>org.geotoolkit</groupId>

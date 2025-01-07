@@ -15,7 +15,6 @@
     <name>Web services</name>
     <description>A group of standardized Web Services.</description>
 
-
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>

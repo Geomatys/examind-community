@@ -1,0 +1,189 @@
+{
+  "id": "evi-sentinel",
+  "summary": "Enhanced Vegetation Index",
+  "description": "Computes the Enhanced Vegetation Index (EVI). It is computed with the following formula: `2.5 * (NIR - RED) / (1 + NIR + 6*RED + 7.5*BLUE)`.",
+  "parameters": [
+    {
+      "name": "serviceId",
+      "description": "[Temp param] WCS service id where the data is",
+      "schema": {
+        "type": "String"
+      }
+    },
+    {
+      "name": "dataId",
+      "description": "Sentinel-2 data id",
+      "schema": {
+        "type": "String"
+      }
+    },
+    {
+      "name": "bbox",
+      "description": "Spatial extent",
+      "schema": {
+        "type": "Object"
+      }
+    },
+    {
+      "name": "temporal",
+      "description": "Temporal extent",
+      "schema": {
+        "type": "Array",
+        "subtype": "String"
+      }
+    },
+    {
+      "name": "bands",
+      "description": "Bands to load",
+      "schema": {
+        "type": "Array",
+        "subtype": "String"
+      }
+    }
+  ],
+  "returns": {
+    "description": "Computed EVI.",
+    "schema": {
+      "type": "object"
+    }
+  },
+  "process_graph": {
+    "load": {
+      "process_id": "examind.coverage.load",
+      "arguments": {
+        "spatial_extent": {
+          "from_parameter": "bbox"
+        },
+        "temporal_extent": {
+          "from_parameter": "temporal"
+        },
+        "bands": {
+          "from_parameter": "bands"
+        }
+      }
+    },
+    "bs3": {
+      "process_id": "geotoolkit.coverage:bandselect",
+      "arguments": {
+        "coverage": {
+          "from_node": "load"
+        },
+        "bands": [
+          1
+        ]
+      }
+    },
+    "bs4": {
+      "process_id": "geotoolkit.coverage:bandselect",
+      "arguments": {
+        "coverage": {
+          "from_node": "load"
+        },
+        "bands": [
+          2
+        ]
+      }
+    },
+    "bs8": {
+      "process_id": "geotoolkit.coverage:bandselect",
+      "arguments": {
+        "coverage": {
+          "from_node": "load"
+        },
+        "bands": [
+          3
+        ]
+      }
+    },
+    "sub": {
+      "process_id": "examind.coverage:math:substract",
+      "arguments": {
+        "first": {
+          "from_node": "bs8"
+        },
+        "second": {
+          "from_node": "bs3"
+        }
+      }
+    },
+    "p1": {
+      "process_id": "examind.coverage:math:multiplyWithValue",
+      "arguments": {
+        "value": 6.0,
+        "coverage": {
+          "from_node": "bs3"
+        }
+      }
+    },
+    "p2": {
+      "process_id": "examind.coverage:math:multiplyWithValue",
+      "arguments": {
+        "value": 7.5,
+        "coverage": {
+          "from_node": "bs4"
+        }
+      }
+    },
+    "sumCoverages1": {
+      "process_id": "examind.coverage:math:sum",
+      "arguments": {
+        "first": {
+          "from_node": "bs8"
+        },
+        "second": {
+          "from_node": "p1"
+        }
+      }
+    },
+    "sumCoverages2": {
+      "process_id": "examind.coverage:math:sum",
+      "arguments": {
+        "first": {
+          "from_node": "sumCoverages1"
+        },
+        "second": {
+          "from_node": "p2"
+        }
+      }
+    },
+    "sum": {
+      "process_id": "examind.coverage:math:sumWithValue",
+      "arguments": {
+        "coverage": {
+          "from_node": "sumCoverages2"
+        },
+        "value": 1.0
+      }
+    },
+    "div": {
+      "process_id": "examind.coverage:math:divide",
+      "arguments": {
+        "first": {
+          "from_node": "sub"
+        },
+        "second": {
+          "from_node": "sum"
+        }
+      }
+    },
+    "p3": {
+      "process_id": "examind.coverage:math:multiplyWithValue",
+      "arguments": {
+        "value": 2.5,
+        "coverage": {
+          "from_node": "div"
+        }
+      }
+    },
+    "save": {
+      "process_id": "examind.coverage.save_result",
+      "arguments": {
+        "format": "GTIFF",
+        "coverage": {
+          "from_node": "p3"
+        }
+      },
+      "result": true
+    }
+  }
+}

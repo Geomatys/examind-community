@@ -30,6 +30,7 @@ import org.geotoolkit.util.Exceptions;
 import org.geotoolkit.util.StringUtilities;
 import org.geotoolkit.wps.xml.v200.Execute;
 
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -59,6 +60,8 @@ public class WPSProcessRawListener implements ProcessListener{
     private final ExecutionInfo execInfo;
     private final QuotationInfo quoteInfo;
 
+    private final boolean addJobWhenCreated;
+
     private final WPSProcess process;
     /**
      *
@@ -69,7 +72,7 @@ public class WPSProcessRawListener implements ProcessListener{
      * @param process
      */
     public WPSProcessRawListener(final String wpsVersion, final ExecutionInfo execInfo, final QuotationInfo quoteInfo, final Execute request,
-            final String jobId, final String quoteId, final WPSProcess process) {
+            final String jobId, final String quoteId, final WPSProcess process, boolean addJobWhenCreated, Callable callable) {
         this.execInfo = execInfo;
         this.quoteInfo = quoteInfo;
         this.request = request;
@@ -79,6 +82,15 @@ public class WPSProcessRawListener implements ProcessListener{
         this.nextTimestamp = System.currentTimeMillis() + TIMEOUT;
         this.wpsVersion = wpsVersion;
         this.process = process;
+        this.addJobWhenCreated = addJobWhenCreated;
+
+        if (this.addJobWhenCreated) {
+            XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
+            String msg = "Process " + request.getIdentifier().getValue() + " is created (not started yet)";
+            StatusInfo status = new StatusInfo(Status.ACCEPTED, creationTime, 0, msg, jobId);
+
+            execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, callable);
+        }
     }
 
     @Override
@@ -87,7 +99,11 @@ public class WPSProcessRawListener implements ProcessListener{
         XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
         String msg = "Process " + request.getIdentifier().getValue() + " is started";
         StatusInfo status = new StatusInfo(Status.RUNNING, creationTime, 0, msg, jobId);
-        execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, event.getSource());
+        if (!this.addJobWhenCreated) {
+            execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, event.getSource());
+        } else {
+            execInfo.setStatus(jobId, status);
+        }
     }
 
     @Override

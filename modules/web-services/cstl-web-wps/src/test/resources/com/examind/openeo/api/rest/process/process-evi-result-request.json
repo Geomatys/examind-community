@@ -1,0 +1,30 @@
+{
+  "id": "evi-execution",
+  "summary": "Enhanced Vegetation Index",
+  "description": "Computes the Enhanced Vegetation Index (EVI). It is computed with the following formula: `2.5 * (NIR - RED) / (1 + NIR + 6*RED + -7.5*BLUE)`.",
+  "parameters": [],
+  "returns": {
+    "description": "Computed EVI.",
+    "schema": {
+      "type": "object"
+    }
+  },
+  "process_graph": {
+    "load": {
+      "process_id": "examind-dynamic.openeo-evi-sentinel",
+      "arguments": {
+        "dataId": "sentinel_b03_b04_b08:1",
+        "bbox": {
+          "west": 3.87,
+          "east": 4.5,
+          "north": 43.56,
+          "south": 43.56,
+          "crs": "urn:ogc:def:crs:OGC:1.3:CRS84"
+        },
+        "temporal": ["none"],
+        "bands": [0, 2, 4]
+      },
+      "result": "true"
+    }
+  }
+}

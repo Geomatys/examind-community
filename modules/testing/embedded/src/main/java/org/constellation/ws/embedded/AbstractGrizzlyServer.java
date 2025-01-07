@@ -129,6 +129,7 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.coverage.ws.rs",
             "org.constellation.wfs.ws.rs",
             "com.examind.ogc.api.rest.coverages",
+            "com.examind.openeo.api.rest.process",
             "org.constellation.sos.ws.rs",
             "org.constellation.sos.ws.rs.provider",
             "org.constellation.wmts.ws.rs",
@@ -402,8 +403,16 @@ public abstract class AbstractGrizzlyServer {
         in.close();
     }
 
+    protected static void postRequestJson(URLConnection conec, String filePath) throws IOException {
+        postRequestFile(conec, filePath, "application/json");
+    }
+
     protected static void postRequestFile(URLConnection conec, String filePath) throws IOException {
         postRequestFile(conec, filePath, "text/xml");
+    }
+
+    protected static void putRequestJson(URLConnection conec, String filePath) throws IOException {
+        putRequestFile(conec, filePath, "application/json");
     }
 
     protected static void putRequestFile(URLConnection conec, String filePath) throws IOException {

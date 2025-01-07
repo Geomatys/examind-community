@@ -1,0 +1,4941 @@
+{
+  "processes" : [ {
+    "id" : "test.wpstest",
+    "summary" : "Test process to test wps implementation",
+    "description" : "Test process to test wps implementation",
+    "categories" : [ "test" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "bbox",
+      "description" : null,
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "GM_Envelope"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "double",
+      "description" : null,
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "string",
+      "description" : null,
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "result",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.start",
+    "summary" : "Start a new instance for the specified service identifier.",
+    "description" : "Start a new instance for the specified service identifier.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.chain.clear",
+    "summary" : "Clear all registered docker process in examind",
+    "description" : "Clear all registered docker process in examind",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "single process",
+      "description" : "single single",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.coverage.save_result",
+    "summary" : "Save a coverage in a specified format",
+    "description" : "Save a coverage in a specified format",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "The coverage to save",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "format",
+      "description" : "Format used to save the coverage",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.multithread.failure",
+    "summary" : "Test multiple thread failure.",
+    "description" : "Test multiple thread failure.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "throw.ex",
+      "description" : "Runtime exception are throw by child tread.",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.nb_band",
+    "summary" : "Count the number of band in a gridCoverageResource.",
+    "description" : "Count the number of band in a gridCoverageResource.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "The input coverage.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.GridCoverageResource"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The number of band in the coverage.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.metadata.add",
+    "summary" : "Add a metadata to a CSW service.",
+    "description" : "Add a metadata to a CSW service.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_identifier",
+      "description" : "the identifier of the CSW servicer.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "metadata",
+      "description" : "The metadata to add to CSW.",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "metadata-id",
+      "description" : "The metadata identifier.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "refresh",
+      "description" : "If set this flag the CSW will be refreshed.",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.multiple.type",
+    "summary" : "Test multiple types.",
+    "description" : "Test multiple types.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "double.array.input",
+      "description" : "Double array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "double.prim.array.input",
+      "description" : "Double primitive array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "double.multiple.input",
+      "description" : "Double multiple input.",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "integer.array.input",
+      "description" : "Double array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "integer.prim.array.input",
+      "description" : "Integer primitive array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "integer.multiple.input",
+      "description" : "Integer multiple input.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "long.array.input",
+      "description" : "Long array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "long.prim.array.input",
+      "description" : "Long primitive array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "long.multiple.input",
+      "description" : "Long multiple input.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boolean.array.input",
+      "description" : "Boolean array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boolean.prim.array.input",
+      "description" : "Boolean primitive array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "boolean"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boolean.multiple.input",
+      "description" : "Boolean multiple input.",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "char.array.input",
+      "description" : "character array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "java.lang.Character"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "char.prim.array.input",
+      "description" : "Character primitive array input.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "char"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "char.multiple.input",
+      "description" : "Character multiple input.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Character"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "file.input",
+      "description" : "File input.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.io.File"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "path.input",
+      "description" : "Path input.",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Double array output.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.provider.restart",
+    "summary" : "Restart a provider in Examind.",
+    "description" : "Restart a provider in Examind.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "provider_id",
+      "description" : "Identifier of the provider.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.delete",
+    "summary" : "Delete a service instance in Examind.",
+    "description" : "Delete a service instance in Examind.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.progress",
+    "summary" : "Test the execution progress of a process.",
+    "description" : "Test the execution progress of a process.",
+    "categories" : [ "examind" ],
+    "parameters" : [ ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.parameter.group",
+    "summary" : "Test parameter group in/out.",
+    "description" : "Test parameter group in/out.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "in.test.group",
+      "description" : "input groups",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "output groups",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.nb_feature",
+    "summary" : "Count the number of feature in a featureSet.",
+    "description" : "Count the number of feature in a featureSet.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "featureset",
+      "description" : "The input featureSet.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The number of feature in the featureSet.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.stop",
+    "summary" : "Stop the instance for the specified service instance.",
+    "description" : "Stop the instance for the specified service instance.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.galaxy.deploy",
+    "summary" : "Register a new workflow hosted by a galaxy server in examind",
+    "description" : "Register a new workflow hosted by a galaxy server in examind",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "galaxy.workflow.id",
+      "description" : "The galaxy workflow id (can be found in URL)",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "configuration",
+      "description" : "A document describing the input / output of the workflow to deploy.",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The assigned identifier of the deployed workflow.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.get_config",
+    "summary" : "Get configuration of an existing service in Examind.",
+    "description" : "Get configuration of an existing service in Examind.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Object use to configure the instance. If not specified the instance will be configured  a default value.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.metadata.remove",
+    "summary" : "Remove a metadata to a CSW service.",
+    "description" : "Remove a metadata to a CSW service.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_identifier",
+      "description" : "the identifier of the CSW service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "metadata-id",
+      "description" : "The metadata identifier.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.datasource.remove",
+    "summary" : "Remove a or multiple datasource by their id or path.",
+    "description" : "Remove a or multiple datasource by their id or path.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "datasource.id",
+      "description" : "the identifier of the datasource to remove.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "datasource.path",
+      "description" : "the path of the datasources to remove.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.rename",
+    "summary" : "rename a new ogc service in constellation.",
+    "description" : "rename a new ogc service in constellation.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "newName",
+      "description" : "new name of the service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.sensor.remove",
+    "summary" : "Remove one or all the sensors.",
+    "description" : "Remove one or all the sensors.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "sensor_identifier",
+      "description" : "the identifier of the sensor.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "delete_data",
+      "description" : "If set this flag the associated data wil be removed.",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.echo",
+    "summary" : "Echo different input to output.",
+    "description" : "Echo different input to output.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "literal.input",
+      "description" : "Literal input.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boundingbox.input",
+      "description" : "Boundingbox input.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "GM_Envelope"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "complex.input",
+      "description" : "Complex input.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Literal output.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.featureset.to.geojson",
+    "summary" : "Return a GeoJSON view of a featureSet.",
+    "description" : "Return a GeoJSON view of a featureSet.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "featureset",
+      "description" : "The input featureSet.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The GeoJSON view of the featureSet.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.param.dependency",
+    "summary" : "Param used to test parameter value dependencies.",
+    "description" : "Param used to test parameter value dependencies.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "country",
+      "description" : "Country.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "city",
+      "description" : "City.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "district",
+      "description" : "District.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boundary",
+      "description" : "Boundary.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "GM_Envelope"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.provider.delete",
+    "summary" : "Delete a provider from Examind.",
+    "description" : "Delete a provider from Examind.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "provider_id",
+      "description" : "Identifier of the provider.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "only_hidden_data",
+      "description" : "Flag to remove provider containing only hidden (non-pyramid) data.",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.test.path",
+    "summary" : "Test the UI file handling.",
+    "description" : "Test the UI file handling.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "path.input",
+      "description" : "Path input.",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "boundingbox.input",
+      "description" : "Boundingbox input.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.io.File"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Path output.",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.service.restart",
+    "summary" : "Restart an instance for the specified service instance. Or all service instances if identifier is not specified.",
+    "description" : "Restart an instance for the specified service instance. Or all service instances if identifier is not specified.",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "service_type",
+      "description" : "The type of the service.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "identifier",
+      "description" : "Identifier of the new service instance.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.coverage.load",
+    "summary" : "Load a coverage resource from a WCS service (serviceID)",
+    "description" : "Load a coverage resource from a WCS service (serviceID)",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "serviceId",
+      "description" : "The service Id where the coverage is",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "coverageLayerId",
+      "description" : "The coverage layer Id to load",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "spatial_extent",
+      "description" : "The bounding box / spatial extent to load",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "GM_Envelope"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "temporal_extent",
+      "description" : "The temporal extent to load (2 values (interval))",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "bands",
+      "description" : "Bands to load",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The GridCoverage loaded",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "examind.coverage.loadFromResource",
+    "summary" : "Load a coverage resource",
+    "description" : "Load a coverage resource",
+    "categories" : [ "examind" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "The coverage to load",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.GridCoverageResource"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The GridCoverage loaded",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "administration.yamlReader",
+    "summary" : "Read a Yaml to create a process.",
+    "description" : "Read a Yaml to create a process.",
+    "categories" : [ "administration" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "yaml path",
+      "description" : "yaml path",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "JSON value of the process output",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:min",
+    "summary" : "Return the min double from an array of double",
+    "description" : "Return the min double from an array of double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "set",
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Min double result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:computeVolume",
+    "summary" : "Create a pyramid / mosaic from the givencoverage. Created tiles are stored in the given Coverage store.",
+    "description" : "Create a pyramid / mosaic from the givencoverage. Created tiles are stored in the given Coverage store.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "GridCoverageResource",
+      "description" : "GridCoverageResource which contain Digital Elevation model to compute bulk.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.GridCoverageResource"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "Geometry",
+      "description" : "Geomatry which represent area where compute bulk.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "Geometry CRS",
+      "description" : "Define in which CRS geometry is defined.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "SC_CRS"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "D E M band index.",
+      "description" : "D E M band index which will be use to compute volume.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "Minimum Altitude ceiling value.",
+      "description" : "Minimal altitude value. Volume is computed between ground formed by geometry at this value and Maximum altitude value.",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "Maximum Altitude ceiling value.",
+      "description" : "Maximal altitude value. Volume is computed between ground formed by geometry at minimum ceiling value and its value.",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result of volume computing.",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:power",
+    "summary" : "Return first double raised to the power of the second (first^second).",
+    "description" : "Return first double raised to the power of the second (first^second).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "second number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "power result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:reformat",
+    "summary" : "Change the sample type of a coverage.",
+    "description" : "Change the sample type of a coverage.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Coverage à reformater",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "datatype",
+      "description" : "Type primitif des samples",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Coverage reformaté",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:touches",
+    "summary" : "Returns true if this geometry(geom1) touches the specified geometry(geom2).",
+    "description" : "Returns true if this geometry(geom1) touches the specified geometry(geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS ",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Touches result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.arrays.createGridCoverageValues",
+    "summary" : "Create an Array of GridCoverage with maximum 10 different inputs",
+    "description" : "Create an Array of GridCoverage with maximum 10 different inputs",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "first",
+      "description" : "First value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "second",
+      "description" : "Second value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "third",
+      "description" : "Third value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "fourth",
+      "description" : "Fourth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "fifth",
+      "description" : "Fifth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "sixth",
+      "description" : "Sixth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "seventh",
+      "description" : "Seventh value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "eighth",
+      "description" : "Eighth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "ninth",
+      "description" : "Ninth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "tenth",
+      "description" : "Tenth value",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:straighten",
+    "summary" : "Straighten a coverage, make a coverage with regular scale and no rotation.",
+    "description" : "Straighten a coverage, make a coverage with regular scale and no rotation.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage_in",
+      "description" : "Input coverage ",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output coverage ",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:multiplyWithValue",
+    "summary" : "Mulitply a Coverage with a single value",
+    "description" : "Mulitply a Coverage with a single value",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Input coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "value",
+      "description" : "Input value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:union",
+    "summary" : "Computes a union Geometry between the source geometry (geom1) and the other (geom2).",
+    "description" : "Computes a union Geometry between the source geometry (geom1) and the other (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The union geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:max",
+    "summary" : "Return the max double from an array of double",
+    "description" : "Return the max double from an array of double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "set",
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "max double result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:intersectionSurface",
+    "summary" : "Computes an intersection Geometry between the source geometry (geom1) and the other (geom2), and calculates the intersection surface.",
+    "description" : "Computes an intersection Geometry between the source geometry (geom1) and the other (geom2), and calculates the intersection surface.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The intersection surface result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:maxlimit",
+    "summary" : "Limit a FeatureCollection returns to a maximum",
+    "description" : "Limit a FeatureCollection returns to a maximum",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "max_in",
+      "description" : "Number maximum of Feature",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:mathcalc",
+    "summary" : "Perform a mathematic equation on input datas.",
+    "description" : "Perform a mathematic equation on input datas.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "inCoverages",
+      "description" : "Coverages d'entrée",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "inFormula",
+      "description" : "Formule",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "inMapping",
+      "description" : "Coverage vers nom de variable de la formule",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "inResultCoverage",
+      "description" : "Coverage de sortie",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.WritableGridCoverageResource"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.image:reformat",
+    "summary" : "Change the sample type of a image.",
+    "description" : "Change the sample type of a image.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "image",
+      "description" : "Image à reformater",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.awt.image.RenderedImage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "datatype",
+      "description" : "Type primitif des samples",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Image reformaté",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:startoffset",
+    "summary" : "Start FeatureSet iteration at given offset",
+    "description" : "Start FeatureSet iteration at given offset",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "offset_in",
+      "description" : "Start offset iteration on the FeatureCollection",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:median",
+    "summary" : "Return the median of an array of double",
+    "description" : "Return the median of an array of double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "set",
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Median result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.string:concat",
+    "summary" : "Concatenate a string with a sufix and/or a prefix.",
+    "description" : "Concatenate a string with a sufix and/or a prefix.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "prefix",
+      "description" : "Prefix to add to the string value",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "suffix",
+      "description" : "Suffix to add to the string value",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "value",
+      "description" : "The string value",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The concatened string",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:difference",
+    "summary" : "Return the result FeatureCollection of Difference process",
+    "description" : "Return the result FeatureCollection of Difference process",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "feature_diff",
+      "description" : "Input FeatureCollection used for compute the difference",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:acos",
+    "summary" : "Return arc cosinus of a double.",
+    "description" : "Return arc cosinus of a double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Arc cosinus result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.arrays.createDoubleValues",
+    "summary" : "Create an Array of double with maximum 10 different inputs",
+    "description" : "Create an Array of double with maximum 10 different inputs",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "first",
+      "description" : "First value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "second",
+      "description" : "Second value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "third",
+      "description" : "Third value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "fourth",
+      "description" : "Fourth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "fifth",
+      "description" : "Fifth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "sixth",
+      "description" : "Sixth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "seventh",
+      "description" : "Seventh value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "eighth",
+      "description" : "Eighth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "ninth",
+      "description" : "Ninth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "tenth",
+      "description" : "Tenth value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:clipGeometry",
+    "summary" : "Clip a FeatureCollection with a geometry and return a resulting FeatureCollection",
+    "description" : "Clip a FeatureCollection with a geometry and return a resulting FeatureCollection",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "clip_geometry_in",
+      "description" : "Input clip geometry",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:covers",
+    "summary" : "Returns true if this geometry source (geom1) covers the specified geometry (geom2).",
+    "description" : "Returns true if this geometry source (geom1) covers the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Covered by result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:equals2d",
+    "summary" : "Return true if source geometry (geom1) is equals to the other geometry (geom2) .",
+    "description" : "Return true if source geometry (geom1) is equals to the other geometry (geom2) .",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "tolerance",
+      "description" : "Toleranec used",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Equals2d result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:log",
+    "summary" : "Return the natural logarithm of a double",
+    "description" : "Return the natural logarithm of a double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Logarithm result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:difference",
+    "summary" : "Computes a difference Geometry between the source geometry (geom1) and the other (geom2).",
+    "description" : "Computes a difference Geometry between the source geometry (geom1) and the other (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The difference geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.io:delete",
+    "summary" : "Delete the inputed file or folder.",
+    "description" : "Delete the inputed file or folder.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "path",
+      "description" : "The path(URI,URL,File,String) to object to delete",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Object"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Success of the deletion",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:sum",
+    "summary" : "Return the sum of an array of double",
+    "description" : "Return the sum of an array of double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "set",
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Sum result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.io:createTempFolder",
+    "summary" : "Create a temporary folder.",
+    "description" : "Create a temporary folder.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "prefix",
+      "description" : "The folder prefix",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Created temp folder",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:crosses",
+    "summary" : " Returns true if this geometry source (geom1) crosses the specified geometry (geom2).",
+    "description" : " Returns true if this geometry source (geom1) crosses the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Covered by result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:clusterhull",
+    "summary" : "Return the cluster hull based on FeatureCollection geometries",
+    "description" : "Return the cluster hull based on FeatureCollection geometries",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_set_in",
+      "description" : "Input Feature Set",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "tolerance_value",
+      "description" : "Measure of tolerance used",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "smoothing_epsilon",
+      "description" : "Tolerance of the smoothing algorithm",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "tolerance_unit",
+      "description" : "Unit of tolerance used",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "javax.measure.Unit"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Cluster hull feature set",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:convexhull",
+    "summary" : "Return the convex hull based on FeatureCollection geometries",
+    "description" : "Return the convex hull based on FeatureCollection geometries",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Inpute Feature",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "geometry_name",
+      "description" : "Geometry used",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Convex Hull geometry",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:atan",
+    "summary" : "Return arc tangent of a double.",
+    "description" : "Return arc tangent of a double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Arc tangent result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:nearest",
+    "summary" : "Return the nearest Feature(s) in a FeatureCollection with the inputGeometry",
+    "description" : "Return the nearest Feature(s) in a FeatureCollection with the inputGeometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geometry_in",
+      "description" : "Input geometry",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:envelope",
+    "summary" : "Returns this Geometry bounding box.",
+    "description" : "Returns this Geometry bounding box.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Envelope geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.image:bandselect",
+    "summary" : "Select bands in a image.",
+    "description" : "Select bands in a image.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "image",
+      "description" : "Image dont on va changer les bandes",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.awt.image.RenderedImage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "bands",
+      "description" : "Index des bandes à extraire",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Image resultat",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:sortby",
+    "summary" : "Sort a FeatureCollection",
+    "description" : "Sort a FeatureCollection",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "sorter_in",
+      "description" : "Array of SortBy used give the order",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "SortProperty"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:centroid",
+    "summary" : "Return the centroid point of an input JTS geometry",
+    "description" : "Return the centroid point of an input JTS geometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Geometry centroid result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:isEmpty",
+    "summary" : "Returns true if this geometry source is an empty geometry.",
+    "description" : "Returns true if this geometry source is an empty geometry.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "IsEmpty result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:bandselect",
+    "summary" : "Select bands in a coverage.",
+    "description" : "Select bands in a coverage.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Coverage dont on va changer les bandes",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "bands",
+      "description" : "Index des bandes à extraire",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Integer"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Coverage resultat",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:within",
+    "summary" : "Returns true if this geometry source (geom1) is within the specified geometry (geom2).",
+    "description" : "Returns true if this geometry source (geom1) is within the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS ",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Within result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:divide",
+    "summary" : "Divide two double (first/second).",
+    "description" : "Divide two double (first/second).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "second number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "divide result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:convexHull",
+    "summary" : "Return the convex hull geometry of the specified geometry.",
+    "description" : "Return the convex hull geometry of the specified geometry.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "ConvexHull geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:multiply",
+    "summary" : "Multiply two double .",
+    "description" : "Multiply two double .",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "second number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "multiply result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:reproject",
+    "summary" : "Return a FeatureCollection re-project into the target CRS",
+    "description" : "Return a FeatureCollection re-project into the target CRS",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "crs_in",
+      "description" : "The target CRS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "SC_CRS"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:lenght",
+    "summary" : "Returns the length of this Geometry.",
+    "description" : "Returns the length of this Geometry.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Length result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.script:evaluate",
+    "summary" : "Evaluate expression given in parameter w",
+    "description" : "Evaluate expression given in parameter w",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "language",
+      "description" : "language",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "expression",
+      "description" : "Script",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "variables",
+      "description" : "Map of binding script variable",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Object"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "behavior",
+      "description" : "Behavior of the process. Could be 'EXCEPTION' or 'RESULT'",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result of the expression",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:diffGeometry",
+    "summary" : "Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.",
+    "description" : "Compute difference between a FeatureCollection and a geometry. Return a FeatureCollection.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "diff_geometry_in",
+      "description" : "Inpute clip geometry",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:sumWithValue",
+    "summary" : "Sum a Coverage with a single value",
+    "description" : "Sum a Coverage with a single value",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Input coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "value",
+      "description" : "Input value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:boundary",
+    "summary" : "Return boundarty geometry of an input JTS geometry",
+    "description" : "Return boundarty geometry of an input JTS geometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Boundary geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:sin",
+    "summary" : "Returns the trigonometric sine of an angle in double.",
+    "description" : "Returns the trigonometric sine of an angle in double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "sinus result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:bandcombine",
+    "summary" : "Combine multiple coverage.",
+    "description" : "Combine multiple coverage.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverages",
+      "description" : "Coverages à merger",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Coverage combiné",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:avg",
+    "summary" : "Return the average value of an array of double",
+    "description" : "Return the average value of an array of double",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "set",
+      "description" : "Set of double",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Average double result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:union",
+    "summary" : "Return the result FeatureCollection of Union process",
+    "description" : "Return the result FeatureCollection of Union process",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "feature_union",
+      "description" : "Input FeatureCollection used for Union process",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "input_geometry_name",
+      "description" : "Input geometry property name",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "union_geometry_name",
+      "description" : "Union geometry property name",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:asin",
+    "summary" : "Return arc sinus of a double.",
+    "description" : "Return arc sinus of a double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Arc sinus result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:floor",
+    "summary" : "Returns the nearest lower or equals integer (in double) to the argument double.",
+    "description" : "Returns the nearest lower or equals integer (in double) to the argument double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Floor result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:merge",
+    "summary" : "Merge many FeatureCollection in one. The fist FeatureCollection found in the input Collection have his FeatureType preserved. The others will be adapted to this one.",
+    "description" : "Merge many FeatureCollection in one. The fist FeatureCollection found in the input Collection have his FeatureType preserved. The others will be adapted to this one.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "features_in",
+      "description" : "Inpute array of FeatureCollection",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "org.geotoolkit.storage.feature.FeatureCollection"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The merged FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:retype",
+    "summary" : "Limit a FeatureCollection returns to a maximum",
+    "description" : "Limit a FeatureCollection returns to a maximum",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "mask_in",
+      "description" : "FeatureType used to as a mask to retype the FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "FeatureType"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:coveredBy",
+    "summary" : "Returns true if this geometry source (geom1) is covered by the specified geometry (geom2).",
+    "description" : "Returns true if this geometry source (geom1) is covered by the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Covered by result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:regroup",
+    "summary" : "Return a Featrue Collection generated by the Regroup processEach different value of the given attribute name return a Feature.",
+    "description" : "Return a Featrue Collection generated by the Regroup processEach different value of the given attribute name return a Feature.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "regroup_attribute",
+      "description" : "Attribute name used for the regroup process",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "geometry_name",
+      "description" : "Geometry property name",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:intersects",
+    "summary" : "Returns true if this geometry source (geom1) intersects the specified geometry (geom2).",
+    "description" : "Returns true if this geometry source (geom1) intersects the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Intersects result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.io:createTempFile",
+    "summary" : "Create a temporary file.",
+    "description" : "Create a temporary file.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : false,
+      "name" : "prefix",
+      "description" : "The file prefix",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "postfix",
+      "description" : "The file postfix",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "delete",
+      "description" : "Delete file on application end",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Created temp file",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:ceil",
+    "summary" : "Returns the nearest upper or equals integer (in double) to the argument double.",
+    "description" : "Returns the nearest upper or equals integer (in double) to the argument double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Ceil result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:round",
+    "summary" : "Returns the closest long to the argument. The result is rounded to an integer by adding 1/2, taking the floor of the result, and casting the result to type long.",
+    "description" : "Returns the closest long to the argument. The result is rounded to an integer by adding 1/2, taking the floor of the result, and casting the result to type long.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Round result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:contain",
+    "summary" : "Return true if source geometry (geom1) contains the specified geometry(geom2).",
+    "description" : "Return true if source geometry (geom1) contains the specified geometry(geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Contain result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:substract",
+    "summary" : "Substract two double (first - second).",
+    "description" : "Substract two double (first - second).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "second number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "substraction result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:spatialjoin",
+    "summary" : "Return the target FeatureCollection with source FeatureCollection attributes.The link between target and source depend of method used (Intersect or Nearest)",
+    "description" : "Return the target FeatureCollection with source FeatureCollection attributes.The link between target and source depend of method used (Intersect or Nearest)",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "feature_target",
+      "description" : "Target Features",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "intersect",
+      "description" : "Method used, intersect or nearest",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : "Boolean"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:sum",
+    "summary" : "Sum single specified band of each coverage in a result coverage",
+    "description" : "Sum single specified band of each coverage in a result coverage",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "First Coverage (A in A+B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "Second Coverage (B in A+B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:clip",
+    "summary" : "Return the result FeatureCollection of clipping",
+    "description" : "Return the result FeatureCollection of clipping",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "feature_clip",
+      "description" : "Inpute FeatureCollection for clipping",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:intersection",
+    "summary" : "Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).",
+    "description" : "Computes a intersection Geometry between the source geometry (geom1) and the other (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "The intersection geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:absolute",
+    "summary" : "Return the absolute value of a double.",
+    "description" : "Return the absolute value of a double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "absolute result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:overlaps",
+    "summary" : "Returns true if this geometry (geom1) overlaps the specified geometry (geom2).",
+    "description" : "Returns true if this geometry (geom1) overlaps the specified geometry (geom2).",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom1",
+      "description" : "Geometry JTS source",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geom2",
+      "description" : "Geometry JTS ",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Overlaps result",
+      "schema" : {
+        "type" : [ "BOOLEAN" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:intersect",
+    "summary" : "Return all Feature witch intersect the input geometry",
+    "description" : "Return all Feature witch intersect the input geometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "geometry_in",
+      "description" : "Input geometry used to compute the intersection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:add",
+    "summary" : "Adds two double.",
+    "description" : "Adds two double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "second number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "addition result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:tan",
+    "summary" : "Returns the trigonometric tangent of an angle in double.",
+    "description" : "Returns the trigonometric tangent of an angle in double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Tangent result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:merge",
+    "summary" : "Merge multiple coverages.",
+    "description" : "Merge multiple coverages.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverages",
+      "description" : "Coverages à merger",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "envelope",
+      "description" : "Envelope dans laquelle la fusion sera effectuée",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "GM_Envelope"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "resolution",
+      "description" : "Resolution du coverage resultant de la fusion",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Coverage combiné",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:toRadian",
+    "summary" : "Converts an angle measured in degrees to an approximately equivalent angle measured in radians.",
+    "description" : "Converts an angle measured in degrees to an approximately equivalent angle measured in radians.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Radian result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.io:packFile",
+    "summary" : "Pack a file list into a compressed archive.",
+    "description" : "Pack a file list into a compressed archive.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "source",
+      "description" : "files to pack",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "java.io.File"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "target",
+      "description" : "zip file destination",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.io.File"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "packed file",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:area",
+    "summary" : "Return the area of a JTS geometry",
+    "description" : "Return the area of a JTS geometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Area result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:filter",
+    "summary" : "Apply a filter to a FeatureCollection",
+    "description" : "Apply a filter to a FeatureCollection",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.storage.FeatureSet"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "filter_in",
+      "description" : "Filter",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "Filter"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:CoverageToVector",
+    "summary" : "Transform a coverage in features by agregating pixels as geometries when they are in the same range.",
+    "description" : "Transform a coverage in features by agregating pixels as geometries when they are in the same range.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Coverage to process.",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "ranges",
+      "description" : "Ranges to regroup.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : "org.apache.sis.measure.NumberRange"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "band",
+      "description" : "Band to transform",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result of vectorisation.",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.io:unpackFile",
+    "summary" : "Unpack a compressed archive in a given directory, supports : zip,jar,tar,tar.gz .",
+    "description" : "Unpack a compressed archive in a given directory, supports : zip,jar,tar,tar.gz .",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "source",
+      "description" : "url,uri,file to read from",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Object"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "target",
+      "description" : "url,uri,file destination",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.lang.Object"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "unpacked files",
+      "schema" : {
+        "type" : [ "ARRAY" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:divide",
+    "summary" : "Divide single specified band of each coverage in a result coverage",
+    "description" : "Divide single specified band of each coverage in a result coverage",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "First Coverage (A in A/B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "Second Coverage (B in A/B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:substract",
+    "summary" : "Substract single specified band of each coverage in a result coverage",
+    "description" : "Substract single specified band of each coverage in a result coverage",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "First Coverage (A in A-B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "Second Coverage (B in A-B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.jts:buffer",
+    "summary" : "Apply JTS buffer to a geometry.",
+    "description" : "Apply JTS buffer to a geometry.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "geom",
+      "description" : "Geometry JTS",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.locationtech.jts.geom.Geometry"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "distance",
+      "description" : "Distance used to make buffer.",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "segments",
+      "description" : "Number of segments used to represent a quadrant of a circle.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "endstyle",
+      "description" : "The end cap style used. 1 -> Round, 2 -> Flat, 3 -> Square.",
+      "schema" : {
+        "type" : [ "INTEGER" ],
+        "subtype" : "Integer"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Buffered geometry result",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:atan2",
+    "summary" : "Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta). This method computes the phase theta by computing an arc tangent of y/x in the range of -pi to pi..",
+    "description" : "Returns the angle theta from the conversion of rectangular coordinates (x, y) to polar coordinates (r, theta). This method computes the phase theta by computing an arc tangent of y/x in the range of -pi to pi..",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "x abscissa coordinate",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "y ordinate coordinate",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "theta angle result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:toDegree",
+    "summary" : "Converts an angle measured in radians to an approximately equivalent angle measured in degrees.",
+    "description" : "Converts an angle measured in radians to an approximately equivalent angle measured in degrees.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Degree result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.math:cos",
+    "summary" : "Returns the trigonometric cosinus of an angle in double.",
+    "description" : "Returns the trigonometric cosinus of an angle in double.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "first number",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "cosinus result",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.referencing:createdb",
+    "summary" : "Create an epsg database.",
+    "description" : "Create an epsg database.",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "dburl",
+      "description" : "Database JDBC URL.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "user",
+      "description" : "Database user.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "password",
+      "description" : "Database password.",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "No data returned",
+      "schema" : null
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:intersection",
+    "summary" : "Return a new FeatureCollection where each Feature is create from an intersection Geometry",
+    "description" : "Return a new FeatureCollection where each Feature is create from an intersection Geometry",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "feature_inter",
+      "description" : "Inpute FeatureCollection for the intersection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : false,
+      "name" : "geometry_name",
+      "description" : "Geometry property name",
+      "schema" : {
+        "type" : [ "STRING" ],
+        "subtype" : "CharacterString"
+      },
+      "optional" : true,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:divideWithValue",
+    "summary" : "Divide a Coverage with a single value",
+    "description" : "Divide a Coverage with a single value",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Input coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "value",
+      "description" : "Input value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:substractWithValue",
+    "summary" : "Substract a Coverage with a single value",
+    "description" : "Substract a Coverage with a single value",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "coverage",
+      "description" : "Input coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "value",
+      "description" : "Input value",
+      "schema" : {
+        "type" : [ "NUMBER" ],
+        "subtype" : "Real"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.coverage:math:multiply",
+    "summary" : "Multiply single specified band of each coverage in a result coverage",
+    "description" : "Multiply single specified band of each coverage in a result coverage",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "first",
+      "description" : "First Coverage (A in A*B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "second",
+      "description" : "Second Coverage (B in A*B)",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "org.apache.sis.coverage.grid.GridCoverage"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Result as a coverage",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  }, {
+    "id" : "geotoolkit.vector:affinetransform",
+    "summary" : "Apply an affine transformation in Features geometries",
+    "description" : "Apply an affine transformation in Features geometries",
+    "categories" : [ "geotoolkit" ],
+    "parameters" : [ {
+      "valid" : true,
+      "name" : "feature_in",
+      "description" : "Input FeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      },
+      "optional" : false,
+      "default" : null
+    }, {
+      "valid" : true,
+      "name" : "transform_in",
+      "description" : "The affine transformation to apply on Features geometries",
+      "schema" : {
+        "type" : [ "OBJECT" ],
+        "subtype" : "java.awt.geom.AffineTransform"
+      },
+      "optional" : false,
+      "default" : null
+    } ],
+    "returns" : {
+      "description" : "Output FeatureFeatureCollection",
+      "schema" : {
+        "type" : [ ],
+        "subtype" : null
+      }
+    },
+    "deprecated" : false,
+    "experimental" : false,
+    "exceptions" : { },
+    "examples" : [ ],
+    "links" : [ ],
+    "process_graph" : { }
+  } ],
+  "links" : [ ]
+}

@@ -65,7 +65,7 @@ public interface WPSProcess {
     Object createRawOutput(final String version, final String outputId, final Object result) throws WPSException;
 
     Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo, Execute request, String serviceInstance, ProcessSummary procSum,
-            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse, final String jobId, final String quoteId, final Map<String, Object> parameters) throws IOParameterException;
+            final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse, final String jobId, final String quoteId, final Map<String, Object> parameters, final boolean addJobWhenCreated) throws IOParameterException;
 
     List<DataOutput> createDocOutput(final String version, final List<? extends OutputDefinition> wantedOutputs,  final Object result, final Map<String, Object> parameters,
             final boolean progressing) throws WPSException;

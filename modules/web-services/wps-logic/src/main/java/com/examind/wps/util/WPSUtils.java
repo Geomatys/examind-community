@@ -58,12 +58,14 @@ import javax.measure.UnitConverter;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import org.apache.sis.coverage.grid.GridCoverage;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.citation.Citations;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.ImmutableIdentifier;
 import org.apache.sis.util.ArgumentChecks;
+import org.apache.sis.util.ObjectConverters;
 import org.apache.sis.util.UnconvertibleObjectException;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
@@ -1229,4 +1231,57 @@ public class WPSUtils {
             LOGGER.log(Level.WARNING, "Error during WMS " + wmsInstance + " restart.", e);
         }
     }
+    
+    public static boolean isValidOpenEOProcess(final ProcessDescriptor descriptor) {
+        if (WPSUtils.isSupportedProcess(descriptor)) { //OpenEO supports WPS Inputs, AND OpenEO supports other types of inputs (not supported by WPS)
+            return true;
+        }
+
+        //Inputs
+        final GeneralParameterDescriptor inputDesc = descriptor.getInputDescriptor();
+        if(!isSupportedOpenEOParameter(inputDesc, WPSIO.IOType.INPUT)) {
+            return false;
+        }
+
+        //Outputs
+        GeneralParameterDescriptor outputDesc = descriptor.getOutputDescriptor();
+        return isSupportedOpenEOParameter(outputDesc, WPSIO.IOType.OUTPUT);
+    }
+
+    public static boolean isSupportedOpenEOParameter(GeneralParameterDescriptor toTest, WPSIO.IOType type) {
+        boolean isClean = false;
+
+        if (toTest instanceof ParameterDescriptorGroup pdg) {
+            final List<GeneralParameterDescriptor> descs = pdg.descriptors();
+            if (descs.isEmpty()) {
+               isClean = true;
+            } else {
+                for (GeneralParameterDescriptor desc : descs) {
+                    isClean = isSupportedOpenEOParameter(desc, type);
+                    if (!isClean) {
+                        break;
+                    }
+                }
+            }
+        } else if (toTest instanceof ParameterDescriptor param) {
+            final Class paramClass = param.getValueClass();
+
+            isClean = (type.equals(WPSIO.IOType.INPUT))
+                    ? WPSIO.isSupportedInputClass(paramClass)
+                    : WPSIO.isSupportedOutputClass(paramClass);
+
+            if (!isClean) {
+                try {
+                    ObjectConverters.find(String[].class, paramClass);
+                    isClean = true;
+                } catch (UnconvertibleObjectException ex) {}
+                try {
+                    ObjectConverters.find(GridCoverage[].class, paramClass);
+                    isClean = true;
+                } catch (UnconvertibleObjectException ex) {}
+            }
+        }
+        return isClean;
+    }
+
 }

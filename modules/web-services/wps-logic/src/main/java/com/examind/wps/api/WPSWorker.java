@@ -57,7 +57,9 @@ public interface WPSWorker extends Worker {
 
     StatusInfo dismiss(Dismiss request) throws CstlServiceException;
 
-    Object execute(final Execute request) throws CstlServiceException;
+    Object execute(final Execute request, Boolean directRun) throws CstlServiceException;
+
+    Object runProcess(String jobId) throws CstlServiceException;
 
     DeployResult deploy(final Deploy request) throws CstlServiceException;
 
@@ -79,4 +81,7 @@ public interface WPSWorker extends Worker {
 
     Bill getBillForJob(String jobID) throws CstlServiceException;
 
+    void updateProcess() throws CstlServiceException;
+
+    String getProcessAssociated(String jobId) throws CstlServiceException;
 }

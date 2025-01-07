@@ -28,14 +28,6 @@ public class LoadCoverageDescriptor extends AbstractCstlProcessDescriptor {
             .setRequired(true)
             .create(String.class, null);
 
-    public static final String COVERAGE_NAME = "layerId";
-    private static final String COVERAGE_REMARKS = "The coverage Id to load";
-    public static final ParameterDescriptor<String> COVERAGE = BUILDER
-            .addName(COVERAGE_NAME)
-            .setRemarks(COVERAGE_REMARKS)
-            .setRequired(true)
-            .create(String.class, null);
-
     public static final String COVERAGE_LAYER_NAME = "coverageLayerId";
     private static final String COVERAGE_LAYER_REMARKS = "The coverage layer Id to load";
     public static final ParameterDescriptor<String> COVERAGE_LAYER = BUILDER

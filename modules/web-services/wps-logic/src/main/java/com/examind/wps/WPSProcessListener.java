@@ -34,6 +34,7 @@ import org.geotoolkit.wps.xml.v200.Execute;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -86,6 +87,8 @@ public class WPSProcessListener implements ProcessListener{
 
     private final String language;
 
+    private final boolean addJobWhenCreated;
+
     private final WPSProcess process;
 
     /**
@@ -103,7 +106,7 @@ public class WPSProcessListener implements ProcessListener{
     public WPSProcessListener(final String wpsVersion, final ExecutionInfo execInfo, final QuotationInfo quoteInfo,
             final Execute request, final String serviceInstance, final ProcessSummary procSum,
             final List<DataInput> inputsResponse, final List<OutputDefinition> outputsResponse,
-            final String jobId, final String quoteId, final Map<String, Object> parameters, final WPSProcess process) {
+            final String jobId, final String quoteId, final Map<String, Object> parameters, final WPSProcess process, boolean addJobWhenCreated) {
         this.request = request;
         this.jobId = jobId;
         this.quoteId = quoteId;
@@ -120,11 +123,20 @@ public class WPSProcessListener implements ProcessListener{
         this.outputsResponse = outputsResponse;
         this.procSum = procSum;
         this.process = process;
+        this.addJobWhenCreated = addJobWhenCreated;
 
         if (request.getLanguage() != null) {
             this.language = request.getLanguage();
         } else {
             this.language = WPS_LANG_EN;
+        }
+
+        if (this.addJobWhenCreated) {
+            XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
+            String msg = "Process " + request.getIdentifier().getValue() + " is created (not started yet)";
+            StatusInfo status = new StatusInfo(Status.ACCEPTED, creationTime, 0, msg, jobId);
+
+            execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, (Callable) process);
         }
     }
 
@@ -134,7 +146,11 @@ public class WPSProcessListener implements ProcessListener{
         XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
         String msg = "Process " + request.getIdentifier().getValue() + " is started";
         StatusInfo status = new StatusInfo(Status.RUNNING, creationTime, 0, msg, jobId);
-        execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, event.getSource());
+        if (!this.addJobWhenCreated) {
+            execInfo.addJob(request.getIdentifier().getValue(), jobId, status, process, event.getSource());
+        } else {
+            execInfo.setStatus(jobId, status);
+        }
         if (recordStatusProgress) {
             final Result response = new Result(WPS_SERVICE, wpsVersion, language, serviceInstance, procSum, inputsResponse, outputsResponse, null, status, jobId);
             WPSUtils.storeResponse(response, folderPath, jobId);

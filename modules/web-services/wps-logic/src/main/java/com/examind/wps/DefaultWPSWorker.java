@@ -18,6 +18,7 @@
  */
 package com.examind.wps;
 
+import com.examind.openeo.api.rest.process.OpenEOProcessService;
 import com.examind.wps.api.IOParameterException;
 import com.examind.wps.api.ProcessPreConsumer;
 import com.examind.wps.api.UnknowJobException;
@@ -174,7 +175,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-
 /**
  * WPS worker.Compute response of getCapabilities, DescribeProcess and Execute requests.
  *
@@ -234,6 +234,8 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
     private final ExecutionInfo execInfo = new ExecutionInfo();
 
     private final QuotationInfo quoteInfo = new QuotationInfo();
+
+    private final Map<String, Execute> executeRequestToBeRun = new HashMap<>();
 
     @Autowired SimpleJobExecutor jobExecutor;
 
@@ -345,6 +347,10 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
         }
     }
 
+    public void updateProcess() throws CstlServiceException {
+        fillProcessList(configuration);
+    }
+
     /**
      * Create process list from context file.
      */
@@ -407,11 +413,11 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                 activatePrefix = false;
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Cannot detect prfix option", e);
+            LOGGER.log(Level.WARNING, "Cannot detect prefix option", e);
         }
 
         for (ProcessDescriptor descriptor : linkedDescriptors) {
-            if (WPSUtils.isSupportedProcess(descriptor)) {
+            if (WPSUtils.isSupportedProcess(descriptor) && WPSUtils.isValidOpenEOProcess(descriptor)) {
                 WPSProcess proc = new GeotkProcess(descriptor, schemaFolder, schemaURL, overridenProperties.get(descriptor), processDescriptionFolder, activatePrefix);
                 try {
                     proc.checkForSchemasToStore();
@@ -616,6 +622,10 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
     @Override
     public Set<String> getJobList(String processId) throws CstlServiceException {
+        if (processId == null) {
+            return getAllJobsList();
+        }
+
         // Verify if the descriptor exist and is linked to the WPS instance
         getWPSProcess(processId);
         Set<String> jobs = execInfo.getJobs(processId);
@@ -623,6 +633,24 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
             return new HashSet<>();
         }
         return jobs;
+    }
+
+    private Set<String> getAllJobsList() {
+        // Verify if the descriptor exist and is linked to the WPS instance
+        Set<String> jobs = execInfo.getAllJobs();
+        if (jobs == null) {
+            return new HashSet<>();
+        }
+        return jobs;
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //                      Get Job - Process Associated
+    //////////////////////////////////////////////////////////////////////
+
+    @Override
+    public String getProcessAssociated(String jobId) throws CstlServiceException {
+        return execInfo.processIdAssociated(jobId);
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -693,15 +721,19 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
      * Redirect execute requests from the WPS version requested.
      *
      * @param request request
+     * @param directRun if true, if the request is async, run the process directly - if false, if the request is async, the process is stored but not started
      * @return execute response (Raw data or Document response) depends of the ResponseFormType in execute request
      * @throws CstlServiceException
      */
     @Override
-    public Object execute(final Execute request) throws CstlServiceException {
-        return execute(request, null);
+    public Object execute(final Execute request, Boolean directRun) throws CstlServiceException {
+        if (directRun == null) { //Default Value is true
+            directRun = true;
+        }
+        return execute(request, null, directRun);
     }
 
-    public Object execute(final Execute request, String quotationId) throws CstlServiceException {
+    public Object execute(final Execute request, String quotationId, boolean directRun) throws CstlServiceException {
         if (isTransactionSecurized()) {
             if (Application.getBooleanProperty(AppProperty.EXA_WPS_EXECUTE_SECURE, false)) {
                 if (!SecurityManagerHolder.getInstance().isAuthenticated()) {
@@ -767,6 +799,10 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
             isAsync          = Execute.Mode.async.equals(request.getMode());
         }
 
+        if (!isAsync) {
+            directRun = false;
+        }
+
         if (isAsync && !processDesc.getJobControlOptions().contains(JobControlOptions.ASYNC_EXECUTE)) {
             throw new CstlServiceException("The process does not support asynchrone mode.", INVALID_PARAMETER_VALUE, "mode");
         } else if (!isAsync && !processDesc.getJobControlOptions().contains(JobControlOptions.SYNC_EXECUTE)) {
@@ -830,26 +866,35 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                     throw new CstlServiceException("Raw output is not available with StoreExecuteResponse=true", INVALID_PARAMETER_VALUE);
                 }
 
-                //run process in asynchronous
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            // Prepare and launch process in a separate thread.
-                            jobExecutor.submit(process);
-                        } catch (Exception e) {
-                            // If we've got an exception, input parsing must have failed.
-                            XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
-                            ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
+                if(directRun) {
+                    //run process in asynchronous
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                // Prepare and launch process in a separate thread.
+                                jobExecutor.submit(process);
+                            } catch (Exception e) {
+                                // If we've got an exception, input parsing must have failed.
+                                XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
+                                ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
 
-                            StatusInfo status = new StatusInfo(Status.FAILED, creationTime, exceptionReport.toString(), jobId);
-                            WPSUtils.storeResponse(status, productFolderPath, jobId);
-                            execInfo.setStatus(jobId, status);
+                                StatusInfo status = new StatusInfo(Status.FAILED, creationTime, exceptionReport.toString(), jobId);
+                                WPSUtils.storeResponse(status, productFolderPath, jobId);
+                                execInfo.setStatus(jobId, status);
+                            }
                         }
-                    }
-                }).start();
+                    }).start();
 
-                return new StatusInfo(Status.ACCEPTED, creationTime, "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
+                    return new StatusInfo(Status.ACCEPTED, creationTime, "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
+                } else {
+                    try {
+                        executeRequestToBeRun.put(jobId, request);
+                        return execInfo.getStatus(jobId);
+                    } catch (UnknowJobException e) {
+                        throw new CstlServiceException("Job with Id " + jobId + "is not found is the list of jobs", INVALID_PARAMETER_VALUE);
+                    }
+                }
 
             ////////
             // RAW Sync no timeout
@@ -890,7 +935,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
             final List<DataInput> inputsResponse;
             final List<OutputDefinition> outputsResponse;
             if (request.isLineage()) {
-		inputsResponse = request.getInput();
+                inputsResponse = request.getInput();
                 outputsResponse = new ArrayList<>();
                 outputsResponse.addAll(outputs);
             } else {
@@ -905,7 +950,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
 
             final Callable process;
             try {
-                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quotationId, parameters);
+                process = processDesc.createDocProcess(useStorage, version, tempFiles, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quotationId, parameters, !directRun);
             } catch (IOParameterException ex) {
                 throw new CstlServiceException(ex.getMessage(), getCodeFromIOParameterException(ex), ex.getParamId());
             }
@@ -924,34 +969,43 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                     throw new CstlServiceException("Storage not supported.", STORAGE_NOT_SUPPORTED, "storeExecuteResponse");
                 }
 
-                //run process in asynchronous
-                jobExecutor.submit(() -> {
-                    try {
-                        // Prepare and launch process in a separate thread.
-                        process.call();
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Error while executing synchronous process", e);
-                        // If we've got an exception, input parsing must have failed.
-                        XMLGregorianCalendar creationTime1 = WPSUtils.getCurrentXMLGregorianCalendar();
-                        ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
-                        StatusInfo status1 = new StatusInfo(Status.FAILED, creationTime1, exceptionReport.toString(), jobId);
-                        final Result response1 = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status1, jobId);
-                        WPSUtils.storeResponse(response1, productFolderPath, jobId);
+                if(directRun) {
+                    //run process in asynchronous
+                    jobExecutor.submit(() -> {
+                        try {
+                            // Prepare and launch process in a separate thread.
+                            process.call();
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, "Error while executing synchronous process", e);
+                            // If we've got an exception, input parsing must have failed.
+                            XMLGregorianCalendar creationTime1 = WPSUtils.getCurrentXMLGregorianCalendar();
+                            ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
+                            StatusInfo status1 = new StatusInfo(Status.FAILED, creationTime1, exceptionReport.toString(), jobId);
+                            final Result response1 = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status1, jobId);
+                            WPSUtils.storeResponse(response1, productFolderPath, jobId);
+                        }
+                    });
+
+                    StatusInfo status = new StatusInfo(Status.ACCEPTED, creationTime, "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
+                    final Result response = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status, jobId);
+                    response.setStatusLocation(productURL + "/" + jobId); //Output data URL
+
+                    //store response document
+                    WPSUtils.storeResponse(response, productFolderPath, jobId);
+
+                    // for WPS 2.0 return status instead of response document
+                    if ("2.0.0".equals(version)) {
+                        return status;
+                    } else {
+                        return response;
                     }
-                });
-
-                StatusInfo status = new StatusInfo(Status.ACCEPTED, creationTime, "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
-                final Result response = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status, jobId);
-                response.setStatusLocation(productURL + "/" + jobId); //Output data URL
-
-                //store response document
-                WPSUtils.storeResponse(response, productFolderPath, jobId);
-
-                // for WPS 2.0 return status instead of response document
-                if ("2.0.0".equals(version)) {
-                    return status;
                 } else {
-                    return response;
+                    try {
+                        executeRequestToBeRun.put(jobId, request);
+                        return execInfo.getStatus(jobId);
+                    } catch (UnknowJobException e) {
+                        throw new CstlServiceException("Job with Id " + jobId + "is not found is the list of jobs", INVALID_PARAMETER_VALUE);
+                    }
                 }
 
             ////////////////////////
@@ -1016,6 +1070,122 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
                     response.setService(null);
                     response.setVersion(null);
                 }
+                return response;
+            }
+        }
+    }
+
+    public Object runProcess(String jobId) throws CstlServiceException {
+        Execute request = executeRequestToBeRun.get(jobId);
+        Callable process;
+        WPSProcess processDesc;
+        try {
+            process = execInfo.getJobCallable(jobId);
+            processDesc = execInfo.getJobProcess(jobId);
+        } catch (UnknowJobException ex) {
+            throw new CstlServiceException("No job with id " + jobId + " in the list of stored jobs.", INVALID_PARAMETER_VALUE);
+        }
+
+        if (request == null) {
+            throw new CstlServiceException("The job with jobId " + jobId + " is already running OR is not supposed to be run asynchronously.", INVALID_PARAMETER_VALUE);
+        }
+
+        final List<OutputDefinition> outputs;
+        if (request.getOutput() == null || request.isLineage()) {
+            outputs = processDesc.getOutputDefinitions();
+        } else {
+            outputs = request.getOutput();
+        }
+
+        final List<DataInput> inputsResponse;
+        final List<OutputDefinition> outputsResponse;
+        if (request.isLineage()) {
+            inputsResponse = request.getInput();
+            outputsResponse = new ArrayList<>();
+            outputsResponse.addAll(outputs);
+        } else {
+            inputsResponse  = null;
+            outputsResponse = null;
+        }
+
+        final Locale lang;
+        if (request.getLanguage() != null) {
+            lang = Locale.forLanguageTag(request.getLanguage());
+        } else {
+            lang = WPS_EN_LOC;
+        }
+        boolean isOutputRaw = request.isRawOutput();
+        final String version = request.getVersion().toString();
+        final ProcessSummary procSum = processDesc.getProcessSummary(lang);
+        final String serviceInstance = getServiceUrl() + "SERVICE=WPS&REQUEST=GetCapabilities";
+
+        if (isOutputRaw) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // Prepare and launch process in a separate thread.
+                        jobExecutor.submit(process);
+                    } catch (Exception e) {
+                        // If we've got an exception, input parsing must have failed.
+                        XMLGregorianCalendar creationTime = WPSUtils.getCurrentXMLGregorianCalendar();
+                        ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
+
+                        StatusInfo status = new StatusInfo(Status.FAILED, creationTime, exceptionReport.toString(), jobId);
+                        WPSUtils.storeResponse(status, productFolderPath, jobId);
+                        execInfo.setStatus(jobId, status);
+                    }
+                }
+            }).start();
+
+            executeRequestToBeRun.remove(jobId);
+
+            StatusInfo statusInfo;
+            try {
+                statusInfo = execInfo.getStatus(jobId);
+            } catch (UnknowJobException e) {
+                throw new RuntimeException(e);
+            }
+
+            return new StatusInfo(Status.ACCEPTED, statusInfo.getCreationTime(), "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
+
+        } else {
+            //run process in asynchronous
+            jobExecutor.submit(() -> {
+                try {
+                    // Prepare and launch process in a separate thread.
+                    process.call();
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, "Error while executing synchronous process", e);
+                    // If we've got an exception, input parsing must have failed.
+                    XMLGregorianCalendar creationTime1 = WPSUtils.getCurrentXMLGregorianCalendar();
+                    ExceptionResponse exceptionReport = new ExceptionReport(Exceptions.formatStackTrace(e), null, null, ServiceDef.WPS_1_0_0.exceptionVersion.toString());
+                    StatusInfo status1 = new StatusInfo(Status.FAILED, creationTime1, exceptionReport.toString(), jobId);
+                    final Result response1 = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status1, jobId);
+                    WPSUtils.storeResponse(response1, productFolderPath, jobId);
+                }
+            });
+
+            executeRequestToBeRun.remove(jobId);
+
+            StatusInfo statusInfo;
+            try {
+                statusInfo = execInfo.getStatus(jobId);
+            } catch (UnknowJobException e) {
+                throw new RuntimeException(e);
+            }
+
+            StatusInfo status = new StatusInfo(Status.ACCEPTED, statusInfo.getCreationTime(), "Process " + request.getIdentifier().getValue() + " accepted.", jobId);
+            final Result response = new Result(WPS_SERVICE, version, lang.toLanguageTag(), serviceInstance, procSum, inputsResponse, outputsResponse, null, status, jobId);
+            response.setStatusLocation(productURL + "/" + jobId); //Output data URL
+
+            //store response document
+            WPSUtils.storeResponse(response, productFolderPath, jobId);
+
+            // for WPS 2.0 return status instead of response document
+            if ("2.0.0".equals(version)) {
+                return status;
+            } else {
                 return response;
             }
         }
@@ -1435,7 +1605,7 @@ public class DefaultWPSWorker extends AbstractWorker<ProcessContext> implements 
         try {
             Quotation quote = quoteInfo.getQuotation(quotationId);
             Execute request = quote.getProcessParameters();
-            return execute(request, quotationId);
+            return execute(request, quotationId, true);
         } catch (UnknowQuotationException ex) {
             throw new CstlServiceException(ex.getMessage(), ex, INVALID_PARAMETER_VALUE, "quotationId", 404);
         }

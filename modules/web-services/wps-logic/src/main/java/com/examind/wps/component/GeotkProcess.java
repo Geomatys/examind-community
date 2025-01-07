@@ -247,7 +247,7 @@ public class GeotkProcess implements WPSProcess {
 
     @Override
     public boolean isSupportedProcess() {
-        return WPSUtils.isSupportedProcess(descriptor);
+        return WPSUtils.isSupportedProcess(descriptor) || WPSUtils.isValidOpenEOProcess(descriptor);
     }
 
     @Override
@@ -544,7 +544,7 @@ public class GeotkProcess implements WPSProcess {
         }
 
         if (async) {
-            process.addListener(new WPSProcessRawListener(version, execInfo, quoteInfo, request, jobId, quoteId, this));
+            process.addListener(new WPSProcessRawListener(version, execInfo, quoteInfo, request, jobId, quoteId, this, true, process));
         }
 
         applyPreConsumers(process);
@@ -601,7 +601,7 @@ public class GeotkProcess implements WPSProcess {
     @Override
     public Callable createDocProcess(boolean async, String version, List<Path> tempFiles, ExecutionInfo execInfo, QuotationInfo quoteInfo,
             Execute request, String serviceInstance, ProcessSummary procSum, List<DataInput> inputsResponse, List<OutputDefinition> outputsResponse,
-            String jobId, String quoteId, Map<String, Object> parameters) throws IOParameterException {
+            String jobId, String quoteId, Map<String, Object> parameters, boolean addJobWhenCreated) throws IOParameterException {
 
         final ParameterValueGroup in = descriptor.getInputDescriptor().createValue();
 
@@ -632,7 +632,7 @@ public class GeotkProcess implements WPSProcess {
         }
 
         if (async) {
-            process.addListener(new WPSProcessListener(version, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quoteId, parameters, this));
+            process.addListener(new WPSProcessListener(version, execInfo, quoteInfo, request, serviceInstance, procSum, inputsResponse, outputsResponse, jobId, quoteId, parameters, this, addJobWhenCreated));
         }
 
         applyPreConsumers(process);

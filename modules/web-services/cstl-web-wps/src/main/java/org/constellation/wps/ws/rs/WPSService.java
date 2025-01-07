@@ -269,7 +269,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
                     }
                 }
 
-                final Object executeResponse = worker.execute(exec);
+                final Object executeResponse = worker.execute(exec, null);
 
                 boolean isTextPlain = false;
                 boolean isImage = false;
@@ -1093,7 +1093,7 @@ public class WPSService extends OGCWebService<WPSWorker> {
             try {
                 final Execute exec = convertExecuteRequestToXML(processId, request);
             
-                Object execResp = worker.execute(exec);
+                Object execResp = worker.execute(exec, null);
                 Map<String, String> headers = new HashMap<>();
                 //sync
                 if (execResp instanceof Result) {
