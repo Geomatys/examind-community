@@ -229,6 +229,14 @@ public class ExaPlaceHolderReplacer extends PlaceholderReplacer {
             if (output.contains("ADD COLUMN impl")) {
                 output = output.replace("ADD COLUMN impl", "ADD COLUMN \"impl\"");
             }
+            
+            // T1695127509__addExtraInfoToStyledLayer
+            if (output.contains("ADD COLUMN IF NOT EXISTS")) {
+                output = output.replace("ADD COLUMN IF NOT EXISTS", "ADD COLUMN");
+            }
+            if (output.contains("ALTER TABLE IF EXISTS")) {
+                output = output.replace("ALTER TABLE IF EXISTS", "ALTER TABLE");
+            }
 
             // various replacement
             if (output.contains("(name, namespace, service)")) {
