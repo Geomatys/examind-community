@@ -182,6 +182,8 @@ public interface ILayerBusiness {
      * @return list of {@link LayerSummary} without {@code targetStyle} field
      */
     List<LayerSummary> getLayerSummaryFromStyleId(final Integer styleId) throws ConstellationException;
+    
+    List<LayerSummary> getLayerSummary(final Integer serviceId, String login) throws ConstellationException;
 
     /**
      * Return all the styles linked to the specified layer.

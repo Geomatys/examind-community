@@ -155,21 +155,8 @@ public class MapRestAPI extends AbstractRestAPI {
     public ResponseEntity getLayersSummary(final @PathVariable("spec") String spec, final @PathVariable("id") String id) {
         try {
             Integer serviceId = serviceBusiness.getServiceIdByIdentifierAndType(spec, id);
-            final List<LayerConfig> layers = layerBusiness.getLayers(serviceId, securityManager.getCurrentUserLogin());
+            final List<LayerSummary> sumLayers = layerBusiness.getLayerSummary(serviceId, securityManager.getCurrentUserLogin());
 
-            final List<LayerSummary> sumLayers = new ArrayList<>();
-            for (final LayerConfig lay : layers) {
-                final Data db = dataBusiness.getData(lay.getDataId());
-                final String owner = userBusiness.findById(db.getOwnerId())
-                        .map(CstlUser::getLogin)
-                        .orElse(null);
-                List<StyledLayerBrief> layerStyleBriefs = Util.convertRefIntoStyledLayerBrief(lay.getStyles());
-                for (StyledLayerBrief styledLayerBrief : layerStyleBriefs) {
-                    boolean activateStats = styledLayerRepository.getActivateStats(styledLayerBrief.getId(), lay.getId());
-                    styledLayerBrief.setActivateStats(activateStats);
-                }
-                sumLayers.add(new LayerSummary(lay, db, owner, layerStyleBriefs));
-            }
             return new ResponseEntity(sumLayers, OK);
         } catch(Exception ex){
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);

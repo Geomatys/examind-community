@@ -45,6 +45,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.Layer;
 import org.constellation.dto.NameInProvider;
 import org.constellation.dto.StyleReference;
+import org.constellation.dto.StyledLayerBrief;
 import org.constellation.dto.service.Service;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.dto.service.config.wxs.LayerSummary;
@@ -54,6 +55,7 @@ import org.constellation.exception.TargetNotFoundException;
 import org.constellation.repository.DataRepository;
 import org.constellation.repository.LayerRepository;
 import org.constellation.repository.StyleRepository;
+import org.constellation.repository.StyledLayerRepository;
 import org.constellation.util.Util;
 import org.constellation.ws.LayerSecurityFilter;
 import org.constellation.ws.MapFactory;
@@ -76,6 +78,8 @@ public class LayerBusiness implements ILayerBusiness {
     protected IUserBusiness userBusiness;
     @Autowired
     protected StyleRepository styleRepository;
+    @Autowired
+    private StyledLayerRepository styledLayerRepository;
     @Autowired
     protected IStyleBusiness styleBusiness;
     @Autowired
@@ -160,6 +164,7 @@ public class LayerBusiness implements ILayerBusiness {
     @Override
     @Transactional
     public void update(int layerID, LayerSummary summary) throws ConfigurationException {
+        if (summary == null) throw new ConfigurationException("Layer summary must not be null for layer update");
         final Layer layer = layerRepository.findById(layerID);
         if (layer != null) {
             String title = summary.getTitle();
@@ -284,17 +289,23 @@ public class LayerBusiness implements ILayerBusiness {
      */
     @Override
     public List<LayerSummary> getLayerSummaryFromStyleId(final Integer styleId) throws ConstellationException{
-        final List<LayerSummary> sumLayers = new ArrayList<>();
         final List<Layer> layers = layerRepository.getLayersByLinkedStyle(styleId);
-        for(final Layer lay : layers) {
-            DataBrief db = null;
-            if (lay.getDataId() != null) {
-                db = dataBusiness.getDataBrief(lay.getDataId(), false, true);
+        return toLayerSummary(layers);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<LayerSummary> getLayerSummary(final Integer serviceId, final String login) throws ConstellationException{
+        final List<LayerSummary> sumLayers = new ArrayList<>();
+        if (serviceId != null) {
+            final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
+            final List<Layer> layers = layerRepository.findByServiceId(serviceId);
+            for (final Layer lay : layers) {
+                if (!securityFilter.allowed(login, lay.getId())) continue;
+                sumLayers.add(toLayerSummary(lay));
             }
-            String owner = userBusiness.findById(lay.getOwnerId()).map(CstlUser::getLogin).orElse(null);
-            // Styles ?
-            final LayerSummary layerSummary = new LayerSummary(lay, db, owner, null);
-            sumLayers.add(layerSummary);
         }
         return sumLayers;
     }
@@ -309,11 +320,10 @@ public class LayerBusiness implements ILayerBusiness {
             final LayerSecurityFilter securityFilter = getSecurityFilter(serviceId);
             final List<Layer> layers   = layerRepository.findByServiceId(serviceId);
             for (Layer layer : layers) {
-                if (securityFilter.allowed(login, layer.getId())) {
-                    LayerConfig confLayer = toLayerConfig(layer);
-                    if (confLayer != null) {
-                        response.add(confLayer);
-                    }
+                if (!securityFilter.allowed(login, layer.getId())) continue;
+                LayerConfig confLayer = toLayerConfig(layer);
+                if (confLayer != null) {
+                    response.add(confLayer);
                 }
             }
         } else {
@@ -526,7 +536,42 @@ public class LayerBusiness implements ILayerBusiness {
         Integer id = layerRepository.findIdByServiceIdAndLayerName(serviceId, name, nsmp);
         return id == null;
     }
+    
+    /**
+     * Convert a list of {@link Layer} into a list of  {@link toLayerSummary}.
+     *
+     * @param layers The layers to convert.
+     * @return A list of  {@link LayerConfig}
+     * @throws ConfigurationException If a layer is misconfigured.
+     */
+    private List<LayerSummary> toLayerSummary(List<Layer> layers) throws ConstellationException {
+        List<LayerSummary> results = new ArrayList<>();
+        for (Layer layer : layers) {
+            results.add(toLayerSummary(layer));
+        }
+        return results;
+    }
 
+    /**
+     * Convert a {@link Layer} into a {@link toLayerSummary}.
+     * @param layer The layer to convert.
+     *
+     * @throws ConfigurationException If the layer is misconfigured.
+     */
+    private LayerSummary toLayerSummary(Layer layer) throws ConstellationException {
+        DataBrief db = null;
+        if (layer.getDataId() != null) {
+            db = dataBusiness.getDataBrief(layer.getDataId(), false, true);
+        }
+        String owner = userBusiness.findById(layer.getOwnerId()).map(CstlUser::getLogin).orElse(null);
+        List<StyleReference> styles = styleRepository.fetchByLayerId(layer.getId());
+        List<StyledLayerBrief> stBriefs = Util.convertRefIntoStyledLayerBrief(styles);
+        for (StyledLayerBrief styledLayerBrief : stBriefs) {
+            boolean activateStats = styledLayerRepository.getActivateStats(styledLayerBrief.getId(), layer.getId());
+            styledLayerBrief.setActivateStats(activateStats);
+        }
+        return new LayerSummary(layer, db, owner, stBriefs);
+    }
 
     /**
      * Convert a list of {@link Layer} into a list of  {@link LayerConfig}.
@@ -542,7 +587,7 @@ public class LayerBusiness implements ILayerBusiness {
         }
         return results;
     }
-
+    
     /**
      * Convert a {@link Layer} into a {@link LayerConfig}.
      * @param layer The layer to convert.
