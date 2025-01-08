@@ -58,7 +58,7 @@ public interface ILayerBusiness {
     /**
      * Update a layer.
      *
-     * for now it only update the title and alias
+     * for now it only update the title, config and alias
      *
      * @param layerID Identifier of the layer.
      * @param summary An object containing all the field to update

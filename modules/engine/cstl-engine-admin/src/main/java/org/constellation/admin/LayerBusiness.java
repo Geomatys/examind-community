@@ -172,6 +172,11 @@ public class LayerBusiness implements ILayerBusiness {
                 alias = null;
             }
             layer.setAlias(alias);
+            String config = summary.getConfig();
+            if (config != null && config.isEmpty()) {
+                config = null;
+            }
+            layer.setConfig(config);
             layerRepository.update(layer);
 
             //clear cache event
