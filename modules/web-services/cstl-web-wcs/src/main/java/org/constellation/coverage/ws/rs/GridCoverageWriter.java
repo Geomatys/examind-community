@@ -21,17 +21,11 @@ package org.constellation.coverage.ws.rs;
 
 import java.io.File;
 import java.io.FileInputStream;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.imageio.ImageWriteParam;
 import org.apache.sis.coverage.Category;
 import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.DomainLinearizer;
@@ -42,16 +36,10 @@ import org.apache.sis.coverage.grid.GridOrientation;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.image.Interpolation;
 import org.constellation.util.CRSUtilities;
-import org.constellation.util.WCSUtils;
-import org.geotoolkit.image.io.plugin.TiffImageWriteParam;
 import org.geotoolkit.nio.IOUtilities;
 import org.apache.sis.coverage.grid.PixelInCell;
-import org.apache.sis.setup.OptionKey;
-import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStores;
-import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.geotiff.GeoTiffStore;
-import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -95,7 +83,7 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             byte[] buf = new byte[8192];
             try (FileInputStream is = new FileInputStream(f);
                     OutputStream out = outputMessage.getBody()) {
-                int c = 0;
+                int c;
                 while ((c = is.read(buf, 0, buf.length)) > 0) {
                     out.write(buf, 0, c);
                     out.flush();
@@ -149,15 +137,12 @@ public class GridCoverageWriter implements HttpMessageConverter<GeotiffResponse>
             }
         }
 
-        //final SpatialMetadata spatialMetadata = WCSUtils.adapt(entry.metadata, coverage);
-
-        //final IIOImage iioimage    = new IIOImage(coverage.render(null), null, spatialMetadata);
-       
-
         // TIFF writer do no support writing in output stream currently, we have to write in a file before
         final File f = File.createTempFile("data", ".tiff");
-        //iowriter.setOutput(f);
         try (final GeoTiffStore iowriter = (GeoTiffStore) DataStores.openWritable(f, "GeoTIFF")) {
+            
+        // TODO apply on new store
+        
         /*TiffImageWriteParam param = new TiffImageWriteParam(iowriter);
         if (entry.compression != null && !entry.compression.equals("NONE")) {
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);

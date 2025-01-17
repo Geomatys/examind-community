@@ -37,9 +37,11 @@ import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import org.apache.sis.coverage.grid.GridGeometry;
 import org.apache.sis.storage.DataStore;
+import org.apache.sis.storage.DataStores;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import org.apache.sis.storage.geotiff.GeoTiffStore;
 import org.constellation.admin.SpringHelper;
 import org.constellation.exception.ConstellationException;
 import org.constellation.business.IDataBusiness;
@@ -745,10 +747,10 @@ public class WCSRequestsTest extends AbstractGrizzlyServer {
     }
 
     public static void verifyTiff(Path p, String expectedCRS, double[] expectedBbox) throws Exception {
-        String resourceName = IOUtilities.filenameWithoutExtension(p);
-        TiffProvider geotkTiff = new TiffProvider();
-        DataStore result = geotkTiff.open(new StorageConnector(p));
-        Resource r = result.findResource(resourceName);
+        final GeoTiffStore result = (GeoTiffStore) DataStores.open(p, "GeoTIFF");
+        
+        assertEquals(1, result.components().size());
+        Resource r = result.components().get(0);
         assertNotNull(r);
         assertTrue(r instanceof GridCoverageResource);
         GridCoverageResource gcr = (GridCoverageResource) r;
