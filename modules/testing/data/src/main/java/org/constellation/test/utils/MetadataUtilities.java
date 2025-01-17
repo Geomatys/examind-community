@@ -76,6 +76,10 @@ import org.junit.Assert;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.opengis.metadata.extent.TemporalExtent;
+import org.opengis.temporal.Instant;
+import org.opengis.temporal.Period;
+import org.opengis.temporal.TemporalPrimitive;
 
 /**
  *
@@ -569,6 +573,26 @@ public final class MetadataUtilities {
                 }
                 assertEquals(expVEx, resVEx);
             }
+           
+            Iterator<? extends TemporalExtent> expTIt = expEx.getTemporalElements().iterator();
+            Iterator<? extends TemporalExtent> resTIt = resEx.getTemporalElements().iterator();
+             while (expTIt.hasNext() && resTIt.hasNext()) {
+                TemporalExtent expTEx = expTIt.next();
+                TemporalExtent resTEx = resTIt.next();
+                if (expTEx != null && resTEx != null) {
+                    TemporalPrimitive expTP = expTEx.getExtent();
+                    TemporalPrimitive resTP = resTEx.getExtent();
+                    if (expTP instanceof Period expP && resTP instanceof Period resP) {
+                        assertEquals(expP.getBeginning(), resP.getBeginning());
+                        assertEquals(expP.getEnding(), resP.getEnding());
+                    } else if (expTP instanceof Instant expI && resTP instanceof Instant resI) {
+                        assertEquals(expI.getPosition(), resI.getPosition());
+                    }
+                    
+                    assertEquals(expTP, resTP);
+                    
+                }
+             }
             assertEquals(expEx.getTemporalElements(),   resEx.getTemporalElements());
         }
 

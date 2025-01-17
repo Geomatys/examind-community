@@ -367,7 +367,7 @@
 								"name":"metadata.field.beginPosition",
 								"multiplicity":1,
 								"help":"metadata.field.beginPosition_help",
-								"path":"identificationInfo[1].extent[1].temporalElement[1].extent.beginPosition",
+								"path":"identificationInfo[1].extent[1].temporalElement[1].extent.beginPosition.position",
 								"render":"DATE.text",
 								"obligation":"O",
 								"defaultValue":null,

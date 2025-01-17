@@ -269,6 +269,7 @@ public final class ReflectionUtilities {
         final String baseMessage = "Unable to invoke the method " + method + ": ";
         try {
             if (method != null) {
+                method.setAccessible(true);
                 result = method.invoke(object);
             } else {
                 LOGGER.log(Level.WARNING, "{0}the method reference is null.", baseMessage);

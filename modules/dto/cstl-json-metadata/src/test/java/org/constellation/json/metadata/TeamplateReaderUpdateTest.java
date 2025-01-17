@@ -22,10 +22,9 @@ package org.constellation.json.metadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
-import org.apache.sis.storage.base.MetadataBuilder;
 import org.apache.sis.metadata.MetadataStandard;
 import org.apache.sis.metadata.iso.DefaultMetadata;
 import org.apache.sis.referencing.ImmutableIdentifier;
@@ -36,6 +35,7 @@ import org.apache.sis.metadata.iso.constraint.DefaultSecurityConstraints;
 import org.apache.sis.metadata.iso.extent.DefaultExtent;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicDescription;
+import org.apache.sis.metadata.iso.extent.DefaultTemporalExtent;
 import org.apache.sis.metadata.iso.identification.DefaultDataIdentification;
 import org.apache.sis.metadata.iso.identification.DefaultKeywords;
 import org.apache.sis.metadata.iso.maintenance.DefaultMaintenanceInformation;
@@ -90,7 +90,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality previousQuality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency previousReport = new DefaultDomainConsistency();
         final DefaultCitation previousCit = new DefaultCitation("some title");
-        final DefaultCitationDate previousDate = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate previousDate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         previousCit.setDates(Arrays.asList(previousDate));
         final DefaultConformanceResult previousConfResult = new DefaultConformanceResult(previousCit, "some explanation", true);
         previousReport.setResults(Arrays.asList(previousConfResult));
@@ -112,7 +112,6 @@ public class TeamplateReaderUpdateTest {
         previous.setIdentificationInfo(Arrays.asList(previousDataIdent));
 
 
-
         TemplateReader reader = new TemplateReader(MetadataStandard.ISO_19115);
 
         Object result = reader.readTemplate(root, previous);
@@ -130,7 +129,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145603000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145603000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -179,7 +178,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality previousQuality = new DefaultDataQuality(new DefaultScope(ScopeCode.AGGREGATE));
         final DefaultDomainConsistency previousReport = new DefaultDomainConsistency();
         final DefaultCitation previousCit = new DefaultCitation("ancient value");
-        final DefaultCitationDate previousDate = new DefaultCitationDate(new Date(11145600000L), DateType.PUBLICATION);
+        final DefaultCitationDate previousDate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.PUBLICATION);
         previousCit.setDates(Arrays.asList(previousDate));
         final DefaultConformanceResult previousConfResult = new DefaultConformanceResult(previousCit, "some old explanation", true);
         previousReport.setResults(Arrays.asList(previousConfResult));
@@ -194,8 +193,6 @@ public class TeamplateReaderUpdateTest {
 
         previousDataIdent.setDescriptiveKeywords(Arrays.asList(previousKeywords));
         previous.setIdentificationInfo(Arrays.asList(previousDataIdent));
-
-
 
         TemplateReader reader = new TemplateReader(MetadataStandard.ISO_19115);
 
@@ -214,7 +211,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145603000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145603000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -263,7 +260,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality previousQuality = new DefaultDataQuality(new DefaultScope(ScopeCode.AGGREGATE));
         final DefaultDomainConsistency previousReport = new DefaultDomainConsistency();
         final DefaultCitation previousCit = new DefaultCitation("ancient value");
-        final DefaultCitationDate previousDate = new DefaultCitationDate(new Date(11145600000L), DateType.PUBLICATION);
+        final DefaultCitationDate previousDate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.PUBLICATION);
         previousCit.setDates(Arrays.asList(previousDate));
         final DefaultConformanceResult previousConfResult = new DefaultConformanceResult(previousCit, "some old explanation", true);
         previousReport.setResults(Arrays.asList(previousConfResult));
@@ -312,7 +309,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145603000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145603000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -411,7 +408,7 @@ public class TeamplateReaderUpdateTest {
 
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145603000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145603000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -460,7 +457,7 @@ public class TeamplateReaderUpdateTest {
         final InternationalString pkw2 = new SimpleInternationalString("world");
         previouskeywords.setKeywords(Arrays.asList(pkw1, pkw2));
         final DefaultCitation previousGemet = new DefaultCitation("GEMET");
-        previousGemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        previousGemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         previouskeywords.setThesaurusName(previousGemet);
 
         previousDataIdent.setDescriptiveKeywords(Arrays.asList(previouskeywords));
@@ -481,8 +478,8 @@ public class TeamplateReaderUpdateTest {
         final InternationalString kw2 = new SimpleInternationalString("world");
         keywords.setKeywords(Arrays.asList(kw1, kw2));
         final DefaultCitation gemet = new DefaultCitation("GEMET");
-        gemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(11145600000L), DateType.CREATION),
-                                     new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        gemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION),
+                                     new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         keywords.setThesaurusName(gemet);
 
         dataIdent.setDescriptiveKeywords(Arrays.asList(keywords));
@@ -641,7 +638,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality prevQuality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency prevReport = new DefaultDomainConsistency();
         final DefaultCitation prevCit = new DefaultCitation("some title");
-        final DefaultCitationDate prevDate = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate prevDate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         prevCit.setDates(Arrays.asList(prevDate));
         final DefaultConformanceResult prevConfResult = new DefaultConformanceResult(prevCit, "some explanation", true);
         prevReport.setResults(Arrays.asList(prevConfResult));
@@ -690,7 +687,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -742,7 +739,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality prevQuality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency prevReport = new DefaultDomainConsistency();
         final DefaultCitation prevCit = new DefaultCitation("some title");
-        final DefaultCitationDate prevDate = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate prevDate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         prevCit.setDates(Arrays.asList(prevDate));
         final DefaultConformanceResult prevConfResult = new DefaultConformanceResult(prevCit, "some explanation", true);
         prevReport.setResults(Arrays.asList(prevConfResult));
@@ -799,7 +796,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -845,7 +842,7 @@ public class TeamplateReaderUpdateTest {
         final InternationalString pkw2 = new SimpleInternationalString("world");
         prevKeywords.setKeywords(Arrays.asList(pkw1, pkw2));
         final DefaultCitation prevGemet = new DefaultCitation("GEMET");
-        prevGemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        prevGemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         prevKeywords.setThesaurusName(prevGemet);
 
         final DefaultKeywords prevKeywords2 = new DefaultKeywords();
@@ -875,7 +872,7 @@ public class TeamplateReaderUpdateTest {
         final InternationalString kw2 = new SimpleInternationalString("world");
         keywords.setKeywords(Arrays.asList(kw1, kw2));
         final DefaultCitation gemet = new DefaultCitation("GEMET");
-        gemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        gemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         keywords.setThesaurusName(gemet);
 
         final DefaultKeywords keywords2 = new DefaultKeywords();
@@ -900,7 +897,7 @@ public class TeamplateReaderUpdateTest {
         final InternationalString pkw2 = new SimpleInternationalString("world");
         prevKeywords.setKeywords(Arrays.asList(pkw1, pkw2));
         final DefaultCitation prevGemet = new DefaultCitation("GEMET");
-        prevGemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        prevGemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         prevKeywords.setThesaurusName(prevGemet);
 
         final DefaultKeywords prevKeywords2 = new DefaultKeywords();
@@ -930,7 +927,7 @@ public class TeamplateReaderUpdateTest {
         final InternationalString kw2 = new SimpleInternationalString("world");
         keywords.setKeywords(Arrays.asList(kw1, kw2));
         final DefaultCitation gemet = new DefaultCitation("GEMET");
-        gemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        gemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         keywords.setThesaurusName(gemet);
 
         final DefaultKeywords keywords3 = new DefaultKeywords();
@@ -970,7 +967,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality pquality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency preport = new DefaultDomainConsistency();
         final DefaultCitation pcit = new DefaultCitation("some title");
-        final DefaultCitationDate pdate = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate pdate = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         pcit.setDates(Arrays.asList(pdate));
         final DefaultConformanceResult pconfResult = new DefaultConformanceResult(pcit, "some explanation", true);
         preport.setResults(Arrays.asList(pconfResult));
@@ -980,7 +977,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality pquality2 = new DefaultDataQuality(new DefaultScope(ScopeCode.AGGREGATE));
         final DefaultDomainConsistency preport2 = new DefaultDomainConsistency();
         final DefaultCitation pcit2 = new DefaultCitation("some second title  before change");
-        final DefaultCitationDate pdate2 = new DefaultCitationDate(new Date(11156600000L), DateType.PUBLICATION);
+        final DefaultCitationDate pdate2 = new DefaultCitationDate(Instant.ofEpochMilli(11156600000L), DateType.PUBLICATION);
         pcit2.setDates(Arrays.asList(pdate2));
         final DefaultConformanceResult pconfResult2 = new DefaultConformanceResult(pcit2, "some second explanation", true);
         preport2.setResults(Arrays.asList(pconfResult2));
@@ -1029,7 +1026,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -1039,7 +1036,7 @@ public class TeamplateReaderUpdateTest {
         final DefaultDataQuality quality2 = new DefaultDataQuality(new DefaultScope(ScopeCode.AGGREGATE));
         final DefaultDomainConsistency report2 = new DefaultDomainConsistency();
         final DefaultCitation cit2 = new DefaultCitation("some second title");
-        final DefaultCitationDate date2 = new DefaultCitationDate(new Date(11156600000L), DateType.PUBLICATION);
+        final DefaultCitationDate date2 = new DefaultCitationDate(Instant.ofEpochMilli(11156600000L), DateType.PUBLICATION);
         cit2.setDates(Arrays.asList(date2));
         final DefaultConformanceResult confResult2 = new DefaultConformanceResult(cit2, "some second explanation", true);
         report2.setResults(Arrays.asList(confResult2));
@@ -1223,7 +1220,6 @@ public class TeamplateReaderUpdateTest {
         pdataIdent.setDescriptiveKeywords(Arrays.asList(pkeywords));
         previous.setIdentificationInfo(Arrays.asList(pdataIdent));
 
-
         Object result = reader.readTemplate(root, previous);
 
         final DefaultMetadata expResult = new DefaultMetadata();
@@ -1236,6 +1232,43 @@ public class TeamplateReaderUpdateTest {
         dataIdent.setDescriptiveKeywords(Arrays.asList(keywords));
         expResult.setIdentificationInfo(Arrays.asList(dataIdent));
 
+        MetadataUtilities.metadataEquals(expResult, (DefaultMetadata) result);
+    }
+    
+    @Test
+    public void testUpdateTemporalExtent() throws IOException {
+
+        InputStream stream = TemplateReaderTest.class.getResourceAsStream("result_temporal_extent.json");
+        final RootObj root       =  objectMapper.readValue(stream, RootObj.class);
+        TemplateReader reader = new TemplateReader(MetadataStandard.ISO_19115);
+
+        final DefaultMetadata previous = new DefaultMetadata();
+
+        final DefaultDataIdentification pdataIdent = new DefaultDataIdentification();
+
+        final DefaultExtent pex = new DefaultExtent();
+        //this values should be overriden by the template
+        final DefaultTemporalExtent ptex = new DefaultTemporalExtent(Instant.parse("2022-01-01T00:00:00Z"),  
+                                                                    Instant.parse("2023-01-01T00:00:00Z"));
+
+        pex.setTemporalElements(Arrays.asList(ptex));
+        pdataIdent.setExtents(Arrays.asList(pex));
+        previous.setIdentificationInfo(Arrays.asList(pdataIdent));
+
+        Object result = reader.readTemplate(root, previous);
+        
+        final DefaultMetadata expResult = new DefaultMetadata();
+
+        final DefaultDataIdentification dataIdent = new DefaultDataIdentification();
+
+        final DefaultExtent ex = new DefaultExtent();
+        final DefaultTemporalExtent tex = new DefaultTemporalExtent(Instant.parse("2020-01-01T00:00:00Z"), 
+                                                                    Instant.parse("2021-01-01T00:00:00Z"));
+        
+        ex.setTemporalElements(Arrays.asList(tex));
+        dataIdent.setExtents(Arrays.asList(ex));
+        expResult.setIdentificationInfo(Arrays.asList(dataIdent));
+        
         MetadataUtilities.metadataEquals(expResult, (DefaultMetadata) result);
     }
 }

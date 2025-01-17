@@ -359,6 +359,21 @@ public class TemplateReader extends AbstractTemplateHandler {
                     // special case
                     if (node.name.equals("referenceSystemIdentifier") && metadata instanceof ReferenceSystem) {
                         attributeName = "name";
+                    // TODO remove when the setter "setPosition" will be added to geotk AbstractTimePosition
+                    } else if (node.name.equals("position") && metadata instanceof AbstractTimePosition) {
+                        attributeName = "value";
+                        value = value.toString();
+
+                    // temporal object from sis are immutable
+                    } else if (node.name.equals("position") && !(metadata instanceof AbstractTimePosition)) {
+                        Field f = ReflectionUtilities.getFieldFromName(node.name, metadata.getClass());
+                        try {
+                            f.setAccessible(true);
+                            f.set(metadata,  value);
+                        } catch (Exception ex) {
+                            LOGGER.warning("Unable to set position field");
+                        }
+                        return;
                     } else {
                         attributeName = node.name;
                     }
@@ -369,7 +384,7 @@ public class TemplateReader extends AbstractTemplateHandler {
                         }
                         ReflectionUtilities.invokeMethod(setter, metadata, value);
                     } else {
-                        LOGGER.warning("Unable to find a setter for:" + attributeName + " in " + metadata.getClass().getName());
+                        LOGGER.warning("Unable to find a setter for:" + attributeName + "with type " +  value.getClass().getName() + " in " + metadata.getClass().getName());
                     }
                 } else {
                     LOGGER.warning("TODO find a setter for null values");

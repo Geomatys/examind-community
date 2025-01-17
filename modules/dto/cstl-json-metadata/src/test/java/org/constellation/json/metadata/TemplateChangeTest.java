@@ -15,7 +15,6 @@ import org.apache.sis.metadata.iso.identification.DefaultServiceIdentification;
 import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.RootObj;
 import org.geotoolkit.nio.IOUtilities;
-import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.opengis.metadata.identification.CharacterSet;
 import org.opengis.metadata.identification.CouplingType;
@@ -27,7 +26,7 @@ import org.opengis.util.InternationalString;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class TemplateChangeTest {
+public class TemplateChangeTest extends AbstractTemplateTest {
     
     private final ObjectMapper objectMapper = new ObjectMapper();
     
@@ -64,7 +63,7 @@ public class TemplateChangeTest {
         
         String resultJson = IOUtilities.toString(resultFile.toPath());
         
-        assertEquals(expectedJson, resultJson);
+        compareJSON(expectedJson, resultJson);
         
         final TemplateReader reader = new TemplateReader(MetadataStandard.ISO_19115);
         

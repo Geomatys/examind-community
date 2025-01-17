@@ -22,8 +22,8 @@ package org.constellation.json.metadata;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 import org.apache.sis.xml.bind.metadata.replace.ReferenceSystemMetadata;
 import org.apache.sis.metadata.MetadataStandard;
@@ -47,7 +47,6 @@ import org.apache.sis.util.SimpleInternationalString;
 import org.constellation.dto.metadata.RootObj;
 import org.constellation.test.utils.MetadataUtilities;
 import org.geotoolkit.gml.xml.v311.TimePeriodType;
-import org.geotoolkit.temporal.object.ISODateParser;
 import org.junit.Test;
 import org.opengis.metadata.citation.DateType;
 import org.opengis.metadata.constraint.Classification;
@@ -89,7 +88,7 @@ public class TemplateReaderTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145603000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145603000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -137,7 +136,7 @@ public class TemplateReaderTest {
         final DefaultDataQuality quality = new DefaultDataQuality(new DefaultScope(ScopeCode.DATASET));
         final DefaultDomainConsistency report = new DefaultDomainConsistency();
         final DefaultCitation cit = new DefaultCitation("some title");
-        final DefaultCitationDate date = new DefaultCitationDate(new Date(11145600000L), DateType.CREATION);
+        final DefaultCitationDate date = new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION);
         cit.setDates(Arrays.asList(date));
         final DefaultConformanceResult confResult = new DefaultConformanceResult(cit, "some explanation", true);
         report.setResults(Arrays.asList(confResult));
@@ -251,7 +250,7 @@ public class TemplateReaderTest {
         final InternationalString kw2 = new SimpleInternationalString("world");
         keywords.setKeywords(Arrays.asList(kw1, kw2));
         final DefaultCitation gemet = new DefaultCitation("GEMET");
-        gemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        gemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
         keywords.setThesaurusName(gemet);
 
         dataIdent.setDescriptiveKeywords(Arrays.asList(keywords));
@@ -262,8 +261,8 @@ public class TemplateReaderTest {
         /*
         * TEST 2 : one keyword with two thesaurus date
         */
-        gemet.setDates(Arrays.asList(new DefaultCitationDate(new Date(11145600000L), DateType.CREATION),
-                                     new DefaultCitationDate(new Date(1325376000000L), DateType.PUBLICATION)));
+        gemet.setDates(Arrays.asList(new DefaultCitationDate(Instant.ofEpochMilli(11145600000L), DateType.CREATION),
+                                     new DefaultCitationDate(Instant.ofEpochMilli(1325376000000L), DateType.PUBLICATION)));
 
         stream = TemplateReaderTest.class.getResourceAsStream("result_multiple_block2.json");
         root   =  objectMapper.readValue(stream, RootObj.class);
@@ -293,7 +292,7 @@ public class TemplateReaderTest {
         final DefaultExtent ex = new DefaultExtent();
         final DefaultTemporalExtent tex = new DefaultTemporalExtent();
 
-        tex.setExtent(new TimePeriodType(null, "1970-05-10", "2012-01-01"));
+        tex.setExtent(new TimePeriodType(null, Instant.parse("1970-05-10T00:00:00Z"), Instant.parse("2012-01-01T00:00:00Z")));
         ex.setTemporalElements(Arrays.asList(tex));
         dataIdent.setExtents(Arrays.asList(ex));
         expResult.setIdentificationInfo(Arrays.asList(dataIdent));
@@ -364,9 +363,7 @@ public class TemplateReaderTest {
 
         Object result = reader.readTemplate(root, new DefaultMetadata());
 
-
-        ISODateParser parser = new ISODateParser();
-        Date d = parser.parseToDate("2008-06-01T00:00:00Z");
+        Instant d = Instant.parse("2008-06-01T00:00:00Z");
         final DefaultMetadata expResult = new DefaultMetadata();
 
         final DefaultDataIdentification dataIdent = new DefaultDataIdentification();
@@ -391,6 +388,32 @@ public class TemplateReaderTest {
         expResult.setIdentificationInfo(Arrays.asList(dataIdent));
 
         MetadataUtilities.metadataEquals(expResult, (DefaultMetadata) result);
+    }
+    
+    @Test
+    public void testReadFromFilledTemplateTemporalExtent() throws IOException, FactoryException {
+        InputStream stream = TemplateReaderTest.class.getResourceAsStream("result_temporal_extent.json");
+        RootObj root       =  objectMapper.readValue(stream, RootObj.class);
 
+        TemplateReader reader = new TemplateReader(MetadataStandard.ISO_19115);
+
+        Object result = reader.readTemplate(root, new DefaultMetadata());
+
+        final DefaultMetadata expResult = new DefaultMetadata();
+
+        final DefaultDataIdentification dataIdent = new DefaultDataIdentification();
+
+        final DefaultExtent ex = new DefaultExtent();
+        final DefaultTemporalExtent tex = new DefaultTemporalExtent();
+        final TimePeriodType period = new TimePeriodType(null, Instant.parse("2020-01-01T00:00:00Z"), 
+                                                               Instant.parse("2021-01-01T00:00:00Z"));
+        tex.setExtent(period);
+
+        ex.setTemporalElements(Arrays.asList(tex));
+        dataIdent.setExtents(Arrays.asList(ex));
+        expResult.setIdentificationInfo(Arrays.asList(dataIdent));
+
+
+        MetadataUtilities.metadataEquals(expResult, (DefaultMetadata) result);
     }
 }
