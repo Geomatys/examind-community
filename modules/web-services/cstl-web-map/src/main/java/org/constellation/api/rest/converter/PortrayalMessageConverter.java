@@ -67,6 +67,7 @@ public class PortrayalMessageConverter implements HttpMessageConverter<Portrayal
                 MediaType.IMAGE_PNG,
                 MediaType.IMAGE_GIF,
                 MediaType.IMAGE_JPEG,
+                MediaType.parseMediaType("image/tiff"),
                 MediaType.parseMediaType("image/bmp"));
     }
 

@@ -505,6 +505,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "&TRANSPARENT=${transparent}&LAYERS=" + MARTINIQUE
             + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
             + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
+    
+    private static final String WMS_GETMAP_TIFF_TO_TIFF = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Ftiff"
+            + "&TRANSPARENT=true&LAYERS=" + MARTINIQUE
+            + "&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
+            + "&BBOX=-6887893.4928338025%2C1565430.3392804079%2C-6731350.458905761%2C1721973.3732084488";
 
     private static final String WMS_GETMAP_SHAPE_POINT = "SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&"
             + "TRANSPARENT=true&LAYERS=BuildingCenters&SLD_VERSION=1.1.0&WIDTH=256&HEIGHT=256&CRS=EPSG%3A3857&STYLES="
@@ -1803,6 +1808,18 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         // Try to get a map from the url. The test is skipped in this method if it fails.
         image = getImageFromURL(getMapUrl, "image/jpeg");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+        
+        // try TIFF
+        getMapUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_TIFF_TO_TIFF);
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        image = getImageFromURL(getMapUrl, "image/tiff");
 
         // Test on the returned image.
         assertTrue(!(ImageTesting.isImageEmpty(image)));
