@@ -45,6 +45,7 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.sos.io.lucene.LuceneObervationUtils.getLuceneTimeValue;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.*;
+import org.geotoolkit.observation.FilterAppend;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.model.ResponseMode;
@@ -57,6 +58,7 @@ import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Literal;
+import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
 import org.opengis.geometry.Envelope;
@@ -159,180 +161,174 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures) {
-        if (procedures != null && !procedures.isEmpty()) {
-            luceneRequest.append(" ( ");
-            for (String s : procedures) {
-                luceneRequest.append(" procedure:\"").append(s).append("\" OR ");
-            }
-            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-            luceneRequest.append(") ");
-        }
+    public FilterAppend setProcedure(final String procedure) {
+        FilterAppend result = new FilterAppend();
+        if (procedure == null) return result;
+        luceneRequest.append("( procedure:\"").append(procedure).append("\") ");
+        result.append = true;
+        return result;
     }
 
-    private boolean allPhenonenon(final List<String> phenomenons) {
-        return phenomenons.size() == 1 && phenomenons.get(0).equals(phenomenonIdBase + "ALL");
+    private boolean allPhenonenon(final String phenomenon) {
+        return (phenomenonIdBase + "ALL").equals(phenomenon);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setObservedProperties(final List<String> phenomenon) {
-        if (phenomenon != null && !allPhenonenon(phenomenon) && !phenomenon.isEmpty()) {
-            boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
-            luceneRequest.append(" AND( ");
-            for (String p : phenomenon) {
-                if (getPhen) {
-                    if (p.startsWith(phenomenonIdBase)) {
-                        p = p.substring(phenomenonIdBase.length());
-                    }
-                    luceneRequest.append(" id:\"").append(p).append('"').append(OR_OPERATOR);
+    public FilterAppend setObservedProperty(String phenomenon) {
+        FilterAppend result = new FilterAppend();
+        if (phenomenon == null  || allPhenonenon(phenomenon)) return result;
+        boolean getPhen = OMEntity.OBSERVED_PROPERTY.equals(objectType);
+        luceneRequest.append(" ( ");
+        if (getPhen) {
+            if (phenomenon.startsWith(phenomenonIdBase)) {
+                phenomenon = phenomenon.substring(phenomenonIdBase.length());
+            }
+            luceneRequest.append(" id:\"").append(phenomenon).append('"');
+        } else {
+            luceneRequest.append(" observed_property:\"").append(phenomenon).append('"');
+        }
+        luceneRequest.append(") ");
+        result.append = true;
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FilterAppend setFeatureOfInterest(final String foi) {
+        FilterAppend result = new FilterAppend();
+        if (foi == null) return result;
+        boolean getFOI = OMEntity.FEATURE_OF_INTEREST.equals(objectType);
+        luceneRequest.append(" (");
+        if (getFOI) {
+            luceneRequest.append("id:").append(foi);
+        } else {
+            luceneRequest.append("feature_of_interest:").append(foi);
+        }
+        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+        luceneRequest.append(" ) ");
+        result.append = true;
+        return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public FilterAppend setObservationId(String oid) {
+        FilterAppend result = new FilterAppend();
+        if (oid != null) return result;
+        final StringBuilder procSb  = new StringBuilder();
+        /*
+        * in template mode 2 possibility :
+        *   1) look for for a template by id:
+        *       - <template base> - <proc id>
+        *       - <template base> - <proc id> - <field id>
+        *   2) look for a template for an observation id:
+        *       - <observation id>
+        *       - <observation id> - <field id>
+        *       - <observation id> - <field id> - <measure id>
+        */
+        if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
+            if (oid.startsWith(observationTemplateIdBase)) {
+                String procedureID = oid.substring(observationTemplateIdBase.length());
+                // look for a field separator
+                int pos = procedureID.lastIndexOf("-");
+                if (pos != -1) {
+                    try {
+                        int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                        String tmpProcedureID = procedureID.substring(0, pos);
+                        if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                            existProcedure(tmpProcedureID)) {
+                            procedureID = tmpProcedureID;
+                            fieldFilters.add(fieldIdentifier);
+                        }
+                    } catch (NumberFormatException ex) {}
+                }
+                if (existProcedure(sensorIdBase + procedureID)) {
+                    procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" ");
                 } else {
-                    luceneRequest.append(" observed_property:\"").append(p).append('"').append(OR_OPERATOR);
+                    procSb.append("procedure:\"").append(procedureID).append("\" ");
                 }
-
-            }
-            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-            luceneRequest.append(") ");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setFeatureOfInterest(final List<String> fois) {
-        if (fois != null && !fois.isEmpty()) {
-            boolean getFOI = OMEntity.FEATURE_OF_INTEREST.equals(objectType);
-            luceneRequest.append(" AND (");
-            for (String foi : fois) {
-                if (getFOI) {
-                    luceneRequest.append("id:").append(foi).append(" OR ");
-                } else {
-                    luceneRequest.append("feature_of_interest:").append(foi).append(" OR ");
+            } else if (oid.startsWith(observationIdBase)) {
+                String[] component = oid.split("-");
+                if (component.length == 3) {
+                    oid = component[0];
+                    int fieldId = Integer.parseInt(component[1]);
+                    fieldFilters.add(fieldId);
+                    measureIdFilters.add(Integer.valueOf(component[2]));
+                } else if (component.length == 2) {
+                    oid = component[0];
+                    int fieldId = Integer.parseInt(component[1]);
+                    fieldFilters.add(fieldId);
                 }
-            }
-            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-            luceneRequest.append(") ");
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setObservationIds(List<String> ids) {
-        if (!ids.isEmpty()) {
-            final StringBuilder procSb  = new StringBuilder();
-            /*
-            * in template mode 2 possibility :
-            *   1) look for for a template by id:
-            *       - <template base> - <proc id>
-            *       - <template base> - <proc id> - <field id>
-            *   2) look for a template for an observation id:
-            *       - <observation id>
-            *       - <observation id> - <field id>
-            *       - <observation id> - <field id> - <measure id>
-            */
-            if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
-                for (String oid : ids) {
-                    if (oid.startsWith(observationTemplateIdBase)) {
-                        String procedureID = oid.substring(observationTemplateIdBase.length());
-                        // look for a field separator
-                        int pos = procedureID.lastIndexOf("-");
-                        if (pos != -1) {
-                            try {
-                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
-                                String tmpProcedureID = procedureID.substring(0, pos);
-                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
-                                    existProcedure(tmpProcedureID)) {
-                                    procedureID = tmpProcedureID;
-                                    fieldFilters.add(fieldIdentifier);
-                                }
-                            } catch (NumberFormatException ex) {}
-                        }
-                        if (existProcedure(sensorIdBase + procedureID)) {
-                            procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" OR");
-                        } else {
-                            procSb.append("procedure:\"").append(procedureID).append("\" OR");
-                        }
-                    } else if (oid.startsWith(observationIdBase)) {
-                        String[] component = oid.split("-");
-                        if (component.length == 3) {
-                            oid = component[0];
-                            int fieldId = Integer.parseInt(component[1]);
-                            fieldFilters.add(fieldId);
-                            measureIdFilters.add(Integer.parseInt(component[2]));
-                        } else if (component.length == 2) {
-                            oid = component[0];
-                            int fieldId = Integer.parseInt(component[1]);
-                            fieldFilters.add(fieldId);
-                        }
-                        procSb.append("id:\"").append(oid).append("\" OR");
-                    } else {
-                        procSb.append("id:\"").append(oid).append("\" OR");
-                    }
-                }
-           /*
-            * in observations mode 2 possibility :
-            *   1) look for for observation for a template:
-            *       - <template base> - <proc id>
-            *       - <template base> - <proc id> - <field id>
-            *   2) look for observation by id:
-            *       - <observation id>
-            *       - <observation id> - <measure id>
-            *       - <observation id> - <field id> - <measure id>
-            */
+                procSb.append("id:\"").append(oid).append("\" ");
             } else {
-                for (String oid : ids) {
-                     if (oid.contains(observationTemplateIdBase)) {
-                        String procedureID = oid.substring(observationTemplateIdBase.length());
-                        // look for a field separator
-                        int pos = procedureID.lastIndexOf("-");
-                        if (pos != -1) {
-                            try {
-                                int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
-                                String tmpProcedureID = procedureID.substring(0, pos);
-                                if (existProcedure(sensorIdBase + tmpProcedureID) ||
-                                    existProcedure(tmpProcedureID)) {
-                                    procedureID = tmpProcedureID;
-                                    fieldFilters.add(fieldIdentifier);
-                                }
-                            } catch (NumberFormatException ex) {}
-                        }
-                        if (existProcedure(sensorIdBase + procedureID)) {
-                            procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" OR");
-                        } else {
-                            procSb.append("procedure:\"").append(procedureID).append("\" OR");
-                        }
-                    } else if (oid.startsWith(observationIdBase)) {
-                        String[] component = oid.split("-");
-                        if (component.length == 3) {
-                            oid = component[0];
-                            fieldFilters.add(Integer.parseInt(component[1]));
-                            measureIdFilters.add(Integer.parseInt(component[2]));
-                        } else if (component.length == 2) {
-                            oid = component[0];
-                            measureIdFilters.add(Integer.parseInt(component[1]));
-                        }
-                        procSb.append("id:\"").append(oid).append("\" OR");
-                    } else {
-                        procSb.append("id:\"").append(oid).append("\" OR");
-                    }
-                }
+                procSb.append("id:\"").append(oid).append("\" ");
             }
-
-            procSb.delete(procSb.length() - 3, procSb.length());
-            luceneRequest.append(" AND( ").append(procSb).append(") ");
+       /*
+        * in observations mode 2 possibility :
+        *   1) look for for observation for a template:
+        *       - <template base> - <proc id>
+        *       - <template base> - <proc id> - <field id>
+        *   2) look for observation by id:
+        *       - <observation id>
+        *       - <observation id> - <measure id>
+        *       - <observation id> - <field id> - <measure id>
+        */
+        } else {
+            if (oid.contains(observationTemplateIdBase)) {
+                String procedureID = oid.substring(observationTemplateIdBase.length());
+                // look for a field separator
+                int pos = procedureID.lastIndexOf("-");
+                if (pos != -1) {
+                    try {
+                        int fieldIdentifier = Integer.parseInt(procedureID.substring(pos + 1));
+                        String tmpProcedureID = procedureID.substring(0, pos);
+                        if (existProcedure(sensorIdBase + tmpProcedureID) ||
+                            existProcedure(tmpProcedureID)) {
+                            procedureID = tmpProcedureID;
+                            fieldFilters.add(fieldIdentifier);
+                        }
+                    } catch (NumberFormatException ex) {}
+                }
+                if (existProcedure(sensorIdBase + procedureID)) {
+                    procSb.append("procedure:\"").append(sensorIdBase).append(procedureID).append("\" ");
+                } else {
+                    procSb.append("procedure:\"").append(procedureID).append("\" ");
+                }
+            } else if (oid.startsWith(observationIdBase)) {
+                String[] component = oid.split("-");
+                if (component.length == 3) {
+                    oid = component[0];
+                    fieldFilters.add(Integer.parseInt(component[1]));
+                    measureIdFilters.add(Integer.parseInt(component[2]));
+                } else if (component.length == 2) {
+                    oid = component[0];
+                    measureIdFilters.add(Integer.parseInt(component[1]));
+                }
+                procSb.append("id:\"").append(oid).append("\" ");
+            } else {
+                procSb.append("id:\"").append(oid).append("\" ");
+            }
         }
+
+        procSb.delete(procSb.length() - 3, procSb.length());
+        luceneRequest.append(" AND( ").append(procSb).append(") ");
+        result.append = true;
+        return result;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
+    public FilterAppend setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
+        FilterAppend result = new FilterAppend();
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
@@ -430,27 +426,26 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } else {
             throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
+        result.append = true;
+        return result;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setOfferings(final List<String> offerings) throws DataStoreException {
-        if (offerings != null && !offerings.isEmpty()) {
-            String fieldName;
-            if (objectType == OMEntity.OFFERING) {
-                fieldName = "id";
-            } else {
-                fieldName = "offering";
-            }
-            luceneRequest.append(" ( ");
-            for (String s : offerings) {
-                luceneRequest.append(fieldName).append(":\"").append(s).append("\" OR ");
-            }
-            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
-            luceneRequest.append(") ");
+    public FilterAppend setOffering(final String offering) throws DataStoreException {
+        FilterAppend result = new FilterAppend();
+        if (offering == null) return result;
+        String fieldName;
+        if (objectType == OMEntity.OFFERING) {
+            fieldName = "id";
+        } else {
+            fieldName = "offering";
         }
+        luceneRequest.append(" ( ").append(fieldName).append(":\"").append(offering).append("\" ) ");
+        result.append = true;
+        return result;
     }
 
     /**
@@ -517,7 +512,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setBoundingBox(BinarySpatialOperator e) throws DataStoreException {
+    public FilterAppend setBoundingBox(BinarySpatialOperator e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
     }
 
@@ -525,7 +520,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
@@ -533,7 +528,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public void setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
         throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
     }
 
@@ -557,7 +552,31 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     }
 
     @Override
-    public void setProcedureType(String type) throws DataStoreException {
+    public FilterAppend setProcedureType(String type) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+    
+    @Override
+    public void startFilterBlock(LogicalOperatorName operator) {
+        if (operator.equals(LogicalOperatorName.NOT)) {
+            luceneRequest.append(" NOT ");
+        }
+        luceneRequest.append(" ( ");
+    }
+
+    @Override
+    public void appendFilterOperator(LogicalOperatorName operator, FilterAppend merged) {
+        luceneRequest.append(" ").append(operator.name()).append(" ");
+    }
+
+    @Override
+    public void endFilterBlock(LogicalOperatorName operator, FilterAppend merged) {
+        luceneRequest.append(" ) ");
+    }
+    
+    @Override
+    public void removeFilterOperator(LogicalOperatorName operator, FilterAppend merged, FilterAppend previous) {
+        int nbChar = operator.name().length() + 2;
+        if (!merged.append)   luceneRequest.delete(luceneRequest.length() - nbChar, luceneRequest.length());
     }
 }

@@ -41,6 +41,7 @@ import org.constellation.util.SQLUtilities;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE_NAME;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.PHENOMENON_ID_BASE_NAME;
+import org.geotoolkit.observation.FilterAppend;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.filter.BinaryComparisonOperator;
@@ -184,12 +185,12 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
      * {@inheritDoc}
      */
     @Override
-    public void setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
     @Override
-    public void setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
         throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
     }
 

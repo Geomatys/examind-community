@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -1114,7 +1115,7 @@ public class OM2BaseReader {
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-        final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
         final FieldParser parser            = new FieldParser(ti.mainField.index, fields, ResultMode.CSV, false, false, true, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
@@ -1210,7 +1211,7 @@ public class OM2BaseReader {
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -1229,7 +1230,7 @@ public class OM2BaseReader {
             
             String baseTableName = "mesure" + pti.pid;
             final SingleFilterSQLRequest measureRequest;
-            boolean whereSet = false;
+            AtomicBoolean whereSet = new AtomicBoolean(false);
             
             // first main table
             if (tableNum == 1) {
@@ -1267,12 +1268,12 @@ public class OM2BaseReader {
                 }
                 if (oid != null) {
                     measureRequest.append(" WHERE m.\"id_observation\" = ").appendValue(oid);
-                    whereSet = true;
+                    whereSet.set(true);
                 }
                 if (obsJoin) {
-                    String where = whereSet ? " AND " : " WHERE ";
+                    String where = whereSet.get() ? " AND " : " WHERE ";
                     measureRequest.append(where).append(" o.\"id\" = m.\"id_observation\" ");
-                    whereSet = true;
+                    whereSet.set(true);
                 }
                 
                 /*
@@ -1282,24 +1283,7 @@ public class OM2BaseReader {
                  * TODO maybe add the main field on each extra table to solve this problem.
                  */
                 if (!multiTable && tableFields != null) {
-                    boolean nullFilterApplied = false;
-
-                    // 1. we sort the field identified as measure field along their table number
-                    StringBuilder s = new StringBuilder("(");
-                    for (DbField df : tableFields) {
-                        // index 0 are non measure fields
-                        if (df.index != 0 && !df.name.equals(mainFieldName)) {
-                            s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
-                            nullFilterApplied = true;
-                        }
-                    }
-                    if (nullFilterApplied) {
-                        s.delete(s.length() - 3, s.length());
-                        s.append(")");
-                        String where = whereSet ? " AND " : " WHERE ";
-                        measureRequest.append(where).append(s.toString());
-                        whereSet = true;
-                    }
+                    appendNotNullFilter(tableFields, mainFieldName, whereSet, measureRequest);
                 }
                         
             // other tables
@@ -1334,7 +1318,7 @@ public class OM2BaseReader {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
                 measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
-                whereSet = true;
+                whereSet.set(true);
                 if (oid != null) {
                     measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
                 }
@@ -1349,32 +1333,26 @@ public class OM2BaseReader {
                  * TODO maybe add the main field on each extra table to solve this problem.
                  */
                 if (!multiTable && tableFields != null) {
-                    boolean nullFilterApplied = false;
-
-                    // 1. we sort the field identified as measure field along their table number
-                    StringBuilder s = new StringBuilder("(");
-                    for (DbField df : tableFields) {
-                        // index 0 are non measure fields
-                        if (df.index != 0 && !df.name.equals(mainFieldName)) {
-                            s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
-                            nullFilterApplied = true;
-                        }
-                    }
-                    if (nullFilterApplied) {
-                        s.delete(s.length() - 3, s.length());
-                        s.append(")");
-                        measureRequest.append(" AND ").append(s.toString());
-                        whereSet = true;
-                    }
+                    appendNotNullFilter(tableFields, mainFieldName, whereSet, measureRequest);
                 }
             }
             
             /*
             * Append measure filter on each measure request
             */
-            if (measureFilter != null) {
+            boolean isEmpty = measureFilter == null || 
+                             ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum)) ||
+                             measureFilter.isEmpty();
+                    
+            if (!isEmpty) {
                 FilterSQLRequest clone = measureFilter.clone();
-                if (!whereSet) clone.replaceFirst("AND", "WHERE");
+                if (whereSet.get()) {
+                    measureRequest.append(" AND ");
+                } else {
+                    measureRequest.append(" WHERE ");
+                    whereSet.set(true);
+                }
+                
                 if (clone instanceof MultiFilterSQLRequest mf) {
                     measureRequest.append(mf.getRequest(tableNum), !profile);
                 } else {
@@ -1392,5 +1370,34 @@ public class OM2BaseReader {
             measureRequests.addRequest(tableNum, measureRequest);
         }
         return measureRequests;
+    }
+    
+    /**
+     * Append NOT NULL filter for the table fields in the measure request .
+     * 
+     * @param tableFields Field list for a specific measure table.
+     * @param mainFieldName Name of the main field (the filter will not apply to this field).
+     * @param whereSet True if a WHERE has already be append to the sql query.
+     * @param measureRequest Appendable measure query.
+     */
+    private void appendNotNullFilter(List<DbField> tableFields, String mainFieldName, AtomicBoolean whereSet, SingleFilterSQLRequest measureRequest) {
+         boolean nullFilterApplied = false;
+
+        // 1. we sort the field identified as measure field along their table number
+        StringBuilder s = new StringBuilder("(");
+        for (DbField df : tableFields) {
+            // index 0 are non measure fields
+            if (df.index != 0 && !df.name.equals(mainFieldName)) {
+                s.append(" \"").append(df.name).append("\" IS NOT NULL OR ");
+                nullFilterApplied = true;
+            }
+        }
+        if (nullFilterApplied) {
+            s.delete(s.length() - 3, s.length());
+            s.append(")");
+            String where = whereSet.get() ? " AND " : " WHERE ";
+            measureRequest.append(where).append(s.toString());
+            whereSet.set(true);
+        }
     }
 }

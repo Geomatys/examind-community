@@ -34,6 +34,7 @@ import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import org.constellation.store.observation.db.FieldParser;
+import org.constellation.store.observation.db.OM2FilterAppend;
 import org.constellation.store.observation.db.OM2ObservationFilter;
 import org.constellation.store.observation.db.OM2ObservationFilterReader;
 import org.constellation.store.observation.db.ResultProcessor;
@@ -169,7 +170,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @return A Multi filter request on measure tables.
      */
     @Override
-    protected FilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -294,8 +295,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type);
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
-                final FilterSQLRequest measureFilter  = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
+                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
+                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
 
                 /**
                  * coherence verification
@@ -484,35 +485,27 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @param phenomenon A list of phenomenon filter.
      */
     @Override
-    public void setObservedProperties(final List<String> phenomenon) {
+    public OM2FilterAppend setObservedProperty(final String phenomenon) {
         if (objectType.equals(OMEntity.RESULT)) {
-            if (phenomenon != null && !phenomenon.isEmpty() && !allPhenonenon(phenomenon)) {
-                final FilterSQLRequest sb;
-                final Set<String> fields    = new HashSet<>();
-                final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
-                final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"obsprop_id\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
-                for (String p : phenomenon) {
-                    sbPheno.append(" \"obsprop_id\"=").appendValue(p).append(" OR ");
-                    sbCompo.append(" \"component\"=").appendValue(p).append(" OR ");
-                    fields.addAll(getFieldsForPhenomenon(p));
-                }
-                sbPheno.deleteLastChar(3);
-                sbCompo.deleteLastChar(3);
-                sbCompo.append(")");
-                sb = sbPheno.append(sbCompo);
-                obsJoin = false;
-            
-                fieldIdFilters.addAll(fields);
-            
-                if (!firstFilter) {
-                    sqlRequest.append(" AND( ").append(sb).append(") ");
-                } else {
-                    sqlRequest.append(" ( ").append(sb).append(") ");
-                    firstFilter = false;
-                }
-            }
+            if (phenomenon == null || allPhenonenon(phenomenon)) return new OM2FilterAppend();
+            final FilterSQLRequest sb;
+            final Set<String> fields    = new HashSet<>();
+            final FilterSQLRequest sbPheno = new SingleFilterSQLRequest();
+            final FilterSQLRequest sbCompo = new SingleFilterSQLRequest(" OR \"obsprop_id\" IN (SELECT DISTINCT(\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" WHERE ");
+            sbPheno.append(" \"obsprop_id\"=").appendValue(phenomenon);
+            sbCompo.append(" \"component\"=").appendValue(phenomenon);
+            fields.addAll(getFieldsForPhenomenon(phenomenon));
+            sbCompo.append(")");
+            sb = sbPheno.append(sbCompo);
+            obsJoin = false;
+
+            fieldIdFilters.addAll(fields);
+
+            sqlRequest.append(" ( ").append(sb).append(") ");
+            firstFilter = false;
+            return new OM2FilterAppend(true, false);
         } else {
-            super.setObservedProperties(phenomenon);
+            return super.setObservedProperty(phenomenon);
         }
     }
 }

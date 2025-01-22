@@ -49,6 +49,7 @@ import java.util.logging.Level;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
 import static org.constellation.api.CommonConstants.PROCEDURE;
+import org.geotoolkit.observation.FilterAppend;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.model.Offering;
@@ -75,6 +76,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.MISSING_PARAMETER_VALUE;
 import org.opengis.filter.BinarySpatialOperator;
 import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.filter.LogicalOperatorName;
 import org.opengis.temporal.Instant;
 
 /**
@@ -210,59 +212,60 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setProcedure(final List<String> procedures) {
-        if (!procedures.isEmpty()) {
-            for (String s : procedures) {
-                if (s != null) {
-                    final Where where = new Where(configurationQuery.getWhere(PROCEDURE));
-                    where.replaceVariable(PROCEDURE, s, true);
-                    currentQuery.addWhere(where);
-                }
-            }
-        }
+    public FilterAppend setProcedure(final String procedure) {
+        FilterAppend result = new FilterAppend();
+        if (procedure == null) return result;
+        final Where where = new Where(configurationQuery.getWhere(PROCEDURE));
+        where.replaceVariable(PROCEDURE, procedure, true);
+        currentQuery.addWhere(where);
+        result.append = true;
+        return result;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setObservedProperties(final List<String> phenomenon) {
-        if (phenomenon != null) {
-            for (String p : phenomenon) {
-                if (p.contains(phenomenonIdBase)) {
-                    p = p.replace(phenomenonIdBase, "");
-                }
-                final Where where = new Where(configurationQuery.getWhere("phenomenon"));
-                where.replaceVariable("phenomenon", p, true);
-                currentQuery.addWhere(where);
-            }
+    public FilterAppend setObservedProperty(final String phenomenon) {
+        FilterAppend result = new FilterAppend();
+        if (phenomenon == null) return result;
+        String p = phenomenon;
+        if (p.contains(phenomenonIdBase)) {
+            p = p.replace(phenomenonIdBase, "");
         }
+        final Where where = new Where(configurationQuery.getWhere("phenomenon"));
+        where.replaceVariable("phenomenon", p, true);
+        currentQuery.addWhere(where);
+        result.append = true;
+        return result;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setFeatureOfInterest(final List<String> fois) {
-        if (fois != null) {
-            for (String foi : fois) {
-                final Where where = new Where(configurationQuery.getWhere("foi"));
-                where.replaceVariable("foi", foi, true);
-                currentQuery.addWhere(where);
-            }
-        }
+    public FilterAppend setFeatureOfInterest(final String foi) {
+        FilterAppend result = new FilterAppend();
+        if (foi == null) return result;
+        final Where where = new Where(configurationQuery.getWhere("foi"));
+        where.replaceVariable("foi", foi, true);
+        currentQuery.addWhere(where);
+        result.append = true;
+        return result;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setObservationIds(List<String> ids) {
-        for (String oid : ids) {
-            final Where where = new Where(configurationQuery.getWhere("oid"));
-            where.replaceVariable("oid", oid, true);
-            currentQuery.addWhere(where);
-        }
+    public FilterAppend setObservationId(String oid) {
+        FilterAppend result = new FilterAppend();
+        if (oid == null) return result;
+        final Where where = new Where(configurationQuery.getWhere("oid"));
+        where.replaceVariable("oid", oid, true);
+        currentQuery.addWhere(where);
+        result.append = true;
+        return result;
     }
 
     /**
@@ -288,7 +291,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
+    public FilterAppend setTimeFilter(final TemporalOperator tFilter) throws DataStoreException {
         // we get the property name (not used for now)
         // String propertyName = tFilter.getExpression1()
         Object time = tFilter.getExpressions().get(1);
@@ -363,14 +366,16 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
         } else {
             throw new ObservationStoreException("This operation is not take in charge by the Web Service, supported one are: TM_Equals, TM_After, TM_Before, TM_During");
         }
+        return new FilterAppend(true);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void setOfferings(final List<String> offerings) throws DataStoreException {
+    public FilterAppend setOffering(final String offering) throws DataStoreException {
         // not used in this implementations
+        return new FilterAppend();
     }
 
     /**
@@ -427,7 +432,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
      * {@inheritDoc}
      */
     @Override
-    public void setBoundingBox(final BinarySpatialOperator e) throws DataStoreException {
+    public FilterAppend setBoundingBox(final BinarySpatialOperator e) throws DataStoreException {
         throw new DataStoreException("SetBoundingBox is not supported by this ObservationFilter implementation.");
     }
 
@@ -437,7 +442,7 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     }
 
     @Override
-    public void setProcedureType(String type) throws DataStoreException {
+    public FilterAppend setProcedureType(String type) throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -541,6 +546,26 @@ public class GenericObservationFilter extends AbstractGenericObservationFilter {
     @Override
     public Map<String, Set<Date>> getSensorHistoricalTimes() throws DataStoreException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void startFilterBlock(LogicalOperatorName operator) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void appendFilterOperator(LogicalOperatorName operator, FilterAppend fa) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void endFilterBlock(LogicalOperatorName operator, FilterAppend merged) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void removeFilterOperator(LogicalOperatorName operator, FilterAppend merged, FilterAppend fa) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

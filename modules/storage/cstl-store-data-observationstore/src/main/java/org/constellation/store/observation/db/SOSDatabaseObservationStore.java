@@ -50,12 +50,14 @@ import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.store.observation.db.mixed.MixedObservationFilterReader;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
+import org.geotoolkit.observation.FilterAppend;
 import org.geotoolkit.observation.ObservationFilterReader;
 import org.geotoolkit.observation.ObservationReader;
 import org.geotoolkit.observation.ObservationStoreCapabilities;
 import org.geotoolkit.observation.ObservationWriter;
 import org.geotoolkit.observation.feature.OMFeatureTypes;
 import org.geotoolkit.observation.model.OMEntity;
+import static org.geotoolkit.observation.model.OMEntity.FEATURE_OF_INTEREST;
 import static org.geotoolkit.observation.model.OMEntity.HISTORICAL_LOCATION;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 
@@ -63,6 +65,9 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.query.LocationQuery;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.Filter;
+import org.opengis.filter.LogicalOperator;
+import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ValueReference;
 
 /**
@@ -289,31 +294,97 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     }
     
     @Override
-    protected void handleBBOXFilter(OMEntity mode, final ObservationFilterReader localOmFilter, List<String> fois, List<String> procedures, BinarySpatialOperator bbox) throws DataStoreException {
+    protected FilterAppend handleBBOXFilter(OMEntity mode, final ObservationFilterReader localOmFilter, BinarySpatialOperator bbox) throws DataStoreException {
         switch (mode) {
-            case LOCATION, HISTORICAL_LOCATION, FEATURE_OF_INTEREST ->  localOmFilter.setBoundingBox(bbox);
+            case LOCATION, HISTORICAL_LOCATION, FEATURE_OF_INTEREST ->  {
+                return localOmFilter.setBoundingBox(bbox);
+            }
             default       -> {
                 if (getCapabilities().isBoundedObservation) {
-                    localOmFilter.setBoundingBox(bbox);
+                    return localOmFilter.setBoundingBox(bbox);
                 } else {
                     if (bbox.getOperand1() instanceof ValueReference ref && ref.getXPath() != null && ref.getXPath().endsWith("location")) {
                         LocationQuery query = new LocationQuery(bbox);
-                        Set<String> locIds = getEntityNames(query);
+                        List<String> locIds = List.copyOf(getEntityNames(query));
                         if (!locIds.isEmpty()) {
-                            procedures.addAll(locIds);
+                            if (locIds.size() == 1) {
+                                return localOmFilter.setProcedure(locIds.get(0));
+                            } else {
+                                OM2FilterAppend result = new OM2FilterAppend();
+                                localOmFilter.startFilterBlock();
+                                for (int i = 0; i < locIds.size(); i++) {
+                                    // if not first we append the logical operator
+                                    if (i > 0) localOmFilter.appendFilterOperator(LogicalOperatorName.OR, result);
+                                    
+                                    FilterAppend fa = localOmFilter.setProcedure(locIds.get(i));
+                                    
+                                     // we may have to remove it
+                                    if (i > 0) localOmFilter.removeFilterOperator(LogicalOperatorName.OR, result, fa);
+                                    
+                                    result = (OM2FilterAppend) result.merge(fa);
+                                }
+                                localOmFilter.endFilterBlock(LogicalOperatorName.OR, result);
+                                return result;
+                            }
                         } else {
-                            procedures.add("unexisting-proc");
+                            // invalid the results
+                            return localOmFilter.setProcedure("unexisting-proc");
                         }
                     } else {
-                        Collection<String> allfoi = getFeaturesOfInterestForBBOX(bbox);
-                        if (!allfoi.isEmpty()) {
-                            fois.addAll(allfoi);
+                        List<String> fois = getFeaturesOfInterestForBBOX(bbox);
+                        if (!fois.isEmpty()) {
+                            if (fois.size() == 1) {
+                                return localOmFilter.setFeatureOfInterest(fois.get(0));
+                            } else {
+                                OM2FilterAppend result = new OM2FilterAppend();
+                                localOmFilter.startFilterBlock();
+                                for (int i = 0; i < fois.size(); i++) {
+                                     // if not first we append the logical operator
+                                    if (i > 0) localOmFilter.appendFilterOperator(LogicalOperatorName.OR, result);
+                                    
+                                    FilterAppend fa = localOmFilter.setFeatureOfInterest(fois.get(i));
+                                    
+                                    // we may have to remove it
+                                    if (i > 0) localOmFilter.removeFilterOperator(LogicalOperatorName.OR, result, fa);
+                                    
+                                    result = (OM2FilterAppend) result.merge(fa);
+                                }
+                                localOmFilter.endFilterBlock(LogicalOperatorName.OR, result);
+                                return result;
+                            }
                         } else {
-                           fois.add("unexisting-foi");
+                            // invalid the results
+                            return localOmFilter.setFeatureOfInterest("unexisting-foi");
                         }
                     }
                 }
             }
         }
+    }
+    
+    
+    
+    
+    @Override
+    protected FilterAppend handleLogicalFilter(final OMEntity entityType, final ObservationFilterReader localOmFilter, LogicalOperator<?> logFilter) throws DataStoreException {
+        OM2FilterAppend result = new OM2FilterAppend();
+        LogicalOperatorName type = logFilter.getOperatorType();
+        localOmFilter.startFilterBlock(type);
+        int nbFilter = logFilter.getOperands().size();
+        for (int i = 0; i < nbFilter; i++) {
+            Filter f = logFilter.getOperands().get(i);
+            
+            // if not first we append the logical operator
+            if (i > 0) localOmFilter.appendFilterOperator(type, result);
+            
+            FilterAppend fa = handleFilter(entityType, f, localOmFilter);
+            
+            // we may have to remove it
+            if (i > 0) localOmFilter.removeFilterOperator(type, result, fa);
+            
+            result = result.merge(fa);
+        }
+        localOmFilter.endFilterBlock(type, result);
+        return result;
     }
 }

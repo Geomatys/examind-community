@@ -217,6 +217,11 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         }
         return true;
     }
+    
+    public boolean isEmpty(Integer queryIndex) {
+        FilterSQLRequest request = requests.get(queryIndex);
+        return request.isEmpty();
+    }
 
     @Override
     public void appendCondition(Integer queryIndex, String condition) {

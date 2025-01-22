@@ -2626,6 +2626,47 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:sensor:GEOM:multi-type");
         Assert.assertEquals(expectedIds, resultIds);
     }
+    
+    @Test
+    public void getProcedureComplexFilterTest() throws Exception {
+         assertNotNull(omPr);
+
+        /**
+         * find all
+         */
+        AbstractObservationQuery query = new ProcedureQuery();
+        BinaryComparisonOperator eq1 = ff.equal(ff.property("sensorType") , ff.literal("component"));
+        BinaryComparisonOperator eq2 = ff.equal(ff.property("sensorType") , ff.literal("system"));
+        Filter filter = ff.or(eq1, eq2);
+        query.setSelection(filter);
+        List<Procedure> results = omPr.getProcedures(query);
+
+        Set<String> resultIds = getProcessIds(results);
+        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+
+        Set<String> expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:sensor:GEOM:1");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:10");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:12");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:13");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:14");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:2");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:3");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:4");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:test-1");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:6");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:7");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:8");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:9");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:test-id");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:quality_sensor");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:multi-type");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:17");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:18");
+        expectedIds.add("urn:ogc:object:sensor:GEOM:19");
+        Assert.assertEquals(expectedIds, resultIds);
+
+    }
 
     @Test
     public void existOfferingTest() throws Exception {
@@ -3836,7 +3877,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         count = omPr.getCount(query);
         assertEquals(1L, count);
-
+        
         // get all the sensor templates that have at least ONE color value equals to 'blue'
         eqObs = ff.equal(ff.property("observedProperty") , ff.literal("isHot"));
         eqRes = ff.equal(ff.property("result") , ff.literal(false));
@@ -4532,8 +4573,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
          */
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
-        TemporalOperator be = ff.before(ff.property("phenomenonTime"),
-                ff.literal(buildInstant("2007-05-01T15:00:00Z")));
+        TemporalOperator be = ff.before(ff.property("phenomenonTime"), ff.literal(buildInstant("2007-05-01T15:00:00Z")));
         eq = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:8"));
         filter = ff.and(be, eq);
         query.setSelection(filter);
@@ -4628,16 +4668,19 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:2000-2-1");
 
         Assert.assertEquals(expectedIds, resultIds);
-
+    }
+    
+    @Test
+    public void getObservationNames4Test() throws Exception {
         // get all the complex observations that have at its second field value less or equals to 12.0
-        query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
-        filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(12.0));
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.lessOrEqual(ff.property("result[1]") , ff.literal(12.0));
         query.setSelection(filter);
-        resultIds = omPr.getIdentifiers(query);
+        Collection<String> resultIds = omPr.getIdentifiers(query);
 
         assertEquals(3, resultIds.size());
 
-        expectedIds = new HashSet<>();
+         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:GEOM:3000-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:3000-5");
         expectedIds.add("urn:ogc:object:observation:GEOM:801-1");
