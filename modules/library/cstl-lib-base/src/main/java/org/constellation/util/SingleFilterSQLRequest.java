@@ -451,7 +451,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         }
         String cs = conditionalRequest.toString();
         if (!cs.isEmpty()) {
-            cs = cs + "\n conditional:\n";
+            cs = "\n conditional:\n" + cs;
             for (Param p : conditionalParams) {
                 if (p.type == String.class) {
                     cs = StringUtils.replaceOnce(cs, "?", "'" + p.value.toString() + "'");

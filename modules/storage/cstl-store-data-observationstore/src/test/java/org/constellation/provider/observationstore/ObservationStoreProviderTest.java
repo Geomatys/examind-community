@@ -6987,6 +6987,268 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(expectedResult, result);
     }
+    
+    @Test
+    public void getProfileFilterTest() throws Exception {
+        assertNotNull(omPr);
+        
+        Filter timeFilter = ff.before(ff.property("phenomenonTime"), ff.literal(buildInstant("2000-12-20T00:00:00Z")));
+        Filter resuFilter = ff.lessOrEqual(ff.property("result[0]") , ff.literal(194.0));
+
+        // sensor 2 full data no decimation time and id
+        ResultQuery rquery = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        rquery.setIncludeIdInDataBlock(true);
+        rquery.setIncludeTimeForProfile(true);
+        Object results = omPr.getResults(rquery);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                          "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,2000-12-01T00:00:00.0,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-1,2000-12-22T00:00:00.0,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+        
+        // time filter
+        rquery = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        rquery.setIncludeIdInDataBlock(true);
+        rquery.setIncludeTimeForProfile(true);
+        rquery.setSelection(timeFilter);
+        results = omPr.getResults(rquery);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                          "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,2000-12-01T00:00:00.0,768.0,35.1@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        // result filter
+        rquery = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        rquery.setIncludeIdInDataBlock(true);
+        rquery.setIncludeTimeForProfile(true);
+        rquery.setSelection(resuFilter);
+        results = omPr.getResults(rquery);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                          "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:203-1,2000-12-22T00:00:00.0,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+        
+        // time and result filter
+        rquery = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        rquery.setIncludeIdInDataBlock(true);
+        rquery.setIncludeTimeForProfile(true);
+        Filter f = ff.and(resuFilter, timeFilter);
+        rquery.setSelection(f);
+        results = omPr.getResults(rquery);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                          "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+
+        assertEquals(expectedResult, result);
+        
+      
+       /*
+        * now the same for observation query
+        */
+        
+        // full
+        Filter procFilter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:2"));
+        
+        ObservationQuery oquery = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        oquery.setIncludeIdInDataBlock(true);
+        oquery.setIncludeTimeForProfile(true);
+        oquery.setSelection(procFilter);
+        List<Observation> observations = omPr.getObservations(oquery);
+        assertEquals(3, observations.size());
+        
+        Observation ob = observations.get(0);
+        assertEquals("urn:ogc:object:observation:GEOM:201", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,2000-12-01T00:00:00.0,768.0,35.1@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(1);
+        assertEquals("urn:ogc:object:observation:GEOM:202", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(2);
+        assertEquals("urn:ogc:object:observation:GEOM:203", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:203-1,2000-12-22T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        // time filter
+        f = ff.and(procFilter, timeFilter);
+        oquery.setSelection(f);
+        observations = omPr.getObservations(oquery);
+        assertEquals(2, observations.size());
+        
+        ob = observations.get(0);
+        assertEquals("urn:ogc:object:observation:GEOM:201", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-6,2000-12-01T00:00:00.0,384.0,31.4@@"
+                        + "urn:ogc:object:observation:GEOM:201-7,2000-12-01T00:00:00.0,768.0,35.1@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(1);
+        
+        assertEquals("urn:ogc:object:observation:GEOM:202", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        // result filter
+        f = ff.and(procFilter, resuFilter);
+        oquery.setSelection(f);
+        observations = omPr.getObservations(oquery);
+        assertEquals(3, observations.size());
+        
+        ob = observations.get(0);
+        assertEquals("urn:ogc:object:observation:GEOM:201", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(1);
+        assertEquals("urn:ogc:object:observation:GEOM:202", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(2);
+        assertEquals("urn:ogc:object:observation:GEOM:203", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:203-1,2000-12-22T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+        
+        // time and result filter
+        f = ff.and(Arrays.asList(procFilter, timeFilter, resuFilter));
+        oquery.setSelection(f);
+        observations = omPr.getObservations(oquery);
+        assertEquals(2, observations.size());
+        
+        ob = observations.get(0);
+        assertEquals("urn:ogc:object:observation:GEOM:201", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:201-1,2000-12-01T00:00:00.0,12.0,18.5@@"
+                        + "urn:ogc:object:observation:GEOM:201-2,2000-12-01T00:00:00.0,24.0,19.7@@"
+                        + "urn:ogc:object:observation:GEOM:201-3,2000-12-01T00:00:00.0,48.0,21.2@@"
+                        + "urn:ogc:object:observation:GEOM:201-4,2000-12-01T00:00:00.0,96.0,23.9@@"
+                        + "urn:ogc:object:observation:GEOM:201-5,2000-12-01T00:00:00.0,192.0,26.2@@";
+        assertEquals(expectedResult, result);
+        
+        ob = observations.get(1);
+        
+        assertEquals("urn:ogc:object:observation:GEOM:202", ob.getName().getCode());
+        
+        assertTrue(ob.getResult() instanceof ComplexResult);
+        cr = (ComplexResult) ob.getResult();
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "urn:ogc:object:observation:GEOM:202-1,2000-12-11T00:00:00.0,12.0,18.5@@";
+        assertEquals(expectedResult, result);
+    }
 
     @Test
     public void getResultTest() throws Exception {
