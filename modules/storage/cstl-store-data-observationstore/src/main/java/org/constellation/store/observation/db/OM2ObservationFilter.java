@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -759,20 +760,18 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         if (type == TemporalOperatorName.EQUALS) {
 
             if (time instanceof Period tp) {
-                final var begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
-                final var end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
-
+            
                 // historical can't have a period as time value
-                if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                     throw new ObservationStoreException("TM_Equals operation require timeInstant for historical location!", INVALID_PARAMETER_VALUE, EVENT_TIME);
-                } else {
-                    // force the join with observation table.
-                    if (objectType == OMEntity.RESULT) obsJoin = true;
+                if (objectType == OMEntity.HISTORICAL_LOCATION) 
+                    throw new ObservationStoreException("TM_Equals operation require timeInstant for historical location!", INVALID_PARAMETER_VALUE, EVENT_TIME);
+                
+                // force the join with observation table.
+                if (objectType == OMEntity.RESULT) obsJoin = true;
 
-                    // we request directly a multiple observation or a period observation (one measure during a period)
-                    timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"=").appendValue(begin).append(" AND ");
-                    timeRequest.append(" ").append(tableAlias).append(".\"time_end\"=").appendValue(end).append(" ");
-                }
+                // we request directly a multiple observation or a period observation (one measure during a period)
+                timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"=").appendValue(tp.getBeginning()).append(" AND ");
+                timeRequest.append(" ").append(tableAlias).append(".\"time_end\"=").appendValue(tp.getEnding()).append(" ");
+                
             // if the temporal object is a timeInstant
             } else if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
                 final Timestamp position = new Timestamp(TemporalUtilities.toInstant(ti.get()).toEpochMilli());
@@ -786,7 +785,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     if (!"profile".equals(currentOMType)) {
                         boolean conditional = (currentOMType == null);
-                        sqlMeasureRequest.append(" ( \"$time\"=", conditional).appendValue(position, conditional).append(") ", conditional);
+                        if (conditional) {
+                            String condId = UUID.randomUUID().toString();
+                            SingleFilterSQLRequest condRequest = new SingleFilterSQLRequest();
+                            condRequest.append(" ( \"$time\"=").appendValue(position).append(") ");
+                            sqlMeasureRequest.appendConditional(condId, condRequest);
+                        } else {
+                            sqlMeasureRequest.append(" ( \"$time\"=").appendValue(position).append(") ");
+                        }
                         result.result = true; // conditional ??
                     }
                 }
@@ -809,7 +815,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     }
                     if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
-                        sqlMeasureRequest.append(" ( \"$time\"<=", conditional).appendValue(position, conditional).append(")", conditional);
+                        if (conditional) {
+                            String condId = UUID.randomUUID().toString();
+                            SingleFilterSQLRequest condRequest = new SingleFilterSQLRequest();
+                            condRequest.append(" ( \"$time\"<=").appendValue(position).append(")");
+                            sqlMeasureRequest.appendConditional(condId, condRequest);
+                        } else {
+                            sqlMeasureRequest.append(" ( \"$time\"<=").appendValue(position).append(")");
+                        }
                         result.result = true; // conditional ??
                     }
                 }
@@ -834,7 +847,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     
                     if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
-                        sqlMeasureRequest.append(" (\"$time\">=", conditional).appendValue(position, conditional).append(")", conditional);
+                        if (conditional) {
+                            String condId = UUID.randomUUID().toString();
+                            SingleFilterSQLRequest condRequest = new SingleFilterSQLRequest();
+                            condRequest.append(" (\"$time\">=").appendValue(position).append(")");
+                            sqlMeasureRequest.appendConditional(condId, condRequest);
+                        } else {
+                            sqlMeasureRequest.append(" (\"$time\">=").appendValue(position).append(")");
+                        }
                         result.result = true; // conditional ??
                     }
                 }
@@ -846,10 +866,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         } else if (type == TemporalOperatorName.DURING) {
 
             if (time instanceof Period tp) {
-                final Timestamp begin = new Timestamp(TemporalUtilities.toInstant(tp.getBeginning()).toEpochMilli());
-                final Timestamp end   = new Timestamp(TemporalUtilities.toInstant(tp.getEnding()).toEpochMilli());
+                
                 if (objectType == OMEntity.HISTORICAL_LOCATION) {
-                    timeRequest.append(" \"time\">=").appendValue(begin).append(" AND \"time\"<=").appendValue(end);
+                    timeRequest.append(" \"time\">=").appendValue(tp.getBeginning()).append(" AND \"time\"<=").appendValue(tp.getEnding());
                 } else {
                     if (!skipforResult) {
                         OM2Utils.addtimeDuringSQLFilter(timeRequest, tp, tableAlias);
@@ -857,8 +876,16 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
-                        sqlMeasureRequest.append(" ( \"$time\">=", conditional).appendValue(begin, conditional)
-                                         .append(" AND \"$time\"<= ", conditional).appendValue(end, conditional).append(")", conditional);
+                        if (conditional) {
+                            String condId = UUID.randomUUID().toString();
+                            SingleFilterSQLRequest condRequest = new SingleFilterSQLRequest();
+                            condRequest.append(" ( \"$time\">=").appendValue(tp.getBeginning())
+                                       .append(" AND \"$time\"<= ").appendValue(tp.getEnding()).append(")");
+                            sqlMeasureRequest.appendConditional(condId, condRequest);
+                        } else {
+                            sqlMeasureRequest.append(" ( \"$time\">=").appendValue(tp.getBeginning())
+                                             .append(" AND \"$time\"<= ").appendValue(tp.getEnding()).append(")");
+                        }
                         result.result = true; // conditional ??
                     }
                 }
@@ -1160,8 +1187,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 treatPhenFilterForField(field, pIndex, single, tableNum, null, null);
             }
             
-            // 5.1 cleanup phase, as some filter can field filter be removed
-            cleanupFilterRequest(single);
+            // 5.1 cleanup phase, as some field filter can be removed
+            single.cleanupFilterRequest();
 
             /**
              * 6)  Look for left over out of index result field filter.
@@ -1188,39 +1215,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
 
         return result;
-    }
-    
-    protected void cleanupFilterRequest(SingleFilterSQLRequest single) {
-        while (single.contains("  ")) {
-            single.replaceAll("  ", " ");
-        }
-        // AND case
-        while (single.contains(" AND AND ")) {
-            single.replaceAll(" AND AND ", " AND ");
-        }
-        if (single.contains(" ( AND ) ")) {
-            single.replaceFirst(" ( AND ) ", "");
-        }
-        if (single.contains(" AND ) ")) {
-            single.replaceFirst(" AND ) ", " ) ");
-        }
-        if (single.contains(" ( AND ")) {
-            single.replaceFirst(" ( AND ", " ( ");
-        }
-        
-        // OR case
-        while (single.contains(" OR OR ")) {
-            single.replaceAll(" OR OR ", " OR ");
-        }
-        if (single.contains(" ( OR ) ")) {
-            single.replaceFirst(" ( OR ) ", "");
-        }
-        if (single.contains(" OR ) ")) {
-            single.replaceFirst(" OR ) ", " ) ");
-        }
-        if (single.contains(" ( OR ")) {
-            single.replaceFirst(" ( OR ", " ( ");
-        }
     }
     
     protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {

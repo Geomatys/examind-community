@@ -1340,12 +1340,12 @@ public class OM2BaseReader {
             /*
             * Append measure filter on each measure request
             */
+            boolean includeConditional = !profile;
             boolean isEmpty = measureFilter == null || 
-                             ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum)) ||
-                             measureFilter.isEmpty();
+                             ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum, includeConditional)) ||
+                             measureFilter.isEmpty(includeConditional);
                     
             if (!isEmpty) {
-                FilterSQLRequest clone = measureFilter.clone();
                 if (whereSet.get()) {
                     measureRequest.append(" AND ");
                 } else {
@@ -1353,10 +1353,11 @@ public class OM2BaseReader {
                     whereSet.set(true);
                 }
                 
+                FilterSQLRequest clone = measureFilter.clone();
                 if (clone instanceof MultiFilterSQLRequest mf) {
-                    measureRequest.append(mf.getRequest(tableNum), !profile);
+                    measureRequest.append(mf.getRequest(tableNum), includeConditional);
                 } else {
-                    measureRequest.append(clone, !profile);
+                    measureRequest.append(clone, includeConditional);
                 }
             }
             

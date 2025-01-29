@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.opengis.temporal.Instant;
 
 /**
  *
@@ -51,11 +52,11 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public FilterSQLRequest append(String s, boolean conditional) {
-        requests.values().forEach(r -> r.append(s, conditional));
+    public FilterSQLRequest append(FilterSQLRequest s, boolean includeConditional) {
+        requests.values().forEach(r -> r.append(s, includeConditional));
         return this;
     }
-
+    
     @Override
     public FilterSQLRequest append(FilterSQLRequest s) {
         if (s instanceof MultiFilterSQLRequest mf) {
@@ -68,10 +69,10 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         }
         return this;
     }
-
+    
     @Override
-    public FilterSQLRequest append(FilterSQLRequest s, boolean conditional) {
-        requests.values().forEach(r -> r.append(s, conditional));
+    public FilterSQLRequest appendConditional(String condId, SingleFilterSQLRequest conditionalRequest) {
+        requests.values().forEach(r -> r.appendConditional(condId, conditionalRequest));
         return this;
     }
 
@@ -82,32 +83,14 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public FilterSQLRequest appendValue(String value, boolean conditional) {
-        requests.values().forEach(r -> r.appendValue(value, conditional));
-        return this;
-    }
-
-    @Override
     public FilterSQLRequest appendValue(int value) {
         requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
 
     @Override
-    public FilterSQLRequest appendValue(int value, boolean conditional) {
-        requests.values().forEach(r -> r.appendValue(value, conditional));
-        return this;
-    }
-    
-    @Override
     public FilterSQLRequest appendValue(long value) {
         requests.values().forEach(r -> r.appendValue(value));
-        return this;
-    }
-
-    @Override
-    public FilterSQLRequest appendValue(long value, boolean conditional) {
-        requests.values().forEach(r -> r.appendValue(value, conditional));
         return this;
     }
 
@@ -116,22 +99,16 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
-
+    
     @Override
-    public FilterSQLRequest appendValue(Timestamp value, boolean conditional) {
-        requests.values().forEach(r -> r.appendValue(value, conditional));
+    public FilterSQLRequest appendValue(Instant value) {
+        requests.values().forEach(r -> r.appendValue(value));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValues(Collection<String> values) {
         requests.values().forEach(r -> r.appendValues(values));
-        return this;
-    }
-
-    @Override
-    public FilterSQLRequest appendValues(Collection<String> values, boolean conditional) {
-        requests.values().forEach(r -> r.appendValues(values, conditional));
         return this;
     }
 
@@ -144,12 +121,6 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest appendNamedObjectValue(String name, Object value) {
         requests.values().forEach(r -> r.appendNamedObjectValue(name, value));
-        return this;
-    }
-
-    @Override
-    public FilterSQLRequest appendObjectValue(String name, Object value, boolean conditional) {
-        requests.values().forEach(r -> r.appendObjectValue(name, value, conditional));
         return this;
     }
 
@@ -218,9 +189,22 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         return true;
     }
     
+    @Override
+    public boolean isEmpty(boolean includeConditional) {
+        for (FilterSQLRequest request : requests.values()) {
+            if (!request.isEmpty(includeConditional)) return false;
+        }
+        return true;
+    }
+    
     public boolean isEmpty(Integer queryIndex) {
         FilterSQLRequest request = requests.get(queryIndex);
         return request.isEmpty();
+    }
+    
+    public boolean isEmpty(Integer queryIndex, boolean includeConditional) {
+        FilterSQLRequest request = requests.get(queryIndex);
+        return request.isEmpty(includeConditional);
     }
 
     @Override

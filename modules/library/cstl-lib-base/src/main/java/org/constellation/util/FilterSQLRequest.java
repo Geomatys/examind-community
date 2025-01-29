@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import org.opengis.temporal.Instant;
 
 /**
  *
@@ -31,34 +32,26 @@ import java.util.List;
 public interface FilterSQLRequest {
 
     FilterSQLRequest append(String s);
-
-    FilterSQLRequest append(String s, boolean conditional);
+    
+    FilterSQLRequest appendConditional(String condId, SingleFilterSQLRequest conditionalRequest);
     
     FilterSQLRequest append(FilterSQLRequest s);
 
-    FilterSQLRequest append(FilterSQLRequest s, boolean conditional);
-
+    FilterSQLRequest append(FilterSQLRequest s, boolean includeConditional);
+    
     FilterSQLRequest appendValue(String value);
-
-    FilterSQLRequest appendValue(String value, boolean conditional);
 
     FilterSQLRequest appendValue(long value);
 
-    FilterSQLRequest appendValue(long value, boolean conditional);
-    
     FilterSQLRequest appendValue(int value);
 
-    FilterSQLRequest appendValue(int value, boolean conditional);
-
     FilterSQLRequest appendValue(Timestamp value);
-
-    FilterSQLRequest appendValue(Timestamp value, boolean conditional);
+    
+    FilterSQLRequest appendValue(Instant value);
 
     FilterSQLRequest appendObjectValue(Object value);
     
     FilterSQLRequest appendNamedObjectValue(String name, Object value);
-
-    FilterSQLRequest appendObjectValue(String name, Object value, boolean conditional);
 
     String getRequest();
 
@@ -74,13 +67,13 @@ public interface FilterSQLRequest {
 
     FilterSQLRequest appendValues(Collection<String> values);
     
-    FilterSQLRequest appendValues(Collection<String> values, boolean conditional);
-
     FilterSQLRequest clone();
 
     SQLResult execute(Connection c) throws SQLException;
 
     boolean isEmpty();
+    
+    boolean isEmpty(boolean includeConditional);
 
     void appendCondition(Integer queryIndex, String condition);
 

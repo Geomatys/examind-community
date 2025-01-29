@@ -26,10 +26,16 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.ArgumentChecks;
+import org.geotoolkit.temporal.object.TemporalUtilities;
+import org.opengis.temporal.Instant;
 
 /**
  *
@@ -37,53 +43,51 @@ import org.apache.sis.util.ArgumentChecks;
  */
 public class SingleFilterSQLRequest implements FilterSQLRequest {
 
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
+    
     /**
      * the SQL query to build.
      */
     private StringBuilder sqlRequest;
 
-    /**
-     * A part of the sql query the be append or not at the end depending on a condition calculated at build time.
+    private final List<Param> params = new ArrayList<>();
+    
+     /**
+     * SQL parts of the query that will be used or not  at the end depending on a condition calculated at build time.
+     * Each part has an identifier to be replaced at runtime.
      */
-    private StringBuilder conditionalRequest;
-
-    private final List<Param> params;
-
-    private final List<Param> conditionalParams;
+    private final Map<String, SingleFilterSQLRequest> conditionalRequests = new HashMap<>();
 
     public SingleFilterSQLRequest() {
-        this("", new ArrayList<>(), "", new ArrayList<>());
+        this("", new ArrayList<>(), new HashMap<>());
     }
 
     public SingleFilterSQLRequest(String s) {
-        this(s, new ArrayList<>(), "", new ArrayList<>());
+        this(s, new ArrayList<>(), new HashMap<>());
     }
 
-    private SingleFilterSQLRequest(String s, List<Param> params, String cs, List<Param> cparams) {
+    private SingleFilterSQLRequest(String s, List<Param> params, Map<String, SingleFilterSQLRequest> cs) {
         this.sqlRequest = new StringBuilder(s);
-        this.conditionalRequest = new StringBuilder(cs);
-        if (params == null) {
-            params = new ArrayList<>();
+        if (cs != null) {
+            for (Entry<String, SingleFilterSQLRequest> entryCs : cs.entrySet()) {
+                this.conditionalRequests.put(entryCs.getKey(), entryCs.getValue().clone());
+            }
         }
-        this.params = params;
-        if (cparams == null) {
-            cparams = new ArrayList<>();
+        if (params != null) {
+            this.params.addAll(new ArrayList<>(params));
         }
-        this.conditionalParams = cparams;
     }
 
     @Override
     public FilterSQLRequest append(String s) {
-        return this.append(s, false);
+        this.sqlRequest.append(s);
+        return this;
     }
 
     @Override
-    public FilterSQLRequest append(String s, boolean conditional) {
-        if (conditional) {
-            this.conditionalRequest.append(s);
-        } else {
-            this.sqlRequest.append(s);
-        }
+    public FilterSQLRequest appendConditional(String condId, SingleFilterSQLRequest conditionalRequest) {
+        this.sqlRequest.append(" $").append(condId).append(" ");
+        this.conditionalRequests.put(condId, conditionalRequest);
         return this;
     }
     
@@ -93,13 +97,36 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public FilterSQLRequest append(FilterSQLRequest s, boolean conditional) {
+    public FilterSQLRequest append(FilterSQLRequest s, boolean includeConditional) {
         if (s instanceof SingleFilterSQLRequest sf) {
             this.sqlRequest.append(sf.sqlRequest);
             this.params.addAll(sf.params);
-            if (conditional) {
-                this.sqlRequest.append(sf.conditionalRequest);
-                this.params.addAll(sf.conditionalParams);
+            
+            if (s instanceof SingleFilterSQLRequest cs) {
+                for (Entry<String, SingleFilterSQLRequest> entry : cs.conditionalRequests.entrySet()) {
+                    String varName = '$' + entry.getKey();
+                    int st = this.sqlRequest.indexOf(varName);
+                    if (st != -1) {
+                        int en = st + varName.length();
+                        SingleFilterSQLRequest cRequest = entry.getValue();
+                        
+                        if (includeConditional) {
+                            this.sqlRequest.replace(st, en, cRequest.getRequest());
+
+                            // warning the order must be break
+                            this.params.addAll(cRequest.params);
+                            
+                        // remove conditional variable
+                        } else {
+                            this.sqlRequest.replace(st, en, "");
+                        }
+                        
+                    } else {
+                        LOGGER.warning(" conditional variable not found");
+                    }
+                }
+            } else {
+                throw new IllegalArgumentException("dont konw yet how to deal with this");
             }
             return this;
         } else {
@@ -125,120 +152,92 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public boolean isEmpty() {
-        return this.sqlRequest.isEmpty() && this.conditionalRequest.isEmpty();
+        return this.sqlRequest.isEmpty() && this.conditionalRequests.isEmpty();
+    }
+    
+    @Override
+    public boolean isEmpty(boolean includeConditional) {
+        String query = this.sqlRequest.toString();
+        for (Entry<String, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
+            String varName = '$' + entry.getKey();
+            if (query.contains(varName)) {
+                SingleFilterSQLRequest cRequest = entry.getValue();
+
+                if (includeConditional) {
+                    query = query.replace(varName, cRequest.getRequest());
+
+                // remove conditional variable
+                } else {
+                    query = query.replace(varName, "");
+                }
+
+            } else {
+                LOGGER.warning(" conditional variable not found");
+            }
+        }
+        query = Util.cleanupFilterRequest(query);
+        return query.isEmpty();
     }
 
     @Override
     public FilterSQLRequest appendValue(String value) {
-        return this.appendValue(value, false);
-    }
-    
-    @Override
-    public FilterSQLRequest appendValue(String value, boolean conditional) {
-        if (conditional) {
-            this.conditionalRequest.append("?");
-            this.conditionalParams.add(new Param(value, String.class));
-        } else {
-            this.sqlRequest.append(" ? ");
-            this.params.add(new Param(value, String.class));
-        }
+        this.sqlRequest.append(" ? ");
+        this.params.add(new Param(value, String.class));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(int value) {
-        return this.appendValue(value, false);
-    }
-
-    @Override
-    public FilterSQLRequest appendValue(int value, boolean conditional) {
-        if (conditional) {
-            this.conditionalRequest.append("?");
-            this.conditionalParams.add(new Param(value, Integer.class));
-        } else {
-            this.sqlRequest.append(" ? ");
-            this.params.add(new Param(value, Integer.class));
-        }
+        this.sqlRequest.append(" ? ");
+        this.params.add(new Param(value, Integer.class));
         return this;
     }
     
     @Override
     public FilterSQLRequest appendValue(long value) {
-        return this.appendValue(value, false);
-    }
-
-    @Override
-    public FilterSQLRequest appendValue(long value, boolean conditional) {
-        if (conditional) {
-            this.conditionalRequest.append("?");
-            this.conditionalParams.add(new Param(value, Long.class));
-        } else {
-            this.sqlRequest.append(" ? ");
-            this.params.add(new Param(value, Long.class));
-        }
+        this.sqlRequest.append(" ? ");
+        this.params.add(new Param(value, Long.class));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValue(Timestamp value) {
-        return this.appendValue(value, false);
+        this.sqlRequest.append("?");
+        this.params.add(new Param(value, Timestamp.class));
+        return this;
     }
-
+    
     @Override
-    public FilterSQLRequest appendValue(Timestamp value, boolean conditional) {
-        if (conditional) {
-            this.conditionalRequest.append("?");
-            this.conditionalParams.add(new Param(value, Timestamp.class));
-        } else {
-            this.sqlRequest.append("?");
-            this.params.add(new Param(value, Timestamp.class));
-        }
+    public FilterSQLRequest appendValue(Instant value) {
+        this.sqlRequest.append("?");
+        Timestamp tValue = new Timestamp(TemporalUtilities.toInstant(value).toEpochMilli());
+        this.params.add(new Param(tValue, Timestamp.class));
         return this;
     }
 
     @Override
     public FilterSQLRequest appendValues(Collection<String> values) {
-        return appendValues(values, false);
-    }
-
-    @Override
-    public FilterSQLRequest appendValues(Collection<String> values, boolean conditional) {
         for (String value : values) {
-            appendValue(value, conditional);
-            append(",", conditional);
+            appendValue(value);
+            append(",");
         }
-        if (conditional) {
-            this.conditionalRequest.deleteCharAt(this.conditionalRequest.length() - 1);
-        } else {
-            this.sqlRequest.deleteCharAt(this.sqlRequest.length() - 1);
-        }
+        this.sqlRequest.deleteCharAt(this.sqlRequest.length() - 1);
         return this;
     }
 
     public boolean contains(String s) {
         return this.sqlRequest.toString().contains(s);
     }
+    
+    @Override
+    public FilterSQLRequest appendObjectValue(Object value) {
+        return appendNamedObjectValue("unnamed", value);
+    }
 
     @Override
     public FilterSQLRequest appendNamedObjectValue(String name, Object value) {
-        return appendObjectValue(name, value, false);
-    }
-
-    @Override
-    public FilterSQLRequest appendObjectValue(Object value) {
-        return appendObjectValue("unnamed", value, false);
-    }
-
-    @Override
-    public FilterSQLRequest appendObjectValue(String name, Object value, boolean conditional) {
-        List<Param> currentParams;
-        if (conditional) {
-            this.conditionalRequest.append("?");
-            currentParams = this.conditionalParams;
-        } else {
-            this.sqlRequest.append("?");
-            currentParams = this.params;
-        }
+        this.sqlRequest.append("?");
+        List<Param> currentParams = this.params;
         addParam(name, currentParams, value);
         return this;
     }
@@ -304,12 +303,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         s = "SELECT " + replacement + s.substring(fromPos);
         this.sqlRequest = new StringBuilder(s);
 
-        String cs = this.conditionalRequest.toString();
-        int fromPosc = cs.indexOf(" FROM");
-        if (fromPosc != -1) {
-            cs = "SELECT " + replacement + cs.substring(fromPosc);
-            this.conditionalRequest = new StringBuilder(cs);
-        }
+        // do we need to replace in conditional as well? i son't think so
         return this;
     }
 
@@ -322,12 +316,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             return this;
         }
 
-        // conditional is made to be append after the main request
-        // so if we already replaced we don't replace in conditional
-        String cs = this.conditionalRequest.toString();
-        cs = StringUtils.replaceOnce(cs, text, replacement);
-        this.conditionalRequest = new StringBuilder(cs);
-
+        // do we need to replace in conditional as well? not sure
         return this;
     }
 
@@ -337,16 +326,15 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         s = s.replace(text, replacement);
         this.sqlRequest = new StringBuilder(s);
 
-        String cs = this.conditionalRequest.toString();
-        cs = cs.replace(text, replacement);
-        this.conditionalRequest = new StringBuilder(cs);
-
+        for (FilterSQLRequest cRequest : this.conditionalRequests.values()) {
+            cRequest.replaceAll(text, replacement);
+        }
         return this;
     }
 
     @Override
     public SingleFilterSQLRequest clone() {
-        return new SingleFilterSQLRequest(this.sqlRequest.toString(), new ArrayList<>(this.params), this.conditionalRequest.toString(), new ArrayList<>(this.conditionalParams));
+        return new SingleFilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequests);
     }
 
     @Override
@@ -449,20 +437,15 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
                 s = StringUtils.replaceOnce(s, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
             }
         }
-        String cs = conditionalRequest.toString();
-        if (!cs.isEmpty()) {
-            cs = "\n conditional:\n" + cs;
-            for (Param p : conditionalParams) {
-                if (p.type == String.class) {
-                    cs = StringUtils.replaceOnce(cs, "?", "'" + p.value.toString() + "'");
-                } else if (p.type == Double.class || p.type == Integer.class || p.type == Long.class || p.type == Boolean.class) {
-                    cs = StringUtils.replaceOnce(cs, "?", p.value.toString());
-                } else if (p.type == Timestamp.class) {
-                    cs = StringUtils.replaceOnce(cs, "?", "'" + getTimeValue((Timestamp)p.value) + "'");
-                }
+        StringBuilder cs = new StringBuilder();
+        if (!conditionalRequests.isEmpty()) {
+            cs.append("\n conditional:\n");
+            for (Entry<String, SingleFilterSQLRequest> entry : conditionalRequests.entrySet()) {
+                cs.append(entry.getKey()).append(":\n");
+                cs.append(entry.getValue().toString()).append("\n");
             }
-            s = s + cs;
         }
+        
         return s;
     }
 
@@ -540,5 +523,35 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             throw new IllegalArgumentException("TimePosition value must not be null");
         }
         return new Timestamp(time.getTime()).toString();
+    }
+    
+    public void cleanupFilterRequest() {
+        while (this.contains("  ")) {
+            this.replaceAll("  ", " ");
+        }
+        cleanupOperator("AND");
+        cleanupOperator("OR");
+        if (this.contains(" ( ) ")) {
+            this.replaceAll(" ( ) ", "");
+        }
+    }
+    
+    private void cleanupOperator(String operator) {
+        String s = " " + operator + " " + operator + " ";
+        while (this.contains(s)) {
+            this.replaceAll(s, " " + operator + " ");
+        }
+        s = " ( " + operator + " ) ";
+        if (this.contains(s)) {
+            this.replaceAll(s, "");
+        }
+        s = " " + operator + " ) ";
+        if (this.contains(s)) {
+            this.replaceAll(s, " ) ");
+        }
+        s = " ( " + operator + " ";
+        if (this.contains(s)) {
+            this.replaceAll(s, " ( ");
+        }
     }
 }

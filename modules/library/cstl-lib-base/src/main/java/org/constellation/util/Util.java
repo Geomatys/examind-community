@@ -43,8 +43,6 @@ import jakarta.xml.bind.Unmarshaller;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.util.ArgumentChecks;
@@ -79,8 +77,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 public final class Util {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
-
-    private static final XMLInputFactory XML_IN_FACTORY = XMLInputFactory.newFactory();
 
     public static final DateFormat LUCENE_DATE_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
     static {
@@ -448,5 +444,37 @@ public final class Util {
         final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(base);
         for (String fragment : pathFragments) builder.path(fragment);
         return builder.build(true).toUriString();
+    }
+    
+    public static String cleanupFilterRequest(String query) {
+        while (query.contains("  ")) {
+            query = query.replace("  ", " ");
+        }
+        query = cleanupOperator(query, "AND");
+        query = cleanupOperator(query, "OR");
+        if (query.contains(" ( ) ")) {
+            query = query.replace(" ( ) ", "");
+        }
+        return query;
+    }
+    
+    private static String cleanupOperator(String query, String operator) {
+        String s = " " + operator + " " + operator + " ";
+        while (query.contains(s)) {
+            query = query.replace(s, " " + operator + " ");
+        }
+        s = " ( " + operator + " ) ";
+        if (query.contains(s)) {
+            query = query.replace(s, "");
+        }
+        s = " " + operator + " ) ";
+        if (query.contains(s)) {
+            query = query.replace(s, " ) ");
+        }
+        s = " ( " + operator + " ";
+        if (query.contains(s)) {
+            query = query.replace(s, " ( ");
+        }
+        return query;
     }
 }
