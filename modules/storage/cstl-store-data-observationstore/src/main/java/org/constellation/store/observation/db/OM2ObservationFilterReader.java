@@ -714,7 +714,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
 
             measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, false, decimate);
-            // not sure here TODO verify // measureRequest.append(sqlRequest);
+            // TODO not fan of this
+            // this will append the time filter but ....
+            if (!sqlRequest.isEmpty()) {
+                measureRequest.append(" AND ").append(sqlRequest);
+            }
             
             ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix, c);
             processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);

@@ -174,6 +174,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         final boolean profile = "profile".equals(pti.type);
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
+        final int tableNum = 1;
         
         // OID is no longer relevant in this implementation as there is one observation by procedure
         boolean onlyMain = false;
@@ -238,12 +239,22 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         }
         measureRequest.append(where);
         
-        measureRequests.addRequest(1, measureRequest);
+        measureRequests.addRequest(tableNum, measureRequest);
         
-        if (measureFilter != null && !measureFilter.isEmpty()) {
+        /*
+        * Append measure filter on each measure request
+        */
+        boolean includeConditional = !profile;
+        boolean isEmpty = measureFilter == null || 
+                        ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum, includeConditional)) ||
+                        measureFilter.isEmpty(includeConditional);
+        
+        if (!isEmpty) {
+            measureRequest.append(" AND ");
+            
             FilterSQLRequest clone = measureFilter.clone();
             if (clone instanceof MultiFilterSQLRequest mf) {
-                measureRequest.append(mf.getRequest(1), !profile);
+                measureRequest.append(mf.getRequest(tableNum), !profile);
             } else {
                 measureRequest.append(clone, !profile);
             }

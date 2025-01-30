@@ -125,6 +125,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
                         LOGGER.warning(" conditional variable not found");
                     }
                 }
+                cleanupFilterRequest();
             } else {
                 throw new IllegalArgumentException("dont konw yet how to deal with this");
             }

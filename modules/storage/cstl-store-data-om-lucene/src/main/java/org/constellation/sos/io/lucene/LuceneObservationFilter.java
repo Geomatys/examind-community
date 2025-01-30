@@ -209,7 +209,6 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
         } else {
             luceneRequest.append("feature_of_interest:").append(foi);
         }
-        luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
         luceneRequest.append(" ) ");
         result.append = true;
         return result;
@@ -221,7 +220,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
     @Override
     public FilterAppend setObservationId(String oid) {
         FilterAppend result = new FilterAppend();
-        if (oid != null) return result;
+        if (oid == null) return result;
         final StringBuilder procSb  = new StringBuilder();
         /*
         * in template mode 2 possibility :
@@ -305,11 +304,11 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 String[] component = oid.split("-");
                 if (component.length == 3) {
                     oid = component[0];
-                    fieldFilters.add(Integer.parseInt(component[1]));
-                    measureIdFilters.add(Integer.parseInt(component[2]));
+                    fieldFilters.add(Integer.valueOf(component[1]));
+                    measureIdFilters.add(Integer.valueOf(component[2]));
                 } else if (component.length == 2) {
                     oid = component[0];
-                    measureIdFilters.add(Integer.parseInt(component[1]));
+                    measureIdFilters.add(Integer.valueOf(component[1]));
                 }
                 procSb.append("id:\"").append(oid).append("\" ");
             } else {
@@ -317,8 +316,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             }
         }
 
-        procSb.delete(procSb.length() - 3, procSb.length());
-        luceneRequest.append(" AND( ").append(procSb).append(") ");
+        luceneRequest.append(" ( ").append(procSb).append(") ");
         result.append = true;
         return result;
     }
@@ -344,14 +342,14 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 final String end   = getLuceneTimeValue(tp.getEnding());
 
                 // we request directly a multiple observation or a period observation (one measure during a period)
-                luceneRequest.append("AND (");
+                luceneRequest.append(" ( ");
                 luceneRequest.append(" sampling_time_begin:").append(begin).append(" AND ");
                 luceneRequest.append(" sampling_time_end:").append(end).append(") ");
 
             // if the temporal object is a timeInstant
             } else if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
                 final String position    = getLuceneTimeValue(ti.get());
-                luceneRequest.append("AND (");
+                luceneRequest.append(" (");
 
                 // case 1 a single observation
                 luceneRequest.append("(sampling_time_begin:'").append(position).append("' AND sampling_time_end:NULL)");
@@ -370,10 +368,10 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             Optional<Temporal> ti;
             if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
                 final String position = getLuceneTimeValue(ti.get());
-                luceneRequest.append("AND (");
+                luceneRequest.append(" ( ");
 
                 // the single and multpile observations which begin after the bound
-                luceneRequest.append("(sampling_time_begin: [19700000000000 TO ").append(position).append("]))");
+                luceneRequest.append("(sampling_time_begin: [19700000000000 TO ").append(position).append("])) ");
 
             } else {
                 throw new ObservationStoreException("TM_Before operation require timeInstant!",
@@ -385,13 +383,13 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             Optional<Temporal> ti;
             if ((ti = TemporalUtilities.toTemporal(time)).isPresent()) {
                 final String position = getLuceneTimeValue(ti.get());
-                luceneRequest.append("AND (");
+                luceneRequest.append(" ( ");
 
                 // the single and multpile observations which begin after the bound
                 luceneRequest.append("(sampling_time_begin:[").append(position).append(" TO 30000000])");
                 luceneRequest.append(OR_OPERATOR);
                 // the multiple observations overlapping the bound
-                luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000]))");
+                luceneRequest.append("(sampling_time_begin: [19700000 TO ").append(position).append("] AND sampling_time_end:[").append(position).append(" TO 30000000])) ");
             } else {
                 throw new ObservationStoreException("TM_After operation require timeInstant!",
                         INVALID_PARAMETER_VALUE, EVENT_TIME);
@@ -401,7 +399,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
             if (time instanceof Period tp) {
                 final String begin = getLuceneTimeValue(tp.getBeginning());
                 final String end   = getLuceneTimeValue(tp.getEnding());
-                luceneRequest.append("AND (");
+                luceneRequest.append(" ( ");
 
                 // the multiple observations included in the period
                 luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[19700000 TO ").append(end).append("])");
@@ -416,7 +414,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
                 luceneRequest.append(" (sampling_time_begin:[").append(begin).append(" TO 30000000] AND sampling_time_end:[").append(end).append(" TO 30000000] AND sampling_time_begin:[19700000 TO ").append(end).append("])");
                 luceneRequest.append(OR_OPERATOR);
                 // the multiple observations which overlaps the whole period
-                luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[").append(end).append(" TO 30000000]))");
+                luceneRequest.append(" (sampling_time_begin:[19700000 TO ").append(begin).append("] AND sampling_time_end:[").append(end).append(" TO 30000000])) ");
 
 
             } else {
@@ -566,17 +564,22 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
 
     @Override
     public void appendFilterOperator(LogicalOperatorName operator, FilterAppend merged) {
-        luceneRequest.append(" ").append(operator.name()).append(" ");
-    }
-
-    @Override
-    public void endFilterBlock(LogicalOperatorName operator, FilterAppend merged) {
-        luceneRequest.append(" ) ");
+        if (merged.append) luceneRequest.append(" ").append(operator.name()).append(" ");
     }
     
     @Override
     public void removeFilterOperator(LogicalOperatorName operator, FilterAppend merged, FilterAppend previous) {
         int nbChar = operator.name().length() + 2;
-        if (!merged.append)   luceneRequest.delete(luceneRequest.length() - nbChar, luceneRequest.length());
+        if (merged.append && !previous.append)  luceneRequest.delete(luceneRequest.length() - nbChar, luceneRequest.length());
     }
+
+    @Override
+    public void endFilterBlock(LogicalOperatorName operator, FilterAppend merged) {
+        if (merged.append) {
+            luceneRequest.append(" ) ");
+        } else {
+            luceneRequest.delete(luceneRequest.length() - 3, luceneRequest.length());
+        }
+    }
+    
 }

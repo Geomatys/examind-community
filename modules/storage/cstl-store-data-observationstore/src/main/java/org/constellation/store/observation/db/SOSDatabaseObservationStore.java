@@ -292,6 +292,11 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
             throw new DataStoreException("Erro while building OM2 datasource", ex);
         }
     }
+
+    @Override
+    protected FilterAppend createNewFilterAppend() {
+        return new OM2FilterAppend();
+    }
     
     @Override
     protected FilterAppend handleBBOXFilter(OMEntity mode, final ObservationFilterReader localOmFilter, BinarySpatialOperator bbox) throws DataStoreException {
