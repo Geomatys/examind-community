@@ -28,8 +28,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -187,6 +189,51 @@ public class FileParsingUtils {
         }
         return results;
     }
+    
+    public static Map<Integer, String> getNamedColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase) {
+        return getNamedColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, null, null);
+    }
+    
+    public static Map<Integer, String> getNamedColumnIndexes(Collection<String> columnNames, String[] headers, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex) {
+        return getNamedColumnIndexes(columnNames, headers, null, directColumnIndex, ignoreCase, maxIndex, null);
+    }
+    
+    public static Map<Integer, String> getNamedColumnIndexes(Collection<String> columnNames, String[] headers, Collection<String> appendName, boolean directColumnIndex, boolean ignoreCase, AtomicInteger maxIndex, List<String> fixedValues) {
+        Map<Integer, String> results = new HashMap<>();
+        int cpt = 0;
+        if (directColumnIndex) {
+            // kind of useless in this case
+            for (String columnName : columnNames) {
+                int index = Integer.parseInt(columnName);
+                results.put(index , Integer.toString(computeMaxValue(index, maxIndex)));
+                if (appendName != null) {
+                    if (fixedValues != null) {
+                        appendName.add(fixedValues.get(cpt));
+                    } else if (headers != null) {
+                        appendName.add(removeBom(headers[index]));
+                    }
+                }
+                cpt++;
+            }
+            return results;
+        }
+        for (int i = 0; i < headers.length; i++) {
+            final String header = removeBom(headers[i]);
+            if (columnNames.contains(header)) {
+                results.put(computeMaxValue(i, maxIndex), header);
+                if (appendName != null) {
+                    if (fixedValues != null && !fixedValues.isEmpty()) {
+                        appendName.add(fixedValues.get(cpt));
+                    } else {
+                        appendName.add(header);
+                    }
+                }
+                cpt++;
+            }
+            
+        }
+        return results;
+    }
 
     /**
      * Return the value in the line if the supplied index is different from -1.
@@ -202,6 +249,31 @@ public class FileParsingUtils {
         Object result = defaultValue;
         if (index != -1) {
             result = line[index];
+        }
+        return result;
+    }
+    
+    public static Map<String, Object> getColumnMapValue(int index, Object[] line) {
+        Map<String, Object> result = new HashMap<>();
+        if (index != -1) {
+            String str = asString(line[index]);
+            String[] kvs = str.split("\\|", 0);
+            for (String kv : kvs) {
+                int pos = kv.indexOf(':');
+                if (pos == -1) {
+                    LOGGER.warning("malformed map value:" + kv);
+                    continue;
+                }
+                String key = kv.substring(0, pos);
+                String value = kv.substring(pos + 1, kv.length());
+                if (value.startsWith("[") && value.endsWith("]")) {
+                    value = value.substring(1, value.length() -1);
+                    List<String> values = List.of(value.split(",", 0));
+                    result.put(key, values);
+                } else {
+                    result.put(key, value);
+                }
+            }
         }
         return result;
     }

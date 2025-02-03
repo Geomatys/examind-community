@@ -101,6 +101,9 @@ public class DbfObservationStore extends AbstractCsvStore {
             int procIndex      = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
             int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
             int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader);
+            int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader);
+            
+            final Map<Integer, String> procMapIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader);
 
             if (mainIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected column main:" + mainColumns);
@@ -203,7 +206,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                 }
 
                 // look for current procedure (for observation separation)
-                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
+                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex, procPropMapIndex, procMapIndexes);
                 if (currentProc == null) {
                     LOGGER.finer("skipping line due to null procedure.");
                     continue;

@@ -39,6 +39,8 @@ import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_MAP_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.RESULT_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.TYPE_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_COLUMN;
@@ -70,6 +72,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
     private final Set<String> obsPropNameColumns;
     private final String typeColumn;
     private final String uomColumn;
+    
+    protected final String obsPropPropertiesMapColumn;
+    protected final Set<String> obsPropPropertieColumns;
 
     /**
      * use to avoid loading obsPropColumns at store creation.
@@ -87,6 +92,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
         this.uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
 
         this.obsPropFilterColumns = getMultipleValues(params, OBS_PROP_FILTER_COLUMN.getName().toString());
+        this.obsPropPropertiesMapColumn = (String) params.parameter(OBS_PROP_PROPERTIES_MAP_COLUMN.getName().toString()).getValue();
+        this.obsPropPropertieColumns = getMultipleValues(params, OBS_PROP_PROPERTIES_COLUMN.getName().toString());
     }
 
     /**
@@ -158,12 +165,18 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
             int uomColumnIndex   = getColumnIndex(uomColumn,           headers,               directColumnIndex, laxHeader, maxIndex);
             int typeColumnIndex  = getColumnIndex(typeColumn,          headers,               directColumnIndex, laxHeader, maxIndex);
+            
+            int procPropMapIndex    = getColumnIndex(procedurePropertiesMapColumn,  headers,      directColumnIndex, laxHeader, maxIndex);
+            int obsPropPropMapIndex = getColumnIndex(obsPropPropertiesMapColumn,    headers,      directColumnIndex, laxHeader, maxIndex);
 
             List<Integer> dateIndexes              = getColumnIndexes(dateColumns,               headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex);
+            
+            Map<Integer, String> procPropIndexes    = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
+            Map<Integer, String> obsPropPropIndexes = getNamedColumnIndexes(obsPropPropertieColumns,   headers, directColumnIndex,laxHeader, maxIndex);
 
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(csvFlatobsPropColumns.toArray()));
@@ -249,7 +262,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
 
 
                 // look for current procedure (for observation separation)
-                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
+                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex, procPropMapIndex, procPropIndexes);
                 if (currentProc == null) {
                     LOGGER.finer("skipping line due to null procedure.");
                     continue;
@@ -272,7 +285,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     }
                 }
 
-                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex, observedProperties);
+                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex, obsPropPropMapIndex, obsPropPropIndexes, observedProperties);
 
                 // checks if row matches the observed properties wanted
                 if (!sortedMeasureColumns.contains(observedProperty.id)) {
@@ -368,14 +381,24 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
      *
      * @return an observed property
      */
-    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex, Map<String, ObservedProperty> cache) {
+    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex, int obsPropPropMapIndex, Map<Integer, String> obsPropPropIndexes, Map<String, ObservedProperty> cache) {
         String fixedId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
         String fixedName = obsPropNames.isEmpty() ? null : obsPropNames.get(0);
 
         String observedProperty     = getMultiOrFixedValue(line, fixedId, obsPropColumnIndexes, obsPropRegex);
         String observedPropertyName = getMultiOrFixedValue(line, fixedName, obsPropNameColumnIndexes);
         String observedPropertyUOM  = extractWithRegex(uomRegex, asString(getColumnValue(uomColumnIndex, line, null)));
-        return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM);
+        Map<String, Object> properties = new HashMap<>();
+        if (obsPropPropMapIndex != -1) {
+            properties.putAll(getColumnMapValue(obsPropPropMapIndex, line));
+        }
+        for (Map.Entry<Integer, String> entry : obsPropPropIndexes.entrySet()) {
+            String value = asString(getColumnValue(entry.getKey(), line, null));
+            if (value != null) {
+                properties.put(entry.getValue(), value);
+            }
+        }
+        return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM, null, properties);
     }
 
     @Override
@@ -474,16 +497,19 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             final List<Integer> dateIndexes           = getColumnIndexes(dateColumns,          headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> obsPropColumnIndexes  = getColumnIndexes(csvFlatobsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
 
-            int procedureIndex   = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
-            int procNameIndex    = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
-            int procDescIndex    = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
-            int typeColumnIndex  = getColumnIndex(typeColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procedureIndex   = getColumnIndex(procedureColumn,              headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int typeColumnIndex  = getColumnIndex(typeColumn,                   headers, directColumnIndex, laxHeader, maxIndex);
+            int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
             int latitudeIndex    = getColumnIndex(latitudeColumn,      headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
             int longitudeIndex   = getColumnIndex(longitudeColumn,     headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
 
             // for line validation
             int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
+            
+            Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
 
             String fixedObsId    = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
 
@@ -531,7 +557,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     currentObstType = observationType;
                 }
 
-                final Procedure currentProc = parseProcedure(line, procedureIndex, procNameIndex, procDescIndex);
+                final Procedure currentProc = parseProcedure(line, procedureIndex, procNameIndex, procDescIndex, procPropMapIndex, procPropIndexes);
                 if (currentProc == null) {
                     LOGGER.finer("skipping line due to null procedure.");
                     continue;
@@ -570,7 +596,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                                                         currentProc.getDescription(), 
                                                         PROCEDURE_TREE_TYPE, 
                                                         currentObstType, 
-                                                        fields, null));
+                                                        fields, 
+                                                        currentProc.getProperties()));
                 }
 
                 // add used field

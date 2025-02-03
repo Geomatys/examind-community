@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -133,6 +134,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final String procedureColumn;
     protected final String procedureNameColumn;
     protected final String procedureDescColumn;
+    protected final String procedurePropertiesMapColumn;
+    protected final Set<String> procedurePropertieColumns;
 
     protected final String procRegex;
     protected final String uomRegex;
@@ -175,6 +178,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();
         this.procedureNameColumn = (String) params.parameter(PROCEDURE_NAME_COLUMN.getName().toString()).getValue();
         this.procedureDescColumn = (String) params.parameter(PROCEDURE_DESC_COLUMN.getName().toString()).getValue();
+        this.procedurePropertiesMapColumn = (String) params.parameter(PROCEDURE_PROPERTIES_MAP_COLUMN.getName().toString()).getValue();
+        this.procedurePropertieColumns = getMultipleValues(params, PROCEDURE_PROPERTIES_COLUMN.getName().getCode());
         this.procRegex = (String) params.parameter(PROCEDURE_REGEX.getName().toString()).getValue();
         this.zColumn = (String) params.parameter(Z_COLUMN.getName().toString()).getValue();
         this.uomRegex = (String) params.parameter(UOM_REGEX.getName().toString()).getValue();
@@ -467,10 +472,12 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
      * @param procIndex Column index for procedure id.
      * @param procNameIndex Column index for procedure name.
      * @param procDescIndex Column index for procedure description.
+     * @param procPropMapIndex Column index for procedure properties Map.
+     * @param procPropIndexes Column indexes (with the colum name) for procedure properties
      *
      * @return A procedure. May be null is some sub-Implementation
      */
-    protected Procedure parseProcedure(Object[] line, int procIndex, int procNameIndex, int procDescIndex) {
+    protected Procedure parseProcedure(Object[] line, int procIndex, int procNameIndex, int procDescIndex, int procPropMapIndex, Map<Integer, String> procPropIndexes) {
         final String id;
         if (procIndex != -1) {
             String procId = extractWithRegex(procRegex, asString(line[procIndex]));
@@ -487,7 +494,17 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         String defaultDesc = procedureDesc != null ? procedureDesc : null;
         final String description = asString(getColumnValue(procDescIndex, line, defaultDesc));
 
-        return new Procedure(id, name, description, new HashMap<>());
+        Map<String, Object> properties = new HashMap<>();
+        if (procPropMapIndex != -1) {
+            properties.putAll(getColumnMapValue(procPropMapIndex, line));
+        }
+        for (Entry<Integer, String> entry : procPropIndexes.entrySet()) {
+            String value = asString(getColumnValue(entry.getKey(), line, null));
+            if (value != null) {
+                properties.put(entry.getValue(), value);
+            }
+        }
+        return new Procedure(id, name, description, properties);
     }
 
     /**

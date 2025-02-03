@@ -93,16 +93,19 @@ public class CsvObservationStore extends AbstractCsvStore {
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
-            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
-            int foiIndex       = getColumnIndex(foiColumn,           headers, directColumnIndex, laxHeader, maxIndex);
-            int procIndex      = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
-            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
-            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int latitudeIndex    = getColumnIndex(latitudeColumn,               headers, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,              headers, directColumnIndex, laxHeader, maxIndex);
+            int foiIndex         = getColumnIndex(foiColumn,                    headers, directColumnIndex, laxHeader, maxIndex);
+            int procIndex        = getColumnIndex(procedureColumn,              headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
             final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            
+            final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
 
             if (mainIndexes.isEmpty()) {
                 throw new DataStoreException("Unable to find main column(s): " + mainColumns);
@@ -175,7 +178,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
 
                 // look for current procedure (for observation separation)
-                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex);
+                final Procedure currentProc = parseProcedure(line, procIndex, procNameIndex, procDescIndex, procPropMapIndex, procPropIndexes);
                 if (currentProc == null) {
                     LOGGER.finer("skipping line due to null procedure.");
                     continue;
@@ -392,15 +395,18 @@ public class CsvObservationStore extends AbstractCsvStore {
             // prepare spatial/time column indices
             final DateFormat sdf = new SimpleDateFormat(this.dateFormat);
             
-            int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader, maxIndex);
-            int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader, maxIndex);
-            int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader, maxIndex);
-            int procNameIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader, maxIndex);
-            int procDescIndex  = getColumnIndex(procedureDescColumn, headers, directColumnIndex, laxHeader, maxIndex);
+            int latitudeIndex    = getColumnIndex(latitudeColumn,               headers, directColumnIndex, laxHeader, maxIndex);
+            int longitudeIndex   = getColumnIndex(longitudeColumn,              headers, directColumnIndex, laxHeader, maxIndex);
+            int procedureIndex   = getColumnIndex(procedureColumn,              headers, directColumnIndex, laxHeader, maxIndex);
+            int procNameIndex    = getColumnIndex(procedureNameColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
+            int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
            
             final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, maxIndex);
             final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex);
+            
+            final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             
             final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
             final List<Field>fields                = toFields(obsPropFields, observationType);
@@ -427,7 +433,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 }
                 
                 Date dateParse        = null;
-                final Procedure currentProc = parseProcedure(line, procedureIndex, procNameIndex, procDescIndex);
+                final Procedure currentProc = parseProcedure(line, procedureIndex, procNameIndex, procDescIndex, procPropMapIndex, procPropIndexes);
                 if (currentProc == null) {
                     LOGGER.finer("skipping line due to null procedure.");
                     continue;
@@ -444,7 +450,8 @@ public class CsvObservationStore extends AbstractCsvStore {
                                                         currentProc.getDescription(), 
                                                         PROCEDURE_TREE_TYPE, 
                                                         observationType.toLowerCase(), 
-                                                        fields, null));
+                                                        fields, 
+                                                        currentProc.getProperties()));
                 }
 
                 // update temporal interval

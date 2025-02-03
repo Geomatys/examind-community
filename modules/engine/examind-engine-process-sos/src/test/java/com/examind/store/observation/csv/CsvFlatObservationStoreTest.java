@@ -55,6 +55,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
     private static Path bigdataFile;
     private static Path xDataFile;
     private static Path qualSpaceFile;
+    private static Path propertiesFile;
     private static Path diffLengthFile;
     private static Path diffLengthFile2;
     private static Path incompLineFile;
@@ -70,6 +71,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         bigdataFile     = writeResourceFileInDir("bigdata-profile", "bigdata-1.csv");
         xDataFile       = writeResourceFileInDir("xlsx-flat", "test-flat.xlsx");
         qualSpaceFile   = writeResourceFileInDir("qual-space-flat", "quality-space-flat.csv");
+        propertiesFile  = writeResourceFileInDir("properties-flat", "properties-flat.csv");
         diffLengthFile  = writeResourceFileInDir("diff-length", "flat-diff-length.csv");
         diffLengthFile2 = writeResourceFileInDir("diff-length", "flat-diff-length-2.csv");
         incompLineFile  = writeResourceFileInDir("incomp-line", "incomplete-line-flat.csv");
@@ -523,6 +525,122 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         proc = procedures.get(0);
         Assert.assertEquals(sensorId, proc.getId());
         Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+
+        time = proc.spatialBound.getTimeObject();
+        Assert.assertTrue(time instanceof Period);
+
+        tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+    }
+    
+    @Test
+    public void csvFlatStorePropertiesTest() throws Exception {
+
+        CsvFlatObservationStoreFactory factory = new CsvFlatObservationStoreFactory();
+        ParameterValueGroup params = factory.getOpenParameters().createValue();
+        params.parameter(CsvFlatObservationStoreFactory.LOCATION).setValue(propertiesFile.toUri().toString());
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_COLUMN.getName().getCode()).setValue("TIME");
+        params.parameter(CsvFlatObservationStoreFactory.MAIN_COLUMN.getName().getCode()).setValue("TIME");
+
+        params.parameter(CsvFlatObservationStoreFactory.DATE_FORMAT.getName().getCode()).setValue("yyyy-MM-dd'T'HH:mm:ss.S");
+
+        params.parameter(CsvFlatObservationStoreFactory.LATITUDE_COLUMN.getName().getCode()).setValue("LAT");
+        params.parameter(CsvFlatObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LON");
+
+        params.parameter(CsvFlatObservationStoreFactory.FILE_MIME_TYPE.getName().getCode()).setValue("csv");
+
+        params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("RESULT");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("PROPERTY");
+
+        params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:space-qual:1");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_PROPERTIES_MAP_COLUMN.getName().getCode()).setValue("PROC_METADATA");
+        params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_PROPERTIES_COLUMN.getName().getCode()).setValue("PROC_PROP3");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_PROPERTIES_MAP_COLUMN.getName().getCode()).setValue("OP_METADATA");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_PROPERTIES_COLUMN.getName().getCode()).setValue("OP_PROP3");
+
+
+        params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(';'));
+
+        CsvFlatObservationStore store = factory.open(params);
+
+        Set<String> procedureNames = store.getEntityNames(new ProcedureQuery());
+        Assert.assertEquals(1, procedureNames.size());
+
+        String sensorId = "urn:space-qual:1";
+        Assert.assertTrue(procedureNames.contains(sensorId));
+
+        Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
+        Assert.assertTrue(phenomenonNames.contains("TEMPERATURE"));
+
+        IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
+        TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
+
+        Assert.assertTrue(time instanceof Period);
+
+        Period tp = (Period) time;
+        Assert.assertEquals("1980-03-01T21:52:00" , format(tp.getBeginning()));
+        Assert.assertEquals("1980-03-02T21:52:00" , format(tp.getEnding()));
+
+        ObservationDataset results = store.getDataset(new DatasetQuery());
+        Assert.assertEquals(1, results.procedures.size());
+        ProcedureDataset proc = results.procedures.get(0);
+        Assert.assertEquals(sensorId, proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+        Assert.assertEquals(3, proc.getProperties().size());
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP1"));
+        Assert.assertEquals("p1", proc.getProperties().get("PROC_PROP1"));
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP2"));
+        Assert.assertTrue(proc.getProperties().get("PROC_PROP2") instanceof List);
+        List prop2 = (List) proc.getProperties().get("PROC_PROP2");
+        Assert.assertEquals(2, prop2.size());
+        Assert.assertEquals("p2_1", prop2.get(0));
+        Assert.assertEquals("p2_2", prop2.get(1));
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP3"));
+        Assert.assertEquals("p3", proc.getProperties().get("PROC_PROP3"));
+
+        Assert.assertEquals(1, results.observations.size());
+        Observation obs = results.observations.get(0);
+        Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) obs.getResult();
+
+        Assert.assertEquals(2, cr.getFields().size());
+        
+        
+        Assert.assertEquals(1, results.phenomenons.size());
+        Phenomenon phen = results.phenomenons.get(0);
+        Assert.assertEquals(3, phen.getProperties().size());
+        Assert.assertTrue(phen.getProperties().containsKey("OP_PROP1"));
+        Assert.assertEquals("p1", phen.getProperties().get("OP_PROP1"));
+        Assert.assertTrue(phen.getProperties().containsKey("OP_PROP2"));
+        Assert.assertTrue(phen.getProperties().get("OP_PROP2") instanceof List);
+        prop2 = (List) phen.getProperties().get("OP_PROP2");
+        Assert.assertEquals(2, prop2.size());
+        Assert.assertEquals("p2_1", prop2.get(0));
+        Assert.assertEquals("p2_2", prop2.get(1));
+        Assert.assertTrue(phen.getProperties().containsKey("OP_PROP3"));
+        Assert.assertEquals("p3", phen.getProperties().get("OP_PROP3"));
+                
+                
+        List<ProcedureDataset> procedures = store.getProcedureDatasets(new DatasetQuery());
+
+        Assert.assertEquals(1, procedures.size());
+        proc = procedures.get(0);
+        Assert.assertEquals(sensorId, proc.getId());
+        Assert.assertEquals(1, proc.spatialBound.getHistoricalLocations().size());
+        Assert.assertEquals(3, proc.getProperties().size());
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP1"));
+        Assert.assertEquals("p1", proc.getProperties().get("PROC_PROP1"));
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP2"));
+        Assert.assertTrue(proc.getProperties().get("PROC_PROP2") instanceof List);
+        prop2 = (List) proc.getProperties().get("PROC_PROP2");
+        Assert.assertEquals(2, prop2.size());
+        Assert.assertEquals("p2_1", prop2.get(0));
+        Assert.assertEquals("p2_2", prop2.get(1));
+        Assert.assertTrue(proc.getProperties().containsKey("PROC_PROP3"));
+        Assert.assertEquals("p3", proc.getProperties().get("PROC_PROP3"));
 
         time = proc.spatialBound.getTimeObject();
         Assert.assertTrue(time instanceof Period);

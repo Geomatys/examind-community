@@ -133,6 +133,16 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
             .addName("procedure_desc_column")
             .setRequired(false)
             .create(String.class, null);
+    
+    public static final ParameterDescriptor<String> PROCEDURE_PROPERTIES_COLUMN = PARAM_BUILDER
+            .addName("procedure_props_columns")
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final ParameterDescriptor<String> PROCEDURE_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
+            .addName("procedure_props_map_column")
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final ParameterDescriptor<String> PROCEDURE_NAME = PARAM_BUILDER
             .addName("procedure_name")
@@ -181,6 +191,16 @@ public abstract class FileParsingObservationStoreFactory extends AbstractObserva
 
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = PARAM_BUILDER
             .addName("observed_properties_name_columns")
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final ParameterDescriptor<String> OBS_PROP_PROPERTIES_COLUMN = PARAM_BUILDER
+            .addName("observed_properties_prop_columns")
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final ParameterDescriptor<String> OBS_PROP_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
+            .addName("observed_properties_prop_map_column")
             .setRequired(false)
             .create(String.class, null);
 
