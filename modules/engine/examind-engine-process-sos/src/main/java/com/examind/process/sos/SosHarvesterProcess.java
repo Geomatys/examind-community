@@ -144,6 +144,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String procedureNameColumn = inputParameters.getValue(THING_NAME_COLUMN);
         final String procedureDescColumn = inputParameters.getValue(THING_DESC_COLUMN);
         final String procedureRegex = inputParameters.getValue(THING_REGEX);
+        final String procedurePropMapColumn = inputParameters.getValue(THING_PROPERTIES_MAP_COLUMN);
+        final List<String> procedurePropColumns = getMultipleValues(inputParameters,THING_PROPERTIE_COLUMN);
+        
         final boolean removePrevious = inputParameters.getValue(REMOVE_PREVIOUS);
         final boolean directColumnIndex = inputParameters.getValue(DIRECT_COLUMN_INDEX);
         final boolean noHeader = inputParameters.getValue(NO_HEADER);
@@ -173,6 +176,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final String obsPropName  = inputParameters.getValue(OBS_PROP_NAME);
         final List<String> ObsPropNameColumns = getMultipleValues(inputParameters,OBS_PROP_NAME_COLUMN);
         final List<String> obsPropFilterColumns = getMultipleValues(inputParameters,OBS_PROP_COLUMNS_FILTER);
+        final String obsPropPropMapColumn = inputParameters.getValue(OBS_PROP_PROPERTIES_MAP_COLUMN);
+        final List<String> obsPropPropColumns = getMultipleValues(inputParameters,OBS_PROP_PROPERTIE_COLUMN);
 
         final String uomColumn   = inputParameters.getValue(UOM_COLUMN);
         final String uomRegex    = inputParameters.getValue(UOM_REGEX);
@@ -355,6 +360,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_COLUMN.getName().toString(), procedureColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().toString(), procedureNameColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_DESC_COLUMN.getName().toString(), procedureDescColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_PROPERTIES_MAP_COLUMN.getName().toString(), procedurePropMapColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_PROPERTIES_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(procedurePropColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.PROCEDURE_REGEX.getName().toString(), procedureRegex);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.RESULT_COLUMN.getName().toString(), valueColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropId));
@@ -363,6 +370,8 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME.getName().toString(), obsPropName);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(ObsPropNameColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_REGEX.getName().toString(), obsPropRegex);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_MAP_COLUMN.getName().toString(), obsPropPropMapColumn);
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(obsPropPropColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumnsIds));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumnsTypes));

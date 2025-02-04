@@ -207,7 +207,7 @@ public class FileParsingUtils {
                 int index = Integer.parseInt(columnName);
                 results.put(index , Integer.toString(computeMaxValue(index, maxIndex)));
                 if (appendName != null) {
-                    if (fixedValues != null) {
+                    if (fixedValues != null  && !fixedValues.isEmpty()) {
                         appendName.add(fixedValues.get(cpt));
                     } else if (headers != null) {
                         appendName.add(removeBom(headers[index]));

@@ -87,6 +87,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     protected static Path disjointDirectory;
     protected static Path tsvDirectory;
     protected static Path tsvFlatDirectory;
+    protected static Path propDirectory;
+    protected static Path propFlatDirectory;
 
     // XLS dir
     protected static Path xDataDirectory;
@@ -147,6 +149,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         multiFixedDirectory       = writeResourceFileInDir("multi-fixed", "multi-fixed-1.csv");
         qualityCSVDirectory       = writeResourceFileInDir("single-quality-csv", "single-csv-qual.csv");
         multiQualityCSVDirectory  = writeResourceFileInDir("muti-quality-csv", "multi-csv-qual.csv");
+        propDirectory             = writeResourceFileInDir("prop", "properties.csv");
+        propFlatDirectory         = writeResourceFileInDir("prop-flat", "properties-flat.csv");
         
         mooFile               = mooDirectory.resolve("mooring-buoys-time-series-62069.csv");
         errorUnitConvertFile1 = errorUnitConvertDirectory.resolve("unit-convert-error-1.csv");

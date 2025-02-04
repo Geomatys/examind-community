@@ -181,6 +181,24 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .setRemarks(THING_DESC_COLUMN_DESC)
             .setRequired(false)
             .create(String.class, null);
+    
+    public static final String THING_PROPERTIE_COLUMN_NAME = "thing_prop_column";
+    public static final String THING_PROPERTIE_COLUMN_DESC = "Extracted thing property column";
+    public static final ParameterDescriptor<String>THING_PROPERTIE_COLUMN  = new ExtendedParameterDescriptor<>(
+            THING_PROPERTIE_COLUMN_NAME,
+            THING_PROPERTIE_COLUMN_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+    
+    public static final String THING_PROPERTIES_MAP_COLUMN_NAME = "thing_prop_map_column";
+    public static final String THING_PROPERTIES_MAP_COLUMN_DESC = "Extracted thing properties map column";
+    public static final ParameterDescriptor<String> THING_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
+            .addName(THING_PROPERTIES_MAP_COLUMN_NAME)
+            .setRemarks(THING_PROPERTIES_MAP_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String THING_REGEX_NAME = "thing_regex";
     public static final String THING_REGEX_DESC = "Extract thing from thing column applying a regular expression";
@@ -397,6 +415,24 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
             null
     );
+    
+    public static final String OBS_PROP_PROPERTIE_COLUMN_NAME = "observed_properties_prop_column";
+    public static final String OBS_PROP_PROPERTIE_COLUMN_DESC = "Extracted observed properties property column";
+    public static final ParameterDescriptor<String> OBS_PROP_PROPERTIE_COLUMN  = new ExtendedParameterDescriptor<>(
+            OBS_PROP_PROPERTIE_COLUMN_NAME,
+            OBS_PROP_PROPERTIE_COLUMN_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+    
+    public static final String OBS_PROP_PROPERTIES_MAP_COLUMN_NAME = "observed_properties_prop_map_column";
+    public static final String OBS_PROP_PROPERTIES_MAP_COLUMN_DESC = "Extracted observed properties, properties map column";
+    public static final ParameterDescriptor<String> OBS_PROP_PROPERTIES_MAP_COLUMN = PARAM_BUILDER
+            .addName(OBS_PROP_PROPERTIES_MAP_COLUMN_NAME)
+            .setRemarks(OBS_PROP_PROPERTIES_MAP_COLUMN_DESC)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String QUALITY_COLUMN_NAME = "quality_columns";
     public static final String QUALITY_COLUMN_DESC = "Columns containing the quality (linked to an observed property)";
@@ -479,9 +515,12 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(Boolean.class, true);
 
     public static final ParameterDescriptorGroup INPUT_DESC =
-            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, THING_ID, THING_NAME, THING_DESC, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, OBS_TYPE,
-                    SEPARATOR, CHARQUOTE, MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID, REMOVE_PREVIOUS,
-                    STORE_ID, FORMAT, RESULT_COLUMN, OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
+            PARAM_BUILDER.addName("InputParameters").createGroup(DATA_FOLDER, USER, PWD, REMOTE_READ, SERVICE_ID, DATASET_IDENTIFIER, OBS_TYPE, SEPARATOR, CHARQUOTE, REMOVE_PREVIOUS, 
+                    THING_ID, THING_NAME, THING_DESC, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, THING_PROPERTIES_MAP_COLUMN, THING_PROPERTIE_COLUMN,
+                    MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID,
+                    STORE_ID, FORMAT, RESULT_COLUMN, 
+                    OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIE_COLUMN,
+                    QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER, LAX_HEADER, GENERATE_METADATA, CHECK_FILE, FILE_CHECKER, GENERATE_FOI);
 
     public static final String FILE_ALREADY_INSERTED_COUNT_NAME = "files_already_inserted_count";
