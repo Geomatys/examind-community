@@ -377,10 +377,28 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             .create(String.class, null);
 
     public static final String OBS_PROP_NAME_COLUMN_NAME = "observed_properties_name_columns";
-    public static final String OBS_PROP_NAME_COLUMN_DESC = "Columns containing the observed property description (used with csv-flat)";
+    public static final String OBS_PROP_NAME_COLUMN_DESC = "Columns containing the observed property name (used with csv-flat)";
     public static final ParameterDescriptor<String> OBS_PROP_NAME_COLUMN = new ExtendedParameterDescriptor<>(
             OBS_PROP_NAME_COLUMN_NAME,
             OBS_PROP_NAME_COLUMN_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+    
+    public static final String OBS_PROP_DESC_NAME = "observed_properties_desc";
+    public static final String OBS_PROP_DESC_DESC = "Fixed observed property description (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_DESC = PARAM_BUILDER
+            .addName(OBS_PROP_DESC_NAME)
+            .setRemarks(OBS_PROP_DESC_DESC)
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final String OBS_PROP_DESC_COLUMN_NAME = "observed_properties_desc_columns";
+    public static final String OBS_PROP_DESC_COLUMN_DESC = "Columns containing the observed property description (used with csv-flat)";
+    public static final ParameterDescriptor<String> OBS_PROP_DESC_COLUMN = new ExtendedParameterDescriptor<>(
+            OBS_PROP_DESC_COLUMN_NAME,
+            OBS_PROP_DESC_COLUMN_DESC,
             0, INPUT_MAX_CARDINALITY,
             String.class,
             null, null, null
@@ -519,7 +537,7 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                     THING_ID, THING_NAME, THING_DESC, THING_COLUMN, THING_NAME_COLUMN, THING_DESC_COLUMN, THING_REGEX, THING_PROPERTIES_MAP_COLUMN, THING_PROPERTIE_COLUMN,
                     MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID,
                     STORE_ID, FORMAT, RESULT_COLUMN, 
-                    OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIE_COLUMN,
+                    OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_DESC, OBS_PROP_DESC_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIE_COLUMN,
                     QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER, LAX_HEADER, GENERATE_METADATA, CHECK_FILE, FILE_CHECKER, GENERATE_FOI);
 

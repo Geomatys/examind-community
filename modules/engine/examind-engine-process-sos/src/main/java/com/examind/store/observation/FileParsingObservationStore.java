@@ -116,7 +116,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
 
     protected final List<String> obsPropIds;
     protected final List<String> obsPropNames;
-
+    protected final List<String> obsPropDescs;
+    
     // timeSeries / trajectory / profiles
     protected final String observationType;
 
@@ -173,6 +174,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.longitudeColumn = (String) params.parameter(LONGITUDE_COLUMN.getName().toString()).getValue();
         this.latitudeColumn = (String) params.parameter(LATITUDE_COLUMN.getName().toString()).getValue();
         this.obsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().getCode());
+        this.obsPropDescs = getMultipleValuesList(params, OBS_PROP_DESC.getName().getCode());
         this.observationType = (String) params.parameter(OBSERVATION_TYPE.getName().toString()).getValue();
         this.foiColumn = (String) params.parameter(FOI_COLUMN.getName().toString()).getValue();
         this.procedureColumn = (String) params.parameter(PROCEDURE_COLUMN.getName().toString()).getValue();

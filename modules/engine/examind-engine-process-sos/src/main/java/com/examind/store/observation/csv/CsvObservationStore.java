@@ -130,16 +130,7 @@ public class CsvObservationStore extends AbstractCsvStore {
             final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
 
             // special case where there is no header, and a specified observation property identifier
-            List<ObservedProperty> fixedObsProperties = new ArrayList<>();
-            if (!obsPropIds.isEmpty()) {
-                for (int i = 0; i < obsPropIds.size(); i++) {
-                    String id = obsPropIds.get(i);
-                    String name = (obsPropNames.size() > i) ? obsPropNames.get(i) :id;
-                    String uom = (uomIds.size() > i) ? uomIds.get(i) : null;
-                    fixedObsProperties.add(createFixedObservedProperty(id, name, uom));
-                    measureFields.add(id);
-                }
-            }
+            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
 
             MeasureColumns measureColumns    = new MeasureColumns(obsPropFields, mainColumns, observationType);
 
@@ -298,11 +289,6 @@ public class CsvObservationStore extends AbstractCsvStore {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
-    }
-
-    // for overriding store
-    protected ObservedProperty createFixedObservedProperty(String id, String name, String uom) {
-        return new ObservedProperty(id, name, uom);
     }
 
     @Override

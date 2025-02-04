@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
@@ -100,7 +101,8 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         params.parameter(CsvFlatObservationStoreFactory.RESULT_COLUMN.getName().getCode()).setValue("VALUE");
 
         params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("SUPPORT,PARAMETER");
-         params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().getCode()).setValue("SUPPORT_NAME,PARAMETER_NAME");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_NAME_COLUMN.getName().getCode()).setValue("SUPPORT_NAME,PARAMETER_NAME");
+        params.parameter(CsvFlatObservationStoreFactory.OBS_PROP_DESC_COLUMN.getName().getCode()).setValue("PARAMETER_GROUP");
 
         params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
         params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_NAME_COLUMN.getName().getCode()).setValue("PLATFORM_NAME");
@@ -124,6 +126,15 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertTrue(phenomenonNames.contains("7-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-FLORTOT"));
         Assert.assertTrue(phenomenonNames.contains("18-SALI"));
+        
+        List<Phenomenon> phenomenons = store.getPhenomenons(new ObservedPropertyQuery(true));
+        Assert.assertEquals(1, phenomenons.size());
+        Assert.assertTrue(phenomenons.get(0) instanceof CompositePhenomenon);
+        CompositePhenomenon composite = (CompositePhenomenon) phenomenons.get(0);
+        Assert.assertEquals(3, composite.getComponent().size());
+        Assert.assertEquals("18-FLORTOT", composite.getComponent().get(0).getId());
+        Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur-Flore Totale - abondance de cellules", composite.getComponent().get(0).getName());
+        Assert.assertEquals("Biologie/Phytoplancton", composite.getComponent().get(0).getDescription());
 
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
         TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);

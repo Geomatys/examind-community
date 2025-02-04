@@ -2204,6 +2204,8 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         od2.setValue("PARAMETER_NAME");
         in.values().add(od2);
 
+        in.parameter(SosHarvesterProcessDescriptor.OBS_PROP_DESC_COLUMN_NAME).setValue("PARAMETER_GROUP");
+        
         in.parameter(SosHarvesterProcessDescriptor.OBS_TYPE_NAME).setValue("Timeserie");
         in.parameter(SosHarvesterProcessDescriptor.THING_COLUMN_NAME).setValue("PLATFORM_ID");
         in.parameter(SosHarvesterProcessDescriptor.THING_NAME_COLUMN_NAME).setValue("PLATFORM_NAME");
@@ -2276,10 +2278,13 @@ public class SosHarvesterProcessTest extends AbstractSosHarvesterTest {
         for(ObservedProperty op : obsProperties) {
             if ("7-FLORTOT".equals(op.getIotId())) {
                 Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Surface (0-1m)-Flore Totale - abondance de cellules", op.getName());
+                Assert.assertEquals("Biologie/Phytoplancton", op.getDescription());
             } else if ("18-FLORTOT".equals(op.getIotId())) {
                 Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur-Flore Totale - abondance de cellules", op.getName());
+                Assert.assertEquals("Biologie/Phytoplancton", op.getDescription());
             } else if ("18-SALI".equals(op.getIotId())) {
                 Assert.assertEquals("Support : Masse d'eau, eau brute - Niveau : Mi-profondeur-Salinité", op.getName());
+                Assert.assertEquals("Physicochimie", op.getDescription());
             } else {
                 Assert.fail("Unexpected observed properties:" + op.getIotId());
             }

@@ -25,6 +25,7 @@ import static com.examind.store.observation.FileParsingUtils.normalizeFieldName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.observation.model.FieldType;
 import org.opengis.parameter.ParameterValueGroup;
@@ -79,5 +80,25 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
             results.add(mf);
         }
         return results;
+    }
+    
+    protected List<ObservedProperty> getObservedProperties(List<String> measureFields) {
+        List<ObservedProperty> fixedObsProperties = new ArrayList<>();
+        if (!obsPropIds.isEmpty()) {
+            for (int i = 0; i < obsPropIds.size(); i++) {
+                String id = obsPropIds.get(i);
+                String name = (obsPropNames.size() > i) ? obsPropNames.get(i) : id;
+                String uom = (uomIds.size() > i) ? uomIds.get(i) : null;
+                String desc = (obsPropDescs.size() > i) ? obsPropDescs.get(i) : null;
+                fixedObsProperties.add(createFixedObservedProperty(id, name, uom, desc, Map.of()));
+                measureFields.add(id);
+            }
+        }
+        return fixedObsProperties;
+    }
+    
+    // for overriding store
+    protected ObservedProperty createFixedObservedProperty(String id, String name, String uom, String description, Map<String, Object> properties) {
+        return new ObservedProperty(id, name, uom, description, properties);
     }
 }

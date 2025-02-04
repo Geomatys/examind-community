@@ -155,24 +155,8 @@ public class DbfObservationStore extends AbstractCsvStore {
             }
 
            // special case where there is no header, and a specified observation property identifier
-            List<ObservedProperty> fixedObsProperties = new ArrayList<>();
-            if (!obsPropIds.isEmpty()) {
-                for (int i = 0; i < obsPropIds.size(); i++) {
-                    String obsPropId = obsPropIds.get(i);
-                    measureFields.add(obsPropId);
-                    String obsPropName = obsPropId;
-                    if (obsPropNames.size() > i) {
-                        obsPropName = obsPropNames.get(i);
-                    }
-                    String uom = null;
-                    if (uomIds.size() > i) {
-                        uom = uomIds.get(i);
-                    }
-                    fixedObsProperties.add(new ObservedProperty(obsPropId, obsPropName, uom));
-                }
-            }
-
-            MeasureColumns measureColumns     = new MeasureColumns(obsPropFields, mainColumns, observationType);
+            List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
+            MeasureColumns measureColumns             = new MeasureColumns(obsPropFields, mainColumns, observationType);
 
              // final result
             final ObservationDataset result = new ObservationDataset();

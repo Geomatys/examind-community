@@ -24,10 +24,12 @@ import java.util.List;
 import java.util.Set;
 import org.geotoolkit.data.csv.CSVProvider;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.ObservationDataset;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -736,11 +738,11 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         params.parameter(CsvObservationStoreFactory.LONGITUDE_COLUMN.getName().getCode()).setValue("LONGITUDE (degree_east)");
 
         params.parameter(CsvObservationStoreFactory.OBS_PROP_COLUMN.getName().getCode()).setValue("TEMP LEVEL0 (degree_Celsius),VEPK LEVEL0 (meter2 second)");
-        params.parameter(CsvObservationStoreFactory.OBS_PROP_ID.getName().getCode()).setValue("temperature,velocity");
-        params.parameter(CsvObservationStoreFactory.OBS_PROP_NAME.getName().getCode()).setValue("temperature de l'eau,velocité");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_ID.getName().getCode()).setValue("TEMP,VEPK");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_NAME.getName().getCode()).setValue("Temperature,Velocity");
+        params.parameter(CsvObservationStoreFactory.OBS_PROP_DESC.getName().getCode()).setValue("water temperature,velocity of a raptor");
 
         params.parameter(CsvObservationStoreFactory.UOM_ID.getName().getCode()).setValue("°C,m2/s");
-
 
         params.parameter(CsvObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
         params.parameter(CsvObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:sensor:fixed");
@@ -767,9 +769,18 @@ public class CsvObservationStoreTest extends AbstractCsvStoreTest {
         Assert.assertEquals("fixed platform", proc.getDescription());
 
         Set<String> phenomenonNames = store.getEntityNames(new ObservedPropertyQuery());
-        Assert.assertTrue(phenomenonNames.contains("temperature"));
-        Assert.assertTrue(phenomenonNames.contains("velocity"));
-
+        Assert.assertTrue(phenomenonNames.contains("TEMP"));
+        Assert.assertTrue(phenomenonNames.contains("VEPK"));
+        
+        List<Phenomenon> phenomenons = store.getPhenomenons(new ObservedPropertyQuery(true));
+        Assert.assertEquals(1, phenomenons.size());
+        Assert.assertTrue(phenomenons.get(0) instanceof CompositePhenomenon);
+        CompositePhenomenon composite = (CompositePhenomenon) phenomenons.get(0);
+        Assert.assertEquals(2, composite.getComponent().size());
+        Assert.assertEquals("TEMP", composite.getComponent().get(0).getId());
+        Assert.assertEquals("Temperature", composite.getComponent().get(0).getName());
+        Assert.assertEquals("water temperature", composite.getComponent().get(0).getDescription());
+        
         IdentifierQuery timeQuery = new IdentifierQuery(OMEntity.PROCEDURE, sensorId);
         TemporalPrimitive time = store.getEntityTemporalBounds(timeQuery);
 

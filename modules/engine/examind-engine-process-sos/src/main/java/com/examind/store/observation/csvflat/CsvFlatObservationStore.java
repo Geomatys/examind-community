@@ -39,12 +39,14 @@ import com.examind.store.observation.FileParsingObservationStore;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_FILTER_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_NAME_COLUMN;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_DESC_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.OBS_PROP_PROPERTIES_MAP_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.RESULT_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.TYPE_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.UOM_COLUMN;
 import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValues;
+import static com.examind.store.observation.FileParsingObservationStoreFactory.getMultipleValuesList;
 import com.examind.store.observation.MeasureField;
 import com.examind.store.observation.ObservedProperty;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -69,7 +71,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
 
     private final String valueColumn;
     private final Set<String> csvFlatobsPropColumns;
-    private final Set<String> obsPropNameColumns;
+    private final List<String> obsPropNameColumns;
+    private final List<String> obsPropDescColumns;
     private final String typeColumn;
     private final String uomColumn;
     
@@ -87,7 +90,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
 
         this.valueColumn = (String) params.parameter(RESULT_COLUMN.getName().toString()).getValue();
         this.csvFlatobsPropColumns = getMultipleValues(params, OBS_PROP_COLUMN.getName().toString());
-        this.obsPropNameColumns = getMultipleValues(params, OBS_PROP_NAME_COLUMN.getName().toString());
+        this.obsPropNameColumns = getMultipleValuesList(params, OBS_PROP_NAME_COLUMN.getName().toString());
+        this.obsPropDescColumns = getMultipleValuesList(params, OBS_PROP_DESC_COLUMN.getName().toString());
+        
         this.typeColumn = (String) params.parameter(TYPE_COLUMN.getName().toString()).getValue();
         this.uomColumn = (String) params.parameter(UOM_COLUMN.getName().toString()).getValue();
 
@@ -173,6 +178,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> obsPropNameColumnIndexes = getColumnIndexes(obsPropNameColumns,        headers, directColumnIndex, laxHeader, maxIndex);
+            List<Integer> obsPropDescColumnIndexes = getColumnIndexes(obsPropDescColumns,        headers, directColumnIndex, laxHeader, maxIndex);
             List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex);
             
             Map<Integer, String> procPropIndexes    = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
@@ -285,7 +291,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     }
                 }
 
-                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, uomColumnIndex, obsPropPropMapIndex, obsPropPropIndexes, observedProperties);
+                ObservedProperty observedProperty = parseObservedProperty(line, obsPropColumnIndexes, obsPropNameColumnIndexes, obsPropDescColumnIndexes, uomColumnIndex, obsPropPropMapIndex, obsPropPropIndexes, observedProperties);
 
                 // checks if row matches the observed properties wanted
                 if (!sortedMeasureColumns.contains(observedProperty.id)) {
@@ -381,12 +387,14 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
      *
      * @return an observed property
      */
-    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, Integer uomColumnIndex, int obsPropPropMapIndex, Map<Integer, String> obsPropPropIndexes, Map<String, ObservedProperty> cache) {
+    protected ObservedProperty parseObservedProperty(Object[] line, List<Integer> obsPropColumnIndexes, List<Integer> obsPropNameColumnIndexes, List<Integer> obsPropDescColumnIndexes, Integer uomColumnIndex, int obsPropPropMapIndex, Map<Integer, String> obsPropPropIndexes, Map<String, ObservedProperty> cache) {
         String fixedId   = obsPropIds.isEmpty()  ? null  : obsPropIds.get(0);
         String fixedName = obsPropNames.isEmpty() ? null : obsPropNames.get(0);
+        String fixedDesc = obsPropDescs.isEmpty() ? null : obsPropDescs.get(0);
 
         String observedProperty     = getMultiOrFixedValue(line, fixedId, obsPropColumnIndexes, obsPropRegex);
         String observedPropertyName = getMultiOrFixedValue(line, fixedName, obsPropNameColumnIndexes);
+        String observedPropertyDesc = getMultiOrFixedValue(line, fixedDesc, obsPropDescColumnIndexes);
         String observedPropertyUOM  = extractWithRegex(uomRegex, asString(getColumnValue(uomColumnIndex, line, null)));
         Map<String, Object> properties = new HashMap<>();
         if (obsPropPropMapIndex != -1) {
@@ -398,7 +406,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                 properties.put(entry.getValue(), value);
             }
         }
-        return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM, null, properties);
+        return new ObservedProperty(observedProperty, observedPropertyName, observedPropertyUOM, observedPropertyDesc, properties);
     }
 
     @Override
