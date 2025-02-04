@@ -1,0 +1,15 @@
+observation_time,station_id,depth,obsprop_id,result_value,observation_metadata
+2022-03-22T00:00:21Z,EXIN0006,-2.0,TEMP,9.4,detail:Atmospheric measurement
+2022-03-22T00:01:22Z,EXIN0006,-2.0,TEMP,9.5,detail:Atmospheric measurement
+2022-03-22T00:02:23Z,EXIN0006,-2.0,TEMP,9.6,detail:Atmospheric measurement
+2022-03-22T00:03:24Z,EXIN0006,-2.0,TEMP,9.6,detail:Atmospheric measurement
+2022-03-22T00:04:24Z,EXIN0006,-2.0,TEMP,9.7,detail:Atmospheric measurement
+2022-03-22T00:05:25Z,EXIN0006,-2.0,TEMP,9.7,detail:Atmospheric measurement
+2022-03-22T00:06:26Z,EXIN0006,-2.0,TEMP,9.9,detail:Atmospheric measurement
+2021-09-01T00:00:36Z,EXIN0006,-2.0,DRYT,20.9,detail:Atmospheric measurement
+2021-09-01T00:01:37Z,EXIN0006,-2.0,DRYT,20.8,detail:Atmospheric measurement
+2021-09-01T00:02:37Z,EXIN0006,-2.0,DRYT,20.8,detail:Atmospheric measurement
+2021-09-01T00:03:38Z,EXIN0006,-2.0,DRYT,20.7,detail:Atmospheric measurement
+2021-09-01T00:04:38Z,EXIN0006,-2.0,DRYT,20.6,detail:Atmospheric measurement
+2021-09-01T00:05:38Z,EXIN0006,-2.0,DRYT,20.6,detail:Atmospheric measurement
+2021-09-01T00:06:39Z,EXIN0006,-2.0,DRYT,20.6,detail:Atmospheric measurement

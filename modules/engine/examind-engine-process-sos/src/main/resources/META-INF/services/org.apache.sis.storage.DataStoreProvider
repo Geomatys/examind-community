@@ -1,3 +1,4 @@
 com.examind.store.observation.csv.CsvObservationStoreFactory
 com.examind.store.observation.dbf.DbfObservationStoreFactory
 com.examind.store.observation.csvflat.CsvFlatObservationStoreFactory
+com.examind.store.observation.csvsplitted.CsvSplittedObservationStoreFactory

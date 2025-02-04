@@ -1,0 +1,3 @@
+obsprop_id,obsprop_name,obsprop_desc,obsprop_metadata,thematic,discipline,unit
+TEMP,SEA TEMPERATURE,The degree of hotness of the water column expressed against a standard scale. Includes both IPTS-68 and ITS-90 scales.,,,,°C
+DRYT,DRY BULB TEMPERATURE,The degree of hotness of the atmosphere.,,,,°C

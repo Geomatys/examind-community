@@ -38,7 +38,7 @@ import org.opengis.temporal.Instant;
  */
 public class AbstractCsvStoreTest {
     
-    private static Path DATA_DIRECTORY;
+    protected static Path DATA_DIRECTORY;
     
     public static void setUpClass() throws Exception {
         final Path configDir = Paths.get("target");
@@ -50,10 +50,14 @@ public class AbstractCsvStoreTest {
         IOUtilities.deleteSilently(DATA_DIRECTORY);
     }
     
-    protected static Path writeResourceFileInDir(String dirName, String fileName) throws IOException {
+    protected static Path writeResourceFileInDir(String dirName, String srcName, String fileName) throws IOException {
         Path dir = Files.createDirectories(DATA_DIRECTORY.resolve(dirName));
-        writeResourceDataFile(dir, "com/examind/process/sos/" + fileName, fileName);
+        writeResourceDataFile(dir, "com/examind/process/sos/" + srcName, fileName);
         return dir.resolve(fileName);
+        
+    }
+    protected static Path writeResourceFileInDir(String dirName, String fileName) throws IOException {
+        return writeResourceFileInDir(dirName, fileName, fileName);
     }
     
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");

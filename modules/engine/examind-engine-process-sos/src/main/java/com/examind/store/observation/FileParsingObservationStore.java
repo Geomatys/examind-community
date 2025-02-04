@@ -96,7 +96,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected static final String OBS_PROP_NAME_QUALIFIER = "observed properties name";
     protected static final String OBS_PROP_DESC_QUALIFIER = "observed properties desc";
 
-    private final Path dataFile;
+    protected final Path dataFile;
     protected final String dataFileName;
 
     private final char delimiter;
@@ -567,7 +567,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     }
     
     protected DataFileReader getDataFileReader() throws InterruptedException, IOException {
-        return new LockingDataFileReader(FileParsingUtils.getDataFileReader(mimeType, dataFile, delimiter, quotechar));
+        return getDataFileReader(dataFile);
+    }
+    
+    protected DataFileReader getDataFileReader(Path file) throws InterruptedException, IOException {
+        return new LockingDataFileReader(FileParsingUtils.getDataFileReader(mimeType, file, delimiter, quotechar));
     }
     
     private class LockingDataFileReader implements DataFileReader {

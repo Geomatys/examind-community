@@ -261,6 +261,7 @@ public class FileParsingUtils {
         Map<String, Object> result = new HashMap<>();
         if (index != -1) {
             String str = asString(line[index]);
+            if (str == null || str.isEmpty()) return result;
             String[] kvs = str.split("\\|", 0);
             for (String kv : kvs) {
                 int pos = kv.indexOf(':');
@@ -339,6 +340,7 @@ public class FileParsingUtils {
      * @return {@code true} if the line is considered empty.
      */
     public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<Integer> doubleFields) {
+        if (doubleFields.isEmpty()) return false;
         for (int i : doubleFields) {
             try {
                 Object value = line[i];

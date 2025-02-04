@@ -516,7 +516,8 @@ public class ProviderBusiness implements IProviderBusiness {
             sensParams.parameter("data_directory").setValue(URI.create(inParams.get("data_directory")));
         }
 
-        if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType) || "observationCsvFlatFile".equals(subType)){
+        // TODO find a way to get rid of this
+        if("data-store".equals(type) || "sensor-store".equals(type) || "observationCsvSplittedFile".equals(subType) || "observationCsvFile".equals(subType) || "observationDbfFile".equals(subType) || "observationCsvFlatFile".equals(subType)){
             if (subType!=null && !subType.isEmpty()) {
                 final DataStoreProvider featureFactory = DataStores.getProviderById(subType);
                 final ParameterValueGroup cvgConfig = org.geotoolkit.parameter.Parameters.toParameter(inParams, featureFactory.getOpenParameters(), true);
