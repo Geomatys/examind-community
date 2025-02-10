@@ -584,7 +584,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
                         FieldType type = FieldType.QUANTITY;
-                        measureFields.put(mc, new Field(k, type, mc, mc, null, null, qualityFields));
+                        measureFields.put(mc, new Field(k, type, mc, mc, null, null, qualityFields, List.of()));
                     }
                     return measureFields;
                 });

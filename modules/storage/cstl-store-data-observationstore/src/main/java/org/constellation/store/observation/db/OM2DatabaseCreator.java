@@ -42,7 +42,7 @@ public class OM2DatabaseCreator {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.om2");
 
-    private final static String LAST_VERSION = "1.1.7";
+    private final static String LAST_VERSION = "1.1.8";
 
     /**
      * Fill a new database with the O&amp;M model.
@@ -175,6 +175,7 @@ public class OM2DatabaseCreator {
                         case "1.1.4": execute("org/constellation/om2/update/update115.sql", sr, schemaPrefix);
                         case "1.1.5": execute("org/constellation/om2/update/update116.sql", sr, schemaPrefix);
                         case "1.1.6": execute("org/constellation/om2/update/update117.sql", sr, schemaPrefix);
+                        case "1.1.7": execute("org/constellation/om2/update/update118.sql", sr, schemaPrefix);
                     }
                     return true;
                 }

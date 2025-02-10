@@ -46,6 +46,7 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldType.JSON;
 import static org.geotoolkit.observation.model.FieldType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldType.TEXT;
 import static org.geotoolkit.observation.model.FieldType.TIME;
@@ -275,6 +276,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                                 case QUANTITY -> parseDouble(value);
                                 case TEXT     -> value instanceof String ? value : value.toString();
                                 case TIME     -> parseObjectDate(value, sdf);
+                                case JSON     -> parseMap(value);
                             };
                         }
 

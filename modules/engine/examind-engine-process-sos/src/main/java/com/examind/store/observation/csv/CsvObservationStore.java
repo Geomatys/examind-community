@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -254,6 +255,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                                 case QUANTITY -> parseDouble(value);
                                 case TEXT     -> value instanceof String ? value : value.toString();
                                 case TIME     -> parseObjectDate(value, sdf);
+                                case JSON     -> parseMap(value);
                             };
                         }
                         

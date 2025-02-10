@@ -18,6 +18,8 @@
  */
 package org.constellation.store.observation.db;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.constellation.store.observation.db.model.InsertDbField;
 import java.sql.Connection;
 import java.sql.SQLException;

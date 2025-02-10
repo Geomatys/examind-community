@@ -7,7 +7,7 @@ CREATE TABLE "$SCHEMAom"."version" (
     "number"   character varying(10) PRIMARY KEY
 );
 
-INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.7');
+INSERT INTO "$SCHEMAom"."version" VALUES ('1.1.8');
 
 CREATE SCHEMA "$SCHEMAmesures";
 
@@ -57,7 +57,8 @@ CREATE TABLE "$SCHEMAom"."procedure_descriptions" (
     "parent"            character varying(63),
     "table_number"      integer NOT NULL DEFAULT 1,
     "label"             character varying(500),
-    UNIQUE ("procedure", "field_name", "parent")
+    "sub_field_type"    character varying(100),
+    UNIQUE ("procedure", "field_name", "parent", "sub_field_type")
 );
 
 CREATE TABLE "$SCHEMAom"."sampling_features" (

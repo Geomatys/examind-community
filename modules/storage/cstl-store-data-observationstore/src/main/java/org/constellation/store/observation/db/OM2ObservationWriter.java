@@ -2177,13 +2177,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {
-        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?,?)")) {//NOSONAR
+        try (final PreparedStatement insertFieldStmt = c.prepareStatement("INSERT INTO \"" + schemaPrefix + "om\".\"procedure_descriptions\" VALUES (?,?,?,?,?,?,?,?,?,?)")) {//NOSONAR
             for (DbField field : fields) {
-                insertField(insertFieldStmt, procedureID, field, null, offset);
+                insertField(insertFieldStmt, procedureID, field, null, offset, null);
                 if (field.qualityFields != null) {
                     int qOffset = 1;
                     for (Field qfield : field.qualityFields) {
-                        insertField(insertFieldStmt, procedureID, (DbField)qfield, field.name, qOffset);
+                        insertField(insertFieldStmt, procedureID, (DbField)qfield, field.name, qOffset, "QUALITY");
                         qOffset++;
                     }
                 }
@@ -2192,7 +2192,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private void insertField(PreparedStatement insertFieldStmt, String procedureID, DbField field, String parent, int offset) throws SQLException {
+    private void insertField(PreparedStatement insertFieldStmt, String procedureID, DbField field, String parent, int offset, String subFieldType) throws SQLException {
         insertFieldStmt.setString(1, procedureID);
         insertFieldStmt.setInt(2, offset);
         insertFieldStmt.setString(3, field.name);
@@ -2214,6 +2214,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
         insertFieldStmt.setInt(8, field.tableNumber);
         insertFieldStmt.setString(9, field.label);
+        if (subFieldType != null) {
+            insertFieldStmt.setString(10, subFieldType);
+        } else {
+            insertFieldStmt.setNull(10, java.sql.Types.VARCHAR);
+        }
         insertFieldStmt.executeUpdate();
     }
 

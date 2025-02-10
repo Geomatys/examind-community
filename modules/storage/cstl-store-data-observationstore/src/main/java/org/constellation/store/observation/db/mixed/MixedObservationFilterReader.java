@@ -43,6 +43,7 @@ import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
+import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
@@ -330,6 +331,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                                         case BOOLEAN  -> rs2.getBoolean("result", rsIndex);
                                         case TIME     -> new Date(rs2.getTimestamp("result", rsIndex).getTime());
                                         case TEXT     -> value;
+                                        case JSON     -> OMUtils.readJsonMap(value);
                                     };
                                 MeasureResult result = new MeasureResult(field, resultValue);
                                 final String measId =  obsID + '-' + field.index + '-' + rid;

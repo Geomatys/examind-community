@@ -42,6 +42,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.sis.referencing.CommonCRS;
 import org.geotoolkit.geometry.jts.JTS;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
@@ -605,6 +606,16 @@ public class FileParsingUtils {
         return LOCKED_MIME_TYPE.contains(mimeType);
     }
 
+    public static Map parseMap(Object value) throws ParseException {
+        if (value instanceof String strValue) {
+            return OMUtils.readJsonMap(strValue);
+        } else if (value instanceof Map mValue) {
+            return mValue;
+        } else {
+            throw new ParseException("Unable to parse a Map value", 0);
+        }
+    }
+    
     public static long parseObjectDate(Object dateObj, DateFormat sdf) throws ParseException {
         if (dateObj instanceof Double db) {
             // with some date format, xls/x parser return a double. like for an input like: '20240101'

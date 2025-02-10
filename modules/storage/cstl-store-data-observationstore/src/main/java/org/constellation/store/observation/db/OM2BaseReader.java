@@ -751,13 +751,23 @@ public class OM2BaseReader {
         return getFieldByIndex(procedureID, 1, false, c);
     }
 
-    protected DbField getFieldByIndex(final String procedureID, final int index, final boolean fetchQualityFields, final Connection c) throws SQLException {
+    /**
+     * Return the field identified by its index for the specified procedure.
+     * 
+     * @param procedureID procedure identifier.
+     * @param index Field index
+     * @param fetchExtraFields if set to {@code true} the quality and parameter fields will be fetched.
+     * @param c SQL connection.
+     * @return A field or {@code null} if the field or procedure can not be found.
+     * @throws SQLException 
+     */
+    protected DbField getFieldByIndex(final String procedureID, final int index, final boolean fetchExtraFields, final Connection c) throws SQLException {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"order\"=?  AND \"parent\" IS NULL")) {//NOSONAR
             stmt.setString(1, procedureID);
             stmt.setInt(2, index);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return getFieldFromDb(rs, procedureID, c, fetchQualityFields);
+                    return getFieldFromDb(rs, procedureID, c, fetchExtraFields);
                 }
                 return null;
             }
@@ -799,7 +809,7 @@ public class OM2BaseReader {
         }
     }
 
-    protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchQualityFields) throws SQLException {
+    protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchExtraFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
         final DbField f = new DbField(
                          rs.getInt("order"),
@@ -810,7 +820,7 @@ public class OM2BaseReader {
                          rs.getString("uom"),
                          rs.getInt("table_number"));
 
-        if (fetchQualityFields) {
+        if (fetchExtraFields) {
             try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\"=? ORDER BY \"order\"")) {//NOSONAR
                 stmt.setString(1, procedureID);
                 stmt.setString(2, fieldName);
