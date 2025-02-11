@@ -418,7 +418,8 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
                                                 phenomenon,
                                                 null,
                                                 resultO,
-                                                properties));
+                                                properties,
+                                                null));
         if (sp != null && !result.featureOfInterest.contains(sp)) {
             result.featureOfInterest.add(sp);
         }

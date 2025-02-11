@@ -66,6 +66,10 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
+import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldType.TEXT;
+import static org.geotoolkit.observation.model.FieldType.TIME;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -826,7 +830,13 @@ public class OM2BaseReader {
                 stmt.setString(2, fieldName);
                 try(final ResultSet rss = stmt.executeQuery()) {
                     while (rss.next()) {
-                        f.qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
+                        String subFieldType = rss.getString("sub_field_type");
+                        if ("PARAMETER".equals(subFieldType)) {
+                            f.parameterFields.add(getFieldFromDb(rss, procedureID, c, false));
+                        // fall back to quality for retro-compatibility
+                        } else {
+                            f.qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
+                        }
                     }
                 }
             }
@@ -1024,6 +1034,29 @@ public class OM2BaseReader {
         }
         return results;
     }
+    
+    protected Map<String, Object> buildParameters(Field parent, SQLResult rs) throws SQLException {
+        Map<String, Object> results = new HashMap<>();
+        if (parent.parameterFields != null) {
+            for (Field field : parent.parameterFields) {
+                int rsIndex = ((DbField)field).tableNumber;
+                String fieldName = parent.name + "_parameter_" + field.name;
+                Object value = null;
+                if (rs != null) {
+                    switch(field.type) {
+                        case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
+                        case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
+                        case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
+                        case TEXT:
+                        default: value = rs.getString(fieldName, rsIndex);
+                    }
+
+                }
+                results.put(field.name, value);
+            }
+        }
+        return results;
+    }
 
     protected int getNbMeasureForProcedure(int pid, Connection c) {
         try(final PreparedStatement stmt = c.prepareStatement("SELECT COUNT(\"id\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + pid + "\"");
@@ -1070,7 +1103,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
         final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
-        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, null, 0);
+        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
                 parser.parseLine(rs);
@@ -1203,6 +1236,9 @@ public class OM2BaseReader {
                                 for (Field qf : df.qualityFields) {
                                     select = select + ", m.\"" + df.name + "_quality_" + qf.name + "\"";
                                 }
+                                for (Field pf : df.parameterFields) {
+                                    select = select + ", m.\"" + df.name + "_parameter_" + pf.name + "\"";
+                                }
                             }
                         }
                     }
@@ -1269,6 +1305,9 @@ public class OM2BaseReader {
                         // add also quality fields (TODO disable for decimation ?)
                         for (Field qf : df.qualityFields) {
                             select = select + ", m2.\"" + df.name + "_quality_" + qf.name + "\"";
+                        }
+                        for (Field pf : df.parameterFields) {
+                            select = select + ", m2.\"" + df.name + "_parameter_" + pf.name + "\"";
                         }
                     }
                 }

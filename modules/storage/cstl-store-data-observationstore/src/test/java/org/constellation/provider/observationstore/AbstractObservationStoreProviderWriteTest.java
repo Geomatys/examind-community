@@ -881,4 +881,87 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
         assertEqualsObservation(expected2, result);
 
     }
+    
+    public void writeObservationParameterTest() throws Exception {
+
+        Observation expectedTemplate     = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/parameter_sensor_template.json"), Observation.class);
+        Observation expectedMeasTemplate = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/parameter_sensor_meas_template.json"), Observation.class);
+        Observation first                = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/parameter_sensor_observation" + suffix + ".json"), Observation.class);
+        Observation expected             = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/parameter_sensor_observation.json"), Observation.class);
+        Observation measExpected         = mapper.readValue(Util.getResourceAsStream("com/examind/om/store/parameter_sensor_measurement.json"), Observation.class);
+
+        String oid = omPr.writeObservation(first);
+
+        /*
+         * get template from reader
+         */
+        Observation template = omPr.getTemplate("urn:ogc:object:sensor:GEOM:parameter_sensor");
+
+        assertTrue(template instanceof org.geotoolkit.observation.model.Observation);
+        org.geotoolkit.observation.model.Observation resultTemplate   = (org.geotoolkit.observation.model.Observation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+       /*
+        * alternative method to get the template from filter reader
+        */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME,  RESULT_TEMPLATE, null);
+        query.setIncludeFoiInTemplate(true);
+        query.setIncludeTimeInTemplate(true);
+        BinaryComparisonOperator eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:parameter_sensor"));
+        query.setSelection(eqFilter);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+        template = results.get(0);
+
+        assertTrue(template instanceof Observation);
+        resultTemplate   = (Observation) template;
+
+        assertEqualsObservation(expectedTemplate, resultTemplate);
+
+        /*
+        * to get the measurement template from filter reader
+        */
+        query = new ObservationQuery(MEASUREMENT_QNAME,  RESULT_TEMPLATE, null);
+        query.setIncludeFoiInTemplate(true);
+        eqFilter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:parameter_sensor"));
+        query.setSelection(eqFilter);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+        template = results.get(0);
+
+        assertTrue(template instanceof Observation);
+        resultTemplate   = (Observation) template;
+
+        assertEqualsMeasurement(expectedMeasTemplate, resultTemplate, true);
+
+       /*
+        * get the full observation
+        */
+        query = new ObservationQuery(OBSERVATION_QNAME,  INLINE, null);
+        ResourceId filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        query.setIncludeQualityFields(true);
+        results = omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        Observation result   = (Observation) results.get(0);
+
+        assertEqualsObservation(expected, result);
+
+        /*
+        * get the measurment observation
+        */
+        query = new ObservationQuery(MEASUREMENT_QNAME,  INLINE, null);
+        filter = ff.resourceId(oid);
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+        assertEquals(5, results.size());
+
+        assertTrue(results.get(0) instanceof Observation);
+        result   = (Observation) results.get(0);
+
+        assertEqualsMeasurement(measExpected, result, true);
+    }
 }

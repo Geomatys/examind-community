@@ -263,7 +263,7 @@ public class FileObservationWriter extends FileObservationHandler implements Obs
                                                procedure.spatialBound.getTimeObject(), 
                                                null,
                                                null, 
-                                               null, result, new HashMap<>());
+                                               null, result, new HashMap<>(), new HashMap<>());
         writeObservation(template);
         
     }

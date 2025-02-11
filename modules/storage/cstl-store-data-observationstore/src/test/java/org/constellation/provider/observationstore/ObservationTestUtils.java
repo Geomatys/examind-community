@@ -183,6 +183,7 @@ public class ObservationTestUtils {
                 assertEquals(expQual, resQual);
             }
         }
+        assertEquals(expected.getParameters(), result.getParameters());
         assertEquals(expected, result);
     }
 

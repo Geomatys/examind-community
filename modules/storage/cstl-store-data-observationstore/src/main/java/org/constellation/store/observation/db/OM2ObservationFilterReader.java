@@ -207,7 +207,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                           phen,
                                                           null,
                                                           result,
-                                                          properties);
+                                                          properties,
+                                                          null);
                 observations.add(observation);
             }
 
@@ -332,9 +333,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     String timeKey =  procedure + "-" + observedProperty + "-" + featureID;
                     tempTime = timeMap.computeIfAbsent(timeKey, k -> getTimeForTemplate(c, procedure, observedProperty, featureID));
                 }
-                final String observationType      = getOmTypeFromFieldType(field.type);
-                MeasureResult result              = new MeasureResult(field, null);
-                final List<Element> resultQuality = buildResultQuality(field, null);
+                final String observationType         = getOmTypeFromFieldType(field.type);
+                MeasureResult result                 = new MeasureResult(field, null);
+                final List<Element> resultQuality    = buildResultQuality(field, null);
                 Observation observation = new Observation(obsID + '-' + fieldIndex,
                                                           name + '-' + fieldIndex,
                                                           null, null,
@@ -345,7 +346,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                           phen,
                                                           resultQuality,
                                                           result,
-                                                          properties);
+                                                          properties,
+                                                          new HashMap<>());
                 observations.add(observation);
             }
         } catch (SQLException ex) {
@@ -504,7 +506,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @return A field parser. 
      */
     protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, obsName, fieldOffset);
+        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
     }
 
     protected List<Observation> getMesurements() throws DataStoreException {
@@ -589,6 +591,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         measureTime = buildTime(measId, mt, null);
                                     }
                                     List<Element> resultQuality = buildResultQuality(field, rs2);
+                                    Map<String, Object> parameters = buildParameters(field, rs2);
                                     Observation observation = new Observation(measId,
                                                                               measName,
                                                                               null, null,
@@ -599,7 +602,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                                               fphen,
                                                                               resultQuality,
                                                                               result,
-                                                                              properties);
+                                                                              properties,
+                                                                              parameters);
                                     observations.add(observation);
                                 }
                             }
@@ -749,7 +753,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
             }
         } else {
-            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
+            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
         }
         return processor;
     }

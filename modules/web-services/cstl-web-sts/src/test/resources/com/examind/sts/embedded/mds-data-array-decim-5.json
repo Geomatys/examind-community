@@ -1,7 +1,7 @@
 {
     "value": [{
-            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality"],
-            "dataArray": [["urn:ogc:object:sensor:GEOM:12-dec-0", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], []], 
-                          ["urn:ogc:object:sensor:GEOM:12-dec-1", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", [8.9, 78.5, 2.0], []]]
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [["urn:ogc:object:sensor:GEOM:12-dec-0", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], [], {}], 
+                          ["urn:ogc:object:sensor:GEOM:12-dec-1", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", [8.9, 78.5, 2.0], [], {}]]
         }]
 }

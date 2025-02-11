@@ -1,9 +1,9 @@
 {
   "value" : [{
-  "components" : [ "id", "phenomenonTime", "resultTime", "result", "resultQuality"],
+  "components" : [ "id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
   "dataArray" : [
-                ["urn:ogc:object:sensor:GEOM:8-dec-0","2007-05-01T10:59:00Z","2007-05-01T10:59:00Z",[6.56,12.0], []],
-                ["urn:ogc:object:sensor:GEOM:8-dec-1","2007-05-01T11:59:00Z","2007-05-01T11:59:00Z",[6.56,13.0], []],
-                ["urn:ogc:object:sensor:GEOM:8-dec-2","2007-05-01T12:59:00Z","2007-05-01T12:59:00Z",[6.56,14.0], []]]
+                ["urn:ogc:object:sensor:GEOM:8-dec-0","2007-05-01T10:59:00Z","2007-05-01T10:59:00Z",[6.56,12.0], [], {}],
+                ["urn:ogc:object:sensor:GEOM:8-dec-1","2007-05-01T11:59:00Z","2007-05-01T11:59:00Z",[6.56,13.0], [], {}],
+                ["urn:ogc:object:sensor:GEOM:8-dec-2","2007-05-01T12:59:00Z","2007-05-01T12:59:00Z",[6.56,14.0], [], {}]]
     } ]
 }

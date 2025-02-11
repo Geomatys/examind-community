@@ -131,4 +131,10 @@ public class ObservationStoreProviderWriteTest extends AbstractObservationStoreP
     public void writeExtend2ObservationTest() throws Exception {
         super.writeExtend2ObservationTest();
     }
+    
+    @Test
+    @Override
+    public void writeObservationParameterTest() throws Exception {
+        super.writeObservationParameterTest();
+    }
 }

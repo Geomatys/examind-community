@@ -1,0 +1,22 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [["urn:ogc:object:observation:GEOM:8002-5-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 30.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 28.1
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }], ["urn:ogc:object:observation:GEOM:8003-5-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 33.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }]]
+        }]
+}

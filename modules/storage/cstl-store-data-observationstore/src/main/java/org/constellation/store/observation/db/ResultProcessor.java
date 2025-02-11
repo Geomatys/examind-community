@@ -47,15 +47,17 @@ public class ResultProcessor {
     protected final boolean includeId;
     protected final boolean includeTimeInProfile;
     protected final boolean includeQuality;
+    protected final boolean includeParameter;
     protected final ProcedureInfo procedure;
     protected final int mainFieldIndex;
     protected final String idSuffix;
 
-    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
+    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
         this.fields = fields;
         this.profile = "profile".equals(procedure.type);
         this.includeId = includeId;
         this.includeQuality = includeQuality;
+        this.includeParameter = includeParameter;
         this.includeTimeInProfile = includeTimeInProfile;
         this.procedure = procedure;
         this.mainFieldIndex = fields.indexOf(procedure.mainField);
@@ -106,7 +108,7 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, null, fieldOffset);
+        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, includeParameter, null, fieldOffset);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString("identifier");

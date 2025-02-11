@@ -6199,6 +6199,47 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     }
     
     @Test
+    public void getResultsMultiFilterParameterTest() throws Exception {
+        // sensor quality no decimation
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        query.setIncludeParameterFields(true);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =  "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
+                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
+                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
+                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
+                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
+                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
+                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
+                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
+
+        assertEquals(expectedResult, result);
+
+        // sensor quality no decimation with filter on quality field
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        query.setIncludeParameterFields(true);
+        Filter filter = ff.equal(ff.property("result[4].age_param") , ff.literal("thirty"));
+        query.setSelection(filter);
+
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =  "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,30.0,28.1,thirty,2.0@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,33.0,0.0,thirty,2.0@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
     public void getResultsMultiTableTest() throws Exception {
         // sensor 17 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
@@ -6209,15 +6250,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         String result = cr.getValues();
 
         String expectedResult =
-                          "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
-                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
-                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
-                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
-                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
-                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
-                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0@@"
-                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0@@"
-                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0@@";
+                          "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
+                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
+                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
+                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
+                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
+                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
+                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
+                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
 
         assertEquals(expectedResult, result);
         
@@ -6232,15 +6273,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1@@"
-                + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3@@"
-                + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4@@"
-                + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1@@"
-                + "urn:ogc:object:observation:GEOM:8003-1,2000-01-03T00:00:00.0,1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0@@"
-                + "urn:ogc:object:observation:GEOM:8003-2,2000-01-03T00:00:00.0,2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0@@"
-                + "urn:ogc:object:observation:GEOM:8003-3,2000-01-03T00:00:00.0,3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0@@";
+                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
+                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
+                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
+                + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
+                + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
+                + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
+                + "urn:ogc:object:observation:GEOM:8003-1,2000-01-03T00:00:00.0,1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
+                + "urn:ogc:object:observation:GEOM:8003-2,2000-01-03T00:00:00.0,2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
+                + "urn:ogc:object:observation:GEOM:8003-3,2000-01-03T00:00:00.0,3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6281,15 +6322,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                          "27.0,37.0@@"
-                        + "28.0,38.0@@"
-                        + "29.0,39.1@@"
-                        + "16.3,16.3@@"
-                        + "26.4,25.4@@"
-                        + "30.0,28.1@@"
-                        + "11.0,0.0@@"
-                        + "22.0,0.0@@"
-                        + "33.0,0.0@@";
+                  "27.0,37.0,almost 30,2.0@@"
+                + "28.0,38.0,almost 30,2.0@@"
+                + "29.0,39.1,almost 30,2.0@@"
+                + "16.3,16.3,teenager,1.0@@"
+                + "26.4,25.4,still young,2.0@@"
+                + "30.0,28.1,thirty,2.0@@"
+                + "11.0,0.0,child,1.0@@"
+                + "22.0,0.0,young,1.0@@"
+                + "33.0,0.0,thirty,2.0@@";
 
         assertEquals(expectedResult, result);
         

@@ -118,7 +118,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             processor = new MixedResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
             
         } else {
-            processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeTimeForProfile, currentProcedure, idSuffix);
+            processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
         }
         return processor;
     }
@@ -337,6 +337,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                                 final String measId =  obsID + '-' + field.index + '-' + rid;
                                 final String measName = name + '-' + field.index + '-' + rid;
                                 List<Element> resultQuality = buildResultQuality(field, rs2);
+                                Map<String, Object> parameters = buildParameters(field, rs2);
                                 Observation observation = new Observation(measId,
                                                                           measName,
                                                                           null, null,
@@ -347,7 +348,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                                                                           fphen,
                                                                           resultQuality,
                                                                           result,
-                                                                          properties);
+                                                                          properties,
+                                                                          parameters);
                                 observations.add(observation);
                             }
                         }
@@ -428,7 +430,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @param parent 
      */
     @Override
-    protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent) {
+    protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent, String extraSubType) {
          String replacement;
         // special case for profile main field
         if (field.name.equals("z_value")) {
@@ -468,7 +470,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
 
     @Override
     protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, obsName, fieldOffset);
+        return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
     }
     
   @Override

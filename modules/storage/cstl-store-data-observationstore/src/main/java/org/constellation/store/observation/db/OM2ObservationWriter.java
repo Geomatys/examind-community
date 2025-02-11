@@ -1978,7 +1978,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             this.tableName = baseTableName + suffix;
         }
 
-        abstract void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException;
+        abstract void appendField(Field field, boolean isMain, String parentName, String subType) throws SQLException, DataStoreException;
     }
 
     private class TableUpdate extends TableStatement {
@@ -1989,13 +1989,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
 
         @Override
-        public void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException {
+        public void appendField(Field field, boolean isMain, String parentName, String subType) throws SQLException, DataStoreException {
             if (Util.containsForbiddenCharacter(field.name)) {
                 throw new DataStoreException("Invalid field name");
             }
             String columnName;
             if (parentName != null) {
-                columnName = parentName + "_quality_" + field.name;
+                columnName = parentName + "_" + subType + "_" + field.name;
             } else {
                 columnName = field.name;
             }
@@ -2029,13 +2029,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
 
         @Override
-        public void appendField(Field field, boolean isMain, String parentName) throws SQLException, DataStoreException {
+        public void appendField(Field field, boolean isMain, String parentName, String subType) throws SQLException, DataStoreException {
             if (Util.containsForbiddenCharacter(field.name)) {
                 throw new DataStoreException("Invalid field name");
             }
             String columnName;
             if (parentName != null) {
-                columnName = parentName + "_quality_" + field.name;
+                columnName = parentName + "_" + subType + "_" + field.name;
             } else {
                 columnName = field.name;
             }
@@ -2104,12 +2104,18 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
                 TableStatement tc = tablesStmt.get(nbTable);
 
-                tc.appendField(field, firstField, null);
+                tc.appendField(field, firstField, null, null);
                 firstField = false;
 
                 if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                     for (Field qField : field.qualityFields) {
-                        tc.appendField(qField, false, field.name);
+                        tc.appendField(qField, false, field.name, "quality");
+                        nbTabField++;
+                    }
+                }
+                if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
+                    for (Field pField : field.parameterFields) {
+                        tc.appendField(pField, false, field.name, "parameter");
                         nbTabField++;
                     }
                 }
@@ -2185,6 +2191,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     for (Field qfield : field.qualityFields) {
                         insertField(insertFieldStmt, procedureID, (DbField)qfield, field.name, qOffset, "QUALITY");
                         qOffset++;
+                    }
+                }
+                if (field.parameterFields != null) {
+                    int pOffset = 1;
+                    for (Field pfield : field.parameterFields) {
+                        insertField(insertFieldStmt, procedureID, (DbField)pfield, field.name, pOffset, "PARAMETER");
+                        pOffset++;
                     }
                 }
                 offset++;

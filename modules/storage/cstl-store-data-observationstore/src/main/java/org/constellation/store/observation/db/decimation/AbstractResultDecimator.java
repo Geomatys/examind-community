@@ -37,7 +37,7 @@ public abstract class AbstractResultDecimator extends ResultProcessor {
     protected final boolean onlyProfileMain;
 
     public AbstractResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, false, includeTimeInProfile, procedure, "");
+        super(fields, includeId, false, false, includeTimeInProfile, procedure, "");
         this.width = width;
         this.fieldFilters = fieldFilters;
         onlyProfileMain = fieldFilters.contains(procedure.mainField.index) && fieldFilters.size() == 1;

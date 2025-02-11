@@ -123,6 +123,13 @@ public class OM2Utils {
                     results.add(newField);
                 }
             }
+            if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
+                for (Field pField : field.parameterFields) {
+                    String name = field.name + "_parameter_" + pField.name;
+                    InsertDbField newField = new InsertDbField(null, pField.type, name, pField.label, pField.description, pField.uom, field.tableNumber);
+                    results.add(newField);
+                }
+            }
         }
         return results;
     }

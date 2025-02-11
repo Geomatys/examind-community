@@ -590,6 +590,38 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-filter-5.json");
         compareJSON(expResult, result);
     }
+    
+     @Test
+    public void getDataArrayForDatastreamsParameters() throws Exception {
+        initPool();
+
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:17-5)/Observations?$resultFormat=dataArray");
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-parameter.json");
+        compareJSON(expResult, result);
+    }
+
+    @Test
+    public void getDataArrayForDatastreamsFilteredParameters() throws Exception {
+        initPool();
+
+        // the [0] should not be necessary, but it s for now
+        String filter = "(result[0].age_param eq 'thirty')".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        URL getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:17-5)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-parameter-2.json");
+        compareJSON(expResult, result);
+
+        // the [0] should not be necessary, but it s for now
+        filter = "(result[0].age_slice ge 2)".replace(" ", "%20").replace("[", "%5B").replace("]", "%5D");
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:17-5)/Observations?$resultFormat=dataArray&$filter=" + filter);
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-data-array-parameter-3.json");
+        compareJSON(expResult, result);
+    }
 
     @Test
     public void getDataArrayForDatastreamsNaN() throws Exception {

@@ -61,6 +61,7 @@ public class FieldParser {
     protected final boolean profileWithTime;
     protected final boolean includeID;
     protected final boolean includeQuality;
+    protected final boolean includeParameter;
     protected final ResultBuilder values;
     protected String obsName;
     protected final int fieldOffset;
@@ -75,14 +76,16 @@ public class FieldParser {
      * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
      * @param includeID A flag indicating if we must include measure identifier.
      * @param includeQuality A flag indicating if we must include quality field for measure.
+     * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
      * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, String obsName, int fieldOffset) {
+    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
         this.includeQuality = includeQuality;
+        this.includeParameter = includeParameter;
         this.obsName = obsName;
         this.values = values;
         this.fieldOffset = fieldOffset;
@@ -96,11 +99,12 @@ public class FieldParser {
      * @param profileWithTime A flag indicating if we are building profile measure and if we must add time.
      * @param includeID A flag indicating if we must include measure identifier.
      * @param includeQuality A flag indicating if we must include quality field for measure.
+     * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
      * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, String obsName, int fieldOffset) {
-        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, obsName, fieldOffset);
+    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
+        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName, fieldOffset);
     }
 
     public void setName(String name) {
@@ -123,22 +127,27 @@ public class FieldParser {
         for (int i = 0; i < fields.size(); i++) {
 
             DbField field = (DbField) fields.get(i);
-            parseField(field, rs, i, fieldOffset, null);
+            parseField(field, rs, i, fieldOffset, null, null);
 
             if (includeQuality && field.qualityFields != null) {
                 for (Field qField : field.qualityFields) {
-                    parseField((DbField) qField, rs, -1, -1, field);
+                    parseField((DbField) qField, rs, -1, -1, field, "quality");
+                }
+            }
+            if (includeParameter && field.parameterFields != null) {
+                for (Field pField : field.parameterFields) {
+                    parseField((DbField) pField, rs, -1, -1, field, "parameter");
                 }
             }
         }
         nbParsed = nbParsed + values.endBlock();
     }
 
-    private void parseField(DbField field, SQLResult rs, int fieldIndex, int offset, Field parent) throws SQLException {
+    private void parseField(DbField field, SQLResult rs, int fieldIndex, int offset, Field parent, String subFileType) throws SQLException {
         boolean isMeasureField;
         String fieldName;
         if (parent != null) {
-           fieldName = parent.name + "_quality_" + field.name;
+           fieldName = parent.name + "_" + subFileType + "_" + field.name;
            isMeasureField = true;
         } else {
            fieldName = field.name;
@@ -229,7 +238,8 @@ public class FieldParser {
                                           phen,
                                           null,
                                           result,
-                                          properties);
+                                          properties,
+                                          null);
             observations.put(pti.procedureId + '-' + obsName + '-' + measureID, observation);
             clear();
         }
@@ -258,7 +268,8 @@ public class FieldParser {
                                                       phen,
                                                       null,
                                                       result,
-                                                      properties);
+                                                      properties,
+                                                      null);
         String observationKey;
         String fid = feature != null ? feature.getId() : "null";
         if (separatedProfileObs && profile) {

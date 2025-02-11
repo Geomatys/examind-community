@@ -286,7 +286,9 @@ INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:1
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             4, 'expiration',      'Time',  'urn:ogc:data:time:iso8601',                NULL,  NULL,         2, 'expiration',           NULL);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'expiration_qual', 'Time',  'urn:ogc:data:time:iso8601',                NULL,  'expiration', 2, 'expiration_qual', 'QUALITY');
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             5, 'age',         'Quantity',  'urn:ogc:def:phenomenon:GEOM:age',          NULL,  NULL,         3, 'age',                  NULL);
-INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             5, 'age_qual',    'Quantity',  'urn:ogc:def:phenomenon:GEOM:age',          NULL,  'age',        3, 'age_qual',        'QUALITY');
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'age_qual',    'Quantity',  'urn:ogc:def:phenomenon:GEOM:age_qual',     NULL,  'age',        3, 'age_qual',        'QUALITY');
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'age_param',   'Text',      'urn:ogc:def:phenomenon:GEOM:age_param',    NULL,  'age',        3, 'age_param',     'PARAMETER');
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             2, 'age_slice',   'Quantity',  'urn:ogc:def:phenomenon:GEOM:age_slice',    NULL,  'age',        3, 'age_slice',     'PARAMETER');
 
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:18',             1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1, 'Time',          NULL);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:18',             2, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm',   NULL,    1, 'depth',         NULL);
@@ -560,22 +562,24 @@ INSERT INTO "mesures"."mesure17_2" VALUES (8003, 1, 'brown',  'bad',  '2000-01-0
 INSERT INTO "mesures"."mesure17_2" VALUES (8003, 2, 'black',  'fade', '2000-01-03 22:00:00', '2000-01-03 23:00:00');
 INSERT INTO "mesures"."mesure17_2" VALUES (8003, 3, 'black',  'fade', '2000-01-03 22:00:00', '2000-01-03 23:00:00');
 
-CREATE TABLE "mesures"."mesure17_3"("id_observation"      integer NOT NULL,
-                                    "id"                  integer NOT NULL,
-                                    "age"                 double,
-                                    "age_quality_age_qual" double); 
+CREATE TABLE "mesures"."mesure17_3"("id_observation"          integer NOT NULL,
+                                    "id"                      integer NOT NULL,
+                                    "age"                     double,
+                                    "age_quality_age_qual"    double,
+                                    "age_parameter_age_param" character varying(10000),
+                                    "age_parameter_age_slice" double); 
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 1,  27.0, 37.0);
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 2,  28.0, 38.0);
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 3,  29.0, 39.1);
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 1,  27.0, 37.0, 'almost 30',   2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 2,  28.0, 38.0, 'almost 30',   2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 3,  29.0, 39.1, 'almost 30',   2);
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 1,  16.3, 16.3);
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 2,  26.4, 25.4);
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 3,  30.0, 28.1);
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 1,  16.3, 16.3, 'teenager',    1);
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 2,  26.4, 25.4, 'still young', 2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 3,  30.0, 28.1, 'thirty',      2);
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 1,  11.0, 0.0);
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 2,  22.0, 0.0);
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 3,  33.0, 0.0);
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 1,  11.0, 0.0, 'child',        1);
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 2,  22.0, 0.0, 'young',        1);
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 3,  33.0, 0.0, 'thirty',       2);
 
 CREATE TABLE "mesures"."mesure18"("id_observation" integer NOT NULL,
                                   "id"             integer NOT NULL,

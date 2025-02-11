@@ -46,8 +46,8 @@ public class MixedResultProcessor extends ResultProcessor {
     private boolean onlyMain;
     private boolean mainIncluded;
     
-    public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
-        super(fields, includeId, includeQuality, includeTimeInProfile, procedure, idSuffix);
+    public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
+        super(fields, includeId, includeQuality, includeParameter, includeTimeInProfile, procedure, idSuffix);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
         if (profile) {
             mainIncluded = mainFieldIndex != -1;

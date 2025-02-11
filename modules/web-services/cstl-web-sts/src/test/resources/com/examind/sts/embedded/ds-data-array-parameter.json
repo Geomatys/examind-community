@@ -1,0 +1,78 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [["urn:ogc:object:observation:GEOM:8001-5-1", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 27.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 37.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], ["urn:ogc:object:observation:GEOM:8001-5-2", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 28.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 38.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], ["urn:ogc:object:observation:GEOM:8001-5-3", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 29.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 39.1
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], ["urn:ogc:object:observation:GEOM:8002-5-1", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 16.3, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 16.3
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "teenager"
+                    }], ["urn:ogc:object:observation:GEOM:8002-5-2", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 26.4, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 25.4
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "still young"
+                    }], ["urn:ogc:object:observation:GEOM:8002-5-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 30.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 28.1
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }], ["urn:ogc:object:observation:GEOM:8003-5-1", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 11.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "child"
+                    }], ["urn:ogc:object:observation:GEOM:8003-5-2", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 22.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "young"
+                    }], ["urn:ogc:object:observation:GEOM:8003-5-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 33.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }]]
+        }]
+}

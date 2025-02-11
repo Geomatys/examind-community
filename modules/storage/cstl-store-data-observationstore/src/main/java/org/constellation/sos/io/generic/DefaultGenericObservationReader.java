@@ -541,6 +541,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                    observedProperty,
                                    null,
                                    result,
+                                   null,
                                    null);
 
         } catch (ConstellationMetadataException | ParseException ex) {

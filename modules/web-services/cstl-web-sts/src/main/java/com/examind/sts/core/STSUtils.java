@@ -158,24 +158,38 @@ public class STSUtils {
             return null;
         });
     }
+    
+    public static enum SubFieldType {
+        REGULAR,
+        QUALITY,
+        PARAMETER
+    }
 
     public static class ExtField extends Field {
-        public final boolean isQuality;
+        public final SubFieldType subType;
 
-        public ExtField(final Field field, boolean isQuality) {
+        public ExtField(final Field field, SubFieldType subType) {
             super(null, field.type, field.name, field.label, field.description, field.uom);
-            this.isQuality = isQuality;
+            if (subType == null) {
+                this.subType = SubFieldType.REGULAR;
+            } else {
+                this.subType = subType;
+            }
         }
     }
 
     public static List<ExtField> flatFields(List<Field> fields) {
         final List<ExtField> results = new ArrayList<>();
         for (Field field : fields) {
-            results.add(new ExtField(field, false));
+            results.add(new ExtField(field, SubFieldType.REGULAR));
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
-                    String name = field.name + "_quality_" + qField.name;
-                    results.add(new ExtField(qField, true));
+                    results.add(new ExtField(qField, SubFieldType.QUALITY));
+                }
+            }
+            if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
+                for (Field pField : field.parameterFields) {
+                    results.add(new ExtField(pField, SubFieldType.PARAMETER));
                 }
             }
         }

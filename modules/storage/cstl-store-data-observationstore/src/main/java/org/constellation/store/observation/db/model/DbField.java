@@ -45,6 +45,14 @@ public class DbField extends Field {
             }
             this.qualityFields.add(new DbField(qField, tableNumber));
         }
+        // overide parameter Fields type
+        this.parameterFields.clear();
+        for (Field pField : original.parameterFields) {
+            if (pField instanceof DbField dqField) {
+                tableNumber = dqField.tableNumber;
+            }
+            this.parameterFields.add(new DbField(pField, tableNumber));
+        }
     }
 
     @Override

@@ -463,8 +463,9 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final Procedure proc = getProcess(procedure, c);
             final Phenomenon resultPhen;
             final Result result;
-            List<Element> resultQuality;
+            final List<Element> resultQuality;
             final String omType;
+            final Map<String, Object> parameters;
             if (resultModel.equals(MEASUREMENT_QNAME)) {
                 if (fieldIndex == null) {
                     throw new DataStoreException("Measurement extraction need a field index specified");
@@ -477,9 +478,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 }
                 if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
                     resultQuality = new ArrayList<>();
-                    result = new MeasureResult(selectedField, null);
+                    parameters    = new HashMap<>();
+                    result        = new MeasureResult(selectedField, null);
                 } else {
                     resultQuality = buildResultQuality(pi, identifier, measureId, selectedField, c);
+                    parameters    = buildParameters(pi, identifier, measureId, selectedField, c);
                     result = getResult(pi, oid, resultModel, measureId, selectedField, c);
                     if ("timeseries".equals(pi.type)) {
                         time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId, fieldIndex);
@@ -490,6 +493,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             } else {
                 omType        = COMPLEX_OBSERVATION;
                 resultQuality = new ArrayList<>();
+                parameters    = new HashMap<>();
                 resultPhen    = phen;
                 if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
                     final List<Field> fields = readFields(procedure, false, c, new ArrayList<>(), new ArrayList<>());
@@ -509,7 +513,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                                    resultPhen,
                                    resultQuality,
                                    result,
-                                   properties);
+                                   properties,
+                                   parameters);
 
         } catch (Exception ex) {
             throw new DataStoreException(ex.getMessage(), ex);
@@ -569,6 +574,27 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         }
         return new ArrayList<>();
     }
+    
+    private Map<String, Object> buildParameters(ProcedureInfo pti, final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+        if (selectedField == null) {
+            throw new DataStoreException("Measurement extraction need a field index specified");
+        }
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, null, true, false, false, false, false);
+        query.append("AND o.\"identifier\"=").appendValue(identifier);
+        if (measureId != null) {
+            query.append(" AND m.\"id\" = " + measureId + " ");
+        }
+        query.append(" ORDER BY m.\"id\"");
+
+        try (final SQLResult rs  = query.execute(c)) {
+            if (rs.next()) {
+                return buildParameters(selectedField, rs);
+            }
+        } catch (NumberFormatException ex) {
+            throw new DataStoreException("Unable ta parse the result value as a double");
+        }
+        return new HashMap<>();
+    }
 
     protected Set<String> getFoiIdsForProcedure(final String procedure, final Connection c) throws SQLException {
         try (final PreparedStatement stmt = c.prepareStatement("SELECT \"foi\" FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"procedure\"=?")) {//NOSONAR
@@ -626,7 +652,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                                     phen,
                                     null,
                                     result,
-                                    properties);
+                                    properties,
+                                    null);
         } catch (Exception ex) {
             throw new DataStoreException(ex.getMessage(), ex);
         }

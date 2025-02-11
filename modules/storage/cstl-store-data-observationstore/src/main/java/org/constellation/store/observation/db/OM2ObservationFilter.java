@@ -128,6 +128,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected boolean includeTimeInTemplate = false;
     protected boolean includeFoiInTemplate  = true;
     protected boolean includeQualityFields  = true;
+    protected boolean includeParameterFields  = true;
     protected boolean singleObservedPropertyInTemplate = false;
     protected boolean noCompositePhenomenon = false;
 
@@ -213,6 +214,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.includeTimeForProfile = query.isIncludeTimeForProfile();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
         this.includeQualityFields  = query.isIncludeQualityFields();
+        this.includeParameterFields = query.isIncludeQualityFields();
         this.separatedMeasure      = query.isSeparatedMeasure();
         this.resultMode            = query.getResultMode();
         this.responseFormat        = query.getResponseFormat();
@@ -253,6 +255,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.responseMode          = query.getResponseMode();
         this.includeIDInDataBlock  = query.isIncludeIdInDataBlock();
         this.includeQualityFields  = query.isIncludeQualityFields();
+        this.includeParameterFields = query.isIncludeQualityFields();
         this.responseFormat        = query.getResponseFormat();
         this.decimationSize        = query.getDecimationSize();
         this.resultModel           = query.getResultModel();
@@ -981,7 +984,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             String index = propertyName.substring(opos + 1, cpos);
             String suffix = propertyName.substring(cpos + 1);
             if (!suffix.isEmpty()) {
-                suffix = "_quality_" + suffix.substring(1); // remove the '.'
+                suffix = "_extra_" + suffix.substring(1); // remove the '.'
             }
             String paramName = "phen" + index + suffix;
             sqlMeasureRequest.append(" AND (\"$").append(paramName).append("\" ").append(operator).appendNamedObjectValue(paramName, value.getValue()).append(")");
@@ -991,7 +994,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             // we look for a quality field on the form ".field_name"
             String suffix = propertyName.substring(6);
             if (!suffix.isEmpty()) {
-                suffix = "_quality_" + suffix.substring(1); // remove the '.'
+                suffix = "_extra_" + suffix.substring(1); // remove the '.'
             }
             String paramName = "allphen" + suffix;
             sqlMeasureRequest.append(" ${").append(paramName).append(operator).appendNamedObjectValue(paramName, value.getValue()).append("} ");
@@ -1147,7 +1150,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             handleAllPhenParam(single, tableNum, fields, offset, pti);
 
             /**
-            * 3)  Look for measure filter applying on all result quality  fields.
+            * 3)  Look for measure filter applying on all result quality/parameter  fields.
             * 
             */
             Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
@@ -1155,11 +1158,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 DbField field = (DbField) fields.get(i);
                 if (field.tableNumber == tableNum) {
                     for (Field qField : field.qualityFields) {
-                        final String allQPhenKeyword = "${allphen_quality_" + qField.name;
-                        List<Param> allQPhenParams = single.getParamsByName("allphen_quality_" + qField.name);
+                        final String allQPhenKeyword = "${allphen_extra_" + qField.name;
+                        List<Param> allQPhenParams = single.getParamsByName("allphen_extra_" + qField.name);
                         for (Param qparam : allQPhenParams) {
                             extraFilter.put(qparam, new AtomicInteger(-1));
-                            // it must be one ${allphen _quality_ ...} for each "allPhen _quality_" param
+                            // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
                             if (!single.contains(allQPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
 
                             String block = extractAllPhenBlock(single, allQPhenKeyword);
@@ -1170,6 +1173,26 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             } else {
                                 LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.type);
                                 sb.append(" AND FALSE ");
+                            }
+                            single.replaceFirst(block, sb.toString());
+                        }
+                    }
+                    for (Field qField : field.parameterFields) {
+                        final String allQPhenKeyword = "${allphen_extra_" + qField.name;
+                        List<Param> allQPhenParams = single.getParamsByName("allphen_extra_" + qField.name);
+                        for (Param qparam : allQPhenParams) {
+                            extraFilter.put(qparam, new AtomicInteger(-1));
+                            // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
+                            if (!single.contains(allQPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
+
+                            String block = extractAllPhenBlock(single, allQPhenKeyword);
+                            StringBuilder sb = new StringBuilder();
+                            if (matchType(qparam, qField)) {
+                                sb.append(" (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_parameter_" + qField.name + "\" ").replace('}', ' ')).append(") ");
+                                extraFilter.get(qparam).incrementAndGet();
+                            } else {
+                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.type);
+                                sb.append(" FALSE ");
                             }
                             single.replaceFirst(block, sb.toString());
                         }
@@ -1192,7 +1215,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
              *  Invalidate query if there are filter on unexisting fields.
              *  Handle also filter on quality fields.
              */
-            final String allQPhenKeyword = "${allphen_quality_";
+            final String allQPhenKeyword = "${allphen_extra_";
             while (single.contains(allQPhenKeyword)) {
                 String measureFilter = single.getRequest();
                 int opos = measureFilter.indexOf(allQPhenKeyword);
@@ -1201,7 +1224,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 String suffix = measureFilter.substring(opos + allQPhenKeyword.length(), spos);
 
                 // will remove eventually multiple params, but its not bad as we want to remove them all
-                single.removeNamedParams("allphen_quality_" + suffix);
+                single.removeNamedParams("allphen_extra_" + suffix);
                 int cpos = measureFilter.indexOf("}", opos + allQPhenKeyword.length());
                 String block = measureFilter.substring(opos, cpos + 1);
                 single.replaceFirst(block, " AND FALSE  ");
@@ -1217,7 +1240,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             for (int i = offset; i < fields.size(); i++) {
                 DbField field = (DbField) fields.get(i);
                 int pIndex = (i - offset);
-                treatPhenFilterForField(field, pIndex, single, tableNum, null);
+                treatPhenFilterForField(field, pIndex, single, tableNum, null, null);
             }
 
             /**
@@ -1301,22 +1324,22 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         return param.type.isAssignableFrom(field.type.getJavaType());
     }
 
-    protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent) {
+    protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent, String extraSubType) {
         String columnName;
-        String qualitySuffix;
+        String extraSuffix;
         if (parent != null) {
-            qualitySuffix = "_quality_" + field.name;
-            columnName = parent.name + qualitySuffix;
+            extraSuffix = "_extra_" + field.name;
+            columnName = parent.name + extraSubType + field.name;
         } else {
-            qualitySuffix = "";
+            extraSuffix = "";
             columnName = field.name;
         }
-        final String phenKeyword = " AND (\"$phen" + pIndex + qualitySuffix;
-        List<Param> phenParams = single.getParamsByName("phen" + pIndex + qualitySuffix);
+        final String phenKeyword = " AND (\"$phen" + pIndex + extraSuffix;
+        List<Param> phenParams = single.getParamsByName("phen" + pIndex + extraSuffix);
         for (Param phenParam : phenParams) {
             boolean typeMatch = matchType(phenParam, field);
             if (field.tableNumber == curTable && typeMatch) {
-                single.replaceFirst("$phen" + pIndex + qualitySuffix, columnName);
+                single.replaceFirst("$phen" + pIndex + extraSuffix, columnName);
             } else {
                  // it must be one phenKeyword for each "phen$i" param
                 if (!single.contains(phenKeyword)) throw new IllegalStateException("Result filter is malformed");
@@ -1337,9 +1360,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 single.removeNamedParam(phenParam);
             }
         }
-        // treat the quality fields
+        // treat the extra fields
         for (Field qField : field.qualityFields) {
-            treatPhenFilterForField((DbField)qField, pIndex, single, curTable, field);
+            treatPhenFilterForField((DbField)qField, pIndex, single, curTable, field, "_quality_");
+        }
+        for (Field qField : field.parameterFields) {
+            treatPhenFilterForField((DbField)qField, pIndex, single, curTable, field, "_parameter_");
         }
     }
 

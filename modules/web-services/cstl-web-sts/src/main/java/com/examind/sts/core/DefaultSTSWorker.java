@@ -25,6 +25,8 @@ import com.examind.sensor.ws.SensorWorker;
 import static com.examind.sts.core.STSConstants.STS_DEC_EXT;
 import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.*;
+import static com.examind.sts.core.STSUtils.SubFieldType.PARAMETER;
+import static com.examind.sts.core.STSUtils.SubFieldType.QUALITY;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -718,10 +720,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         quality.put("DQ_Result", Collections.singletonMap("code", value));
         return quality;
     }
-
+    
     private DataArrayResponse buildDataArrayFromResults(Map<String, ComplexResult> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
         DataArray result = new DataArray();
-        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality"));
+        result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         for (Entry<String, ComplexResult> entry : arrays.entrySet()) {
             String sensorId = entry.getKey() + "-dec";
             ComplexResult resultArray = entry.getValue();
@@ -761,30 +763,34 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 newLine.add(arrayLine.get(col));
                 col++;
                 List<Map> quality = new ArrayList<>();
+                Map parameters    = new HashMap<>();
                 if (arrayLine.size() > col) {
                     for (int i = col; i < arrayLine.size(); i++) {
                         ExtField f = fields.get(i);
-                        if (f.isQuality) {
-                            quality.add(buildResultQuality(f, arrayLine.get(i)));
-                        } else {
-                            LOGGER.warning("Non quality field found in single dataArray. This should not happen");
+                        switch (f.subType) {
+                            case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
+                            case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
+                            default        -> LOGGER.warning("Non quality/parameter field found in single dataArray. This should not happen");
                         }
                     }
                 }
                 newLine.add(quality);
+                newLine.add(parameters);
             } else {
                 List<Map> quality = new ArrayList<>();
-                List measures = new ArrayList<>();
+                Map parameters    = new HashMap<>();
+                List measures     = new ArrayList<>();
                 for (int i = col; i < arrayLine.size(); i++) {
                     ExtField f = fields.get(i);
-                    if (f.isQuality) {
-                        quality.add(buildResultQuality(f, arrayLine.get(i)));
-                    } else {
-                        measures.add(arrayLine.get(i));
+                    switch (f.subType) {
+                        case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
+                        case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
+                        default        -> measures.add(arrayLine.get(i));
                     }
                 }
                 newLine.add(measures);
                 newLine.add(quality);
+                newLine.add(parameters);
             }
             results.add(newLine);
             j++;
