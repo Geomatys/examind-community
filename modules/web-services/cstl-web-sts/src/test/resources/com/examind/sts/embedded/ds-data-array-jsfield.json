@@ -1,0 +1,60 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [["urn:ogc:object:observation:GEOM:8001-6-1", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8001-6-2", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "en"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "England"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8001-6-3", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8002-6-1", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8002-6-2", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "sp"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "Spain"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8002-6-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8003-6-1", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8003-6-2", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], ["urn:ogc:object:observation:GEOM:8003-6-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "de"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "Germany"
+                        }
+                    }]]
+        }]
+}

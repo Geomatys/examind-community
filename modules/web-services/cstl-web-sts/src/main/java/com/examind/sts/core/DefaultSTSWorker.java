@@ -648,7 +648,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             List<Map> resultQuality = buildResultQuality(obs);
             observation.setResultQuality(resultQuality);
         }
-        // TODO parameters
+        // parameters
+        if (exp.isSelected("parameters") && !obs.getParameters().isEmpty()) {
+            observation.setParameters(obs.getParameters());
+        }
 
         if (obs.getSamplingTime() != null) {
             String tempObj = temporalObjToString(obs.getSamplingTime(), exp.timesCache);

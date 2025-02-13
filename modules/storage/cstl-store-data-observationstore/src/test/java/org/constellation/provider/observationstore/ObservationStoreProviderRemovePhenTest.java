@@ -56,7 +56,7 @@ public class ObservationStoreProviderRemovePhenTest extends AbstractObservationS
         // list previous phenomenons
         List<Phenomenon> phenomenons = omPr.getPhenomenon(new ObservedPropertyQuery());
         
-        Assert.assertEquals(11, phenomenons.size());
+        Assert.assertEquals(nb_phenomenon, phenomenons.size());
         
         long nbComposite = phenomenons.stream().filter(ph -> ph instanceof CompositePhenomenon).count();
 
@@ -84,7 +84,7 @@ public class ObservationStoreProviderRemovePhenTest extends AbstractObservationS
         
         nb_observation = nb_observation - 18;         // 18 merged observations has been removed
         nb_used_phenomenon = nb_used_phenomenon - 3;  // 3 phenomenon removed (depth + multi-type-phenprofile + aggregatePhenomenon in which only one component was remaining)
-        nb_phenomenon = nb_phenomenon - 3;
+        nb_phenomenon = nb_phenomenon - 4;
         nb_composite = nb_composite - 2;
         nb_used_procedure = nb_used_procedure - 10;   // 10 procedure has been removed
         nb_procedure = nb_procedure - 10;
@@ -131,6 +131,7 @@ public class ObservationStoreProviderRemovePhenTest extends AbstractObservationS
         * - aggregatePhenomenon is removed because only one component was remaining
         * - multi-type-phenprofile is removed because all the procedure using it were profile with main field "depth"
         * - aggregatePhenomenon-2 is removed and recreate as another composite without the "depth" field
+        * - metadata is removed  is removed because it was used only by the composite multi-type-phenprofile
         */
         Assert.assertEquals(nb_phenomenon, phenomenons.size());
         

@@ -20,7 +20,7 @@ public abstract class AbstractObservationStoreProviderRemoveTest extends SpringC
     
     protected final int NB_OBSERVATION     = 25; // contains the phenomenon directly used in the observations
     protected final int NB_USED_PHENOMENON = 6;
-    protected final int NB_PHENOMENON      = 11;
+    protected final int NB_PHENOMENON      = 12;
     protected final int NB_COMPOSITE       = 4;
     protected final int NB_FOI             = 3;  // only 3 because 3 of the recorded procedure have no observations
     protected final int NB_PROCEDURE       = 19; // include empty procedure

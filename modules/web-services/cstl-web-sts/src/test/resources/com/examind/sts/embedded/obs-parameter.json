@@ -1,0 +1,19 @@
+{
+    "phenomenonTime": "1999-12-31T23:00:00Z",
+    "result": 27.0,
+    "resultTime": "1999-12-31T23:00:00Z",
+    "resultQuality": [{
+            "nameOfMeasure": "age_qual",
+            "DQ_Result": {
+                "code": 37.0
+            }
+        }],
+    "parameters": {
+        "age_slice": 2.0,
+        "age_param": "almost 30"
+    },
+    "@iot.id": "urn:ogc:object:observation:GEOM:8001-5-1",
+    "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-5-1)",
+    "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-5-1)/Datastreams",
+    "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-5-1)/FeaturesOfInterest"
+}

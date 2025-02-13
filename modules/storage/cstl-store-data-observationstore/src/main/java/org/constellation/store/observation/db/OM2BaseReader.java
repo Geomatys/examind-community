@@ -1047,6 +1047,7 @@ public class OM2BaseReader {
                         case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
                         case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
                         case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
+                        case JSON: value = OMUtils.readJsonMap(rs.getString(fieldName, rsIndex));break;
                         case TEXT:
                         default: value = rs.getString(fieldName, rsIndex);
                     }
@@ -1103,7 +1104,7 @@ public class OM2BaseReader {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
         final FilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
-        final FieldParser parser       = new FieldParser(fields, ResultMode.CSV, false, false, true, true, null, 0);
+        final FieldParser parser            = new FieldParser(ti.mainField.index, fields, ResultMode.CSV, false, false, true, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
                 parser.parseLine(rs);

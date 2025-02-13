@@ -31,6 +31,7 @@ import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jakarta.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.Date;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
@@ -215,11 +216,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         request.getExpand().add("Observations");
         result = worker.getFeatureOfInterestById(request);
 
-        Assert.assertEquals(100, result.getObservations().size());
+        Assert.assertEquals(109, result.getObservations().size());
 
         final Set<String> resultIds = new HashSet<>();
         result.getObservations().stream().forEach(ds -> resultIds.add(ds.getIotId()));
-
+        
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:GEOM:304-2-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:304-2-2");
@@ -291,6 +292,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:8001-5-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:8001-5-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:8001-5-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8001-6-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8001-6-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8001-6-3");
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-1-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-1-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-1-3");
@@ -306,6 +310,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-5-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-5-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:8002-5-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8002-6-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8002-6-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8002-6-3");
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-1-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-1-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-1-3");
@@ -321,9 +328,12 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-5-1");
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-5-2");
         expectedIds.add("urn:ogc:object:observation:GEOM:8003-5-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8003-6-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8003-6-2");
+        expectedIds.add("urn:ogc:object:observation:GEOM:8003-6-3");
 
         Assert.assertEquals(expectedIds, resultIds);
-
+        
 
        /*
         * request correspounding http://test.geomatys.com/sts/default/v1.1/FeaturesOfInterest(station-001)/Observations
@@ -335,7 +345,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse obsResult = (ObservationsResponse) obj;
 
-        Assert.assertEquals(100, obsResult.getValue().size());
+        Assert.assertEquals(109, obsResult.getValue().size());
 
         resultIds.clear();
 
@@ -958,11 +968,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         Assert.assertTrue(obj instanceof ObservationsResponse);
         ObservationsResponse result = (ObservationsResponse) obj;
 
-        Assert.assertEquals(262, result.getValue().size());
+        Assert.assertEquals(271, result.getValue().size());
 
         final Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
-        Assert.assertEquals(262, resultIds.size());
+        Assert.assertEquals(271, resultIds.size());
 
         request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:13");
         obj = worker.getObservations(request);
@@ -1095,11 +1105,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GetObservedProperties request = new GetObservedProperties();
         ObservedPropertiesResponse result = worker.getObservedProperties(request);
 
-        Assert.assertEquals(7, result.getValue().size());
+        Assert.assertEquals(8, result.getValue().size());
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(7, resultIds.size());
+        Assert.assertEquals(8, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("temperature");
@@ -1107,6 +1117,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("salinity");
         expectedIds.add("color");
         expectedIds.add("isHot");
+        expectedIds.add("metadata");
         expectedIds.add("age");
         expectedIds.add("expiration");
         Assert.assertEquals(expectedIds, resultIds);
@@ -1534,12 +1545,12 @@ public class OM2STSWorkerTest extends SpringContextTest {
         GetDatastreams request = new GetDatastreams();
         DatastreamsResponse result = worker.getDatastreams(request);
 
-        Assert.assertEquals(35, result.getValue().size());
+        Assert.assertEquals(36, result.getValue().size());
 
         Set<String> resultIds = new HashSet<>();
         result.getValue().stream().forEach(ds -> resultIds.add(ds.getIotId()));
 
-        Assert.assertEquals(35, resultIds.size());
+        Assert.assertEquals(36, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-1");
@@ -1568,6 +1579,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-6");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");

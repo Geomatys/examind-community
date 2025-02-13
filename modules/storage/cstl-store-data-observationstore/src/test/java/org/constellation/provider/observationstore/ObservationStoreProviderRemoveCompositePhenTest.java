@@ -143,8 +143,9 @@ public class ObservationStoreProviderRemoveCompositePhenTest extends AbstractObs
         * - aggregatePhenomenon is removed
         * - aggregatePhenomenon-2 is removed because only one component was remaining
         * - multi-type-phenprofile is removed because all the procedure using it were profile with main field "depth"
+        * - metadata is removed  is removed because it was used only by the composite multi-type-phenprofile
         */
-        nb_phenomenon = nb_phenomenon - 5;
+        nb_phenomenon = nb_phenomenon - 6;
         nb_composite  = nb_composite  - 3;
         
         Assert.assertEquals(nb_phenomenon, phenomenons.size());

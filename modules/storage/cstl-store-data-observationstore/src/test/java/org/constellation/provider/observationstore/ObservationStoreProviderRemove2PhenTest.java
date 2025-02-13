@@ -157,7 +157,7 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         * - aggregatePhenomenon is removed because only one component was remaining
         * - aggregatePhenomenon-2 is removed and recreate as another composite without the "temperature" field
         */
-        Assert.assertEquals(9, phenomenons.size());
+        Assert.assertEquals(10, phenomenons.size());
         
         nbComposite = phenomenons.stream().filter(ph -> ph instanceof CompositePhenomenon).count();
 

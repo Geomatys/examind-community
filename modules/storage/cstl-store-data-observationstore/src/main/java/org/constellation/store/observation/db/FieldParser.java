@@ -35,6 +35,7 @@ import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -65,6 +66,7 @@ public class FieldParser {
     protected final ResultBuilder values;
     protected String obsName;
     protected final int fieldOffset;
+    protected final int mainFieldIndex;
 
     protected boolean first = true;
 
@@ -80,7 +82,8 @@ public class FieldParser {
      * @param obsName Main observation identifier (used to build measure identifier).
      * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
+    public FieldParser(int mainFieldIndex, List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
+        this.mainFieldIndex = mainFieldIndex;
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
@@ -103,8 +106,8 @@ public class FieldParser {
      * @param obsName Main observation identifier (used to build measure identifier).
      * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
-        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName, fieldOffset);
+    public FieldParser(int mainFieldIndex, List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
+        this(mainFieldIndex, fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName, fieldOffset);
     }
 
     public void setName(String name) {
@@ -162,7 +165,7 @@ public class FieldParser {
                 } else {
                     Date t;
                     // main timeseries field
-                    if (fieldIndex < offset) {
+                    if (fieldIndex < offset || field.index == mainFieldIndex &&  parent == null) {
                         t = dateFromTS(rs.getTimestamp(fieldName)); // main field is present in every table request
                         if (first) {
                             firstTime = t;
@@ -176,15 +179,30 @@ public class FieldParser {
                 }
                 break;
             case QUANTITY:
-                Double d =  rs.getDouble(fieldName, rsIndex);
-                if (rs.wasNull(rsIndex)) {
-                    d = Double.NaN;
+                Double d;
+                // profile main field
+                if (field.index == mainFieldIndex  &&  parent == null) {
+                    d =  rs.getDouble(fieldName); // main field is present in every table request
+                    if (rs.wasNull()) {
+                        d = Double.NaN;
+                    }
+                } else {
+                    d =  rs.getDouble(fieldName, rsIndex);
+                    if (rs.wasNull(rsIndex)) {
+                        d = Double.NaN;
+                    }
                 }
+                
                 values.appendDouble(d, isMeasureField, field);
                 break;
             case BOOLEAN:
                 boolean bvalue = rs.getBoolean(fieldName, rsIndex);
                 values.appendBoolean(bvalue, isMeasureField, field);
+                break;
+            case JSON:
+                String sValue = rs.getString(fieldName, rsIndex);
+                Map m = OMUtils.readJsonMap(sValue);
+                values.appendMap(m, isMeasureField, field);
                 break;
             default:
                 String svalue;

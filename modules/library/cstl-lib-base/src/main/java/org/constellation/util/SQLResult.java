@@ -248,6 +248,10 @@ public class SQLResult implements AutoCloseable {
          return rss.get(resultSetIndex).wasNull();
     }
     
+    public boolean wasNull() throws SQLException {
+         return getFirstResultSet().wasNull();
+    }
+    
     public long getLong(String fieldName) throws SQLException {
         return getFirstResultSet().getLong(fieldName);
     }

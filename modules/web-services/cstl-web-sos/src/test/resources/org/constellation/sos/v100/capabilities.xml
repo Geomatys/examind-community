@@ -206,6 +206,7 @@
           <ows:Value>depth</ows:Value>
           <ows:Value>expiration</ows:Value>
           <ows:Value>isHot</ows:Value>
+          <ows:Value>metadata</ows:Value>
           <ows:Value>multi-type-phenomenon</ows:Value>
           <ows:Value>multi-type-phenprofile</ows:Value>
           <ows:Value>salinity</ows:Value>
@@ -454,7 +455,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-10">
             <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
             <gml:endPosition>2009-05-01T14:04:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -480,7 +481,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-11">
             <gml:beginPosition>2009-05-01T13:47:00.000</gml:beginPosition>
             <gml:endPosition>2009-05-01T14:03:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -500,7 +501,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-12">
             <gml:beginPosition>2000-12-01</gml:beginPosition>
             <gml:endPosition>2012-12-22</gml:endPosition>
           </gml:TimePeriod>
@@ -513,14 +514,14 @@
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
             <ns31:component>
               <ns31:Phenomenon gml:id="temperature">
-<gml:description>the temperature in celcius degree</gml:description>
-<gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
+                <gml:description>the temperature in celcius degree</gml:description>
+                <gml:name>urn:ogc:def:phenomenon:GEOM:temperature</gml:name>
               </ns31:Phenomenon>
             </ns31:component>
             <ns31:component>
               <ns31:Phenomenon gml:id="salinity">
-<gml:description>the salinity in water</gml:description>
-<gml:name>urn:ogc:def:phenomenon:GEOM:salinity</gml:name>
+                <gml:description>the salinity in water</gml:description>
+                <gml:name>urn:ogc:def:phenomenon:GEOM:salinity</gml:name>
               </ns31:Phenomenon>
             </ns31:component>
           </ns31:CompositePhenomenon>
@@ -541,7 +542,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-13">
             <gml:beginPosition>2000-01-01</gml:beginPosition>
             <gml:endPosition>2001-01-01</gml:endPosition>
           </gml:TimePeriod>
@@ -580,7 +581,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-14">
             <gml:beginPosition>2000-12-01</gml:beginPosition>
             <gml:endPosition>2000-12-24</gml:endPosition>
           </gml:TimePeriod>
@@ -619,7 +620,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-15">
             <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
             <gml:endPosition>1984-03-01T21:52:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -639,7 +640,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-16">
             <gml:beginPosition>1980-03-01T21:52:00.000</gml:beginPosition>
             <gml:endPosition>1981-03-01T22:52:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -692,7 +693,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-17">
             <gml:beginPosition>2000-01-01</gml:beginPosition>
             <gml:endPosition>2000-01-03</gml:endPosition>
           </gml:TimePeriod>
@@ -704,7 +705,13 @@
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:expiration"/>
         <sos:observedProperty xlink:href="urn:ogc:def:phenomenon:GEOM:isHot"/>
         <sos:observedProperty>
-          <ns31:CompositePhenomenon dimension="5" gml:id="multi-type-phenprofile">
+          <ns31:Phenomenon gml:id="metadata">
+            <gml:description>some metadata</gml:description>
+            <gml:name>urn:ogc:def:phenomenon:GEOM:metadata</gml:name>
+          </ns31:Phenomenon>
+        </sos:observedProperty>
+        <sos:observedProperty>
+          <ns31:CompositePhenomenon dimension="6" gml:id="multi-type-phenprofile">
             <gml:description>the aggregation of variable phenomenons type for profile</gml:description>
             <gml:name>urn:ogc:def:phenomenon:GEOM:multi-type-phenprofile</gml:name>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:depth"/>
@@ -712,6 +719,7 @@
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:color"/>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:expiration"/>
             <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:age"/>
+            <ns31:component xlink:href="urn:ogc:def:phenomenon:GEOM:metadata"/>
           </ns31:CompositePhenomenon>
         </sos:observedProperty>
         <sos:featureOfInterest xlink:href="station-001"/>
@@ -727,7 +735,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-18">
             <gml:beginPosition>2000-01-01</gml:beginPosition>
             <gml:endPosition>2001-01-01</gml:endPosition>
           </gml:TimePeriod>
@@ -766,7 +774,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimeInstant>
+          <gml:TimeInstant gml:id="offering-19">
             <gml:timePosition>2000-01-01</gml:timePosition>
           </gml:TimeInstant>
         </sos:time>
@@ -784,7 +792,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-2">
             <gml:beginPosition>2000-12-01</gml:beginPosition>
             <gml:endPosition>2000-12-22</gml:endPosition>
           </gml:TimePeriod>
@@ -813,7 +821,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-3">
             <gml:beginPosition>2007-05-01T02:59:00.000</gml:beginPosition>
             <gml:endPosition>2007-05-01T21:59:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -833,7 +841,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-4">
             <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
             <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -853,7 +861,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-5">
             <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
             <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -895,7 +903,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimeInstant>
+          <gml:TimeInstant gml:id="offering-7">
             <gml:timePosition>2007-05-01T16:59:00.000</gml:timePosition>
           </gml:TimeInstant>
         </sos:time>
@@ -914,7 +922,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimePeriod>
+          <gml:TimePeriod gml:id="offering-8">
             <gml:beginPosition>2007-05-01T12:59:00.000</gml:beginPosition>
             <gml:endPosition>2007-05-01T16:59:00.000</gml:endPosition>
           </gml:TimePeriod>
@@ -943,7 +951,7 @@
           <gml:Null>not_bounded</gml:Null>
         </gml:boundedBy>
         <sos:time>
-          <gml:TimeInstant>
+          <gml:TimeInstant gml:id="offering-9">
             <gml:timePosition>2009-05-01T13:47:00.000</gml:timePosition>
           </gml:TimeInstant>
         </sos:time>

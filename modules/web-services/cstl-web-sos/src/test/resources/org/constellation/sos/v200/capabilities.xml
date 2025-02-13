@@ -289,6 +289,7 @@
           <ows:Value>depth</ows:Value>
           <ows:Value>expiration</ows:Value>
           <ows:Value>isHot</ows:Value>
+          <ows:Value>metadata</ows:Value>
           <ows:Value>multi-type-phenomenon</ows:Value>
           <ows:Value>multi-type-phenprofile</ows:Value>
           <ows:Value>salinity</ows:Value>
@@ -746,6 +747,7 @@
           <swes:observableProperty>depth</swes:observableProperty>
           <swes:observableProperty>expiration</swes:observableProperty>
           <swes:observableProperty>isHot</swes:observableProperty>
+          <swes:observableProperty>metadata</swes:observableProperty>
           <swes:observableProperty>multi-type-phenprofile</swes:observableProperty>
           <swes:relatedFeature>
             <swes:FeatureRelationship>

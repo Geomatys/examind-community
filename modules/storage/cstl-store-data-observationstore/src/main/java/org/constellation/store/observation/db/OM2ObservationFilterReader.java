@@ -447,7 +447,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 LOGGER.fine(measureRequests.toString());
                 
                 final String obsName = rs.getString("identifier");
-                final FieldParser parser = buildFieldParser(fields, profileWithTime, obsName, fieldOffset);
+                final FieldParser parser = buildFieldParser(pti.mainField.index, fields, profileWithTime, obsName, fieldOffset);
 
                 // profile oservation are instant
                 if (profile) {
@@ -505,8 +505,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * 
      * @return A field parser. 
      */
-    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
+    protected FieldParser buildFieldParser(int mainFieldIndex, List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
+        return new FieldParser(mainFieldIndex,fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
     }
 
     protected List<Observation> getMesurements() throws DataStoreException {
@@ -579,6 +579,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                         case QUANTITY: resultValue = rs2.getDouble(fName, rsIndex); break;
                                         case BOOLEAN:  resultValue = rs2.getBoolean(fName, rsIndex); break;
                                         case TIME:     resultValue = new Date(rs2.getTimestamp(fName, rsIndex).getTime()); break;
+                                        case JSON:     resultValue = readJsonMap(value); break;
                                         case TEXT:
                                         default: resultValue = value; break;
                                     }

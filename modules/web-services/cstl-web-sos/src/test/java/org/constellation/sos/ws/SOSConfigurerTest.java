@@ -466,6 +466,7 @@ public abstract class SOSConfigurerTest extends SpringContextTest {
         expResults.add("temperature");
         expResults.add("salinity");
         expResults.add("multi-type-phenprofile");
+        expResults.add("metadata");
         Assert.assertEquals(expResults, results);
     }
 

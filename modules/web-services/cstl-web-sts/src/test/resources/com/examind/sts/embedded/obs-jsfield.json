@@ -1,0 +1,17 @@
+{
+    "phenomenonTime": "1999-12-31T23:00:00Z",
+    "result": {
+        "country": "fr"
+    },
+    "resultTime": "1999-12-31T23:00:00Z",
+    "parameters": {
+        "metadata_param": {
+            "country": "France"
+        }
+    },
+    "@iot.id": "urn:ogc:object:observation:GEOM:8001-6-1",
+    "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-6-1)",
+    "Datastream@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-6-1)/Datastreams",
+    "FeatureOfInterest@iot.navigationLink": "http://localhost:9090/WS/sts/default/v1.1/Observations(urn:ogc:object:observation:GEOM:8001-6-1)/FeaturesOfInterest"
+}
+

@@ -469,8 +469,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
 
     @Override
-    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
+    protected FieldParser buildFieldParser(int mainFieldIndex, List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
+        return new MixedFieldParser(mainFieldIndex, fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
     }
     
   @Override

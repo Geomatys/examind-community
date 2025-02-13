@@ -85,7 +85,7 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         fullDataset = omPr.extractResults(new DatasetQuery());
 
         nb_observation--;         // 21 merged observations has been removed
-        nb_used_phenomenon = nb_used_phenomenon - 2;  // ??
+        nb_used_phenomenon = nb_used_phenomenon - 1;  // ??
         nb_used_procedure--; // one procedure has been removed
         nb_procedure--;
         // no foi removed
@@ -101,25 +101,28 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         Assert.assertEquals(nb_procedure, procedures.size());
         
         /* 
-         * observations phenomenon having previously the phenomenon 'multi-type-phenprofile' is now 'depth' and as only one left field (main :().
+         * observations phenomenon having previously the phenomenon 'multi-type-phenprofile' is now a coposite with "depth" and "metadata".
          */
         List<String> modifiedProcedures = Arrays.asList("urn:ogc:object:sensor:GEOM:17");
         for (Observation obs : fullDataset.observations) {
             Procedure p = castToModel(obs.getProcedure(), Procedure.class);
             if (modifiedProcedures.contains(p.getId())) {
-                Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
-                Assert.assertEquals("depth", phen.getId());
+                CompositePhenomenon phen = castToModel(obs.getObservedProperty(), CompositePhenomenon.class);
+                Assert.assertEquals(2, phen.getComponent().size());
+                Assert.assertEquals("depth",phen.getComponent().get(0).getId());
+                Assert.assertEquals("metadata",phen.getComponent().get(1).getId());
+                        
                 
                 List<Field> fields = OM2Utils.getMeasureFields(obs);
                 // the main field is not included
-                Assert.assertEquals(0, fields.size());
+                Assert.assertEquals(1, fields.size());
             }
         }
 
         for (ProcedureDataset pd : fullDataset.procedures) {
             if (modifiedProcedures.contains(pd.getId())) {
                 // the main field is included (for profile)
-                Assert.assertEquals(1, pd.fields.size());
+                Assert.assertEquals(2, pd.fields.size());
             }
         }
         
@@ -133,9 +136,10 @@ public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractOb
         * - age is removed
         * - multi-type-phenprofile is removed because only one component was remaining
         * - multi-type-phenomenon is removed
+        * - a new composite has been created for the left of multi-type-phenprofile 
         */
-        nb_phenomenon = nb_phenomenon - 6;
-        nb_composite = nb_composite - 2;
+        nb_phenomenon = nb_phenomenon - 5;
+        nb_composite = nb_composite - 1;
         
         Assert.assertEquals(nb_phenomenon, phenomenons.size());
         

@@ -108,7 +108,7 @@ public class ResultProcessor {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, includeParameter, null, fieldOffset);
+        FieldParser parser = new FieldParser(mainFieldIndex, fields, values, false, includeId, includeQuality, includeParameter, null, fieldOffset);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString("identifier");

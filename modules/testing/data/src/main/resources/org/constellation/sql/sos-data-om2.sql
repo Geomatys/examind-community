@@ -1,20 +1,21 @@
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('depth',                 'Depth',                             'urn:ogc:def:phenomenon:GEOM:depth',                 'the depth in water');
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('temperature',           'Temperature',                       'urn:ogc:def:phenomenon:GEOM:temperature',           'the temperature in celcius degree');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('depth',                 'Depth',                              'urn:ogc:def:phenomenon:GEOM:depth',                 'the depth in water');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('temperature',           'Temperature',                        'urn:ogc:def:phenomenon:GEOM:temperature',           'the temperature in celcius degree');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('aggregatePhenomenon',   'Aggregate Phenomenon',               'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon',   'the aggregation of temperature and depth phenomenons');
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('salinity',              'Salinity',                          'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('salinity',              'Salinity',                           'urn:ogc:def:phenomenon:GEOM:salinity',              'the salinity in water');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('aggregatePhenomenon-2', 'Aggregate Phenomenon 2',             'urn:ogc:def:phenomenon:GEOM:aggregatePhenomenon-2', 'the aggregation of temperature depth, and salinity phenomenons');
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('isHot',                 'Hotness',                           'urn:ogc:def:phenomenon:GEOM:isHot',                 'hotness indicator');
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('color',                 'Color',                             'urn:ogc:def:phenomenon:GEOM:color',                 'the color label');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('isHot',                 'Hotness',                            'urn:ogc:def:phenomenon:GEOM:isHot',                 'hotness indicator');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('color',                 'Color',                              'urn:ogc:def:phenomenon:GEOM:color',                 'the color label');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('expiration',            'Expiration Date',                    'urn:ogc:def:phenomenon:GEOM:expiration',            'Expiration date');
-INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('age',                   'Age',                               'urn:ogc:def:phenomenon:GEOM:age',                   'current age');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('age',                   'Age',                                'urn:ogc:def:phenomenon:GEOM:age',                   'current age');
+INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('metadata',              'Metadata',                           'urn:ogc:def:phenomenon:GEOM:metadata',              'some metadata');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('multi-type-phenomenon',  'Multi type phenomenon',             'urn:ogc:def:phenomenon:GEOM:multi-type-phenomenon', 'the aggregation of variable phenomenons type');
 INSERT INTO "om"."observed_properties" ("id", "name", "definition", "description") VALUES ('multi-type-phenprofile', 'Multi type phenomenon for Profile', 'urn:ogc:def:phenomenon:GEOM:multi-type-phenprofile', 'the aggregation of variable phenomenons type for profile');
 
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-category',  'physics');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon-2', 'phen-category',  'elementary');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'biological');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-category',  'organics');
-INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                'phen-usage',     'production');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                 'phen-category',  'biological');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                 'phen-category',  'organics');
+INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('depth',                 'phen-usage',     'production');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('temperature',           'phen-category',  'biological');
 INSERT INTO "om"."observed_properties_properties" ("id_phenomenon", "property_name", "value") VALUES ('aggregatePhenomenon',   'phen-usage',     'studies');
 
@@ -35,6 +36,7 @@ INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('mult
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenprofile', 'color',      2);
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenprofile', 'expiration', 3);
 INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenprofile', 'age',        4);
+INSERT INTO "om"."components" ("phenomenon", "component", "order") VALUES ('multi-type-phenprofile', 'metadata',   5);
 ---------
 
 INSERT INTO "om"."procedures" VALUES ('urn:ogc:object:sensor:GEOM:1',              x'000000000140efef0000000000413a6b2800000000', 27582, 1,  NULL, 'system',    'timeseries', 'Sensor 1',          null, 1);
@@ -193,6 +195,7 @@ INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','isHot');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','color');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','expiration');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','age');
+INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','metadata');
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-17','multi-type-phenprofile');
 
 INSERT INTO "om"."offering_observed_properties" VALUES ('offering-18','aggregatePhenomenon');
@@ -289,6 +292,8 @@ INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:1
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'age_qual',    'Quantity',  'urn:ogc:def:phenomenon:GEOM:age_qual',     NULL,  'age',        3, 'age_qual',        'QUALITY');
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'age_param',   'Text',      'urn:ogc:def:phenomenon:GEOM:age_param',    NULL,  'age',        3, 'age_param',     'PARAMETER');
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             2, 'age_slice',   'Quantity',  'urn:ogc:def:phenomenon:GEOM:age_slice',    NULL,  'age',        3, 'age_slice',     'PARAMETER');
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             6, 'metadata',        'Json',  'urn:ogc:def:phenomenon:GEOM:metadata',     NULL,   NULL,        3, 'metadata',       NULL);
+INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:17',             1, 'metadata_param',  'Json',  'urn:ogc:def:phenomenon:GEOM:metadata_param',NULL,  'metadata',  3, 'metadata_param', 'PARAMETER');
 
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:18',             1, 'Time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1, 'Time',          NULL);
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:18',             2, 'depth',       'Quantity', 'urn:ogc:def:phenomenon:GEOM:depth',        'm',   NULL,    1, 'depth',         NULL);
@@ -567,19 +572,21 @@ CREATE TABLE "mesures"."mesure17_3"("id_observation"          integer NOT NULL,
                                     "age"                     double,
                                     "age_quality_age_qual"    double,
                                     "age_parameter_age_param" character varying(10000),
-                                    "age_parameter_age_slice" double); 
+                                    "age_parameter_age_slice" double,
+                                    "metadata"                character varying(10000),
+                                    "metadata_parameter_metadata_param" character varying(10000)); 
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 1,  27.0, 37.0, 'almost 30',   2);
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 2,  28.0, 38.0, 'almost 30',   2);
-INSERT INTO "mesures"."mesure17_3" VALUES (8001, 3,  29.0, 39.1, 'almost 30',   2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 1,  27.0, 37.0, 'almost 30',   2, '{"country":"fr"}', '{"country":"France"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 2,  28.0, 38.0, 'almost 30',   2, '{"country":"en"}', '{"country":"England"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8001, 3,  29.0, 39.1, 'almost 30',   2, '{"country":"fr"}', '{"country":"France"}');
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 1,  16.3, 16.3, 'teenager',    1);
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 2,  26.4, 25.4, 'still young', 2);
-INSERT INTO "mesures"."mesure17_3" VALUES (8002, 3,  30.0, 28.1, 'thirty',      2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 1,  16.3, 16.3, 'teenager',    1, '{"country":"fr"}', '{"country":"France"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 2,  26.4, 25.4, 'still young', 2, '{"country":"sp"}', '{"country":"Spain"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8002, 3,  30.0, 28.1, 'thirty',      2, '{"country":"fr"}', '{"country":"France"}');
 
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 1,  11.0, 0.0, 'child',        1);
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 2,  22.0, 0.0, 'young',        1);
-INSERT INTO "mesures"."mesure17_3" VALUES (8003, 3,  33.0, 0.0, 'thirty',       2);
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 1,  11.0, 0.0, 'child',        1, '{"country":"fr"}', '{"country":"France"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 2,  22.0, 0.0, 'young',        1, '{"country":"fr"}', '{"country":"France"}');
+INSERT INTO "mesures"."mesure17_3" VALUES (8003, 3,  33.0, 0.0, 'thirty',       2, '{"country":"de"}', '{"country":"Germany"}');
 
 CREATE TABLE "mesures"."mesure18"("id_observation" integer NOT NULL,
                                   "id"             integer NOT NULL,

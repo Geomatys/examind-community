@@ -101,7 +101,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
     
     private static final long TOTAL_NB_OBS_NAME = 134; // with nan value removed it should be 124. TODO verify count ?;
     
-    private static final long TOTAL_NB_MEAS = 262; // with nan value removed it should be  248. TODO verify count ?;
+    private static final long TOTAL_NB_MEAS = 271; // with nan value removed it should be  248. TODO verify count ?;
 
     private static final FilterFactory ff = FilterUtilities.FF;
 
@@ -843,7 +843,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         ObservedPropertyQuery query = new ObservedPropertyQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(11, resultIds.size());
+        assertEquals(12, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("aggregatePhenomenon");
@@ -855,16 +855,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("color");
         expectedIds.add("expiration");
         expectedIds.add("age");
+        expectedIds.add("metadata");
         expectedIds.add("multi-type-phenomenon");
         expectedIds.add("multi-type-phenprofile");
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, 11L);
+        assertEquals(result, 12L);
 
         query.setNoCompositePhenomenon(true);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(7, resultIds.size());
+        assertEquals(8, resultIds.size());
 
         expectedIds = new HashSet<>();
         expectedIds.add("depth");
@@ -874,10 +875,11 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("color");
         expectedIds.add("expiration");
         expectedIds.add("age");
+        expectedIds.add("metadata");
         Assert.assertEquals(expectedIds, resultIds);
 
         result = omPr.getCount(query);
-        assertEquals(result, 7L);
+        assertEquals(result, 8L);
 
         /*
         * by id filter
@@ -1132,7 +1134,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         List<Phenomenon> results = omPr.getPhenomenon(null);
         List<String> resultIds = getPhenomenonIds(results);
-        assertEquals(11, resultIds.size());
+        assertEquals(12, resultIds.size());
 
         List<String> expectedIds = new ArrayList<>();
         expectedIds.add("age");
@@ -1142,6 +1144,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("expiration");
         expectedIds.add("isHot");
+        expectedIds.add("metadata");
         expectedIds.add("multi-type-phenomenon");
         expectedIds.add("multi-type-phenprofile");
         expectedIds.add("salinity");
@@ -1149,7 +1152,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long count = omPr.getCount(new ObservedPropertyQuery());
-        assertEquals(11, count);
+        assertEquals(12, count);
 
         //no composite
         ObservedPropertyQuery query = new ObservedPropertyQuery();
@@ -1157,7 +1160,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getPhenomenon(query);
 
         resultIds = getPhenomenonIds(results);
-        assertEquals(7, resultIds.size());
+        assertEquals(8, resultIds.size());
 
         expectedIds = new ArrayList<>();
         expectedIds.add("age");
@@ -1165,12 +1168,13 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("depth");
         expectedIds.add("expiration");
         expectedIds.add("isHot");
+        expectedIds.add("metadata");
         expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
 
         count = omPr.getCount(query);
-        assertEquals(7, count);
+        assertEquals(8, count);
 
         /*
         * by id filter
@@ -1661,18 +1665,19 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         expectedIds = new ArrayList<>();
         expectedIds.add("isHot");
+        expectedIds.add("metadata");
         expectedIds.add("multi-type-phenomenon");
-        expectedIds.add("multi-type-phenprofile");
         Assert.assertEquals(expectedIds, resultIds);
 
-        query.setLimit(3L);
+        query.setLimit(4L);
         query.setOffset(9L);
         results = omPr.getPhenomenon(query);
 
         resultIds = getPhenomenonIds(results);
-        assertEquals(2, resultIds.size());
+        assertEquals(3, resultIds.size());
 
         expectedIds = new ArrayList<>();
+        expectedIds.add("multi-type-phenprofile");
         expectedIds.add("salinity");
         expectedIds.add("temperature");
 
@@ -1704,7 +1709,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds = new ArrayList<>();
         expectedIds.add("expiration");
         expectedIds.add("isHot");
-        expectedIds.add("salinity");
+        expectedIds.add("metadata");
         Assert.assertEquals(expectedIds, resultIds);
 
         query.setLimit(3L);
@@ -1713,9 +1718,10 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getPhenomenon(query);
 
         resultIds = getPhenomenonIds(results);
-        assertEquals(1, resultIds.size());
+        assertEquals(2, resultIds.size());
 
         expectedIds = new ArrayList<>();
+        expectedIds.add("salinity");
         expectedIds.add("temperature");
         Assert.assertEquals(expectedIds, resultIds);
     }
@@ -2856,7 +2862,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(false);
 
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(35, resultIds.size());
+        assertEquals(36, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:10-2");
@@ -2894,13 +2900,14 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-6");
         Assert.assertEquals(expectedIds, resultIds);
 
         // Count
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
         query.setIncludeFoiInTemplate(false);
         long result = omPr.getCount(query);
-        assertEquals(result, 35L);
+        assertEquals(result, 36L);
 
         // Paging
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -2937,7 +2944,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-6");
         assertEquals(expectedIds, resultIds);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -2948,6 +2955,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:18-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:19-2");
@@ -2955,7 +2963,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
         assertEquals(expectedIds, resultIds);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -2966,6 +2973,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         resultIds = omPr.getIdentifiers(query);
         assertEquals(8, resultIds.size());
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
@@ -2973,7 +2981,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         assertEquals(expectedIds, resultIds);
         
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -2982,8 +2989,9 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setOffset(32L);
         
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(3, resultIds.size());
+        assertEquals(4, resultIds.size());
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
@@ -3453,7 +3461,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeFoiInTemplate(true);
 
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(36, results.size());
+        assertEquals(37, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -3514,7 +3522,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeTimeInTemplate(true);
 
         results = omPr.getObservations(query);
-        assertEquals(35, results.size());
+        assertEquals(36, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -3564,7 +3572,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-6");
         assertEquals(expectedIds, resultIds);
 
         query.setIncludeFoiInTemplate(false);
@@ -3579,6 +3587,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         }
 
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:18-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:19-2");
@@ -3586,7 +3595,6 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
         assertEquals(expectedIds, resultIds);
 
         query.setIncludeFoiInTemplate(false);
@@ -3601,6 +3609,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         }
 
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:7-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:8-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:9-1");
@@ -3608,14 +3617,13 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:multi-type-5");
-        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         assertEquals(expectedIds, resultIds);
         
         query.setIncludeFoiInTemplate(false);
         query.setLimit(8L);
         query.setOffset(32L);
         results = omPr.getObservations(query);
-        assertEquals(3, results.size());
+        assertEquals(4, results.size());
 
         resultIds = new LinkedHashSet<>();
         for (Observation p : results) {
@@ -3623,6 +3631,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         }
 
         expectedIds = new LinkedHashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-1-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
@@ -3699,7 +3708,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
 
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(36, results.size());
+        assertEquals(37, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -4239,7 +4248,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
                 assertTrue(catObj.equals("Argeles"));
             }
         }
-        assertEquals(17, resultIds.size());
+        assertEquals(18, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
@@ -4256,6 +4265,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-3");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-4");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:17-5");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:17-6");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:3-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
         expectedIds.add("urn:ogc:object:observation:template:GEOM:test-id-2");
@@ -4264,7 +4274,7 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long count = omPr.getCount(query);
-        assertEquals(17L, count);
+        assertEquals(18L, count);
 
         // same query but without including foi in template
         query.setIncludeFoiInTemplate(false);
@@ -4272,12 +4282,12 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getObservations(query);
 
         resultIds = results.stream().map(p -> p.getName().getCode()).collect(Collectors.toSet());
-        assertEquals(17, resultIds.size());
+        assertEquals(18, resultIds.size());
 
          Assert.assertEquals(expectedIds, resultIds);
 
         count = omPr.getCount(query);
-        assertEquals(17L, count);
+        assertEquals(18L, count);
 
         // get all the sensor templates that have a feature of interest with the property commune = Beziers
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -6209,15 +6219,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         String result = cr.getValues();
 
-        String expectedResult =  "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
-                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
-                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
-                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
-                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
-                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
-                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
-                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
-                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
+        String expectedResult =  "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0,{\"country\":\"en\"},{\"country\":\"England\"}@@"
+                + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0,{\"country\":\"sp\"},{\"country\":\"Spain\"}@@"
+                + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0,{\"country\":\"de\"},{\"country\":\"Germany\"}@@";
 
         assertEquals(expectedResult, result);
 
@@ -6233,8 +6243,8 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,30.0,28.1,thirty,2.0@@"
-                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,33.0,0.0,thirty,2.0@@";
+        expectedResult =  "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,30.0,28.1,thirty,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,33.0,0.0,thirty,2.0,{\"country\":\"de\"},{\"country\":\"Germany\"}@@";
 
         assertEquals(expectedResult, result);
     }
@@ -6250,15 +6260,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         String result = cr.getValues();
 
         String expectedResult =
-                          "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
-                        + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
-                        + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
-                        + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
-                        + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
-                        + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
-                        + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
-                        + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
-                        + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
+                          "1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0,{\"country\":\"en\"},{\"country\":\"England\"}@@"
+                + "3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0,{\"country\":\"sp\"},{\"country\":\"Spain\"}@@"
+                + "3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0,{\"country\":\"de\"},{\"country\":\"Germany\"}@@";
 
         assertEquals(expectedResult, result);
         
@@ -6273,15 +6283,15 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         result = cr.getValues();
 
         expectedResult =
-                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0@@"
-                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0@@"
-                + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0@@"
-                + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0@@"
-                + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0@@"
-                + "urn:ogc:object:observation:GEOM:8003-1,2000-01-03T00:00:00.0,1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0@@"
-                + "urn:ogc:object:observation:GEOM:8003-2,2000-01-03T00:00:00.0,2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0@@"
-                + "urn:ogc:object:observation:GEOM:8003-3,2000-01-03T00:00:00.0,3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0@@";
+                  "urn:ogc:object:observation:GEOM:8001-1,2000-01-01T00:00:00.0,1.0,false,false,blue,good,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,27.0,37.0,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8001-2,2000-01-01T00:00:00.0,2.0,true,false,green,fade,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,28.0,38.0,almost 30,2.0,{\"country\":\"en\"},{\"country\":\"England\"}@@"
+                + "urn:ogc:object:observation:GEOM:8001-3,2000-01-01T00:00:00.0,3.0,false,true,red,bad,2000-01-01T22:00:00.0,2000-01-01T23:00:00.0,29.0,39.1,almost 30,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8002-1,2000-01-02T00:00:00.0,1.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,16.3,16.3,teenager,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8002-2,2000-01-02T00:00:00.0,2.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,26.4,25.4,still young,2.0,{\"country\":\"sp\"},{\"country\":\"Spain\"}@@"
+                + "urn:ogc:object:observation:GEOM:8002-3,2000-01-02T00:00:00.0,3.0,true,true,yellow,good,2000-01-02T22:00:00.0,2000-01-02T23:00:00.0,30.0,28.1,thirty,2.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8003-1,2000-01-03T00:00:00.0,1.0,false,false,brown,bad,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,11.0,0.0,child,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8003-2,2000-01-03T00:00:00.0,2.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,22.0,0.0,young,1.0,{\"country\":\"fr\"},{\"country\":\"France\"}@@"
+                + "urn:ogc:object:observation:GEOM:8003-3,2000-01-03T00:00:00.0,3.0,false,false,black,fade,2000-01-03T22:00:00.0,2000-01-03T23:00:00.0,33.0,0.0,thirty,2.0,{\"country\":\"de\"},{\"country\":\"Germany\"}@@";
 
         assertEquals(expectedResult, result);
 
