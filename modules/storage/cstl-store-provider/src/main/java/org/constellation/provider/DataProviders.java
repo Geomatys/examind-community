@@ -359,7 +359,8 @@ public final class DataProviders extends Static{
                 LOGGER.log(Level.FINER, "Probing on provider:{0} in {1}ms.", new Object[]{name, System.currentTimeMillis() - start});
                 results.put(name, result);
             }
-        } catch (Exception e) {
+        // we don't want to stop the analysis, some provider ith native library can throw Errors.
+        } catch (Throwable e) {
             final String logName = name;
             LOGGER.log(Level.WARNING, e, () -> "Error while probing content using provider: "+logName);
             results = null;
