@@ -17,11 +17,13 @@
     <description>Examind's bundles.</description>
 
     <modules>
+    	<!-- this one must be builded before exa-bundle because its not included as a dependency but as an artifact item -->
+        <module>exa-s3-bundle</module>
         <module>spring-boot</module>
         <module>exa-webui</module>
         <module>exa-services</module>
         <module>exa-bundle</module>
-        <module>exa-s3-bundle</module>
+        
     </modules>
 
 </project>
