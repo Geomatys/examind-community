@@ -21,6 +21,8 @@ package org.constellation.json.metadata;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -281,7 +283,7 @@ public class TemplateWriter extends AbstractTemplateHandler {
                         p = dateFormat.format(value);
                     }
                 }
-            } else if (value instanceof Instant i) {
+            } else if (value instanceof Temporal i) {
                 if (DATE_READ_ONLY.equals(n.render)) {
                     String dateTime = instantHourFormat.format(i);
                     // remove uneccesary time
