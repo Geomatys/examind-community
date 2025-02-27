@@ -7,5 +7,6 @@
   <import resource="classpath:/cstl/spring/database-context.xml" />
 
   <import resource="security-sdi.xml" />
+  <import resource="security-oauth2.xml" />
 
 </beans>

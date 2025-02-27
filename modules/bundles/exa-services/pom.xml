@@ -184,6 +184,11 @@
                     <artifactId>cstl-lib-index-elasticsearch</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>com.examind.community</groupId>
+                    <artifactId>examind-engine-oauth2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>

@@ -13,6 +13,7 @@
         <custom-filter ref="cstlAuthenticationTokenProcessingFilter" position="FORM_LOGIN_FILTER" />
 
         <!-- no authentication on login requests -->
+        <intercept-url pattern="/API/oauth2/**" access="permitAll" />
         <intercept-url pattern="/API/auth/login" access="permitAll" />
         <intercept-url pattern="/API/auth/forgotPassword" access="permitAll" />
         <intercept-url pattern="/API/auth/resetPassword" access="permitAll" />

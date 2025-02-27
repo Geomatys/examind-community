@@ -86,7 +86,7 @@ public class Oauth2RestAPI {
     }
 
     @RequestMapping(value="/oauth2/logout", method=GET)
-    public ResponseEntity logiout() {
+    public ResponseEntity logout() {
         try {
             Oauth2Client client = new Oauth2Client();
             String location     = client.getLogoutUrl();

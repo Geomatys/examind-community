@@ -1,7 +1,8 @@
 <beans xmlns:sec="http://www.springframework.org/schema/security" xmlns="http://www.springframework.org/schema/beans"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+  profile="standard">
 
 
   <import resource="security/common.xml" />
@@ -11,20 +12,20 @@
   <sec:jdbc-user-service id="cstlUserService" data-source-ref="dataSource"
 
                      users-by-username-query="
-          select &quot;login&quot;,&quot;password&quot;, &quot;active&quot;
-          from &quot;admin&quot;.&quot;cstl_user&quot; where &quot;login&quot;=?"
+          select login,password, active
+          from admin.cstl_user where login=?"
 
                      authorities-by-username-query="
-          select u.&quot;login&quot;, ur.&quot;role&quot;
-          from &quot;admin&quot;.&quot;cstl_user&quot; u, &quot;admin&quot;.&quot;user_x_role&quot; ur
-          where u.&quot;id&quot; = ur.&quot;user_id&quot; and u.&quot;login&quot; =?  "
+          select u.login, ur.role
+          from admin.cstl_user u, admin.user_x_role ur
+          where u.id = ur.user_id and u.login =?  "
 
           />
 
   <bean id="md5PasswordEncoder" class="org.springframework.security.crypto.password.MessageDigestPasswordEncoder">
     <constructor-arg value="MD5"/>
   </bean>
-  
+
   <bean id="defaultHttpFirewall" class="org.springframework.security.web.firewall.StrictHttpFirewall">
       <property name="AllowUrlEncodedSlash" value="true"/>
   </bean>

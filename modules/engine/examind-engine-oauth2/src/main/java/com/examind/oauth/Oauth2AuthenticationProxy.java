@@ -121,8 +121,12 @@ public class Oauth2AuthenticationProxy implements AuthenticationProxy {
     private UserWithRole mapUser(Map m, List<String> roles) {
         UserWithRole user = new UserWithRole();
         user.setLogin((String) m.get("preferred_username"));
-        user.setFirstname((String) m.get("given_name"));
-        user.setLastname((String) m.get("family_name"));
+        String fName = (String) m.get("given_name");
+        if (fName == null) fName = "Unknown";
+        user.setFirstname(fName);
+        String lName = (String) m.get("family_name");
+        if (lName == null) lName = "Unknown";
+        user.setLastname(lName);
         user.setEmail((String) m.get("email"));
         user.setPassword("");
         user.setActive(Boolean.TRUE);
