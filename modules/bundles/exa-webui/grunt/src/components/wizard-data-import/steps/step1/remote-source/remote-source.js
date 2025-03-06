@@ -368,6 +368,9 @@ function RemoteSourceController($scope, $translate, Examind, Growl, cfpLoadingBa
         }
         var dataSource = self.getDataSource();
         dataSource.readFromRemote = self.remote.protocol.readFromRemote;
+        if (dataSource.type === 's3') {
+            dataSource.permanent = dataSource.readFromRemote;
+        }
         self.setDataSource(dataSource);
     };
     

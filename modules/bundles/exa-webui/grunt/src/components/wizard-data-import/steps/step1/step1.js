@@ -282,6 +282,18 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
     self.createDataSource = function (dataSource, sourceType, explore) {
         cfpLoadingBar.start();
         cfpLoadingBar.inc();
+        
+        // if a previous source has been created we delete it
+        if (self.wizardValues.step1.dataSource.id){
+            Examind.dataSources.delete(self.wizardValues.step1.dataSource.id)
+                   .then(testAndCreateDatasource(dataSource, sourceType, explore));
+        } else {
+            testAndCreateDatasource(dataSource, sourceType, explore);
+        }
+        
+    };
+    
+    function testAndCreateDatasource(dataSource, sourceType, explore) {
         Examind.dataSources.test(dataSource)
             .then(function (response) {
                 cfpLoadingBar.complete();
@@ -324,7 +336,7 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                         Growl('error', 'Error', translatedMsg);
                     });
             });
-    };
+    }
 
     /**
      * The method to get the files list to explore in the file explorer component

@@ -88,6 +88,7 @@
     "gdalfeature-application/x-ogr+vrt":"Gdal : VRT",
     "gdalfeature-application/x-ogr+xls":"Gdal : XLS",
     "shapefile-application/x-shapefile": "Examind : ShapeFile",
+    "esri shapefile-application/x-shapefile": "SIS : ShapeFile",
     "S57-application/x-iho-s57": "Examind : S57",
     "dted-application/x-dted": "Examind : DTED",
     "geotk-landsat-application/x-landsat": "Examind : Landsat",

@@ -293,7 +293,7 @@ function Step4WizardController($scope, $location, $translate, Growl, Examind, Wi
         }
 
         // remove datasource
-        if (self.wizardValues.step1.dataSource) {
+        if (self.wizardValues.step1.dataSource && !self.wizardValues.step1.dataSource.permanent) {
             Examind.dataSources.delete(self.wizardValues.step1.dataSource.id);
         }
 
