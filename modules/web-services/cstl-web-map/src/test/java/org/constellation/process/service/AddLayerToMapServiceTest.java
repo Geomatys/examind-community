@@ -38,6 +38,7 @@ import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CommonCRS;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.process.DataProcessReference;
+import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConstellationException;
 import org.constellation.test.utils.TestEnvironment.DataImport;
 import org.constellation.test.utils.TestEnvironment.ProvidersImport;
@@ -101,7 +102,8 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            serviceId = createCustomInstance("addLayer1", inputContext);
+            ServiceProcessReference servRef = createCustomInstance("addLayer1", inputContext);
+            serviceId = servRef.getId();
             startInstance("addLayer1");
 
             GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
@@ -114,8 +116,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_ALIAS_PARAM_NAME).setValue("Europe-costlines");
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_STYLE_PARAM_NAME).setValue(STYLE_DATA_REF);
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_FILTER_PARAM_NAME).setValue(bbox);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_TYPE_PARAM_NAME).setValue(serviceName);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue("addLayer1");
+            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue(servRef);
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
@@ -148,8 +149,9 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
         Integer serviceId = null;
         try {
             final LayerContext inputContext = new LayerContext();
-            serviceId = createCustomInstance("addLayer2", inputContext);
-
+            ServiceProcessReference servRef = createCustomInstance("addLayer2", inputContext);
+            serviceId = servRef.getId();
+                    
             startInstance("addLayer2");
 
             GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
@@ -162,8 +164,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_ALIAS_PARAM_NAME).setValue("Europe-costlines");
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_STYLE_PARAM_NAME).setValue(STYLE_DATA_REF);
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_FILTER_PARAM_NAME).setValue(bbox);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_TYPE_PARAM_NAME).setValue(serviceName);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue("addLayer2");
+            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue(servRef);
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
@@ -201,15 +202,15 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            serviceId = createCustomInstance("addLayer6", inputContext);
+            ServiceProcessReference servRef = createCustomInstance("addLayer6", inputContext);
+            serviceId = servRef.getId();
             startInstance("addLayer6");
 
             final ProcessDescriptor descriptor = ProcessFinder.getProcessDescriptor(ExamindProcessFactory.NAME, PROCESS_NAME);
 
             final ParameterValueGroup inputs = descriptor.getInputDescriptor().createValue();
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_REF_PARAM_NAME).setValue(COUNTRIES_DATA_REF);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_TYPE_PARAM_NAME).setValue(serviceName);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue("addLayer6");
+            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue(servRef);
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);
             final ParameterValueGroup outputs = process.call();
@@ -250,7 +251,9 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             final LayerContext inputContext = new LayerContext();
             inputContext.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
 
-            serviceId = createCustomInstance("addLayer7", inputContext);
+            ServiceProcessReference servRef = createCustomInstance("addLayer7", inputContext);
+            serviceId = servRef.getId();
+            
             startInstance("addLayer7");
 
             GeneralEnvelope env = new GeneralEnvelope(CommonCRS.defaultGeographic());
@@ -266,8 +269,7 @@ public abstract class AddLayerToMapServiceTest extends AbstractMapServiceTest {
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_ALIAS_PARAM_NAME).setValue("Europe-costlines");
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_STYLE_PARAM_NAME).setValue(STYLE_DATA_REF);
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_FILTER_PARAM_NAME).setValue(bbox);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_TYPE_PARAM_NAME).setValue(serviceName);
-            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue("addLayer7");
+            inputs.parameter(AddLayerToMapServiceDescriptor.SERVICE_INSTANCE_PARAM_NAME).setValue(servRef);
             inputs.parameter(AddLayerToMapServiceDescriptor.LAYER_CUSTOM_GFI_PARAM_NAME).setValue(customGFI);
 
             final org.geotoolkit.process.Process process = descriptor.createProcess(inputs);

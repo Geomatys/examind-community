@@ -18,7 +18,9 @@
  */
 package org.constellation.process.service;
 
-import org.apache.sis.util.ResourceInternationalString;
+import java.util.Arrays;
+import java.util.Collections;
+import static org.constellation.api.CommonConstants.WXS;
 import org.constellation.dto.service.config.wxs.GetFeatureInfoCfg;
 import org.constellation.dto.service.config.wxs.LayerConfig;
 import org.constellation.process.AbstractCstlProcess;
@@ -30,9 +32,10 @@ import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.InternationalString;
 
-import org.constellation.api.ServiceDef;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.process.DataProcessReference;
+import org.constellation.dto.process.ServiceProcessReference;
+import org.geotoolkit.utility.parameter.ExtendedParameterDescriptor;
 
 /**
  * Add a layer to a map service. If service instance doesn't exist, process will create it.
@@ -61,8 +64,9 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
     private static final String LAYER_STYLE_PARAM_REMARKS_KEY       = "service.add_layer.layerStyleRef";
     private static final String LAYER_FILTER_PARAM_REMARKS_KEY      = "service.add_layer.layerFilter";
     private static final String LAYER_DIMENSION_PARAM_REMARKS_KEY   = "service.add_layer.layerDimension";
+    private static final String LAYER_DIMENSION_NAME_PARAM_REMARKS_KEY   = "service.add_layer.layerDimension.name";
+    private static final String LAYER_DIMENSION_COLUMN_PARAM_REMARKS_KEY = "service.add_layer.layerDimension.column";
     private static final String LAYER_CUSTOM_GFI_PARAM_REMARKS_KEY  = "service.add_layer.featureInfos";
-    private static final String SERVICE_TYPE_PARAM_REMARKS_KEY      = "service.add_layer.serviceType";
     private static final String SERVICE_INSTANCE_PARAM_REMARKS_KEY  = "service.add_layer.serviceInstance";
     private static final String OUT_LAYER_PARAM_REMARKS_KEY     = "service.add_layer.outLayerContext";
 
@@ -115,14 +119,29 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
             .setRemarks(LAYER_FILTER_PARAM_REMARKS)
             .setRequired(false)
             .create(Filter.class, null);
+    
+    public static final String LAYER_DIMENSION_NAME_PARAM_NAME = "layer_dimension_name";
+    public static final InternationalString LAYER_DIMENSION_NAME_PARAM_REMARKS = new BundleInternationalString(LAYER_DIMENSION_NAME_PARAM_REMARKS_KEY);
+    
+    public static final ParameterDescriptor<String> LAYER_DIMENSION_NAME = BUILDER
+            .addName(LAYER_DIMENSION_NAME_PARAM_NAME)
+            .setRemarks(LAYER_DIMENSION_NAME_PARAM_REMARKS)
+            .setRequired(false)
+            .create(String.class, null);
+    
+    public static final String LAYER_DIMENSION_COLUMN_PARAM_NAME = "layer_dimension_column";
+    public static final InternationalString LAYER_DIMENSION_COLUMN_PARAM_REMARKS = new BundleInternationalString(LAYER_DIMENSION_COLUMN_PARAM_REMARKS_KEY);
+    
+    public static final ParameterDescriptor<String> LAYER_DIMENSION_COLUMN = BUILDER
+            .addName(LAYER_DIMENSION_COLUMN_PARAM_NAME)
+            .setRemarks(LAYER_DIMENSION_COLUMN_PARAM_REMARKS)
+            .setRequired(false)
+            .create(String.class, null);
 
     public static final String LAYER_DIMENSION_PARAM_NAME = "layer_dimension";
     public static final InternationalString LAYER_DIMENSION_PARAM_REMARKS = new BundleInternationalString(LAYER_DIMENSION_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<String> LAYER_DIMENSION = BUILDER
-            .addName(LAYER_DIMENSION_PARAM_NAME)
-            .setRemarks(LAYER_DIMENSION_PARAM_REMARKS)
-            .setRequired(false)
-            .create(String.class, null);
+    public static final ParameterDescriptorGroup LAYER_DIMENSION = BUILDER.addName(LAYER_DIMENSION_PARAM_NAME).setRequired(false)
+             .createGroup(LAYER_DIMENSION_NAME, LAYER_DIMENSION_COLUMN);
 
     /*
      * Custom GetFeatureInfo
@@ -136,30 +155,18 @@ public class AddLayerToMapServiceDescriptor extends AbstractCstlProcessDescripto
             .create(GetFeatureInfoCfg[].class, null);
 
     /*
-     * Service Type
-     */
-    public static final String SERVICE_TYPE_PARAM_NAME = "service_type";
-    public static final InternationalString SERVICE_TYPE_PARAM_REMARKS = new BundleInternationalString(SERVICE_TYPE_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<String> SERVICE_TYPE = BUILDER
-            .addName(SERVICE_TYPE_PARAM_NAME)
-            .setRemarks(SERVICE_TYPE_PARAM_REMARKS)
-            .setRequired(true)
-            .createEnumerated(String.class, ServiceDef.Specification.availableSpecifications(), "WMS");
-
-    /*
-     * Service instance name
+     * Service instance
      */
     public static final String SERVICE_INSTANCE_PARAM_NAME = "service_instance";
     public static final InternationalString SERVICE_INSTANCE_PARAM_REMARKS = new BundleInternationalString(SERVICE_INSTANCE_PARAM_REMARKS_KEY);
-    public static final ParameterDescriptor<String> SERVICE_INSTANCE = BUILDER
-            .addName(SERVICE_INSTANCE_PARAM_NAME)
-            .setRemarks(SERVICE_INSTANCE_PARAM_REMARKS)
-            .setRequired(true)
-            .create(String.class, null);
+    public static final ParameterDescriptor<ServiceProcessReference> SERVICE_INSTANCE = 
+    new ExtendedParameterDescriptor<>(
+                SERVICE_INSTANCE_PARAM_NAME, SERVICE_INSTANCE_PARAM_REMARKS, 1, 1, ServiceProcessReference.class, null, null, Collections.singletonMap("filter", Collections.singletonMap("type", WXS)));
+
 
      /**Input parameters */
     public static final ParameterDescriptorGroup INPUT_DESC = BUILDER.addName("InputParameters").setRequired(true)
-             .createGroup(LAYER_REF, SERVICE_TYPE, SERVICE_INSTANCE, LAYER_ALIAS, LAYER_STYLE, LAYER_FILTER,
+             .createGroup(LAYER_REF, SERVICE_INSTANCE, LAYER_ALIAS, LAYER_STYLE, LAYER_FILTER,
                      LAYER_DIMENSION, LAYER_CUSTOM_GFI);
 
     /*

@@ -40,6 +40,7 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.StyleReference;
 import org.constellation.dto.process.DataProcessReference;
+import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConstellationException;
 
 import static org.constellation.process.service.AddLayerToMapServiceDescriptor.*;
@@ -66,31 +67,34 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         super(desc, input);
     }
 
-    public AddLayerToMapService (final String serviceType, final String serviceInstance,
+    public AddLayerToMapService (final ServiceProcessReference serviceInstance,
                                  final DataProcessReference layerRef, final String layerAlias,
                                  final StyleReference layerStyleRef, final Filter layerFilter,
-                                 final String layerDimension, final GetFeatureInfoCfg[] customGFI) {
-        this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, layerAlias, layerStyleRef, layerFilter, layerDimension, customGFI));
+                                 final String layerDimensionName, final String layerDimensionColumn, final GetFeatureInfoCfg[] customGFI) {
+        this(INSTANCE, toParameters(serviceInstance, layerRef, layerAlias, layerStyleRef, layerFilter, layerDimensionName, layerDimensionColumn, customGFI));
     }
 
-    public AddLayerToMapService (final String serviceType, final String serviceInstance,
+    public AddLayerToMapService (final ServiceProcessReference serviceInstance,
                                  final DataProcessReference layerRef, final StyleReference layerStyleRef) {
-        this(INSTANCE, toParameters(serviceType, serviceInstance, layerRef, null, layerStyleRef, null, null, null));
+        this(INSTANCE, toParameters(serviceInstance, layerRef, null, layerStyleRef, null, null, null, null));
     }
 
-    private static ParameterValueGroup toParameters(final String serviceType, final String serviceInstance,
+    private static ParameterValueGroup toParameters(final ServiceProcessReference serviceInstance,
                                                     final DataProcessReference layerRef, final String layerAlias,
                                                     final StyleReference layerStyleRef, final Filter layerFilter,
-                                                    final String layerDimension, final GetFeatureInfoCfg[] customGFI){
+                                                    final String layerDimensionName, final String layerDimensionColumn, final GetFeatureInfoCfg[] customGFI){
         final Parameters params = Parameters.castOrWrap(INSTANCE.getInputDescriptor().createValue());
         params.getOrCreate(LAYER_REF).setValue(layerRef);
         params.getOrCreate(LAYER_ALIAS).setValue(layerAlias);
         params.getOrCreate(LAYER_STYLE).setValue(layerStyleRef);
         params.getOrCreate(LAYER_FILTER).setValue(layerFilter);
-        params.getOrCreate(LAYER_DIMENSION).setValue(layerDimension);
         params.getOrCreate(LAYER_CUSTOM_GFI).setValue(customGFI);
-        params.getOrCreate(SERVICE_TYPE).setValue(serviceType);
         params.getOrCreate(SERVICE_INSTANCE).setValue(serviceInstance);
+        if (layerDimensionName != null && layerDimensionColumn != null) {
+            Parameters dimGrp = Parameters.castOrWrap(params.addGroup(LAYER_DIMENSION_PARAM_NAME));
+            dimGrp.getOrCreate(LAYER_DIMENSION_NAME).setValue(layerDimensionName);
+            dimGrp.getOrCreate(LAYER_DIMENSION_COLUMN).setValue(layerDimensionColumn);
+        }
         return params;
     }
 
@@ -101,11 +105,9 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         final String layerAlias             = inputParameters.getValue(LAYER_ALIAS);
         final StyleReference layerStyleRef  = inputParameters.getValue(LAYER_STYLE);
         final Object layerFilter            = inputParameters.getValue(LAYER_FILTER);
-        final String layerDimension         = inputParameters.getValue(LAYER_DIMENSION);
         final GetFeatureInfoCfg[] customGFI = inputParameters.getValue(LAYER_CUSTOM_GFI);
-        final String serviceType            = inputParameters.getValue(SERVICE_TYPE);
-        final String serviceInstance        = inputParameters.getValue(SERVICE_INSTANCE);
-
+        final ServiceProcessReference serviceInstance = inputParameters.getValue(SERVICE_INSTANCE);
+        List<ParameterValueGroup> dimensions = inputParameters.groups(LAYER_DIMENSION.getName().toString());
         //test alias
         if (layerAlias != null && layerAlias.isEmpty()) {
             throw new ProcessException("Layer alias can't be empty string.", this, null);
@@ -134,12 +136,15 @@ public class AddLayerToMapService extends AbstractCstlProcess {
 
 
         //add extra dimension
-        if (layerDimension != null && !layerDimension.isEmpty()) {
+        for (ParameterValueGroup dimensionGrp : dimensions) {
+            Parameters dimGrp = Parameters.castOrWrap(dimensionGrp);
+            String layerDimensionName = dimGrp.getValue(LAYER_DIMENSION_NAME);
+            String layerDimensionCol  = dimGrp.getValue(LAYER_DIMENSION_COLUMN);
             final DimensionDefinition dimensionDef = new DimensionDefinition();
-            dimensionDef.setCrs(layerDimension);
-            dimensionDef.setLower(layerDimension);
-            dimensionDef.setUpper(layerDimension);
-            newLayer.setDimensions(Collections.singletonList(dimensionDef));
+            dimensionDef.setCrs(layerDimensionName);
+            dimensionDef.setLower(layerDimensionCol);
+            dimensionDef.setUpper(layerDimensionCol);
+            newLayer.getDimensions().add(dimensionDef);
         }
 
         //add style if exist
@@ -165,7 +170,10 @@ public class AddLayerToMapService extends AbstractCstlProcess {
         }
 
         try {
-            Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, serviceInstance);
+            Integer sid = serviceInstance.getId();
+            if (sid != null) {
+                sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceInstance.getType(), serviceInstance.getName());
+            }
             if (sid != null) {
                 DataBrief db = dataBusiness.getDataBrief(layerQName, providerID, false, false);
                 if (db != null) {

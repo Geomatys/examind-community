@@ -23,6 +23,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.dto.service.config.wxs.LayerContext;
 
 import java.util.logging.Level;
+import org.constellation.dto.process.ServiceProcessReference;
 import org.constellation.exception.ConstellationException;
 
 /**
@@ -68,13 +69,14 @@ public abstract class AbstractMapServiceTest extends ServiceProcessTest {
      * @param identifier
      * @param context
      */
-    protected Integer createCustomInstance(final String identifier, LayerContext context) {
+    protected ServiceProcessReference createCustomInstance(final String identifier, LayerContext context) {
         try {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceName.toLowerCase(), identifier);
             if (sid != null) {
                 serviceBusiness.delete(sid);
             }
-            return serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
+            sid = serviceBusiness.create(serviceName.toLowerCase(), identifier, context, null, null);
+            return new ServiceProcessReference(sid, serviceName.toLowerCase(), identifier);
         }  catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, "Error while creating custom instance", ex);
         }
