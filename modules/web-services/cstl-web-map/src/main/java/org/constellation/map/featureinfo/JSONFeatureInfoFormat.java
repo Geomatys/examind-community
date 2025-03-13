@@ -36,7 +36,6 @@ import java.util.logging.Level;
 import org.apache.sis.storage.GridCoverageResource;
 import org.constellation.map.featureinfo.dto.LayerError;
 import org.opengis.feature.Feature;
-import org.opengis.util.GenericName;
 
 import org.apache.sis.coverage.SampleDimension;
 
@@ -53,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javax.xml.namespace.QName;
 import org.constellation.api.DataType;
 import org.constellation.map.featureinfo.dto.CoverageInfo;
@@ -85,12 +85,14 @@ public class JSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
     private static final ObjectWriter WRITER;
     static {
         WRITER = new ObjectMapper()
-                .registerModule(new SimpleModule(
+                .registerModules(new SimpleModule(
                         "GetFeatureInfo_JSON",
                         Version.unknownVersion(),
-                        Arrays.asList(new FeatureSerializer(), new JTSSerializer(), new EnvelopeSerializer()))
+                        Arrays.asList(new FeatureSerializer(), new JTSSerializer(), new EnvelopeSerializer())),
+                        new JavaTimeModule() 
                 )
                 .disable(SerializationFeature.INDENT_OUTPUT)
+                .setDateFormat(DATE_FORMAT)
                 .writerFor(LayerInfo.class);
     }
 

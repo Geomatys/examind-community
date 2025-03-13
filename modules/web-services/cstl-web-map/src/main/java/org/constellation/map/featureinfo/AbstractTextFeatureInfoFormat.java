@@ -19,10 +19,13 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.Rectangle;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import javax.xml.namespace.QName;
 import org.apache.sis.map.Presentation;
 import org.apache.sis.map.MapLayer;
@@ -58,7 +61,12 @@ public abstract class AbstractTextFeatureInfoFormat extends AbstractFeatureInfoF
     protected final Map<QName, List<String>> coverages = new HashMap<>();
 
     protected final Map<QName, List<String>> features = new HashMap<>();
-
+    
+    protected final static DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+    
     /**
      * Visit all intersected Graphic objects and call {link #nextProjectedFeature}
      * or {link #nextProjectedCoverage}.

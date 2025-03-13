@@ -19,8 +19,6 @@
 package org.constellation.map.featureinfo;
 
 import java.awt.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TimeZone;
 import javax.measure.Unit;
 import javax.xml.namespace.QName;
 import org.apache.sis.coverage.SampleDimension;
@@ -136,10 +133,9 @@ public class XMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         if (elevation == null) elevation = searchElevation(layer);
 
         if (time != null && !time.isEmpty()) {
-            // TODO : Manage periods.
-            final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            builder.append(margin).append("<time>").append(encodeXML(df.format(time.get(time.size()-1)))).append("</time>").append("\n");
+            synchronized (DATE_FORMAT) {
+                builder.append(margin).append("<time>").append(encodeXML(DATE_FORMAT.format(time.get(time.size()-1)))).append("</time>").append("\n");
+            }
         }
 
         if (elevation != null) {

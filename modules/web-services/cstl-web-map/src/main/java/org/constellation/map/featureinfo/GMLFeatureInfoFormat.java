@@ -20,8 +20,6 @@ package org.constellation.map.featureinfo;
 
 import java.awt.*;
 import java.io.StringWriter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -221,10 +218,12 @@ public class GMLFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
             if (dates != null && !(dates.isEmpty())) {
                 Date last = dates.last();
                 if (last != null) {
-                    final DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-                    df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                    builder.append("\t\t<time>").append(df.format(last))
-                            .append("</time>").append("\n");
+                    synchronized (DATE_FORMAT) {
+                        builder.append("\t\t<time>")
+                               .append(DATE_FORMAT.format(last))
+                               .append("</time>")
+                               .append("\n");
+                    }
                 }
             }
         }

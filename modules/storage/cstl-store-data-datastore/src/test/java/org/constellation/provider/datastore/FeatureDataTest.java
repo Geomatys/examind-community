@@ -93,7 +93,7 @@ public class FeatureDataTest {
         Assert.assertEquals( 71.15, result.getBoundingBox()[3],0.1);
 
         Assert.assertNotNull(result.getProperties());
-        Assert.assertEquals(15, result.getProperties().size());
+        Assert.assertEquals(16, result.getProperties().size());
 
         PropertyDescription desc = getProperty("the_geom", result);
         Assert.assertNotNull(desc);

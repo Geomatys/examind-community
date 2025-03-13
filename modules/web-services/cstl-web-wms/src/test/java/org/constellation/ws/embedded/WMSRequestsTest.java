@@ -71,6 +71,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static java.lang.Double.NaN;
+import java.net.URI;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.geometry.GeneralEnvelope;
 import static org.junit.Assert.assertArrayEquals;
@@ -420,7 +421,13 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "VeRsIoN=1.1.1&InFo_fOrMaT=application/vnd.ogc.xml&"
             + "X=60&StYlEs=&LaYeRs=Lakes&"
             + "SrS=EPSG:4326&WiDtH=200&HeIgHt=100&Y=60";
-
+    
+    private static final String WMS_GETFEATUREINFO_JSON_JSON = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
+            + "format=image/png&width=256&height=256&"
+            + "CRS=EPSG%3A3857&BBOX=410925.4640611075%2C5439870.428999424%2C415817.43387135875%2C5444762.398809675&"
+            + "layers=Countries&styles=&"
+            + "query_layers=Countries&info_format=application/json&"
+            + "I=253&J=44";
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=" + LAYER_TEST + "&format=image/png&version=1.1.0";
@@ -587,7 +594,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         controllerConfiguration = WMSControllerConfig.class;
     }
 
-    private static final int DEF_NB_LAYER = 27;
+    private static final int DEF_NB_LAYER = 29;
 
     /**
      * Initialize the list of layers from the defined providers in
@@ -627,6 +634,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 final List<DataImport> shapeDatas = new ArrayList<>();
                 shapeDatas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
                 datas.addAll(shapeDatas);
+                datas.addAll(testResource.createProviders(TestResource.SHAPEFILES, providerBusiness, null).datas());
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
                 DataImport d13 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
@@ -668,7 +676,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 // add basic layer for comparison
                 layerBusiness.add(d15.id, "JCOL", d15.namespace,  d15.name,    null, defId, null);
-
+                
                 final LayerContext config2 = new LayerContext();
                 config2.setSupportedLanguages(new Languages(Arrays.asList(new Language("fre"), new Language("eng", true))));
                 config2.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());
@@ -2248,7 +2256,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // TODO: should be in a @BeforeEah method
         initLayerList();
 
-        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + request);
+        URL gfi = URI.create("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + request).toURL();
         URLConnection c = gfi.openConnection();
         String result = getStringResponse(c, 200);
 
@@ -2373,7 +2381,18 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertNotNull(result);
         assertEquals(expResult, result);
     }
+        
+        
+    @Test
+    public void testWMSGetFeatureInfoJSONTime() throws Exception {
+        initLayerList();
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_JSON).toURL();
 
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi6.json");
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+    }
 
     @Test
     @Order(order = 29)
@@ -2635,6 +2654,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         InstanceReport expResult2 = new InstanceReport(instances);
         expResult2.equals(obj);
 
+        assertEquals(expResult2.getInstance("default").getLayersNumber(), result2.getInstance("default").getLayersNumber());
         assertEquals(expResult2.getInstance("default"), result2.getInstance("default"));
         assertEquals(expResult2, obj);
 
