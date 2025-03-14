@@ -2300,20 +2300,38 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 28)
     public void testWMSGetFeatureInfoJSONAlias() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS);
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS).toURL();
 
         String expResult = getResourceAsString("org/constellation/ws/embedded/gfi1.json");
         String result = getStringResponse(gfi);
         assertNotNull(result);
         compareJSON(expResult, result);
 
-        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2);
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2).toURL();
 
         expResult= getResourceAsString("org/constellation/ws/embedded/gfi2.json");
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void testWMSGetFeatureInfoGeoJSONAlias() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS.replaceAll("application/json", "application/geo%2Bjson")).toURL();
+
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi1.geojson");
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_ALIAS2.replaceAll("application/json", "application/geo%2Bjson")).toURL();
+
+        expResult= getResourceAsString("org/constellation/ws/embedded/gfi2.geojson");
         result = getStringResponse(gfi);
         assertNotNull(result);
         compareJSON(expResult, result);
@@ -2324,7 +2342,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     public void testWMSGetFeatureInfoJSONPropertyName() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_PROPNAME);
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_PROPNAME).toURL();
 
         String expResult = getResourceAsString("org/constellation/ws/embedded/gfi3.json");
         String result = getStringResponse(gfi);
@@ -2332,7 +2350,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
         // Creates a valid GetFeatureInfo url.
-        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_MULTI_PROPNAME);
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_MULTI_PROPNAME).toURL();
 
         expResult = getResourceAsString("org/constellation/ws/embedded/gfi4.json");
         result = getStringResponse(gfi);
@@ -2340,7 +2358,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
         // Creates a valid GetFeatureInfo url.
-        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_INVERTED_PROPNAME);
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_FEAT_INVERTED_PROPNAME).toURL();
 
         expResult = getResourceAsString("org/constellation/ws/embedded/gfi5.json");
         result = getStringResponse(gfi);
@@ -2350,36 +2368,55 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     }
 
     @Test
-    @Order(order = 28)
     public void testWMSGetFeatureInfoJSONCoverage() throws Exception {
         initLayerList();
         // Creates a valid GetFeatureInfo url.
-        URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV);
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV).toURL();
 
-        String expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SSTMDE200305\",\"values\":[{\"name\":\"Color index\",\"value\":201.0,\"unit\":null}]}]";
-
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi7.json");
         String result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
+        
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS).toURL();
 
-        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS);
-
-        expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"SST\",\"values\":[{\"name\":\"Color index\",\"value\":201.0,\"unit\":null}]}]";
-
+        expResult = getResourceAsString("org/constellation/ws/embedded/gfi8.json");
         result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
 
-        gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2);
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2).toURL();
 
-        expResult
-                = "[{\"type\":\"coverage\",\"layer\":\"" + MARTINIQUE + "\",\"values\":[{\"name\":\"Red\",\"value\":63.0,\"unit\":null},{\"name\":\"Green\",\"value\":92.0,\"unit\":null},{\"name\":\"Blue\",\"value\":132.0,\"unit\":null}]}]";
-
+        expResult = getResourceAsString("org/constellation/ws/embedded/gfi9.json");
         result = getStringResponse(gfi);
         assertNotNull(result);
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void testWMSGetFeatureInfoGeoJSONCoverage() throws Exception {
+        initLayerList();
+        // Creates a valid GetFeatureInfo url.
+        URL gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV.replaceAll("application/json", "application/geo%2Bjson")).toURL();
+
+        String expResult = getResourceAsString("org/constellation/ws/embedded/gfi7.geojson");
+        String result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+        
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV_ALIAS.replaceAll("application/json", "application/geo%2Bjson")).toURL();
+
+        expResult = getResourceAsString("org/constellation/ws/embedded/gfi8.geojson");
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+
+        gfi = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_JSON_COV2.replaceAll("application/json", "application/geo%2Bjson")).toURL();
+
+        expResult = getResourceAsString("org/constellation/ws/embedded/gfi9.geojson");
+        result = getStringResponse(gfi);
+        assertNotNull(result);
+        compareJSON(expResult, result);
     }
         
         

@@ -1,0 +1,20 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+            "type": "feature",
+            "layer": "martinique",
+            "properties": {
+                "Red": 63.0,
+                "Green": 92.0,
+                "Blue": 132.0,
+                "x": -6814126.521162813,
+                "y": 1652255.2450560103
+            },
+            "geometry": {
+                "type": "Point",
+                "bbox": null,
+                "crs": null,
+                "coordinates": [-6814126.521162813, 1652255.2450560103]
+            }
+        }]
+}

@@ -1,0 +1,17 @@
+[{
+        "type": "coverage",
+        "layer": "martinique",
+        "values": [{
+                "name": "Red",
+                "value": 63.0,
+                "unit": null
+            }, {
+                "name": "Green",
+                "value": 92.0,
+                "unit": null
+            }, {
+                "name": "Blue",
+                "value": 132.0,
+                "unit": null
+            }]
+    }]

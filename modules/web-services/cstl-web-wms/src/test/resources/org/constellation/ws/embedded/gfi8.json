@@ -1,0 +1,9 @@
+[{
+        "type": "coverage",
+        "layer": "SST",
+        "values": [{
+                "name": "Color index",
+                "value": 201.0,
+                "unit": null
+            }]
+    }]

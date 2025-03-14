@@ -4,3 +4,4 @@ org.constellation.map.featureinfo.GMLFeatureInfoFormat
 org.constellation.map.featureinfo.XMLFeatureInfoFormat
 org.constellation.map.featureinfo.JSONFeatureInfoFormat
 org.constellation.map.featureinfo.CoverageProfileInfoFormat
+org.constellation.map.featureinfo.GeoJSONFeatureInfoFormat

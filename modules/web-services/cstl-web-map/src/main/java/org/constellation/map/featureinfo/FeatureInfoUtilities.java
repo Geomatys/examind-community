@@ -325,6 +325,12 @@ public final class FeatureInfoUtilities extends Static {
         for (String mime : infoFormat.getSupportedMimeTypes()) {
             featureInfos.add(new GetFeatureInfoCfg(mime, infoFormat.getClass().getCanonicalName()));
         }
+        
+        //GEOJSON
+        infoFormat = new GeoJSONFeatureInfoFormat();
+        for (String mime : infoFormat.getSupportedMimeTypes()) {
+            featureInfos.add(new GetFeatureInfoCfg(mime, infoFormat.getClass().getCanonicalName()));
+        }
 
         //Coverage Profile
         infoFormat = new CoverageProfileInfoFormat();
@@ -335,6 +341,19 @@ public final class FeatureInfoUtilities extends Static {
     }
 
 
+    public static DirectPosition getSearchPoint(final RenderingContext2D context, final SearchAreaJ2D queryArea) {
+        //create envelope around searched area
+        final GeneralEnvelope searchEnv = new GeneralEnvelope(context.getCanvasObjectiveBounds());
+        final int xAxis = AxisDirections.indexOfColinear(
+                context.getObjectiveCRS().getCoordinateSystem(),
+                context.getObjectiveCRS2D().getCoordinateSystem()
+        );
+        final Rectangle2D bounds2D = queryArea.getObjectiveShape().getBounds2D();
+        searchEnv.setRange(xAxis, bounds2D.getMinX(), bounds2D.getMaxX());
+        searchEnv.setRange(xAxis+1, bounds2D.getMinY(), bounds2D.getMaxY());
+
+        return searchEnv.getMedian();
+    }
     /**
      * Returns the data values of the given coverage, or {@code null} if the
      * values can not be obtained.
@@ -346,18 +365,9 @@ public final class FeatureInfoUtilities extends Static {
                                                                             final SearchAreaJ2D queryArea) {
 
         if (ref != null) {
-            //create envelope around searched area
-            final GeneralEnvelope searchEnv = new GeneralEnvelope(context.getCanvasObjectiveBounds());
-            final int xAxis = AxisDirections.indexOfColinear(
-                    context.getObjectiveCRS().getCoordinateSystem(),
-                    context.getObjectiveCRS2D().getCoordinateSystem()
-            );
-            final Rectangle2D bounds2D = queryArea.getObjectiveShape().getBounds2D();
-            searchEnv.setRange(xAxis, bounds2D.getMinX(), bounds2D.getMaxX());
-            searchEnv.setRange(xAxis+1, bounds2D.getMinY(), bounds2D.getMaxY());
-
+            DirectPosition searchPoint = getSearchPoint(context, queryArea);
             try {
-                return getCoverageValues(ref, searchEnv.getMedian());
+                return getCoverageValues(ref, searchPoint);
             } catch (DataStoreException|FactoryException|TransformException ex) {
 
                 context.getMonitor().exceptionOccured(ex, Level.INFO);

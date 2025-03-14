@@ -717,6 +717,9 @@ public class ServiceBusiness implements IServiceBusiness {
         //JSON
         featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
         featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_JSON_UTF8, "org.constellation.map.featureinfo.JSONFeatureInfoFormat"));
+        
+        //GeoJSON
+        featureInfos.add(new GetFeatureInfoCfg(MimeType.APP_GEOJSON, "org.constellation.map.featureinfo.GeoJSONFeatureInfoFormat"));
 
         //Examind specific for coverages
         featureInfos.add(new GetFeatureInfoCfg("application/json; subtype=profile", "org.constellation.map.featureinfo.CoverageProfileInfoFormat"));

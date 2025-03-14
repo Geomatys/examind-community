@@ -1,0 +1,18 @@
+{
+    "type": "FeatureCollection",
+    "features": [{
+            "type": "feature",
+            "layer": "SST",
+            "properties": {
+                "Color index": 201.0,
+                "x": -120.5859375,
+                "y": -7.03125
+            },
+            "geometry": {
+                "type": "Point",
+                "bbox": null,
+                "crs": null,
+                "coordinates": [-120.5859375, -7.03125]
+            }
+        }]
+}
