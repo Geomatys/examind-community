@@ -64,7 +64,7 @@ public class CoverageDataTest {
         org.geotoolkit.lang.Setup.initialize(null);
 
         final TestEnvironment.TestResources testResource = initDataDirectory();
-        martiniqueStore = testResource.createStore(TestEnvironment.TestResource.TIF);
+        martiniqueStore = testResource.createStore(TestEnvironment.TestResource.TIF).get(0);
         var storeCoverages = DataStores.flatten(martiniqueStore, true, GridCoverageResource.class);
         assertNotNull(storeCoverages);
         assertEquals(1, storeCoverages.size(), "Expect exactly one coverage in martinique.tif");
@@ -74,7 +74,7 @@ public class CoverageDataTest {
             fail("martinique.tif has not been imported as a Coverage data");
         }
 
-        sstStore = testResource.createStore(TestEnvironment.TestResource.PNG);        
+        sstStore = testResource.createStore(TestEnvironment.TestResource.PNG).get(0);      
         storeCoverages = DataStores.flatten(sstStore, true, GridCoverageResource.class);
         assertNotNull(storeCoverages);
         assertEquals(1, storeCoverages.size(), "Expect exactly one coverage in SSTMDE200305.png");

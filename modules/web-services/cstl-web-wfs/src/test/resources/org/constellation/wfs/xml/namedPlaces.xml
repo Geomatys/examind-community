@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <gml:NamedPlaces gml:id="NamedPlaces.2" xmlns:gml="http://www.opengis.net/gml/3.2">
-    <the_geom>
+    <geometry>
         <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:13.101:4326">
             <gml:surfaceMember>
                 <gml:Polygon srsName="urn:ogc:def:crs:EPSG:13.101:4326">
@@ -12,7 +12,7 @@
                 </gml:Polygon>
             </gml:surfaceMember>
         </gml:MultiSurface>
-    </the_geom>
+    </geometry>
     <FID>666</FID>
     <NAME>REPLACED</NAME>
 </gml:NamedPlaces>

@@ -10,11 +10,11 @@
             </wfs:boundedBy>
             <wfs:member>
                 <gml:Bridges gml:id="Bridges.1">
-                    <the_geom>
+                    <geometry>
                         <gml:Point srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="Bridges.1_g0">
                             <gml:pos>2.0E-4 7.0E-4</gml:pos>
                         </gml:Point>
-                    </the_geom>
+                    </geometry>
                     <FID>110</FID>
                     <NAME>Cam Bridge</NAME>
                 </gml:Bridges>
@@ -31,7 +31,7 @@
             </wfs:boundedBy>
             <wfs:member>
                 <gml:NamedPlaces gml:id="NamedPlaces.1">
-                    <the_geom>
+                    <geometry>
                         <gml:MultiSurface srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.1_g0">
                             <gml:surfaceMember>
                                 <gml:Polygon gml:id="NamedPlaces.1_g1">
@@ -43,14 +43,14 @@
                                 </gml:Polygon>
                             </gml:surfaceMember>
                         </gml:MultiSurface>
-                    </the_geom>
+                    </geometry>
                     <FID>117</FID>
                     <NAME>Ashton</NAME>
                 </gml:NamedPlaces>
             </wfs:member>
             <wfs:member>
                 <gml:NamedPlaces gml:id="NamedPlaces.2">
-                    <the_geom>
+                    <geometry>
                         <gml:MultiSurface srsDimension="2" srsName="urn:ogc:def:crs:EPSG:9.4:4326" gml:id="NamedPlaces.2_g0">
                             <gml:surfaceMember>
                                 <gml:Polygon gml:id="NamedPlaces.2_g1">
@@ -62,7 +62,7 @@
                                 </gml:Polygon>
                             </gml:surfaceMember>
                         </gml:MultiSurface>
-                    </the_geom>
+                    </geometry>
                     <FID>118</FID>
                     <NAME>Goose Island</NAME>
                 </gml:NamedPlaces>

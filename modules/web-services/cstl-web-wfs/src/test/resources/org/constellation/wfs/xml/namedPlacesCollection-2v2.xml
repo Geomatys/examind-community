@@ -8,7 +8,7 @@
     </wfs:boundedBy>
     <wfs:member>
         <gml:NamedPlaces gml:id="NamedPlaces.2">
-            <the_geom>
+            <geometry>
                 <gml:MultiSurface srsDimension="2" srsName="urn:ogc:def:crs:EPSG:13.101:4326"  gml:id="NamedPlaces.2_g0">
                     <gml:surfaceMember>
                         <gml:Polygon gml:id="NamedPlaces.2_g1">
@@ -20,7 +20,7 @@
                         </gml:Polygon>
                     </gml:surfaceMember>
                 </gml:MultiSurface>
-            </the_geom>
+            </geometry>
             <FID>666</FID>
             <NAME>REPLACED</NAME>
         </gml:NamedPlaces>

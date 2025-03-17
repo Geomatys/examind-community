@@ -24,12 +24,15 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import org.geotoolkit.feature.FeatureExt;
+import org.opengis.feature.FeatureType;
+import org.opengis.feature.PropertyType;
 
 /**
  * @author Estelle Idée (Geomatys)
  */
 public class LayerStatisticsUtils {
-    private static final Logger LOGGER = Logger.getLogger("com.geomatys.ozhm.utils");
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.map.layerstats");
 
     private static LayerStatistics computeStatistics(final List<Rule> rules, final FeatureSet featureSet)
             throws ConstellationException {
@@ -103,14 +106,17 @@ public class LayerStatisticsUtils {
         final AtomicDouble totalLength = new AtomicDouble();
         final AtomicLong totalPonctual = new AtomicLong();
         final AtomicLong totalCount = new AtomicLong();
+        
         try (Stream<Feature> features = featureSet.features(false)) {
+            FeatureType type = featureSet.getType();
+            PropertyType defaultGeomProp = FeatureExt.getDefaultGeometry(type);
             features.forEach(feature -> {
-                updateBucket(feature, totalSurface, totalLength, totalPonctual, totalCount, ruleStatsMap);
+                updateBucket(feature, defaultGeomProp, totalSurface, totalLength, totalPonctual, totalCount, ruleStatsMap);
             });
         } catch (DataStoreException dse) {
             throw new ConstellationException("Error while accessing featureSet features.", dse);
         } catch (RuntimeException re) {
-            throw new ConstellationException("Error while computing area from property \"the_geom\"", re);
+            throw new ConstellationException("Error while computing area from geometric property", re);
         }
 
         return new LayerStatistics(ruleStatsMap.values(), totalSurface.get(), totalLength.get(), totalPonctual.get(), totalCount.get());
@@ -143,11 +149,11 @@ public class LayerStatisticsUtils {
         }
     }
 
-    private static Object[] getGeom(final Feature feature) {
+    private static Object[] getGeom(final Feature feature, final PropertyType geomProp) {
         ArgumentChecks.ensureNonNull("feature", feature);
         final Property theGeomProp;
         try {
-            theGeomProp = feature.getProperty("the_geom");
+            theGeomProp = feature.getProperty(geomProp.getName().tip().toString());
         } catch (PropertyNotFoundException e) {
             LOGGER.warning("No property \"the_geom\" found in feature " + feature.getProperty("name"));
             return null;
@@ -176,11 +182,11 @@ public class LayerStatisticsUtils {
         return mapper;
     }
 
-    static void updateBucket(final Feature feature, AtomicDouble totalSurface, AtomicDouble totalLength, final AtomicLong totalPonctual, final AtomicLong totalCount, final LinkedHashMap<Rule, LayerStatisticsBucket> ruleStatsMap) {
+    static void updateBucket(final Feature feature, final PropertyType geomProp, AtomicDouble totalSurface, AtomicDouble totalLength, final AtomicLong totalPonctual, final AtomicLong totalCount, final Map<Rule, LayerStatisticsBucket> ruleStatsMap) {
         ArgumentChecks.ensureNonNull("feature", feature);
         totalCount.incrementAndGet();
 
-        final Object[] valueAndType = getGeom(feature);
+        final Object[] valueAndType = getGeom(feature, geomProp);
         if (valueAndType == null) return;
 
         final Object typeo = valueAndType[1];

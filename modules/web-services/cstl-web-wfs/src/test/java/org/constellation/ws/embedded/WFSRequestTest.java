@@ -1518,7 +1518,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=23)
     public void testWFSTransactionUpdateREST() throws Exception {
 
-        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/property/the_geom?" + WFS_UPDATE_FILTER);
+        URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/property/geometry?" + WFS_UPDATE_FILTER);
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();
@@ -1581,7 +1581,7 @@ public class WFSRequestTest extends AbstractWFSRequestTest {
     @Order(order=24)
     public void testWFSTransactionUpdateByIdREST() throws Exception {
 
-         URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/the_geom");
+         URL getCapsUrl = new URL("http://localhost:"+ getCurrentPort() + "/WS/wfs/default/1.1.0/NamedPlaces/NamedPlaces.1/geometry");
 
         // for a POST request
         URLConnection conec = getCapsUrl.openConnection();

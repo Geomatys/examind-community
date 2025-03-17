@@ -19,9 +19,11 @@
 package org.constellation.provider.datastore;
 
 import java.util.Arrays;
+import java.util.List;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.FeatureSet;
+import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.PropertyDescription;
@@ -45,15 +47,26 @@ public class FeatureDataTest {
     @BeforeClass
     public static void init() throws Exception {
         final TestEnvironment.TestResources testResource = initDataDirectory();
-        DataStore store = testResource.createStore(TestEnvironment.TestResource.SHAPEFILES);
+        List<DataStore> stores = testResource.createStore(TestEnvironment.TestResource.SHAPEFILES);
 
-        Resource r = store.findResource("Countries");
-        Assert.assertTrue(r instanceof FeatureSet);
-        countries = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
-
-        r = store.findResource("city");
-        Assert.assertTrue(r instanceof FeatureSet);
-        city = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
+        for (DataStore store : stores) {
+            try {
+                Resource r = store.findResource("Countries");
+                Assert.assertTrue(r instanceof FeatureSet);
+                countries = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
+            } catch (IllegalNameException ex) {
+                // not in this store
+            }
+            try {
+                Resource r = store.findResource("city");
+                Assert.assertTrue(r instanceof FeatureSet);
+                city = new DefaultFeatureData(r.getIdentifier().get(), store, (FeatureSet)r, null);
+            } catch (IllegalNameException ex) {
+                // not in this store
+            }
+        }
+        Assert.assertNotNull("No featureSet named 'Countries' found", countries);
+        Assert.assertNotNull("No featureSet named 'city' found", city);
     }
 
     @Test
@@ -95,7 +108,7 @@ public class FeatureDataTest {
         Assert.assertNotNull(result.getProperties());
         Assert.assertEquals(16, result.getProperties().size());
 
-        PropertyDescription desc = getProperty("the_geom", result);
+        PropertyDescription desc = getProperty("geometry", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals(org.locationtech.jts.geom.MultiPolygon.class, desc.getType());
 
@@ -112,7 +125,7 @@ public class FeatureDataTest {
         Assert.assertNotNull(result.getProperties());
         Assert.assertEquals(4, result.getProperties().size());
 
-        desc = getProperty("the_geom", result);
+        desc = getProperty("geometry", result);
         Assert.assertNotNull(desc);
         Assert.assertEquals(org.locationtech.jts.geom.MultiPolygon.class, desc.getType());
 

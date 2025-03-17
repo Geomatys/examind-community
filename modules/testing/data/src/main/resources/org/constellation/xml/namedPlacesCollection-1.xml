@@ -8,7 +8,7 @@
     </gml:boundedBy>
     <gml:featureMember>
         <gml:NamedPlaces gml:id="NamedPlaces.1">
-            <the_geom>
+            <geometry>
                 <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326">
                     <gml:surfaceMember>
                         <gml:Polygon srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326">
@@ -20,14 +20,14 @@
                         </gml:Polygon>
                     </gml:surfaceMember>
                 </gml:MultiSurface>
-            </the_geom>
+            </geometry>
             <FID>117</FID>
             <NAME>Ashton</NAME>
         </gml:NamedPlaces>
     </gml:featureMember>
     <gml:featureMember>
         <gml:NamedPlaces gml:id="NamedPlaces.2">
-            <the_geom>
+            <geometry>
                 <gml:MultiSurface srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326">
                     <gml:surfaceMember>
                         <gml:Polygon srsName="urn:ogc:def:crs:EPSG:EPSG_VERSION:4326">
@@ -39,7 +39,7 @@
                         </gml:Polygon>
                     </gml:surfaceMember>
                 </gml:MultiSurface>
-            </the_geom>
+            </geometry>
             <FID>118</FID>
             <NAME>Goose Island</NAME>
         </gml:NamedPlaces>

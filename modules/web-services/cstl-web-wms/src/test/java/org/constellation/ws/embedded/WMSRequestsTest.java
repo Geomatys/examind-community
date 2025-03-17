@@ -190,6 +190,11 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
             + "format=image/png&width=1024&height=512&"
             + "srs=EPSG:4326&bbox=-180,-90,180,90&"
             + "styles=&layers=";
+    
+    private static final String WMS_GETMAP_SHAPE_TIME = "request=GetMap&service=WMS&version=1.3.0&"
+            + "format=image/png&width=256&height=256&"
+            + "CRS=EPSG%3A3857&BBOX=410925.4640611075%2C5439870.428999424%2C415817.43387135875%2C5444762.398809675&"
+            + "layers=" + COUNTRIES + "&styles=&TIME=2023-03-13";
 
     private static final String WMS_GETFEATUREINFO_PLAIN_COV = "request=GetFeatureInfo&service=WMS&version=1.1.1&"
             + "format=image/png&width=256&height=256&"
@@ -691,7 +696,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                      LayerConfig lconfig = null;
                      if (COUNTRIES.equals(d.name)) {
                          lconfig = new LayerConfig();
-                         DimensionDefinition dd = new DimensionDefinition("time", "date_creat", "date_creat");
+                         DimensionDefinition dd = new DimensionDefinition("temporal", "date_creat", "date_creat");
                          lconfig.setDimensions(Arrays.asList(dd));
                      }
                      layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, lconfig);
@@ -877,6 +882,25 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertTrue(!(ImageTesting.isImageEmpty(image)));
         assertEquals(1024, image.getWidth());
         assertEquals(512, image.getHeight());
+        assertTrue(ImageTesting.getNumColors(image) > 8);
+    }
+    
+    @Test
+    @Order(order = 2)
+    public void testWMSGetMapShapeWithTime() throws Exception {
+        
+        initLayerList();
+        
+         // Creates a valid GetMap url.
+        URL getMapUrl = new URI("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETMAP_SHAPE_TIME).toURL();
+
+        // Try to get a map from the url. The test is skipped in this method if it fails.
+        BufferedImage image = getImageFromURL(getMapUrl, "image/png");
+
+        // Test on the returned image.
+        assertTrue(!(ImageTesting.isImageEmpty(image)));
+        assertEquals(256, image.getWidth());
+        assertEquals(256, image.getHeight());
         assertTrue(ImageTesting.getNumColors(image) > 8);
     }
 
@@ -1167,25 +1191,25 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         layer = (Layer) responseCaps.getLayerFromName(COUNTRIES);
         assertEquals(1, layer.getDimension().size());
         Dimension time = layer.getDimension().get(0);
-        assertEquals("time", time.getName());
+        assertEquals("Time", time.getName());
         assertEquals("", time.getValue());
 
         assertEquals(1, layer.getExtent().size());
         Extent extentTime = layer.getExtent().get(0);
-        assertEquals("time", extentTime.getName());
+        assertEquals("Time", extentTime.getName());
         var extentTimeValueStr = extentTime.getvalue();
         Assertions.assertNotNull(extentTimeValueStr);
         var extentTimeValues = Pattern.compile("\s*,\s*")
                 .splitAsStream(extentTimeValueStr)
                 .map(String::valueOf)
                 .collect(Collectors.toUnmodifiableSet());
-        assertEquals(Set.of("2026-03-12T23:00:00Z", 
-                            "2027-03-12T23:00:00Z", 
-                            "2023-03-12T23:00:00Z", 
-                            "2024-03-12T23:00:00Z", 
-                            "2021-03-12T23:00:00Z", 
-                            "2025-03-12T23:00:00Z", 
-                            "2022-03-12T23:00:00Z"), extentTimeValues);
+        assertEquals(Set.of("2026-03-13", 
+                            "2027-03-13", 
+                            "2023-03-13", 
+                            "2024-03-13", 
+                            "2021-03-13", 
+                            "2025-03-13", 
+                            "2022-03-13"), extentTimeValues);
 
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();
@@ -1379,8 +1403,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult
                 = "Lakes\n"
-                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
-                + "Lakes.1;MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;\n\n";
+                + "geometry:MultiPolygon;FID:String;NAME:String;sis:identifier:String;\n"
+                + "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)));101;Blue Lake;Lakes.1;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1403,8 +1427,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult
                 = "Lakes\n"
-                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
-                + "Lakes.1;MULTIPOLYGON (((-0.0018 0.0006, -0.0006 0.001, -0.0001 0.0024, -0.0015 0.0031, -0.0018 0.0006), (-0.0011 0.0017, -0.0011 0.0025, -0.0006 0.0025, -0.0006 0.0017, -0.0011 0.0017)));101;Blue Lake;\n\n";
+                + "geometry:MultiPolygon;FID:String;NAME:String;sis:identifier:String;\n"
+                + "MULTIPOLYGON (((-0.0018 0.0006, -0.0006 0.001, -0.0001 0.0024, -0.0015 0.0031, -0.0018 0.0006), (-0.0011 0.0017, -0.0011 0.0025, -0.0006 0.0025, -0.0006 0.0017, -0.0011 0.0017)));101;Blue Lake;Lakes.1;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1415,8 +1439,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         expResult
                 = "Lakes\n"
-                + "sis:identifier:String;the_geom:MultiPolygon;FID:String;NAME:String;\n"
-                + "Lakes.1;MULTIPOLYGON (((66.79169447596414 -200.37508346162957, 111.31949079327357 -66.7916944775693, 267.16677790385654 -11.131949078903947, 345.09042145914805 -166.97923620897757, 66.79169447596414 -200.37508346162957), (189.24313434856506 -122.4514398800355, 278.29872698318394 -122.4514398800355, 278.29872698318394 -66.7916944775693, 189.24313434856506 -66.7916944775693, 189.24313434856506 -122.4514398800355)));101;Blue Lake;\n\n";
+                + "geometry:MultiPolygon;FID:String;NAME:String;sis:identifier:String;\n"
+                + "MULTIPOLYGON (((66.79169447596414 -200.37508346162957, 111.31949079327357 -66.7916944775693, 267.16677790385654 -11.131949078903947, 345.09042145914805 -166.97923620897757, 66.79169447596414 -200.37508346162957), (189.24313434856506 -122.4514398800355, 278.29872698318394 -122.4514398800355, 278.29872698318394 -66.7916944775693, 189.24313434856506 -66.7916944775693, 189.24313434856506 -122.4514398800355)));101;Blue Lake;Lakes.1;\n\n";
 
         result = getStringResponse(gfi);
 
@@ -1433,8 +1457,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         String expResult
                 = "BasicPolygons\n"
-                + "sis:identifier:String;the_geom:MultiPolygon;ID:String;\n"
-                + "BasicPolygons.2;MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));;\n\n";
+                + "geometry:MultiPolygon;ID:String;sis:identifier:String;\n"
+                + "MULTIPOLYGON (((-2 6, 1 6, 1 3, -2 3, -2 6)));;BasicPolygons.2;\n\n";
 
         String result = getStringResponse(gfi);
 
@@ -1455,12 +1479,12 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 + "<Lakes_layer>\n"
                 + "	<Lakes_feature>\n"
                 + "		<ID>Lakes.1</ID>\n"
-                + "		<identifier>Lakes.1</identifier>\n"
-                + "		<the_geom>\n"
+                + "		<geometry>\n"
                 + "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\n"
-                + "		</the_geom>\n"
+                + "		</geometry>\n"
                 + "		<FID>101</FID>\n"
                 + "		<NAME>Blue Lake</NAME>\n"
+                + "		<identifier>Lakes.1</identifier>\n"
                 + "	</Lakes_feature>\n"
                 + "</Lakes_layer>\n"
                 + "</msGMLOutput>";
@@ -1468,7 +1492,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         String result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV);
 
@@ -1492,7 +1516,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV2);
 
@@ -1516,7 +1540,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_GML_COV_ALIAS);
 
@@ -1540,7 +1564,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
     }
 
     @Test
@@ -1556,19 +1580,19 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                     "		<Layer>Lakes</Layer>\n" +
                     "		<Name>Lakes</Name>\n" +
                     "		<ID>Lakes.1</ID>\n" +
-                    "		<identifier>Lakes.1</identifier>\n" +
-                    "		<the_geom>\n" +
+                    "		<geometry>\n" +
                     "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\n" +
-                    "		</the_geom>\n" +
+                    "		</geometry>\n" +
                     "		<FID>101</FID>\n" +
                     "		<NAME>Blue Lake</NAME>\n" +
+                    "		<identifier>Lakes.1</identifier>\n" +
                     "	</Feature>\n" +
                     "</FeatureInfo>";
 
         String result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV);
 
@@ -1584,8 +1608,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         result = getStringResponse(gfi);
 
-        assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV_ALIAS);
 
@@ -1602,7 +1625,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
 
         gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_XML_COV2);
 
@@ -1621,7 +1644,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         result = getStringResponse(gfi);
 
         assertNotNull(result);
-        assertEquals(expResult, result);
+        domCompare(expResult, result);
     }
 
     /**
@@ -2035,45 +2058,46 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         URL gfi = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/default?" + WMS_GETFEATUREINFO_HTML_FEAT);
 
         String expResult
-                = "<html>\n"
-                + "    <head>\n"
-                + "        <title>GetFeatureInfo HTML output</title>\n"
-                + "    </head>\n"
-                + "    <style>\n"
-                + "ul{\n"
-                + "               margin-top: 0;\n"
-                + "               margin-bottom: 0px;\n"
-                + "           }\n"
-                + "           .left-part{\n"
-                + "               display:inline-block;\n"
-                + "               width:350px;\n"
-                + "               overflow:auto;\n"
-                + "               white-space:nowrap;\n"
-                + "           }\n"
-                + "           .right-part{\n"
-                + "               display:inline-block;\n"
-                + "               width:600px;\n"
-                + "               overflow: hidden;\n"
-                + "           }\n"
-                + "           .values{\n"
-                + "               text-overflow: ellipsis;\n"
-                + "               white-space:nowrap;\n"
-                + "               display:block;\n"
-                + "               overflow: hidden;\n"
-                + "           }    </style>\n"
-                + "    <body>\n"
-                + "<h2>Lakes</h2><br/><h2>Lakes.1</h2></br><div><div class=\"left-part\"><ul>\n"
-                + "<li>\n"
-                + "identifier</li>\n"
-                + "<li>\n"
-                + "the_geom</li>\n"
-                + "<li>\n"
-                + "FID</li>\n"
-                + "<li>\n"
-                + "NAME</li>\n"
-                + "</ul>\n"
-                + "</div><div class=\"right-part\"><a class=\"values\" title=\"Lakes.1\">Lakes.1</a><a class=\"values\" title=\"MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))\">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class=\"values\" title=\"101\">101</a><a class=\"values\" title=\"Blue Lake\">Blue Lake</a></div></div><br/>    </body>\n"
-                + "</html>";
+                = """
+                  <html>
+                      <head>
+                          <title>GetFeatureInfo HTML output</title>
+                      </head>
+                      <style>
+                  ul{
+                                 margin-top: 0;
+                                 margin-bottom: 0px;
+                             }
+                             .left-part{
+                                 display:inline-block;
+                                 width:350px;
+                                 overflow:auto;
+                                 white-space:nowrap;
+                             }
+                             .right-part{
+                                 display:inline-block;
+                                 width:600px;
+                                 overflow: hidden;
+                             }
+                             .values{
+                                 text-overflow: ellipsis;
+                                 white-space:nowrap;
+                                 display:block;
+                                 overflow: hidden;
+                             }    </style>
+                      <body>
+                  <h2>Lakes</h2><br/><h2>Lakes.1</h2></br><div><div class="left-part"><ul>
+                  <li>
+                  geometry</li>
+                  <li>
+                  FID</li>
+                  <li>
+                  NAME</li>
+                  <li>
+                  identifier</li>
+                  </ul>
+                  </div><div class="right-part"><a class="values" title="MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))">MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))</a><a class="values" title="101">101</a><a class="values" title="Blue Lake">Blue Lake</a><a class="values" title="Lakes.1">Lakes.1</a></div></div><br/>    </body>
+                  </html>""";
 
         String result = getStringResponse(gfi);
 
@@ -2236,7 +2260,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         // TODO: proper geometric equality
         assertEquals("feature geometric property",
                 "MULTIPOLYGON (((0.0006 -0.0018, 0.001 -0.0006, 0.0024 -0.0001, 0.0031 -0.0015, 0.0006 -0.0018), (0.0017 -0.0011, 0.0025 -0.0011, 0.0025 -0.0006, 0.0017 -0.0006, 0.0017 -0.0011)))",
-                record.get("the_geom")
+                record.get("geometry")
         );
     }
 

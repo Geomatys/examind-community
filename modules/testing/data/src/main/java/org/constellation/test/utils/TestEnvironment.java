@@ -19,13 +19,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
-import jakarta.xml.bind.Unmarshaller;
 import org.apache.sis.parameter.Parameters;
+import org.apache.commons.compress.utils.FileNameUtils;
 import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
+import org.apache.sis.storage.shapefile.ShapefileProvider;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
@@ -43,7 +44,6 @@ import org.constellation.provider.SensorProvider;
 import static org.constellation.test.utils.TestResourceUtils.unmarshallSensorResource;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
-import org.geotoolkit.data.shapefile.ShapefileFolderProvider;
 import org.geotoolkit.internal.sql.DerbySqlScriptRunner;
 import org.geotoolkit.nio.IOUtilities;
 import org.geotoolkit.nio.ZipUtilities;
@@ -340,7 +340,7 @@ public class TestEnvironment {
         private final BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource;
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
         private final BiFunction<IProviderBusiness, Path, List<Integer>> createProviders;
-        private final Function<Path, DataStore> createStore;
+        private final Function<Path, List<DataStore>> createStore;
         private final Function<IDatasourceBusiness, DataStore> createStoreWithDatasource;
 
         public TestResource(String path) {
@@ -351,11 +351,11 @@ public class TestEnvironment {
             this(path, createProvider, null, null, null, null);
         }
 
-        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, List<DataStore>> createStore) {
             this(path, createProvider, null, null, createStore, null);
         }
 
-        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore,
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, List<DataStore>> createStore, 
                 BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
             this(path, createProvider, null, createProviders, createStore, null);
         }
@@ -366,8 +366,8 @@ public class TestEnvironment {
 
         public TestResource(String path,
                 BiFunction<IProviderBusiness, Path, Integer> createProvider,  BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource,
-                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders,
-                Function<Path, DataStore> createStore, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
+                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders, 
+                Function<Path, List<DataStore>> createStore, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
             this.path = path;
             this.createProvider = createProvider;
             this.createStore = createStore;
@@ -567,7 +567,7 @@ public class TestEnvironment {
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
 
-        public DataStore createStore(TestResource tr) {
+        public List<DataStore> createStore(TestResource tr) {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
                return dpr.createStore();
@@ -605,7 +605,7 @@ public class TestEnvironment {
             return tr.createProviders.apply(providerBusiness, dataDir);
         }
 
-        public DataStore createStore() {
+        public List<DataStore> createStore() {
             return tr.createStore.apply(dataDir);
         }
 
@@ -701,8 +701,8 @@ public class TestEnvironment {
             String providerIdentifier = "shapeSrc" + UUID.randomUUID().toString();
             source.parameter("id").setValue(providerIdentifier);
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) factory.getStoreDescriptor(), source);
-            final ParameterValueGroup config = choice.addGroup("shapefile");
-            config.parameter("path").setValue(p.toUri());
+            final ParameterValueGroup config = choice.addGroup("esri_shapefile");
+            config.parameter("location").setValue(p.toUri());
 
             return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
         } catch (Exception ex) {
@@ -710,15 +710,24 @@ public class TestEnvironment {
         }
     }
 
-    private static DataStore createShapefileStore(Path p) {
-        try {
-            ShapefileFolderProvider provider = new ShapefileFolderProvider();
-            ParameterValueGroup params = provider.getOpenParameters().createValue();
-            params.parameter("path").setValue(p);
-            return provider.open(params);
+    private static List<DataStore> createShapefileStore(Path folder) {
+        List<DataStore> results = new ArrayList<>();
+        ShapefileProvider provider = new ShapefileProvider();
+        try (Stream<Path> stream = Files.walk(folder)) {
+            stream.filter(path -> "shp".equalsIgnoreCase(FileNameUtils.getExtension(path)))
+                  .forEach(path -> {
+                      try {
+                        ParameterValueGroup params = provider.getOpenParameters().createValue();
+                        params.parameter("location").setValue(path);
+                        results.add(provider.open(params));
+                      } catch (Exception ex) {
+                            throw new ConstellationRuntimeException(ex);
+                      }
+                  });
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
+        return results;
     }
 
     private static Integer createGeoJsonProvider(IProviderBusiness providerBusiness, Path p) {
@@ -864,23 +873,23 @@ public class TestEnvironment {
         }
     }
 
-    private static DataStore createTifStore(Path p) {
+    private static List<DataStore> createTifStore(Path p) {
         try {
             GeoTiffStoreProvider provider = new GeoTiffStoreProvider();
             ParameterValueGroup params = provider.getOpenParameters().createValue();
             params.parameter("location").setValue(p);
-            return provider.open(params);
+            return List.of(provider.open(params));
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
     }
 
-    private static DataStore createWorldFileStore(Path p) {
+    private static List<DataStore> createWorldFileStore(Path p) {
         try {
             WorldFileStoreProvider provider = new WorldFileStoreProvider();
             ParameterValueGroup params = provider.getOpenParameters().createValue();
             params.parameter("location").setValue(p);
-            return provider.open(params);
+            return List.of(provider.open(params));
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }
