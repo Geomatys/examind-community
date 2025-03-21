@@ -107,9 +107,16 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
     public void update(Layer layer) {
         LayerRecord layerRecord = new LayerRecord();
         layerRecord.from(layer);
-        UpdateConditionStep<LayerRecord> set = dsl.update(LAYER).set(LAYER.NAME, layer.getName().getLocalPart())
-                .set(LAYER.NAMESPACE, layer.getName().getNamespaceURI()).set(LAYER.ALIAS, layer.getAlias()).set(LAYER.DATA, layer.getDataId())
-                .set(LAYER.CONFIG, layer.getConfig()).set(LAYER.TITLE, layer.getTitle()).where(LAYER.ID.eq(layer.getId()));
+        String nmsp = layer.getName().getNamespaceURI();
+        if (nmsp != null && nmsp.equals("")) nmsp = null;
+        UpdateConditionStep<LayerRecord> set = dsl.update(LAYER)
+                .set(LAYER.NAME, layer.getName().getLocalPart())
+                .set(LAYER.NAMESPACE, nmsp)
+                .set(LAYER.ALIAS, layer.getAlias())
+                .set(LAYER.DATA, layer.getDataId())
+                .set(LAYER.CONFIG, layer.getConfig())
+                .set(LAYER.TITLE, layer.getTitle())
+                .where(LAYER.ID.eq(layer.getId()));
         set.execute();
     }
 
@@ -227,7 +234,7 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
         if (namespace != null) {
             return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.eq(namespace)).fetchOneInto(Integer.class);
         } else {
-            return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).fetchOneInto(Integer.class);
+            return dsl.select(LAYER.ID).from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.isNull()).fetchOneInto(Integer.class);
         }
     }
 
@@ -237,8 +244,8 @@ public class JooqLayerRepository extends AbstractJooqRespository<LayerRecord, co
     @Override
     public Layer findByServiceIdAndLayerName(int serviceId, String layerName, String namespace) {
         if (namespace != null) {
-            return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName))
-                    .and(LAYER.NAMESPACE.eq(namespace)).fetchOneInto(com.examind.database.api.jooq.tables.pojos.Layer.class));
+            return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.eq(namespace))
+                    .fetchOneInto(com.examind.database.api.jooq.tables.pojos.Layer.class));
         } else {
             return convertIntoDto(dsl.select().from(LAYER).where(LAYER.SERVICE.eq(serviceId)).and(LAYER.NAME.eq(layerName)).and(LAYER.NAMESPACE.isNull())
                     .fetchOneInto(com.examind.database.api.jooq.tables.pojos.Layer.class));

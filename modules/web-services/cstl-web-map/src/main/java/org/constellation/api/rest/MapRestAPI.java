@@ -143,6 +143,24 @@ public class MapRestAPI extends AbstractRestAPI {
             return new ErrorMessage(ex).build();
         }
     }
+    
+    /**
+     * Veifiy the availability of a layer name/namespace.
+     *
+     * @param serviceId The service identifier.
+     * @param value The alias candidate.
+     *
+     * @return {@code true} if the alias is available.
+     */
+    @RequestMapping(value="/MAP/{serviceId}/name", method = POST , produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity isAvailableQname(final @PathVariable("serviceId") Integer serviceId,  @RequestBody DataReference value) {
+        try {
+            return new ResponseEntity(layerBusiness.isAvailableName(serviceId, value.getName(), value.getNamespace()), OK);
+        } catch(Exception ex){
+            LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
+            return new ErrorMessage(ex).build();
+        }
+    }
 
     /**
      *

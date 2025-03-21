@@ -182,6 +182,12 @@ public class LayerBusiness implements ILayerBusiness {
                 config = null;
             }
             layer.setConfig(config);
+            
+            // if not supplied do not change
+            QName name = summary.getName();
+            if (name != null) {
+                layer.setName(name);
+            }
             layerRepository.update(layer);
 
             //clear cache event
