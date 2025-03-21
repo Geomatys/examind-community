@@ -2369,6 +2369,18 @@ function Examind($http, url) {
                 headers: {'Accept': 'application/json'}
             });
         },
+        
+        isAvailableQName : function (serviceId, name, namespace) {
+            return self.request({
+                method: 'POST',
+                url: 'MAP/' + serviceId + '/name',
+                headers: {'Accept': 'application/json'},
+                data: {
+                    name:name,
+                    namespace:namespace
+                }
+            });
+        },
 
         /**
          * Extract WMTS layer info.

@@ -6,7 +6,7 @@
         </div>
         <div class="modal-body" style="height: 170px;overflow-y: auto;">
             <form class="form-horizontal">
-                <div class="form-group">
+                <div class="form-group"  ng-show="serviceType !== 'wfs'">
                     <label class="col-sm-4 col-md-4 control-label"
                            style="color: #ddd;"
                            translate="layer.listing.selected.edit.layer.alias">Layer alias</label>
@@ -27,10 +27,42 @@
                         </span>
                     </div>
                 </div>
+                <div class="form-group"  ng-show="serviceType === 'wfs'">
+                    <label class="col-sm-4 col-md-4 control-label"
+                           style="color: #ddd;"
+                           translate="layer.listing.selected.edit.layer.name">Layer name</label>
+                    <div class="col-sm-5">
+                        <input type="text"
+                               class="form-control form-control-fix"
+                               ng-init="checkName()"
+                               ng-change="checkName()"
+                               ng-model="layerForm.name"/>
+                        <span id="aliasHelpBlock" ng-show="errors.nameInuse" class="help-block" style="color:rgba(217,83,79,1)">
+                            {{'layer.listing.selected.edit.layer.name.inuse' | translate}}
+                        </span>
+                        <span id="aliasHelpBlock" ng-show="errors.nameEmpty" class="help-block" style="color:rgba(217,83,79,1)">
+                            {{'layer.listing.selected.edit.layer.name.missing' | translate}}
+                        </span>
+                        <span id="aliasHelpBlock" ng-show="errors.nameInvalid" class="help-block" style="color:rgba(217,83,79,1)">
+                            {{'layer.listing.selected.edit.layer.name.invalid' | translate}}
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group" ng-show="serviceType === 'wfs'">
+                    <label class="col-sm-4 col-md-4 control-label"
+                           style="color: #ddd;"
+                           translate="layer.listing.selected.edit.layer.namespace">Layer namespace</label>
+                    <div class="col-sm-5">
+                        <input type="text"
+                               class="form-control form-control-fix"
+                               ng-change="checkName()"
+                               ng-model="layerForm.namespace"/>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label class="col-sm-4 col-md-4 control-label"
                            style="color: #ddd;"
-                           translate="layer.listing.selected.edit.layer.name">Layer title</label>
+                           translate="layer.listing.selected.edit.layer.title">Layer title</label>
                     <div class="col-sm-5">
                         <input type="text"
                                class="form-control form-control-fix"

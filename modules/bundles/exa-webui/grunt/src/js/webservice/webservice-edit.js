@@ -794,9 +794,19 @@ angular.module('cstl-webservice-edit', [
         $scope.serviceType = serviceType;
         $scope.serviceIdentifier = serviceIdentifier;
         $scope.selectedLayer = selectedLayer;
+        
+        var name = selectedLayer.name;
+        var namespace = "";
+        if (selectedLayer.name && selectedLayer.name.startsWith("{")) {
+            var en = selectedLayer.name.indexOf("}");
+            namespace = selectedLayer.name.substring(1, en);
+            name = selectedLayer.name.substring(en + 1);
+        }
         $scope.layerForm = {
-            "alias": $scope.selectedLayer.alias,
-            "title": $scope.selectedLayer.title
+            "alias": selectedLayer.alias,
+            "title": selectedLayer.title,
+            "name": name,
+            "namespace": namespace
         };
 
         $scope.errors = {
@@ -810,6 +820,12 @@ angular.module('cstl-webservice-edit', [
         $scope.save = function() {
             $scope.selectedLayer.alias = $scope.layerForm.alias;
             $scope.selectedLayer.title = $scope.layerForm.title;
+            
+            var name = $scope.layerForm.name;
+            if($scope.layerForm.namespace && $scope.layerForm.namespace !== '') {
+                name = '{' + $scope.layerForm.namespace + '}' + name;
+            }
+            $scope.selectedLayer.name = name;
             Examind.map.updateLayer($scope.selectedLayer).then(
                 function(response) {//success
                     Growl('success','Success','Layer information saved with success!');
@@ -838,6 +854,33 @@ angular.module('cstl-webservice-edit', [
                 return true;
             }
             Examind.map.isAvailableAlias($scope.serviceId, $scope.layerForm.alias)
+                .then(function (response) {
+                    $scope.errors.nameInuse = response.data === "false";
+                    return response.data === "true";
+                }, function (reason) {
+                    $scope.errors.nameInuse = true;
+                    return false;
+                });
+        };
+        
+        $scope.checkName = function () {
+            $scope.errors.nameEmpty   = false;
+            $scope.errors.nameInuse   = false;
+            $scope.errors.nameInvalid = false;
+
+            if (!$scope.layerForm.name || $scope.layerForm.name === '') {
+                $scope.errors.nameEmpty = true;
+                return false;
+            }
+            if ($scope.layerForm.name.includes(':')) {
+                $scope.errors.nameInvalid = true;
+                return false;
+            }
+            if ($scope.layerForm.name === name &&
+                $scope.layerForm.namespace === namespace) {
+                return true;
+            }
+            Examind.map.isAvailableQName($scope.serviceId, $scope.layerForm.name, $scope.layerForm.namespace)
                 .then(function (response) {
                     $scope.errors.nameInuse = response.data === "false";
                     return response.data === "true";
