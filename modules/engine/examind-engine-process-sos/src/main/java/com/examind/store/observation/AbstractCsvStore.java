@@ -24,6 +24,7 @@ import static com.examind.store.observation.FileParsingObservationStoreFactory.g
 import static com.examind.store.observation.FileParsingUtils.normalizeFieldName;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
@@ -90,7 +91,7 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
                 String name = (obsPropNames.size() > i) ? obsPropNames.get(i) : id;
                 String uom = (uomIds.size() > i) ? uomIds.get(i) : null;
                 String desc = (obsPropDescs.size() > i) ? obsPropDescs.get(i) : null;
-                fixedObsProperties.add(createFixedObservedProperty(id, name, uom, desc, Map.of()));
+                fixedObsProperties.add(createFixedObservedProperty(id, name, uom, desc, new HashMap<>()));
                 measureFields.add(id);
             }
         }
