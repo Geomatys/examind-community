@@ -1,0 +1,81 @@
+{
+    "@context": "https://w3id.org/codemeta/3.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Geospatial",
+    "codeRepository": "https://github.com/Geomatys/examind-community",
+    "contributor": [
+        {
+            "id": "_:contributor_1",
+            "type": "Person",
+            "email": "guilhem.legal@geomatys.com",
+            "familyName": "Legal",
+            "givenName": "Guilhem"
+        },
+        {
+            "id": "_:contributor_2",
+            "type": "Person",
+            "email": "alexis.manin@geomatys.com",
+            "familyName": "Manin",
+            "givenName": "Alexis"
+        },
+        {
+            "id": "_:contributor_3",
+            "type": "Person",
+            "email": "johan.sorel@geomatys.com",
+            "familyName": "Sorel",
+            "givenName": "Johan"
+        },
+        {
+            "id": "_:contributor_4",
+            "type": "Person",
+            "email": "martin.desruisseaux@geomatys.com",
+            "familyName": "Desruisseaux",
+            "givenName": "Martin"
+        },
+        {
+            "id": "_:contributor_5",
+            "type": "Person",
+            "familyName": "BOUALLAGUE",
+            "givenName": "Hilmi"
+        },
+        {
+            "id": "_:contributor_6",
+            "type": "Person",
+            "email": "quentin.bialota@geomatys.com",
+            "familyName": "BIALOTA",
+            "givenName": "Quentin"
+        }
+    ],
+    "dateCreated": "2019-03-25",
+    "dateModified": "2024-11-14",
+    "datePublished": "2019-08-01",
+    "description": "Examind Community is an open source platform dedicated to geographic data / geospatial data. Examind supports a wide range of geospatial data formats and standards (OGC, OpenEO, etc.) as well as different access points to data sources (local, S3, remote, etc.).",
+    "downloadUrl": "https://github.com/Geomatys/examind-community/releases/tag/1.1.1.1",
+    "funder": {
+        "type": "Organization",
+        "name": "Geomatys"
+    },
+    "keywords": [
+        "geospatial",
+        "platform",
+        "data",
+        "formats",
+        "ogc"
+    ],
+    "license": "https://spdx.org/licenses/Apache-2.0",
+    "name": "Examind Community",
+    "operatingSystem": [
+        "Docker",
+        "Linux",
+        "Windows"
+    ],
+    "programmingLanguage": "Java (JDK 17+)",
+    "runtimePlatform": "JVM",
+    "softwareRequirements": [
+        "https://maven.apache.org/download.cgi",
+        "https://www.oracle.com/java/technologies/downloads/#java17"
+    ],
+    "version": "1.1.1.1",
+    "developmentStatus": "active",
+    "issueTracker": "https://github.com/Geomatys/examind-community/issues"
+}
