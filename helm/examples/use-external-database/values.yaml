@@ -1,0 +1,10 @@
+postgresql:
+  enabled: false
+
+externalDatabase:
+  # Values to use to reach database
+  host: "my-domain"
+  port: 5433
+  database: "my-db"
+  user: "app-user"
+  password: "app-password"

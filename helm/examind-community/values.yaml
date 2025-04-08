@@ -1,0 +1,115 @@
+edition: community
+
+# If enabled, it disables probes to help debugging failing services
+diagnosticMode:
+  enabled: false
+
+# Bitnami postgresql deployed alongside Examind to hold its internal state (registered layers, created services, etc.)
+postgresql:
+  enabled: true
+  auth:
+    username: examind
+    database: examind
+  primary:
+    initdb:
+      scripts:
+        create_examind_database.sql: |
+          CREATE DATABASE {{ .Values.auth.database }} OWNER {{ .Values.auth.username }};
+
+# tag::externalDatabaseValues[]
+## External PostgreSQL configuration
+## All of these values are only used when postgresql.enabled is set to false
+## @param externalDatabase.host Database host
+## @param externalDatabase.port Database port number
+## @param externalDatabase.user Non-root username for Examind
+## @param externalDatabase.password Password for the non-root username for Examind
+## @param externalDatabase.database Examind database name
+## @param externalDatabase.existingSecret Name of an existing secret resource containing the database credentials
+## @param externalDatabase.existingSecretUserKey Name of an existing secret key containing the database user
+## @param externalDatabase.existingSecretPasswordKey Name of an existing secret key containing the database credentials
+## @param externalDatabase.annotations Additional custom annotations for external database secret object
+##
+externalDatabase:
+  host: ""
+  port: 5432
+  user: ""
+  database: ""
+  password: ""
+  existingSecret: ""
+  existingSecretUserKey: ""
+  existingSecretPasswordKey: ""
+  annotations: {}
+# end::externalDatabaseValues[]
+
+allInOne:
+  # NOTE: for now, only "all in one" deployment is available.
+  # Turning that flag to "false" will lead to disable Examind completely.
+  # In the future, we plan to add "backend" and "frontend" separate deployments.
+  enabled: true
+  nameOverride: "all-in-one"
+  image:
+    repository: images.geomatys.com/examind/examind-community
+    tag: latest
+    pullPolicy: Always
+  ingress:
+    enabled: true
+    pathType: Prefix
+    path: /examind
+  service:
+    type: ClusterIP
+    port: 8080
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: "/examind/API/auth/ping"
+      port: http
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: "/examind/API/auth/ping"
+      port: http
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    httpGet:
+      path: "/examind/API/auth/ping"
+      port: http
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: "1Gi"
+    mountPath: /var/examind/home
+  podSecurityContext:
+    enabled: false
+  containerSecurityContext:
+    enabled: false
+  env:
+    SPRING_PROFILES_ACTIVE: standard
+  ## @param heapSize Object to initialize JVM -Xms and -Xms options.
+  ## request attribute set -Xms
+  ## limit attribute set -Xmx
+  heapSize:
+    request: "6G"
+    limit: "6G"
+  resources:
+    requests:
+      cpu: "0.5"
+      memory: 8Gi
+    limits:
+      cpu: "2"
+      memory: 8Gi
+  ## @param initContainers Add additional init containers to Examind deployment
+  ## Example:
+  ## initContainers:
+  ##   - name: your-image-name
+  ##     image: your-image
+  ##     imagePullPolicy: Always
+  ##     ports:
+  ##       - name: portname
+  ##         containerPort: 1234
+  ##
+  initContainers: []
+  ## @param enableDefaultInitContainers Deploy default init containers
+  ## Allow users to disable init checks if required.
+  enableDefaultInitContainers: true

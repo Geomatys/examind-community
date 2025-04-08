@@ -1,0 +1,3 @@
+allInOne:
+  env:
+    CSTL_URL: https://test.geomatys.com/examind

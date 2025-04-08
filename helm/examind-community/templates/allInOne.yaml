@@ -1,0 +1,319 @@
+{{- /*
+Copyright Geomatys. All Rights Reserved.
+SPDX-License-Identifier: APACHE-2.0
+*/}}
+{{- if .Values.allInOne.enabled }}
+# Examind home storage
+{{- if and .Values.allInOne.persistence.enabled (not .Values.allInOne.persistence.existingClaim) }}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ printf "%s-data" (include "examind.all-in-one.fullname" .) | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ include "examind.all-in-one.fullname" . }}
+  {{- if or .Values.allInOne.persistence.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.allInOne.persistence.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    {{- range .Values.allInOne.persistence.accessModes }}
+    - {{ . | quote }}
+    {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.allInOne.persistence.size | quote }}
+  {{- if .Values.allInOne.persistence.selector }}
+  selector: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.persistence.selector "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if .Values.allInOne.persistence.dataSource }}
+  dataSource: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.persistence.dataSource "context" $) | nindent 4 }}
+  {{- end }}
+  {{- include "common.storage.class" (dict "persistence" .Values.allInOne.persistence "global" .Values.global) | nindent 2 }}
+{{- end }}
+
+---
+
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ include "examind.all-in-one.fullname"  . }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ include "examind.all-in-one.fullname"  . }}
+  {{- if or .Values.allInOne.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.allInOne.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1 # Examind does not support horizontal scaling yet
+  {{- if .Values.allInOne.updateStrategy }}
+  strategy: {{- toYaml .Values.allInOne.updateStrategy | nindent 4 }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.allInOne.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: {{ include "examind.all-in-one.fullname"  . }}
+  template:
+    metadata:
+      {{- if .Values.allInOne.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: {{ include "examind.all-in-one.fullname" . }}
+    spec:
+      {{- with $pullSecrets := coalesce (.Values.global).imagePullSecrets .Values.imagePullSecrets -}}
+      {{ if not (empty $pullSecrets) }}
+      imagePullSecrets:
+        {{- toYaml $pullSecrets | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.allInOne.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.affinity }}
+      affinity: {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.affinity "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.priorityClassName }}
+      priorityClassName: {{ .Values.allInOne.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.allInOne.schedulerName }}
+      schedulerName: {{ .Values.allInOne.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.allInOne.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.allInOne.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.allInOne.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.allInOne.terminationGracePeriodSeconds }}
+      {{- end }}
+      initContainers:
+        {{- if .Values.allInOne.enableDefaultInitContainers }}
+        # Test network connection to database service
+        - name: wait-database
+          image: "busybox:1.36.1"
+          command: [
+            "sh", "-c",
+            'for i in $(seq 1 20); do if nc -z "$DB_HOST" "$DB_PORT"; then echo "Database ready"; exit 0; else echo "Wait for database"; sleep 2; fi; done; echo "Timeout: database not ready" && exit 1'
+          ]
+          env:
+            - name: DB_HOST
+              value: {{ include "examind.backend.databaseHost" . | quote }}
+            - name: DB_PORT
+              value: {{ include "examind.backend.databasePort" . | quote }}
+        {{- end }}
+        {{- if .Values.allInOne.initContainers }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      containers:
+        - name: {{ include "examind.all-in-one.fullname"  . }}
+          image: {{ printf "%s:%s"
+                           (required "You must provide your own docker image to run. Specify Docker image url in `.Values.allInOne.image.repository`" .Values.allInOne.image.repository)
+                           (default "latest" .Values.allInOne.image.tag)
+                    | quote
+                 }}
+          imagePullPolicy: {{ .Values.allInOne.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: http
+            {{- if .Values.allInOne.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          # Security context
+          {{- if .Values.allInOne.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.allInOne.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          # Environment variables
+          envFrom:
+            {{- range $extraConfigMap := .Values.allInOne.extraEnvVarsConfigMaps }}
+            - configMapRef:
+                name: {{ $extraConfigMap | quote }}
+            {{- end }}
+          {{- range $extraSecret := .Values.allInOne.extraEnvVarsSecrets }}
+            - secretRef:
+                name: {{ $extraSecret | quote }}
+          {{- end }}
+          env:
+            - name: CSTL_HOME
+              value: {{ .Values.allInOne.persistence.mountPath }}
+            {{- /* TODO: improve CSTL_URL search */}}
+            {{- if and (not (.Values.allInOne.env).CSTL_URL) (include "examind.all-in-one.publicUrl" .) }}
+            - name: CSTL_URL
+              value: {{ include "examind.all-in-one.publicUrl" . | quote }}
+            {{- end }}
+            - name: DATABASE_URL
+              value: {{ include "examind.backend.jdbcUrl" . | quote }}
+            - name: DATABASE_USERNAME
+              {{- if (include "examind.backend.databaseSecretUsernameKey" . )}}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "examind.backend.databaseSecretName" . }}
+                  key: {{ include "examind.backend.databaseSecretUsernameKey" . }}
+              {{- else }}
+              value: {{ .Values.postgresql.auth.username }}
+              {{- end }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "examind.backend.databaseSecretName" . }}
+                  key: {{ include "examind.backend.databaseSecretPasswordKey" . }}
+            - name: CATALINA_OPTS
+              value: >-
+                -Xms{{- .Values.allInOne.heapSize.request }}
+                -Xmx{{- .Values.allInOne.heapSize.limit }}
+                -Dfile.encoding=UTF-8
+                -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true
+            {{- if not (empty .Values.allInOne.extraEnvVars) }}
+              {{- .Values.allInOne.extraEnvVars | toYaml | nindent 12 }}
+            {{- end }}
+            {{- range $key, $value := .Values.allInOne.env }}
+            - name: {{ $key | quote }}
+              value: {{ $value | quote }}
+            {{- end }}
+          # Probes
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.allInOne.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.allInOne.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.allInOne.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.allInOne.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.allInOne.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.allInOne.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.allInOne.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.allInOne.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.allInOne.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          # Resource definition
+          {{- if .Values.allInOne.resources }}
+          resources:
+            {{- toYaml .Values.allInOne.resources | nindent 12 }}
+          {{- else if and .Values.allInOne.resourcesPreset (ne .Values.allInOne.resourcesPreset "none") }}
+          resources:
+            {{- include "common.resources.preset" (dict "type" .Values.allInOne.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          # Volume mounts
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.allInOne.persistence.mountPath }}
+              {{- if .Values.allInOne.persistence.subPath }}
+              subPath: {{ .Values.allInOne.persistence.subPath }}
+              {{- end }}
+          {{- if .Values.allInOne.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+      restartPolicy: Always
+      volumes:
+        - name: data
+          {{- if .Values.allInOne.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.allInOne.persistence.existingClaim | default (printf "%s-data" (include "examind.all-in-one.fullname" .)) | quote }}
+          {{- else }}
+            emptyDir: { }
+          {{- end }}
+      {{- if .Values.allInOne.extraVolumes }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.extraVolumes "context" . ) | nindent 8 }}
+      {{- end }}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "examind.all-in-one.fullname"  . }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- if or .Values.allInOne.service.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.allInOne.service.annotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.allInOne.podLabels .Values.commonLabels) "context" .) | fromYaml }}
+  selector: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: {{ include "examind.all-in-one.fullname"  . }}
+  type: {{ trim .Values.allInOne.service.type | default "ClusterIP" }}
+  {{- if and .Values.allInOne.service.clusterIP (eq .Values.allInOne.service.type "ClusterIP") }}
+  clusterIP: {{ .Values.allInOne.service.clusterIP }}
+  {{- end }}
+  {{- if .Values.allInOne.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.allInOne.service.sessionAffinity }}
+  {{- end }}
+  {{- if .Values.allInOne.service.sessionAffinityConfig }}
+  sessionAffinityConfig: {{- include "common.tplvalues.render" (dict "value" .Values.allInOne.service.sessionAffinityConfig "context" $) | nindent 4 }}
+  {{- end }}
+  {{- if or (eq .Values.allInOne.service.type "LoadBalancer") (eq .Values.allInOne.service.type "NodePort") }}
+  externalTrafficPolicy: {{ .Values.allInOne.service.externalTrafficPolicy | quote }}
+  {{- end }}
+  {{- if and (eq .Values.allInOne.service.type "LoadBalancer") (not (empty .Values.allInOne.service.loadBalancerSourceRanges)) }}
+  loadBalancerSourceRanges: {{ .Values.allInOne.service.loadBalancerSourceRanges }}
+  {{- end }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.allInOne.service.port | default 8080 }}
+      targetPort: http
+      name: http
+
+---
+
+{{- if .Values.allInOne.ingress.enabled }}
+apiVersion: {{ include "common.capabilities.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ include "examind.all-in-one.fullname"  . }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+  {{- /*
+   Search for annotations to add to this ingress definition, either in common annotation values, or specific to this ingress
+   */}}
+  {{- if or .Values.allInOne.ingress.annotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.allInOne.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- /*
+   Explicitely set ingress class if specified in values
+   */}}
+  {{ $ingressClassName := coalesce .Values.allInOne.ingress.ingressClassName ((.Values.global).ingress).ingressClassName }}
+  {{- if and
+         $ingressClassName
+         (eq "true" (include "common.ingress.supportsIngressClassname" .))
+  }}
+  ingressClassName: {{ $ingressClassName | quote }}
+  {{- end }}
+  {{- /*
+   Set TLS certificate to use, if any
+   */}}
+  {{- $tls := coalesce (.Values.allInOne.ingress).tls ((.Values.global).ingress).tls }}
+  {{- if $tls }}
+  tls: {{- $tls | toYaml | nindent 4 }}
+  {{- end }}
+  {{- /*
+    Redirection rules
+   */}}
+  rules:
+  {{- range $host := coalesce (.Values.allInOne.ingress).hosts ((.Values.global).ingress).hosts (list "") }}
+    - {{ if $host -}}
+      host: {{ $host | quote }}
+      {{ end -}}
+      http:
+        paths:
+          - path: {{ ($.Values.allInOne.ingress).path | default "/examind" | quote }}
+            pathType: {{ ($.Values.allInOne.ingress).pathType | default "Prefix" | quote }}
+            backend:
+              service:
+                name: {{ include "examind.all-in-one.fullname"  $ }}
+                port:
+                  name: http
+      {{- end }}
+{{- end }}
+{{- end }}

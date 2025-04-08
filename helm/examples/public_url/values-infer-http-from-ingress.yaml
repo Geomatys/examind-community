@@ -1,0 +1,6 @@
+allInOne:
+  ingress:
+    path: /examind
+    hosts:
+      - first.geomatys.com
+      - second.geomatys.com

@@ -1,0 +1,79 @@
+= Examind Helm chart
+
+Deploys a standalone Examind Community instance.
+
+This chart is based on https://github.com/bitnami/charts/tree/main/template[Bitnami helm chart template].
+
+== Database
+
+By default, this chart deploys a PostgreSQL database.
+The database is deployed using https://github.com/bitnami/charts/tree/main/bitnami/postgresql[Bitnami PostgreSQL chart].
+It is configurable under `postgresql` values.
+
+To use your own database instead, change values as follows:
+
+. Disable embedded postgresql deployment:
++
+[source,yaml]
+.values.yaml
+----
+postgresql:
+  enabled: false
+----
+. Setup database connection information using `externalDatabase` values:
++
+[source,yaml]
+.values.yaml
+----
+include::values.yaml[tag=externalDatabaseValues]
+----
++
+Examples:
++
+.. Providing credentials inline:
++
+[source,yaml]
+.values.yaml
+----
+include::../examples/use-external-database/values.yaml[]
+----
+.. Referencing a secret holding database login and password:
++
+[source,yaml]
+.values.yaml
+----
+include::../examples/use-external-database/values-when-using-secret.yaml[]
+----
+
+== Configure public URL
+
+If Examind Ingress is enabled and specifies a list of hosts, the `CSTL_URL` variable will be infered from it. Examples:
+
+* Using the following ingress, without `tls` configuration specified, produces the value `http://first.geomatys.com/examind`:
++
+[source,yaml]
+.values
+----
+include::../examples/public_url/values-infer-http-from-ingress.yaml[]
+----
+* if a `tls` configuration is set (either in global values or `allInOne` specific ingress configuration), then the value produced is `https://first.geomatys.com/examind`:
++
+[source,yaml]
+.values
+----
+include::../examples/public_url/values-infer-https-from-ingress.yaml[]
+----
+
+It is possible to set the `CSTL_URL` value manually through `allInOne.env.CSTL_URL` value. Example:
+
+[source,yaml]
+.values
+----
+include::../examples/public_url/values-override.yaml[]
+----
+
+== Future improvements
+
+* EPSG database configuration (for now, it uses the same database as Examind)
+* Spring-Boot based deployment
+* New UI deployment
