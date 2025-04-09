@@ -13,6 +13,16 @@ public enum AppProperty {
      * "protocol://login:password@host:port/instance"
      */
     CSTL_DATABASE_URL("database.url"),
+    /**
+     * Username to use to log in application database.
+     * It is optional. If not set, we will look for it in database url.
+     */
+    CSTL_DATABASE_USERNAME("database.username"),
+    /**
+     * Password to use to log in application database.
+     * It is optional. If not set, we will look for it in database url.
+     */
+    CSTL_DATABASE_PASSWORD("database.password"),
 
     /**
      * Maximum pool size for cstl database.
@@ -37,6 +47,16 @@ public enum AppProperty {
      * EPSG database URL in Hiroku like format :  "protocol://login:password@host:port/instance".
      */
     EPSG_DATABASE_URL("epsg.database.url"),
+    /**
+     * Username to use to log in EPSG database.
+     * It is optional. If not set, we will look for it in database url.
+     */
+    EPSG_DATABASE_USERNAME("epsg.database.username"),
+    /**
+     * Password to use to log in EPSG database.
+     * It is optional. If not set, we will look for it in database url.
+     */
+    EPSG_DATABASE_PASSWORD("epsg.database.password"),
 
     /**
      * By default if the epsg url is not set, or if its equals to database.url

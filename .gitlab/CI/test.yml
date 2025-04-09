@@ -25,9 +25,11 @@ test:hsqldb:
 test:postgresql:
   extends: .test:base
   variables:
-    TEST_DATABASE_URL: "jdbc:postgresql://postgres:5432/admin?user=exa&password=exa"
+    TEST_DATABASE_URL: "jdbc:postgresql://postgres:5432/admin"
     POSTGRES_DB: admin
-    POSTGRES_USER: exa
-    POSTGRES_PASSWORD: exa
+    POSTGRES_USER: exa_user
+    POSTGRES_PASSWORD: exa_password
+    DATABASE_USERNAME: exa_user
+    DATABASE_PASSWORD: exa_password
   services:
     - name: postgres:13.4-alpine3.14
