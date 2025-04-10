@@ -72,6 +72,27 @@ It is possible to set the `CSTL_URL` value manually through `allInOne.env.CSTL_U
 include::../examples/public_url/values-override.yaml[]
 ----
 
+== Resource management
+
+Examind CPU and memory resources can be configured using K8s resource configuration. Moreover, an additional `allInOne.heapSize` section must be set to fit JVM heap size according to Kubernetes memory reservation.
+
+.Example:
+
+[source,yaml]
+.values.yaml
+----
+include::../examples/resources/values-resources-examind.yaml[]
+----
+
+When using internal database, its resources can also be configured through the `postgresql` subchart.
+The subchart is based *Bitnami PostgreSQL helm chart*. For more information about resource configuration, https://github.com/bitnami/charts/tree/main/bitnami/postgresql#resource-requests-and-limits[see related documentation].
+
+[source,yaml]
+.values.yaml
+----
+include::../examples/resources/values-resources-postgresql.yaml[]
+----
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)

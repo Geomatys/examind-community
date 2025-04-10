@@ -1,0 +1,13 @@
+allInOne:
+  # Standard Kubernetes pod resource declaration
+  resources:
+    requests:
+      memory: 4Gi
+    limits:
+      memory: 4Gi
+  # Custom values for Examind: configure JVM heap size.
+  heapSize:
+    # Set -Xms (reservation on launch)
+    request: 1G
+    # Set -Xmx (maximum heap size)
+    limit: 3G
