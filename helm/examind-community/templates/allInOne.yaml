@@ -115,7 +115,7 @@ spec:
       containers:
         - name: {{ include "examind.all-in-one.fullname"  . }}
           image: {{ printf "%s:%s"
-                           (required "You must provide your own docker image to run. Specify Docker image url in `.Values.allInOne.image.repository`" .Values.allInOne.image.repository)
+                           (required "You must provide your own docker image to run. Specify Docker image url in `.Values.allInOne.image.repository`" (tpl .Values.allInOne.image.repository .))
                            (default "latest" .Values.allInOne.image.tag)
                     | quote
                  }}

@@ -1,0 +1,12 @@
+# access to paid edition require a pull secret to be able to pull Examind image from Geomatys private repository.
+# It can either be configured globally, or in the deployment configuration
+global:
+  imagePullSecrets:
+    - name: docker-registry-geomatys-private
+
+# Use paid edition
+edition: server
+
+allInOne:
+  imagePullSecrets:
+    - name: docker-registry-geomatys-private

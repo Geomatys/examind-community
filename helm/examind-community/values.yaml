@@ -48,7 +48,8 @@ allInOne:
   enabled: true
   nameOverride: "all-in-one"
   image:
-    repository: images.geomatys.com/examind/examind-community
+    repository: >-
+      {{ printf "%s.geomatys.com/examind/examind-%s" (eq .Values.edition "community" | ternary "images" "docker") ( .Values.edition ) }}
     tag: latest
     pullPolicy: Always
   ingress:
