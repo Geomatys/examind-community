@@ -1,0 +1,20 @@
+<beans xmlns:sec="http://www.springframework.org/schema/security" xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd"
+  profile="oauth2">
+
+
+  <import resource="security/common.xml" />
+
+  <sec:authentication-manager alias="authenticationManager"/>
+  <bean id="authenticationProxy" class="com.examind.oauth.Oauth2AuthenticationProxy"/>
+
+  <bean id="cstlAuthenticationTokenProcessingFilter" class="org.constellation.engine.security.AuthenticationTokenProcessingFilter">
+    <property name="userDetailsExtractor">
+      <bean class="com.examind.oauth.Oauth2UserDetailsExtractor"/>
+    </property>
+    <property name="allowUnauthorized" value="true"/>
+  </bean>
+
+</beans>
