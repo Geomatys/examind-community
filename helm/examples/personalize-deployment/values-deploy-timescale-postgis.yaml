@@ -1,0 +1,24 @@
+global:
+  security:
+    allowInsecureImages: true # Allow using third-party database image <.>
+
+postgresql:
+  image:
+    repository: timescale/timescaledb
+    tag: 2.18.0-pg17-bitnami  # IMPORTANT: use bitnami compatible image <.>
+  primary:
+    initdb:
+      scripts:
+        # Initialize GIS database with PostGIS and TimescaleDB <.>
+        create-gis-data-db.sh: |
+          PGPASSWORD="$POSTGRES_POSTGRES_PASSWORD" psql -U postgres -c "CREATE DATABASE gis_data OWNER {{ .Values.auth.username }};"
+          PGPASSWORD="$POSTGRES_POSTGRES_PASSWORD" psql -U postgres -d gis_data -c "
+            CREATE EXTENSION IF NOT EXISTS postgis;
+            CREATE EXTENSION IF NOT EXISTS timescaledb;
+            SELECT PostGIS_Version();
+          "
+
+allInOne:
+  env:
+    # Force TimescaleDB decimation algorithm, because selected timescale image do not provide "asap_smooth" function
+    EXAMIND_OM2_DEFAULT_DECIMATION_ALGORITHM: time_bucket # <.>

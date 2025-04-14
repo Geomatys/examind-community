@@ -12,6 +12,34 @@ By default, this chart deploys a PostgreSQL database.
 The database is deployed using https://github.com/bitnami/charts/tree/main/bitnami/postgresql[Bitnami PostgreSQL chart].
 It is configurable under `postgresql` values.
 
+==== Add Timescale and PostGIS capabilities
+
+By default, Examind only store administration data (registered layers, created services, etc.) in its database, and a standard PostgreSQL is deployed.
+
+However, Examind is capable to consume GIS data from a *PostGIS* database, and to use *TimeScaleDB* time-series capabilities to optimize sensor data processing.
+To prepare a database with such capabilities, we can override deployed *PostgreSQL* configuration to create a secondary database with *TimescaleDB* and *PostGIS* extensions.
+
+Example:
+
+[source,yaml]
+.values.yaml
+----
+include::../examples/personalize-deployment/values-deploy-timescale-postgis.yaml[]
+----
+<.> Allow insecure images: it is required to use *TimescaleDB* image instead of standard Bitnami image
+<.> IMPORTANT: The *TimescaleDB* image must be compatible with *Bitnami*, so we must pull the Bitnami flavor (using `-bitnami` suffixed tags)
+<.> Use a custom initialization script to create a data dedicated database (in this example, we name it `gis_data`) with both *TimescaleDB* and *PostGIS* extensions.
+<.> Avoid using `asap_smooth` function, not available in used TimescaleDB edition
+
+[WARNING]
+====
+This method does **not** include *timescaledb_toolkit*, and therefore does not support advanced functions like *asap_smooth*.
+If you require timescaledb toolkit, you either have to deploy your own database and <<_use_external_database>>, or craft a PostgreSQL Docker image compatible with both TimescaleDB and Bitnami yourself.
+====
+
+[[_use_external_database]]
+==== Use an external database
+
 To use your own database instead, change values as follows:
 
 . Disable embedded postgresql deployment:
