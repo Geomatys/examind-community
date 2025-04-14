@@ -18,4 +18,11 @@ include:
   - component: $CI_SERVER_FQDN/amanin/qodana-inspection/qodana-inspection@0.1.1
 
 qodana-inspection:
+  rules:
+    - changes:
+        - buildset/*
+        - modules/*
+        - modules/**
+        - pom.xml
+    - if: $CI_COMMIT_TAG
   needs: [ 'build' ]

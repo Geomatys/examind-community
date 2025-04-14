@@ -1,5 +1,12 @@
 .publish:
   stage: publish
+  rules:
+    - changes:
+        - buildset/*
+        - modules/*
+        - modules/**
+        - pom.xml
+    - if: $CI_COMMIT_TAG
   needs:
     - build
     - "test:hsqldb"
@@ -12,8 +19,8 @@
 
 maven-deploy-tag:
   extends: .maven-deploy
-  only:
-    - tags
+  rules:
+    - if: $CI_COMMIT_TAG
 
 .docker-push:
   extends: .publish
@@ -38,12 +45,22 @@ docker-build:
   extends: .docker-push
   rules:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - buildset/*
+        - modules/*
+        - modules/**
+        - pom.xml
 
 # On master or tag, push image to Geomatys registry with appropriate tag.
 docker-push:
   extends: .docker-push
   rules:
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH && $CI_COMMIT_TAG == null
+      changes:
+        - buildset/*
+        - modules/*
+        - modules/**
+        - pom.xml
       variables:
         KANIKO_OPTS: ""
     - if: $CI_COMMIT_TAG != null
