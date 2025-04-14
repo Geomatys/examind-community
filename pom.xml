@@ -47,7 +47,7 @@
         <xstream.version>1.4.20</xstream.version>
         <antlr.version>4.11.1</antlr.version>
         <poi.version>5.2.3</poi.version>
-        <duckdb.version>0.10.2</duckdb.version>
+        <duckdb.version>1.2.2.0</duckdb.version>
         <!-- this one is blocked by other dependencies -->
         <arrow.version>15.0.2</arrow.version>
         <!-- @{argLine} necessary for jacoco generation, we must declare

@@ -288,8 +288,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     private void initFilterGetFeatureOfInterest() {
         firstFilter = true;
         String geomColum = switch(dialect) {
-            case POSTGRES     -> "st_asBinary(\"shape\") as \"shape\"";
-            case DERBY,DUCKDB -> "\"shape\"";
+            case POSTGRES -> "st_asBinary(\"shape\") as \"shape\"";
+            case DUCKDB   -> "ST_AsText(\"shape\") as \"shape\"";
+            case DERBY    -> "\"shape\"";
         };
         sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
                     .append(schemaPrefix).append("om\".\"sampling_features\" sf WHERE ");
