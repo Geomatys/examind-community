@@ -8,6 +8,7 @@ variables:
   MAVEN_OPTS: "-Dmaven.repo.local=$MAVEN_LOCAL -Djava.awt.headless=true"
   SONAR_HOST_URL: "https://sonar.geomatys.com"
   DEPLOY_SERVER: "releases::https://nexus.geomatys.com/repository/releases/"
+  HELM_REPO_URL: "https://nexus.geomatys.com/repository/helm-public/"
 
 # Cache dependencies globally. Project snapshot are removed with below after script to avoid caching nightly artifact.
 cache: &global_cache
@@ -50,3 +51,8 @@ include:
   - '.gitlab/CI/quality.yml'
 #  - '.gitlab/CI/release.yml'
   - '.gitlab/CI/publish.yml'
+  - component: $CI_SERVER_FQDN/amanin/packaging-components/helm@main
+    inputs:
+      source_dir: "helm/examind-community"
+      job-name-suffix: "-examind-community"
+      use_tag_version: false
