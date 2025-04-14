@@ -50,7 +50,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
             // (may be replaced by one request by observation, maybe by looking if the step is uniform)
             step = times.values().iterator().next()[1];
         } else {
-            step = times.get(1)[1];
+            step = times.get(1L)[1];
         }
 
         StringBuilder select  = new StringBuilder();
