@@ -5,12 +5,15 @@ sonar:
   stage: quality
   needs:
     - build
-  only:
-    refs:      
-    #  - merge_requests //Uncomment when using paid Sonarqube licence
-      - master
-    variables: 
-      - $SONAR_TOKEN
+  rules:
+    # Remove this condition once we use a paid Sonarqube licence
+    - if: $CI_COMMIT_BRANCH != 'master'
+      when: never
+    - changes:
+        - buildset/*
+        - modules/*
+        - modules/**
+        - pom.xml
   script:
     - mvn install sonar:sonar -DskipTests -s $MAVEN_SETTINGS -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_TOKEN
 
