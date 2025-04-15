@@ -1,6 +1,9 @@
 apiVersion: v2
 name: examind-community
-description: Deploys a stand-alone version of GIS server Examind, community edition.
+description: |
+  Deploys a stand-alone version of GIS server Examind.
+  Deploys community edition by default. 
+  If you are a paid customer, use `edition: server` value to deploy a complete edition.
 type: application
 home: https://www.examind.com
 # IMPORTANT: version and app versions are synchronized over project version.

@@ -56,3 +56,4 @@ include:
       source_dir: "helm/examind-community"
       job-name-suffix: "-examind-community"
       use_tag_version: false
+      continuous_publication_branch: "master"
