@@ -133,6 +133,19 @@ you also have to define an *image pull secret* to be able to download the paid e
 include::../examples/personalize-deployment/values-switch-edition.yaml[]
 ----
 
+
+=== Mount external volumes
+
+Examind *allInOne* values expose two attributes: *extraVolumes* and *extraVolumeMounts* that are additional deployment *volumes* and *volumeMounts* that are included in Examind deployment.
+
+Here is an example that mount a `/my-volume` directory from a a third-party *PersistentVolumeClaim* named `my-volume-claim`:
+
+[source,yaml]
+----
+include::../examples/personalize-deployment/values-extra-volumes.yaml[]
+----
+
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)

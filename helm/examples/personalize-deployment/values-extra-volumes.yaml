@@ -1,0 +1,8 @@
+allInOne:
+  extraVolumeMounts:
+    - name: my-volume
+      mountPath: /my-volume/
+  extraVolumes:
+    - name: my-volume
+      persistentVolumeClaim:
+        claimName: my-volume-claim
