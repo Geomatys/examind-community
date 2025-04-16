@@ -1,5 +1,7 @@
 allInOne:
   ingress:
+    annotations:
+      "cert-manager.io/cluster-issuer": "letsencrypt-prod"
     path: /examind
     hosts:
       - first.geomatys.com
