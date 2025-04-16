@@ -4,7 +4,7 @@
     - changes:
         - buildset/*
         - modules/*
-        - modules/**
+        - modules/**/*
         - pom.xml
     - if: $CI_COMMIT_TAG
   needs:
@@ -48,7 +48,7 @@ docker-build:
       changes:
         - buildset/*
         - modules/*
-        - modules/**
+        - modules/**/*
         - pom.xml
 
 # On master or tag, push image to Geomatys registry with appropriate tag.
@@ -59,7 +59,7 @@ docker-push:
       changes:
         - buildset/*
         - modules/*
-        - modules/**
+        - modules/**/*
         - pom.xml
       variables:
         KANIKO_OPTS: ""
