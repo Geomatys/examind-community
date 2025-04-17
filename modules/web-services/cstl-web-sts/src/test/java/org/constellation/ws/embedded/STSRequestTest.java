@@ -20,6 +20,7 @@
 package org.constellation.ws.embedded;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -478,6 +479,88 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
     }
+    
+    @Test
+    public void getObservationsObsPropPropertiesFilterTest() throws Exception {
+        initPool();
+        
+        // get 0 observations (debugging purpose)
+        String filter = "Datastreams/ObservedProperty/properties/phen-category eq 'biological'".replace(" ", "%20");
+        URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
+        
+        String result = getStringResponse(url) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
+        compareJSON(expResult, result);
+        
+        // get observations
+        url = new URI(getDefaultURL() + "/Observations?$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-3.json");
+        compareJSON(expResult, result);
+        
+        // count
+        url = new URI(getDefaultURL() + "/Observations?$count=true&$top=0&$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-3-ct.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void getObservationFoiPropertiesFilterTest() throws Exception {
+        initPool();
+        
+        // get 0 observations (debugging purpose)
+        String filter = "FeatureOfInterest/properties/commune eq 'Beziers'".replace(" ", "%20");
+        URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
+        
+        String result = getStringResponse(url) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
+        compareJSON(expResult, result);
+        
+        // get observations
+        url = new URI(getDefaultURL() + "/Observations?$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-4.json");
+        compareJSON(expResult, result);
+        
+        // count
+        url = new URI(getDefaultURL() + "/Observations?$count=true&$top=0&$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-4-ct.json");
+        compareJSON(expResult, result);
+    }
+    
+    @Test
+    public void getObservationProcPropertiesFilterTest() throws Exception {
+        initPool();
+        
+        // get 0 observations (debugging purpose)
+        String filter = "Datastreams/Thing/properties/bss-code eq '10972X0137/SER'".replace(" ", "%20");
+        URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
+        
+        String result = getStringResponse(url) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/empty.json");
+        compareJSON(expResult, result);
+        
+        // get observations
+        url = new URI(getDefaultURL() + "/Observations?$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-5.json");
+        compareJSON(expResult, result);
+        
+        // count
+        url = new URI(getDefaultURL() + "/Observations?$count=true&$top=0&$filter=" + filter).toURL();
+        
+        result = getStringResponse(url) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-filter-5-ct.json");
+        compareJSON(expResult, result);
+    }
+
 
     @Test
     public void getObservedPropertyForObservation() throws Exception {

@@ -1457,7 +1457,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         if (phenPropJoin) {
             String joinColumn;
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
+            if (MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
                 joinColumn = "pd.\"field_name\"";
             } else {
                 // there is a problem here. see comment in OM2ObservationFilterReader#getObservationTemplates()
@@ -1468,7 +1468,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
         if (procPropJoin) {
             String tablePrefix;
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
+            if (MEASUREMENT_QNAME.equals(resultModel) && ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
                 tablePrefix = "pd";
             } else {
                 tablePrefix = "o";

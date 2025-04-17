@@ -510,6 +510,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     }
 
     protected List<Observation> getMesurements() throws DataStoreException {
+        if (phenPropJoin) {
+            sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
+        }
+        if (procPropJoin) {
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
+        }
+        if (foiPropJoin) {
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
+        }
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
