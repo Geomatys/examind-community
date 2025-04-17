@@ -485,7 +485,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         initPool();
         
         // get 0 observations (debugging purpose)
-        String filter = "Datastreams/ObservedProperty/properties/phen-category eq 'biological'".replace(" ", "%20");
+        String filter = "((Datastreams/ObservedProperty/properties/phen-category eq 'biological') or (Datastreams/ObservedProperty/properties/phen-category eq 'eutrophisation'))".replace(" ", "%20");
         URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
         
         String result = getStringResponse(url) + "\n";
@@ -512,7 +512,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         initPool();
         
         // get 0 observations (debugging purpose)
-        String filter = "FeatureOfInterest/properties/commune eq 'Beziers'".replace(" ", "%20");
+        String filter = "((FeatureOfInterest/properties/commune eq 'Beziers') or (FeatureOfInterest/properties/commune eq 'Edinburgh'))".replace(" ", "%20");
         URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
         
         String result = getStringResponse(url) + "\n";
@@ -539,7 +539,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         initPool();
         
         // get 0 observations (debugging purpose)
-        String filter = "Datastreams/Thing/properties/bss-code eq '10972X0137/SER'".replace(" ", "%20");
+        String filter = "((Datastreams/Thing/properties/bss-code eq '10972X0137/SER') or (Datastreams/Thing/properties/bss-code eq 'WHATEVER'))".replace(" ", "%20");
         URL url = new URI(getDefaultURL() + "/Observations?$top=0&$filter=" + filter).toURL();
         
         String result = getStringResponse(url) + "\n";
