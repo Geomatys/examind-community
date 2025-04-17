@@ -1530,8 +1530,14 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     GridCoverageBuilder gcb = new GridCoverageBuilder();
                     gcb.setDomain(gridCoverageSource.getGridGeometry());
                     gcb.setValues(gridCoverageSource.render(null).getData()); //TODO : Delete getData() when we will use Apache SIS Tiff writer
-                    gcb.setRanges(resultSdList);
-                    response.coverage = gcb.build();
+                    try {
+                        gcb.setRanges(gridCoverageSource.getSampleDimensions());
+                        response.coverage = gcb.build();
+                    } catch (NullPointerException e) {
+                        // QUICK FIX : COLOR MODEL NULL EXCEPTION
+                        gcb.setRanges(resultSdList);
+                        response.coverage = gcb.build();
+                    }
                     response.metadata = metadata;
                     response.outputCRS = crs;
                     return response;
