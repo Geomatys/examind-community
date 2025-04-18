@@ -2408,7 +2408,56 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-decim-4.json");
         compareJSON(expResult, result);
     }
+    
+    @Test
+    public void getDataArrayForMultiDatastreamsCsvFlat() throws Exception {
+        initPool();
 
+        URL getFoiUrl = new URI(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:3)/Observations?$resultFormat=text/csv-flat").toURL();
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/mds-data-array-1.csv");
+        assertEquals(expResult, result);
+    }
+    
+    @Test
+    public void getDataArrayForObservationsCsvFlat() throws Exception {
+        initPool();
+
+        String filter = "((Datastreams/Thing/properties/bss-code eq '10972X0137/SER') or (Datastreams/Thing/properties/bss-code eq 'WHATEVER'))".replace(" ", "%20");
+        URL getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=text/csv-flat&$filter=" + filter).toURL();
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-1.csv");
+        assertEquals(expResult, result);
+        
+        filter = "((FeatureOfInterest/properties/commune eq 'Beziers') or (FeatureOfInterest/properties/commune eq 'Argeles'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=text/csv-flat&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-2.csv");
+        assertEquals(expResult, result);
+        
+        filter =  "((Datastreams/ObservedProperty/properties/phen-category eq 'biological') or (Datastreams/ObservedProperty/properties/phen-category eq 'physics'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=text/csv-flat&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-3.csv");
+        assertEquals(expResult, result);
+    }
+    
+    @Test
+    public void getDataArrayForObservations() throws Exception {
+        initPool();
+
+        String filter = "((Datastreams/Thing/properties/bss-code eq '10972X0137/SER') or (Datastreams/Thing/properties/bss-code eq 'WHATEVER'))".replace(" ", "%20");
+        URL getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=dataArray&$filter=" + filter).toURL();
+
+        String result = getStringResponse(getFoiUrl) + "\n";
+        String expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-1.json");
+        assertEquals(expResult, result);
+    }
+    
     @Test
     public void getDataArrayForDatastreamsDecimation() throws Exception {
         initPool();

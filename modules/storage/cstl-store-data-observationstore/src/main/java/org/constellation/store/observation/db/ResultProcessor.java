@@ -26,10 +26,12 @@ import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import org.constellation.store.observation.db.model.ProcedureInfo;
+import org.constellation.store.observation.db.result.CsvFlatResultBuilder;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.ResultMode;
+import org.geotoolkit.observation.model.TextEncoderProperties;
 import static org.geotoolkit.observation.model.TextEncoderProperties.CSV_ENCODING;
 import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENCODING;
 
@@ -40,6 +42,8 @@ import static org.geotoolkit.observation.model.TextEncoderProperties.DEFAULT_ENC
 public class ResultProcessor {
 
     protected static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
+    
+    protected final static TextEncoderProperties CSV_FLAT_ENCODING = new TextEncoderProperties(".", ";", "\n");
     
     protected ResultBuilder values = null;
     protected final List<Field> fields;
@@ -69,6 +73,10 @@ public class ResultProcessor {
             values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
         } else if ("text/csv".equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
+            // Add the header
+            values.appendHeaders(fields);
+        } else if ("text/csv-flat".equals(responseFormat)) {
+            values = new CsvFlatResultBuilder(procedure, fields, CSV_FLAT_ENCODING);
             // Add the header
             values.appendHeaders(fields);
         } else if (countRequest) {

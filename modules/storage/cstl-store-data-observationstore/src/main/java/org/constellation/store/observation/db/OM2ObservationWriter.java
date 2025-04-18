@@ -738,7 +738,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     writeProperties("procedures_properties", procedureID, procedure.getProperties(), c);
                     
                     // write procedure description
-                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
+                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.getDescription(), procedure.omType, null);
                     if (!procedure.fields.isEmpty()) {
                         buildMeasureTable(pi, procedure.fields, c);
                     }
@@ -752,7 +752,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 } else {
                     pid = rs.getInt(1);
                     nbTable = rs.getInt(2);
-                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.omType, null);
+                    pi = new ProcedureInfo(pid, nbTable, procedureID, procedure.getName(), procedure.getDescription(), procedure.omType, null);
                     /*
                     * Update historical locations, add new ones if not already recorded (do not remove disappeared ones)
                     */
@@ -926,7 +926,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             buildMeasureTable(pi, fields, c);
 
             if (cr.getNbValues() != null && cr.getNbValues() > 0) {
-                final List<InsertDbField> dbFields = completeDbField(pi.procedureId, fields, c);
+                final List<InsertDbField> dbFields = completeDbField(pi.id, fields, c);
                 OM2MeasureSQLInserter msi    = new OM2MeasureSQLInserter(pi, schemaPrefix, dialect, dbFields);
                 msi.fillMesureTable(c, oid, cr, update);
             }
@@ -1396,13 +1396,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
                             // remove procedure if needed
                             boolean removed = removeProcedureIfEmpty(cdt.pi, c);
-                            if (removed) sensorRemoved.add(cdt.pi.procedureId);
+                            if (removed) sensorRemoved.add(cdt.pi.id);
 
                         // case 1.2 phenomenon to remove is part of the original phenomenon we need to remove only a part of the observation.
                         } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
 
                             final List<Field> fields                 = getMeasureFields(obs);
-                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
+                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.id, fields, c);
                             OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c);
                             removeEmptyMeasures(cdt, c);
@@ -1413,7 +1413,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                 updateObservationPhenomenon(cdt, fieldsToRemove, c);
                             } else {
                                 boolean removed = removeProcedureIfEmpty(cdt.pi, c);
-                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
+                                if (removed) sensorRemoved.add(cdt.pi.id);
                             }
                         } else {
                             LOGGER.fine("Full removal mode: no intersecting phenomenon. no deletion");
@@ -1437,13 +1437,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                 }
                             } else {
                                 boolean removed = removeProcedureIfEmpty(cdt.pi, c);
-                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
+                                if (removed) sensorRemoved.add(cdt.pi.id);
                             }
 
                         // case 2.2 phenomenon to remove is part of the original phenomenon we need to remove only a part of the observation.
                         } else if (isPartOf(cdt.phenomenon, obs.getObservedProperty())) {
                             final List<Field> fields                 = getMeasureFields(obs);
-                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.procedureId, fields, c);
+                            final List<InsertDbField> fieldsToRemove = completeDbField(cdt.pi.id, fields, c);
                             OM2MeasureFieldFilteredRemover remover    = new OM2MeasureFieldFilteredRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                             remover.removeMeasures(c, obs);
                             removeEmptyMeasures(cdt, c);
@@ -1458,7 +1458,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                                 }
                             } else {
                                 boolean removed = removeProcedureIfEmpty(cdt.pi, c);
-                                if (removed) sensorRemoved.add(cdt.pi.procedureId);
+                                if (removed) sensorRemoved.add(cdt.pi.id);
                             }
 
                         } else {
@@ -1578,8 +1578,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private void removeProcedure(final ProcedureInfo pi, final Connection c) throws SQLException, DataStoreException {
         if (pi == null) return;
 
-        deleteProperties("procedures_properties", "id_procedure", pi.procedureId, c);
-        removeObservationForProcedure(pi.procedureId, c);
+        deleteProperties("procedures_properties", "id_procedure", pi.id, c);
+        removeObservationForProcedure(pi.id, c);
 
         // remove measure tables
         try (final Statement stmtDrop = c.createStatement()) {
@@ -1603,22 +1603,22 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
              final PreparedStatement stmtObs = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");//NOSONAR
              final PreparedStatement stmtProcDesc = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=?")) {//NOSONAR
 
-            stmtObsP.setString(1, pi.procedureId);
+            stmtObsP.setString(1, pi.id);
             stmtObsP.executeUpdate();
 
-            stmtFoi.setString(1, pi.procedureId);
+            stmtFoi.setString(1, pi.id);
             stmtFoi.executeUpdate();
 
-            stmtHl.setString(1, pi.procedureId);
+            stmtHl.setString(1, pi.id);
             stmtHl.executeUpdate();
 
-            stmtMes.setString(1, pi.procedureId);
+            stmtMes.setString(1, pi.id);
             stmtMes.executeUpdate();
 
-            stmtProcDesc.setString(1, pi.procedureId);
+            stmtProcDesc.setString(1, pi.id);
             stmtProcDesc.executeUpdate();
 
-            stmtObs.setString(1, pi.procedureId);
+            stmtObs.setString(1, pi.id);
             stmtObs.executeUpdate();
         }
         cleanupUnusedEntities(c);
@@ -1816,7 +1816,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>(), new ArrayList<>());
+        List<Field> fields = readFields(pi.id, true, c, new ArrayList<>(), new ArrayList<>());
 
         List<String> rmSQLs = new ArrayList<>();
         StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m ");
@@ -1862,7 +1862,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.procedureId, true, c, new ArrayList<>(), new ArrayList<>());
+        List<Field> fields = readFields(pi.id, true, c, new ArrayList<>(), new ArrayList<>());
 
         StringBuilder sql = new StringBuilder("SELECT ");
 
@@ -2073,11 +2073,11 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
             fieldOffset = 1;
 
         } else if (allowSensorStructureUpdate) {
-            oldfields               = readFields(pi.procedureId, c);
+            oldfields               = readFields(pi.id, c);
             firstField              = false;
             nbTable                 = pi.nbTable;
             // number of field in the last measure table
-            nbTabField              = getNbFieldInTable(pi.procedureId, nbTable, c);
+            nbTabField              = getNbFieldInTable(pi.id, nbTable, c);
             fieldOffset             = oldfields.size() + 1;
 
         } else {
@@ -2170,13 +2170,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
             }
             // update table count
-            stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + pi.procedureId + "'");//NOSONAR
+            stmt.executeUpdate("UPDATE \"" + schemaPrefix + "om\".\"procedures\" SET \"nb_table\" = " + nbTable + " WHERE \"id\"='" + pi.id + "'");//NOSONAR
         }
 
         /**
          * fill procedure_descriptions table
          */
-        insertFields(pi.procedureId, newFields, fieldOffset, c);
+        insertFields(pi.id, newFields, fieldOffset, c);
     }
 
     private void insertFields(String procedureID, List<DbField> fields, int offset, final Connection c) throws SQLException {
@@ -2280,7 +2280,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                      // 3. At least one component of the observation phenomenon is involved => update observed property
                      } else if (isPartOf(cdt.phenomenon, phenToRemove)) {
                         final List<Field> fields                 = getPhenomenonsFields(phenToRemove);
-                        final List<InsertDbField> fieldsToRemove  = completeDbField(cdt.pi.procedureId, fields, c);
+                        final List<InsertDbField> fieldsToRemove  = completeDbField(cdt.pi.id, fields, c);
                         OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);
                         remover.removeMeasures(c);
                         removeEmptyMeasures(cdt, c);
@@ -2298,13 +2298,13 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     boolean removed = removeProcedureIfEmpty(pi, c);
                     if (!removed) {
                         // update offering phenomenons
-                        updatePhenomenonInOffering(pi.procedureId, c);
+                        updatePhenomenonInOffering(pi.id, c);
                         // remove the field(s)
                         final List<Field> fields = getPhenomenonsFields(phenToRemove);
                         try(PreparedStatement rmFieldStmt = c.prepareStatement("DELETE FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\" = ? AND (\"field_name\"= ? OR \"parent\" = ?)")) {
                             final PreparedSQLBatch stmtBatch = new PreparedSQLBatch(rmFieldStmt, dialect.supportBatch);
                             for (Field field : fields) {
-                                stmtBatch.setString(1, pi.procedureId);
+                                stmtBatch.setString(1, pi.id);
                                 stmtBatch.setString(2, field.name);
                                 stmtBatch.setString(3, field.name);
                                 stmtBatch.addBatch();

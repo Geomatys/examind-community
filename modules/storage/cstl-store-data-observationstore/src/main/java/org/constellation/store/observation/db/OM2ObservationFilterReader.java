@@ -677,7 +677,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 List<Field> phenFields = new ArrayList<>();
                 for (String f : fieldIdFilters) {
-                    final Field field = getProcedureField(currentProcedure.procedureId, f, c);
+                    final Field field = getProcedureField(currentProcedure.id, f, c);
                     if (field != null && !fields.contains(field)) {
                         phenFields.add(field);
                     }
@@ -687,7 +687,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 fields.addAll(phenFields);
 
             } else {
-                fields = readFields(currentProcedure.procedureId, false, c, fieldIndexFilters, fieldIdFilters);
+                fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters);
             }
             if (fields.isEmpty()) {
                 throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
@@ -717,6 +717,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             // TODO not fan of this
             // this will append the time filter but ....
             if (!sqlRequest.isEmpty()) {
+                // this one is probably useless since we already selected a procedure.
+                // but i can't invalidate the result to return 0 measures.
+                if (procPropJoin) {
+                    sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
+                }
+                if (phenPropJoin) {
+                    sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
+                }
+                if (foiPropJoin) {
+                    sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
+                }
                 measureRequest.append(" AND ").append(sqlRequest);
             }
             

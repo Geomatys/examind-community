@@ -283,7 +283,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 values.appendTime(t, false, field);
             // id field
             } else if (i < fieldOffset && field.type == FieldType.TEXT) {
-                values.appendString(procedure.procedureId + "-dec-" + cpt, false, field);
+                values.appendString(procedure.id + "-dec-" + cpt, false, field);
             } else {
                 final double value = fieldValues.get(field.name)[index];
                 if (value != undefinedValue) {

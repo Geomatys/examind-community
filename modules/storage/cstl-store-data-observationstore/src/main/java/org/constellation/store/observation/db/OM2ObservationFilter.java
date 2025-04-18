@@ -684,7 +684,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     }
 
                     // avoid to join with observation in a getResult context
-                    if (currentProcedure == null || !currentProcedure.procedureId.equals(procedureID)) {
+                    if (currentProcedure == null || !currentProcedure.id.equals(procedureID)) {
                         procFilter.append("(o.\"procedure\"=").appendValue(procedureID).append(") ");
                         obsJoin = true;
                     }

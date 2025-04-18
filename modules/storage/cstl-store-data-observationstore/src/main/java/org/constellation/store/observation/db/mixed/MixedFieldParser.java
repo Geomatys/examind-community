@@ -102,7 +102,7 @@ public class MixedFieldParser extends FieldParser {
                 // close previous block
                 if (previousKey != null) {
                     Observation obs =  endBlock(blocValues, oid, previousMeasureId, proc, feature, phen, properties);
-                    observations.put(pti.procedureId + '-' + obsName + '-' + previousMeasureId, obs);
+                    observations.put(pti.id + '-' + obsName + '-' + previousMeasureId, obs);
                     blocValues = createNewBlocValues(profile, mainFieldIndex);
                 }
                 
@@ -140,7 +140,7 @@ public class MixedFieldParser extends FieldParser {
         }
         // close last block
         Observation obs = endBlock(blocValues, oid, previousMeasureId, proc, feature, phen, properties);
-        observations.put(pti.procedureId + '-' + obsName + '-' + previousMeasureId, obs);
+        observations.put(pti.id + '-' + obsName + '-' + previousMeasureId, obs);
         
         return observations;
     }

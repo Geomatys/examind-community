@@ -258,7 +258,7 @@ public class FieldParser {
                                           result,
                                           properties,
                                           null);
-            observations.put(pti.procedureId + '-' + obsName + '-' + measureID, observation);
+            observations.put(pti.id + '-' + obsName + '-' + measureID, observation);
             clear();
         }
         return observations;
@@ -292,10 +292,10 @@ public class FieldParser {
         String fid = feature != null ? feature.getId() : "null";
         if (separatedProfileObs && profile) {
             synchronized (format2) {
-                observationKey = pti.procedureId + '-' + fid + '-' + format2.format(firstTime);
+                observationKey = pti.id + '-' + fid + '-' + format2.format(firstTime);
             }
         } else {
-            observationKey = pti.procedureId + '-' + fid;
+            observationKey = pti.id + '-' + fid;
         }
         return Map.of(observationKey, observation);
     }

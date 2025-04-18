@@ -64,7 +64,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                     }
                 // id field
                 } else if (i < fieldOffset && field.type == FieldType.TEXT) {
-                    values.appendString(procedure.procedureId + "-dec-" + cpt, false, field);
+                    values.appendString(procedure.id + "-dec-" + cpt, false, field);
                     cpt++;
                     continue;
                 }

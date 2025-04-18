@@ -27,16 +27,18 @@ import org.geotoolkit.observation.model.Field;
 public class ProcedureInfo {
     public final int pid;
     public final int nbTable;
-    public final String procedureId;
-    public final String procedureName;
+    public final String id;
+    public final String name;
+    public final String description;
     public final String type;
     public final Field mainField;
 
-    public ProcedureInfo(int pid, int nbTable, String procedureId, String procedureName, String type, Field mainField) {
+    public ProcedureInfo(int pid, int nbTable, String id, String name, String description, String type, Field mainField) {
         this.pid = pid;
         this.nbTable = nbTable;
-        this.procedureId = procedureId;
-        this.procedureName = procedureName;
+        this.id = id;
+        this.name = name;
+        this.description = description;
         this.type = type;
         this.mainField = mainField;
     }
@@ -46,8 +48,9 @@ public class ProcedureInfo {
         StringBuilder sb = new StringBuilder("[ProcedureInfo]");
         sb.append("pid: ").append(pid).append('\n');
         sb.append("nbTable: ").append(nbTable).append('\n');
-        sb.append("procedureId: ").append(procedureId).append('\n');
-        sb.append("procedureName: ").append(procedureName).append('\n');
+        sb.append("id: ").append(id).append('\n');
+        sb.append("name: ").append(name).append('\n');
+        sb.append("description: ").append(description).append('\n');
         sb.append("type: ").append(type).append('\n');
         sb.append("mainField:\n").append(mainField).append('\n');
         return sb.toString();

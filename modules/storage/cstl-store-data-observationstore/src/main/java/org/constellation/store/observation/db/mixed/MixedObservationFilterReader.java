@@ -190,7 +190,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         }
         
         String select;
-        String where  = "WHERE \"thing_id\" = '" + pti.procedureId + "'";
+        String where  = "WHERE \"thing_id\" = '" + pti.id + "'";
         if (idOnly) {
             if (profile) {
                 select = "getmesureidpr(\"z_value\", \"time\") as \"id\"";

@@ -82,6 +82,7 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.junit.Ignore;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -5802,6 +5803,113 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         assertEquals(expectedResult, result);
 
+    }
+    
+    @Test
+    public void getResultsSingleFilterFlatTest() throws Exception {
+        // sensor 8
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "text/csv-flat");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                            "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;value\n" +
+                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
+                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0\n" +
+                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
+                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;13.0\n" +
+                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
+                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;14.0\n" +
+                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
+                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;15.0\n" +
+                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
+                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;16.0\n";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsSingleFilterFlatProfileTest() throws Exception {
+        // sensor 8
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "text/csv-flat");
+        query.setIncludeTimeForProfile(true);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                            "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.0;19.7\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;48.0;21.2\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;96.0;23.9\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;192.0;26.2\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;384.0;31.4\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;768.0;35.1\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5\n";
+
+        assertEquals(expectedResult, result);
+        
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:14", "text/csv-flat");
+        query.setIncludeTimeForProfile(true);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+
+        expectedResult =
+                            "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.7\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;12.6\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;12.5\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;12.4\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;12.3\n" +
+                            "2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;12.2\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.9\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;13.0\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;13.1\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;13.2\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;13.3\n" +
+                            "2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;13.4\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;18.5;5.1\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;19.7;5.2\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.7\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;21.2;5.3\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;12.6\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;23.9;5.4\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;12.5\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;24.2;5.5\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;12.4\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;29.4;5.6\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;12.3\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;31.1;5.7\n" +
+                            "2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;12.2\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;18.5;5.1\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;19.7;5.0\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.9\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;21.2;4.9\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;13.0\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;23.9;4.8\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;13.1\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;24.2;4.7\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;13.2\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;29.4;4.6\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;13.3\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;salinity;salinity;urn:ogc:def:phenomenon:GEOM:salinity;msu;31.1;4.5\n" +
+                            "2000-12-24T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;13.4\n";
+
+        assertEquals(expectedResult, result);
     }
 
     @Test
