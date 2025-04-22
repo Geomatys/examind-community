@@ -33,10 +33,10 @@ import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.model.OMSQLDialect.DERBY;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.model.ComplexResult;
-import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TEXT;
-import static org.geotoolkit.observation.model.FieldType.TIME;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TEXT;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import org.geotoolkit.temporal.object.ISODateParser;
 
@@ -131,7 +131,7 @@ public class ResultValuesIterator {
 
         private String extractNextValue(Object measure, InsertDbField field) throws DataStoreException {
             String value = null;
-            switch (field.type) {
+            switch (field.dataType) {
                 case TIME -> {
                     //format time
                     if (measure != null) {
@@ -263,7 +263,7 @@ public class ResultValuesIterator {
                 }
             }
 
-            switch (field.type) {
+            switch (field.dataType) {
                 case TIME -> {
                     //format time
                     if (value != null && !(value = value.trim()).isEmpty()) {

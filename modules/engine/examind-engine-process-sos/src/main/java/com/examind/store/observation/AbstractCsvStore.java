@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.opengis.parameter.ParameterValueGroup;
 
 /**
@@ -52,9 +52,9 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
         final List<MeasureField> results = new ArrayList<>();
         for (int i = 0; i < obsPropIndexes.size(); i++) {
             int index = obsPropIndexes.get(i);
-            FieldType ft = FieldType.QUANTITY;
+            FieldDataType ft = FieldDataType.QUANTITY;
             if (i < obsPropColumnsTypes.size()) {
-                ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                ft = FieldDataType.valueOf(obsPropColumnsTypes.get(i));
             }
             // for now we handle only one quality field by field
             List<MeasureField> qualityFields = new ArrayList<>();
@@ -65,9 +65,9 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
                     qName = qualityColumnsIds.get(i);
                 }
                 qName = normalizeFieldName(qName);
-                FieldType qtype = FieldType.TEXT;
+                FieldDataType qtype = FieldDataType.TEXT;
                 if (i < qualityColumnsTypes.size()) {
-                    qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                    qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
                 }
                 qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
             }

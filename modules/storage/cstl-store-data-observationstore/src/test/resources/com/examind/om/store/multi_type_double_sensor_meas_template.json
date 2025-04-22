@@ -31,7 +31,7 @@
     "result": {
         "field": {
             "index": 1,
-            "type": "QUANTITY",
+            "dataType": "QUANTITY",
             "name": "age",
             "description": "urn:ogc:def:phenomenon:GEOM:age"
         }

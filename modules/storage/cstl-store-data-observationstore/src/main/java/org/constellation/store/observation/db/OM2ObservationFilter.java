@@ -1115,7 +1115,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 sb.append(" (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_quality_" + qField.name + "\" ").replace('}', ' ')).append(") ");
                                 extraFilter.get(qparam).incrementAndGet();
                             } else {
-                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.type);
+                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.dataType);
                                 sb.append(" FALSE ");
                             }
                             single.replaceFirst(block, sb.toString());
@@ -1135,7 +1135,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                                 sb.append(" (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_parameter_" + qField.name + "\" ").replace('}', ' ')).append(") ");
                                 extraFilter.get(qparam).incrementAndGet();
                             } else {
-                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.type);
+                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.dataType);
                                 sb.append(" FALSE ");
                             }
                             single.replaceFirst(block, sb.toString());
@@ -1244,7 +1244,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         sb.append(" (").append(block.replace(allPhenKeyword, "\"" + field.name + "\" ").replace('}', ' ')).append(") ");
                         extraFilter++;
                     } else {
-                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.type);
+                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
                         sb.append(" FALSE ");
                     }
                     first = false;
@@ -1270,10 +1270,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected static boolean matchType(Param param, Field field) {
         //we want to let pass different numbers type
         if (Number.class.isAssignableFrom(param.type) &&
-            Number.class.isAssignableFrom(field.type.getJavaType()))  {
+            Number.class.isAssignableFrom(field.dataType.getJavaType()))  {
             return true;
         }
-        return param.type.isAssignableFrom(field.type.getJavaType());
+        return param.type.isAssignableFrom(field.dataType.getJavaType());
     }
 
     protected void treatPhenFilterForField(DbField field, int pIndex, SingleFilterSQLRequest single, int curTable, Field parent, String extraSubType) {
@@ -1302,7 +1302,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                 // the parameter type does not match, we must invalidate the results
                 if (!typeMatch) {
-                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.type);
+                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.dataType);
                     single.replaceFirst(block, " FALSE ");
 
                 // we need to remove the filter fom the request, as it does not apply to this table

@@ -49,11 +49,11 @@ import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
-import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TEXT;
-import static org.geotoolkit.observation.model.FieldType.TIME;
+import org.geotoolkit.observation.model.FieldDataType;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TEXT;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
@@ -330,10 +330,10 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                             String currentFname = rs2.getString("obsprop_id");
                             
                             Entry<Field, Phenomenon> entry = getPhenomenonFromFieldName(currentFname, fieldPhen);
-                            Phenomenon fphen = entry.getValue();
-                            DbField field    = (DbField) entry.getKey();
-                            FieldType fType  = field.type;
-                            int rsIndex      = field.tableNumber;
+                            Phenomenon fphen    = entry.getValue();
+                            DbField field       = (DbField) entry.getKey();
+                            FieldDataType fType = field.dataType;
+                            int rsIndex         = field.tableNumber;
                             final String observationType = getOmTypeFromFieldType(fType);
                             final String value = rs2.getString("result", rsIndex);
                             if (value != null) {
@@ -412,7 +412,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                     sb.append(" (").append(block.replace(allPhenKeyword, mFilter).replace('}', ' ')).append(") ");
                     extraFilter++;
                 } else {
-                    LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.type);
+                    LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
                     if (i != offset) sb.append(" AND"); // not for the first
                     sb.append(" (FALSE) ");  // TODO is this invalidating anything?
                 }
@@ -467,7 +467,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
 
                 // the parameter type does not match, we must invalidate the results
                 if (!typeMatch) {
-                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.type);
+                    LOGGER.fine("Param type is not matching the field type: " + phenParam.type.getName() + " => " + field.dataType);
                     single.replaceFirst(block, " AND FALSE ");
 
                 // we need to remove the filter fom the request, as it does not apply to this table

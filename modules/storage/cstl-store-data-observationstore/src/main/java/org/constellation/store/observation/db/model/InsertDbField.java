@@ -25,6 +25,7 @@ import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import javax.measure.format.MeasurementParseException;
 import org.apache.sis.measure.Units;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 
 /**
@@ -35,8 +36,8 @@ public class InsertDbField extends DbField {
 
     private UnitConverter valueConverter;
 
-    public InsertDbField(Integer index, FieldType type, String name, String label, String description, String uom, int tableNumber) {
-        super(index, type, name, label, description, uom, tableNumber);
+    public InsertDbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber) {
+        super(index, dataType, name, label, description, uom, type, tableNumber);
     }
 
     public InsertDbField(DbField original) {

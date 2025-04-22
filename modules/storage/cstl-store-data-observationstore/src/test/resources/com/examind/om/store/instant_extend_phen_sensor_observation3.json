@@ -38,13 +38,13 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "turbidity-EXT",
                 "description": "urn:ogc:def:phenomenon:GEOM:turbidity-EXT",
                 "uom": "m3/s"

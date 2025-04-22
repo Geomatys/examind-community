@@ -38,7 +38,7 @@ import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.OMEntity;
 
 /**
@@ -140,11 +140,11 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 if (i == mainFieldIndex) {
 
                 // time for profile field (present in all resultSets)
-                } else if (i < fieldOffset && field.type == FieldType.TIME) {
+                } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
                     t = dateFromTS(rs.getTimestamp(field.name));
 
                 // identifier field
-                } else if (i < fieldOffset && field.type == FieldType.TEXT) {
+                } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
                     // nothing to extract
 
                 } else {
@@ -266,9 +266,9 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
             // main field
             if (i == mainFieldIndex) {
-                if (FieldType.TIME.equals(field.type)) {
+                if (FieldDataType.TIME.equals(field.dataType)) {
                     values.appendTime(new Date(mainValue), false, field);
-                } else if (FieldType.QUANTITY.equals(field.type)) {
+                } else if (FieldDataType.QUANTITY.equals(field.dataType)) {
                     // special case for profile + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
                     if (!skipProfileMain) {
@@ -279,10 +279,10 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 }
 
             // time for profile field
-            } else if (i < fieldOffset && field.type == FieldType.TIME) {
+            } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
                 values.appendTime(t, false, field);
             // id field
-            } else if (i < fieldOffset && field.type == FieldType.TEXT) {
+            } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
                 values.appendString(procedure.id + "-dec-" + cpt, false, field);
             } else {
                 final double value = fieldValues.get(field.name)[index];
@@ -297,7 +297,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     }
 
     protected long extractMainValue(Field field, SQLResult rs) throws SQLException {
-        switch(field.type) {
+        switch(field.dataType) {
             case TIME -> {
                 final Timestamp currentTime = rs.getTimestamp(field.name);
                 return currentTime.getTime();

@@ -58,6 +58,7 @@ import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.ObservationStoreException;
 import org.geotoolkit.observation.model.ComplexResult;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -71,7 +72,6 @@ import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Result;
 import org.geotoolkit.observation.model.ResultMode;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.filter.LogicalOperatorName;
 import org.opengis.metadata.quality.Element;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
@@ -335,7 +335,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     String timeKey =  procedure + "-" + observedProperty + "-" + featureID;
                     tempTime = timeMap.computeIfAbsent(timeKey, k -> getTimeForTemplate(c, procedure, observedProperty, featureID));
                 }
-                final String observationType         = getOmTypeFromFieldType(field.type);
+                final String observationType         = getOmTypeFromFieldType(field.dataType);
                 MeasureResult result                 = new MeasureResult(field, null);
                 final List<Element> resultQuality    = buildResultQuality(field, null);
                 Observation observation = new Observation(obsID + '-' + fieldIndex,
@@ -431,11 +431,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     // add the time for profile in the dataBlock if requested
                     if (profileWithTime) {
-                        fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, -1));
+                        fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, -1));
+                        fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -577,11 +577,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                             }
 
                             for (Entry<Field, Phenomenon> entry : fieldPhen.entrySet()) {
-                                Phenomenon fphen = entry.getValue();
-                                DbField field    = (DbField) entry.getKey();
-                                FieldType fType  = field.type;
-                                String fName     = field.name;
-                                int rsIndex      = field.tableNumber;
+                                Phenomenon fphen    = entry.getValue();
+                                DbField field       = (DbField) entry.getKey();
+                                FieldDataType fType = field.dataType;
+                                String fName        = field.name;
+                                int rsIndex         = field.tableNumber;
                                 final String observationType = getOmTypeFromFieldType(fType);
                                 final String value = rs2.getString(fName, rsIndex);
                                 if (value != null) {
@@ -700,11 +700,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new DbField(0, FieldType.TIME, "time_begin", "time", "time", null, -1));
+                fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldType.TEXT, "id", "measure identifier", "measure identifier", null, -1));
+                fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
             }
 
             /**

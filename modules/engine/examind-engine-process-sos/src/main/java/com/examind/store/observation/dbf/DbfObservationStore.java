@@ -44,12 +44,12 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
-import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
-import static org.geotoolkit.observation.model.FieldType.JSON;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TEXT;
-import static org.geotoolkit.observation.model.FieldType.TIME;
+import org.geotoolkit.observation.model.FieldDataType;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.JSON;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TEXT;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -126,9 +126,9 @@ public class DbfObservationStore extends AbstractCsvStore {
             final List<MeasureField> obsPropFields = new ArrayList<>();
             for (int i = 0; i < obsPropIndexes.size(); i++) {
                 int index = obsPropIndexes.get(i);
-                FieldType ft = FieldType.QUANTITY;
+                FieldDataType ft = FieldDataType.QUANTITY;
                 if (i < obsPropColumnsTypes.size()) {
-                    ft = FieldType.valueOf(obsPropColumnsTypes.get(i));
+                    ft = FieldDataType.valueOf(obsPropColumnsTypes.get(i));
                 }
                 // for now we handle only one quality field by field
                 List<MeasureField> qualityFields = new ArrayList<>();
@@ -139,9 +139,9 @@ public class DbfObservationStore extends AbstractCsvStore {
                         qName = qualityColumnsIds.get(i);
                     }
                     qName = normalizeFieldName(qName);
-                    FieldType qtype = FieldType.TEXT;
+                    FieldDataType qtype = FieldDataType.TEXT;
                     if (i < qualityColumnsTypes.size()) {
-                        qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                        qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
                     }
                     qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
                 }
@@ -271,7 +271,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                         if (value == null) {
                             measureValue = null;
                         } else {
-                            measureValue = switch (field.type) {
+                            measureValue = switch (field.dataType) {
                                 case BOOLEAN  -> parseBoolean(value);
                                 case QUANTITY -> parseDouble(value);
                                 case TEXT     -> value instanceof String ? value : value.toString();
@@ -289,7 +289,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                         currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!(line[index] instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.type.toString(), lineNumber, index, line[index]));
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, line[index]));
                         }
                     }
                 }

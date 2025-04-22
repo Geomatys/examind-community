@@ -5,9 +5,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 
@@ -142,6 +144,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendDouble(Double value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
         if (value != null && !value.isNaN()) {
             if (profile && f.name.equals(procedure.mainField.name)) {
                 for (csvFlatLine line : currentLines.values()) {
@@ -159,6 +163,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendBoolean(Boolean value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
             currentLine.appendValue(value);
@@ -170,6 +176,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendFloat(Float value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
         if (value != null && !Float.isNaN(value)) {
             csvFlatLine currentLine = getCurrentLine(f.name);
             currentLine.appendValue(value);
@@ -181,6 +189,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendInteger(Integer value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
             currentLine.appendValue(value);
@@ -192,6 +202,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendString(String value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
          // we don't want to add the id
         if (!f.name.equals("id") && value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
@@ -204,9 +216,41 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendLong(Long value, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
             currentLine.appendValue(value);
+        }
+    }
+
+    @Override
+    public void appendMap(Map map, boolean measureField, Field f) {
+        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
+        if (map != null && !map.isEmpty()) {
+            csvFlatLine currentLine = getCurrentLine(f.name);
+            StringBuilder sb = new StringBuilder();
+            for (Object key : map.keySet()) {
+                if (key instanceof String keyStr) {
+                    sb.append(keyStr).append(":");
+                    Object value = map.get(key);
+                    if (value instanceof String valueStr) {
+                        sb.append(valueStr);
+                    } else if (value instanceof List lst) {
+                        sb.append('[');
+                        for (Object lsValue : lst) {
+                            if (lsValue instanceof String lsValueStr) {
+                                sb.append(lsValueStr).append(",");
+                            }
+                        }
+                        sb.deleteCharAt(sb.length() -1);
+                        sb.append(']');
+                    }
+                    sb.append("|");
+                }
+            }
+            sb.deleteCharAt(sb.length() -1);
+            currentLine.appendValue(sb.toString());
         }
     }
 

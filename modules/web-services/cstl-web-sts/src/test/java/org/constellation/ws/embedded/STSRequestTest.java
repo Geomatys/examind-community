@@ -2455,7 +2455,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-1.json");
-        assertEquals(expResult, result);
+        compareJSON(expResult, result);
     }
     
     @Test

@@ -31,7 +31,7 @@
     "result": {
         "field": {
             "index": 4,
-            "type": "TIME",
+            "dataType": "TIME",
             "name": "expiration",
             "description": "urn:ogc:data:time:iso8601"
         }

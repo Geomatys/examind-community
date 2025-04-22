@@ -49,14 +49,14 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "label": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "TEXT",
+                "dataType": "TEXT",
                 "name": "depth-TEXT",
                 "label": "depth-TEXT",
                 "description": "urn:ogc:def:phenomenon:GEOM:depth-TEXT",
@@ -64,7 +64,7 @@
                 "qualityFields": []
             }, {
                 "index": 3,
-                "type": "TEXT",
+                "dataType": "TEXT",
                 "name": "temperature-TEXT",
                 "label": "temperature-TEXT",
                 "description": "urn:ogc:def:phenomenon:GEOM:temperature-TEXT",

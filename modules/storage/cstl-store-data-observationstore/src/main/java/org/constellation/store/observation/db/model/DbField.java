@@ -19,6 +19,7 @@
 package org.constellation.store.observation.db.model;
 
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 
 /**
@@ -29,8 +30,8 @@ public class DbField extends Field {
 
     public final int tableNumber;
 
-    public DbField(Integer index, FieldType type, String name, String label, String description, String uom, int tableNumber) {
-        super(index, type, name, label, description, uom);
+    public DbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber) {
+        super(index, dataType, name, label, description, uom, type);
         this.tableNumber = tableNumber;
     }
 

@@ -65,6 +65,7 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
@@ -890,7 +891,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldType.QUANTITY, "value", null, null, null, 1);
+    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldDataType.QUANTITY, "value", null, null, null, FieldType.MEASURE, 1);
 
     /**
      * Write  an observation result.
@@ -936,7 +937,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     }
 
     private void setResultField(PreparedStatement stmt, int index, MeasureResult result) throws SQLException {
-        switch (result.getField().type) {
+        switch (result.getField().dataType) {
             case BOOLEAN  -> stmt.setBoolean(index,   (boolean) result.getValue());
             case QUANTITY -> stmt.setDouble(index,    (double) result.getValue());
             case TEXT     -> stmt.setString(index,    (String) result.getValue());
@@ -1782,7 +1783,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private void updateObservationTemporalBounds(ObservationInfos obsInfo, Connection c) throws SQLException, DataStoreException {
         // only for timeseries
         Field mainField = obsInfo.pi.mainField;
-        if (mainField.type.equals(FieldType.TIME)) {
+        if (mainField.dataType.equals(FieldDataType.TIME)) {
             String boundSQL  = "SELECT min(\"" + mainField.name + "\"), max(\"" + mainField.name + "\") FROM \"" + schemaPrefix + "mesures\".\"mesure" + obsInfo.pi.pid + "\" WHERE \"id_observation\" = ?" ;
             String updateObs = "UPDATE \"" + schemaPrefix + "om\".\"observations\" SET \"time_begin\"=?, \"time_end\"=? WHERE \"id\"=?";
             try (PreparedStatement bStmt  = c.prepareStatement(boundSQL);
@@ -2144,7 +2145,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                     stmt.executeUpdate(tableStsmt.toString());
 
                     //only for timeseries for now
-                    if (timescaleDB && tc.mainField != null && FieldType.TIME.equals(tc.mainField.type)) {
+                    if (timescaleDB && tc.mainField != null && FieldDataType.TIME.equals(tc.mainField.dataType)) {
                         stmt.execute("SELECT create_hypertable('" + schemaPrefix + "mesures." + baseTableName + "', '" + tc.mainField.name + "')");//NOSONAR
                     }
 
@@ -2206,7 +2207,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         insertFieldStmt.setString(1, procedureID);
         insertFieldStmt.setInt(2, offset);
         insertFieldStmt.setString(3, field.name);
-        insertFieldStmt.setString(4, field.type.label);
+        insertFieldStmt.setString(4, field.dataType.label);
         if (field.description != null) {
             insertFieldStmt.setString(5, field.description);
         } else {

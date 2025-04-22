@@ -28,7 +28,7 @@ import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 
 /**
  *
@@ -63,12 +63,12 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                         continue;
                     }
                 // id field
-                } else if (i < fieldOffset && field.type == FieldType.TEXT) {
+                } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
                     values.appendString(procedure.id + "-dec-" + cpt, false, field);
                     cpt++;
                     continue;
                 }
-                switch (field.type) {
+                switch (field.dataType) {
                     case TIME -> {
                         boolean measureField = i >= fieldOffset;
                         Date t;

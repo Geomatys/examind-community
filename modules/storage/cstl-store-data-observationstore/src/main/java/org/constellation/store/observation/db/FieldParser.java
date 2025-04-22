@@ -35,7 +35,7 @@ import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
-import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -157,7 +157,7 @@ public class FieldParser {
            isMeasureField = fieldIndex >= offset;
         }
         int rsIndex = field.tableNumber;
-        switch (field.type) {
+        switch (field.dataType) {
             case TIME:
                 // profile with time field
                 if (profileWithTime && fieldIndex < offset) {

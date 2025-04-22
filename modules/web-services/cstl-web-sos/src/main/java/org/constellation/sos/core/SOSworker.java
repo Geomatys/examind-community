@@ -1787,7 +1787,7 @@ public class SOSworker extends SensorWorker {
             }
             // we assume a time series
             List<Field> fields = OMUtils.getPhenomenonsFields(phenomenon);
-            fields.add(0, new Field(1, OMUtils.TIME_FIELD));
+            fields.add(0, new Field(1, OMUtils.TIME_MAIN_FIELD));
 
             if (omProvider != null) {
                 //we write the observations template in the O&M database
@@ -1938,7 +1938,7 @@ public class SOSworker extends SensorWorker {
             Field cdtMainField = cdtResult.getFields().get(0);
             // look onlly for id and type because definition can vary
             if (!(Objects.equals(tmpMainField.name, cdtMainField.name) &&
-                  Objects.equals(tmpMainField.type, cdtMainField.type))) {
+                  Objects.equals(tmpMainField.dataType, cdtMainField.dataType))) {
                 return false;
             }
         }

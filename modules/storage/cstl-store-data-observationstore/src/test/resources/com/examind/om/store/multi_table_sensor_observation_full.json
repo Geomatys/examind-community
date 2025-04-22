@@ -152,14 +152,14 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "label": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f1",
                 "label": "f1",
                 "description": "urn:ogc:def:phenomenon:GEOM:f1",
@@ -167,7 +167,7 @@
                 "qualityFields": []
             }, {
                 "index": 3,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f2",
                 "label": "f2",
                 "description": "urn:ogc:def:phenomenon:GEOM:f2",
@@ -175,7 +175,7 @@
                 "qualityFields": []
             }, {
                 "index": 4,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f3",
                 "label": "f3",
                 "description": "urn:ogc:def:phenomenon:GEOM:f3",
@@ -183,7 +183,7 @@
                 "qualityFields": []
             }, {
                 "index": 5,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f4",
                 "label": "f4",
                 "description": "urn:ogc:def:phenomenon:GEOM:f4",
@@ -191,7 +191,7 @@
                 "qualityFields": []
             }, {
                 "index": 6,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f5",
                 "label": "f5",
                 "description": "urn:ogc:def:phenomenon:GEOM:f5",
@@ -199,7 +199,7 @@
                 "qualityFields": []
             }, {
                 "index": 7,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f6",
                 "label": "f6",
                 "description": "urn:ogc:def:phenomenon:GEOM:f6",
@@ -207,7 +207,7 @@
                 "qualityFields": []
             }, {
                 "index": 8,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f7",
                 "label": "f7",
                 "description": "urn:ogc:def:phenomenon:GEOM:f7",
@@ -215,7 +215,7 @@
                 "qualityFields": []
             }, {
                 "index": 9,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f8",
                 "label": "f8",
                 "description": "urn:ogc:def:phenomenon:GEOM:f8",
@@ -223,7 +223,7 @@
                 "qualityFields": []
             }, {
                 "index": 10,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f9",
                 "label": "f9",
                 "description": "urn:ogc:def:phenomenon:GEOM:f9",
@@ -231,7 +231,7 @@
                 "qualityFields": []
             }, {
                 "index": 11,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f10",
                 "label": "f10",
                 "description": "urn:ogc:def:phenomenon:GEOM:f10",
@@ -239,7 +239,7 @@
                 "qualityFields": []
             }, {
                 "index": 12,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f11",
                 "label": "f11",
                 "description": "urn:ogc:def:phenomenon:GEOM:f11",
@@ -247,7 +247,7 @@
                 "qualityFields": []
             }, {
                 "index": 13,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f12",
                 "label": "f12",
                 "description": "urn:ogc:def:phenomenon:GEOM:f12",
@@ -255,7 +255,7 @@
                 "qualityFields": []
             }, {
                 "index": 14,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f13",
                 "label": "f13",
                 "description": "urn:ogc:def:phenomenon:GEOM:f13",
@@ -263,7 +263,7 @@
                 "qualityFields": []
             }, {
                 "index": 15,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f14",
                 "label": "f14",
                 "description": "urn:ogc:def:phenomenon:GEOM:f14",
@@ -271,7 +271,7 @@
                 "qualityFields": []
             }, {
                 "index": 16,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f15",
                 "label": "f15",
                 "description": "urn:ogc:def:phenomenon:GEOM:f15",
@@ -279,7 +279,7 @@
                 "qualityFields": []
             }, {
                 "index": 17,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f16",
                 "label": "f16",
                 "description": "urn:ogc:def:phenomenon:GEOM:f16",
@@ -287,7 +287,7 @@
                 "qualityFields": []
             }, {
                 "index": 18,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f17",
                 "label": "f17",
                 "description": "urn:ogc:def:phenomenon:GEOM:f17",
@@ -295,7 +295,7 @@
                 "qualityFields": []
             }, {
                 "index": 19,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f18",
                 "label": "f18",
                 "description": "urn:ogc:def:phenomenon:GEOM:f18",
@@ -303,7 +303,7 @@
                 "qualityFields": []
             }, {
                 "index": 20,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f19",
                 "label": "f19",
                 "description": "urn:ogc:def:phenomenon:GEOM:f19",
@@ -311,7 +311,7 @@
                 "qualityFields": []
             }, {
                 "index": 21,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f20",
                 "label": "f20",
                 "description": "urn:ogc:def:phenomenon:GEOM:f20",
@@ -319,7 +319,7 @@
                 "qualityFields": []
             }, {
                 "index": 22,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f21",
                 "label": "f21",
                 "description": "urn:ogc:def:phenomenon:GEOM:f21",
@@ -327,7 +327,7 @@
                 "qualityFields": []
             }, {
                 "index": 23,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f22",
                 "label": "f22",
                 "description": "urn:ogc:def:phenomenon:GEOM:f22",

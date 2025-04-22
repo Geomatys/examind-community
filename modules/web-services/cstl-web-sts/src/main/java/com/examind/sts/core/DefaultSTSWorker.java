@@ -25,8 +25,6 @@ import com.examind.sensor.ws.SensorWorker;
 import static com.examind.sts.core.STSConstants.STS_DEC_EXT;
 import static com.examind.sts.core.STSConstants.STS_VERSION;
 import static com.examind.sts.core.STSUtils.*;
-import static com.examind.sts.core.STSUtils.SubFieldType.PARAMETER;
-import static com.examind.sts.core.STSUtils.SubFieldType.QUALITY;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +63,7 @@ import static org.geotoolkit.observation.OMUtils.getOmTypeFromFieldType;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.query.AbstractObservationQuery;
 import org.geotoolkit.observation.model.OMEntity;
@@ -738,7 +736,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
     }
 
     private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean single, boolean idIncluded) {
-        List<ExtField> fields = flatFields(cr.getFields());
+        List<Field> fields = flatFields(cr.getFields());
         List<Object> resultArray = cr.getDataArray();
         List<Object> results = new ArrayList<>();
         // reformat the results
@@ -769,8 +767,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Map parameters    = new HashMap<>();
                 if (arrayLine.size() > col) {
                     for (int i = col; i < arrayLine.size(); i++) {
-                        ExtField f = fields.get(i);
-                        switch (f.subType) {
+                        Field f = fields.get(i);
+                        switch (f.type) {
                             case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
                             case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
                             default        -> LOGGER.warning("Non quality/parameter field found in single dataArray. This should not happen");
@@ -784,8 +782,8 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 Map parameters    = new HashMap<>();
                 List measures     = new ArrayList<>();
                 for (int i = col; i < arrayLine.size(); i++) {
-                    ExtField f = fields.get(i);
-                    switch (f.subType) {
+                    Field f = fields.get(i);
+                    switch (f.type) {
                         case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
                         case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
                         default        -> measures.add(arrayLine.get(i));
@@ -935,7 +933,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             if (mr.getField().uom != null) {
                 uom = new UnitOfMeasure(mr.getField().uom, mr.getField().uom, mr.getField().uom);
             }
-            if (exp.isSelected("ObservationType")) datastream.setObservationType(getOmTypeFromFieldType(mr.getField().type));
+            if (exp.isSelected("ObservationType")) datastream.setObservationType(getOmTypeFromFieldType(mr.getField().dataType));
         } else {
             LOGGER.warning("measurement result type not handled yet");
         }
@@ -1101,7 +1099,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             // skip first main field (not for profile)
             int offset = 0;
-            if (!cr.getFields().isEmpty() && cr.getFields().get(0).type == FieldType.TIME) {
+            if (!cr.getFields().isEmpty() && cr.getFields().get(0).dataType == FieldDataType.TIME) {
                 offset = 1;
             }
             for (int i = offset; i < cr.getFields().size(); i++) {
@@ -1111,7 +1109,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                 if (dcp.uom != null) {
                     uom = new UnitOfMeasure(dcp.uom, dcp.uom, dcp.uom);
                 }
-                String omType = getOmTypeFromFieldType(dcp.type);
+                String omType = getOmTypeFromFieldType(dcp.dataType);
                 if (exp.isSelected("multiObservationDataTypes")) datastream.addMultiObservationDataTypesItem(omType);
                 uoms.add(uom);
             }

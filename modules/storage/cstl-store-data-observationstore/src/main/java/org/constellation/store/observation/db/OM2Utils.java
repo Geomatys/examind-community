@@ -18,8 +18,6 @@
  */
 package org.constellation.store.observation.db;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.constellation.store.observation.db.model.InsertDbField;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -45,6 +43,7 @@ import org.geotoolkit.geometry.jts.SRIDGenerator;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
@@ -65,7 +64,7 @@ public class OM2Utils {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
 
-    public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null);
+    public static final Field DEFAULT_TIME_FIELD = new Field(-1, FieldDataType.TIME, "time", null, "http://www.opengis.net/def/property/OGC/0/SamplingTime", null, FieldType.MAIN);
 
     public static Timestamp getInstantTimestamp(Instant inst) {
         return (inst != null) ? getInstantTimestamp(inst.getPosition()) : null;
@@ -119,14 +118,14 @@ public class OM2Utils {
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
                     String name = field.name + "_quality_" + qField.name;
-                    InsertDbField newField = new InsertDbField(null, qField.type, name, qField.label, qField.description, qField.uom, field.tableNumber);
+                    InsertDbField newField = new InsertDbField(null, qField.dataType, name, qField.label, qField.description, qField.uom, qField.type, field.tableNumber);
                     results.add(newField);
                 }
             }
             if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
                 for (Field pField : field.parameterFields) {
                     String name = field.name + "_parameter_" + pField.name;
-                    InsertDbField newField = new InsertDbField(null, pField.type, name, pField.label, pField.description, pField.uom, field.tableNumber);
+                    InsertDbField newField = new InsertDbField(null, pField.dataType, name, pField.label, pField.description, pField.uom, pField.type, field.tableNumber);
                     results.add(newField);
                 }
             }
@@ -146,7 +145,7 @@ public class OM2Utils {
         for (Field f : fields) {
             // only compare name and type
             boolean found = Objects.equals(f.name, field.name)
-                        && Objects.equals(f.type, field.type);
+                        && Objects.equals(f.dataType, field.dataType);
             if (found) {
                 return true;
             }
@@ -304,7 +303,7 @@ public class OM2Utils {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
-                switch (mainField.type) {
+                switch (mainField.dataType) {
                     case TIME -> {
                         final Timestamp minT = rs.getTimestamp(1, tableNum);
                         final Timestamp maxT = rs.getTimestamp(2, tableNum);
@@ -325,7 +324,7 @@ public class OM2Utils {
                         long step = (max - min) / width;
                         result[1] = step;
                     }
-                    default -> throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
+                    default -> throw new SQLException("unable to extract bound from a " + mainField.dataType + " main field.");
                 }
                 final Object key;
                 if (getLoc) {

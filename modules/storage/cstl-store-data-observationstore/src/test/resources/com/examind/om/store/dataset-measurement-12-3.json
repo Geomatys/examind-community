@@ -46,7 +46,7 @@
             "result": {
                 "field": {
                     "index": 2,
-                    "type": "QUANTITY",
+                    "dataType": "QUANTITY",
                     "name": "depth",
                     "label": "depth",
                     "description": "urn:ogc:def:phenomenon:GEOM:depth",
@@ -96,7 +96,7 @@
             "result": {
                 "field": {
                     "index": 3,
-                    "type": "QUANTITY",
+                    "dataType": "QUANTITY",
                     "name": "temperature",
                     "label": "temperature",
                     "description": "urn:ogc:def:phenomenon:GEOM:temperature",
@@ -146,7 +146,7 @@
             "result": {
                 "field": {
                     "index": 4,
-                    "type": "QUANTITY",
+                    "dataType": "QUANTITY",
                     "name": "salinity",
                     "label": "salinity",
                     "description": "urn:ogc:def:phenomenon:GEOM:salinity",

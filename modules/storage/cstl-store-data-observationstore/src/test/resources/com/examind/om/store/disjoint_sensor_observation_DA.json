@@ -51,20 +51,20 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "salinity-DIS",
                 "description": "urn:ogc:def:phenomenon:GEOM:salinity-DIS",
                 "uom": "psu",
                 "qualityFields": []
             }, {
                 "index": 3,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "temperature-DIS",
                 "description": "urn:ogc:def:phenomenon:GEOM:temperature-DIS",
                 "uom": "°C",

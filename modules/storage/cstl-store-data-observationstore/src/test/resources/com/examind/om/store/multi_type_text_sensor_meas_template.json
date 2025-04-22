@@ -31,7 +31,7 @@
     "result": {
         "field": {
             "index": 1,
-            "type": "TEXT",
+            "dataType": "TEXT",
             "name": "color",
             "description": "urn:ogc:def:phenomenon:GEOM:color"
         }

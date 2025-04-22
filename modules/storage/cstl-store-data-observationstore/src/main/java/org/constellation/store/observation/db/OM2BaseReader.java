@@ -67,11 +67,12 @@ import static org.geotoolkit.observation.OMUtils.getOverlappingComposite;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TEXT;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.FieldType;
-import static org.geotoolkit.observation.model.FieldType.BOOLEAN;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TEXT;
-import static org.geotoolkit.observation.model.FieldType.TIME;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -827,13 +828,24 @@ public class OM2BaseReader {
 
     protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchExtraFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
+        int order = rs.getInt("order");
+        String fieldType = rs.getString("sub_field_type");
+        FieldType ft;
+         if (fieldType != null) {
+            ft = FieldType.valueOf(fieldType);
+        } else if (order == 1) {
+            ft = FieldType.MAIN;
+        } else{
+            ft = FieldType.MEASURE;
+        }
         final DbField f = new DbField(
-                         rs.getInt("order"),
-                         FieldType.fromLabel(rs.getString("field_type")),
+                         order,
+                         FieldDataType.fromLabel(rs.getString("field_type")),
                          fieldName,
                          rs.getString("label"),
                          rs.getString("field_definition"),
                          rs.getString("uom"),
+                         ft,
                          rs.getInt("table_number"));
 
         if (fetchExtraFields) {
@@ -1026,7 +1038,7 @@ public class OM2BaseReader {
                 String fieldName = parent.name + "_quality_" + field.name;
                 Object value = null;
                 if (rs != null) {
-                    switch(field.type) {
+                    switch(field.dataType) {
                         case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
                         case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
                         case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
@@ -1049,7 +1061,7 @@ public class OM2BaseReader {
                 String fieldName = parent.name + "_parameter_" + field.name;
                 Object value = null;
                 if (rs != null) {
-                    switch(field.type) {
+                    switch(field.dataType) {
                         case BOOLEAN: value = rs.getBoolean(fieldName, rsIndex);break;
                         case QUANTITY: value = rs.getDouble(fieldName, rsIndex);break;
                         case TIME: value = rs.getTimestamp(fieldName, rsIndex);break;
@@ -1127,7 +1139,7 @@ public class OM2BaseReader {
             throw new DataStoreException("Measurement extraction need a measure id specified");
         }
 
-        final FieldType fType  = selectedField.type;
+        final FieldDataType fType  = selectedField.dataType;
         String tableName = "mesure" + ti.pid;
         int tn = ((DbField) selectedField).tableNumber;
         if (tn > 1) {

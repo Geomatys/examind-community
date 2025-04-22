@@ -33,13 +33,13 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "TEXT",
+                "dataType": "TEXT",
                 "name": "sali-TEXT",
                 "description": "urn:ogc:def:phenomenon:GEOM:salinity-TEXT",
                 "qualityFields": []

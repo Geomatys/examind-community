@@ -21,7 +21,7 @@ package com.examind.store.observation;
 import java.util.List;
 import java.util.Map;
 import org.apache.sis.util.ArgumentChecks;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 
 /**
  *
@@ -31,7 +31,7 @@ public class MeasureField {
 
     public final int columnIndex;
     public final String name;
-    public final FieldType type;
+    public final FieldDataType dataType;
     public final List<MeasureField> qualityFields;
 
     /*
@@ -42,11 +42,11 @@ public class MeasureField {
     public String description;
     public Map<String, Object> properties;
 
-    public MeasureField(int columnIndex, String name, FieldType type, List<MeasureField> qualityFields) {
-        ArgumentChecks.ensureNonNull("type", type);
+    public MeasureField(int columnIndex, String name, FieldDataType dataType, List<MeasureField> qualityFields) {
+        ArgumentChecks.ensureNonNull("dataType", dataType);
         this.columnIndex = columnIndex;
         this.name = name;
-        this.type = type;
+        this.dataType = dataType;
         this.qualityFields = qualityFields;
     }
 }

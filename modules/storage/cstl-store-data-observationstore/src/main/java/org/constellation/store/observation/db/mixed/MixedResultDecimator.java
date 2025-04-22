@@ -38,8 +38,8 @@ import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TIME;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.OMEntity;
 
 /**
@@ -106,7 +106,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
             Map<Object, long[]> results = new LinkedHashMap<>();
             while (rs.next()) {
                 final long[] result = {-1L, -1L};
-                switch (mainField.type) {
+                switch (mainField.dataType) {
                     case TIME -> {
                         final Timestamp minT = rs.getTimestamp(1, tableNum);
                         final Timestamp maxT = rs.getTimestamp(2, tableNum);
@@ -127,7 +127,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
                         long step = (max - min) / width;
                         result[1] = step;
                     }
-                    default -> throw new SQLException("unable to extract bound from a " + mainField.type + " main field.");
+                    default -> throw new SQLException("unable to extract bound from a " + mainField.dataType + " main field.");
                 }
                 final Object key;
                 if (getLoc) {

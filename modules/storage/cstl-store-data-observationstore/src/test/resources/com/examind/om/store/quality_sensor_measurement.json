@@ -39,7 +39,7 @@
     "result": {
         "field": {
             "index": 2,
-            "type": "QUANTITY",
+            "dataType": "QUANTITY",
             "name": "depth",
             "description": "urn:ogc:def:phenomenon:GEOM:depth",
             "uom": "m"

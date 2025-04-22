@@ -59,7 +59,7 @@
             "result": {
                 "fields": [{
                         "index": 1,
-                        "type": "QUANTITY",
+                        "dataType": "QUANTITY",
                         "name": "Depth",
                         "label": "depth",
                         "description": "urn:ogc:def:phenomenon:GEOM:depth",
@@ -67,7 +67,7 @@
                         "qualityFields": []
                     }, {
                         "index": 2,
-                        "type": "QUANTITY",
+                        "dataType": "QUANTITY",
                         "name": "Temperature",
                         "label": "temperature",
                         "description": "urn:ogc:def:phenomenon:GEOM:temperature",

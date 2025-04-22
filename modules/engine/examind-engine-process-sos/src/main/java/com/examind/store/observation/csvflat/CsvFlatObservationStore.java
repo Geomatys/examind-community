@@ -52,6 +52,7 @@ import com.examind.store.observation.ObservedProperty;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.constellation.exception.ConstellationStoreException;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -260,7 +261,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     int offset = "Profile".equals(observationType) ? 1 : 0;
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
-                        FieldType type = FieldType.QUANTITY;
+                        FieldDataType type = FieldDataType.QUANTITY;
                         measureFields.add(new MeasureField(-1, mc, type, qualityFields));
                     }
                     return new MeasureColumns(measureFields, currentMainColumns, cot);
@@ -583,8 +584,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     int offset = "Profile".equals(observationType) ? 1 : 0;
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
-                        FieldType type = FieldType.QUANTITY;
-                        measureFields.put(mc, new Field(k, type, mc, mc, null, null, qualityFields, List.of()));
+                        FieldDataType dataType = FieldDataType.QUANTITY;
+                        FieldType type = FieldType.MEASURE;
+                        measureFields.put(mc, new Field(k, dataType, mc, mc, null, null, type, qualityFields, List.of()));
                     }
                     return measureFields;
                 });
@@ -658,9 +660,9 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                 qName = qualityColumnsIds.get(i);
             }
             qName = normalizeFieldName(qName);
-            FieldType qtype = FieldType.TEXT;
+            FieldDataType qtype = FieldDataType.TEXT;
             if (i < qualityColumnsTypes.size()) {
-                qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
             }
             results.add(new MeasureField(- 1, qName, qtype, new ArrayList<>()));
         }
@@ -675,11 +677,11 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                 qName = qualityColumnsIds.get(i);
             }
             qName = normalizeFieldName(qName);
-            FieldType qtype = FieldType.TEXT;
+            FieldDataType qtype = FieldDataType.TEXT;
             if (i < qualityColumnsTypes.size()) {
-                qtype = FieldType.valueOf(qualityColumnsTypes.get(i));
+                qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
             }
-            results.add(new Field(- 1, qtype, qName, qName, null, null));
+            results.add(new Field(- 1, qtype, qName, qName, null, null, FieldType.QUALITY));
         }
         return results;
     }

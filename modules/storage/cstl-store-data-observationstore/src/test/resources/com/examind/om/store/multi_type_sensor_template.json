@@ -63,27 +63,27 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601"
             }, {
                 "index": 2,
-                "type": "BOOLEAN",
+                "dataType": "BOOLEAN",
                 "name": "isHot",
                 "description": "urn:ogc:def:phenomenon:GEOM:isHot"
             }, {
                 "index": 3,
-                "type": "TEXT",
+                "dataType": "TEXT",
                 "name": "color",
                 "description": "urn:ogc:def:phenomenon:GEOM:color"
             }, {
                 "index": 4,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "expiration",
                 "description": "urn:ogc:data:time:iso8601"
             }, {
                 "index": 5,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "age",
                 "description": "urn:ogc:def:phenomenon:GEOM:age"
             }],

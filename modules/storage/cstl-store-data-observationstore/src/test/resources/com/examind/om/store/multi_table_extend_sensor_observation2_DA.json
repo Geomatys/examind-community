@@ -50,20 +50,20 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601",
                 "qualityFields": []
             }, {
                 "index": 2,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f11",
                 "description": "urn:ogc:def:phenomenon:GEOM:f11",
                 "uom": "m",
                 "qualityFields": []
             }, {
                 "index": 3,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f12",
                 "description": "urn:ogc:def:phenomenon:GEOM:f12",
                 "uom": "m",

@@ -63,6 +63,7 @@ import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.GeoSpatialBound;
 import static org.geotoolkit.observation.model.OMEntity.LOCATION;
 import org.geotoolkit.observation.model.Observation;
@@ -342,7 +343,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     
     protected void addMainField(String observationType, List<Field> fields) {
         switch (observationType) {
-            case "Timeserie", "Trajectory"  -> fields.add(0, OMUtils.TIME_FIELD);
+            case "Timeserie", "Trajectory"  -> fields.add(0, OMUtils.TIME_MAIN_FIELD);
             case "Profile"    -> {}
             default           -> throw new IllegalArgumentException("Unexpected observation type:" + observationType + ". Allowed values are Timeserie, Trajectory, Profile.");
         }
@@ -362,9 +363,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             String label = mf.label != null ? mf.label : name;
             final List<Field> qualityFields = new ArrayList<>();
             for (MeasureField qmField : mf.qualityFields) {
-                qualityFields.add(new Field(-1, qmField.type, qmField.name, qmField.label, null, qmField.uom));
+                qualityFields.add(new Field(-1, qmField.dataType, qmField.name, qmField.label, null, qmField.uom, FieldType.QUALITY));
             }
-            fields.add(new Field(i, mf.type, name, label, null, uom, qualityFields, List.of()));
+            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, List.of()));
             i++;
         }
         return fields;

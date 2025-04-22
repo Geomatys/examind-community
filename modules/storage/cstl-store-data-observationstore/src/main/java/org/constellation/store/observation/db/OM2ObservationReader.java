@@ -479,7 +479,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                         time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId, fieldIndex);
                     }
                 }
-                omType = getOmTypeFromFieldType(selectedField.type);
+                omType = getOmTypeFromFieldType(selectedField.dataType);
 
             } else {
                 omType        = COMPLEX_OBSERVATION;

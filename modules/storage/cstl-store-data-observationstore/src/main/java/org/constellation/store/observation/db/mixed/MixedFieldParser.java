@@ -37,9 +37,9 @@ import static org.geotoolkit.observation.OMUtils.buildTime;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
-import static org.geotoolkit.observation.model.FieldType.QUANTITY;
-import static org.geotoolkit.observation.model.FieldType.TIME;
+import org.geotoolkit.observation.model.FieldDataType;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -77,7 +77,7 @@ public class MixedFieldParser extends FieldParser {
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
-            final Object mainValue = switch (pti.mainField.type) {
+            final Object mainValue = switch (pti.mainField.dataType) {
                 case TIME     -> rs2.getTimestamp(pti.mainField.name);
                 case QUANTITY -> rs2.getDouble(pti.mainField.name);
                 default       -> throw new SQLException("Unexpected main field type");
@@ -112,7 +112,7 @@ public class MixedFieldParser extends FieldParser {
                     Field f = fields.get(i);
                     if (includeID && f.name.equals("id")) {
                         values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.type.equals(FieldType.TIME) && profileWithTime) {
+                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);
                     }
                 }
@@ -181,7 +181,7 @@ public class MixedFieldParser extends FieldParser {
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
             if (!((includeID && f.name.equals("id"))          || // id field
-                  (f.type.equals(FieldType.TIME) && profile)  || // time field fr profile
+                  (f.dataType.equals(FieldDataType.TIME) && profile)  || // time field fr profile
                   (mainFieldIndex == i))) {                        // main field
                 results.put(fields.get(i).name, null);
             } 
@@ -204,7 +204,7 @@ public class MixedFieldParser extends FieldParser {
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
-            final Object mainValue = switch (pti.mainField.type) {
+            final Object mainValue = switch (pti.mainField.dataType) {
                 case TIME     -> rs2.getTimestamp(pti.mainField.name);
                 case QUANTITY -> rs2.getDouble(pti.mainField.name);
                 default       -> throw new SQLException("Unexpected main field type");
@@ -254,7 +254,7 @@ public class MixedFieldParser extends FieldParser {
                     Field f = fields.get(i);
                     if (includeID && f.name.equals("id")) {
                         values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.type.equals(FieldType.TIME) && profileWithTime) {
+                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);
                     }
                 }
@@ -330,7 +330,7 @@ public class MixedFieldParser extends FieldParser {
         
         while (rs2.nextOnField(pti.mainField.name)) {
             
-            final Object mainValue = switch (pti.mainField.type) {
+            final Object mainValue = switch (pti.mainField.dataType) {
                 case TIME     -> rs2.getTimestamp(pti.mainField.name);
                 case QUANTITY -> rs2.getDouble(pti.mainField.name);
                 default       -> throw new SQLException("Unexpected main field type");
@@ -371,7 +371,7 @@ public class MixedFieldParser extends FieldParser {
                     Field f = fields.get(i);
                     if (includeID && f.name.equals("id")) {
                         values.appendString(obsName + '-' + measureId, false, f);
-                    } else if (f.type.equals(FieldType.TIME) && profileWithTime) {
+                    } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);
                     }
                 }

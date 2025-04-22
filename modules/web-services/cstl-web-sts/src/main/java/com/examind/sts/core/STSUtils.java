@@ -159,37 +159,18 @@ public class STSUtils {
         });
     }
     
-    public static enum SubFieldType {
-        REGULAR,
-        QUALITY,
-        PARAMETER
-    }
-
-    public static class ExtField extends Field {
-        public final SubFieldType subType;
-
-        public ExtField(final Field field, SubFieldType subType) {
-            super(null, field.type, field.name, field.label, field.description, field.uom);
-            if (subType == null) {
-                this.subType = SubFieldType.REGULAR;
-            } else {
-                this.subType = subType;
-            }
-        }
-    }
-
-    public static List<ExtField> flatFields(List<Field> fields) {
-        final List<ExtField> results = new ArrayList<>();
+    public static List<Field> flatFields(List<Field> fields) {
+        final List<Field> results = new ArrayList<>();
         for (Field field : fields) {
-            results.add(new ExtField(field, SubFieldType.REGULAR));
+            results.add(field);
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
-                    results.add(new ExtField(qField, SubFieldType.QUALITY));
+                    results.add(qField);
                 }
             }
             if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
                 for (Field pField : field.parameterFields) {
-                    results.add(new ExtField(pField, SubFieldType.PARAMETER));
+                    results.add(pField);
                 }
             }
         }

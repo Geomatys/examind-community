@@ -128,138 +128,138 @@
     "result": {
         "fields": [{
                 "index": 1,
-                "type": "TIME",
+                "dataType": "TIME",
                 "name": "Time",
                 "description": "urn:ogc:data:time:iso8601"
             }, {
                 "index": 2,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f1",
                 "description": "urn:ogc:def:phenomenon:GEOM:f1",
                 "uom": "m"
             }, {
                 "index": 3,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f2",
                 "description": "urn:ogc:def:phenomenon:GEOM:f2",
                 "uom": "m"
             }, {
                 "index": 4,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f3",
                 "description": "urn:ogc:def:phenomenon:GEOM:f3",
                 "uom": "m"
             }, {
                 "index": 5,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f4",
                 "description": "urn:ogc:def:phenomenon:GEOM:f4",
                 "uom": "m"
             }, {
                 "index": 6,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f5",
                 "description": "urn:ogc:def:phenomenon:GEOM:f5",
                 "uom": "m"
             }, {
                 "index": 7,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f6",
                 "description": "urn:ogc:def:phenomenon:GEOM:f6",
                 "uom": "m"
             }, {
                 "index": 8,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f7",
                 "description": "urn:ogc:def:phenomenon:GEOM:f7",
                 "uom": "m"
             }, {
                 "index": 9,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f8",
                 "description": "urn:ogc:def:phenomenon:GEOM:f8",
                 "uom": "m"
             }, {
                 "index": 10,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f9",
                 "description": "urn:ogc:def:phenomenon:GEOM:f9",
                 "uom": "m"
             }, {
                 "index": 11,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f10",
                 "description": "urn:ogc:def:phenomenon:GEOM:f10",
                 "uom": "m"
             }, {
                 "index": 12,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f11",
                 "description": "urn:ogc:def:phenomenon:GEOM:f11",
                 "uom": "m"
             }, {
                 "index": 13,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f12",
                 "description": "urn:ogc:def:phenomenon:GEOM:f12",
                 "uom": "m"
             }, {
                 "index": 14,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f13",
                 "description": "urn:ogc:def:phenomenon:GEOM:f13",
                 "uom": "m"
             }, {
                 "index": 15,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f14",
                 "description": "urn:ogc:def:phenomenon:GEOM:f14",
                 "uom": "m"
             }, {
                 "index": 16,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f15",
                 "description": "urn:ogc:def:phenomenon:GEOM:f15",
                 "uom": "m"
             }, {
                 "index": 17,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f16",
                 "description": "urn:ogc:def:phenomenon:GEOM:f16",
                 "uom": "m"
             }, {
                 "index": 18,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f17",
                 "description": "urn:ogc:def:phenomenon:GEOM:f17",
                 "uom": "m"
             }, {
                 "index": 19,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f18",
                 "description": "urn:ogc:def:phenomenon:GEOM:f18",
                 "uom": "m"
             }, {
                 "index": 20,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f19",
                 "description": "urn:ogc:def:phenomenon:GEOM:f19",
                 "uom": "m"
             }, {
                 "index": 21,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f20",
                 "description": "urn:ogc:def:phenomenon:GEOM:f20",
                 "uom": "m"
             }, {
                 "index": 22,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f21",
                 "description": "urn:ogc:def:phenomenon:GEOM:f21",
                 "uom": "m"
             }, {
                 "index": 23,
-                "type": "QUANTITY",
+                "dataType": "QUANTITY",
                 "name": "f22",
                 "description": "urn:ogc:def:phenomenon:GEOM:f22",
                 "uom": "m"

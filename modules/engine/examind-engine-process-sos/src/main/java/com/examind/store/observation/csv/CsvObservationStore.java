@@ -253,7 +253,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                         if (value == null) {
                             measureValue = null;
                         } else {
-                            measureValue = switch (field.type) {
+                            measureValue = switch (field.dataType) {
                                 case BOOLEAN  -> parseBoolean(value);
                                 case QUANTITY -> parseDouble(value);
                                 case TEXT     -> value instanceof String ? value : value.toString();
@@ -271,7 +271,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                         currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!(value instanceof String str && str.isEmpty())) {
-                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.type.toString(), lineNumber, index, value));
+                            LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, value));
                         }
                     }
                 }

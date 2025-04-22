@@ -33,7 +33,7 @@ import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 
 /**
  *
@@ -96,7 +96,7 @@ public class MixedResultProcessor extends ResultProcessor {
         Object previousKey             = null;
         boolean hasData                = false;
         while (rs.nextOnField(procedure.mainField.name)) {
-            final Object mainValue = switch (procedure.mainField.type) {
+            final Object mainValue = switch (procedure.mainField.dataType) {
                 case TIME     -> rs.getTimestamp(procedure.mainField.name);
                 case QUANTITY -> rs.getDouble(procedure.mainField.name);
                 default       -> throw new DataStoreException("Unexpected main field type");
@@ -130,7 +130,7 @@ public class MixedResultProcessor extends ResultProcessor {
                     Field f = fields.get(i);
                     if (includeId && f.name.equals("id")) {
                         values.appendString("urn:ogc:object:observation:GEOM:" + procedure.pid + idSuffix + '-' + rs.getLong("id"), false, f);
-                    } else if (f.type.equals(FieldType.TIME) && profile) {
+                    } else if (f.dataType.equals(FieldDataType.TIME) && profile) {
                         values.appendTime(dateFromTS(rs.getTimestamp("time")), false, f);
                     }
                 }
@@ -172,7 +172,7 @@ public class MixedResultProcessor extends ResultProcessor {
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
             if (!((includeId && f.name.equals("id"))          || // id field
-                  (f.type.equals(FieldType.TIME) && profile)  || // time field fr profile
+                  (f.dataType.equals(FieldDataType.TIME) && profile)  || // time field fr profile
                   (mainFieldIndex == i))) {                        // main field
                 results.put(fields.get(i).name, null);
             } 

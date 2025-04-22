@@ -31,7 +31,7 @@
     "result": {
         "field": {
             "index": 1,
-            "type": "BOOLEAN",
+            "dataType": "BOOLEAN",
             "name": "isHot",
             "description": "urn:ogc:def:phenomenon:GEOM:isHot"
         }

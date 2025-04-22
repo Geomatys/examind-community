@@ -44,7 +44,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
-import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -393,7 +393,7 @@ public class FileParsingUtils {
     public static boolean verifyEmptyLine(Object[] line, int lineNumber, List<MeasureField> typedFields, DateFormat sdf) {
         for (MeasureField field : typedFields) {
             int i = field.columnIndex;
-            FieldType ft = field.type;
+            FieldDataType ft = field.dataType;
             try {
                 Object value = line[i];
                 if (value == null) continue;

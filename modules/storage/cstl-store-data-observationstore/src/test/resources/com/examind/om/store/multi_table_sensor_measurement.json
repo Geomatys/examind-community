@@ -34,7 +34,7 @@
     "result": {
         "field": {
             "index": 1,
-            "type": "QUANTITY",
+            "dataType": "QUANTITY",
             "name": "f12",
             "label": "f12",
             "description": "urn:ogc:def:phenomenon:GEOM:f12",

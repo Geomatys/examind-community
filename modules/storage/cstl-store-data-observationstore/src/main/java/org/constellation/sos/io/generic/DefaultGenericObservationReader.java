@@ -55,6 +55,7 @@ import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
@@ -582,22 +583,10 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                     if (uomCodes.get(i) != null) {
                         uomCode = uomCodes.get(i);
                     }
-                    FieldType ft = FieldType.QUANTITY;
-                    if (typeName != null) {
-                        if ("Quantity".equals(typeName)) {
-                            ft = FieldType.QUANTITY;
-                        } else if ("Time".equals(typeName)) {
-                            ft = FieldType.TIME;
-                        } else if ("Boolean".equals(typeName)) {
-                            ft = FieldType.BOOLEAN;
-                        } else if ("Text".equals(typeName)) {
-                            ft = FieldType.TEXT;
-                        } else {
-                            LOGGER.severe("unexpected field type");
-                        }
-                    }
+                    FieldDataType ft = (typeName == null) ? FieldDataType.QUANTITY : FieldDataType.fromLabel(typeName);
+                    
                     // what to do with definition?
-                    fields.add(new Field(i, ft, fieldName, null, null, uomCode));
+                    fields.add(new Field(i, ft, fieldName, null, null, uomCode, FieldType.MEASURE));
                 }
 
                 final String dataValues = values.getVariable("var33");
@@ -618,7 +607,7 @@ public class DefaultGenericObservationReader extends GenericReader implements Ob
                                                                       uomvalues.getVariable("var79"),
                                                                       uomvalues.getVariable("var80"),
                                                                       uomvalues.getVariable("var81"));*/
-                final Field field = new Field(-11, FieldType.QUANTITY, null, null, null, uomId);
+                final Field field = new Field(-11, FieldDataType.QUANTITY, null, null, null, uomId, FieldType.MEASURE);
                 return new MeasureResult(field, val);
             } else {
                 throw new IllegalArgumentException("unexpected resultModel:" + resultModel);

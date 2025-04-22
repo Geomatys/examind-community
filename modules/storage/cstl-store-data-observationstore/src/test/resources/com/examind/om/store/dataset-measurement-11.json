@@ -46,7 +46,7 @@
             "result": {
                 "field": {
                     "index": 2,
-                    "type": "QUANTITY",
+                    "dataType": "QUANTITY",
                     "name": "depth",
                     "label": "depth",
                     "description": "urn:ogc:def:phenomenon:GEOM:depth",
@@ -100,7 +100,7 @@
             "result": {
                 "field": {
                     "index": 2,
-                    "type": "QUANTITY",
+                    "dataType": "QUANTITY",
                     "name": "depth",
                     "label": "depth",
                     "description": "urn:ogc:def:phenomenon:GEOM:depth",
