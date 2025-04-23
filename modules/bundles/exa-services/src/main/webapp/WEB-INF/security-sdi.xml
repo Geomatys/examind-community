@@ -12,13 +12,13 @@
   <sec:jdbc-user-service id="cstlUserService" data-source-ref="dataSource"
 
                      users-by-username-query="
-          select login,password, active
-          from admin.cstl_user where login=?"
+          select &quot;login&quot;,&quot;password&quot;,&quot;active&quot;
+          from &quot;admin&quot;.&quot;cstl_user&quot; where &quot;login&quot;=?"
 
                      authorities-by-username-query="
-          select u.login, ur.role
-          from admin.cstl_user u, admin.user_x_role ur
-          where u.id = ur.user_id and u.login =?  "
+          select &quot;u&quot;.&quot;login&quot;, &quot;ur&quot;.&quot;role&quot;
+          from &quot;admin&quot;.&quot;cstl_user&quot; &quot;u&quot;, &quot;admin&quot;.&quot;user_x_role&quot; &quot;ur&quot;
+          where &quot;u&quot;.&quot;id&quot; = &quot;ur&quot;.&quot;user_id&quot; and &quot;u&quot;.&quot;login&quot; =?  "
 
           />
 
