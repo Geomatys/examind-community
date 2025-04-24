@@ -149,11 +149,11 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         if (value != null && !value.isNaN()) {
             if (profile && f.name.equals(procedure.mainField.name)) {
                 for (csvFlatLine line : currentLines.values()) {
-                    line.line = line.line.replace("${z_value}", Double.toString(value));
+                    line.appendZvalue(value);
                 }
             } else {
                 csvFlatLine currentLine = getCurrentLine(f.name);
-                currentLine.appendValue(value);
+                currentLine.appendResult(value);
             }
         }
     }
@@ -167,7 +167,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendValue(value);
+            currentLine.appendResult(value);
         }
     }
 
@@ -180,7 +180,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         
         if (value != null && !Float.isNaN(value)) {
             csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendValue(value);
+            currentLine.appendResult(value);
         }
     }
 
@@ -193,7 +193,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendValue(value);
+            currentLine.appendResult(value);
         }
     }
 
@@ -207,7 +207,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
          // we don't want to add the id
         if (!f.name.equals("id") && value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendValue(value);
+            currentLine.appendResult(value);
         }
     }
 
@@ -220,7 +220,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         
         if (value != null) {
             csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendValue(value);
+            currentLine.appendResult(value);
         }
     }
 
@@ -250,7 +250,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
                 }
             }
             sb.deleteCharAt(sb.length() -1);
-            currentLine.appendValue(sb.toString());
+            currentLine.appendResult(sb.toString());
         }
     }
 
@@ -259,6 +259,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         int nbLine = 0;
         for (csvFlatLine line : currentLines.values()) {
             if (!line.emptyLine) {
+                line.cleanup();
                 values.append(line.line);
                 nbLine++;
             }
@@ -298,9 +299,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         values.append("obsprop_desc").append(encoding.getTokenSeparator());
         values.append("obsprop_unit").append(encoding.getTokenSeparator());
         // quality ?
-        if (profile) {
-            values.append("z_value").append(encoding.getTokenSeparator());
-        }
+        values.append("z_value").append(encoding.getTokenSeparator());
         values.append("value").append(encoding.getBlockSeparator());
     }
 
@@ -318,10 +317,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
          
         public boolean emptyLine = true;
         public String line;
-        private final Field field;
         
         public csvFlatLine(Field field, ProcedureInfo procedure, TextEncoderProperties encoding) {
-            this.field = field;
             StringBuilder sb = new StringBuilder();
             
             // prepare the line
@@ -333,43 +330,50 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             sb.append(valueOrEmpty(field.label)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.description)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.uom)).append(encoding.getTokenSeparator());
-            if ("profile".equals(procedure.type)) {
-                sb.append("${z_value}").append(encoding.getTokenSeparator());
-            }
+            sb.append("${z_value}").append(encoding.getTokenSeparator());
             sb.append("${result}").append(encoding.getBlockSeparator());
 
             line = sb.toString();
             this.emptyLine   = true;
         }
         
-        public void appendValue(String value) {
+        public void appendResult(String value) {
             line = line.replace("${result}", value);
             emptyLine = false;
         }
         
-        public void appendValue(Double value) {
+        public void appendResult(Double value) {
             line = line.replace("${result}", Double.toString(value));
             emptyLine = false;
         }
         
-        public void appendValue(Integer value) {
+        public void appendResult(Integer value) {
             line = line.replace("${result}", Integer.toString(value));
             emptyLine = false;
         }
         
-        public void appendValue(Float value) {
+        public void appendResult(Float value) {
             line = line.replace("${result}", Float.toString(value));
             emptyLine = false;
         }
         
-        public void appendValue(Long value) {
+        public void appendResult(Long value) {
             line = line.replace("${result}", Long.toString(value));
             emptyLine = false;
         }
         
-        public void appendValue(Boolean value) {
+        public void appendResult(Boolean value) {
             line = line.replace("${result}", Boolean.toString(value));
             emptyLine = false;
+        }
+        
+        public void appendZvalue(Double value) {
+            line = line.replace("${z_value}", Double.toString(value));
+        }
+        
+        public void cleanup() {
+            line = line.replace("${z_value}", "");
+            line = line.replace("${result}",  "");
         }
         
         private static String valueOrEmpty(String s) {

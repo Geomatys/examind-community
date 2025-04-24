@@ -5816,17 +5816,17 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         String result = cr.getValues();
 
         String expectedResult =
-                            "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;value\n" +
-                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
-                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0\n" +
-                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
-                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;13.0\n" +
-                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
-                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;14.0\n" +
-                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
-                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;15.0\n" +
-                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;6.56\n" +
-                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;16.0\n";
+                            "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value\n" +
+                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56\n" +
+                            "2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;12.0\n" +
+                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56\n" +
+                            "2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;13.0\n" +
+                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56\n" +
+                            "2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;14.0\n" +
+                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56\n" +
+                            "2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;15.0\n" +
+                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56\n" +
+                            "2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;16.0\n";
 
         assertEquals(expectedResult, result);
     }
