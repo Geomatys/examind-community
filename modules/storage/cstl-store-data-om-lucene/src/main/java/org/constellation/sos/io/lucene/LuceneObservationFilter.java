@@ -54,14 +54,13 @@ import org.geotoolkit.observation.query.ObservationQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
 import org.geotoolkit.temporal.object.TemporalUtilities;
-import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
+import org.opengis.filter.ComparisonOperator;
 import org.opengis.filter.Filter;
 import org.opengis.filter.Literal;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.TemporalOperator;
 import org.opengis.filter.TemporalOperatorName;
-import org.opengis.geometry.Envelope;
 
 /**
  * TODO
@@ -518,7 +517,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public FilterAppend setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setResultFilter(final ComparisonOperator filter) throws DataStoreException {
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
@@ -526,7 +525,7 @@ public abstract class LuceneObservationFilter implements ObservationFilterReader
      * {@inheritDoc}
      */
     @Override
-    public FilterAppend setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setPropertiesFilter(final ComparisonOperator filter) throws DataStoreException {
         throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
     }
 

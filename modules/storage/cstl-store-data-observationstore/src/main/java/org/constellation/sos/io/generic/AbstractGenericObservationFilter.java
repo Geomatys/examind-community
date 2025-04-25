@@ -45,6 +45,7 @@ import org.geotoolkit.observation.FilterAppend;
 
 import static org.geotoolkit.ows.xml.OWSExceptionCode.NO_APPLICABLE_CODE;
 import org.opengis.filter.BinaryComparisonOperator;
+import org.opengis.filter.ComparisonOperator;
 
 /**
  *
@@ -185,12 +186,12 @@ public abstract class AbstractGenericObservationFilter implements ObservationFil
      * {@inheritDoc}
      */
     @Override
-    public FilterAppend setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setResultFilter(final ComparisonOperator filter) throws DataStoreException {
         throw new DataStoreException("setResultFilter is not supported by this ObservationFilter implementation.");
     }
 
     @Override
-    public FilterAppend setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
+    public FilterAppend setPropertiesFilter(ComparisonOperator filter) throws DataStoreException {
         throw new UnsupportedOperationException("setPropertiesFilter is not supported by this ObservationFilter implementation.");
     }
 

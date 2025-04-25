@@ -50,6 +50,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
+import org.apache.sis.filter.privy.FunctionNames;
 import org.apache.sis.temporal.TemporalObjects;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
@@ -84,6 +85,7 @@ import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.ComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
+import org.opengis.filter.LikeOperator;
 import org.opengis.filter.Literal;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.TemporalOperator;
@@ -910,19 +912,33 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      * {@inheritDoc}
      */
     @Override
-    public OM2FilterAppend setResultFilter(final BinaryComparisonOperator filter) throws DataStoreException {
-         OM2FilterAppend result = new OM2FilterAppend();
+    public OM2FilterAppend setResultFilter(final ComparisonOperator filter) throws DataStoreException {
+        OM2FilterAppend result = new OM2FilterAppend();
          
-        if (!(filter.getOperand1() instanceof ValueReference)) {
-            throw new ObservationStoreException("Expression is null or not a propertyName on result filter");
+        if (filter.getExpressions().size() != 2) {
+            throw new ObservationStoreException("Filter must have 2 expressions (property name and literal)");
         }
-        if (!(filter.getOperand2() instanceof Literal)) {
-            throw new ObservationStoreException("Expression is null or not a Literal on result filter");
+        
+        if (!(filter.getExpressions().get(0) instanceof ValueReference)) {
+            throw new ObservationStoreException("Expression is null or not a propertyName on property filter");
         }
-        // we expectthe property name to be "result" or "result[fieldIndex]" eventually followed by .quality_field_name
-        final String propertyName = ((ValueReference)filter.getOperand1()).getXPath();
-        final Literal value = (Literal) filter.getOperand2();
+        if (!(filter.getExpressions().get(1) instanceof Literal)) {
+            throw new ObservationStoreException("Expression is null or not a Literal on property filter");
+        }
+        // we expect the property name to be "result" or "result[fieldIndex]" eventually followed by .quality_field_name
+        final String propertyName = ((ValueReference)filter.getExpressions().get(0)).getXPath();
+        final Literal value = (Literal) filter.getExpressions().get(1);
         final String operator = getSQLOperator(filter);
+        
+        // special case for like
+        Object filterValue = value.getValue();
+        if (filter instanceof LikeOperator lo) {
+            if (!(filterValue instanceof String)) throw new ObservationStoreException("Like filter expect iteral to be a String");
+            String strValue = (String) filterValue;
+            strValue = strValue.replace(lo.getWildCard(), '%');
+            strValue = strValue.replace(lo.getSingleChar(), '?');
+            filterValue = strValue;
+        }
 
         // apply only on one phenonemenon
         if (propertyName.contains("[")) {
@@ -939,7 +955,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 suffix = "_extra_" + suffix.substring(1); // remove the '.'
             }
             String paramName = "phen" + index + suffix;
-            sqlMeasureRequest.append(" (\"$").append(paramName).append("\" ").append(operator).appendNamedObjectValue(paramName, value.getValue()).append(")");
+            sqlMeasureRequest.append(" (\"$").append(paramName).append("\" ").append(operator).appendNamedObjectValue(paramName, filterValue).append(")");
 
         // apply only on all phenonemenon
         } else if (propertyName.startsWith("result")){
@@ -949,7 +965,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 suffix = "_extra_" + suffix.substring(1); // remove the '.'
             }
             String paramName = "allphen" + suffix;
-            sqlMeasureRequest.append(" ${").append(paramName).append(operator).appendNamedObjectValue(paramName, value.getValue()).append("} ");
+            sqlMeasureRequest.append(" ${").append(paramName).append(operator).appendNamedObjectValue(paramName, filterValue).append("} ");
         } else {
             throw new ObservationStoreException("Unpexpected propertyName in result filter:" + propertyName);
         }
@@ -959,17 +975,22 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     @Override
-    public OM2FilterAppend setPropertiesFilter(BinaryComparisonOperator filter) throws DataStoreException {
-        if (!(filter.getOperand1() instanceof ValueReference)) {
+    public OM2FilterAppend setPropertiesFilter(ComparisonOperator filter) throws DataStoreException {
+        if (filter.getExpressions().size() != 2) {
+            throw new ObservationStoreException("Filter must have 2 expressions (property name and literal)");
+        }
+        
+        if (!(filter.getExpressions().get(0) instanceof ValueReference)) {
             throw new ObservationStoreException("Expression is null or not a propertyName on property filter");
         }
-        if (!(filter.getOperand2() instanceof Literal)) {
+        if (!(filter.getExpressions().get(1) instanceof Literal)) {
             throw new ObservationStoreException("Expression is null or not a Literal on property filter");
         }
         OM2FilterAppend result = new OM2FilterAppend();
-        final Literal value = (Literal) filter.getOperand2();
+        final Literal value = (Literal) filter.getExpressions().get(1);
         final String operator = getSQLOperator(filter);
-        String XPath = ((ValueReference)filter.getOperand1()).getXPath();
+        String XPath = ((ValueReference)filter.getExpressions().get(0)).getXPath();
+        
         // always contains "properties/"
         int pos = XPath.indexOf("properties/");
         if (pos == -1) throw new IllegalArgumentException("malformed propertyName. must follow the pattern (*/)properties/* ");
@@ -1020,8 +1041,17 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("Unsuported property filter on entity:" + objectType);
             }
         }
+        // special case for like
+        Object filterValue = value.getValue();
+        if (filter instanceof LikeOperator lo) {
+            if (!(filterValue instanceof String)) throw new ObservationStoreException("Like filter expect iteral to be a String");
+            String strValue = (String) filterValue;
+            strValue = strValue.replace(lo.getWildCard(), '%');
+            strValue = strValue.replace(lo.getSingleChar(), '?');
+            filterValue = strValue;
+        }
         sqlRequest.append(select).append("\"property_name\" = ").appendValue(propertyName).append(" AND ");
-        sqlRequest.append("\"value\" ").append(operator).appendObjectValue(value.getValue());
+        sqlRequest.append("\"value\" ").append(operator).appendObjectValue(filterValue);
         sqlRequest.append(" )) ");
         firstFilter = false;
         result.main = true;
@@ -1057,6 +1087,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             return " < ";
         } else if (type == ComparisonOperatorName.PROPERTY_IS_LESS_THAN_OR_EQUAL_TO) {
             return " <= ";
+        } else if (type.name().equals(FunctionNames.PROPERTY_IS_LIKE)) {
+            return " like ";
         } else {
             throw new ObservationStoreException("Unsuported binary comparison filter");
         }

@@ -306,6 +306,23 @@ public class ObservationStoreProviderTest extends SpringContextTest {
 
         result = omPr.getCount(query);
         assertEquals(result, 1L);
+        
+        /*
+        * properties like filter
+        */
+        query = new SamplingFeatureQuery();
+        filter = ff.like(ff.property("properties/commune"), "Argel%");
+        query.setSelection(filter);
+
+        resultIds = omPr.getIdentifiers(query);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        result = omPr.getCount(query);
+        assertEquals(result, 1L);
 
         /*
         * sub properties filter => phenomenon properties
@@ -503,6 +520,18 @@ public class ObservationStoreProviderTest extends SpringContextTest {
         */
         query = new SamplingFeatureQuery();
         filter = ff.equal(ff.property("properties/commune"), ff.literal("Argeles"));
+        query.setSelection(filter);
+        results = omPr.getFeatureOfInterest(query);
+
+        resultIds = getFOIIds(results);
+        assertEquals(1, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("station-001");
+        Assert.assertEquals(expectedIds, resultIds);
+        
+        query = new SamplingFeatureQuery();
+        filter = ff.like(ff.property("properties/commune"), "Argel%");
         query.setSelection(filter);
         results = omPr.getFeatureOfInterest(query);
 
