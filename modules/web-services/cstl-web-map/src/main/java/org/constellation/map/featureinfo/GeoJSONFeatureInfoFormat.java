@@ -97,7 +97,7 @@ public class GeoJSONFeatureInfoFormat extends AbstractTextFeatureInfoFormat {
         this.gfi = getFI;
         getCandidates(sdef, cdef, searchArea, -1);
 
-        if (infoQueue.stream().allMatch(LayerError.class::isInstance)) {
+        if (!infoQueue.isEmpty() && infoQueue.stream().allMatch(LayerError.class::isInstance)) {
             final PortrayalException err = new PortrayalException("None of requested layers can be evaluated for input GetFeatureInfo query");
             for(LayerInfo info : infoQueue) err.addSuppressed(((LayerError)info).getError());
             throw err;
