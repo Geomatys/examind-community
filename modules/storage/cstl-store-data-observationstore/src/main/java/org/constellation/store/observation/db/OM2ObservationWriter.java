@@ -91,8 +91,6 @@ import org.opengis.temporal.TemporalPrimitive;
  */
 public class OM2ObservationWriter extends OM2BaseReader implements ObservationWriter {
 
-    protected final DataSource source;
-
     private final boolean allowSensorStructureUpdate = true;
 
     private final int maxFieldByTable;
@@ -107,11 +105,10 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @throws org.apache.sis.storage.DataStoreException
      */
     public OM2ObservationWriter(final DataSource source, final Map<String, Object> properties, final int maxFieldByTable) throws DataStoreException {
-        super(properties, false);
+        super(properties, source, false);
         if (source == null) {
             throw new DataStoreException("The source object is null");
         }
-        this.source = source;
         this.maxFieldByTable = maxFieldByTable;
     }
 

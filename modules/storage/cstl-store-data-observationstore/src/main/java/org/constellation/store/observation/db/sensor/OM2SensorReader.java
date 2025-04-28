@@ -51,8 +51,6 @@ import org.geotoolkit.util.StringUtilities;
  */
 public class OM2SensorReader extends OM2BaseReader implements SensorReader {
     
-    protected final DataSource source;
-    
     private final Map<String, List<String>> acceptedSensorMLFormats = new HashMap<>();
     
     private static final String SML_VERSION = "1.0.1";
@@ -62,8 +60,8 @@ public class OM2SensorReader extends OM2BaseReader implements SensorReader {
     
     
     public OM2SensorReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, true);
-        this.source = source;final String smlFormats100 = (String) properties.get("smlFormats100");
+        super(properties, source, true);
+        final String smlFormats100 = (String) properties.get("smlFormats100");
         if (smlFormats100 != null) {
             acceptedSensorMLFormats.put("1.0.0", StringUtilities.toStringList(smlFormats100));
         } else {

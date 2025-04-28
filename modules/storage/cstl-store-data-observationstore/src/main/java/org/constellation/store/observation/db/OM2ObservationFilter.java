@@ -101,8 +101,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected FilterSQLRequest sqlRequest;
     protected SingleFilterSQLRequest sqlMeasureRequest = new SingleFilterSQLRequest();
 
-    protected final DataSource source;
-
     protected boolean template = false;
 
     protected boolean firstFilter = true;
@@ -163,7 +161,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
      */
     public OM2ObservationFilter(final OM2ObservationFilter omFilter) {
         super(omFilter);
-        this.source                    = omFilter.source;
         this.template                  = false;
         this.resultModel               = null;
         this.includeTimeInprofileMeasureRequest = omFilter.includeTimeInprofileMeasureRequest;
@@ -171,17 +168,9 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     }
 
     public OM2ObservationFilter(final DataSource source, final Map<String, Object> properties, boolean includeTimeInprofileMeasureRequest) throws DataStoreException {
-        super(properties, true);
-        this.source     = source;
+        super(properties, source, true);
         resultModel     = null;
         this.includeTimeInprofileMeasureRequest = includeTimeInprofileMeasureRequest;
-        try {
-            // try if the connection is valid
-            try (final Connection c = this.source.getConnection()) {}
-        } catch (SQLException ex) {
-            throw new DataStoreException("SQLException while initializing the observation filter:" +'\n'+
-                                           "cause:" + ex.getMessage());
-        }
     }
 
     /**

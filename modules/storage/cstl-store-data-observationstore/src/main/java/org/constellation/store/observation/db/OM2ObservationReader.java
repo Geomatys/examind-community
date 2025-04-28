@@ -82,17 +82,8 @@ import org.opengis.temporal.Period;
  */
 public class OM2ObservationReader extends OM2BaseReader implements ObservationReader {
 
-    protected final DataSource source;
-
     public OM2ObservationReader(final DataSource source, final Map<String, Object> properties) throws DataStoreException {
-        super(properties, false);
-        this.source = source;
-        try {
-            // try if the connection is valid
-            try(final Connection c = this.source.getConnection()) {}
-        } catch (SQLException ex) {
-            throw new DataStoreException(ex);
-        }
+        super(properties, source, false);
     }
 
     /**

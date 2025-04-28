@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
 import javax.xml.namespace.QName;
 
 import org.apache.sis.storage.DataStoreException;
@@ -91,6 +92,8 @@ import org.opengis.util.FactoryException;
 public class OM2BaseReader {
 
     protected final OMSQLDialect dialect;
+    
+    protected final DataSource source;
 
     protected final boolean timescaleDB;
 
@@ -136,7 +139,7 @@ public class OM2BaseReader {
     
     protected final boolean spatialOperatorsEnable;
 
-    public OM2BaseReader(final Map<String, Object> properties, final boolean cacheEnabled) throws DataStoreException {
+    public OM2BaseReader(final Map<String, Object> properties, final DataSource source, final boolean cacheEnabled) throws DataStoreException {
         this.dialect                   = (OMSQLDialect) properties.getOrDefault(SQL_DIALECT, null);
         this.timescaleDBVersion        = (Version) properties.getOrDefault(TIMESCALEDB_VERSION, null);
         this.timescaleDB               = timescaleDBVersion != null;
@@ -148,6 +151,13 @@ public class OM2BaseReader {
         this.schemaPrefix              = (String)  properties.getOrDefault(SCHEMA_PREFIX_NAME, "");
         this.cacheEnabled              = cacheEnabled;
         this.spatialOperatorsEnable    = dialect.equals(OMSQLDialect.DUCKDB) || dialect.equals(OMSQLDialect.POSTGRES);
+        this.source                    = source;
+        try {
+            // try if the connection is valid
+            try(final Connection c = this.source.getConnection()) {}
+        } catch (SQLException ex) {
+            throw new DataStoreException(ex);
+        }
     }
 
     public OM2BaseReader(final OM2BaseReader that) {
@@ -162,6 +172,7 @@ public class OM2BaseReader {
         this.timescaleDBVersion        = that.timescaleDBVersion;
         this.decimationAlgorithm       = that.decimationAlgorithm;
         this.spatialOperatorsEnable    = that.spatialOperatorsEnable;
+        this.source                    = that.source;
     }
 
     /**
