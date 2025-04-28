@@ -96,7 +96,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private final boolean allowSensorStructureUpdate = true;
 
     private final int maxFieldByTable;
-
+    
     /**
      * Build a new Observation writer for the given data source.
      *

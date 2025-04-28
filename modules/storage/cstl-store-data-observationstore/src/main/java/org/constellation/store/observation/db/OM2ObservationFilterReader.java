@@ -687,6 +687,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             } else {
                 fields = readFields(currentProcedure.procedureId, false, c, fieldIndexFilters, fieldIdFilters);
             }
+            if (fields.isEmpty()) {
+                throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
+            }
             // in a measurement context, the last field is the one we look want to use for identifier construction.
             String idSuffix = "";
             if (MEASUREMENT_QNAME.equals(resultModel)) {
