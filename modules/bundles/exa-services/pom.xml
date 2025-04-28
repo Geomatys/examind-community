@@ -243,6 +243,11 @@
             <groupId>org.apache.sis.non-free</groupId>
             <artifactId>sis-epsg</artifactId>
         </dependency>
+        <!-- SIS xml datastore providers -->
+        <dependency>
+            <groupId>org.apache.sis.storage</groupId>
+            <artifactId>sis-xmlstore</artifactId>
+        </dependency>
 
         <!-- Optionnal Geotk dependencies all included by default -->
         <dependency>

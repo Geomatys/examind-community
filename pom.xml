@@ -49,7 +49,7 @@
         <poi.version>5.2.3</poi.version>
         <duckdb.version>0.10.2</duckdb.version>
         <!-- this one is blocked by other dependencies -->
-        <arrow.version>15.0.2</arrow.version> 
+        <arrow.version>15.0.2</arrow.version>
         <!-- @{argLine} necessary for jacoco generation, we must declare
          an empty property to avoid a surefire exception if we run any other
          maven phase which doesn't activate jacoco -->
@@ -365,6 +365,11 @@
             <dependency>
                 <groupId>org.apache.sis.storage</groupId>
                 <artifactId>sis-sqlstore</artifactId>
+                <version>${sis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.sis.storage</groupId>
+                <artifactId>sis-xmlstore</artifactId>
                 <version>${sis.version}</version>
             </dependency>
             <!-- Geotoolkit version -->
