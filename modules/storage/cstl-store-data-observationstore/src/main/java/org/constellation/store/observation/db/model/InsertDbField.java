@@ -19,12 +19,14 @@
 package org.constellation.store.observation.db.model;
 
 import java.sql.SQLException;
+import java.util.List;
 import javax.measure.IncommensurableException;
 import javax.measure.UnconvertibleException;
 import javax.measure.Unit;
 import javax.measure.UnitConverter;
 import javax.measure.format.MeasurementParseException;
 import org.apache.sis.measure.Units;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
 
@@ -36,8 +38,9 @@ public class InsertDbField extends DbField {
 
     private UnitConverter valueConverter;
 
-    public InsertDbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber) {
-        super(index, dataType, name, label, description, uom, type, tableNumber);
+    public InsertDbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber,
+            List<Field> qualityFields, List<Field> parameterFields) {
+        super(index, dataType, name, label, description, uom, type, tableNumber, qualityFields, parameterFields);
     }
 
     public InsertDbField(DbField original) {

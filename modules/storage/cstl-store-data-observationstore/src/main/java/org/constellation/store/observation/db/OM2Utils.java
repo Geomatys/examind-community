@@ -118,14 +118,16 @@ public class OM2Utils {
             if (field.qualityFields != null && !field.qualityFields.isEmpty()) {
                 for (Field qField : field.qualityFields) {
                     String name = field.name + "_quality_" + qField.name;
-                    InsertDbField newField = new InsertDbField(null, qField.dataType, name, qField.label, qField.description, qField.uom, qField.type, field.tableNumber);
+                    // TODO parent ?
+                    InsertDbField newField = new InsertDbField(null, qField.dataType, name, qField.label, qField.description, qField.uom, qField.type, field.tableNumber, List.of(), List.of());
                     results.add(newField);
                 }
             }
             if (field.parameterFields != null && !field.parameterFields.isEmpty()) {
                 for (Field pField : field.parameterFields) {
                     String name = field.name + "_parameter_" + pField.name;
-                    InsertDbField newField = new InsertDbField(null, pField.dataType, name, pField.label, pField.description, pField.uom, pField.type, field.tableNumber);
+                    // TODO parent ?
+                    InsertDbField newField = new InsertDbField(null, pField.dataType, name, pField.label, pField.description, pField.uom, pField.type, field.tableNumber, List.of(), List.of());
                     results.add(newField);
                 }
             }

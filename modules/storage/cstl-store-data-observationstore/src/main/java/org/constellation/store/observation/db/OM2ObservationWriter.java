@@ -891,7 +891,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         }
     }
 
-    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldDataType.QUANTITY, "value", null, null, null, FieldType.MEASURE, 1);
+    private static final DbField MEASURE_SINGLE_FIELD = new DbField(1, FieldDataType.QUANTITY, "value", null, null, null, FieldType.MEASURE, 1, List.of(), List.of());
 
     /**
      * Write  an observation result.

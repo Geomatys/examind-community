@@ -123,15 +123,6 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         if (currentLine != null) {
             return currentLine;
         }
-
-        // hack. we assume that we are in a quality field case.
-        /* we use that last field data added
-        if (lastFieldId != null && currentLines.containsKey(lastFieldId)) {
-            currentLine = currentLines.get(lastFieldId);
-            if (currentLine.resultAdded) {
-                return currentLine;
-            }
-        }*/
         throw new IllegalArgumentException("No lines for field:" + fieldName);
     }
 
@@ -144,14 +135,15 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendDouble(Double value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
         if (value != null && !value.isNaN()) {
             if (profile && f.name.equals(procedure.mainField.name)) {
                 for (csvFlatLine line : currentLines.values()) {
                     line.appendZvalue(value);
                 }
-            } else {
+            } else if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {     
                 csvFlatLine currentLine = getCurrentLine(f.name);
                 currentLine.appendResult(value);
             }
@@ -300,7 +292,9 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         values.append("obsprop_unit").append(encoding.getTokenSeparator());
         // quality ?
         values.append("z_value").append(encoding.getTokenSeparator());
-        values.append("value").append(encoding.getBlockSeparator());
+        values.append("value").append(encoding.getTokenSeparator());
+        values.append("value_quality").append(encoding.getTokenSeparator());
+        values.append("value_parameter").append(encoding.getBlockSeparator());
     }
 
     @Override
@@ -317,6 +311,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
          
         public boolean emptyLine = true;
         public String line;
+        public Map<String, Object> qualityValues = new HashMap<>();
+        public Map<String, Object> parameterValues = new HashMap<>();
         
         public csvFlatLine(Field field, ProcedureInfo procedure, TextEncoderProperties encoding) {
             StringBuilder sb = new StringBuilder();
@@ -331,8 +327,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             sb.append(valueOrEmpty(field.description)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.uom)).append(encoding.getTokenSeparator());
             sb.append("${z_value}").append(encoding.getTokenSeparator());
-            sb.append("${result}").append(encoding.getBlockSeparator());
-
+            sb.append("${result}").append(encoding.getTokenSeparator());
+            sb.append("${result_quality}").append(encoding.getTokenSeparator());
+            sb.append("${result_parameter}").append(encoding.getBlockSeparator());
+            
             line = sb.toString();
             this.emptyLine   = true;
         }
@@ -371,9 +369,43 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             line = line.replace("${z_value}", Double.toString(value));
         }
         
+        public void appendSubField(Field field, Object value) {
+            switch (field.type) {
+                case FieldType.PARAMETER -> parameterValues.put(field.name, value);
+                case FieldType.QUALITY   -> qualityValues.put(field.name, value);
+                default                  -> throw new IllegalArgumentException("Unknow sub field type:" + field.type);
+            }
+        }
+        
         public void cleanup() {
             line = line.replace("${z_value}", "");
             line = line.replace("${result}",  "");
+            line = line.replace("${result_quality}",  mapToString(qualityValues));
+            line = line.replace("${result_parameter}",  mapToString(parameterValues));
+        }
+        
+        private static String mapToString(Map<String, Object> m) {
+            String result = "";
+            if (!m.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (Entry<String, Object> entry : m.entrySet()) {
+                    sb.append(entry.getKey()).append(":");
+                    if (entry.getValue() instanceof List ls) {
+                        sb.append("[");
+                        for (Object item : ls) {
+                            sb.append(item).append(',');
+                        }
+                        sb.deleteCharAt(sb.length() - 1);
+                        sb.append("]");
+                    } else {
+                        sb.append(entry.getValue());
+                    }
+                    sb.append("|");
+                }
+                sb.deleteCharAt(sb.length() - 1);
+                result = sb.toString();
+            }
+            return result;
         }
         
         private static String valueOrEmpty(String s) {

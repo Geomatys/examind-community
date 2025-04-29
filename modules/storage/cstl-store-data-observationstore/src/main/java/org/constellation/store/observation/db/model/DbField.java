@@ -18,6 +18,7 @@
  */
 package org.constellation.store.observation.db.model;
 
+import java.util.List;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.observation.model.FieldType;
@@ -30,8 +31,9 @@ public class DbField extends Field {
 
     public final int tableNumber;
 
-    public DbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber) {
-        super(index, dataType, name, label, description, uom, type);
+    public DbField(Integer index, FieldDataType dataType, String name, String label, String description, String uom, FieldType type, int tableNumber,
+            List<Field> qualityFields, List<Field> parameterFields) {
+        super(index, dataType, name, label, description, uom, type, qualityFields, parameterFields);
         this.tableNumber = tableNumber;
     }
 
@@ -44,7 +46,9 @@ public class DbField extends Field {
             if (qField instanceof DbField dqField) {
                 tableNumber = dqField.tableNumber;
             }
-            this.qualityFields.add(new DbField(qField, tableNumber));
+            DbField qf = new DbField(qField, tableNumber);
+            this.qualityFields.add(qf);
+            qf.parent = this;
         }
         // overide parameter Fields type
         this.parameterFields.clear();
@@ -52,7 +56,9 @@ public class DbField extends Field {
             if (pField instanceof DbField dqField) {
                 tableNumber = dqField.tableNumber;
             }
-            this.parameterFields.add(new DbField(pField, tableNumber));
+            DbField pf = new DbField(pField, tableNumber);
+            this.parameterFields.add(pf);
+            pf.parent = this;
         }
     }
 

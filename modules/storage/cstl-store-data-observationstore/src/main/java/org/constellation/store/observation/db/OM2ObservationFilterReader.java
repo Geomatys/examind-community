@@ -431,11 +431,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                     // add the time for profile in the dataBlock if requested
                     if (profileWithTime) {
-                        fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
+                        fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1, List.of(), List.of()));
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                        fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1, List.of(), List.of()));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -700,11 +700,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             // add the time for profile in the dataBlock if requested
             if (profileWithTime) {
-                fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1));
+                fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1, List.of(), List.of()));
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1, List.of(), List.of()));
             }
 
             /**

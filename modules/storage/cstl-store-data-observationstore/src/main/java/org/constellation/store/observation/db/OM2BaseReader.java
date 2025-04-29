@@ -828,6 +828,27 @@ public class OM2BaseReader {
 
     protected DbField getFieldFromDb(final ResultSet rs, String procedureID, Connection c, boolean fetchExtraFields) throws SQLException {
         final String fieldName = rs.getString("field_name");
+        List<Field> parameterFields = new ArrayList<>();
+        List<Field> qualityFields = new ArrayList<>();
+        if (fetchExtraFields) {
+            try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\"=? ORDER BY \"order\"")) {//NOSONAR
+                stmt.setString(1, procedureID);
+                stmt.setString(2, fieldName);
+                try(final ResultSet rss = stmt.executeQuery()) {
+                    while (rss.next()) {
+                        String subFieldType = rss.getString("sub_field_type");
+                        if ("PARAMETER".equals(subFieldType)) {
+                            parameterFields.add(getFieldFromDb(rss, procedureID, c, false));
+                            
+                        // fall back to quality for retro-compatibility
+                        } else {
+                            qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
+                        }
+                    }
+                }
+            }
+        }
+        
         int order = rs.getInt("order");
         String fieldType = rs.getString("sub_field_type");
         FieldType ft;
@@ -846,25 +867,9 @@ public class OM2BaseReader {
                          rs.getString("field_definition"),
                          rs.getString("uom"),
                          ft,
-                         rs.getInt("table_number"));
-
-        if (fetchExtraFields) {
-            try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\"=? ORDER BY \"order\"")) {//NOSONAR
-                stmt.setString(1, procedureID);
-                stmt.setString(2, fieldName);
-                try(final ResultSet rss = stmt.executeQuery()) {
-                    while (rss.next()) {
-                        String subFieldType = rss.getString("sub_field_type");
-                        if ("PARAMETER".equals(subFieldType)) {
-                            f.parameterFields.add(getFieldFromDb(rss, procedureID, c, false));
-                        // fall back to quality for retro-compatibility
-                        } else {
-                            f.qualityFields.add(getFieldFromDb(rss, procedureID, c, false));
-                        }
-                    }
-                }
-            }
-        }
+                         rs.getInt("table_number"),
+                         qualityFields,
+                         parameterFields);
         return f;
     }
 

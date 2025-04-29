@@ -1,106 +1,106 @@
-time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.7
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;12.6
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;12.5
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;12.4
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;12.3
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;12.2
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.9
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;13.0
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;13.1
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;13.2
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;13.3
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;13.4
-2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5
-2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;98.5
-2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.6
-2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5
-2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.7
-2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5
-2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.8
-2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2000-05-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.9
-2000-06-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.0
-2000-07-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.1
-2000-11-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;99.5
-2001-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5
-2009-05-01T14:00:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.9
-2009-05-01T14:01:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;8.9
-2009-05-01T14:02:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;7.8
-2009-05-01T14:03:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.9
-2009-05-01T14:04:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.1
-1980-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-1981-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-1982-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-1983-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-1984-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:19;Sensor 19 No FOI;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;6.6
-2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5
-2009-05-01T14:00:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.9
-2009-05-01T14:01:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;8.9
-2009-05-01T14:02:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;7.8
-2009-05-01T14:03:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.9
-2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5
-2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;98.5
-2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.6
-2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5
-2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.7
-2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5
-2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.8
-2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2000-05-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.9
-2000-06-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.0
-2000-07-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.1
-2000-11-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;99.5
-2001-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5
-2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;12.0
-2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;13.0
-2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;14.0
-2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;15.0
-2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;16.0
-2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:7;Sensor 7;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;6.56
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.0;19.7
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;48.0;21.2
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;96.0;23.9
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;192.0;26.2
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;384.0;31.4
-2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;768.0;35.1
-2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5
-2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5
-2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T02:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T03:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T04:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T05:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T06:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T07:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T08:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T09:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T10:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T11:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T17:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56
-2007-05-01T18:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55
-2007-05-01T19:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55
-2007-05-01T20:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55
-2007-05-01T21:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55
+time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value;value_quality;value_parameter
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.7;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;12.6;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;12.5;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;12.4;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;12.3;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;12.2;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;18.5;12.8;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;19.7;12.9;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;21.2;13.0;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;23.9;13.1;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.2;13.2;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;29.4;13.3;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:14;Sensor 14;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;31.1;13.4;;
+2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5;;
+2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;98.5;;
+2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.6;;
+2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5;;
+2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.7;;
+2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5;;
+2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.8;;
+2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2000-05-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.9;;
+2000-06-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.0;;
+2000-07-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.1;;
+2000-11-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;99.5;;
+2001-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:13;Sensor 13;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5;;
+2009-05-01T14:00:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.9;;
+2009-05-01T14:01:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;8.9;;
+2009-05-01T14:02:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;7.8;;
+2009-05-01T14:03:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.9;;
+2009-05-01T14:04:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.1;;
+1980-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.1;
+1981-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.2;
+1982-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.3;
+1983-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.4;
+1984-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.5;
+2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:19;Sensor 19 No FOI;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;6.6;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5;;
+2009-05-01T14:00:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.9;;
+2009-05-01T14:01:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;8.9;;
+2009-05-01T14:02:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;7.8;;
+2009-05-01T14:03:00.0;urn:ogc:object:sensor:GEOM:test-id;Sensor test id;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.9;;
+2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.5;;
+2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;98.5;;
+2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.6;;
+2000-02-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5;;
+2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.7;;
+2000-03-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;97.5;;
+2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.8;;
+2000-04-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2000-05-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;4.9;;
+2000-06-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.0;;
+2000-07-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;5.1;;
+2000-11-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;99.5;;
+2001-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:18;Sensor 18;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;96.5;;
+2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;12.0;;
+2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;13.0;;
+2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;14.0;;
+2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;15.0;;
+2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:8;Sensor 8;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;16.0;;
+2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:7;Sensor 7;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;;6.56;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;24.0;19.7;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;48.0;21.2;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;96.0;23.9;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;192.0;26.2;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;384.0;31.4;;
+2000-12-01T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;768.0;35.1;;
+2000-12-11T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5;;
+2000-12-22T00:00:00.0;urn:ogc:object:sensor:GEOM:2;Sensor 2;;temperature;temperature;urn:ogc:def:phenomenon:GEOM:temperature;°C;12.0;18.5;;
+2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T15:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T16:59:00.0;urn:ogc:object:sensor:GEOM:4;Sensor 4;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T02:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T03:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T04:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T05:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T06:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T07:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T08:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T09:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T10:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T11:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T17:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
+2007-05-01T18:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
+2007-05-01T19:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
+2007-05-01T20:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
+2007-05-01T21:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
 
