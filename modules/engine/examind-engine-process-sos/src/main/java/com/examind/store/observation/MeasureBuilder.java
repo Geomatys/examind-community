@@ -56,16 +56,20 @@ public class MeasureBuilder {
     private static class Measure {
         public final Object value;
         public final String[] qualityValues;
+        public final String[] parameterValues;
 
-        public Measure(int qualitySize) {
+        public Measure(int qualitySize, int parameterSize) {
             this.value = null;
             this.qualityValues = new String[qualitySize];
             Arrays.fill(qualityValues, "");
+            this.parameterValues = new String[parameterSize];
+            Arrays.fill(parameterValues, "");
 
         }
-        public Measure(Object value, String[] qualityValues) {
+        public Measure(Object value, String[] qualityValues, String[] parameterValues) {
             this.value = value;
             this.qualityValues = qualityValues;
+            this.parameterValues = parameterValues;
         }
 
         public boolean isNaN() {
@@ -95,11 +99,11 @@ public class MeasureBuilder {
         this.mainColumns =  new ArrayList<>(cmb.mainColumns);
     }
      
-     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues) {
+     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues, String[] parameterValues) {
          if (!mmb.containsKey(mainValue)) {
             LinkedHashMap<String, Measure> row = new LinkedHashMap<>();
             for (Entry<String, MeasureField>  measure: measureColumns.entrySet()) {
-                row.put(measure.getKey(), new Measure(measure.getValue().qualityFields.size()));
+                row.put(measure.getKey(), new Measure(measure.getValue().qualityFields.size(), measure.getValue().parameterFields.size()));
             }
             mmb.put(mainValue, row);
         }
@@ -109,7 +113,7 @@ public class MeasureBuilder {
             if (row.containsKey(measureCode) && !row.get(measureCode).isNaN()) {
                 LOGGER.log(Level.FINE, "Duplicated value at line {0} and for main value {1} (value=''{2}'')", new Object[]{lineNumber, mainValue, measureValue});
             }
-            row.put(measureCode, new Measure(measureValue, qualityValues));
+            row.put(measureCode, new Measure(measureValue, qualityValues, parameterValues));
             mmb.put(mainValue, row);
         }
      }
@@ -136,7 +140,7 @@ public class MeasureBuilder {
             if (mainColumns.size() > 1) {
                 throw new IllegalArgumentException("Multiple main columns is not yet supported for Profile");
             }
-            filteredMeasure.add(new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, new ArrayList<>()));
+            filteredMeasure.add(new MeasureField(-1, mainColumns.get(0), FieldDataType.QUANTITY, List.of(), List.of()));
         }
         for (Entry<String, MeasureField> m : measureColumns.entrySet()) {
             if (measureColumnFound.contains(m.getKey())) {
@@ -192,6 +196,9 @@ public class MeasureBuilder {
                     result.appendValue(measure.value, true, null);
                     for (String qValue : measure.qualityValues) {
                         result.appendString(qValue, false, null);
+                    }
+                    for (String pValue : measure.parameterValues) {
+                        result.appendString(pValue, false, null);
                     }
                     noneValue = false;
                 }

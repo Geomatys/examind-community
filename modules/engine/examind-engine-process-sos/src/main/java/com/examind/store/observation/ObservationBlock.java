@@ -92,8 +92,8 @@ public class ObservationBlock {
         return cmb.getMeasureCount();
     }
 
-    public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues) {
-        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues);
+    public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues, String[] parameterValues) {
+        cmb.appendValue(mainValue, measureCode, measureValue, lineNumber, qualityValues, parameterValues);
     }
 
     public void updateObservedProperties(List<ObservedProperty> observedProperties) {

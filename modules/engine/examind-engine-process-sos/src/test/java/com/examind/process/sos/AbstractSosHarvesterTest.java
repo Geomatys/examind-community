@@ -114,6 +114,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
     
     protected static Path qualityCSVDirectory;
     protected static Path multiQualityCSVDirectory;
+    protected static Path multiParameterCSVDirectory;
 
 
     protected static final int ORIGIN_NB_SENSOR = 19;
@@ -148,7 +149,8 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
         noLineDirectory           = writeResourceFileInDir("no-valid-line", "no-valid-lines.csv");
         multiFixedDirectory       = writeResourceFileInDir("multi-fixed", "multi-fixed-1.csv");
         qualityCSVDirectory       = writeResourceFileInDir("single-quality-csv", "single-csv-qual.csv");
-        multiQualityCSVDirectory  = writeResourceFileInDir("muti-quality-csv", "multi-csv-qual.csv");
+        multiQualityCSVDirectory  = writeResourceFileInDir("multi-quality-csv", "multi-csv-qual.csv");
+        multiParameterCSVDirectory  = writeResourceFileInDir("multi-parameter-csv", "multi-csv-param.csv");
         propDirectory             = writeResourceFileInDir("prop", "properties.csv");
         propFlatDirectory         = writeResourceFileInDir("prop-flat", "properties-flat.csv");
         

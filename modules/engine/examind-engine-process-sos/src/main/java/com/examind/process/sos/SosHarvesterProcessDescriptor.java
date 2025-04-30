@@ -483,6 +483,38 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
             new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
             null
     );
+    
+    public static final String PARAMETER_COLUMN_NAME = "parameter_columns";
+    public static final String PARAMETER_COLUMN_DESC = "Columns containing the parameter (linked to an observed property)";
+    public static final ParameterDescriptor<String> PARAMETER_COLUMN = new ExtendedParameterDescriptor<>(
+            PARAMETER_COLUMN_NAME,
+            PARAMETER_COLUMN_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+
+    public static final String PARAMETER_COLUMN_ID_NAME = "parameter_columns_id";
+    public static final String PARAMETER_COLUMN_ID_DESC = "Override id/name of the parameter columns";
+    public static final ParameterDescriptor<String> PARAMETER_COLUMN_ID = new ExtendedParameterDescriptor<>(
+            PARAMETER_COLUMN_ID_NAME,
+            PARAMETER_COLUMN_ID_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            null, null, null
+    );
+
+    public static final String PARAMETER_COLUMN_TYPE_NAME = "parameter_columns_type";
+    public static final String PARAMETER_COLUMN_TYPE_DESC = "Primitive type of the parameter columns (STRING)";
+    public static final ParameterDescriptor<String> PARAMETER_COLUMN_TYPE = new ExtendedParameterDescriptor<>(
+            PARAMETER_COLUMN_TYPE_NAME,
+            PARAMETER_COLUMN_TYPE_DESC,
+            0, INPUT_MAX_CARDINALITY,
+            String.class,
+            "QUANTITY",
+            new String[]{"QUANTITY", "TEXT", "BOOLEAN", "TIME"},
+            null
+    );
 
     public static final String TYPE_COLUMN_NAME = "type_column";
     public static final String TYPE_COLUMN_DESC = "type column";
@@ -538,7 +570,9 @@ public class SosHarvesterProcessDescriptor extends AbstractProcessDescriptor{
                     MAIN_COLUMN, Z_COLUMN, DATE_COLUMN, DATE_FORMAT, LONGITUDE_COLUMN, LATITUDE_COLUMN, FOI_COLUMN, UOM_COLUMN, UOM_REGEX, UOM_ID,
                     STORE_ID, FORMAT, RESULT_COLUMN, 
                     OBS_PROP_ID, OBS_PROP_COLUMN, OBS_PROP_COLUMN_TYPE, OBS_PROP_NAME, OBS_PROP_NAME_COLUMN, OBS_PROP_DESC, OBS_PROP_DESC_COLUMN, OBS_PROP_COLUMNS_FILTER, OBS_PROP_REGEX, OBS_PROP_PROPERTIES_MAP_COLUMN, OBS_PROP_PROPERTIE_COLUMN,
-                    QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE, TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
+                    QUALITY_COLUMN, QUALITY_COLUMN_ID, QUALITY_COLUMN_TYPE,
+                    PARAMETER_COLUMN, PARAMETER_COLUMN_ID, PARAMETER_COLUMN_TYPE,
+                    TYPE_COLUMN, EXTRA_STORE_PARAMETERS, DIRECT_COLUMN_INDEX,
                     NO_HEADER, LAX_HEADER, GENERATE_METADATA, CHECK_FILE, FILE_CHECKER, GENERATE_FOI);
 
     public static final String FILE_ALREADY_INSERTED_COUNT_NAME = "files_already_inserted_count";

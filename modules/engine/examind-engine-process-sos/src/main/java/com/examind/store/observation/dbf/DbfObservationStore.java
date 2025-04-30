@@ -44,7 +44,6 @@ import java.util.logging.Level;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.geotoolkit.observation.model.Field;
-import org.geotoolkit.observation.model.FieldDataType;
 import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
 import static org.geotoolkit.observation.model.FieldDataType.JSON;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
@@ -92,9 +91,10 @@ public class DbfObservationStore extends AbstractCsvStore {
             /*
             1- filter prepare spatial/time column indices from ordinary fields
             ================================================================*/
-            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, MAIN_QUALIFIER);
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
+            final List<Integer> mainIndexes      = getColumnIndexes(mainColumns,      headers, directColumnIndex, laxHeader, MAIN_QUALIFIER);
+            final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
+            final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
+            final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, PARAMETER_QUALIFIER);
 
             int latitudeIndex  = getColumnIndex(latitudeColumn,      headers, directColumnIndex, laxHeader);
             int longitudeIndex = getColumnIndex(longitudeColumn,     headers, directColumnIndex, laxHeader);
@@ -123,37 +123,7 @@ public class DbfObservationStore extends AbstractCsvStore {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final List<MeasureField> obsPropFields = new ArrayList<>();
-            for (int i = 0; i < obsPropIndexes.size(); i++) {
-                int index = obsPropIndexes.get(i);
-                FieldDataType ft = FieldDataType.QUANTITY;
-                if (i < obsPropColumnsTypes.size()) {
-                    ft = FieldDataType.valueOf(obsPropColumnsTypes.get(i));
-                }
-                // for now we handle only one quality field by field
-                List<MeasureField> qualityFields = new ArrayList<>();
-                if (i < qualityColumns.size()) {
-                    int qIndex = qualityIndexes.get(i);
-                    String qName = headers[qIndex];
-                    if (i < qualityColumnsIds.size()) {
-                        qName = qualityColumnsIds.get(i);
-                    }
-                    qName = normalizeFieldName(qName);
-                    FieldDataType qtype = FieldDataType.TEXT;
-                    if (i < qualityColumnsTypes.size()) {
-                        qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
-                    }
-                    qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
-                }
-                String fieldName;
-                if (i < obsPropIds.size()) {
-                    fieldName = obsPropIds.get(i);
-                } else {
-                    fieldName = headers[index];
-                }
-                MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields);
-                obsPropFields.add(mf);
-            }
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
 
            // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
@@ -286,7 +256,13 @@ public class DbfObservationStore extends AbstractCsvStore {
                             qValues[i] = asString(line[qField.columnIndex]);
                         }
                         
-                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues);
+                        String[] pValues = new String[field.parameterFields.size()];
+                        for (int i = 0; i < pValues.length; i++) {
+                            MeasureField pField = field.parameterFields.get(i);
+                            pValues[i] = asString(line[pField.columnIndex]);
+                        }
+                        
+                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!(line[index] instanceof String str && str.isEmpty())) {
                             LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, line[index]));
@@ -373,11 +349,12 @@ public class DbfObservationStore extends AbstractCsvStore {
             int procedureIndex = getColumnIndex(procedureColumn,     headers, directColumnIndex, laxHeader);
             int procDescIndex  = getColumnIndex(procedureNameColumn, headers, directColumnIndex, laxHeader);
 
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
+            final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, DATE_QUALIFIER);
+            final List<Integer> obsPropIndexes   = getColumnIndexes(obsPropColumns,   headers, directColumnIndex, laxHeader, OBS_PROP_QUALIFIER);
+            final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, QUALITY_QUALIFIER);
+            final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, PARAMETER_QUALIFIER);
             
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             final List<Field> fields               = toFields(obsPropFields, observationType);
             
 

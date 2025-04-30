@@ -93,6 +93,7 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected static final String MAIN_QUALIFIER = "main";
     protected static final String DATE_QUALIFIER = "date";
     protected static final String QUALITY_QUALIFIER = "quality";
+    protected static final String PARAMETER_QUALIFIER = "parameter";
     protected static final String OBS_PROP_QUALIFIER = "observed properties";
     protected static final String OBS_PROP_NAME_QUALIFIER = "observed properties name";
     protected static final String OBS_PROP_DESC_QUALIFIER = "observed properties desc";
@@ -132,6 +133,10 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
     protected final List<String> qualityColumns;
     protected final List<String> qualityColumnsIds;
     protected final List<String> qualityColumnsTypes;
+    
+    protected final List<String> parameterColumns;
+    protected final List<String> parameterColumnsIds;
+    protected final List<String> parameterColumnsTypes;
 
     /**
      * Act as a single sensor ID if no procedureColumn is supplied.
@@ -203,6 +208,9 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
         this.qualityColumns      = getMultipleValuesList(params, QUALITY_COLUMN.getName().getCode());
         this.qualityColumnsTypes = getMultipleValuesList(params, QUALITY_COLUMN_TYPE.getName().getCode());
         this.qualityColumnsIds   = getMultipleValuesList(params, QUALITY_COLUMN_ID.getName().getCode());
+        this.parameterColumns      = getMultipleValuesList(params, PARAMETER_COLUMN.getName().getCode());
+        this.parameterColumnsTypes = getMultipleValuesList(params, PARAMETER_COLUMN_TYPE.getName().getCode());
+        this.parameterColumnsIds   = getMultipleValuesList(params, PARAMETER_COLUMN_ID.getName().getCode());
 
         String pid = (String) params.parameter(PROCEDURE_ID.getName().toString()).getValue();
         if (pid == null && procedureColumn == null) {
@@ -365,7 +373,11 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             for (MeasureField qmField : mf.qualityFields) {
                 qualityFields.add(new Field(-1, qmField.dataType, qmField.name, qmField.label, null, qmField.uom, FieldType.QUALITY));
             }
-            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, List.of()));
+            final List<Field> parameterFields = new ArrayList<>();
+            for (MeasureField pField : mf.parameterFields) {
+                parameterFields.add(new Field(-1, pField.dataType, pField.name, pField.label, null, pField.uom, FieldType.PARAMETER));
+            }
+            fields.add(new Field(i, mf.dataType, name, label, null, uom, FieldType.MEASURE, qualityFields, parameterFields));
             i++;
         }
         return fields;

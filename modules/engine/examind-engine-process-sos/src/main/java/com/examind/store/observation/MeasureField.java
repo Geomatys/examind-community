@@ -33,6 +33,7 @@ public class MeasureField {
     public final String name;
     public final FieldDataType dataType;
     public final List<MeasureField> qualityFields;
+    public final List<MeasureField> parameterFields;
 
     /*
     * these attribute will be updated after the creation.
@@ -42,11 +43,12 @@ public class MeasureField {
     public String description;
     public Map<String, Object> properties;
 
-    public MeasureField(int columnIndex, String name, FieldDataType dataType, List<MeasureField> qualityFields) {
+    public MeasureField(int columnIndex, String name, FieldDataType dataType, List<MeasureField> qualityFields, List<MeasureField> parameterFields) {
         ArgumentChecks.ensureNonNull("dataType", dataType);
         this.columnIndex = columnIndex;
         this.name = name;
         this.dataType = dataType;
         this.qualityFields = qualityFields;
+        this.parameterFields = parameterFields;
     }
 }

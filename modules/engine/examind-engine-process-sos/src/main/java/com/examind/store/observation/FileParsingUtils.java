@@ -44,7 +44,9 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
@@ -775,5 +777,39 @@ public class FileParsingUtils {
 
     public static String normalizeFieldName(String s) {
         return s.toLowerCase().replace(" ", "_");
+    }
+    
+    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> idColumns, List<String> typeColumns) {
+        List<MeasureField> results = new ArrayList<>();
+        for (int i = 0; i < nameColumns.size(); i++) {
+            String qName = nameColumns.get(i);
+            if (i < idColumns.size()) {
+                qName = idColumns.get(i);
+            }
+            qName = normalizeFieldName(qName);
+            FieldDataType qtype = FieldDataType.TEXT;
+            if (i < typeColumns.size()) {
+                qtype = FieldDataType.valueOf(typeColumns.get(i));
+            }
+            results.add(new MeasureField(- 1, qName, qtype, List.of(), List.of()));
+        }
+        return results;
+    }
+    
+    public static List<Field> buildExtraFields(List<String> nameColumns, List<String> idColumns, List<String> typeColumns, FieldType type) {
+        List<Field> results = new ArrayList<>();
+        for (int i = 0; i < nameColumns.size(); i++) {
+            String qName = nameColumns.get(i);
+            if (i < idColumns.size()) {
+                qName = idColumns.get(i);
+            }
+            qName = normalizeFieldName(qName);
+            FieldDataType qtype = FieldDataType.TEXT;
+            if (i < typeColumns.size()) {
+                qtype = FieldDataType.valueOf(typeColumns.get(i));
+            }
+            results.add(new Field(- 1, qtype, qName, qName, null, null, type));
+        }
+        return results;
     }
 }

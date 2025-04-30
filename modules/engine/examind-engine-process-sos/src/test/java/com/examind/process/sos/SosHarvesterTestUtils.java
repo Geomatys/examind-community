@@ -128,6 +128,29 @@ public class SosHarvesterTestUtils {
         }
         return results;
     }
+    
+    
+    public static Set<String> getParameterFieldNames(STSWorker stsWorker, String sensorId) throws CstlServiceException {
+        GetObservations request = new GetObservations();
+        request.setResultFormat(DATA_ARRAY);
+        request.getExtraFlag().put("forMDS", "true");
+        request.getExtraFilter().put("observationId", "urn:ogc:object:observation:template:GEOM:" + sensorId);
+        DataArrayResponse resp = (DataArrayResponse) stsWorker.getObservations(request);
+        Set<String> results = new HashSet<>();
+        for (DataArray array : resp.getValue()) {
+            int index = array.getComponents().indexOf("parameters");
+            if (index != -1) {
+                for (Object o : array.getDataArray()) {
+                    List obs = (List) o;
+                    Map quals = (Map) obs.get(index);
+                    for (Object k : quals.keySet()) {
+                        results.add((String) k);
+                    }
+                }
+            }
+        }
+        return results;
+    }
 
     public static void verifyAllObservedProperties(STSWorker stsWorker, String sensorId, List<String> expectedObsProp) throws CstlServiceException {
         List<String> obsProp = getObservedProperties(stsWorker, sensorId);

@@ -165,6 +165,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
         final List<String> qualityColumns = getMultipleValues(inputParameters,QUALITY_COLUMN);
         final List<String> qualityColumnsIds = getMultipleValues(inputParameters,QUALITY_COLUMN_ID);
         final List<String> qualityColumnsTypes = getMultipleValues(inputParameters,QUALITY_COLUMN_TYPE);
+        final List<String> parameterColumns = getMultipleValues(inputParameters,PARAMETER_COLUMN);
+        final List<String> parameterColumnsIds = getMultipleValues(inputParameters,PARAMETER_COLUMN_ID);
+        final List<String> parameterColumnsTypes = getMultipleValues(inputParameters,PARAMETER_COLUMN_TYPE);
 
         // csv-flat special
         final String typeColumn  = inputParameters.getValue(TYPE_COLUMN);
@@ -379,6 +382,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumns));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumnsIds));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.QUALITY_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(qualityColumnsTypes));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PARAMETER_COLUMN.getName().toString(), StringUtilities.toCommaSeparatedValues(parameterColumns));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PARAMETER_COLUMN_ID.getName().toString(), StringUtilities.toCommaSeparatedValues(parameterColumnsIds));
+            provConfig.getParameters().put(FileParsingObservationStoreFactory.PARAMETER_COLUMN_TYPE.getName().toString(), StringUtilities.toCommaSeparatedValues(parameterColumnsTypes));
             provConfig.getParameters().put(FileParsingObservationStoreFactory.TYPE_COLUMN.getName().toString(), typeColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.Z_COLUMN.getName().toString(), zColumn);
             provConfig.getParameters().put(FileParsingObservationStoreFactory.UOM_COLUMN.getName().toString(), uomColumn);

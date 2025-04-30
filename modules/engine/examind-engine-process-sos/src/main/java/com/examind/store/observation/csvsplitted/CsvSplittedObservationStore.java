@@ -318,6 +318,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             List<Integer> mainIndexes              = getColumnIndexes(mainColumns,               headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
             List<Integer> obsPropColumnIndexes     = getColumnIndexes(csvFlatobsPropColumns,     headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
             List<Integer> qualityIndexes           = getColumnIndexes(qualityColumns,            headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
+            List<Integer> parameterIndexes         = getColumnIndexes(parameterColumns,          headers, directColumnIndex, laxHeader, maxIndex, PARAMETER_QUALIFIER);
             
             if (obsPropColumnIndexes.isEmpty()) {
                 throw new DataStoreException("Unexpected columns code:" + Arrays.toString(csvFlatobsPropColumns.toArray()));
@@ -347,7 +348,8 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             String currentFoi                     = null;
             String currentObstType                = observationType;
             final List<String> obsTypeCodes       = getObsTypeCodes();
-            List<MeasureField> qualityFields      = buildQualityMeasureFields();
+            List<MeasureField> qualityFields      = buildExtraMeasureFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes);
+            List<MeasureField> parameterFields    = buildExtraMeasureFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes);
 
             final Map<String, MeasureColumns> measureColumnsMap = new HashMap<>();
 
@@ -395,7 +397,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                     for (int j = 0, k = offset; j < sortedMeasureColumns.size(); j++, k++) {
                         String mc = sortedMeasureColumns.get(j);
                         FieldDataType type = FieldDataType.QUANTITY;
-                        measureFields.add(new MeasureField(-1, mc, type, qualityFields));
+                        measureFields.add(new MeasureField(-1, mc, type, qualityFields, parameterFields));
                     }
                     return new MeasureColumns(measureFields, currentMainColumns, cot);
                 });
@@ -477,13 +479,18 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                     LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                     continue;
                 }
-                // todo quality field types
+                // todo quality/parameter field types
                 String[] qualityValues = new String[qualityIndexes.size()];
                 for (int i = 0; i < qualityIndexes.size(); i++) {
                     Integer qIndex = qualityIndexes.get(i);
                     qualityValues[i] = asString(line[qIndex]);
+                }
+                String[] parameterValues = new String[parameterIndexes.size()];
+                for (int i = 0; i < parameterIndexes.size(); i++) {
+                    Integer pIndex = parameterIndexes.get(i);
+                    parameterValues[i] = asString(line[pIndex]);
                  }
-                currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues);
+                currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues, parameterValues);
             }
 
 
@@ -704,7 +711,8 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
             int procedureIndex   = getColumnIndex(procedureColumn,     headers,               directColumnIndex, laxHeader, maxIndex);
             int valueColumnIndex = getColumnIndex(valueColumn,         headers, doubleFields, directColumnIndex, laxHeader, maxIndex);
             
-            final List<Field> qualityFields      = buildQualityFields();
+            final List<Field> qualityFields      = buildExtraFields(qualityColumns, qualityColumnsIds, qualityColumnsTypes, FieldType.QUALITY);
+            final List<Field> parameterFields    = buildExtraFields(parameterColumns, parameterColumnsIds, parameterColumnsTypes, FieldType.PARAMETER);
             final Map<String, Map<String, Field>> measureColumnsMap = new HashMap<>();
             
             int lineNumber                       = 1;
@@ -730,7 +738,7 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
                         String mc = sortedMeasureColumns.get(j);
                         FieldDataType dataType = FieldDataType.QUANTITY;
                         FieldType type = FieldType.MEASURE;
-                        measureFields.put(mc, new Field(k, dataType, mc, mc, null, null, type, qualityFields, null));
+                        measureFields.put(mc, new Field(k, dataType, mc, mc, null, null, type, qualityFields, parameterFields));
                     }
                     return measureFields;
                 });
@@ -773,40 +781,6 @@ public class CsvSplittedObservationStore extends FileParsingObservationStore {
         return new ArrayList<>(result.values());
     }
     
-    protected List<MeasureField> buildQualityMeasureFields() {
-        List<MeasureField> results = new ArrayList<>();
-        for (int i = 0; i < qualityColumns.size(); i++) {
-            String qName = qualityColumns.get(i);
-            if (i < qualityColumnsIds.size()) {
-                qName = qualityColumnsIds.get(i);
-            }
-            qName = normalizeFieldName(qName);
-            FieldDataType qtype = FieldDataType.TEXT;
-            if (i < qualityColumnsTypes.size()) {
-                qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
-            }
-            results.add(new MeasureField(- 1, qName, qtype, new ArrayList<>()));
-        }
-        return results;
-    }
-    
-    protected List<Field> buildQualityFields() {
-        List<Field> results = new ArrayList<>();
-        for (int i = 0; i < qualityColumns.size(); i++) {
-            String qName = qualityColumns.get(i);
-            if (i < qualityColumnsIds.size()) {
-                qName = qualityColumnsIds.get(i);
-            }
-            qName = normalizeFieldName(qName);
-            FieldDataType qtype = FieldDataType.TEXT;
-            if (i < qualityColumnsTypes.size()) {
-                qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
-            }
-            results.add(new Field(- 1, qtype, qName, qName, null, null, FieldType.QUALITY));
-        }
-        return results;
-    }
-
     /**
      * return the allowed values for the "typeColumn".
      * Dependending if the parameter ObservationType is null or not,

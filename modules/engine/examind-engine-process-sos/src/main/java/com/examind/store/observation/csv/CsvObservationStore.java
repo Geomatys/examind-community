@@ -105,9 +105,10 @@ public class CsvObservationStore extends AbstractCsvStore {
             int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
 
-            final List<Integer> mainIndexes    = getColumnIndexes(mainColumns,    headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
+            final List<Integer> mainIndexes      = getColumnIndexes(mainColumns,      headers, directColumnIndex, laxHeader, maxIndex, MAIN_QUALIFIER);
+            final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
+            final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, maxIndex, PARAMETER_QUALIFIER);
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
 
@@ -131,7 +132,7 @@ public class CsvObservationStore extends AbstractCsvStore {
                 throw new DataStoreException("In noHeader mode, you must set fixed observated property ids");
             }
 
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
 
             // special case where there is no header, and a specified observation property identifier
             List<ObservedProperty> fixedObsProperties = getObservedProperties(measureFields);
@@ -267,8 +268,13 @@ public class CsvObservationStore extends AbstractCsvStore {
                             MeasureField qField = field.qualityFields.get(i);
                             qValues[i] = asString(line[qField.columnIndex]);
                         }
+                        String[] pValues = new String[field.parameterFields.size()];
+                        for (int i = 0; i < pValues.length; i++) {
+                            MeasureField pField = field.parameterFields.get(i);
+                            pValues[i] = asString(line[pField.columnIndex]);
+                        }
 
-                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues);
+                        currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);
                     } catch (ParseException | NumberFormatException ex) {
                         if (!(value instanceof String str && str.isEmpty())) {
                             LOGGER.fine(String.format("Problem parsing '%s value at line %d and column %d (value='%s')", field.dataType.toString(), lineNumber, index, value));
@@ -393,13 +399,14 @@ public class CsvObservationStore extends AbstractCsvStore {
             int procDescIndex    = getColumnIndex(procedureDescColumn,          headers, directColumnIndex, laxHeader, maxIndex);
             int procPropMapIndex = getColumnIndex(procedurePropertiesMapColumn, headers, directColumnIndex, laxHeader, maxIndex);
            
-            final List<Integer> dateIndexes    = getColumnIndexes(dateColumns,    headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
-            final List<Integer> obsPropIndexes = getColumnIndexes(obsPropColumns, headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
-            final List<Integer> qualityIndexes = getColumnIndexes(qualityColumns, headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
+            final List<Integer> dateIndexes      = getColumnIndexes(dateColumns,      headers, directColumnIndex, laxHeader, maxIndex, DATE_QUALIFIER);
+            final List<Integer> obsPropIndexes   = getColumnIndexes(obsPropColumns,   headers, directColumnIndex, laxHeader, maxIndex, OBS_PROP_QUALIFIER);
+            final List<Integer> qualityIndexes   = getColumnIndexes(qualityColumns,   headers, directColumnIndex, laxHeader, maxIndex, QUALITY_QUALIFIER);
+            final List<Integer> parameterIndexes = getColumnIndexes(parameterColumns, headers, directColumnIndex, laxHeader, maxIndex, PARAMETER_QUALIFIER);
             
             final Map<Integer, String> procPropIndexes = getNamedColumnIndexes(procedurePropertieColumns, headers, directColumnIndex,laxHeader, maxIndex);
             
-            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, headers);
+            final List<MeasureField> obsPropFields = getObsPropFields(obsPropIndexes, qualityIndexes, parameterIndexes, headers);
             final List<Field>fields                = toFields(obsPropFields, observationType);
 
             Map<String, ProcedureDataset> result = new LinkedHashMap<>();

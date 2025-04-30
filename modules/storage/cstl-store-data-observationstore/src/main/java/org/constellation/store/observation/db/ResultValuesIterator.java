@@ -271,7 +271,7 @@ public class ResultValuesIterator {
                             final long millis = dateParser.parseToMillis(value);
                             value = "'" + new Timestamp(millis).toString() + "'";
                         } catch (IllegalArgumentException ex) {
-                            throw new DataStoreException("Bad format of timestamp for:" + value);
+                            throw new DataStoreException("Bad format of timestamp for:" + value + " for field " + field.name);
                         }
                     }
                 }
@@ -291,9 +291,13 @@ public class ResultValuesIterator {
                 }
                 case QUANTITY -> {
                     if (value != null && !(value = value.trim()).isEmpty()) {
-                        Double d = Double.valueOf(value);
-                        d = (Double) field.convertValue(d);
-                        value = Double.toString(d);
+                        try {
+                            Double d = Double.valueOf(value);
+                            d = (Double) field.convertValue(d);
+                            value = Double.toString(d);
+                        } catch (NumberFormatException ex) {
+                            throw new DataStoreException("Unable to parse double:" + value + " for field " + field.name);
+                        }
                     }
                 }
             }

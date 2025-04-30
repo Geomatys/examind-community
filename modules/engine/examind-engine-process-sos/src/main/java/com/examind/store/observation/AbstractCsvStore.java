@@ -48,7 +48,7 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
         this.uomIds = getMultipleValuesList(params, UOM_ID.getName().getCode());
     }
     
-    protected List<MeasureField> getObsPropFields(List<Integer> obsPropIndexes, List<Integer> qualityIndexes, String[] headers) {
+    protected List<MeasureField> getObsPropFields(List<Integer> obsPropIndexes, List<Integer> qualityIndexes, List<Integer> parameterIndexes, String[] headers) {
         final List<MeasureField> results = new ArrayList<>();
         for (int i = 0; i < obsPropIndexes.size(); i++) {
             int index = obsPropIndexes.get(i);
@@ -56,33 +56,41 @@ public abstract class AbstractCsvStore extends FileParsingObservationStore {
             if (i < obsPropColumnsTypes.size()) {
                 ft = FieldDataType.valueOf(obsPropColumnsTypes.get(i));
             }
-            // for now we handle only one quality field by field
-            List<MeasureField> qualityFields = new ArrayList<>();
-            if (i < qualityColumns.size()) {
-                int qIndex = qualityIndexes.get(i);
-                String qName = headers[qIndex];
-                if (i < qualityColumnsIds.size()) {
-                    qName = qualityColumnsIds.get(i);
-                }
-                qName = normalizeFieldName(qName);
-                FieldDataType qtype = FieldDataType.TEXT;
-                if (i < qualityColumnsTypes.size()) {
-                    qtype = FieldDataType.valueOf(qualityColumnsTypes.get(i));
-                }
-                qualityFields.add(new MeasureField(qIndex, qName, qtype, List.of()));
-            }
+            // for now we handle only one quality/parameter field by field
+            MeasureField qField = parseExtraField(i, qualityIndexes, qualityColumnsIds, qualityColumnsTypes, headers);
+            List<MeasureField> qualityFields = qField != null ? List.of(qField) : List.of();
+            
+            MeasureField pField = parseExtraField(i, parameterIndexes, parameterColumnsIds, parameterColumnsTypes, headers);
+            List<MeasureField> parameterFields = pField != null ? List.of(pField) : List.of();
+            
             String fieldName;
             if (i < obsPropIds.size()) {
                 fieldName = obsPropIds.get(i);
             } else {
                 fieldName = headers[index];
             }
-            MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields);
+            MeasureField mf = new MeasureField(index, fieldName, ft, qualityFields, parameterFields);
             results.add(mf);
         }
         return results;
     }
     
+    private static MeasureField parseExtraField(int i, List<Integer> indexes, List<String> columnIds, List<String> columnTypes, String[] headers) {
+        if (i < indexes.size()) {
+            int qIndex = indexes.get(i);
+            String qName = headers[qIndex];
+            if (i < columnIds.size()) {
+                qName = columnIds.get(i);
+            }
+            qName = normalizeFieldName(qName);
+            FieldDataType qtype = FieldDataType.TEXT;
+            if (i < columnTypes.size()) {
+                qtype = FieldDataType.valueOf(columnTypes.get(i));
+            }
+            return new MeasureField(qIndex, qName, qtype, List.of(), List.of());
+        }
+        return null;
+    }
     protected List<ObservedProperty> getObservedProperties(List<String> measureFields) {
         List<ObservedProperty> fixedObsProperties = new ArrayList<>();
         if (!obsPropIds.isEmpty()) {
