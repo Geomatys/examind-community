@@ -59,6 +59,32 @@ public interface IConfigurationBusiness {
      * @return never {@code null}.
      */
     Path getProcessDirectory();
+    
+    /**
+     *
+     * Return the service directory (CSTL_DATA).
+     *
+     * @return never {@code null}.
+     */
+    Path getServicesDirectory();
+    
+    /**
+     *
+     * Return the provider directory.
+     * Use for storing yaml file describing provider in FS mode.
+     *
+     * @return never {@code null}.
+     */
+    Path getProvidersDirectory();
+    
+    /**
+     *
+     * Return the style directory.
+     * Use for storing SLD file describing styles in FS mode.
+     *
+     * @return never {@code null}.
+     */
+    Path getStylesDirectory();
 
     /**
      * Return the specific directory for the specified OGC web service.
@@ -78,15 +104,6 @@ public interface IConfigurationBusiness {
      * @param id Service identifier.
      */
     void removeInstanceDirectory(String type, String id);
-
-    /**
-     * Return all the directories for the specified OGC web service type.
-     *
-     * @param type Service type (e.g : WMS, WFS, CSW, ...)
-     * @return
-     * @throws IOException
-     */
-    List<Path> getInstanceDirectories(String type)throws IOException;
 
     /**
      * Return the data integrated / provider directory.

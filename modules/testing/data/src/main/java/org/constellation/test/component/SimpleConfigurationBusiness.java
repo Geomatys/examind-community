@@ -23,14 +23,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.configuration.ConfigDirectory;
-import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.token.TokenUtils;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +51,21 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
         return ConfigDirectory.getDataDirectory();
     }
 
+    @Override
+    public Path getServicesDirectory() {
+        return ConfigDirectory.getServicesDirectory();
+    }
+    
+    @Override
+    public Path getProvidersDirectory() {
+        return ConfigDirectory.getProvidersDirectory();
+    }
+    
+    @Override
+    public Path getStylesDirectory() {
+        return ConfigDirectory.getStylesDirectory();
+    }
+    
     /**
      * {@inheritDoc}
      */
@@ -85,40 +98,23 @@ public class SimpleConfigurationBusiness implements IConfigurationBusiness {
     }
 
     @Override
-    public List<Path> getInstanceDirectories(String type) throws IOException {
-        return ConfigDirectory.getInstanceDirectories(type);
-    }
-
-    @Override
     public Path getInstanceDirectory(String type, String id) {
-        return ConfigDirectory.getInstanceDirectory(type, id);
+        return ConfigDirectory.getInstanceDirectory(type, id, true);
     }
 
     @Override
     public Path getAssetsDirectory() {
-        final Path folder = ConfigDirectory.getDataDirectory().resolve("assets");
-        try {
-            Files.createDirectories(folder);
-        } catch (IOException ex) {
-            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
-        }
-        return folder;
+        return ConfigDirectory.getAssetsDirectory();
     }
     
     @Override
     public Path getProcessDirectory() {
-        final Path folder = ConfigDirectory.getDataDirectory().resolve("process");
-        try {
-            Files.createDirectories(folder);
-        } catch (IOException ex) {
-            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
-        }
-        return folder;
+        return ConfigDirectory.getProcessDirectory();
     }
     
     @Override
     public void removeInstanceDirectory(String type, String id) {
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory(type, id);
+        final Path instanceDir = ConfigDirectory.getInstanceDirectory(type, id, false);
         if (Files.isDirectory(instanceDir)) {
             //FIXME use deleteRecursively instead and handle exception
             IOUtilities.deleteSilently(instanceDir);

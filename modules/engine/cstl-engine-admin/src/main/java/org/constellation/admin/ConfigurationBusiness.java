@@ -23,7 +23,6 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.configuration.ConfigDirectory;
 import org.constellation.dto.service.Service;
-import org.constellation.exception.ConfigurationRuntimeException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.repository.PropertyRepository;
 import org.constellation.repository.ServiceRepository;
@@ -31,6 +30,7 @@ import org.constellation.token.TokenUtils;
 import org.geotoolkit.nio.IOUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,10 +48,22 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
 
     @Autowired
     private IMetadataBusiness metadatabusiness;
+    
+    @Autowired
+    private Environment env;
 
     public void init() {
         LOGGER.info("=== Configure directory ===");
-        ConfigDirectory.init();
+        
+        // for filesystem configuration mode we don't create all the directories.
+        boolean fsMode = false;
+        for (String ap : env.getActiveProfiles()) {
+            if ("fsconfig".equals(ap)) {
+                fsMode = true;
+                break;
+            }
+        }
+        ConfigDirectory.init(fsMode);
     }
 
     @Override
@@ -63,27 +75,25 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
     public Path getDataDirectory() {
         return ConfigDirectory.getDataDirectory();
     }
+    
+    @Override
+    public Path getProvidersDirectory() {
+        return ConfigDirectory.getProvidersDirectory();
+    }
+    
+    @Override
+    public Path getStylesDirectory() {
+        return ConfigDirectory.getStylesDirectory();
+    }
 
     @Override
     public Path getAssetsDirectory() {
-        final Path folder = ConfigDirectory.getDataDirectory().resolve("assets");
-        try {
-            Files.createDirectories(folder);
-        } catch (IOException ex) {
-            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
-        }
-        return folder;
+        return ConfigDirectory.getAssetsDirectory();
     }
     
     @Override
     public Path getProcessDirectory() {
-        final Path folder = ConfigDirectory.getProcessDirectory();
-        try {
-            Files.createDirectories(folder);
-        } catch (IOException ex) {
-            throw new ConfigurationRuntimeException("Could not create: " + folder.toString(), ex);
-        }
-        return folder;
+        return ConfigDirectory.getProcessDirectory();
     }
 
     /**
@@ -132,18 +142,18 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
     }
 
     @Override
-    public List<Path> getInstanceDirectories(String type) throws IOException {
-        return ConfigDirectory.getInstanceDirectories(type);
+    public Path getInstanceDirectory(String type, String id) {
+        return ConfigDirectory.getInstanceDirectory(type, id, true);
     }
 
     @Override
-    public Path getInstanceDirectory(String type, String id) {
-        return ConfigDirectory.getInstanceDirectory(type, id);
+    public Path getServicesDirectory() {
+        return ConfigDirectory.getServicesDirectory();
     }
-
+    
     @Override
     public void removeInstanceDirectory(String type, String id) {
-        final Path instanceDir = ConfigDirectory.getInstanceDirectory(type, id);
+        final Path instanceDir = ConfigDirectory.getInstanceDirectory(type, id, false);
         if (Files.isDirectory(instanceDir)) {
             //FIXME use deleteRecursively instead and handle exception
             IOUtilities.deleteSilently(instanceDir);

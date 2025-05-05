@@ -60,26 +60,35 @@ public final class ConfigDirectory {
             this.home = builder.home;
             this.data = builder.data;
             this.dataIntegrated = builder.dataIntegrated;
-            this.dataUserUploads = builder.dataUserUploads;
-            this.dataServices = builder.dataServices;
+            this.userUploads = builder.userUploads;
+            this.services = builder.services;
             this.testing = builder.testing;
             this.process = builder.process;
+            this.assets = builder.assets;
+            this.providers = builder.providers;
+            this.styles = builder.styles;
         }
 
         private static class Builder {
             private Path home;
             private Path data;
             private Path dataIntegrated;
-            private Path dataServices;
+            private Path services;
             private Path process;
+            private Path assets;
+            
+            private Path providers;
+            private Path styles;
 
             private URI homeLocation;
             private URI dataLocation;
             private URI processLocation;
-            private Path dataUserUploads;
+            private Path userUploads;
             private boolean testing;
+            private boolean fsMode;
 
-            public Builder() {
+            public Builder(boolean fsMode) {
+                this.fsMode = fsMode;
                 String exaHome = Application.getProperty(AppProperty.CSTL_HOME, System.getProperty("user.home") + File.separator + ".constellation");
                 this.homeLocation = Paths.get(exaHome).toUri();
                 String exaData = Application.getProperty(AppProperty.CSTL_DATA, exaHome + File.separator +  "data");
@@ -89,20 +98,25 @@ public final class ConfigDirectory {
             }
 
             Config build() {
-                this.home = initFolder(homeLocation);
-                this.data = initFolder(dataLocation);
+                this.home = initFolder(homeLocation, true);
+                this.data = initFolder(dataLocation, true);
                 if (processLocation != null) {
-                    this.process = initFolder(processLocation);
+                    this.process = initFolder(processLocation, !fsMode);
                 } else {
-                    this.process = initDataSubFolder("process");
+                    this.process = initDataSubFolder("process", !fsMode);
                 }
-                this.dataIntegrated = initDataSubFolder("integrated");
-                this.dataUserUploads = initDataSubFolder("user", "uploads");
-                this.dataServices = initDataSubFolder("services");
+                this.dataIntegrated = initDataSubFolder("integrated", !fsMode);
+                this.userUploads    = initDataSubFolder("user", !fsMode, "uploads");
+                this.assets         = initDataSubFolder("assets", !fsMode);
+                
+                this.services       = initDataSubFolder("services" , fsMode);
+                this.providers      = initDataSubFolder("providers", fsMode);
+                this.styles         = initDataSubFolder("styles",    fsMode);
+                
                 return new Config(this);
             }
 
-            private Path initFolder(URI absLocation) {
+            private Path initFolder(URI absLocation, boolean create) {
                 try {
                     Path location;
                     if (absLocation.getScheme() == null) {
@@ -111,20 +125,20 @@ public final class ConfigDirectory {
                     } else {
                         location = Paths.get(absLocation);
                     }
-                    return ConfigDirectory.initFolder(location);
+                    return ConfigDirectory.createFolder(location, create);
                 } catch (IllegalArgumentException | FileSystemNotFoundException ex) {
                     throw new RuntimeException(ex);
                 }
             }
 
-            private Path initDataSubFolder(String sub, String... subs) {
+            private Path initDataSubFolder(String sub, boolean create, String... subs) {
                 Path subPath = data.resolve(sub);
                 if (subs != null) {
                     for (String s : subs) {
                         subPath = subPath.resolve(s);
                     }
                 }
-                return ConfigDirectory.initFolder(subPath);
+                return ConfigDirectory.createFolder(subPath, create);
             }
 
             public Builder forTest(String first, String... subPath) {
@@ -141,10 +155,13 @@ public final class ConfigDirectory {
         final Path home;
         final Path data;
         final Path dataIntegrated;
-        final Path dataUserUploads;
+        final Path userUploads;
         final boolean testing;
-        final Path dataServices;
+        final Path services;
         final Path process;
+        final Path assets;
+        final Path providers;
+        final Path styles;
     }
 
     /**
@@ -157,8 +174,8 @@ public final class ConfigDirectory {
     private ConfigDirectory() {
     }
 
-    static Path initFolder(Path path) {
-        if (Files.notExists(path)) {
+    static Path createFolder(Path path, boolean create) {
+        if (create && Files.notExists(path)) {
             try {
                 Files.createDirectories(path);
                 LOGGER.log(Level.FINE, "{0} created.", path.toUri().toString());
@@ -198,6 +215,18 @@ public final class ConfigDirectory {
     public static Path getProcessDirectory() {
         return config.process;
     }
+    
+    public static Path getAssetsDirectory() {
+        return config.assets;
+    }
+    
+    public static Path getProvidersDirectory() {
+        return config.providers;
+    }
+    
+    public static Path getStylesDirectory() {
+        return config.styles;
+    }
 
     /**
      * Give a integrated data directory {@link java.nio.file.Path} defined on
@@ -232,24 +261,29 @@ public final class ConfigDirectory {
     }
 
     private static Path resolveUserUploads(String userName) {
-        return config.dataUserUploads.resolve(userName);
+        return config.userUploads.resolve(userName);
     }
 
-    private static Path resolveInstanceDirectory(String type, String id) {
-        Path typeService = resolveInstanceServiceDirectoryByType(type);
-        return initFolder(typeService.resolve(id));
+    private static Path resolveInstanceDirectory(String type, String id, boolean createIfMissing) {
+        Path typeService = resolveInstanceServiceDirectoryByType(type, createIfMissing);
+        return createFolder(typeService.resolve(id), createIfMissing);
     }
 
-    private static Path resolveInstanceServiceDirectoryByType(String type) {
-        Path typeService = config.dataServices.resolve(type);
-        ConfigDirectory.initFolder(typeService);
+    private static Path resolveInstanceServiceDirectoryByType(String type, boolean createIfMissing) {
+        Path typeService = config.services.resolve(type);
+        ConfigDirectory.createFolder(typeService, createIfMissing);
         return typeService;
     }
 
 
     public static Path getUploadDirectory() {
-        return config.dataUserUploads;
+        return config.userUploads;
     }
+    
+    public static Path getServicesDirectory() {
+        return config.services;
+    }
+     
     /**
      * Give a upload directory {@link java.nio.file.Path} defined on
      * constellation.properties or by default on
@@ -273,7 +307,7 @@ public final class ConfigDirectory {
 
     public static Path setupTestEnvironement(String filename) {
         ensureNonNull("File name", filename);
-        config = new Config.Builder().forTest("target", filename).build();
+        config = new Config.Builder(true).forTest("target", filename).build();
         return config.home;
     }
 
@@ -283,19 +317,14 @@ public final class ConfigDirectory {
         }
     }
 
-    public static void init() {
+    public static void init(boolean fsMode) {
         if (config == null) {
-            config = new Config.Builder().build();
+            config = new Config.Builder(fsMode).build();
         }
     }
 
-    public static Path getInstanceDirectory(String type, String id) {
-        return resolveInstanceDirectory(type.toLowerCase(), id);
-    }
-
-    public static List<Path> getInstanceDirectories(String typeService) throws IOException {
-        Path instancesDirectory = resolveInstanceServiceDirectoryByType(typeService);
-        return listChildren(instancesDirectory);
+    public static Path getInstanceDirectory(String type, String id, boolean createIfMissing) {
+        return resolveInstanceDirectory(type.toLowerCase(), id, createIfMissing);
     }
 
     public static Properties getMetadataTemplateProperties() {

@@ -18,7 +18,6 @@
  */
 package org.constellation.webservice.map.component;
 
-import com.examind.provider.component.ExaDataCreator;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -80,6 +79,7 @@ import static org.geotoolkit.style.StyleConstants.DEFAULT_LINE_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POINT_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POLYGON_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_RASTER_SYMBOLIZER;
+import org.springframework.core.env.Environment;
 
 /**
  * Specific setup for map service
@@ -123,7 +123,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
     private IWSEngine wsEngine;
 
     @Autowired
-    private ExaDataCreator dataCreator;
+    private Environment env;
 
     @Override
     public void afterPropertiesSet() {
@@ -136,35 +136,46 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         } catch (ClassNotFoundException ex) {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
         }
+        
+        // for filesystem configuration mode we don't create all the default resources.
+        boolean createDefaultResource = true;
+        for (String ap : env.getActiveProfiles()) {
+            if ("fsconfig".equals(ap)) {
+                createDefaultResource = false;
+                break;
+            }
+        }
 
-        Lock lock = clusterBusiness.acquireLock("setup-default-resources");
-        lock.lock();
-        LOGGER.fine("LOCK Acquired on cluster: setup-default-resources");
-        final Path DataDirectory = configurationBusiness.getDataDirectory();
-        try {
-            SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
+        if (createDefaultResource) {
+            Lock lock = clusterBusiness.acquireLock("setup-default-resources");
+            lock.lock();
+            LOGGER.fine("LOCK Acquired on cluster: setup-default-resources");
+            final Path DataDirectory = configurationBusiness.getDataDirectory();
+            try {
+                SpringHelper.executeInTransaction(new TransactionCallbackWithoutResult() {
 
-                @Override
-                protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+                    @Override
+                    protected void doInTransactionWithoutResult(TransactionStatus arg0) {
 
-                    WithDefaultResources defaultResourcesDeployed = deployDefaultResources(DataDirectory);
+                        WithDefaultResources defaultResourcesDeployed = deployDefaultResources(DataDirectory);
 
-                    LOGGER.log(Level.INFO, "initializing default styles ...");
-                    defaultResourcesDeployed.initializeDefaultStyles();
-                    LOGGER.log(Level.INFO, "initializing vector data ...");
-                    defaultResourcesDeployed.initializeDefaultVectorData();
-                    LOGGER.log(Level.INFO, "initializing raster data ...");
-                    defaultResourcesDeployed.initializeDefaultRasterData();
-                    LOGGER.log(Level.INFO, "initializing properties ...");
-                    defaultResourcesDeployed.initializeDefaultProperties();
+                        LOGGER.log(Level.INFO, "initializing default styles ...");
+                        defaultResourcesDeployed.initializeDefaultStyles();
+                        LOGGER.log(Level.INFO, "initializing vector data ...");
+                        defaultResourcesDeployed.initializeDefaultVectorData();
+                        LOGGER.log(Level.INFO, "initializing raster data ...");
+                        defaultResourcesDeployed.initializeDefaultRasterData();
+                        LOGGER.log(Level.INFO, "initializing properties ...");
+                        defaultResourcesDeployed.initializeDefaultProperties();
 
-                }
-            });
-        } catch (Exception ex) {
-            LOGGER.log(Level.SEVERE, "Error while deploying default resources", ex);
-        } finally {
-            LOGGER.fine("UNLOCK on cluster: setup-default-resources");
-            lock.unlock();
+                    }
+                });
+            } catch (Exception ex) {
+                LOGGER.log(Level.SEVERE, "Error while deploying default resources", ex);
+            } finally {
+                LOGGER.fine("UNLOCK on cluster: setup-default-resources");
+                lock.unlock();
+            }
         }
 
         LOGGER.log(Level.INFO, "initializing map context data ...");
