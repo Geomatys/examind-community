@@ -220,8 +220,9 @@ public class MapContextRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/mapcontexts",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity createContext(@RequestBody final MapContextLayersDTO mapContext,
+    public ResponseEntity createMapContext(@RequestBody final MapContextLayersDTO mapContext,
             final HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             if (mapContext.getName() == null || mapContext.getName().isEmpty()) {
                 return new ErrorMessage(BAD_REQUEST.value(), null, "Map context should declare at least a name.", null).build();
@@ -294,7 +295,8 @@ public class MapContextRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/mapcontexts/{id}",method=PUT,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity updateContext(@PathVariable("id") final int contextId, @RequestBody final MapContextLayersDTO mapContext) {
+    public ResponseEntity updateMapContext(@PathVariable("id") final int contextId, @RequestBody final MapContextLayersDTO mapContext) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             if (!contextBusiness.existById(contextId)) return new ResponseEntity(NOT_FOUND);
             
@@ -355,7 +357,8 @@ public class MapContextRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/mapcontexts/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     @Transactional
-    public ResponseEntity delete(@PathVariable("id") final int contextId) {
+    public ResponseEntity deleteMapContext(@PathVariable("id") final int contextId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             int result = contextBusiness.delete(contextId);
             if (result == 1) {
@@ -557,7 +560,7 @@ public class MapContextRestAPI extends AbstractRestAPI {
             @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode,
             @RequestParam(name = "nblevel", defaultValue = "8") final int nbLevel,
             HttpServletRequest req) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final int userId;
         try {
             userId = assertAuthentificated(req);

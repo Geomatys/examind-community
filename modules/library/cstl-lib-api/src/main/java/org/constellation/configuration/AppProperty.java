@@ -304,6 +304,8 @@ public enum AppProperty {
     EXA_WMS_STRICT("examind.wms.strict", true, Boolean.class),
 
     EXA_WMS_BACKGROUND_URL("examind.wms.background", false, String.class),
+    
+    EXA_API_READONLY("examind.api.readonly", false, Boolean.class),
 
     EXA_ENABLE_INTERNAL_SIS_STORE("examind.enable.internal.sis.store", false, Boolean.class),
 

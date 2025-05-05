@@ -135,6 +135,7 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/{dataId}/accept",method=POST, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity acceptData(@PathVariable Integer dataId, @RequestParam(name="hidden", required = false, defaultValue = "false") Boolean hidden, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId = assertAuthentificated(req);
             dataBusiness.acceptData(dataId, userId, hidden);
@@ -149,6 +150,7 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/accept",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity acceptDatas(@RequestBody List<Integer> dataIds, @RequestParam(name="hidden", required = false, defaultValue = "false") Boolean hidden, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId = assertAuthentificated(req);
             Map<String, List> results = new HashMap<>();
@@ -175,6 +177,7 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/metadata/model/{modelId}",method=POST, consumes=APPLICATION_JSON_VALUE)
     public ResponseEntity mergeModelDataMetadata(@RequestBody List<Integer> dataIds, @PathVariable Integer modelId, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId = assertAuthentificated(req);
             for (Integer dataId : dataIds) {
@@ -205,6 +208,7 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/hide/{flag}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity changeHiddenFlag(@RequestBody List<Integer> dataIds, @PathVariable(name = "flag") boolean flag, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             for (Integer dataId : dataIds) {
                 dataBusiness.updateDataHidden(dataId, flag);
@@ -248,6 +252,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/metadata",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateDataMetadata(@PathVariable("dataId") final int dataId,
             @RequestBody final RootObj metadataValues) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.mergeDataMetadata(dataId, metadataValues);
         } catch (ConstellationException ex) {
@@ -390,6 +395,7 @@ public class DataRestAPI extends AbstractRestAPI{
     public ResponseEntity pyramidData(@PathVariable("dataId") final int dataId,
             @RequestParam(name = "nblevel", defaultValue = "8") final int nbLevel,
             HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId = assertAuthentificated(req);
             final TilingResult ref =  pyramidBusiness.pyramidDatas(userId, null, Arrays.asList(dataId), null, TilingMode.CONFORM, nbLevel);
@@ -421,8 +427,8 @@ public class DataRestAPI extends AbstractRestAPI{
             @RequestParam(name = "mode", defaultValue = "RENDERED") final String mode,
             @RequestParam(name = "nblevel", defaultValue = "8") final int nbLevel,
             HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
-
             int userId = assertAuthentificated(req);
             final TilingResult ref = pyramidBusiness.pyramidDatas(userId, layerName, dataIds, crs, TilingMode.valueOf(mode), nbLevel);
             return new ResponseEntity(ref, OK);
@@ -512,6 +518,7 @@ public class DataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/datas/{dataId}/include",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity includeData(@PathVariable("dataId") final int dataId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             dataBusiness.updateDataIncluded(dataId, true, false);
             return new ResponseEntity("Data included successfully.",OK);
@@ -531,6 +538,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}",method=DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity removeData(@PathVariable("dataId") final int dataId,
             @RequestParam(name = "removeFiles", defaultValue = "false", required = false) boolean removeFiles) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             dataBusiness.removeData(dataId, removeFiles);
             return new ResponseEntity(OK);
@@ -550,6 +558,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/remove",method=POST,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity removeDatas(@RequestBody final List<Integer> dataIds,
             @RequestParam(name = "removeFiles", defaultValue = "false", required = false) boolean removeFiles) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             for (int dataId : dataIds) {
                 dataBusiness.removeData(dataId, removeFiles);
@@ -772,7 +781,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/styles/{styleId}",method=DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity deleteStyleAssociation(@PathVariable("dataId") int dataId, @PathVariable("styleId") int styleId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         if (dataBusiness.existsById(dataId) && styleBusiness.existsStyle(styleId)) {
             try {
                 styleBusiness.unlinkFromData(styleId, dataId);
@@ -794,7 +803,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/styles",method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity deleteStyleAssociation(@PathVariable("dataId") int dataId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         if (dataBusiness.existsById(dataId)) {
             try {
                 styleBusiness.unlinkAllFromData(dataId);
@@ -816,6 +825,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/styles/unlink",method=DELETE, consumes=APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity deleteStyleAssociation(@RequestBody List<Integer> dataIds) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             for (Integer dataId : dataIds) {
                 if (dataBusiness.existsById(dataId)) {
@@ -839,6 +849,7 @@ public class DataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/datas/{dataId}/sensors/{sensorId}",method=POST,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addSensorAssociation(@PathVariable("dataId") final int dataId, @PathVariable("sensorId") final int sensorId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         sensorBusiness.linkDataToSensor(dataId, sensorId);
         return new ResponseEntity(OK);
     }
@@ -853,6 +864,7 @@ public class DataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/datas/{dataId}/sensors/{sensorId}",method=DELETE,produces=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity deleteSensorAssociation(@PathVariable("dataId") int dataId,  @PathVariable("sensorId") int sensorId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         sensorBusiness.unlinkDataToSensor(dataId, sensorId);
         return new ResponseEntity(NO_CONTENT);
     }
@@ -919,6 +931,7 @@ public class DataRestAPI extends AbstractRestAPI{
 
     @RequestMapping(value="/datas/geographicExtent/merge",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity mergedDataGeographicExtent(@RequestBody final List<Integer> dataIds) {
+        if (readOnlyAPI) return readOnlyModeActivated();
 
         final Map<String,double[]> result = new HashMap<>();
         if(dataIds == null || dataIds.isEmpty()){
@@ -966,6 +979,7 @@ public class DataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value = "/datas/{dataId}/compute/info", method = GET)
     public ResponseEntity computeDataInfo(@PathVariable("dataId") final int dataId, @RequestParam(name = "refresh", required = false, defaultValue = "false") final Boolean refresh) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             dataBusiness.cacheDataInformation(dataId, refresh);
             return new ResponseEntity(OK);
@@ -984,6 +998,7 @@ public class DataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value = "/datas/compute/info", method = GET)
     public ResponseEntity computeDatasInfo(@RequestParam(name = "refresh", required = false) final Boolean refresh, @RequestParam(name = "dataset", required = false) final Integer dataset, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer usedId = assertAuthentificated(req);
             TaskContext tc = buildcomputeInfoProcess(usedId, refresh, dataset);

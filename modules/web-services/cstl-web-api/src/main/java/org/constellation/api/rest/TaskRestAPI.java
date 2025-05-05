@@ -386,7 +386,6 @@ public class TaskRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/task/params/execute/{id}",method=GET,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity executeParamsTask(final @PathVariable("id") Integer id, HttpServletRequest req) {
-
         final TaskParameter taskParameter = processBusiness.getTaskParameterById(id);
         final String title = taskParameter.getName()+" "+TASK_DATE.format(new Date());
         try {

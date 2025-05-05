@@ -38,6 +38,8 @@ import org.constellation.dto.Filter;
 import org.constellation.dto.PagedSearch;
 import org.constellation.exception.ConstellationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 /**
  *
@@ -49,7 +51,13 @@ public abstract class AbstractRestAPI {
     protected IUserBusiness userBusiness;
 
     @Autowired
-    private IConfigurationBusiness configBusiness;
+    protected IConfigurationBusiness configBusiness;
+    
+    protected boolean readOnlyAPI;
+    
+    protected AbstractRestAPI() {
+        this.readOnlyAPI = Application.getBooleanProperty(AppProperty.EXA_API_READONLY, false);
+    }
 
     /**
      * Rest API logger
@@ -219,5 +227,9 @@ public abstract class AbstractRestAPI {
             return currentTs - (dayTms * 365);
         }
         return null;
+    }
+    
+    protected ResponseEntity readOnlyModeActivated() {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("API is on readonly mode");
     }
 }

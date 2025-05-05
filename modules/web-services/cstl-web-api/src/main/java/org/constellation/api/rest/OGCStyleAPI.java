@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
 import org.constellation.api.rest.dto.Resource;
 import org.constellation.api.rest.dto.Resources;
-import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.exception.ConstellationException;
@@ -68,7 +67,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @RestController
 @RequestMapping
-public class OGCStyleAPI {
+public class OGCStyleAPI extends AbstractRestAPI {
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
     private static final String[] CONFORMS = {
             "https://www.opengis.net/spec/ogcapi-styles-1/1.0/conf/core",
@@ -88,8 +87,6 @@ public class OGCStyleAPI {
     @Autowired
     private IStyleConverterBusiness styleConverterBusiness;
 
-    @Autowired
-    private IConfigurationBusiness configBusiness;
 
     /**
      * GET /styles/conformance
@@ -154,6 +151,7 @@ public class OGCStyleAPI {
                                                 @RequestParam(value = "name", required = false, defaultValue = "") String name,
                                                 @RequestParam(value = "type", required = false, defaultValue = "sld") String type,
                                                 @RequestParam("data") MultipartFile file) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         if (file.isEmpty()) {
             return new ErrorMessage().message("SLD file to import is empty!").build();
         }
@@ -272,7 +270,7 @@ public class OGCStyleAPI {
             @RequestParam(value = "name", required = false, defaultValue = "") String name,
             @RequestParam(value = "type", required = false, defaultValue = "sld") String type,
             @RequestParam(value = "data", required = false) MultipartFile file) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         if (file.isEmpty()) {
             return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, "SLD file to import is empty!"), HttpStatus.BAD_REQUEST);
         }
@@ -323,6 +321,7 @@ public class OGCStyleAPI {
      */
     @RequestMapping(value = "/styles/{styleId}", method = DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteStyle(@PathVariable(value = "styleId") int styleId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             int result = styleBusiness.deleteStyle(styleId);
             if (result == 0) {
@@ -413,6 +412,7 @@ public class OGCStyleAPI {
      */
     @RequestMapping(value = "/styles/resources/{resourceId:.+}", method = POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createOrUpdateResource(@PathVariable(value = "resourceId") String resourceId, @RequestParam("data") MultipartFile data) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         if (data.isEmpty()) {
             return new ResponseEntity<>(new ErrorMessage(HttpStatus.BAD_REQUEST, "Cannot find a correct request data param"), HttpStatus.BAD_REQUEST);
         }
@@ -439,6 +439,7 @@ public class OGCStyleAPI {
      */
     @RequestMapping(value = "/styles/resources/{resourceId:.+}", method = DELETE)
     public ResponseEntity deleteResource(@PathVariable(value = "resourceId") String resourceId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Optional<Path> optFile = findResourceIfExists(resourceId);
             if (!optFile.isPresent()) {

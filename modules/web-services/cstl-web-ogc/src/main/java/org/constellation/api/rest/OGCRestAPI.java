@@ -56,7 +56,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class OGCRestAPI {
+public class OGCRestAPI extends AbstractRestAPI {
 
     @Autowired
     private IServiceBusiness serviceBusiness;
@@ -151,6 +151,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}", method=PUT, consumes = MediaType.APPLICATION_JSON_VALUE,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity addInstance(final @PathVariable("spec") String spec, final @RequestBody Details metadata) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer service = serviceBusiness.getServiceIdByIdentifierAndType(spec, metadata.getIdentifier());
             if(service != null) {
@@ -173,6 +174,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/start", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity start(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
@@ -192,6 +194,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/stop", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity stop(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
@@ -211,6 +214,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/restart", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity restart(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
@@ -231,6 +235,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/rename", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity rename(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id, final @RequestParam String newId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             ServiceComplete s = serviceBusiness.getServiceByIdentifierAndType(serviceType, id);
@@ -250,6 +255,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity delete(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer sid = serviceBusiness.getServiceIdByIdentifierAndType(serviceType, id);
             layerBusiness.removeForService(sid);
@@ -291,8 +297,8 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/config", method=POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setConfigurationJson(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id, @RequestBody AbstractConfigurationObject configuration) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
-
             final Details details = serviceBusiness.getInstanceDetails(serviceType, id, null);
             serviceBusiness.configure(serviceType, id, details, configuration);
             return new ResponseEntity(AcknowlegementType.success(serviceType.toUpperCase() + " service \"" + id + "\" configuration successfully updated."), OK);
@@ -331,6 +337,7 @@ public class OGCRestAPI {
      */
     @RequestMapping(value="/OGC/{spec}/{id}/metadata", method=POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setMetadata(final @PathVariable("spec") String serviceType, final @PathVariable("id") String id, final @RequestBody Details metadata) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             serviceBusiness.ensureExistingInstance(serviceType, id);
             final Object config = serviceBusiness.getConfiguration(serviceType, id);

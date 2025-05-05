@@ -121,6 +121,7 @@ public class AdminRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/admin/property/{key:.+}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity setProperty(@PathVariable("key") String key,
             @RequestBody SimpleValue value) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             configurationBusiness.setProperty(key, value.getValue());
             return new ResponseEntity(OK);
@@ -149,6 +150,7 @@ public class AdminRestAPI extends AbstractRestAPI {
     @RequestMapping(value = "/admin/contact", method=POST, consumes=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity updateContact(@RequestBody HashMap<String, Object> contact) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Properties properties = JsonUtils.toProperties(contact);
             final Map<String, String> propertiesDB = propertyRepository.startWith("contact.%");

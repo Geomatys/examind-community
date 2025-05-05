@@ -140,6 +140,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
     public ResponseEntity create(@RequestParam(name = "identifier") final String identifier,
             @RequestParam(name = "hidden", required = false, defaultValue = "false") boolean hidden,
             @RequestBody final RootObj metadataValues, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId           = assertAuthentificated(req);
             if (!identifier.isEmpty()) {
@@ -187,7 +188,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/datasets/{datasetId}/metadata",method=POST,consumes=APPLICATION_JSON_VALUE)
     public ResponseEntity updateDatasetMetadata(@PathVariable("datasetId") final int datasetId,
             @RequestBody final RootObj metadataValues) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.mergeDatasetMetadata(datasetId, metadataValues);
         } catch (ConstellationException ex) {
@@ -230,6 +231,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasets/{datasetId}", method = DELETE)
     public ResponseEntity deleteDataset(@PathVariable(value = "datasetId") int datasetId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             if (datasetBusiness.existsById(datasetId)) {
                 datasetBusiness.removeDataset(datasetId);
@@ -275,6 +277,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/datasets/{datasetId}/datas",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateDataDataset(@RequestBody List<Integer> dataIds, @PathVariable(value = "datasetId") int datasetId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer dsId = datasetId;
             if (datasetId == -1) {
@@ -292,6 +295,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
     
     @RequestMapping(value="/datasets/{datasetId}/identifier/{newIdentifier}",method=POST)
     public ResponseEntity updateDatasetIdentifier(@PathVariable(value = "datasetId") int datasetId, @PathVariable(value = "newIdentifier") String newIdentifier) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             if (!datasetBusiness.existsById(datasetId)) {
                 return new ResponseEntity(NOT_FOUND);
@@ -465,6 +469,7 @@ public class DatasetRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasets/coverage-aggregation/{datasetId}", method = PUT)
     public ResponseEntity createCoverageAggregation(@PathVariable("datasetId") int datasetId, @RequestParam("dataName") String dataName, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId       = assertAuthentificated(req);
 

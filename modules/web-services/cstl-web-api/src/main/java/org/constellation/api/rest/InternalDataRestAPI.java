@@ -192,6 +192,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
     public ResponseEntity putDataStoreConfiguration(@RequestBody final DataCustomConfiguration.Type selected,
             @RequestParam(name = "hidden", required = false, defaultValue = "false") boolean hidden,
             @RequestParam(name = "providerId", required = false) String providerId, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final int userId = assertAuthentificated(req);
 
@@ -283,6 +284,7 @@ public class InternalDataRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/internal/datasets/metadata/{identifier}",method=POST,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity mergeMetadataDS(@PathVariable("identifier") final String identifier, final @RequestBody RootObj metadataValues) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer dsId = datasetBusiness.getDatasetId(identifier);
             if (dsId != null) {

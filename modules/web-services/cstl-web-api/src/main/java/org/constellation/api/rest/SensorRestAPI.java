@@ -132,6 +132,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/sensors/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity deleteSensor(@PathVariable("id") Integer id, @RequestParam(name = "removeData", required = false) Boolean removeData) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Sensor sensor = sensorBusiness.getSensor(id);
             if (sensor != null) {
@@ -228,7 +229,7 @@ public class SensorRestAPI extends AbstractRestAPI {
             @PathVariable("id") final Integer id,
             @PathVariable("type")     final String type,
             @RequestBody              final RootObj metadataValues) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Sensor sensor = sensorBusiness.getSensor(id);
             if (sensor != null) {
@@ -285,6 +286,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/sensors/generate/{dataId}",method=PUT,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity generateSensor(@PathVariable("dataId") final Integer dataId, HttpServletResponse response) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final DataProvider provider;
         try {
             final Integer providerId = dataBusiness.getDataProvider(dataId);
@@ -327,6 +329,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/sensors/upload",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity uploadSensor(@RequestPart("data") MultipartFile fileIs, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final String fileName = fileIs.getOriginalFilename();
         final Path newFileData;
         try {
@@ -358,7 +361,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/sensors/add",method=PUT,consumes=APPLICATION_JSON_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity importSensor(@RequestBody final ParameterValues pv) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final String path = pv.get("path");
         final List<Sensor> sensorsImported;
         try{
@@ -480,8 +483,7 @@ public class SensorRestAPI extends AbstractRestAPI {
      * @return A list of sensor identifiers.
      */
     @RequestMapping(value="/sensors/observedProperty/{observedProperty}",method=GET,produces=APPLICATION_JSON_VALUE)
-    public ResponseEntity getSensorIdsForObservedProperty(
-            @PathVariable("observedProperty") final String observedProperty) {
+    public ResponseEntity getSensorIdsForObservedProperty(@PathVariable("observedProperty") final String observedProperty) {
 
         try {
             final Set<String> sensorIDS = new HashSet<>();

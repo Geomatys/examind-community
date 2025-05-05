@@ -189,6 +189,7 @@ public class MapRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/MAP/layer/add",method=PUT, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity addLayer(final @RequestBody org.constellation.dto.Layer layer) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer layerId = layerBusiness.add(layer.getDataId(),  layer.getAlias(), layer.getName().getNamespaceURI(), layer.getName().getLocalPart(),
                                                 layer.getTitle(), layer.getService(), null);
@@ -209,6 +210,7 @@ public class MapRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/MAP/layer/{layerid}",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateLayer(final @PathVariable("layerid") Integer layerId, final @RequestBody LayerSummary layer) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             layerBusiness.update(layerId, layer);
             return new ResponseEntity("Layer \"" + layerId + "\" title successfully updated.", OK);
@@ -225,6 +227,7 @@ public class MapRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/MAP/layer/delete/{layerid}",method=DELETE)
     public ResponseEntity deleteLayer(final @PathVariable("layerid") Integer layerId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             layerBusiness.remove(layerId);
             return new ResponseEntity(OK);
@@ -236,6 +239,7 @@ public class MapRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/MAP/{spec}/{id}/updatestyle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier, final @RequestBody LayerStyleUpdate params) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.linkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);
@@ -247,6 +251,7 @@ public class MapRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/MAP/layer/style/activatestats",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateActivateStatsForLayerAndStyle(final @RequestBody LayerStyleUpdate params) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.updateActivateStatsForLayerAndStyle(params.getStyleId(), params.getLayerId(), params.getActivateStats());
             return new ResponseEntity(OK);
@@ -259,6 +264,7 @@ public class MapRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/MAP/{spec}/{id}/removestyle",method=POST, consumes=APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeLayerStyleForService(final @PathVariable("spec") String serviceType, final @PathVariable("id") String serviceIdentifier,
         final @RequestBody LayerStyleUpdate params) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.unlinkToLayer(params.getStyleId(), params.getLayerId());
             return new ResponseEntity(OK);

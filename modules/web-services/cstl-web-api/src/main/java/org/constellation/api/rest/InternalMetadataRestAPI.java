@@ -85,6 +85,7 @@ public class InternalMetadataRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/metadata/image/upload",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity uploadImage(@RequestParam("graphicOverviewFileInput") MultipartFile file) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final int attId;
         final Map<String,Object> map = new HashMap<>();
         try (InputStream in = file.getInputStream()) {

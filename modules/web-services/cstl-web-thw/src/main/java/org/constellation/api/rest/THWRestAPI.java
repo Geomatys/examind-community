@@ -82,7 +82,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class THWRestAPI {
+public class THWRestAPI extends AbstractRestAPI {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.rest.api");
 
@@ -99,6 +99,7 @@ public class THWRestAPI {
      */
     @RequestMapping(value="/THW/install",method=GET,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity InstallAvaillableThesaurus() throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final java.nio.file.Path thDir = IOUtilities.getResourceAsPath("org/constellation/thesaurus/xml");
         final MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();
         try (DirectoryStream<java.nio.file.Path> dirStream = Files.newDirectoryStream(thDir)) {
@@ -198,6 +199,7 @@ public class THWRestAPI {
 
     @RequestMapping(value="/THW",method=PUT, consumes = APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity create(@RequestBody Thesaurus thesaurus) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             thesaurusBusiness.createNewThesaurus(thesaurus);
             return new ResponseEntity(OK);
@@ -219,6 +221,7 @@ public class THWRestAPI {
 
     @RequestMapping(value="/THW/{thesaurusUri}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity delete(@PathVariable("thesaurusUri") String thesaurusUri) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             thesaurusBusiness.deleteThesaurus(thesaurusUri);
             return new ResponseEntity(OK);
@@ -282,6 +285,7 @@ public class THWRestAPI {
 
     @RequestMapping(value="/THW/{thesaurusUri}/concept",method=POST, consumes = APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity createConcept(@PathVariable("thesaurusUri") String thesaurusUri, @RequestBody FullConcept fullConcept) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try (ThesaurusDatabaseWriter thesaurus = getThesaurusWriter(thesaurusUri)) {
             fullConcept.setUri(UUID.randomUUID().toString());
             thesaurus.insertConcept(fullConcept);
@@ -294,6 +298,7 @@ public class THWRestAPI {
 
     @RequestMapping(value="/THW/{thesaurusUri}/concept",method=PUT, consumes = APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity updateConcept(@PathVariable("thesaurusUri") String thesaurusUri, @RequestBody FullConcept fullConcept) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try (ThesaurusDatabaseWriter thesaurus = getThesaurusWriter(thesaurusUri)) {
             thesaurus.deleteConcept(fullConcept.getUri());
             thesaurus.insertConcept(fullConcept);
@@ -307,6 +312,7 @@ public class THWRestAPI {
     @RequestMapping(value="/THW/{thesaurusUri}/concept/{conceptUri}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity deleteConcept(@PathVariable("thesaurusUri") String thesaurusUri,
                               @PathVariable("conceptUri") String conceptUri) throws SQLException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try (WriteableThesaurus thesaurus = getThesaurusWriter(thesaurusUri)) {
             thesaurus.deleteConceptCascade(conceptUri);
             return new ResponseEntity(OK);
@@ -343,7 +349,7 @@ public class THWRestAPI {
     @RequestMapping(value="/THW/{thesaurusUri}/import",method=POST, consumes=MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity importRDF(@PathVariable("thesaurusUri") String thesaurusUri,
                           @RequestParam(name = "rdfFile", required = false) MultipartFile rdfFile) throws Exception {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try (WriteableThesaurus th = getThesaurusWriter(thesaurusUri)) {
 
             MarshallerPool pool = thesaurusBusiness.getSkosMarshallerPool();

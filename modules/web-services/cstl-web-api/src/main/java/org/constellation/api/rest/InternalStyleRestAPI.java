@@ -123,6 +123,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
             @RequestParam(value="name",required=true) String name,
             @RequestParam(value="specification",required=true) String specification,
             @RequestParam(value="template",required=false) String template){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Integer styleId = styleBusiness.createStyle("sld", name, specification, template);
             return new ResponseEntity(styleId,OK);
@@ -141,6 +142,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles",method = POST,consumes = MediaType.APPLICATION_JSON_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createStyleJson(@RequestParam(value="type",required=false,defaultValue = "sld") String type, @RequestBody(required = true) Style styleJson){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final MutableStyle style = StyleUtilities.type(styleJson);
             boolean exists = styleBusiness.existsStyle(type, style.getName());
@@ -166,6 +168,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles",method = POST,consumes = MediaType.APPLICATION_XML_VALUE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createStyleXML(@RequestParam(value="type",required=false,defaultValue = "sld") String type, @RequestBody(required = true) MutableStyle styleXml){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             boolean exists = styleBusiness.existsStyle(type, styleXml.getName());
 
@@ -218,7 +221,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/edit/{styleId}/**",method = POST)
     public ResponseEntity updateStyleForEdition(@PathVariable(value = "styleId") int styleId, @RequestBody(required = true) Object update, HttpServletRequest request) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         String subPath = request.getRequestURI();
         final String split = "/internal/styles/edit/" + styleId; // Dirty way to replicate the service URL to extract the path at the end
         subPath = subPath.substring(subPath.indexOf(split)+split.length());
@@ -303,6 +306,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{id}", method=POST,produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity updateStyle(@PathVariable(value="id") int id, @RequestBody Style stylejson){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final MutableStyle style = StyleUtilities.type(stylejson);
             styleBusiness.updateStyle(id, style);
@@ -383,6 +387,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{styleId}/generateAutoInterval", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity generateAutoIntervalStyle(@PathVariable("styleId") int id, @RequestBody WrapperInterval wrapper) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             //get style and interval params
             final AutoIntervalValues intervalValues = wrapper.getIntervalValues();
@@ -426,6 +431,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{styleId}/generateAutoUnique", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity generateAutoUniqueStyle(@PathVariable("styleId") int id, @RequestBody WrapperInterval wrapper) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             //get style and interval params
             final AutoUniqueValues autoUniqueValues = wrapper.getUniqueValues();
@@ -516,6 +522,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{styleId}/data/{dataId}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity linkToData(@PathVariable("styleId") int styleId, @PathVariable("dataId") int dataId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.linkToData(styleId,dataId);
             return new ResponseEntity(OK);
@@ -536,6 +543,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{styleId}/data/{dataId}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity unlinkFromData(@PathVariable("styleId") int styleId, @PathVariable("dataId") int dataId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.unlinkFromData(styleId,dataId);
             return new ResponseEntity(OK);
@@ -556,6 +564,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity changeSharedProperty(@PathVariable("shared") final boolean shared, @RequestBody final List<Integer> ids) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.updateSharedProperty(ids, shared);
             return new ResponseEntity("shared value applied with success.",OK);
@@ -574,6 +583,7 @@ public class InternalStyleRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/internal/styles/{styleId}/shared/{shared}",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity changeSharedProperty(@PathVariable("styleId") int styleId, @PathVariable("shared") final boolean shared) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             styleBusiness.updateSharedProperty(Arrays.asList(styleId), shared);
             return new ResponseEntity("shared value applied with success.",OK);

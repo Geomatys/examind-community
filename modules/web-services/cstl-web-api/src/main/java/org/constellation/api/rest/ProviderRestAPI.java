@@ -140,7 +140,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
     public ResponseEntity update(
             @PathVariable("id") final String id,
             @RequestBody        final ProviderConfiguration config) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             providerBusiness.update(id, config);
         } catch(Exception ex){
@@ -163,7 +163,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
             @PathVariable("id") final String id,
             @RequestParam("createdata") boolean createdata,
             @RequestBody final ProviderConfiguration config) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer prId = providerBusiness.create(id, config);
             if (createdata) {
@@ -180,7 +180,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
     public ResponseEntity createPrj(
             @PathVariable("id")       final String providerIdentifier,
             @RequestBody              final Map<String,String> epsgCode) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final DataProvider provider;
         try {
             provider = DataProviders.getProvider(providerIdentifier);
@@ -209,6 +209,7 @@ public class ProviderRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity delete(@PathVariable("id") final Integer id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             providerBusiness.removeProvider(id);
             return new ResponseEntity(OK);

@@ -425,7 +425,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/metadatas/delete",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity delete(@RequestBody final List<MetadataBrief> metadataList) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         //the user can select multiple records to delete,
         // but some of records can have a restricted permission for this user.
         //So we need to send an error message to prevent this case.
@@ -449,6 +449,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/metadatas/{id}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity delete(@PathVariable("id") final Integer id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.deleteMetadata(id);
             return new ResponseEntity("Record deleted with success.", OK);
@@ -585,7 +586,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changeOwner(
             @PathVariable("ownerId") final int ownerId,
             @RequestBody final List<MetadataBrief> metadataList) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final List<Integer> ids = new ArrayList<>();
         for (final MetadataBrief brief : metadataList) {
             ids.add(brief.getId());
@@ -610,7 +611,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changeSharedProperty(
             @PathVariable("shared") final boolean shared,
             @RequestBody final List<MetadataBrief> metadataList) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final List<Integer> ids = new ArrayList<>();
         for (final MetadataBrief brief : metadataList) {
             ids.add(brief.getId());
@@ -635,6 +636,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changeSharedProperty(
             @PathVariable("shared") final boolean shared,
             @PathVariable("id") final int id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.updateSharedProperty(Arrays.asList(id), shared);
             return new ResponseEntity("shared value applied with success.",OK);
@@ -655,7 +657,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changeHiddenProperty(
             @PathVariable("hidden") final boolean hidden,
             @RequestBody final List<MetadataBrief> metadataList) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final List<Integer> ids = new ArrayList<>();
         for (final MetadataBrief brief : metadataList) {
             ids.add(brief.getId());
@@ -680,6 +682,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changeHiddenProperty(
             @PathVariable("hidden") final boolean hidden,
             @PathVariable("id") final int id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.updateHidden(Arrays.asList(id), hidden);
             return new ResponseEntity("shared value applied with success.",OK);
@@ -702,7 +705,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             @PathVariable("isvalid") final boolean isvalid,
             @RequestBody final ValidationList validationList,
             final HttpServletRequest req) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final List<Integer> metadataList = validationList.getMetadataList();
         final String comment = validationList.getComment();
 
@@ -766,7 +769,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity changePublication(
             @PathVariable("ispublished") final boolean ispublished,
             @RequestBody final List<MetadataBrief> metadataList) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         boolean canContinue = true;
 
         for (final MetadataBrief brief : metadataList) {
@@ -813,6 +816,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     @RequestMapping(value="/metadatas/askForValidation",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity askForValidation(@RequestBody final List<MetadataBrief> metadataList,
             HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Integer userId = assertAuthentificated(req);
             boolean canContinue = true;
@@ -970,7 +974,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             @PathVariable("id") final int id,
             @RequestParam("profile") final String profile,
             @RequestBody final RootObj metadataValues) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             // Get previously saved metadata
             final MetadataBrief pojo = metadataBusiness.getMetadataPojo(id);
@@ -1020,6 +1024,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             @RequestParam(name = "profile", required = true, defaultValue = "profile_import") final String profile,
             @RequestParam(name = "type",    required = true, defaultValue = "DOC") final String type,
             @RequestBody final RootObj metadataValues) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final MetadataBrief brief;
         try {
             //get template
@@ -1063,7 +1068,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity duplicateMetadata(@PathVariable("id") final int id,
             @RequestParam(name = "title", required = false) final String title,
             @RequestParam(name = "type", required = false) final String type) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final String newTitle;
             if(!StringUtils.isBlank(title)){
@@ -1090,7 +1095,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity linkAttachment(
             @PathVariable("id") final int id,
             @PathVariable("attId") final int attId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.linkMetadataAtachment(id, attId);
         } catch (Exception ex) {
@@ -1112,7 +1117,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity unlinkAttachment(
             @PathVariable("id") final int id,
             @PathVariable("attId") final int attId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.unlinkMetadataAtachment(id, attId);
         } catch (Exception ex) {
@@ -1140,7 +1145,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
             @RequestParam(name = "type", required = true, defaultValue = "DOC") final String type,
             @RequestParam(name = "profile", required = false) final String profile,
             final HttpServletRequest request) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         final Map<String,Object> map = new HashMap<>();
         try {
             if (mdFileIs != null) {
@@ -1188,6 +1193,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
      */
     @RequestMapping(value="/attachments/upload",method=POST,consumes=MULTIPART_FORM_DATA_VALUE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity uploadAttachment(@RequestParam("data") MultipartFile file) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final int attId;
         try (InputStream in = file.getInputStream()) {
             attId = metadataBusiness.createMetadataAttachment(in, file.getOriginalFilename());
@@ -1281,7 +1287,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity linkData(
             @PathVariable("id") final int id,
             @PathVariable("dataId") final int dataId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.linkMetadataData(id, dataId);
         } catch (Exception ex) {
@@ -1302,7 +1308,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity unlinkData(
             @PathVariable("id") final int id,
             @PathVariable("dataId") final int dataId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.unlinkMetadataData(id, dataId);
         } catch (Exception ex) {
@@ -1323,7 +1329,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity linkDataset(
             @PathVariable("id") final int id,
             @PathVariable("datasetId") final int datasetId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.linkMetadataDataset(id, datasetId);
         } catch (Exception ex) {
@@ -1344,7 +1350,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity unlinkDataset(
             @PathVariable("id") final int id,
             @PathVariable("datasetId") final int datasetId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.unlinkMetadataDataset(id, datasetId);
         } catch (Exception ex) {
@@ -1365,7 +1371,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity linkMapcontext(
             @PathVariable("id") final int id,
             @PathVariable("mapcontextId") final int mapcontextId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.linkMetadataMapContext(id, mapcontextId);
         } catch (Exception ex) {
@@ -1386,7 +1392,7 @@ public class MetadataRestAPI extends AbstractRestAPI{
     public ResponseEntity unlinkMapcontext(
             @PathVariable("id") final int id,
             @PathVariable("mapcontextId") final int mapcontextId) {
-
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             metadataBusiness.unlinkMetadataMapContext(id, mapcontextId);
         } catch (Exception ex) {

@@ -122,6 +122,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity create(@RequestBody final DataSource ds, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             assertAuthentificated(req);
             // 1. create new upload directory if not set for local_files datasource
@@ -146,6 +147,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources", method = PUT, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity update(@RequestBody final DataSource ds) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             datasourceBusiness.update(ds);
             return new ResponseEntity(OK);
@@ -163,6 +165,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources/{id}", method = DELETE)
     public ResponseEntity deleteDatasource(@PathVariable("id") int id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             datasourceBusiness.delete(id);
             return new ResponseEntity(OK);
@@ -200,6 +203,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources/{id}/upload", method = POST, consumes = MULTIPART_FORM_DATA_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> uploadDatasourceFile(@PathVariable("id") int id, @RequestParam("file") MultipartFile uploadedFile) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             // 1. retrieve the upload directory
             final DataSource ds = datasourceBusiness.getDatasource(id);
@@ -240,6 +244,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources/{id}/remove", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeDatasourceFile(@PathVariable("id") int id, @RequestParam("file") String file) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             // 1. retrieve the upload directory
             final DataSource ds = datasourceBusiness.getDatasource(id);
@@ -276,6 +281,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     @RequestMapping(value = "/datasources/upload/distant", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity uploadDatasourceDistantFile(@RequestParam("url") String distantFile,
             @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd, HttpServletRequest req) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             assertAuthentificated(req);
             // 1. create new upload directory
@@ -331,6 +337,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     @RequestMapping(value = "/datasources/{id}/upload/distant", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity uploadDatasourceDistantFile(@PathVariable("id") int id, @RequestParam("url") String distantFile,
             @RequestParam(name = "user", required = false) String userName, @RequestParam(name = "pwd", required = false) String pwd) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             // 1. retrieve the upload directory
             final DataSource ds = datasourceBusiness.getDatasource(id);
@@ -414,6 +421,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
                                             @RequestParam(name = "async", required = false, defaultValue = "false") Boolean async,
                                             @RequestParam(name = "deep", required = false, defaultValue = "false") Boolean deep,
                                             @RequestParam(name = "s63", required = false, defaultValue = "true") Boolean s63) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Map<String, Set<String>> storeFormats = datasourceBusiness.computeDatasourceStores(id, async, deep, s63);
             final List<StoreFormat> results = new ArrayList<>();
@@ -572,6 +580,7 @@ public class DatasourceRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/datasources/{id}/selectedPath", method = POST, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity setSelectedPaths(@PathVariable("id") int id, @RequestBody List<FileBean> paths) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             datasourceBusiness.clearSelectedPaths(id);
             for (FileBean fb : paths) {

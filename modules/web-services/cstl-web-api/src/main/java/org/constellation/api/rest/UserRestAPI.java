@@ -155,6 +155,7 @@ public class UserRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/users", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity createUser(@RequestBody UserWithRole user){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Integer userId = userBusiness.create(user);
             return new ResponseEntity(userId, CREATED);
@@ -173,6 +174,7 @@ public class UserRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/users/{id}", method=POST, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity updateUser(@PathVariable(value="id") int id, @RequestBody UserWithRole user){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             user.setId(id);
             userBusiness.update(user);
@@ -186,6 +188,7 @@ public class UserRestAPI extends AbstractRestAPI {
     @RequestMapping(value="/users/{id}/activate", method=PUT, produces=MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public ResponseEntity activate(@PathVariable("id") int id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Optional<CstlUser> user = userBusiness.findById(id);
             if (user.isPresent()) {
@@ -215,6 +218,7 @@ public class UserRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/users/{id}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUser(@PathVariable(value="id") int id){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             if (userBusiness.isLastAdmin(id)) {
                 return new ErrorMessage(HttpStatus.BAD_REQUEST).i18N(I18nCodes.User.LAST_ADMIN).build();
@@ -236,6 +240,7 @@ public class UserRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value="/users/login/{login}", method=DELETE, produces=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity deleteUserByLogin(@PathVariable(value="login") String login){
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Optional<CstlUser> usrOpt = userBusiness.findOne(login);
             if (usrOpt.isPresent()) {

@@ -153,6 +153,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/tiling/{dataId}", method = POST, consumes=APPLICATION_JSON_VALUE)
     public ResponseEntity createTileMatrixSet(@PathVariable("dataId") int dataId, @RequestBody final TileMatrixSet tms, HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             final WritableTileMatrixSet created = wtr.createTileMatrixSet(fromDTO(tms));
@@ -172,6 +173,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/tiling/{dataId}/{tmsid}", method = DELETE)
     public ResponseEntity deleteTileMatrixSet(@PathVariable("dataId") int dataId, @PathVariable("tmsid") String tmsId, HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             wtr.deleteTileMatrixSet(tmsId);
@@ -191,6 +193,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/tiling/{dataId}/{tmsid}", method = POST, consumes=APPLICATION_JSON_VALUE)
     public ResponseEntity createTileMatrix(@PathVariable("dataId") int dataId, @PathVariable("tmsid") String tmsId, @RequestBody final TileMatrix tm, HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             for (WritableTileMatrixSet tms : wtr.getTileMatrixSets()) {
@@ -216,6 +219,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
      */
     @RequestMapping(value = "/tiling/{dataId}/{tmsid}/{tmid}", method = DELETE)
     public ResponseEntity deleteTileMatrix(@PathVariable("dataId") int dataId, @PathVariable("tmsid") String tmsId, @PathVariable("tmsid") String tmId, HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             for (WritableTileMatrixSet tms : wtr.getTileMatrixSets()) {
@@ -251,6 +255,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
             @RequestParam(name="lowerX", required = true) long upperX,
             @RequestParam(name="lowerX", required = true) long upperY,
             HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             final org.apache.sis.storage.tiling.WritableTileMatrix tm = (org.apache.sis.storage.tiling.WritableTileMatrix) getTileMatrix(wtr, tmsId, tmId);
@@ -288,6 +293,7 @@ public class TileMatrixRestAPI extends AbstractRestAPI {
             @RequestParam(name="lowerX", required = true) double upperY,
             @RequestParam(name="crs", required = true) String crs,
             HttpServletRequest req) throws ConstellationException {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final WritableTiledResource wtr = toWritableTiledResource(dataId, req);
             final org.apache.sis.storage.tiling.WritableTileMatrix tm = (org.apache.sis.storage.tiling.WritableTileMatrix) getTileMatrix(wtr, tmsId, tmId);

@@ -60,7 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class WPSRestAPI {
+public class WPSRestAPI extends AbstractRestAPI {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
@@ -168,6 +168,7 @@ public class WPSRestAPI {
     @Transactional
     @RequestMapping(value="/processes/{id}",method = PUT,produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public ResponseEntity addProcess(final @PathVariable("id") String id, @RequestBody final RegistryList registries) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
             context = WPSConfigurationUtils.addProcessToContext(context, registries);
@@ -191,6 +192,7 @@ public class WPSRestAPI {
     @Transactional
     @RequestMapping(value="/processes/{id}/authority/{code}",method = DELETE)
     public ResponseEntity removeAuthority(final @PathVariable("id") String id, final @PathVariable("code") String code) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
 
@@ -231,6 +233,7 @@ public class WPSRestAPI {
     @Transactional
     @RequestMapping(value="/processes/{id}/process/{code}/{pid}",method = DELETE)
     public ResponseEntity removeProcess(final @PathVariable("id") String id, final @PathVariable("code") String code, final @PathVariable("pid") String processId) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             ProcessContext context = (ProcessContext) serviceBusiness.getConfiguration("WPS", id);
 

@@ -53,7 +53,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Guilhem Legal (Geomatys)
  */
 @RestController
-public class SensorServiceRestAPI {
+public class SensorServiceRestAPI extends AbstractRestAPI {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.api.rest");
 
@@ -69,6 +69,7 @@ public class SensorServiceRestAPI {
     @RequestMapping(value="/SensorService/{id}/link/{providerID}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity linkSXSProvider(final @PathVariable("id") Integer serviceId, final @PathVariable("providerID") String providerID,
             @RequestParam(name = "fullLink", defaultValue = "true") boolean fullLink) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         final Integer providerId = providerBusiness.getIDFromIdentifier(providerID);
         if (providerID == null) {
             return new ResponseEntity(AcknowlegementType.failure("Unable to find the provider"), OK);
@@ -84,6 +85,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensors/generate", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity generateServiceSensors(final @PathVariable("id") Integer serviceId) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             sensorServiceBusiness.generateSensorFromOMProvider(serviceId);
             return new ResponseEntity(new AcknowlegementType("Success", "The sensors have been generated."), OK);
@@ -95,6 +97,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensorMetadata(final @PathVariable("id") Integer serviceId, @RequestBody final File sensor) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         AcknowlegementType response;
         if (sensorServiceBusiness.importSensor(serviceId, sensor.toPath(), "xml")) {
             response = new AcknowlegementType("Success", "The specified sensor have been imported in the Sensor service");
@@ -106,6 +109,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensor/{sensorID:.+}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeSensorFromService(final @PathVariable("id") Integer serviceId, final @PathVariable("sensorID") String sensorID) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
          AcknowlegementType response;
         if (sensorServiceBusiness.removeSensor(serviceId, sensorID)) {
             response = new AcknowlegementType("Success", "The specified sensor have been removed from the Sensor service");
@@ -117,6 +121,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensors", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeAllSensorFromService(final @PathVariable("id") Integer serviceId) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         AcknowlegementType response;
         if (sensorServiceBusiness.removeAllSensors(serviceId)) {
             response = new AcknowlegementType("Success", "The specified sensors have been removed in the Sensor service");
@@ -196,6 +201,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity importSensorFromData(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             sensorServiceBusiness.importObservationsFromData(serviceId, dataID);
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been imported in the Sensor Service"), OK);
@@ -206,6 +212,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/data/{dataID}", method = DELETE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity removeDataFromService(final @PathVariable("id") Integer serviceId, final @PathVariable("dataID") Integer dataID) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             sensorServiceBusiness.removeDataObservationsFromService(serviceId, dataID);
             return new ResponseEntity(new AcknowlegementType("Success", "The specified observations have been removed from the Sensor Service"), OK);
@@ -216,6 +223,7 @@ public class SensorServiceRestAPI {
 
     @RequestMapping(value="/SensorService/{id}/sensor/import/{sensorID:.+}", method = PUT, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity addSensorInservice(final @PathVariable("id") Integer sid, final @PathVariable("sensorID") String sensorID) throws Exception {
+        if (readOnlyAPI) return readOnlyModeActivated();
         boolean success = sensorServiceBusiness.importSensor(sid, sensorID);
         if (success) {
             return new ResponseEntity(new AcknowlegementType("Failure", "Available only on Observation provider (and netCDF coverage) for now"), OK);

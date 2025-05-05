@@ -125,6 +125,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             @RequestParam(name = "group", required = false) Integer group,
             @RequestParam(name = "role", required = false) String role,
             @RequestParam(name = "locale", required = false) String locale) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         Optional<UserWithRole> optionalUser = userBusiness.findOneWithRole(userId);
         if (optionalUser.isPresent()) {
             UserWithRole user = optionalUser.get();
@@ -171,6 +172,7 @@ public class InternalUserRestAPI extends AbstractRestAPI {
             @RequestParam(name = "password", required = false) String password,
             @RequestParam(name = "role", required = false) String role,
             @RequestParam(name = "locale", required = false) String locale) {
+        if (readOnlyAPI) return readOnlyModeActivated();
 
         //add user
         UserWithRole user = new UserWithRole();

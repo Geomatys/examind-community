@@ -94,6 +94,7 @@ public class CSWRestAPI extends AbstractRestAPI {
     public ResponseEntity refreshIndex(final @PathVariable("id") String id,
             final @RequestParam(name="asynchrone", defaultValue = "false") boolean asynchrone,
             final @RequestParam(name="forced", defaultValue = "false") boolean forced) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final CSWConfigurer conf = getConfigurer();
             final boolean ack = conf.refreshIndex(id, asynchrone, forced);
@@ -115,6 +116,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/index/{metaID}",method=PUT,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity AddToIndex(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final List<String> identifiers = StringUtilities.toStringList(metaID);
             boolean ok = getConfigurer().addToIndex(id, identifiers);
@@ -130,6 +132,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/index/{metaID}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeFromIndex(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final List<String> identifiers = StringUtilities.toStringList(metaID);
             boolean ok = getConfigurer().removeFromIndex(id, identifiers);
@@ -145,6 +148,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/index/stop",method=POST,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity stopIndexation(final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             return new ResponseEntity(getConfigurer().stopIndexation(id), OK);
         } catch (Exception ex) {
@@ -156,6 +160,7 @@ public class CSWRestAPI extends AbstractRestAPI {
     // TODO change fileName into dataType parameter
     @RequestMapping(value="/CSW/{id}/records/{fileName}",method=PUT, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity importRecord(final @PathVariable("id") String id, final @PathVariable("fileName") String fileName, final HttpServletRequest request) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             Path p = Files.createTempFile("import", "meta");
             IOUtilities.writeStream(request.getInputStream(), p);
@@ -172,6 +177,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/records",method=POST, produces=APPLICATION_JSON_VALUE, consumes=APPLICATION_JSON_VALUE)
     public ResponseEntity importRecord(final @PathVariable("id") String id, final @RequestBody StringList metadataIds, final HttpServletRequest request) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             boolean ok = getConfigurer().importRecords(id, metadataIds.getList());
             if (ok) {
@@ -197,6 +203,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/record/{metaID}",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeRecord(final @PathVariable("id") String id, final @PathVariable("metaID") String metaID) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             boolean ok = getConfigurer().removeRecord(id, metaID);
             if (ok) {
@@ -211,6 +218,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/records",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeRecords(final @PathVariable("id") String id, final @RequestBody StringList metadataIds) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             getConfigurer().removeRecords(id, metadataIds.getList());
             return new ResponseEntity(new AcknowlegementType("Success", "The specified records has been deleted from the CSW"), OK);
@@ -222,6 +230,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/records/all",method=DELETE,produces=APPLICATION_JSON_VALUE)
     public ResponseEntity removeAllrecords(final @PathVariable("id") String id) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             boolean ok = getConfigurer().removeAllRecords(id);
             if (ok) {
@@ -308,6 +317,7 @@ public class CSWRestAPI extends AbstractRestAPI {
 
     @RequestMapping(value="/CSW/{id}/federatedCatalog",method=POST, consumes = APPLICATION_JSON_VALUE, produces=APPLICATION_JSON_VALUE)
     public ResponseEntity setFederatedCatalog(final @PathVariable("id") String id, @RequestBody StringList url) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
             final Details details = serviceBusiness.getInstanceDetails("csw", id, null);
             final Automatic conf = (Automatic) serviceBusiness.getConfiguration("csw", id);
@@ -379,6 +389,7 @@ public class CSWRestAPI extends AbstractRestAPI {
                                  final @PathVariable("metaID") String metaID,
                                  final @RequestParam("type") String type,
                                  final @RequestBody RootObj metadataValues) {
+        if (readOnlyAPI) return readOnlyModeActivated();
         try {
 
             final MetadataBrief pojo = metadataBusiness.searchFullMetadata(metaID, true, false, null);
