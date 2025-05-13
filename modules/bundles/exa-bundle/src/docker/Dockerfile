@@ -1,6 +1,8 @@
 FROM openjdk:22
 
-ADD https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.35/bin/apache-tomcat-10.1.35.tar.gz apache-tomcat.tar.gz
+ARG TOMCAT_VERSION="10.1.40"
+ADD "https://archive.apache.org/dist/tomcat/tomcat-${TOMCAT_VERSION%%.*}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz" apache-tomcat.tar.gz
+
 RUN tar -zxf apache-tomcat.tar.gz && mv apache-tomcat-* apache-tomcat && rm apache-tomcat.tar.gz
 # Remove default apps
 RUN rm -rf apache-tomcat/webapps/*
