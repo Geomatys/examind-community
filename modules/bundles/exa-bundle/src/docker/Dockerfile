@@ -7,8 +7,8 @@ RUN tar -zxf apache-tomcat.tar.gz && mv apache-tomcat-* apache-tomcat && rm apac
 # Remove default apps
 RUN rm -rf apache-tomcat/webapps/*
 
-LABEL maintainer "robin.gilh@geomatys.com"                                                                                                                                                                                                   
-LABEL description "Docker image of Examind Community"
+LABEL maintainer="robin.gilh@geomatys.com"
+LABEL description="Docker image of Examind Community"
 
 COPY ./examind apache-tomcat/webapps/examind
 COPY ./file-system-support/*.jar apache-tomcat/fs/
