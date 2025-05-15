@@ -54,11 +54,13 @@ import org.constellation.business.ClusterMessage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.business.IClusterBusiness;
 import org.constellation.business.IProviderBusiness;
 import static org.constellation.business.ClusterMessageConstant.*;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IUserBusiness;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -167,8 +169,27 @@ public class ServiceBusiness implements IServiceBusiness {
 
         int serviceId = serviceRepository.create(service);
         setInstanceDetails(serviceType, identifier, details, details.getLang(), true);
+        
+        // special case for csw in csw in "all metadata" mode we need to link all the metadata provider to it
+        linkFullMetadataCSW(serviceId, serviceType, configuration);
 
         return serviceId;
+    }
+    
+    private void linkFullMetadataCSW(int serviceId, String serviceType, Object configuration) {
+        if (serviceType.equalsIgnoreCase("CSW")) {
+            final Automatic conf = (Automatic) configuration;
+            if (conf != null && conf.getCustomparameters().containsKey(CSW_CONFIG_PARTIAL)) {
+                boolean partial = conf.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+                if (!partial) {
+                    for (ProviderBrief pb : providerBusiness.getProviders()) {
+                        if ("metadata-store".equals(pb.getImpl())) {
+                            serviceRepository.linkMetadataProvider(serviceId, pb.getId(), true);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -340,6 +361,9 @@ public class ServiceBusiness implements IServiceBusiness {
             service.setVersions(StringUtils.join(details.getVersions(), "µ"));
         }
         serviceRepository.update(service);
+        
+        // special case for csw in csw in "all metadata" mode we need to link all the metadata provider to it
+        linkFullMetadataCSW(service.getId(), serviceType, configuration);
     }
 
     /**

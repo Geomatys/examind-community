@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreProvider;
+import static org.constellation.api.CommonConstants.CSW_CONFIG_PARTIAL;
 import org.constellation.api.DataType;
 import org.constellation.api.ProviderType;
 import org.constellation.business.*;
@@ -49,6 +50,8 @@ import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
 import org.constellation.dto.Style;
 import org.constellation.dto.metadata.MetadataBrief;
+import org.constellation.dto.service.Service;
+import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
@@ -64,6 +67,7 @@ import org.constellation.repository.DataRepository;
 import org.constellation.repository.DatasourceRepository;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.repository.SensorRepository;
+import org.constellation.repository.ServiceRepository;
 import org.constellation.repository.StyleRepository;
 import org.constellation.util.ParamUtilities;
 import org.constellation.util.Util;
@@ -122,6 +126,9 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Autowired
     private DatasourceRepository datasourceRepository;
+    
+    @Autowired
+    private ServiceRepository serviceRepository;
 
     @Override
     public List<ProviderBrief> getProviders() {
@@ -365,7 +372,23 @@ public class ProviderBusiness implements IProviderBusiness {
         }
         provider.setIdentifier(identifier);
         provider.setImpl(providerFactoryId);
-        return providerRepository.create(provider);
+        int pid = providerRepository.create(provider);
+        
+        // in the case of a new metadata provider we need to link all the csw in "all metadata" mode
+        if ("metadata-store".equals(providerFactoryId)) {
+            List<Service> csws = serviceRepository.findByType("CSW");
+            for (Service csw : csws) {
+                // read config to determine CSW type
+                final Automatic conf = Util.readConfigurationObject(csw.getConfig(), Automatic.class);
+                if (conf != null) {
+                    boolean partial = conf.getBooleanParameter(CSW_CONFIG_PARTIAL, false);
+                    if (!partial) {
+                        serviceRepository.linkMetadataProvider(csw.getId(), pid, true);
+                    }
+                }
+            }
+        }
+        return pid;
     }
 
     /**
