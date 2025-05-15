@@ -2,9 +2,14 @@ package com.examind.ogc.api.rest.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.opengis.metadata.Identifier;
 import org.opengis.referencing.crs.CompoundCRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.crs.GeographicCRS;
+import org.opengis.referencing.crs.ProjectedCRS;
+import org.opengis.referencing.crs.VerticalCRS;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,59 +63,75 @@ public class Extent {
         this.temporal = temporal;
     }
 
+    private String buildCompoundUri(List<String> components) {
+        StringBuilder uri = new StringBuilder("http://www.opengis.net/def/crs-compound?");
+        for (int i = 0; i < components.size(); i++) {
+            uri.append(i + 1).append("=").append(components.get(i));
+            if (i < components.size() - 1) uri.append("&");
+        }
+        return uri.toString();
+    }
+
     public void setFromCoordinateReferenceSystem(CoordinateReferenceSystem crs) {
+        List<String> components = new ArrayList<>();
 
         if (crs instanceof CompoundCRS compoundCRS) {
-            for (CoordinateReferenceSystem crsInCompound : compoundCRS.getComponents()) {
-                if (crsInCompound instanceof org.opengis.referencing.crs.TemporalCRS) {
-                    this.trs = opengisCRS(crsInCompound);
+            for (CoordinateReferenceSystem component : compoundCRS.getComponents()) {
+                if (component instanceof org.opengis.referencing.crs.TemporalCRS) {
+                    this.trs = opengisCRS(component);
                 } else {
-                    this.crs = opengisCRS(crsInCompound);
+                    components.add(opengisCRS(component));
                 }
             }
-        }
-
-        else {
+            // Handle spatial + vertical combinations
+            if (!components.isEmpty()) {
+                this.crs = components.size() > 1
+                        ? buildCompoundUri(components)
+                        : components.get(0);
+            }
+        } else {
             this.crs = opengisCRS(crs);
         }
     }
 
     //TODO : add others CRS and they links to opengis
     private String opengisCRS(CoordinateReferenceSystem crs) {
-        String name = crs.getName().getCode();
+        Identifier name = crs.getName();
 
-        // SPATIAL
-        if (name.equalsIgnoreCase("WGS 84")) {
-            return "http://www.opengis.net/def/crs/OGC/1.3/CRS84";
+        // Spatial CRSs
+        if (crs instanceof GeographicCRS || crs instanceof ProjectedCRS) {
+            if ("WGS 84".equalsIgnoreCase(name.getCode())) {
+                return "http://www.opengis.net/def/crs/OGC/1.3/CRS84";
+            } else if ("ETRS89-extended / LAEA Europe".equalsIgnoreCase(name.getCode())) {
+                return "https://www.opengis.net/def/crs/EPSG/0/3035";
+            }
         }
-        else if (name.equalsIgnoreCase("ETRS89-extended / LAEA Europe")) {
-            return "https://www.opengis.net/def/crs/EPSG/0/3035";
+        // Vertical CRSs
+        else if (crs instanceof VerticalCRS) {
+            if ("NAVD88".equalsIgnoreCase(name.getCode())) {
+                return "https://www.opengis.net/def/crs/EPSG/0/5703";
+            }
+        }
+        // Temporal CRSs
+        else if (crs instanceof TemporalCRS) {
+            if ("Java time".equalsIgnoreCase(name.getCode())) {
+                return "https://www.opengis.net/def/crs/OGC/0/UnixTime";
+            }
         }
 
-        // TIME
-        else if (name.equalsIgnoreCase("Java time")) {
-            return "https://www.opengis.net/def/crs/OGC/0/UnixTime";
-        }
-
-        // NOT FOUND
-        else {
-            return name;
-        }
+        // Fallback: Use EPSG code if available
+        return crs.getIdentifiers().isEmpty()
+                ? name.getCode()
+                : "https://www.opengis.net/def/crs/EPSG/0/" + crs.getIdentifiers().iterator().next().getCode();
     }
 
     public String getSrs() {
-        if (this.crs != null && this.trs == null) { //Only CRS
-            return this.crs;
-        }
-        if (this.crs == null && this.trs != null) { //Only TRS
-            return this.trs;
-        }
-        if (this.crs == null && this.trs == null) { //No CRS - No TRS
-            return null;
-        }
+        List<String> parts = new ArrayList<>();
+        if (crs != null) parts.add(crs);
+        if (trs != null) parts.add(trs);
 
-        return "http://www.opengis.net/def/crs-compound?" +
-                "1=" + this.crs + "&" +
-                "2=" + this.trs;
+        return parts.isEmpty()
+                ? null
+                : (parts.size() > 1) ? buildCompoundUri(parts) : parts.get(0);
     }
 }
