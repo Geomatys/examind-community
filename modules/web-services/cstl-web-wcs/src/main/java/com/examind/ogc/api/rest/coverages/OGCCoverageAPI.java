@@ -276,7 +276,8 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
                                    @RequestParam(name = "scale-factor", required = false) Double scaleFactor,
                                    @RequestParam(name = "scale-axes", required = false) String scaleAxesQuery,
                                    @RequestParam(name = "scale-size", required = false) String scaleSizeQuery,
-                                   @RequestParam(name = "subset", required = false) String subset) throws ConstellationException {
+                                   @RequestParam(name = "subset", required = false) String subset,
+                                   @RequestParam(name = "bbox-crs", required = false) String bboxCrs) throws ConstellationException {
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
@@ -317,7 +318,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
                 }
 
                 // if the layer does not exist an exception will be thrown
-                Object response = worker.getCoverage(collectionId, format, bbox, scaleData, subsetData, propertiesData);
+                Object response = worker.getCoverage(collectionId, format, bbox, scaleData, subsetData, propertiesData, bboxCrs);
 
                 return new ResponseObject(response, format).getResponseEntity();
 
@@ -346,7 +347,8 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
     public ResponseEntity coverageDomainSet(@PathVariable("serviceId") String serviceId,
                                    @PathVariable(value = "collectionId") String collectionId,
                                    @RequestParam(name = "f", required = false, defaultValue = MimeType.APP_JSON) String format,
-                                   @RequestParam(name = "bbox", required = false) List<Double> bbox) throws ConstellationException {
+                                   @RequestParam(name = "bbox", required = false) List<Double> bbox,
+                                   @RequestParam(name = "bbox-crs", required = false) String bboxCrs) throws ConstellationException {
 
         putServiceIdParam(serviceId);
         final WCSWorker worker = getWorker(serviceId);
@@ -354,7 +356,7 @@ public class OGCCoverageAPI extends GridWebService<WCSWorker> implements Conform
         if (worker != null) {
             try {
                 // if the layer does not exist an exception will be thrown
-                DomainSet response = worker.getDomainSet(collectionId, bbox);
+                DomainSet response = worker.getDomainSet(collectionId, bbox, bboxCrs);
 
                 return new ResponseObject(response, format).getResponseEntity();
 

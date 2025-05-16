@@ -2,12 +2,16 @@ package com.examind.ogc.api.rest.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.sis.referencing.CRS;
+import org.apache.sis.referencing.CommonCRS;
 import org.opengis.metadata.Identifier;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.opengis.referencing.crs.CompoundCRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.GeographicCRS;
 import org.opengis.referencing.crs.ProjectedCRS;
 import org.opengis.referencing.crs.VerticalCRS;
+import org.opengis.util.FactoryException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,5 +137,14 @@ public class Extent {
         return parts.isEmpty()
                 ? null
                 : (parts.size() > 1) ? buildCompoundUri(parts) : parts.get(0);
+    }
+
+    public static CoordinateReferenceSystem getCrsFromName(String crsName) {
+        if (crsName != null) {
+            try {
+                return CRS.forCode(crsName);
+            } catch (FactoryException e) {}
+        }
+        return CommonCRS.defaultGeographic();
     }
 }

@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -1302,10 +1303,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     }
 
     @Override
-    public Object getCoverage(String collectionId, String format, List<Double> bbox, String scaleData, List<String> subsetData, List<String> properties) throws CstlServiceException {
+    public Object getCoverage(String collectionId, String format, List<Double> bbox, String scaleData, List<String> subsetData, List<String> properties, String bboxCrs) throws CstlServiceException {
         try {
             final CoverageData data = getCoverageData(collectionId);
-            GeneralEnvelope readEnv = getGeneralEnvelope(data);
+            GeneralEnvelope readEnv = getGeneralEnvelope(data, bboxCrs);
 
             CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
             final SpatialMetadata metadata;
@@ -1471,6 +1472,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             try {
                 var processor = new ResourceProcessor();
                 processor.getProcessor().setInterpolation(Interpolation.BILINEAR);
+
                 GridCoverageResource coverageResourceResampled = processor.resample(data.getOrigin(), readGg, data.getName());
                 gridCoverageSource = coverageResourceResampled.read(readGg);
             } catch (Exception ex) {
@@ -1593,33 +1595,41 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         final Data data = layer.getData();
         final List<Link> links = new ArrayList<>();
         final Extent extent = new Extent();
+        final Extent readExtent = new Extent();
 
         Envelope envelope = null;
+        GeneralEnvelope readEnv = null;
         try {
             envelope = data.getEnvelope();
+            readEnv = getGeneralEnvelope((CoverageData) data);
             extent.setFromCoordinateReferenceSystem(envelope.getCoordinateReferenceSystem());
-        } catch (ConstellationStoreException ex) {
+            readExtent.setFromCoordinateReferenceSystem(readEnv.getCoordinateReferenceSystem());
+
+        } catch (ConstellationStoreException | CstlServiceException ex) {
             LOGGER.log(Level.WARNING, "No envelope - " + ex.getLocalizedMessage(), ex);
         }
 
-        //TODO : change with data crs + dynamically get the crs
-        List<String> crs = Collections.singletonList(extent.getCrs());
+        List<String> crs = new ArrayList<>();
+        crs.add(readExtent.getCrs());
+        if (!readExtent.getCrs().equalsIgnoreCase(extent.getCrs())) {
+            crs.add(extent.getCrs());
+        }
         String storageCrs = extent.getCrs();
 
         try {
             final DefaultGeographicBoundingBox gbox = new DefaultGeographicBoundingBox();
-            gbox.setBounds(data.getEnvelope());
+            gbox.setBounds(readEnv);
 
             SpatialCRS spatialCRS = new SpatialCRS();
             double[] boundingBox = {gbox.getWestBoundLongitude(), gbox.getSouthBoundLatitude(), gbox.getEastBoundLongitude(), gbox.getNorthBoundLatitude()};
             double[][] globalBoundingBox = new double[1][4];
             System.arraycopy(boundingBox, 0, globalBoundingBox[0], 0, boundingBox.length);
             spatialCRS.setBbox(globalBoundingBox);
-            extent.setSpatial(spatialCRS);
+            readExtent.setSpatial(spatialCRS);
 
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Cannot set spatial extent of data " + data.getName(), ex);
-            extent.setSpatial(null);
+            readExtent.setSpatial(null);
         }
 
         final DateFormat ISO8601_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -1632,13 +1642,13 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 temporalInterval[0][0] = ISO8601_FORMAT.format(dates.first());
                 temporalInterval[0][1] = ISO8601_FORMAT.format(dates.last());
                 temporalCRS.setInterval(temporalInterval);
-                extent.setTemporal(temporalCRS);
+                readExtent.setTemporal(temporalCRS);
             } else {
-                extent.setTemporal(null);
+                readExtent.setTemporal(null);
             }
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Cannot set temporal extent of data " + data.getName(), e);
-            extent.setTemporal(null);
+            readExtent.setTemporal(null);
         }
         String identifier = identifier(layer);
         String title      = layer.getConfiguration().getTitle();
@@ -1652,22 +1662,21 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
         // but it appears at https://github.com/opengeospatial/ogcapi-features/blob/master/core/xml/core.xsd
 
         if(forOpenEO) {
-            return new com.examind.openeo.api.rest.data.discovery.dto.Collection(identifier, links, title, null, title, extent, crs, storageCrs,
+            return new com.examind.openeo.api.rest.data.discovery.dto.Collection(identifier, links, title, null, title, readExtent, crs, storageCrs,
                     "1.0.0", Set.of(), List.of(), false, "no licence specified");
         } else {
-            return new com.examind.ogc.api.rest.common.dto.Collection(identifier, links, title, null, title, extent, crs, storageCrs);
+            return new com.examind.ogc.api.rest.common.dto.Collection(identifier, links, title, null, title, readExtent, crs, storageCrs);
         }
     }
 
     @Override
-    public DomainSet getDomainSet(String collectionId, List<Double> bbox) throws CstlServiceException {
+    public DomainSet getDomainSet(String collectionId, List<Double> bbox, String bboxCrs) throws CstlServiceException {
         CoverageData data = getCoverageData(collectionId);
 
         final Extent extent = new Extent();
 
-        GeneralEnvelope readEnv = getGeneralEnvelope(data);
+        GeneralEnvelope readEnv = getGeneralEnvelope(data, bboxCrs);
         CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
-
         extent.setFromCoordinateReferenceSystem(crs);
 
         processBbox(readEnv, bbox);
@@ -1852,6 +1861,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
     }
 
     private GeneralEnvelope getGeneralEnvelope(CoverageData data) throws CstlServiceException {
+        return getGeneralEnvelope(data, null);
+    }
+
+    private GeneralEnvelope getGeneralEnvelope(CoverageData data, String bboxCrs) throws CstlServiceException {
         final GridCoverageResource ref = data.getOrigin();
         GeneralEnvelope readEnv;
         try {
@@ -1863,17 +1876,24 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 readEnv = new GeneralEnvelope(gridGeometry.getEnvelope());
             }
 
-            final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
+            //We keep the data crs
+            if (bboxCrs != null && bboxCrs.equalsIgnoreCase("dataDefault")) {
+                return readEnv;
+            }
+            CoordinateReferenceSystem bboxCrsData = Extent.getCrsFromName(bboxCrs);
+
+            //final CoordinateReferenceSystem epsg4326 = CRS.forCode("urn:ogc:def:crs:OGC:2:84");
+            final CoordinateReferenceSystem defaultGeographic = (bboxCrsData == null ? CommonCRS.defaultGeographic() : bboxCrsData);
             final CoordinateReferenceSystem temporalCRS = CRS.getTemporalComponent(readEnv.getCoordinateReferenceSystem());
             final CoordinateReferenceSystem verticalCRS = CRS.getVerticalComponent(readEnv.getCoordinateReferenceSystem(), true);
 
             final CoordinateReferenceSystem finalCRS;
-            if(temporalCRS != null && verticalCRS == null) finalCRS = CRS.compound(epsg4326, temporalCRS);
-            else if(temporalCRS == null && verticalCRS != null) finalCRS = CRS.compound(epsg4326, verticalCRS);
-            else if(temporalCRS != null && verticalCRS != null) finalCRS = CRS.compound(epsg4326, verticalCRS, temporalCRS);
-            else finalCRS = epsg4326;
+            if(temporalCRS != null && verticalCRS == null) finalCRS = CRS.compound(defaultGeographic, temporalCRS);
+            else if(temporalCRS == null && verticalCRS != null) finalCRS = CRS.compound(defaultGeographic, verticalCRS);
+            else if(temporalCRS != null && verticalCRS != null) finalCRS = CRS.compound(defaultGeographic, verticalCRS, temporalCRS);
+            else finalCRS = defaultGeographic;
 
-            if (!Utilities.equalsIgnoreMetadata(epsg4326, readEnv.getCoordinateReferenceSystem())) {
+            if (!Utilities.equalsIgnoreMetadata(defaultGeographic, readEnv.getCoordinateReferenceSystem())) {
                 readEnv = CRSUtilities.reprojectWithNoInfinity(readEnv, finalCRS);
             }
 
