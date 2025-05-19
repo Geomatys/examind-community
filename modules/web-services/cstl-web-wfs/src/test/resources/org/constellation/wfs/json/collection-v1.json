@@ -23,11 +23,7 @@
                 "@id": "station-001",
                 "description": "Pointd'eauBSSS",
                 "name": ["[10972X0137-PONT]"],
-                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"],
-                "position": {
-                    "type": "Point",
-                    "coordinates": [-461417.5781, 5219276.6054]
-                }
+                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"]
             }
         }, {
             "type": "Feature",
@@ -46,11 +42,7 @@
                 "@id": "station-002",
                 "description": "Pointd'eauBSSS",
                 "name": ["[10972X0137-PLOUF]"],
-                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"],
-                "position": {
-                    "type": "Point",
-                    "coordinates": [556597.4539, 1118889.9753]
-                }
+                "sampledFeature": ["[urn:-sandre:object:bdrhf:123X]"]
             }
         }]
 }

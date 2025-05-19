@@ -34,10 +34,9 @@ import org.apache.sis.cql.CQL;
 import javax.xml.namespace.QName;
 import org.apache.sis.cql.CQLException;
 import org.apache.sis.feature.builder.AttributeTypeBuilder;
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.feature.privy.FeatureExpression;
-import org.apache.sis.filter.DefaultFilterFactory;
+import org.apache.sis.feature.privy.FeatureProjectionBuilder;
 import org.apache.sis.measure.Units;
 import org.apache.sis.metadata.iso.extent.DefaultGeographicBoundingBox;
 import org.apache.sis.referencing.CRS;
@@ -393,7 +392,7 @@ public class LayerCache {
                      */
                     if (def.crs() instanceof TemporalCRS tcrs && def.lower() instanceof FeatureExpression<?,?> fe) {
                         final Class<?> dimValueType = getFeatureType()
-                                .map(type -> fe.expectedType(type, new FeatureTypeBuilder().setName("tmp")) instanceof AttributeTypeBuilder att ? att.getValueClass() : null)
+                                .map(type -> fe.expectedType(new FeatureProjectionBuilder(type, null)).builder() instanceof AttributeTypeBuilder att ? att.getValueClass() : null)
                                 .orElse(fe.getValueClass());
                         final boolean isTemporal = Temporal.class.isAssignableFrom(dimValueType);
                         final boolean isDate = Date.class.isAssignableFrom(dimValueType);

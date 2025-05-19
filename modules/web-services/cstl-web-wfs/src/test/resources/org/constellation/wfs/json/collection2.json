@@ -20,10 +20,6 @@
                 "coordinates": [77.9236, 22.2639]
             },
             "properties": {
-                "the_geom": {
-                    "type": "Point",
-                    "coordinates": [77.9236, 22.2639]
-                },
                 "FID": "110",
                 "NAME": "CamBridge"
             }

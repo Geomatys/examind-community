@@ -109,10 +109,6 @@ public class FeatureTogeoJSONTest extends SpringContextTest {
                                 "coordinates" : [ 0.0007, 0.0002 ]
                               },
                               "properties" : {
-                                "the_geom" : {
-                                  "type" : "Point",
-                                  "coordinates" : [ 0.0007, 0.0002 ]
-                                },
                                 "FID" : "110",
                                 "NAME" : "Cam Bridge"
                               }

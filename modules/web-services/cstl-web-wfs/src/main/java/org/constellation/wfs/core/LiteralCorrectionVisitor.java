@@ -19,7 +19,7 @@
 
 package org.constellation.wfs.core;
 
-import org.apache.sis.feature.builder.FeatureTypeBuilder;
+import org.apache.sis.feature.privy.FeatureProjectionBuilder;
 import org.apache.sis.feature.privy.FeatureExpression;
 import org.geotoolkit.filter.visitor.DuplicatingFilterVisitor;
 import org.opengis.feature.AttributeType;
@@ -28,7 +28,6 @@ import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
 import org.opengis.filter.Expression;
 import org.opengis.filter.Literal;
-import org.opengis.filter.ValueReference;
 
 /**
  *
@@ -45,7 +44,7 @@ public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
 
                     // Add a support for a filter on boolean property using integer 0 or 1
                     if (ft != null) {
-                        final Object obj = property.expectedType(ft, new FeatureTypeBuilder()).build();
+                        final Object obj = property.expectedType(new FeatureProjectionBuilder(ft, null)).builder().build();
                         if (obj instanceof AttributeType) {
                             final AttributeType descriptor = (AttributeType) obj;
                             if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
@@ -75,7 +74,7 @@ public class LiteralCorrectionVisitor extends DuplicatingFilterVisitor {
 
                     // Add a support for a filter on boolean property using integer 0 or 1
                     if (ft != null) {
-                        final AttributeType descriptor = (AttributeType) property.expectedType(ft, new FeatureTypeBuilder()).build();
+                        final AttributeType descriptor = (AttributeType) property.expectedType(new FeatureProjectionBuilder(ft, null)).builder().build();
                         if (descriptor != null) {
                             if (descriptor.getValueClass().equals(Boolean.class) && literal.getValue() instanceof Number) {
                                 final Literal booleanLit;
