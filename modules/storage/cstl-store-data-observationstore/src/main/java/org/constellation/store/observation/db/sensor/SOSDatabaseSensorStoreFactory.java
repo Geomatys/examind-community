@@ -32,6 +32,7 @@ import static org.constellation.store.observation.db.SOSDatabaseObservationStore
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DERBY_URL;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.HOST;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.MAX_FIELD_BY_TABLE;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.MODE;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.PASSWD;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.PORT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX;
@@ -70,7 +71,7 @@ public class SOSDatabaseSensorStoreFactory extends DataStoreProvider {
             new ParameterBuilder().addName(NAME)
                                   .addName("OM2SensorParameters")
                                   .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
-                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY);
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY, MODE);
 
     @Override
     public String getShortName() {
