@@ -130,6 +130,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String JCOL_FILTER = "JCOLF";
     private static final String OM2_LAYER = "SamplingPoint";
     private static final String LAKES = "Lakes";
+    private static final String COUNTRIES = "Countries";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -426,8 +427,8 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String WMS_GETFEATUREINFO_JSON_JSON = "request=GetFeatureInfo&service=WMS&version=1.3.0&"
             + "format=image/png&width=256&height=256&"
             + "CRS=EPSG%3A3857&BBOX=410925.4640611075%2C5439870.428999424%2C415817.43387135875%2C5444762.398809675&"
-            + "layers=Countries&styles=&"
-            + "query_layers=Countries&info_format=application/json&"
+            + "layers=" + COUNTRIES + "&styles=&"
+            + "query_layers=" + COUNTRIES + "&info_format=application/json&"
             + "I=253&J=44";
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
@@ -635,10 +636,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 datas.addAll(TestEnvironment.createAggregateProvider(providerBusiness, "aggData", Arrays.asList(did.id, did2.id), null).datas);
 
                 // shapefile datastore
-                final List<DataImport> shapeDatas = new ArrayList<>();
-                shapeDatas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
-                datas.addAll(shapeDatas);
-                datas.addAll(testResource.createProviders(TestResource.SHAPEFILES, providerBusiness, null).datas());
+                final List<DataImport> wms111ShapeDatas = new ArrayList<>();
+                wms111ShapeDatas.addAll(testResource.createProviders(TestResource.WMS111_SHAPEFILES, providerBusiness, null).datas());
+                datas.addAll(wms111ShapeDatas);
 
                 // we add two times a new geojson provider in order to create 2 layer with same name but different alias
                 DataImport d13 = testResource.createProvider(TestResource.JSON_FEATURE, providerBusiness, null).datas.get(0);
@@ -670,6 +670,17 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 layerBusiness.add(d13.id,  "JS1", d13.namespace,  d13.name,    null, defId, null);
                 layerBusiness.add(d13.id,  "JS2", d13.namespace,  d13.name,    null, defId, null);
+                
+                List<DataImport> shapesDatas = testResource.createProviders(TestResource.SHAPEFILES, providerBusiness, null).datas();
+                 for (DataImport d : shapesDatas) {
+                     LayerConfig lconfig = null;
+                     if (COUNTRIES.equals(d.name)) {
+                         lconfig = new LayerConfig();
+                         DimensionDefinition dd = new DimensionDefinition("time", "date_creat", "date_creat");
+                         lconfig.setDimensions(Arrays.asList(dd));
+                     }
+                     layerBusiness.add(d.id, null, d.namespace, d.name, null, defId, lconfig);
+                 }
 
                 // add a filter on "elevation" property
                 LayerConfig lconfig = new LayerConfig();
@@ -689,7 +700,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 int styleId2 = styleBusiness.getStyleId("sld", "default-point-sensor");
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
                 // only add the 'lakes' data and add a namespace to the layer
-                for (DataImport d : shapeDatas) {
+                for (DataImport d : wms111ShapeDatas) {
                     if (LAKES.equals(d.name)) {
                         int layerId = layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm1Id, null);
                         styleBusiness.linkToLayer(styleId2, layerId);
@@ -731,7 +742,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 Integer wm2Id = serviceBusiness.create("wms", "wms2", config3, details3, null);
                 layerBusiness.add(did.id,   null,  did.namespace,  did.name,   null, wm2Id, null);
-                for (DataImport d : shapeDatas) {
+                for (DataImport d : wms111ShapeDatas) {
                     layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm2Id, null);
                 }
 
@@ -1129,6 +1140,29 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 .map(Integer::valueOf)
                 .collect(Collectors.toUnmodifiableSet());
         assertEquals(Set.of(700, 800, 900, 1000, 1100, 1200, 1300), extentValues);
+        
+        layer = (Layer) responseCaps.getLayerFromName(COUNTRIES);
+        assertEquals(1, layer.getDimension().size());
+        Dimension time = layer.getDimension().get(0);
+        assertEquals("time", time.getName());
+        assertEquals("", time.getValue());
+
+        assertEquals(1, layer.getExtent().size());
+        Extent extentTime = layer.getExtent().get(0);
+        assertEquals("time", extentTime.getName());
+        var extentTimeValueStr = extentTime.getvalue();
+        Assertions.assertNotNull(extentTimeValueStr);
+        var extentTimeValues = Pattern.compile("\s*,\s*")
+                .splitAsStream(extentTimeValueStr)
+                .map(String::valueOf)
+                .collect(Collectors.toUnmodifiableSet());
+        assertEquals(Set.of("2026-03-12T23:00:00Z", 
+                            "2027-03-12T23:00:00Z", 
+                            "2023-03-12T23:00:00Z", 
+                            "2024-03-12T23:00:00Z", 
+                            "2021-03-12T23:00:00Z", 
+                            "2025-03-12T23:00:00Z", 
+                            "2022-03-12T23:00:00Z"), extentTimeValues);
 
 
         String currentUrl = responseCaps.getCapability().getRequest().getGetMap().getDCPType().get(0).getHTTP().getGet().getOnlineResource().getHref();

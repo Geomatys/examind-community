@@ -20,9 +20,12 @@ package org.constellation.map.core;
 
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -54,7 +57,12 @@ import org.opengis.metadata.extent.GeographicBoundingBox;
 public class WMSUtilities {
 
     private static final Logger LOGGER = Logger.getLogger("org.constellation.map.ws");
-
+    
+    public static final SimpleDateFormat ISO_8601_FORMATTER = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    static {
+        ISO_8601_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC") );
+    }
+    
     public static BufferedImage getLegendGraphicImg(final MapItem mapItem, Dimension dimension, final LegendTemplate template,
                                           final Style style, final String rule, final Double scale)
                                           throws PortrayalException
@@ -240,13 +248,23 @@ public class WMSUtilities {
                 sb.append(",");
             }
             if (r.getMinValue().compareTo(r.getMaxValue()) != 0) {
-                sb.append(r.getMinValue()).append("-").append(r.getMaxValue());
+                sb.append(printValue(r.getMinValue())).append("-").append(printValue(r.getMaxValue()));
             } else {
-                sb.append(r.getMinValue());
+                sb.append(printValue(r.getMinValue()));
             }
 
             first = false;
         }
         return sb.toString();
+    }
+    
+    private static String printValue(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Date d) {
+            synchronized (ISO_8601_FORMATTER) {
+                return ISO_8601_FORMATTER.format(d);
+            }
+        }
+        return obj.toString();
     }
 }
