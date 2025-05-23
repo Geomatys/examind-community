@@ -31,6 +31,7 @@ import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 import org.apache.sis.cql.CQL;
@@ -86,6 +87,7 @@ import org.apache.sis.map.MapLayers;
 import org.apache.sis.util.Version;
 import org.constellation.api.DataType;
 import org.constellation.api.WorkerState;
+import org.constellation.business.IStyleConverterBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DimensionRange;
@@ -96,6 +98,7 @@ import org.constellation.map.util.MapUtils;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.constellation.map.util.MapUtils.transformJAXBFilter;
 import org.constellation.provider.FeatureData;
+import static org.constellation.ws.MimeType.APP_JSON;
 import org.geotoolkit.ows.xml.OWSExceptionCode;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -135,6 +138,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.crs.VerticalCRS;
 import org.opengis.referencing.operation.TransformException;
 import org.opengis.util.FactoryException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
@@ -161,6 +165,9 @@ import org.springframework.stereotype.Component;
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
 
+    @Autowired
+    private IStyleConverterBusiness styleConverterBusiness;
+    
     /**
      * Temporal formatting for layer with TemporalCRS.
      */
@@ -452,6 +459,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             final String beginLegendUrl = getServiceUrl() + "REQUEST=GetLegendGraphic&VERSION=1.1.1&FORMAT=";
             final String legendUrlGif   = beginLegendUrl + MimeType.IMAGE_GIF + "&LAYER=" + layerName;
             final String legendUrlPng   = beginLegendUrl + MimeType.IMAGE_PNG + "&LAYER=" + layerName;
+            final String legendUrlJson  = beginLegendUrl + MimeType.APP_JSON + "&LAYER=" + layerName;
             final String queryable      = (layer.isQueryable(ServiceDef.Query.WMS_GETINFO)) ? "1" : "0";
             final String _abstract;
             final String keyword;
@@ -520,9 +528,11 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
                 // For each styles defined for the layer, get the dimension of the getLegendGraphic response.
                 for (StyleReference styleName : stylesName) {
                     final org.apache.sis.style.Style ms = getStyle(styleName);
-                    String legendUrlPng2 =  legendUrlPng+"&STYLE="+ styleName.getName();
-                    String legendUrlGif2 =  legendUrlGif+"&STYLE="+ styleName.getName();
-                    final org.geotoolkit.wms.xml.Style style = convertStyleToWmsStyle(queryVersion, ms, data, legendUrlPng2, legendUrlGif2);
+                    Map<String, String> legends = new HashMap<>();
+                    legends.put(legendUrlPng  + "&STYLE=" + styleName.getName(), MimeType.IMAGE_PNG);
+                    legends.put(legendUrlGif  + "&STYLE=" + styleName.getName(), MimeType.IMAGE_GIF);
+                    legends.put(legendUrlJson + "&STYLE=" + styleName.getName(), MimeType.APP_JSON);
+                    final org.geotoolkit.wms.xml.Style style = convertStyleToWmsStyle(queryVersion, ms, data, legends);
                     styles.add(style);
                 }
             }
@@ -739,9 +749,9 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @return
      */
     private org.geotoolkit.wms.xml.Style convertStyleToWmsStyle(final String currentVersion, final org.apache.sis.style.Style ms, final Data data,
-            final String legendUrlPng, final String legendUrlGif)
+            final Map<String, String> legendUrls)
     {
-        AbstractOnlineResource or = createOnlineResource(currentVersion, legendUrlPng);
+        String styleName = (ms instanceof org.opengis.style.Style st) ? styleName = st.getName() : "unnamed";
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
         final Dimension dimension;
         try {
@@ -750,14 +760,18 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
             LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
             return null;
         }
-
-        final AbstractLegendURL legendURL1 = createLegendURL(currentVersion, MimeType.IMAGE_PNG, or, dimension.width, dimension.height);
-
-        or = createOnlineResource(currentVersion, legendUrlGif);
-        final AbstractLegendURL legendURL2 = createLegendURL(currentVersion, MimeType.IMAGE_GIF, or, dimension.width, dimension.height);
-
-        String styleName = (ms instanceof org.opengis.style.Style st) ? styleName = st.getName() : "unnamed";
-        return createStyle(currentVersion, styleName, styleName, null, legendURL1, legendURL2);
+        AbstractLegendURL[] legends = new AbstractLegendURL[legendUrls.size()];
+        
+        int i = 0;
+        for (Entry<String, String> entry : legendUrls.entrySet()) {
+            AbstractOnlineResource or = createOnlineResource(currentVersion, entry.getKey());
+            // no dimension for json glg
+            Integer width  = entry.getValue().equals(MimeType.APP_JSON) ? null : dimension.width;
+            Integer height = entry.getValue().equals(MimeType.APP_JSON) ? null : dimension.height;
+            legends[i] = createLegendURL(currentVersion, entry.getValue(), or, width, height);
+            i++;
+        }
+        return createStyle(currentVersion, styleName, styleName, null, legends);
     }
 
     /**
@@ -890,7 +904,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
      * @throws CstlServiceException if the layer does not support GetLegendGraphic requests.
      */
     @Override
-    public PortrayalResponse getLegendGraphic(final GetLegendGraphic getLegend) throws CstlServiceException {
+    public Object getLegendGraphic(final GetLegendGraphic getLegend) throws CstlServiceException {
         isWorking();
         final String userLogin  = getUserLogin();
         final LayerCache layer  = getLayerCache(userLogin, getLegend.getLayer());
@@ -901,6 +915,7 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         }
 
         final Data data      = layer.getData();
+        final String format  = getLegend.getFormat();
         final Integer width  = getLegend.getWidth();
         final Integer height = getLegend.getHeight();
 
@@ -916,67 +931,79 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
         final Double scale = getLegend.getScale();
         final String sldUrl = getLegend.getSld();
         final String style = getLegend.getStyle();
-        try {
-            org.apache.sis.style.Style ms = null;
-            // If a sld file is given, extracts the style from it.
-            if (sldUrl != null && !sldUrl.isEmpty()) {
-                if (getLegend.getSldVersion() == null) {
-                    throw new PortrayalException("SLD version must be specified");
+        
+        org.apache.sis.style.Style ms = null;
+        // If a sld file is given, extracts the style from it.
+        if (sldUrl != null && !sldUrl.isEmpty()) {
+            if (getLegend.getSldVersion() == null) {
+                throw new CstlServiceException("SLD version must be specified");
+            }
+            final MutableStyledLayerDescriptor mutableSLD;
+            try {
+                mutableSLD = (MutableStyledLayerDescriptor) styleBusiness.readSLD(new URL(sldUrl), getLegend.getSldVersion().name());
+            } catch (ConstellationException ex) {
+                final String message;
+                if (ex.getCause() instanceof FileNotFoundException) {
+                    message = "The given url \""+ sldUrl +"\" points to an non-existing file.";
+                } else {
+                    message = ex.getLocalizedMessage();
                 }
-                final MutableStyledLayerDescriptor mutableSLD;
-                try {
-                    mutableSLD = (MutableStyledLayerDescriptor) styleBusiness.readSLD(new URL(sldUrl), getLegend.getSldVersion().name());
-                } catch (ConstellationException ex) {
-                    final String message;
-                    if (ex.getCause() instanceof FileNotFoundException) {
-                        message = "The given url \""+ sldUrl +"\" points to an non-existing file.";
-                    } else {
-                        message = ex.getLocalizedMessage();
-                    }
-                    throw new PortrayalException(message, ex);
-                }  catch (MalformedURLException ex) {
-                    throw new PortrayalException("The given SLD url \""+ sldUrl +"\" is not a valid url", ex);
-                }
+                throw new CstlServiceException(message, ex);
+            }  catch (MalformedURLException ex) {
+                throw new CstlServiceException("The given SLD url \""+ sldUrl +"\" is not a valid url", ex);
+            }
 
-                final List<MutableLayer> emptyNameMutableLayers = new ArrayList<>();
-                for (final MutableLayer mutableLayer : mutableSLD.layers()) {
-                    final String mutableLayerName = mutableLayer.getName();
-                    if (mutableLayerName == null || mutableLayerName.isEmpty()) {
-                        emptyNameMutableLayers.add(mutableLayer);
-                        continue;
-                    }
-                    if (layerName.equals(mutableLayerName)) {
-                        ms = (org.apache.sis.style.Style) mutableLayer.styles().get(0);
-                        break;
-                    }
+            final List<MutableLayer> emptyNameMutableLayers = new ArrayList<>();
+            for (final MutableLayer mutableLayer : mutableSLD.layers()) {
+                final String mutableLayerName = mutableLayer.getName();
+                if (mutableLayerName == null || mutableLayerName.isEmpty()) {
+                    emptyNameMutableLayers.add(mutableLayer);
+                    continue;
                 }
-                if (ms == null) {
-                    LOGGER.log(Level.INFO, "No layer {0} found for the given SLD. Continue with the first style found.", layerName);
-                    ms = (org.apache.sis.style.Style) emptyNameMutableLayers.get(0).styles().get(0);
-                }
-            } else if (style != null && !style.isEmpty()) {
-                for (StyleReference ref : layer.getStyles()) {
-                    if(style.equals(ref.getName())) {
-                        ms = getStyle(ref);
-                        break;
-                    }
-                }
-            } else {
-                // No sld given, we use the style.
-                if (!layer.getStyles().isEmpty()) {
-                    final StyleReference styleRef = layer.getStyles().get(0);
-                    ms = getStyle(styleRef);
+                if (layerName.equals(mutableLayerName)) {
+                    ms = (org.apache.sis.style.Style) mutableLayer.styles().get(0);
+                    break;
                 }
             }
-            image = getLegendGraphicImg(data.getMapLayer(ms), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
-        } catch (PortrayalException | ConstellationStoreException ex) {
-            throw new CstlServiceException(ex);
+            if (ms == null) {
+                LOGGER.log(Level.INFO, "No layer {0} found for the given SLD. Continue with the first style found.", layerName);
+                ms = (org.apache.sis.style.Style) emptyNameMutableLayers.get(0).styles().get(0);
+            }
+        } else if (style != null && !style.isEmpty()) {
+            for (StyleReference ref : layer.getStyles()) {
+                if(style.equals(ref.getName())) {
+                    ms = getStyle(ref);
+                    break;
+                }
+            }
+        } else {
+            // No sld given, we use the style.
+            if (!layer.getStyles().isEmpty()) {
+                final StyleReference styleRef = layer.getStyles().get(0);
+                ms = getStyle(styleRef);
+            }
         }
-        if (image == null) {
-            throw new CstlServiceException("The requested layer \""+ layerName +"\" does not support "
-                    + "GetLegendGraphic request", NO_APPLICABLE_CODE, KEY_LAYER.toLowerCase());
+        if (APP_JSON.equals(format)) {
+            try {
+                org.constellation.json.binding.Style jstyle = styleConverterBusiness.getJsonStyle((org.opengis.style.Style) ms);
+                return jstyle;
+            } catch (ConfigurationException ex) {
+                throw new CstlServiceException(ex);
+            }
+        } else {
+            try {
+                image = getLegendGraphicImg(data.getMapLayer(ms), dims, mapPortrayal.getDefaultLegendTemplate(), ms, rule, scale);
+
+                if (image == null) {
+                    throw new CstlServiceException("The requested layer \""+ layerName +"\" does not support "
+                            + "GetLegendGraphic request", NO_APPLICABLE_CODE, KEY_LAYER.toLowerCase());
+                }
+                return new PortrayalResponse(image);
+
+            } catch (PortrayalException | ConstellationStoreException ex) {
+                throw new CstlServiceException(ex);
+            }
         }
-        return new PortrayalResponse(image);
     }
 
     /**

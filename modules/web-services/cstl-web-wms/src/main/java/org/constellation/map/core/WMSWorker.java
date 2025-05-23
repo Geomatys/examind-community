@@ -74,12 +74,12 @@ public interface WMSWorker extends Worker{
     Map.Entry<String, Object> getFeatureInfo(final GetFeatureInfo getFI) throws CstlServiceException;
 
     /**
-     * Returns a {@link BufferedImage}, which is the result of a {@code GetLegendGraphic} request.
+     * Returns a {@link BufferedImage} or a json pojo depending on query format, which is the result of a {@code GetLegendGraphic} request.
      *
      * @param getLegend The {@linkplain GetLegendGraphic get legend graphic} request done on this service.
      * @throws CstlServiceException
      */
-    PortrayalResponse getLegendGraphic(final GetLegendGraphic getLegend) throws CstlServiceException;
+    Object getLegendGraphic(final GetLegendGraphic getLegend) throws CstlServiceException;
 
     /**
      * Returns a {@link BufferedImage}, which is the result of a {@code GetMap} request.

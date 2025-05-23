@@ -1,0 +1,33 @@
+{
+    "id": null,
+    "name": "default-polygon",
+    "rules": [{
+            "name": "default-polygon",
+            "title": "",
+            "description": "",
+            "minScale": 0.0,
+            "maxScale": 1.7976931348623157E308,
+            "symbolizers": [{
+                    "@symbol": "PolygonSymbolizer",
+                    "name": null,
+                    "stroke": {
+                        "color": "#000000",
+                        "function": null,
+                        "opacity": "1",
+                        "width": "1",
+                        "dashed": false,
+                        "lineJoin": "bevel",
+                        "lineCap": "square",
+                        "dashArray": null,
+                        "dashOffset": 0.0
+                    },
+                    "fill": {
+                        "color": "#808080",
+                        "opacity": "1"
+                    },
+                    "perpendicularOffset": 0.0
+                }],
+            "filter": null
+        }],
+    "multiStyle": false
+}

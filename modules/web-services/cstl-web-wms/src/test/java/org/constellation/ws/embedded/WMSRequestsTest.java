@@ -129,6 +129,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
     private static final String MARTINIQUE = "martinique";
     private static final String JCOL_FILTER = "JCOLF";
     private static final String OM2_LAYER = "SamplingPoint";
+    private static final String LAKES = "Lakes";
 
     /**
      * Checksum value on the returned image expressed in a geographic CRS for
@@ -431,6 +432,9 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
     private static final String WMS_GETLEGENDGRAPHIC = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=" + LAYER_TEST + "&format=image/png&version=1.1.0";
+    
+    private static final String WMS_GETLEGENDGRAPHIC_JSON = "request=GetLegendGraphic&service=wms&"
+            + "width=200&height=40&layer=" + LAKES + "&format=application/json&version=1.1.0&style=default-polygon";
 
     private static final String WMS_GETLEGENDGRAPHIC_ALIAS = "request=GetLegendGraphic&service=wms&"
             + "width=200&height=40&layer=JS1&format=image/png&version=1.1.0";
@@ -686,7 +690,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
                 Integer wm1Id = serviceBusiness.create("wms", "wms1", config2, null, null);
                 // only add the 'lakes' data and add a namespace to the layer
                 for (DataImport d : shapeDatas) {
-                    if ("Lakes".equals(d.name)) {
+                    if (LAKES.equals(d.name)) {
                         int layerId = layerBusiness.add(d.id, null, "http://www.opengis.net/gml", d.name, null, wm1Id, null);
                         styleBusiness.linkToLayer(styleId2, layerId);
                         styleBusiness.linkToLayer(styleId1, layerId);
@@ -1562,6 +1566,18 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
         assertEquals(200, image.getWidth());
         assertEquals(40, image.getHeight());
     }
+    
+    @Test
+    public void testWMSGetLegendGraphicJson() throws Exception {
+        initLayerList();
+        // Creates a valid GetLegendGraphic url.
+        final URL getLegendUrl = new URL("http://localhost:" + getCurrentPort() + "/WS/wms/wms1?" + WMS_GETLEGENDGRAPHIC_JSON);
+
+        String expResult = getResourceAsString("org/constellation/ws/embedded/style1.json");
+        String result = getStringResponse(getLegendUrl);
+        assertNotNull(result);
+        compareJSON(expResult, result);
+    }
 
     /**
      * Ensures that a valid DescribeLayer request produces a valid document.
@@ -1597,7 +1613,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("HeIgHt", "100");
-        parameters.put("LaYeRs", "Lakes");
+        parameters.put("LaYeRs", LAKES);
         parameters.put("FoRmAt", "image/png");
         parameters.put("ReQuEsT", "GetMap");
         parameters.put("StYlEs", "");

@@ -180,7 +180,7 @@ public class WMSService extends GridWebService<WMSWorker> {
                 return new ResponseObject(capabilities, requestCapab.getFormat());
             }
             if (request instanceof GetLegendGraphic requestLegend) {
-                final PortrayalResponse legend = worker.getLegendGraphic(requestLegend);
+                final Object legend = worker.getLegendGraphic(requestLegend);
                 return new ResponseObject(legend, requestLegend.getFormat());
             }
             if (request instanceof DescribeLayer describeLayer)  {
@@ -420,7 +420,12 @@ public class WMSService extends GridWebService<WMSWorker> {
         // Verify that the format is known, otherwise returns an exception.
         final String format;
         try {
-            format = RequestsUtilities.toFormat(strFormat);
+            // special examind extra format
+            if (MimeType.APP_JSON.equals(strFormat)) {
+                format = strFormat;
+            } else {
+                format = RequestsUtilities.toFormat(strFormat);
+            }
         } catch (IllegalArgumentException i) {
             throw new CstlServiceException(i, INVALID_FORMAT);
         }
