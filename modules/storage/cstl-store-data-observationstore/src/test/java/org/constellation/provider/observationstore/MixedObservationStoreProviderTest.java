@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,6 +72,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
@@ -110,6 +114,20 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
     private static ObservationProvider omPr;
 
     private static boolean initialized = false;
+
+    /**
+     * Hack: disable tests using DuckDB when host computer is not using english locale.
+     * This hack remain valid until DuckDB spatial fixes this issue:
+     *
+     * <a href="https://github.com/duckdb/duckdb-spatial/issues/575">Query fails when using JDBC driver</a>
+     */
+    @BeforeClass
+    public static void ensureEnglishLocale() {
+        Assume.assumeTrue(
+                "DuckDB related tests can only be done in an English Locale environment",
+                Locale.getDefault().getISO3Language() == "en"
+        );
+    }
 
     @PostConstruct
     public void setUp() throws Exception {
