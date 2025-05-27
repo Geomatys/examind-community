@@ -84,12 +84,6 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- if not included unmarshalling node cause an exception in unit test -->
-        <dependency>
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>woodstox-core-asl</artifactId>
-        </dependency>
-
         <!-- Mailing API -->
         <dependency>
             <groupId>javax.mail</groupId>

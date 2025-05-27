@@ -1042,15 +1042,6 @@ public class CSW3RequestTest extends AbstractCSWRequestTest {
     public void testRestart() throws Exception {
         initServer();
 
-        pool = new MarshallerPool(JAXBContext.newInstance("org.constellation.dto:"
-                        + "org.constellation.dto.service.config.generic:"
-                        + "org.geotoolkit.ows.xml.v110:"
-                        + "org.geotoolkit.csw.xml.v202:"
-                        + "org.geotoolkit.csw.xml.v300:"
-                        + "org.geotoolkit.ows.xml.v200:"
-                        + "org.apache.sis.xml.bind.metadata.geometry:"
-                        + "org.geotoolkit.ows.xml.v100"), null);
-
         //update the federated catalog in case of busy port
         URL fedCatURL = new URL("http://localhost:" +  getCurrentPort() + "/API/CSW/csw2/federatedCatalog");
         URLConnection conec = fedCatURL.openConnection();

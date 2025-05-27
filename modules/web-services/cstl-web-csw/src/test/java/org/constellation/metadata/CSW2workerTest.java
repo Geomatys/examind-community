@@ -2792,21 +2792,18 @@ public abstract class CSW2workerTest extends AbstractCSWworkerTest {
             assertEquals(ext, extResult);
         } else if (obj instanceof Node isoResult) {
 
-           DefaultExtendedElementInformation extResult = null;
-
             final List<Node> nodes = getNodes("metadataExtensionInfo/MD_MetadataExtensionInformation/extendedElementInformation/MD_ExtendedElementInformation", isoResult);
             for (Node extNode : nodes) {
-                DefaultExtendedElementInformation ex = (DefaultExtendedElementInformation) unmarshaller.unmarshal(extNode);
+                var ex = decode(extNode, ExtendedElementInformation.class, unmarshaller);
                 switch (ex.getName()) {
                     case "extendedName":
-                        extResult = (DefaultExtendedElementInformation) ex;
+                        assertEquals(ext, ex);
                         break;
                     case "SDN:L031:2:":
                         removed = false;
                         break;
                 }
             }
-            assertEquals(ext, extResult);
 
         } else {
             fail("unexpected record type:" + obj);

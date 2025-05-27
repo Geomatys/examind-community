@@ -2213,7 +2213,7 @@ public abstract class CSW3WorkerTest extends AbstractCSWworkerTest {
 
         assertEquals(result.getTransactionSummary().getTotalUpdated(), 1);
 
-        // we perform again the getRecord request the modified metadata must not appears in the list
+        // we perform again the getRecord request the modified metadata must not appear in the list
         response = (GetRecordsResponseType) worker.getRecords(gr);
         assertTrue(response != null);
         assertTrue(response.getSearchResults() != null);
@@ -2987,22 +2987,20 @@ public abstract class CSW3WorkerTest extends AbstractCSWworkerTest {
             assertEquals(ext, extResult);
         } else if (obj instanceof Node) {
 
-           DefaultExtendedElementInformation extResult = null;
-
             Node isoResult = (Node) obj;
             final List<Node> nodes = getNodes("metadataExtensionInfo/MD_MetadataExtensionInformation/extendedElementInformation/MD_ExtendedElementInformation", isoResult);
             for (Node extNode : nodes) {
-                DefaultExtendedElementInformation ex = (DefaultExtendedElementInformation) unmarshaller.unmarshal(extNode);
+                var ex = decode(extNode, ExtendedElementInformation.class, unmarshaller);
+
                 switch (ex.getName()) {
                     case "extendedName":
-                        extResult = (DefaultExtendedElementInformation) ex;
+                        assertEquals(ext, ex);
                         break;
                     case "SDN:L031:2:":
                         removed = false;
                         break;
                 }
             }
-            assertEquals(ext, extResult);
 
         } else {
             fail("unexpected record type:" + obj);

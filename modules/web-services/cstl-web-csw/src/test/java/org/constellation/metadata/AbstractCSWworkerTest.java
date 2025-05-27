@@ -17,10 +17,19 @@
  */
 package org.constellation.metadata;
 
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IMetadataBusiness;
@@ -32,6 +41,9 @@ import org.constellation.test.SpringContextTest;
 import org.geotoolkit.xml.AnchoredMarshallerPool;
 import org.junit.AfterClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Node;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  *
@@ -114,5 +126,38 @@ public abstract class AbstractCSWworkerTest extends SpringContextTest {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Convert an XML node to a Jaxb mapped value, by writing the node to a String (as XML)
+     * and reading it back using Jaxb.
+     *
+     * @param xmlNode The node to decode.
+     * @param jaxbValueType The wanted output data type
+     * @param unmarshaller Unmarshaller to use when parsing XML
+     * @return Decoded object, never null.
+     * @throws RuntimeException If conversion fails
+     */
+    public static <T> T decode(Node xmlNode, Class<T> jaxbValueType, Unmarshaller unmarshaller) {
+        var writer = new StringWriter();
+        try {
+            TransformerFactory.newInstance()
+                              .newTransformer()
+                              .transform(new DOMSource(xmlNode), new StreamResult(writer));
+        } catch (TransformerException e) {
+            throw new RuntimeException("Cannot serialize XML node", e);
+        }
+
+        try {
+            var decoded = unmarshaller.unmarshal(new StringReader(writer.toString()));
+            if (decoded instanceof JAXBElement<?> je) decoded = je.getValue();
+            assertNotNull(decoded);
+
+            if (jaxbValueType.isInstance(decoded)) return (T) decoded;
+            else throw new RuntimeException("XML Node has been decoded to type "+decoded.getClass()+ " instead of "+jaxbValueType);
+        } catch (JAXBException e) {
+            throw new RuntimeException("Cannot read back XML node", e);
+        }
+
     }
 }
