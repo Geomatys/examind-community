@@ -1,0 +1,8 @@
+postgresql:
+  primary:
+    persistence:
+      enabled: false
+
+allInOne:
+  persistence:
+    enabled: false

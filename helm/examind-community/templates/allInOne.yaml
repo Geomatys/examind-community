@@ -221,7 +221,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ .Values.allInOne.persistence.existingClaim | default (printf "%s-data" (include "examind.all-in-one.fullname" .)) | quote }}
           {{- else }}
-            emptyDir: { }
+          emptyDir: { }
           {{- end }}
       {{- if .Values.allInOne.extraVolumes }}
         {{- include "common.tplvalues.render" ( dict "value" .Values.allInOne.extraVolumes "context" . ) | nindent 8 }}

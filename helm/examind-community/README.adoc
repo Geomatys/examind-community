@@ -146,6 +146,21 @@ include::../examples/personalize-deployment/values-extra-volumes.yaml[]
 ----
 
 
+=== Disable persistence
+
+To deploy an ephemeral Examind whose state is discarded upon redeployment, you can use the following values:
+
+[source,yaml]
+----
+include::../examples/personalize-deployment/values-disable-persistence.yaml[]
+----
+
+[WARNING]
+====
+State can desynchronize between database and Examind if postgresql and Examind are not redeployed in sync. In such case, you might experience problems with data management.
+====
+
+
 == Future improvements
 
 * EPSG database configuration (for now, it uses the same database as Examind)
