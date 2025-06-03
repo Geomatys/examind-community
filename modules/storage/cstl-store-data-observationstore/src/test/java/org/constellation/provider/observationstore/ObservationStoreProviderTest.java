@@ -5880,6 +5880,43 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     }
     
     @Test
+    public void getResults2Test() throws Exception {
+        assertNotNull(omPr);
+
+        // sensor 7 no decimation
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:7", "csv");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =   "2007-05-01T16:59:00.0,6.56@@";
+
+        assertEquals(expectedResult, result);
+
+        query = new ResultQuery(OBSERVATION_QNAME, INLINE, "urn:ogc:object:sensor:GEOM:7", "count");
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+
+        assertEquals((Integer)1, cr.getNbValues());
+
+
+        query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:7", "csv");
+        query.setDecimationSize(10);
+        results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        result = cr.getValues();
+        
+        expectedResult =  "2007-05-01T16:59:00.0,6.56@@";
+        
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
     public void getResultsSingleFilterFlatTest() throws Exception {
         // sensor 8
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:8", "text/csv-flat");

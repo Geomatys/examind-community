@@ -44,13 +44,18 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
     public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
         // calculate step
         final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), fields, c, width, OMEntity.RESULT, procedure);
-        final long step;
+        long step;
         if (nonTimeseries) {
             // choose the first step
             // (may be replaced by one request by observation, maybe by looking if the step is uniform)
             step = times.values().iterator().next()[1];
         } else {
             step = times.get(1L)[1];
+        }
+        
+        // avoid an error when there is only one value to decimate (leading to an empty period and an empty step)
+        if (step == 0) {
+            step = 1;
         }
 
         StringBuilder select  = new StringBuilder();
