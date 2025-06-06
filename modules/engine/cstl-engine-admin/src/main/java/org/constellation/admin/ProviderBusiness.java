@@ -334,6 +334,12 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
 
+    /**
+     * Datasource will be created through the front / api
+     * 
+     * @deprecated
+     */
+    @Deprecated
     private void recordSQLDataSource(ProviderConfiguration config) throws ConstellationException {
         String sgbdtype = config.getParameters().get("sgbdtype");
         String host = config.getParameters().get("host");

@@ -20,7 +20,6 @@ package com.examind.image.pointcloud;
 
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -30,6 +29,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.sql.DataSource;
 import org.apache.sis.geometry.Envelopes;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.collection.BackingStoreException;
@@ -46,8 +46,8 @@ public class DuckDbPointCloud extends AbstractSQLPointCloud {
         super(parquetPath, longitudeColumn, latitudeColumn);
     }
     
-    public DuckDbPointCloud(final String dbUrl, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
-        super(dbUrl, table, query, longitudeColumn, latitudeColumn);
+    public DuckDbPointCloud(final DataSource datasource, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
+        super(datasource, table, query, longitudeColumn, latitudeColumn);
     }
     
     @Override
@@ -66,7 +66,7 @@ public class DuckDbPointCloud extends AbstractSQLPointCloud {
                     ResultSet r = null;
                     try {
 
-                        c = DriverManager.getConnection(dbUrl);
+                        c = datasource.getConnection();
                         s = preparedStatement(c, env);
                         r = s.executeQuery();
 

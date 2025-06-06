@@ -73,7 +73,8 @@ function DbSourceController($scope, $translate, Examind, cfpLoadingBar, Growl) {
             url: dburl,
             username: self.db.user,
             pwd: self.db.password,
-            storeId: self.db.type.id
+            storeId: self.db.type.id,
+            permanent: true
         };
 
         self.createDataSource(dataSource, 'database', false);

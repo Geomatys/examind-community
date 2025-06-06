@@ -12,6 +12,8 @@ import org.apache.sis.geometry.Envelope2D;
 
 import static com.examind.image.heatmap.ProfileHeatMap.CRS_84;
 import static com.examind.image.heatmap.ProfileHeatMap.profilePointCloud;
+import javax.sql.DataSource;
+import org.geotoolkit.internal.sql.DefaultDataSource;
 
 public class ProfileHeatMap_DuckDB {
 
@@ -60,7 +62,8 @@ public class ProfileHeatMap_DuckDB {
 
         System.out.println("heatMap read:\n==================");*/
         String dbPath = "/home/glegal/Sources/workspace_qualinov/qualinov-app/submodules/examind-community/docker/mount/examind/data/ddb/test.db";
-        final PointCloudResource points = new DuckDbPointCloud(dbPath, "argo", null, "longitude", "latitude");
+        DataSource ds = new DefaultDataSource(dbPath);
+        final PointCloudResource points = new DuckDbPointCloud(ds, "argo", null, "longitude", "latitude");
         final var env = new Envelope2D(CRS_84, -180, -90, 360, 180);
         /*========================
         * Base HeatMap Computation

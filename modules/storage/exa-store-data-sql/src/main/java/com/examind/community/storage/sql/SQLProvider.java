@@ -1,7 +1,5 @@
 package com.examind.community.storage.sql;
 
-import com.zaxxer.hikari.HikariConfig;
-import java.net.URI;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,15 +27,19 @@ import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.sql.SQLStoreProvider;
 import org.apache.sis.util.iso.Names;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.exception.ConstellationException;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
 import org.opengis.util.GenericName;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 public class SQLProvider extends DataStoreProvider {
-
+    
     public static final String NAME = "SQL";
     private static final Pattern STAR_WILDCARD = Pattern.compile("\\*+");
     private static final Pattern INTERROGATION_WILDCARD = Pattern.compile("\\?+");
@@ -59,16 +60,18 @@ public class SQLProvider extends DataStoreProvider {
                                                                 FROM geography_columns
                                                             ) as tmp
                                                        WHERE f_table_schema != 'tiger';""";
+    
+    public static final ParameterDescriptor<Integer> DATASOURCE_ID;
 
-    public static final ParameterDescriptor<String> LOCATION;
-    public static final ParameterDescriptor<String> USER;
-    public static final ParameterDescriptor<String> PASSWORD;
-    public static final ParameterDescriptor<Integer> MIN_IDLE;
-    public static final ParameterDescriptor<Integer> MAX_CONNECTIONS;
-    public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
-    public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
-    public static final ParameterDescriptor<Long> LEAK_DETECTION_THRESHOLD;
-    public static final ParameterDescriptor<Boolean> ACTIVATE_JMX_METRICS;
+//    public static final ParameterDescriptor<String> LOCATION;
+//    public static final ParameterDescriptor<String> USER;
+//    public static final ParameterDescriptor<String> PASSWORD;
+//    public static final ParameterDescriptor<Integer> MIN_IDLE;
+//    public static final ParameterDescriptor<Integer> MAX_CONNECTIONS;
+//    public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
+//    public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
+//    public static final ParameterDescriptor<Long> LEAK_DETECTION_THRESHOLD;
+//    public static final ParameterDescriptor<Boolean> ACTIVATE_JMX_METRICS;
 
     /**
      * An SQL query to consider as a feature set.
@@ -87,18 +90,11 @@ public class SQLProvider extends DataStoreProvider {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
 
-        LOCATION = builder.addName(DataStoreProvider.LOCATION)
-                .setDescription("JDBC URL to use to connect to the database. User and password must be provided separately")
-                .create(String.class, null);
+        DATASOURCE_ID =  builder.addName("datasourceId")
+                            .setDescription("Examind datasource identifier")
+                            .create(Integer.class, null);
 
         builder.setRequired(false);
-
-        USER = builder.addName("user")
-                .setDescription("User name to use when connecting to the database")
-                .create(String.class, null);
-        PASSWORD = builder.addName("password")
-                .setDescription("Password to use for connection")
-                .create(String.class, null);
 
         TABLES = builder.addName("tables")
                 .setDescription("A table or a set of tables to consider each as a feature set." +
@@ -110,7 +106,7 @@ public class SQLProvider extends DataStoreProvider {
                 .setDescription("An SQL query to consider as a feature set")
                 .create(String.class, null);
 
-        MIN_IDLE = builder.addName("minIdle")
+        /*MIN_IDLE = builder.addName("minIdle")
                 .setDescription("Minimum number of idle (available) connections to try to maintain in the connection pool")
                 .create(Integer.class, null);
 
@@ -135,18 +131,13 @@ public class SQLProvider extends DataStoreProvider {
         ACTIVATE_JMX_METRICS = builder.addName("activateJmxMetrics")
                 .setDescription("DEBUG/ADMINISTRATOR OPTION: If true, Hikari datasource will be asked to post pool " +
                         "information through JMX. The JMX metrics will then be logged (level FINE or DEBUG)")
-                .create(Boolean.class, false);
+                .create(Boolean.class, false);*/
 
         INPUT = builder.addName(NAME).createGroup(
-                LOCATION, USER, PASSWORD,
-                TABLES, QUERY,
-                MIN_IDLE, MAX_CONNECTIONS, IDLE_TIMEOUT, CONNECT_TIMEOUT,
-                LEAK_DETECTION_THRESHOLD, ACTIVATE_JMX_METRICS
+                DATASOURCE_ID,
+                TABLES, QUERY
         );
     }
-
-    // TODO: dependency injection would be preferable
-    private static final DatasourceCache cache = new DatasourceCache();
 
     private final SQLStoreProvider sisProvider;
 
@@ -185,59 +176,11 @@ public class SQLProvider extends DataStoreProvider {
         return new SQLStore(p);
     }
 
-    private DataSource createDatasource(Parameters config) {
-        String url = config.getMandatoryValue(LOCATION);
-        // Workaround: enforce valid JDBC URL if possible. Examind sometimes allow custom uri String.
-        if (url.startsWith("postgres:")) url = "jdbc:postgresql:" + url.substring(9);
-        else if (!url.startsWith("jdbc")) url = "jdbc:" + url;
-        String user = config.getValue(USER);
-        String password = config.getValue(PASSWORD);
-        if (user == null) {
-            final Map.Entry<String, String> userInfo = extractLoginPassword(url);
-            if (userInfo != null) {
-                user = userInfo.getKey();
-                password = userInfo.getValue();
-            }
-        }
-        final HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(url);
-        hikariConfig.setUsername(user);
-        hikariConfig.setPassword(password);
-
-        final Integer minIdle = config.getValue(MIN_IDLE);
-        if (minIdle !=null) hikariConfig.setMinimumIdle(minIdle);
-
-        final Integer maxConnections = config.getValue(MAX_CONNECTIONS);
-        if (maxConnections !=null) hikariConfig.setMaximumPoolSize(maxConnections);
-
-        final Long idleTimeout = config.getValue(IDLE_TIMEOUT);
-        if (idleTimeout !=null) hikariConfig.setIdleTimeout(idleTimeout);
-
-        final Long connectTimeout = config.getValue(CONNECT_TIMEOUT);
-        if (connectTimeout !=null) hikariConfig.setConnectionTimeout(connectTimeout);
-
-        final Long leakDetectionThreshold = config.getValue(LEAK_DETECTION_THRESHOLD);
-        if (leakDetectionThreshold != null) hikariConfig.setLeakDetectionThreshold(leakDetectionThreshold);
-
-        final Boolean activateJmx = config.getValue(ACTIVATE_JMX_METRICS);
-        if (activateJmx != null) hikariConfig.setRegisterMbeans(activateJmx);
-
-        return cache.getOrCreate(hikariConfig);
-    }
-
-    private Map.Entry<String, String> extractLoginPassword(String sourceUrl) {
-        // Maybe they're encoded in JDBC URL.
-        try {
-            final URI uri = new URI(sourceUrl);
-            final String userInfo = uri.getUserInfo();
-            if (userInfo != null) throw new UnsupportedOperationException("TODO: decode user info if any");
-        } catch (Exception e) {
-            LOGGER.log(Level.FINE, "Error while analysing JDBC URL for a username", e);
-        }
-        return null;
-    }
-
     class SQLStore extends DataStore implements Aggregate {
+        
+        @Autowired
+        private IDatasourceBusiness datasourceBusiness;
+        
         private final DataSource datasource;
         private final Parameters parameters;
         private final DataStore sisStore;
@@ -245,7 +188,14 @@ public class SQLProvider extends DataStoreProvider {
         private final List<FeatureSet> datasets;
 
         public SQLStore(Parameters parameters) throws DataStoreException {
-            this.datasource = createDatasource(parameters);
+            SpringHelper.injectDependencies(this);
+            Integer datasourceId = parameters.getMandatoryValue(DATASOURCE_ID);
+            try {
+                this.datasource = datasourceBusiness.getSQLDatasource(datasourceId).orElse(null);
+            } catch (ConstellationException ex) {
+                throw new DataStoreException(ex);
+            }
+            if (datasource == null) throw new DataStoreException("Unable to obtain an SQL datasource from examind source:" + datasourceId);
             this.parameters = parameters;
 
             String tables = parameters.getValue(TABLES);

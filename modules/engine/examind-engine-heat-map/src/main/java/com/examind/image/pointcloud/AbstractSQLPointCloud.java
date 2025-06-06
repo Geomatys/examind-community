@@ -25,6 +25,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import javax.sql.DataSource;
 import org.apache.sis.geometry.Envelope2D;
 import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.base.MetadataBuilder;
@@ -32,6 +33,7 @@ import org.apache.sis.storage.event.StoreEvent;
 import org.apache.sis.storage.event.StoreListener;
 import org.apache.sis.util.ArgumentChecks;
 import org.apache.sis.util.collection.BackingStoreException;
+import org.geotoolkit.internal.sql.DefaultDataSource;
 import org.geotoolkit.util.NamesExt;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.Metadata;
@@ -53,7 +55,7 @@ public abstract class AbstractSQLPointCloud implements PointCloudResource {
     protected final String latitudeColumn;
     
     protected final String query;
-    protected final String dbUrl;
+    protected final DataSource datasource;
     protected final String name;
     
     /**
@@ -76,19 +78,19 @@ public abstract class AbstractSQLPointCloud implements PointCloudResource {
         } else {
             this.query = "SELECT " + longitudeColumn + "," + latitudeColumn + " from read_parquet('" + parquetPath.toString() + "')";
         }
-        this.dbUrl = "jdbc:duckdb:";
+        this.datasource = new DefaultDataSource("jdbc:duckdb:"); // TODO test
     }
     
     /**
      * Build an SQL query on a database table, or on a SQL query.
      * 
-     * @param dbUrl jdbc url of the database.
+     * @param datasource SQL datasource.
      * @param table Table name, can be {@code null} if query is specified.
      * @param query SQL query, can be {@code null} if table is specified.
      * @param longitudeColumn Name of the longitude column.
      * @param latitudeColumn Name of the latitude column.
      */
-    public AbstractSQLPointCloud(final String dbUrl, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
+    public AbstractSQLPointCloud(final DataSource datasource, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
         ArgumentChecks.ensureNonNull("longitude column", longitudeColumn);
         ArgumentChecks.ensureNonNull("latitude column", latitudeColumn);
         this.longitudeColumn = longitudeColumn;
@@ -107,7 +109,7 @@ public abstract class AbstractSQLPointCloud implements PointCloudResource {
             this.query = "SELECT " + longitudeColumn + "," + latitudeColumn + " from (" + query + ")";
             this.name = "Query";
         }
-        this.dbUrl = dbUrl;
+        this.datasource = datasource;
     }
     
     protected PreparedStatement preparedStatement(Connection c, Envelope env) throws SQLException {

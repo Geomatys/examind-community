@@ -400,6 +400,11 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
      * @returns {boolean}
      */
     self.hideField = function (property) {
+        // hide datasource identifier.
+        if (angular.equals(property.id, "datasourceId")) {
+            return true;
+        }
+        
         // hide provider identifier.
         if (angular.equals(property.id, "identifier")) {
             return true;
@@ -637,6 +642,14 @@ function Step1WizardController($scope, $rootScope, $translate, $interval, $modal
                 // Handle the case of S63
                 self.wizardValues.step1.isS63 = true;
                 WizardAddDataService.s63InitWizard();
+                
+            } else if (self.wizardValues.step1.dataSourceType === 'database' ) {
+                angular.forEach(self.wizardValues.step1.formSchema.schema.property.properties, function (property) {
+                    if (angular.equals(property.id, "datasourceId")) {
+                        property.value = self.wizardValues.step1.dataSource.id;
+                    }
+                });
+                goToStepFn(stepNum);
             } else {
                 goToStepFn(stepNum);
             }

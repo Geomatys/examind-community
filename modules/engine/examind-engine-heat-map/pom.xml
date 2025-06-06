@@ -19,6 +19,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.examind.community</groupId>
+            <artifactId>cstl-lib-base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.sis.core</groupId>
             <artifactId>sis-feature</artifactId>
             <version>${sis.version}</version>

@@ -39,10 +39,14 @@ import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.exception.ConstellationException;
 import org.opengis.metadata.Metadata;
 import org.opengis.parameter.ParameterDescriptor;
 import org.opengis.parameter.ParameterDescriptorGroup;
 import org.opengis.parameter.ParameterValueGroup;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -54,7 +58,7 @@ public class SQLPointCloudProvider extends DataStoreProvider {
 
     public static final String NAME = "SQL-POINT-CLOUD";
 
-    public static final ParameterDescriptor<String> LOCATION;
+    public static final ParameterDescriptor<Integer> DATASOURCE_ID;
     
     public static final ParameterDescriptor<String> USER;
     public static final ParameterDescriptor<String> PASSWORD;
@@ -74,10 +78,6 @@ public class SQLPointCloudProvider extends DataStoreProvider {
         final ParameterBuilder builder = new ParameterBuilder();
         builder.setRequired(true);
 
-        LOCATION = builder.addName(DataStoreProvider.LOCATION)
-                .setDescription("JDBC URL to use to connect to the database. User and password must be provided separately")
-                .create(String.class, null);
-        
         LATITUDE_COLUMN = builder.addName("latitude-column")
                 .setDescription("Latitude column in the table.")
                 .create(String.class, null);
@@ -91,6 +91,10 @@ public class SQLPointCloudProvider extends DataStoreProvider {
                 .create(Boolean.class, false);
 
         builder.setRequired(false);
+        
+        DATASOURCE_ID =  builder.addName("datasourceId")
+                            .setDescription("Examind datasource identifier")
+                            .create(Integer.class, null);
         
         TABLE = builder.addName("tables")
                 .setDescription("A table to consider as a point cloud.")
@@ -112,7 +116,7 @@ public class SQLPointCloudProvider extends DataStoreProvider {
                 .create(String.class, null);
 
         INPUT = builder.addName(NAME).createGroup(
-                LOCATION, USER, PASSWORD,
+                DATASOURCE_ID, USER, PASSWORD,
                 TABLE, QUERY, PARQUET_FILE, LATITUDE_COLUMN, LONGITUDE_COLUMN, USE_ARROW
         );
     }
@@ -166,14 +170,18 @@ public class SQLPointCloudProvider extends DataStoreProvider {
     }
 
     class SQLStore extends DataStore implements Aggregate {
+        
+        @Autowired
+        private IDatasourceBusiness datasourceBusiness;
+        
         private final Parameters parameters;
 
         private final PointCloudResource pointCloud;
 
         public SQLStore(Parameters parameters) throws DataStoreException {
+            SpringHelper.injectDependencies(this);
             this.parameters = parameters;
 
-            String location = parameters.getValue(LOCATION);
             String table = parameters.getValue(TABLE);
             String query = parameters.getValue(QUERY);
             Path parquetFiles = parameters.getValue(PARQUET_FILE);
@@ -188,10 +196,18 @@ public class SQLPointCloudProvider extends DataStoreProvider {
                     pointCloud = new DuckDbPointCloud(parquetFiles, longitudeColumn, latitudeColumn);
                 }
             } else {
+                Integer datasourceId = parameters.getValue(DATASOURCE_ID);
+                DataSource datasource;
+                try {
+                     datasource = datasourceBusiness.getSQLDatasource(datasourceId).orElse(null);
+                } catch (ConstellationException ex) {
+                    throw new DataStoreException(ex);
+                }
+                if (datasource == null) throw new DataStoreException("Unable to obtain an SQL datasource from examind source:" + datasourceId);
                 if (useArrow) {
-                    pointCloud = new DuckDbArrowPointCloud(location, table, query, longitudeColumn, latitudeColumn);
+                    pointCloud = new DuckDbArrowPointCloud(datasource, table, query, longitudeColumn, latitudeColumn);
                 } else {
-                    pointCloud = new DuckDbPointCloud(location, table, query, longitudeColumn, latitudeColumn);
+                    pointCloud = new DuckDbPointCloud(datasource, table, query, longitudeColumn, latitudeColumn);
                 }
             }
         }

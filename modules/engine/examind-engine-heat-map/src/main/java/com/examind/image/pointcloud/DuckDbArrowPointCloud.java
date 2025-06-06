@@ -21,7 +21,6 @@ package com.examind.image.pointcloud;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
@@ -29,6 +28,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import javax.sql.DataSource;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.FieldVector;
 import static org.apache.arrow.vector.Float8Vector.TYPE_WIDTH;
@@ -47,8 +47,8 @@ public class DuckDbArrowPointCloud extends AbstractSQLPointCloud {
         super(parquetPath, longitudeColumn, latitudeColumn);
     }
     
-    public DuckDbArrowPointCloud(final String dbUrl, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
-        super(dbUrl, table, query, longitudeColumn, latitudeColumn);
+    public DuckDbArrowPointCloud(final DataSource datasource, final String table, final String query, final String longitudeColumn, final String latitudeColumn) {
+        super(datasource, table, query, longitudeColumn, latitudeColumn);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DuckDbArrowPointCloud extends AbstractSQLPointCloud {
                     ArrowReader re = null;
                     try {
 
-                        c  = DriverManager.getConnection(dbUrl);
+                        c  = datasource.getConnection();
                         s  = preparedStatement(c, env);
                         rs = (DuckDBResultSet) s.executeQuery();
                         a  = new RootAllocator();
