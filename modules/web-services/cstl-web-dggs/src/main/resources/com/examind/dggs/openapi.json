@@ -1,0 +1,4012 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0",
+    "title": "OGC API - Discrete Global Grid Systems",
+    "description": "Examind DGGRS API",
+    "contact": {
+      "name": "Geomatys",
+      "email": "contact@geomatys.com"
+    },
+    "license": {
+      "name": "License",
+      "url": "https://www.examind.com/examind-community/"
+    }
+  },
+  "servers": [
+    {
+      "description": "Examind Server",
+      "url": "$${serviceUrl}"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Landing Page"
+        ],
+        "operationId": "getLandingPage",
+        "summary": "Retrieve the OGC API landing page for this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/LandingPage"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/conformance": {
+      "get": {
+        "tags": [
+          "Conformance"
+        ],
+        "operationId": "getConformance",
+        "summary": "Retrieve the set of OGC API conformance classes that are supported by this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Conformance"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "tags": [
+          "API"
+        ],
+        "operationId": "getAPI",
+        "summary": "Retrieve this API definition.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/API"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections": {
+      "get": {
+        "tags": [
+          "Data Collections"
+        ],
+        "operationId": "getCollectionsList",
+        "summary": "Retrieve the list of geospatial data collections available from this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/datetime"
+          },
+          {
+            "$ref": "#/components/parameters/bbox"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The optional limit parameter limits the number of collections that are presented in the response document.\nOnly items are counted that are on the first level of the collection in the response document. Nested objects contained within the explicitly requested items shall not be counted.\n* Minimum = 1 * Maximum = 10000 * Default = 10",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 10
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/CollectionsList"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}": {
+      "get": {
+        "tags": [
+          "Data Collections"
+        ],
+        "operationId": "getCollection",
+        "summary": "Retrieve the description of a collection available from this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          },
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Collection"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/schema": {
+      "get": {
+        "tags": [
+          "Data Collections"
+        ],
+        "operationId": "getCollectionSchema",
+        "summary": "Retrieve the schema of a collection available from this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON schema"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/queryables": {
+      "get": {
+        "tags": [
+          "Data Collections"
+        ],
+        "operationId": "getCollectionQueryables",
+        "summary": "Retrieve the queryables of a collection available from this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON schema"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/metadata": {
+      "get": {
+        "tags": [
+          "Data Collections"
+        ],
+        "operationId": "getCollectionMetadata",
+        "summary": "Retrieve the ISO 19115 metadata of a collection available from this service.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "XML ISO-19115 metadata"
+          }
+        }
+      }
+    },
+    "/dggs": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve the list of available DGGRSs",
+        "operationId": ".dataset.getDGGRSList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DGGSList"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/dggs/{dggrsId}": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve the description of the specified Discrete Global Grid Reference System",
+        "operationId": ".dataset.getDGGRS",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DGGRS"
+          },
+          "404": {
+            "description": "The requested DGGS id was not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/exception"
+                }
+              }
+            }
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/dggs/{dggrsId}/definition": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "operationId": "getDggrsDefinition",
+        "summary": "Retrieve the DGGRS definition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON DGGRS definition"
+          }
+        }
+      }
+    },
+    "/dggs/{dggrsId}/zones/{zoneId}": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve information about a DGGRS Zone, such as geometry and data availability.",
+        "operationId": ".dataset.getDGGRSZoneInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/zoneId"
+          },
+          {
+            "$ref": "#/components/parameters/collections"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DGGRS zone information returned as a response, potentially including id, geometry, links to DGGRS (rel: dggrs), dataset, (rel: dataset), collection (rel: geodata), data (rel: dggrs-zone-data) (if available for this zone)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/zone-info"
+                }
+              },
+              "application/geo+json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "format": "geojson-feature"
+                    },
+                    {
+                      "$ref": "#/components/schemas/zone-info/properties/geometry/allOf/1"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve the list of available DGGRS for the specified collection",
+        "operationId": ".collection.getDGGRSList",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          },
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DGGSList"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs/{dggrsId}": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve the description of the specified Discrete Global Grid Reference System in the context of a specified collection",
+        "operationId": ".collection.getDGGRS",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/f-metadata"
+          },
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/DGGRS"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs/{dggrsId}/definition": {
+      "get": {
+        "tags": [
+          "Collection DGGRS Description"
+        ],
+        "operationId": "getCollectionDggrsDefinition",
+        "summary": "Retrieve the collection DGGRS definition",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON DGGRS definition"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs/{dggrsId}/zones/{zoneId}": {
+      "get": {
+        "tags": [
+          "DGGRS Description"
+        ],
+        "summary": "Retrieve information about a DGGRS Zone, such as geometry and data availability, in the context of a specific collection.",
+        "operationId": ".collection.getDGGRSZoneInfo",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/zoneId"
+          },
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          },
+          {
+            "$ref": "#/components/parameters/collections"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/paths/~1dggs~1%7BdggrsId%7D~1zones~1%7BzoneId%7D/get/responses/200"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/dggs/{dggrsId}/zones/{zoneId}/data": {
+      "get": {
+        "tags": [
+          "DGGS Data Retrieval"
+        ],
+        "summary": "Retrieve data from a DGGRS Zone. For a DGGRS defining a sub-zone order, optimized zone data packets such as DGGS-(UB)JSON for raster data, or DGGS-(UB)JSON-FG for vector data can be used.",
+        "operationId": ".dataset.getDGGRSZoneData",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/zoneId"
+          },
+          {
+            "$ref": "#/components/parameters/collections"
+          },
+          {
+            "$ref": "#/components/parameters/f-zoneData"
+          },
+          {
+            "$ref": "#/components/parameters/properties"
+          },
+          {
+            "$ref": "#/components/parameters/exclude-properties"
+          },
+          {
+            "$ref": "#/components/parameters/subset"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/crs"
+          },
+          {
+            "$ref": "#/components/parameters/geometry"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          },
+          {
+            "$ref": "#/components/parameters/zone-depth"
+          },
+          {
+            "$ref": "#/components/parameters/values-offset"
+          },
+          {
+            "$ref": "#/components/parameters/values-scale"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ZoneData"
+          },
+          "204": {
+            "$ref": "#/components/responses/EmptyData"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs/{dggrsId}/zones/{zoneId}/data": {
+      "get": {
+        "tags": [
+          "DGGS Data Retrieval"
+        ],
+        "summary": "Retrieve data from a DGGRS Zone for a specific collection. For a DGGRS defining a sub-zone order, optimized zone data packets such as DGGS-(UB)JSON for raster data, or DGGS-(UB)JSON-FG for vector data can be used.",
+        "operationId": ".collection.getDGGRSZoneData",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/components/parameters/zoneId"
+          },
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          },
+          {
+            "$ref": "#/components/parameters/f-zoneData"
+          },
+          {
+            "$ref": "#/components/parameters/properties"
+          },
+          {
+            "$ref": "#/components/parameters/exclude-properties"
+          },
+          {
+            "$ref": "#/components/parameters/subset"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/crs"
+          },
+          {
+            "$ref": "#/components/parameters/geometry"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          },
+          {
+            "$ref": "#/components/parameters/zone-depth"
+          },
+          {
+            "$ref": "#/components/parameters/values-offset"
+          },
+          {
+            "$ref": "#/components/parameters/values-scale"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ZoneData"
+          },
+          "204": {
+            "$ref": "#/components/responses/EmptyData"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/dggs/{dggrsId}/zones": {
+      "get": {
+        "tags": [
+          "DGGS Zone Query"
+        ],
+        "summary": "Retrieve the list of zones with data for this dataset, or for a particular query",
+        "operationId": ".dataset.getDGGRSZones",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collections"
+          },
+          {
+            "$ref": "#/components/parameters/bbox"
+          },
+          {
+            "$ref": "#/components/parameters/bbox-crs"
+          },
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "name": "zone-level",
+            "in": "query",
+            "description": "The DGGS hierarchy level at which to return the list of zones. The precision of the calculation to return the results depends on this parameter. Returned zones will have a level equal or smaller to this specified level. If `compact-zones` is set to true, all returned zones will be of this zone level. If not specified, this defaults to the most detailed zone that the system is able to return for the specific request.",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "$ref": "#/components/parameters/zone-level"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/parent-zone"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          },
+          {
+            "$ref": "#/components/parameters/subset"
+          },
+          {
+            "$ref": "#/components/parameters/subset-crs"
+          },
+          {
+            "$ref": "#/components/parameters/crs"
+          },
+          {
+            "$ref": "#/components/parameters/geometry"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/filter-lang"
+          },
+          {
+            "$ref": "#/components/parameters/f-zoneQueries"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ZonesList"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/dggs/{dggrsId}/zones": {
+      "get": {
+        "tags": [
+          "DGGS Zone Query"
+        ],
+        "summary": "Retrieve the list of zones with data for a specific collection, or for a particular query",
+        "operationId": ".collection.getDGGRSZones",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/collectionId-all"
+          },
+          {
+            "$ref": "#/components/parameters/collections"
+          },
+          {
+            "$ref": "#/components/parameters/bbox"
+          },
+          {
+            "$ref": "#/components/parameters/bbox-crs"
+          },
+          {
+            "$ref": "#/components/parameters/dggrsId"
+          },
+          {
+            "$ref": "#/paths/~1dggs~1%7BdggrsId%7D~1zones/get/parameters/4"
+          },
+          {
+            "$ref": "#/components/parameters/zone-level"
+          },
+          {
+            "$ref": "#/components/parameters/limit"
+          },
+          {
+            "$ref": "#/components/parameters/parent-zone"
+          },
+          {
+            "$ref": "#/components/parameters/offset"
+          },
+          {
+            "$ref": "#/components/parameters/datetime"
+          },
+          {
+            "$ref": "#/components/parameters/subset"
+          },
+          {
+            "$ref": "#/components/parameters/subset-crs"
+          },
+          {
+            "$ref": "#/components/parameters/crs"
+          },
+          {
+            "$ref": "#/components/parameters/geometry"
+          },
+          {
+            "$ref": "#/components/parameters/profile"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/filter-lang"
+          },
+          {
+            "$ref": "#/components/parameters/f-zoneQueries"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/ZonesList"
+          },
+          "406": {
+            "$ref": "#/components/responses/NotAcceptable"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "confClasses": {
+        "type": "object",
+        "required": [
+          "conformsTo"
+        ],
+        "properties": {
+          "conformsTo": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "link": {
+        "type": "object",
+        "required": [
+          "href",
+          "rel"
+        ],
+        "properties": {
+          "href": {
+            "type": "string",
+            "description": "Supplies the URI to a remote resource (or resource fragment).",
+            "example": "http://data.example.com/buildings/123"
+          },
+          "rel": {
+            "type": "string",
+            "description": "The type or semantics of the relation.",
+            "example": "alternate"
+          },
+          "type": {
+            "type": "string",
+            "description": "A hint indicating what the media type of the result of dereferencing the link should be.",
+            "example": "application/geo+json"
+          },
+          "hreflang": {
+            "type": "string",
+            "description": "A hint indicating what the language of the result of dereferencing the link should be.",
+            "example": "en"
+          },
+          "title": {
+            "type": "string",
+            "description": "Used to label the destination of a link such that it can be used as a human-readable identifier.",
+            "example": "Trierer Strasse 70, 53115 Bonn"
+          },
+          "length": {
+            "type": "integer"
+          }
+        }
+      },
+      "landingPage": {
+        "type": "object",
+        "required": [
+          "links"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "The title of the API.",
+            "description": "While a title is not required, implementors are strongly advised to include one.",
+            "example": "Buildings in Bonn"
+          },
+          "description": {
+            "type": "string",
+            "example": "Access to data about buildings in the city of Bonn via a Web API that conforms to the OGC API Common specification."
+          },
+          "attribution": {
+            "type": "string",
+            "title": "attribution for the API",
+            "description": "The `attribution` should be short and intended for presentation to a user, for example, in a corner of a map. Parts of the text can be links to other resources if additional information is needed. The string can include HTML markup."
+          },
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          }
+        }
+      },
+      "exception": {
+        "title": "Exception Schema",
+        "description": "JSON schema for exceptions based on RFC 7807",
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          }
+        }
+      },
+      "collections": {
+        "type": "object",
+        "required": [
+          "links",
+          "collections"
+        ],
+        "properties": {
+          "links": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          },
+          "numberMatched": {
+            "$ref": "#/components/schemas/numberMatched"
+          },
+          "numberReturned": {
+            "$ref": "#/components/schemas/numberReturned"
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/collectionDesc"
+            }
+          }
+        }
+      },
+      "collectionDesc": {
+        "type": "object",
+        "required": [
+          "id",
+          "links"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "identifier of the collection used, for example, in URIs",
+            "example": "dem"
+          },
+          "title": {
+            "type": "string",
+            "description": "human readable title of the collection",
+            "example": "Digital Elevation Model"
+          },
+          "description": {
+            "type": "string",
+            "description": "a description of the data in the collection",
+            "example": "A Digital Elevation Model."
+          },
+          "attribution": {
+            "type": "string",
+            "title": "Attribution for the collection",
+            "description": "Attribution for the collection that can contain markup text whose format may be indicated in the `attributionMediaType` property. That format can be either plain text (`text/plain`), HTML (`text/html`) or https://commonmark.org/[CommonMark] (`text/markdown`).\nIf the 'attributionMediaType' indicates something other than `text/plain`, the `attribution` element string should be interpreted by a markup parser selected based on that media type to be presented to the user\n(e.g., `text/markdown` will be parsed by a library supporting CommonMark). By allowing markup, the attribution string can import images (e.g., organization logos) and format the text (e.g., the name of the organization in italics)."
+          },
+          "attributionMediaType": {
+            "title": "Media type of the attribution",
+            "description": "Media type for the markup language of the attribution: It can be either plain text (`text/plain`), HTML (`text/html`) or https://commonmark.org/[CommonMark] (`text/markdown`).",
+            "enum": [
+              "text/plain",
+              "text/html",
+              "text/markdown"
+            ]
+          },
+          "accessConstraints": {
+            "description": "Restrictions on the availability of the collection that the user needs to be aware of before using or redistributing the data:\n\n* unclassified: Available for general disclosure\n* restricted: Not for general disclosure\n* confidential: Available for someone who can be entrusted with information\n* secret: Kept or meant to be kept private, unknown, or hidden from all but a select group of people\n* topSecret: Of the highest secrecy",
+            "enum": [
+              "unclassified",
+              "restricted",
+              "confidential",
+              "secret",
+              "topSecret"
+            ]
+          },
+          "publisher": {
+            "type": "string",
+            "description": "Organization or individual responsible for making the data available"
+          },
+          "contacts": {
+            "type": "array",
+            "description": "A list of contacts qualified by their role(s) in association to the collection.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "description": "Identification of, and means of communication with, person responsible\nfor the resource.",
+              "anyOf": [
+                {
+                  "required": [
+                    "name"
+                  ]
+                },
+                {
+                  "required": [
+                    "organization"
+                  ]
+                }
+              ],
+              "properties": {
+                "identifier": {
+                  "type": "string",
+                  "description": "A value uniquely identifying a contact."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The name of the responsible person."
+                },
+                "position": {
+                  "type": "string",
+                  "description": "The name of the role or position of the responsible person taken from the organization's formal organizational hierarchy or chart."
+                },
+                "organization": {
+                  "type": "string",
+                  "description": "Organization/affiliation of the contact."
+                },
+                "logo": {
+                  "description": "Graphic identifying a contact. The link relation should be `icon` and the media type should be an image media type.",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/link"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "rel",
+                        "type"
+                      ],
+                      "properties": {
+                        "rel": {
+                          "enum": [
+                            "icon"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "phones": {
+                  "type": "array",
+                  "description": "Telephone numbers at which contact can be made.",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "value"
+                    ],
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "description": "The value is the phone number itself.",
+                        "pattern": "^\\+[1-9]{1}[0-9]{3,14}$",
+                        "example": "+14165550142"
+                      },
+                      "roles": {
+                        "allOf": [
+                          {
+                            "description": "The type of phone number (e.g. home, work, fax, etc.)."
+                          },
+                          {
+                            "$ref": "#/components/schemas/role"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "emails": {
+                  "type": "array",
+                  "description": "Email addresses at which contact can be made.",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "value"
+                    ],
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "description": "The value is the email number itself.",
+                        "format": "email"
+                      },
+                      "roles": {
+                        "allOf": [
+                          {
+                            "description": "The type of email (e.g. home, work, etc.)."
+                          },
+                          {
+                            "$ref": "#/components/schemas/role"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "addresses": {
+                  "type": "array",
+                  "description": "Physical location at which contact can be made.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "deliveryPoint": {
+                        "type": "array",
+                        "description": "Address lines for the location.",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "city": {
+                        "type": "string",
+                        "description": "City for the location."
+                      },
+                      "administrativeArea": {
+                        "type": "string",
+                        "description": "State or province of the location."
+                      },
+                      "postalCode": {
+                        "type": "string",
+                        "description": "ZIP or other postal code."
+                      },
+                      "country": {
+                        "type": "string",
+                        "description": "Country of the physical address.  ISO 3166-1 is recommended."
+                      },
+                      "roles": {
+                        "allOf": [
+                          {
+                            "description": "The type of address (e.g. office, home, etc.)."
+                          },
+                          {
+                            "$ref": "#/components/schemas/role"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "links": {
+                  "type": "array",
+                  "description": "On-line information about the contact.",
+                  "items": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/link"
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "type"
+                        ]
+                      }
+                    ]
+                  }
+                },
+                "hoursOfService": {
+                  "type": "string",
+                  "description": "Time period when the contact can be contacted.",
+                  "example": "Hours: Mo-Fr 10am-7pm Sa 10am-22pm Su 10am-21pm"
+                },
+                "contactInstructions": {
+                  "type": "string",
+                  "description": "Supplemental instructions on how or when to contact the\nresponsible party."
+                },
+                "roles": {
+                  "allOf": [
+                    {
+                      "description": "The set of named duties, job functions and/or permissions associated with this contact. (e.g. developer, administrator, etc.)."
+                    },
+                    {
+                      "$ref": "#/components/schemas/role"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "license": {
+            "type": "string",
+            "description": "The legal provisions under which the data of this collection is made available."
+          },
+          "rights": {
+            "type": "string",
+            "description": "A statement that concerns all rights not addressed by the license such as a copyright statement."
+          },
+          "formats": {
+            "description": "A list of formats in which the data of this collection is distributed",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "anyOf": [
+                {
+                  "required": [
+                    "name"
+                  ]
+                },
+                {
+                  "required": [
+                    "mediaType"
+                  ]
+                }
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "mediaType": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "description": "The topic or topics of the resource. Typically represented using free-form keywords, tags, key phrases, or classification codes.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "themes": {
+            "type": "array",
+            "description": "A knowledge organization system used to classify the resource.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "concepts",
+                "scheme"
+              ],
+              "properties": {
+                "concepts": {
+                  "type": "array",
+                  "description": "One or more entity/concept identifiers from this knowledge system. it is recommended that a resolvable URI be used for each entity/concept identifier.",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "id"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "An identifier for the concept."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "A human readable title for the concept."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "A human readable description for the concept."
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "A URI providing further description of the concept."
+                      }
+                    }
+                  }
+                },
+                "scheme": {
+                  "type": "string",
+                  "description": "An identifier for the knowledge organization system used to classify the resource.  It is recommended that the identifier be a resolvable URI.  The list of schemes used in a searchable catalog can be determined by inspecting the server's OpenAPI document or, if the server implements CQL2, by exposing a queryable (e.g. named `scheme`) and enumerating the list of schemes in the queryable's schema definition."
+                }
+              }
+            }
+          },
+          "resourceLanguages": {
+            "type": "array",
+            "description": "The list of languages in which the data of this collection is available.",
+            "items": {
+              "type": "object",
+              "description": "The language used for textual values in this record.",
+              "required": [
+                "code"
+              ],
+              "properties": {
+                "code": {
+                  "type": "string",
+                  "description": "The language tag as per RFC-5646.",
+                  "example": "el"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "The untranslated name of of the language.",
+                  "example": "Ελληνικά"
+                },
+                "alternate": {
+                  "type": "string",
+                  "description": "The name of the language in another well-understood language, usually English.",
+                  "example": "Greek"
+                },
+                "dir": {
+                  "type": "string",
+                  "description": "The direction for text in this language. The default, `ltr` (left-to-right), represents the most common situation. However, care should be taken to set the value of `dir` appropriately if the language direction is not `ltr`. Other values supported are `rtl` (right-to-left), `ttb` (top-to-bottom), and `btt` (bottom-to-top).",
+                  "enum": [
+                    "ltr",
+                    "rtl",
+                    "ttb",
+                    "btt"
+                  ],
+                  "default": "ltr"
+                }
+              }
+            }
+          },
+          "links": {
+            "type": "array",
+            "example": [
+              {
+                "href": "http://data.example.org/collections/dem?f=json",
+                "rel": "self",
+                "type": "application/json",
+                "title": "Digital Elevation Model"
+              },
+              {
+                "href": "http://data.example.org/collections/dem?f=html",
+                "rel": "alternate",
+                "type": "application/json",
+                "title": "Digital Elevation Model"
+              },
+              {
+                "href": "http://data.example.org/collections/dem/coverage",
+                "rel": "coverage",
+                "type": "image/tiff; application=geotiff",
+                "title": "Digital Elevation Model"
+              },
+              {
+                "href": "http://data.example.org/collections/dem/coverage/domainset",
+                "rel": "domainset",
+                "type": "application/json",
+                "title": "Digital Elevation Model"
+              },
+              {
+                "href": "http://data.example.org/collections/dem/coverage/rangetype",
+                "rel": "rangetype",
+                "type": "application/json",
+                "title": "Digital Elevation Model"
+              },
+              {
+                "href": "http://data.example.org/collections/dem/coverage/metadata",
+                "rel": "metadata",
+                "type": "application/json",
+                "title": "Digital Elevation Model"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          },
+          "itemType": {
+            "description": "indicator about the type of the items in the collection if the collection has an accessible /collections/{collectionId}/items endpoint",
+            "type": "string",
+            "default": "feature"
+          },
+          "dataType": {
+            "allOf": [
+              {
+                "description": "Type of data represented in the collection"
+              },
+              {
+                "$ref": "#/components/schemas/dataType"
+              }
+            ]
+          },
+          "geoDataClasses": {
+            "description": "URIs identifying a class of data contained in the geospatial data (useful for example to determine compatibility with styles or processes)",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "defaultFields": {
+            "title": "List of fields returned by default",
+            "description": "List of fields which are returned by default when a client does not explicitly select which fields to return. For features, fields are the properties that complement the geometry, and for a gridded coverage, fields are the values associated with cells.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minItems": 1
+            }
+          },
+          "crs": {
+            "description": "the list of coordinate reference systems supported by the API; the first item is the default coordinate reference system",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": [
+              "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+            ],
+            "example": [
+              "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+              "http://www.opengis.net/def/crs/EPSG/0/4326"
+            ]
+          },
+          "storageCrs": {
+            "description": "the native coordinate reference system (i.e., the most efficient CRS in which to request the data, possibly how the data is stored on the server); this is the default output coordinate reference system for Maps and Coverages",
+            "type": "string",
+            "default": "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+            "example": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+          },
+          "epoch": {
+            "description": "Epoch of the native (storage) Coordinate Reference System (CRS)",
+            "type": "number",
+            "example": 2021.33
+          },
+          "geometryDimension": {
+            "title": "Number of spatial dimensions of the primary geometry for the data",
+            "description": "Number of spatial dimensions of the primary geometry of individual elements of the data: 0 for points, 1 for curves, 2 for surfaces, 3 for solids and unspecified when mixed or unknown. Not to be confused with the dimensions of the domain which are defined by the extent element.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "minScaleDenominator": {
+            "description": "Minimum scale denominator for usage of the collection",
+            "type": "number"
+          },
+          "maxScaleDenominator": {
+            "description": "Maximum scale denominator for usage of the collection",
+            "type": "number"
+          },
+          "minCellSize": {
+            "description": "Minimum cell size for usage of the collection",
+            "type": "number"
+          },
+          "maxCellSize": {
+            "description": "Maximum cell size for usage of the collection",
+            "type": "number"
+          },
+          "created": {
+            "allOf": [
+              {
+                "description": "Timestamp indicating when the collection was first produced"
+              },
+              {
+                "$ref": "#/components/schemas/timeStamp"
+              }
+            ]
+          },
+          "updated": {
+            "allOf": [
+              {
+                "description": "Timestamp of the last change/revision to the collection"
+              },
+              {
+                "$ref": "#/components/schemas/timeStamp"
+              }
+            ]
+          },
+          "extent": {
+            "$ref": "#/components/schemas/extent"
+          }
+        }
+      },
+      "grid": {
+        "type": "object",
+        "description": "Provides information about the limited availability of data within the collection organized as a grid (regular or irregular) along the dimension.",
+        "allOf": [
+          {
+            "type": "object",
+            "required": [
+              "cellsCount"
+            ],
+            "properties": {
+              "cellsCount": {
+                "description": "Number of samples available along the dimension for data organized as a regular or irregular grid.",
+                "type": "integer",
+                "example": 50
+              }
+            }
+          },
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/regularGrid"
+              },
+              {
+                "$ref": "#/components/schemas/irregualrGrid"
+              }
+            ]
+          }
+        ]
+      },
+      "regularGrid": {
+        "type": "object",
+        "description": "Regular grid with samples spaced at equal intervals",
+        "required": [
+          "resolution",
+          "firstCoordinate"
+        ],
+        "properties": {
+          "resolution": {
+            "description": "Resolution of regularly gridded data along the dimension in the collection",
+            "oneOf": [
+              {
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "example": [
+              0.0006866455078,
+              "PT1H"
+            ]
+          },
+          "firstCoordinate": {
+            "description": "First coordinate where a regular grid begins, with subsequent coordinates adding `resolution` unit at each step",
+            "oneOf": [
+              {
+                "type": "string",
+                "nullable": true
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "example": -180
+          },
+          "relativeBounds": {
+            "description": "Distance in units from coordinate to the lower and upper bounds of each cell for regular grids, describing the geometry of the cells",
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "nullable": true
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "example": [
+              -0.5,
+              0.5
+            ]
+          }
+        }
+      },
+      "irregualrGrid": {
+        "type": "object",
+        "description": "Irregular grid with samples spaced at different intervals",
+        "required": [
+          "coordinates"
+        ],
+        "properties": {
+          "coordinates": {
+            "description": "List of coordinates along the dimension for which data organized as an irregular grid in the collection is available\n(e.g., 2, 10, 80, 100).",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "nullable": true
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "example": [
+              [
+                2,
+                10,
+                80,
+                100
+              ],
+              [
+                "2020-11-12T12:15:00Z",
+                "2020-11-12T12:30:00Z",
+                "2020-11-12T12:45:00Z"
+              ]
+            ]
+          },
+          "boundsCoordinates": {
+            "description": "Coordinates of the lower and upper bounds of each cell in absolute units for irregular grids describing the geometry each cell",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "example": [
+              [
+                -180,
+                -179
+              ],
+              [
+                -179,
+                -178
+              ]
+            ]
+          }
+        }
+      },
+      "extent": {
+        "title": "Extent with Uniform Additional Dimensions Schema",
+        "description": "This extent schema includes optional additional dimensions, but will still validate for\nobjects not conforming to UAD.",
+        "allOf": [
+          {
+            "type": "object",
+            "description": "The extent of the data in the collection. In the Core only spatial and temporal\nextents are specified. Extensions may add additional members to represent other\nextents, for example, thermal or pressure ranges.\n\nThe first item in the array describes the overall extent of\nthe data. All subsequent items describe more precise extents,\ne.g., to identify clusters of data.\nClients only interested in the overall extent will only need to\naccess the first item in each array.",
+            "properties": {
+              "spatial": {
+                "description": "The spatial extent of the data in the collection.",
+                "type": "object",
+                "properties": {
+                  "bbox": {
+                    "description": "One or more bounding boxes that describe the spatial extent of the dataset.\n\nThe first bounding box describes the overall spatial\nextent of the data. All subsequent bounding boxes describe\nmore precise bounding boxes, e.g., to identify clusters of data.\nClients only interested in the overall spatial extent will\nonly need to access the first item in each array.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "description": "Each bounding box is provided as four or six numbers, depending on\nwhether the coordinate reference system includes a vertical axis\n(height or depth):\n\n* Lower left corner, coordinate axis 1\n* Lower left corner, coordinate axis 2\n* Minimum value, coordinate axis 3 (optional)\n* Upper right corner, coordinate axis 1\n* Upper right corner, coordinate axis 2\n* Maximum value, coordinate axis 3 (optional)\n\nIf the value consists of four numbers, the coordinate reference system is\nWGS 84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84)\nunless a different coordinate reference system is specified in `crs` property.\n\nIf the value consists of six numbers, the coordinate reference system is WGS 84\nlongitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h)\nunless a different coordinate reference system is specified in `crs` property.\n\nFor WGS 84 longitude/latitude the values are in most cases the sequence of\nminimum longitude, minimum latitude, maximum longitude and maximum latitude.\nHowever, in cases where the box spans the antimeridian the first value\n(west-most box edge) is larger than the third value (east-most box edge).\n\nIf the vertical axis is included, the third and the sixth number are\nthe bottom and the top of the 3-dimensional bounding box.\n\nIf a feature has multiple spatial geometry properties, it is the decision of the\nserver whether only a single spatial geometry property is used to determine\nthe extent or all relevant geometries.",
+                      "type": "array",
+                      "oneOf": [
+                        {
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        {
+                          "minItems": 6,
+                          "maxItems": 6
+                        }
+                      ],
+                      "items": {
+                        "type": "number"
+                      },
+                      "example": [
+                        -180,
+                        -90,
+                        180,
+                        90
+                      ]
+                    }
+                  },
+                  "storageCrsBbox": {
+                    "description": "One or more bounding boxes that describe the spatial extent of the dataset in the storage (native) CRS (`storageCrs` property).\n\nThe first bounding box describes the overall spatial\nextent of the data. All subsequent bounding boxes describe\nmore precise bounding boxes, e.g., to identify clusters of data.\nClients only interested in the overall spatial extent will\nonly need to access the first item in each array.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "description": "Each bounding box is provided as four or six numbers, depending on\nwhether the coordinate reference system includes a vertical axis\n(height or depth):\n\n* Lower left corner, coordinate axis 1\n* Lower left corner, coordinate axis 2\n* Minimum value, coordinate axis 3 (optional)\n* Upper right corner, coordinate axis 1\n* Upper right corner, coordinate axis 2\n* Maximum value, coordinate axis 3 (optional)",
+                      "type": "array",
+                      "oneOf": [
+                        {
+                          "minItems": 4,
+                          "maxItems": 4
+                        },
+                        {
+                          "minItems": 6,
+                          "maxItems": 6
+                        }
+                      ],
+                      "items": {
+                        "type": "number"
+                      },
+                      "example": [
+                        -180,
+                        -90,
+                        180,
+                        90
+                      ]
+                    }
+                  },
+                  "crs": {
+                    "description": "Coordinate reference system of the coordinates of the `bbox` property.\nThe default reference system is WGS 84 longitude/latitude.\nWGS 84 longitude/latitude/ellipsoidal height for coordinates with height.\nFor non-terrestrial coordinate reference system, another CRS may be specified.",
+                    "type": "string",
+                    "enum": [
+                      "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+                      "http://www.opengis.net/def/crs/OGC/0/CRS84h"
+                    ],
+                    "default": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
+                  },
+                  "grid": {
+                    "description": "Provides information about the limited availability of data within the collection organized\nas a grid (regular or irregular) along each spatial dimension.",
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 3,
+                    "items": {
+                      "$ref": "#/components/schemas/grid"
+                    }
+                  }
+                }
+              },
+              "temporal": {
+                "description": "The temporal extent of the features in the collection.",
+                "type": "object",
+                "properties": {
+                  "interval": {
+                    "description": "One or more time intervals that describe the temporal extent of the dataset.\nIn the Core only a single time interval is supported.\n\nExtensions may support multiple intervals.\nThe first time interval describes the overall\ntemporal extent of the data. All subsequent time intervals describe\nmore precise time intervals, e.g., to identify clusters of data.\nClients only interested in the overall extent will only need\nto access the first item in each array.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "description": "Begin and end times of the time interval. The timestamps are in the\ntemporal coordinate reference system specified in `trs`. By default\nthis is the Gregorian calendar, expressed using RFC 3339 section 5.6.\nNote that these times may be specified using time zone offsets to UTC time other than zero.\n\nThe value `null` for start or end time is supported and indicates a half-bounded time interval.",
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                      },
+                      "example": [
+                        "2011-11-11T12:22:11Z",
+                        "2011-11-11T08:22:11-04:00",
+                        null
+                      ]
+                    }
+                  },
+                  "trs": {
+                    "description": "Coordinate reference system of the coordinates in the temporal extent\n(property `interval`). The default reference system is the Gregorian calendar.\nIn the Core this is the only supported temporal coordinate reference system.\nExtensions may support additional temporal coordinate reference systems and add\nadditional enum values.",
+                    "type": "string",
+                    "enum": [
+                      "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+                    ],
+                    "default": "http://www.opengis.net/def/uom/ISO-8601/0/Gregorian"
+                  },
+                  "grid": {
+                    "$ref": "#/components/schemas/grid"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": {
+                  "description": "The domain intervals for any additional dimensions of the extent (envelope) beyond those described in temporal and spatial.",
+                  "type": "object",
+                  "oneOf": [
+                    {
+                      "required": [
+                        "interval",
+                        "definition"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "interval",
+                        "trs"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "interval",
+                        "vrs"
+                      ]
+                    }
+                  ],
+                  "properties": {
+                    "interval": {
+                      "description": "One or more intervals that describe the extent for this dimension of the dataset.\nThe value `null` is supported and indicates an unbounded or half-bounded interval.\nThe first interval describes the overall extent of the data for this dimension.\nAll subsequent intervals describe more precise intervals, e.g., to identify clusters of data.\nClients only interested in the overall extent will only need\nto access the first item (a pair of lower and upper bound values).",
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "description": "Lower and upper bound values of the interval. The values\nare in the coordinate reference system specified in `crs`, `trs` or `vrs`.",
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "oneOf": [
+                            {
+                              "type": "string",
+                              "nullable": true
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "example": [
+                          "2011-11-11T12:22:11Z",
+                          "2011-11-11T08:22:11-04:00",
+                          32.5,
+                          null
+                        ]
+                      }
+                    },
+                    "trs": {
+                      "type": "string",
+                      "description": "temporal coordinate reference system (e.g. as defined by Features for 'temporal')"
+                    },
+                    "vrs": {
+                      "type": "string",
+                      "description": "vertical coordinate reference system (e.g. as defined in EDR for 'vertical')"
+                    },
+                    "grid": {
+                      "$ref": "#/components/schemas/grid"
+                    },
+                    "definition": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "A URI to the definition of the measured or observed property corresponding to this dimension."
+                    },
+                    "unit": {
+                      "type": "string",
+                      "description": "The unit of measure in which the interval and/or grid values are expressed."
+                    },
+                    "unitLang": {
+                      "type": "string",
+                      "default": "UCUM",
+                      "description": "The language (or vocabulary) in which the unit is expressed (defaults to \"UCUM\" if not specified)."
+                    },
+                    "variableType": {
+                      "description": "The type of variable which may inform correct interpretation and interpolation methods",
+                      "type": "string",
+                      "enum": [
+                        "continuous",
+                        "numericalOrdinal",
+                        "numericalNominal",
+                        "categoricalOrdinal",
+                        "categoricalNominal"
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "dataType": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "string",
+            "enum": [
+              "map",
+              "vector",
+              "coverage"
+            ]
+          }
+        ]
+      },
+      "timeStamp": {
+        "description": "This property indicates the time and date when the response was generated using RFC 3339 notation.",
+        "type": "string",
+        "format": "date-time",
+        "example": "2017-08-17T08:05:32Z"
+      },
+      "numberReturned": {
+        "description": "The number of elements in the response.\nA server may omit this information, if the information about the\nnumber of elements is not known or difficult to compute.\nIf the value is provided, the value shall be identical to the number\nof elements in the response.",
+        "type": "integer",
+        "minimum": 0,
+        "example": 10
+      },
+      "numberMatched": {
+        "description": "The number of elements in the response that match the selection parameters like `bbox`.",
+        "type": "integer",
+        "minimum": 0,
+        "example": 127
+      },
+      "role": {
+        "description": "The list of duties, job functions or permissions assigned by the system and associated with the context of this member.",
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string"
+        }
+      },
+      "dggrs": {
+        "title": "Discrete Global Grid Reference System description",
+        "description": "A description of a Discrete Global Grid Reference System provided by the API.",
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "description",
+          "defaultDepth",
+          "links"
+        ],
+        "properties": {
+          "id": {
+            "description": "Local DGGRS identifier consistent with the `{dggrsId}` parameter of `/dggs/{dggrsId}` resources.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Title of this Discrete Global Grid Rfeference System, intended for displaying to a human",
+            "type": "string"
+          },
+          "description": {
+            "description": "Brief narrative description of this Discrete Global Grid System, normally available for display to a human",
+            "type": "string"
+          },
+          "keywords": {
+            "description": "Unordered list of one or more commonly used or formalized word(s) or phrase(s) used to describe this Discrete Global Grid Reference System",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "uri": {
+            "description": "Identifier for this Discrete Global Grid Reference System registered with an authority.",
+            "type": "string",
+            "format": "uri"
+          },
+          "crs": {
+            "allOf": [
+              {
+                "description": "Coordinate Reference System (CRS) used by this DGGS  (mandatory if applicable), specified as a URI if one exists."
+              },
+              {
+                "$ref": "#/components/schemas/crs"
+              }
+            ]
+          },
+          "defaultDepth": {
+            "description": "The default zone depth returned for zone data retrieval when the `zone-depth` parameter is not used. This is the DGGS resolution levels beyond the requested DGGS zone’s hierarchy level included in the response, when retrieving data for a particular zone. This can be either: • A single positive integer value — representing a specific zone depth to return e.g., `5`; • A range of positive integer values in the form “{low}-{high}” — representing a\n  continuous range of zone depths to return e.g., `1-8`; or,\n• A comma separated list of at least two (2) positive integer values — representing a\n  set of specific zone depths to return e.g., `1,3,7`.\n  A particular data encoding imply a particular zone depth and not support the default zone depth specified here,\n  in which case the default zone depth (or the only possible depth) for that encoding will be used.",
+            "oneOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "description": "A comma separated list of positive integers, or a {min}-{max} range of relative zone depths"
+              }
+            ]
+          },
+          "maxRefinementLevel": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The maximum refinement level at which the full resolution of the data can be retrieved for this DGGRS and origin (using a `zone-depth` relative depth of 0) and/or used for performing the most accurate zone queries (using that value for `zone-level`)"
+          },
+          "maxRelativeDepth": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The maximum relative depth at which the full resolution of the data can be retrieved for this DGGRS and origin"
+          },
+          "links": {
+            "description": "Links to related resources. A `self` link to the Discrete Global Grid Reference System description and an `[ogc-rel:dggrs-definition]` link to the DGGRS definition (using the schema defined by https://github.com/opengeospatial/ogcapi-discrete-global-grid-systems/blob/master/core/schemas/dggrs-definition/dggrs-definition-proposed.yaml) are required. An `[ogc-rel:dggrs-zone-query]` link to query DGGS zones should also be included if _DGGS Zone Query_ is supported.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          },
+          "linkTemplates": {
+            "description": "Templated Links to related resources. A templated `[ogc-rel:dggrs-zone-data]` link to retrieve data should be included if _DGGS Zone Data_ is supported.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "uriTemplate",
+                "rel"
+              ],
+              "properties": {
+                "uriTemplate": {
+                  "type": "string",
+                  "description": "Supplies the URL template to a remote resource (or resource fragment), with template variables surrounded by curly brackets (`{` `}`).",
+                  "example": "http://data.example.com/buildings/{featureId}"
+                },
+                "rel": {
+                  "type": "string",
+                  "description": "The type or semantics of the relation.",
+                  "example": "alternate"
+                },
+                "type": {
+                  "type": "string",
+                  "description": "A hint indicating what the media type of the result of dereferencing the link templates should be.",
+                  "example": "application/geo+json"
+                },
+                "varBase": {
+                  "description": "A base path to retrieve semantic information about the variables used in URL template.",
+                  "type": "string",
+                  "example": "/ogcapi/vars/"
+                },
+                "hreflang": {
+                  "type": "string",
+                  "description": "A hint indicating what the language of the result of dereferencing the link should be.",
+                  "example": "en"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Used to label the destination of a link template such that it can be used as a human-readable identifier.",
+                  "example": "Trierer Strasse 70, 53115 Bonn"
+                },
+                "length": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "dggrs-item": {
+        "title": "Discrete Global Grid Reference System description (item)",
+        "description": "A minimal Discrete Global Grid Reference System element for use within a list of DGGRS linking to a full description.",
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "links"
+        ],
+        "properties": {
+          "id": {
+            "description": "Local DGGRS identifier consistent with the `{dggrsId}` parameter of `/dggs/{dggrsId}` resources.",
+            "type": "string"
+          },
+          "title": {
+            "description": "Title of this Discrete Global Grid System, normally used for display to a human",
+            "type": "string"
+          },
+          "uri": {
+            "description": "Identifier for this Discrete Global Grid Reference System registered with an authority.",
+            "type": "string",
+            "format": "uri"
+          },
+          "links": {
+            "description": "Links to related resources. A `self` link to the Discrete Global Grid Reference System description and an `[ogc-rel:dggrs-definition]` link to the DGGRS definition (using the schema defined by https://github.com/opengeospatial/ogcapi-discrete-global-grid-systems/blob/master/core/schemas/dggrs-definition/dggrs-definition-proposed.yaml) are required.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          }
+        }
+      },
+      "zone-info": {
+        "title": "Information for a specific Discrete Global Grid System zone",
+        "description": "Zone information for a particular zone of a DGGS, including useful information such as zone geometry, data access links and statistics",
+        "type": "object",
+        "required": [
+          "id",
+          "links"
+        ],
+        "properties": {
+          "id": {
+            "description": "Zone identifier based on the DGGRS.",
+            "type": "string"
+          },
+          "links": {
+            "description": "Links to related resources. A `[ogc-rel:dggrs-zone-data]` link to retrieve data for this zone and a `[ogc-rel:dggrs]` back to the `.../dggs` resource must be included.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/link"
+            }
+          },
+          "shapeType": {
+            "description": "The type of shape for the zone geometry (e.g., hexagon or pentagon)",
+            "type": "string"
+          },
+          "level": {
+            "description": "The refinement level of this zone",
+            "type": "integer",
+            "minimum": 0
+          },
+          "crs": {
+            "description": "The Coordinate Reference System in which the geometry, centroid and bbox properties are specified",
+            "type": "string",
+            "format": "uri",
+            "default": "[OGC:CRS84]"
+          },
+          "centroid": {
+            "description": "The centroid of the zone, in the CRS specified in crs property",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minItems": 2,
+              "maxItems": 3
+            }
+          },
+          "bbox": {
+            "description": "The spatial envelope of the zone (bounding box), in the CRS specified in crs property",
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minItems": 4,
+              "maxItems": 6
+            }
+          },
+          "areaMetersSquare": {
+            "description": "Surface area of the zone in meters square.",
+            "type": "number"
+          },
+          "volumeMetersCube": {
+            "description": "Volume of the zone in meters cube for a DGGS with three spatial dimension.",
+            "type": "number"
+          },
+          "temporalDurationSeconds": {
+            "description": "Amount of time covered by the zone for a temporal DGGS.",
+            "type": "number"
+          },
+          "geometry": {
+            "description": "Spatial geometry of the zone.",
+            "allOf": [
+              {
+                "format": "geometry-polygon"
+              },
+              {
+                "title": "GeoJSON Polygon Feature",
+                "type": "object",
+                "required": [
+                  "type",
+                  "properties",
+                  "geometry"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "Feature"
+                    ]
+                  },
+                  "id": {
+                    "oneOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "type": "object",
+                    "nullable": true
+                  },
+                  "geometry": {
+                    "title": "GeoJSON Polygon geometry",
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "coordinates"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "Polygon"
+                        ]
+                      },
+                      "coordinates": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      },
+                      "bbox": {
+                        "type": "array",
+                        "minItems": 4,
+                        "items": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  },
+                  "bbox": {
+                    "type": "array",
+                    "minItems": 4,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "temporalInterval": {
+            "description": "Sart and end time of the zone.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "statistics": {
+            "type": "object",
+            "description": "Statistics for individual fields of the data (e.g., fields of the range of a coverage, or relevant numeric properties of a feature collection)",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "minimum": {
+                  "type": "number"
+                },
+                "maximum": {
+                  "type": "number"
+                },
+                "average": {
+                  "type": "number"
+                },
+                "stdDev": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      },
+      "crs": {
+        "title": "CRS",
+        "oneOf": [
+          {
+            "description": "String representing the CRS, as a URI when possible",
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "description": "JSON encoding for Well-known text representation of coordinate reference systems 2.0"
+          }
+        ]
+      },
+      "dggrs-definition": {
+        "description": "Discrete Global Grid System Reference System (DGGRS) Definition. This provisional schema is provided as informative guidance until a normative OGC Topic 21 - Part 5: DGGRS Definition Schema is finalized. DGGRS descriptions for OGC API - DGGS must link to such a definition using the link relation type http://www.opengis.net/def/rel/ogc/1.0/dggrs-definition. A JSON DGGRS definition is intended to provide a complete and unambiguous definition of a DGGRS, including the topology of the grids hierarchy, the mapping to a particular underlying Earth model, the zone identifier reference system and the deterministic sub-zone order, allowing to implement the OGC API - DGGS functionality for that DGGRS in interoperable clients and servers. At least until a normative schema is published as a Topic 21 part, clients should rely on matching URIs associated with specific DGGRS definitions they recognize rather than attempt to parse the definition's content. This is intentionally included in the OGC API - DGGS example OpenAPI definition for reference, but unused in resource paths, since the API is only required to provide a link, but not necessarily host the definition itself at any partiular resource path.",
+        "type": "object",
+        "required": [
+          "dggh",
+          "zirs",
+          "subZoneOrder"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "A short human readable title or name for this DGGRS"
+          },
+          "description": {
+            "type": "string",
+            "description": "A summary textual description of this DGGRS"
+          },
+          "uri": {
+            "type": "string",
+            "format": "uri",
+            "description": "The authoritative URI associated with this DGGRS definition"
+          },
+          "dggh": {
+            "type": "object",
+            "description": "The hierarchical series of Discrete Global Grid upon which this DGGRS is based, including any parameters.",
+            "properties": {
+              "definition": {
+                "description": "The base definition of the hierarchical series of Discrete Global Grid, which may be parameterized.",
+                "type": "object",
+                "required": [
+                  "spatialDimensions",
+                  "temporalDimensions"
+                ],
+                "properties": {
+                  "crs": {
+                    "allOf": [
+                      {
+                        "description": "The native Coordinate Reference System (CRS) in which the geometry of the zones for this DGG hierarchy is defined."
+                      },
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uri",
+                            "example": "EPSG:7789"
+                          },
+                          {
+                            "$ref": "#/components/schemas/crs"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "basePolyhedron": {
+                    "type": "string",
+                    "description": "The Type/Class of Polyhedron used to construct the Discrete Global Grid System - if it is constructued using a Base Polyhedron.",
+                    "example": "icosahedron"
+                  },
+                  "refinementRatio": {
+                    "description": "The ratio of the area of zones between two consecutive hierarchy level (the ratio of child zones to parent zones, also called the aperture).",
+                    "example": 9,
+                    "type": "integer"
+                  },
+                  "constraints": {
+                    "type": "object",
+                    "properties": {
+                      "cellAxisAligned": {
+                        "description": "Set to true if all edges of the geometry of all zones are aligned with one of the axis of the `crs`.",
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "cellConformal": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "cellEquiAngular": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "cellEquiDistant": {
+                        "type": "boolean",
+                        "default": false
+                      },
+                      "cellEqualSized": {
+                        "description": "Set to true if the area of all zones is the same for a particular zone geometry type of any specifc discrete global grid of the DGG hierarchy.",
+                        "type": "boolean",
+                        "default": false
+                      }
+                    }
+                  },
+                  "spatialDimensions": {
+                    "description": "Number of Spatial Dimensions defined by the Discrete Global Grid System.",
+                    "example": 2,
+                    "type": "integer"
+                  },
+                  "temporalDimensions": {
+                    "description": "Number of Temporal Dimensions defined by the Discrete Global Grid System.",
+                    "example": 0,
+                    "type": "integer"
+                  },
+                  "zoneTypes": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string",
+                          "enum": [
+                            "triangle",
+                            "square",
+                            "hexagon",
+                            "pentagon",
+                            "rhombus"
+                          ]
+                        }
+                      ]
+                    },
+                    "example": [
+                      "hexagon",
+                      "pentagon"
+                    ]
+                  },
+                  "refinementStrategy": {
+                    "description": "The refinement strategy used by the Discrete Global Grid System",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "centredChildCell",
+                        "nestedChildCell",
+                        "nodeCentredChildCell",
+                        "nodeSharingChildCell",
+                        "edgeCentredChildCell",
+                        "faceCentredChildCell",
+                        "solidCentredChildCell"
+                      ]
+                    },
+                    "example": [
+                      "nestedChildCell",
+                      "nodeCentredChildCell"
+                    ]
+                  }
+                }
+              },
+              "parameters": {
+                "description": "The optional parameters establishing a very specific Discrete Global Grid System, where each zone has a well-defined geometry.",
+                "type": "object",
+                "properties": {
+                  "ellipsoid": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Globe Reference System Identifier/Specification",
+                    "example": [
+                      "EPGS:7019"
+                    ]
+                  },
+                  "orientation": {
+                    "type": "object",
+                    "properties": {
+                      "latitude": {
+                        "description": "Reference geodetic latitude in decimal degrees on reference globe of first vertex to fix the orientation of the polyhedron.",
+                        "example": 58.397145907431,
+                        "type": "number"
+                      },
+                      "longitude": {
+                        "description": "Reference longitude in decimal degrees on reference globe of first vertex to fix the orientation of the polyhedron.",
+                        "example": 11.2,
+                        "type": "number"
+                      },
+                      "azimuth": {
+                        "description": "Azimuth in decimal degrees of second vertex relative to the first vertex.",
+                        "example": 0,
+                        "type": "number",
+                        "default": 0
+                      },
+                      "description": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "longitude",
+                      "latitude"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "zirs": {
+            "description": "The Zone Identifier Reference System used for this Discrete Global Grid System Reference System.",
+            "type": "object",
+            "required": [
+              "textZIRS"
+            ],
+            "properties": {
+              "textZIRS": {
+                "description": "textual zone identifier indexing scheme",
+                "type": "object",
+                "required": [
+                  "description"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "Topological Morton Code (Space Filling Curve) Identifier. With a Level 0 alphabetical identifier from 'A' to 'S' followed by a numeric reference from 1 to 9 for all subsequent levels representing the arrangement of child zones following a Morton (Z-code) subdivision of the parent zone. The length of the identifier represents the level of refinement.\n"
+                  },
+                  "type": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "hierarchicalConcatenation",
+                          "ogc2DTMSHexLevelRowCol",
+                          "levelRootFaceHexRowMajorSubZone"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "uint64ZIRS": {
+                "description": "64-bit unsigned integer zone indexing scheme",
+                "type": "object",
+                "required": [
+                  "description"
+                ],
+                "properties": {
+                  "description": {
+                    "type": "string",
+                    "example": "A 64-bit integer with the 30 least significant bits corresponds to a column, the next 29 bits corresponding to a row, and the 5 most significant bits correspond to a level of an OGC 2D Tile Matrix Set identifier, with individual components using little endian.\n"
+                  },
+                  "type": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "string",
+                        "enum": [
+                          "ogc2DTMSHexLevelRowCol"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "subZoneOrder": {
+            "description": "The ordering used for this Discrete Global Grid System Reference System when encoding the values associated with sub-zones at any given depth relative to a parent zone.",
+            "type": "object",
+            "required": [
+              "description"
+            ],
+            "properties": {
+              "description": {
+                "type": "string",
+                "example": "The zones are ordered in tightly packed scanlines. For an odd relative depth, scanlines start along a hexagon edge, whereas for even relative depths, scanlines start on a hexagon vertex. Scanlines run in a clockwise direction. For sub-zones at an even refinement level, zones are ordered left to right along a scanline and scanlines are ordered from top to bottom (considering the ISEA planar projection). For sub-zones at an odd refinement level, zones are ordered top to bottom along a scanline and scanlines are ordered from left to right. Sub-zones are at an even refinement level when the parity (even/odd) of the parent zone level corresponds to the parity of the relative depth, and at an odd refinement level when the parity of the parent zone level and relative depth do not match. For polar pentagons, the orientation of the scanlines varies in the ISEA planar projection but is always clockwise, the vertex/edge of the first sub-zone is on the left side of the planar ISEA projection for the north pole (in root rhombus 0), and on the right side for the south pole (in root rhombus 9).\n"
+              },
+              "type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string",
+                    "enum": [
+                      "scanline",
+                      "spiralFromCenter",
+                      "mortonCurve",
+                      "hilbertCurve"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "dggs-json": {
+        "type": "object",
+        "properties": {
+          "dggrs": {
+            "type": "string",
+            "format": "uri"
+          },
+          "zoneId": {
+            "type": "string"
+          },
+          "depths": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "schema": {
+            "description": "Attributes of the features or fields of a coverage range. Defined by a subset of the JSON Schema for the properties of a feature",
+            "type": "object",
+            "required": [
+              "type",
+              "properties"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "object"
+                ]
+              },
+              "required": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "properties": {
+                "type": "object",
+                "default": {},
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "array",
+                        "boolean",
+                        "integer",
+                        "null",
+                        "number",
+                        "object",
+                        "string"
+                      ]
+                    },
+                    "enum": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {},
+                      "uniqueItems": true
+                    },
+                    "format": {
+                      "type": "string"
+                    },
+                    "contentMediaType": {
+                      "type": "string"
+                    },
+                    "maximum": {
+                      "type": "number"
+                    },
+                    "exclusiveMaximum": {
+                      "type": "number"
+                    },
+                    "minimum": {
+                      "type": "number"
+                    },
+                    "exclusiveMinimum": {
+                      "type": "number"
+                    },
+                    "pattern": {
+                      "type": "string",
+                      "format": "regex"
+                    },
+                    "maxItems": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "minItems": {
+                      "type": "integer",
+                      "default": 0,
+                      "minimum": 0
+                    },
+                    "x-ogc-definition": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "x-ogc-unit": {
+                      "type": "string"
+                    },
+                    "x-ogc-unitLang": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "definition": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "unitLang": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "grid": {
+                  "type": "object",
+                  "required": [
+                    "cellsCount"
+                  ],
+                  "oneOf": [
+                    {
+                      "required": [
+                        "resolution",
+                        "firstCoordinate"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "coordinates"
+                      ]
+                    }
+                  ],
+                  "properties": {
+                    "cellsCount": {
+                      "type": "integer"
+                    },
+                    "resolution": {
+                      "oneOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "relativeBounds": {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "coordinates": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    },
+                    "boundsCoordinates": {
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": {
+                          "oneOf": [
+                            {
+                              "type": "number",
+                              "nullable": true
+                            },
+                            {
+                              "type": "string",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "firstCoordinate": {
+                      "oneOf": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "interval": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "nullable": true
+                      },
+                      {
+                        "type": "string",
+                        "nullable": true
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "interval",
+                "grid"
+              ]
+            }
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "data"
+                ],
+                "properties": {
+                  "depth": {
+                    "type": "integer"
+                  },
+                  "shape": {
+                    "type": "object",
+                    "properties": {
+                      "count": {
+                        "type": "integer"
+                      },
+                      "subZones": {
+                        "type": "integer"
+                      },
+                      "dimensions": {
+                        "type": "object",
+                        "additionalProperties": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "required": [
+                      "count",
+                      "subZones"
+                    ]
+                  },
+                  "data": {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "nullable": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "dggrs",
+          "zoneId",
+          "depths",
+          "values"
+        ]
+      },
+      "FeatureCollection": {
+        "title": "GeoJSON FeatureCollection",
+        "type": "object",
+        "required": [
+          "type",
+          "features"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "FeatureCollection"
+            ]
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "title": "GeoJSON Feature",
+              "type": "object",
+              "required": [
+                "type",
+                "properties",
+                "geometry"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "Feature"
+                  ]
+                },
+                "id": {
+                  "oneOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "properties": {
+                  "type": "object",
+                  "nullable": true
+                },
+                "geometry": {
+                  "oneOf": [
+                    {
+                      "title": "GeoJSON Point",
+                      "type": "object",
+                      "nullable": true,
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "Point"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "minItems": 2,
+                          "items": {
+                            "type": "number"
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "GeoJSON LineString",
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "LineString"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "minItems": 2,
+                          "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "GeoJSON Polygon",
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "Polygon"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "minItems": 4,
+                            "items": {
+                              "type": "array",
+                              "minItems": 2,
+                              "items": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "GeoJSON MultiPoint",
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "MultiPoint"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "GeoJSON MultiLineString",
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "MultiLineString"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "minItems": 2,
+                            "items": {
+                              "type": "array",
+                              "minItems": 2,
+                              "items": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "title": "GeoJSON MultiPolygon",
+                      "type": "object",
+                      "required": [
+                        "type",
+                        "coordinates"
+                      ],
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "MultiPolygon"
+                          ]
+                        },
+                        "coordinates": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "array",
+                              "minItems": 4,
+                              "items": {
+                                "type": "array",
+                                "minItems": 2,
+                                "items": {
+                                  "type": "number"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "bbox": {
+                          "type": "array",
+                          "minItems": 4,
+                          "items": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bbox": {
+                  "type": "array",
+                  "minItems": 4,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          },
+          "bbox": {
+            "type": "array",
+            "minItems": 4,
+            "items": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "enumeration": {
+        "type": "object",
+        "required": [
+          "type",
+          "enum"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "enum"
+            ]
+          },
+          "enum": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "all-collections": {
+        "type": "string",
+        "enum": [
+          $${collection}
+        ]
+      },
+      "all-dggrs": {
+        "type": "string",
+        "enum": [
+          $${dggrs}
+        ]
+      }
+    },
+    "parameters": {
+      "f-metadata": {
+        "name": "f",
+        "in": "query",
+        "description": "The format of the response. If no value is provided, the accept header is used to determine the format. Accepted values are 'json' or 'html'.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "json",
+            "html"
+          ]
+        },
+        "style": "form",
+        "explode": false
+      },
+      "offset": {
+        "name": "offset",
+        "description": "The optional offset parameter indicates the offset within the result set from which the server shall begin presenting results in the response document. The first element has an offset of 0 (default).",
+        "explode": false,
+        "in": "query",
+        "required": false,
+        "schema": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "style": "form"
+      },
+      "collectionId-all": {
+        "name": "collectionId",
+        "in": "path",
+        "description": "Local identifier of a collection",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/all-collections"
+        }
+      },
+      "collections": {
+        "name": "collections",
+        "in": "query",
+        "style": "form",
+        "description": "The collections that should be included in the response. The parameter value is a comma-separated list of collection identifiers. If the parameters is missing, some or all collections will be included. This parameter may be useful for dataset-wide DGGS resources, but it is not defined by OGC API - DGGS - Part 1.",
+        "required": false,
+        "explode": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/all-collections"
+          }
+        }
+      },
+      "datetime": {
+        "name": "datetime",
+        "in": "query",
+        "description": "Either a date-time or an interval. Date and time expressions adhere to RFC 3339, section 5.6. Intervals may be bounded or half-bounded (double-dots at start or end). Server implementations may or may not support times expressed using time offsets from UTC, but need to support UTC time with the notation ending with a Z.\nExamples:\n* A date-time: \"2018-02-12T23:20:50Z\" * A bounded interval: \"2018-02-12T00:00:00Z/2018-03-18T12:31:12Z\" * Half-bounded intervals: \"2018-02-12T00:00:00Z/..\" or \"../2018-03-18T12:31:12Z\"\nOnly resources that have a temporal property that intersects the value of `datetime` are selected.\nIf a feature has multiple temporal properties, it is the decision of the server whether only a single temporal property is used to determine the extent or all relevant temporal properties.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "style": "form",
+        "explode": false
+      },
+      "bbox": {
+        "name": "bbox",
+        "in": "query",
+        "description": "Only resources that have a geometry that intersects the bounding box are selected. The bounding box is provided as four or six numbers, depending on whether the coordinate reference system includes a vertical axis (elevation or depth):\n* Lower left corner, coordinate axis 1 * Lower left corner, coordinate axis 2 * Minimum value, coordinate axis 3 (optional) * Upper right corner, coordinate axis 1 * Upper right corner, coordinate axis 2 * Maximum value, coordinate axis 3 (optional)\nIf the value consists of four numbers, the coordinate reference system is WGS84 longitude/latitude (http://www.opengis.net/def/crs/OGC/1.3/CRS84)  unless a different coordinate reference system is specified in the parameter `bbox-crs`.\nIf the value consists of six numbers, the coordinate reference system is WGS 84  longitude/latitude/ellipsoidal height (http://www.opengis.net/def/crs/OGC/0/CRS84h) unless a different coordinate reference system is specified in a parameter `bbox-crs`.\nFor WGS84 longitude/latitude the values are in most cases the sequence of minimum longitude, minimum latitude, maximum longitude and maximum latitude. However, in cases where the box spans the antimeridian the first value (west-most box edge) is larger than the third value (east-most box edge).\nIf the vertical axis is included, the third and the sixth number are the bottom and the top of the 3-dimensional bounding box.\nIf a resource has multiple spatial geometry properties, it is the decision of the server  whether only a single spatial geometry property is used to determine the extent or all relevant geometries.",
+        "required": false,
+        "schema": {
+          "type": "array",
+          "oneOf": [
+            {
+              "minItems": 4,
+              "maxItems": 4
+            },
+            {
+              "minItems": 6,
+              "maxItems": 6
+            }
+          ],
+          "items": {
+            "type": "number"
+          }
+        },
+        "style": "form",
+        "explode": false
+      },
+      "dggrsId": {
+        "name": "dggrsId",
+        "in": "path",
+        "description": "Identifier for a supported Discrete Global Grid System",
+        "required": true,
+        "allowEmptyValue": false,
+        "schema": {
+          "$ref": "#/components/schemas/all-dggrs"
+        }
+      },
+      "zoneId": {
+        "name": "zoneId",
+        "in": "path",
+        "description": "Identifier for a specific zone of a Discrete Global Grid Systems. This identifier usually includes a component corresponding to a hierarchy level / scale / resolution, components identifying a spatial region, and a optionally a temporal component.",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "example": "B2-1-A"
+      },
+      "zone-level": {
+        "name": "compact-zones",
+        "in": "query",
+        "description": "If set to true (default), when the list of DGGS zones to be returned at the requested resolution (zone-level) includes all children of a parent zone, the parent zone will be returned as a shorthand for that list of children zone. If set to false, all zones returned will be of the requested zone level.",
+        "required": false,
+        "schema": {
+          "type": "boolean",
+          "default": true
+        },
+        "style": "form",
+        "explode": false
+      },
+      "zone-depth": {
+        "name": "zone-depth",
+        "in": "query",
+        "description": "The DGGS resolution levels beyond the requested DGGS zone’s hierarchy level to include in the response, when retrieving data for that zone. This can be either: • A single positive integer value — representing a specific zone depth to return (e.g., `zone-depth=5`); • A range of positive integer values in the form “{low}-{high}” — representing a\n  continuous range of zone depths to return (e.g., `zone-depth=1-8`); or,\n• A comma separated list of at least two (2) positive integer values — representing a\n  set of specific zone depths to return (e.g., `zone-depth=1,3,7`). Some or all of\n  these forms of the zone-depth parameter may not be supported with particular\n  data packet encodings (the data encoding may support a fixed depth, a range of\n  depths, and/or an arbitrary selection of depths).\nWhen this parameter is omitted, the default value specified in the `defaultDepth` property of the `.../dggs/{dggrsId}` DGGRS description is used.",
+        "required": false,
+        "schema": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "description": "A comma separated list of positive integers, or a {min}-{max} range of relative zone depths"
+            }
+          ]
+        },
+        "style": "form",
+        "explode": false
+      },
+      "compact-zones": {
+        "$ref": "#/components/parameters/zone-level"
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "The optional limit parameter limits the number of zones that are presented in the response document.\n* Minimum = 1 * Maximum = 10000 * Default = 1000",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "style": "form",
+        "explode": false
+      },
+      "parent-zone": {
+        "name": "parent-zone",
+        "in": "query",
+        "description": "The optional parent zone parameter restricts a zone query to only return zones within that parent zone. Used together with `zone-level`, it allows to explore the response for a large zone query in a hierarchical manner.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "style": "form",
+        "explode": false
+      },
+      "subset": {
+        "name": "subset",
+        "in": "query",
+        "description": "Retrieve only part of the data by slicing or trimming along one or more axis\nFor trimming: {axisAbbrev}({low}:{high}) (preserves dimensionality)\nFor slicing:  {axisAbbrev}({value})      (reduces dimensionality)\nAn asterisk (`*`) can be used instead of {low} or {high} to indicate the minimum/maximum value.\nFor a temporal dimension, a single asterisk can be used to indicate the high value.\nSupport for `*` is required for time, but optional for spatial and other dimensions.\n",
+        "style": "form",
+        "explode": false,
+        "required": false,
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "subset-crs": {
+        "name": "subset-crs",
+        "in": "query",
+        "description": "crs for the specified subset",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "bbox-crs": {
+        "name": "bbox-crs",
+        "in": "query",
+        "description": "crs for the specified bbox",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "properties": {
+        "name": "properties",
+        "in": "query",
+        "description": "Select specific data record fields (measured/observed properties) to be returned using a comma-separated list of field names.\nThe field name must be one of the fields defined in the associated data resource's logical schema.\n\nExtensions may enable the use of complex expressions to support defining derived fields, potentially also\nincluding the possibility to use aggregation functons.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "exclude-properties": {
+        "name": "exclude-properties",
+        "in": "query",
+        "description": "Exclude specific data record fields (measured/observed properties) from being returned using a comma-separated list of field names.\nThe field name must be one of the fields defined in the associated data resource's logical schema.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "filter": {
+        "name": "filter",
+        "in": "query",
+        "description": "The filter parameter specifies an expression in a query language (e.g. CQL2) for which an entire feature will be returned if the filter predicate is matched. The language of the filter is specified by the `filter-lang` query parameter.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "style": "form",
+        "explode": false
+      },
+      "filter-lang": {
+        "name": "filter-lang",
+        "in": "query",
+        "description": "The `filter-lang` parameter specifies the query language for the `filter` query parameter.",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "style": "form",
+        "explode": false
+      },
+      "crs": {
+        "name": "crs",
+        "in": "query",
+        "description": "reproject the output to the given crs",
+        "required": false,
+        "style": "form",
+        "explode": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "geometry": {
+        "name": "geometry",
+        "in": "query",
+        "description": "For vector output formats, specify how to return the geometry and/or what the features of the response should represent.\n`vectorized`: return features with regular non-rasterized, non-quantized geometry\n`zone-centroid`: rasterize to zone features and use a Point geometry representing that zone centroid\n`zone-region`: rasterize to zone features and use a (Multi)Polygon/Polyhedron geometry representing that zone's region -- not supported for DGGS-JSON-FG profiles (`profile=jsonfg-dggs*`)\n`none`: (for zone listing) omit zone geometry -- not supported for DGGS-JSON-FG profiles (`profile=jsonfg-dggs*`)",
+        "style": "form",
+        "explode": false,
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "vectorized",
+            "zone-region",
+            "zone-centroid",
+            "none"
+          ]
+        }
+      },
+      "profile": {
+        "name": "profile",
+        "in": "query",
+        "description": "Allows negotiating a particular profile of an output format, such as OGC Feature & Geometry JSON (JSON-FG) or DGGS-JSON-FG output when requesting an `application/geo+json` media type for zone data or zone list requests.\nFor both zone data and zone lists in GeoJSON (`application/geo+json`):\n`rfc7946`: return standard GeoJSON without using any extension\n`jsonfg`: return JSON-FG representation\n`jsonfg-plus`: return JSON-FG representation with GeoJSON compatibility\nFor zone data in GeoJSON (`application/geo+json`):\n`jsonfg-dggs`: return DGGS-JSON-FG representation, using `dggsPlace` to encode geometry points quantized to sub-zone, represented as local indices from 1 to the number of sub-zones corresponding to the DGGRS deterministic sub-zone order, with a special value of 0 representing an artificial node\n`jsonfg-dggs-plus`: return DGGS-JSON-FG representation, with GeoJSON compatibility `geometry`\n`jsonfg-dggs-zoneids`: return DGGS-JSON-FG representation, using `dggsPlace` to encode geometry points as textual global zone identifiers, with a special value of _null_ representing an artificial node\n`jsonfg-dggs-zoneids-plus`: return DGGS-JSON-FG representation, encoding geometry points as global zone IDs, with GeoJSON compatibility `geometry`\nFor zone data in netCDF (`application/x-netcdf`):\n`netcdf3`: return NetCDF classic and 64-bit offset format (not quantized to DGGH)\n`netcdf3-dggs`: return NetCDF classic and 64-bit offset format where one axis corresponds to local sub-zone indices\n`netcdf3-dggs-zoneids`: return NetCDF classic and 64-bit offset format where one axis corresponds to the global identifiers of sub-zones (textual or 64-bit integer)\n`netcdf4`: return HFG5-based NetCDF 4 format (not quantized to DGGH)\n`netcdf4-dggs`: return HDF5-based NetCDF 4 format where one axis corresponds to local sub-zone indices\n`netcdf4-dggs-zoneids`: return HDF5-based NetCDF 4 format where one axis corresponds to the global identifiers of sub-zones (textual or 64-bit integer)\nFor zone data in zipped Zarr 2.0 (`application/zarr+zip`):\n`zarr2`: return zipped Zarr 2.0 (not quantized to DGGH)\n`zarr2-dggs`: return zipped Zarr 2.0 where one axis corresponds to local sub-zone indices\n`zarr2-dggs-zoneids`: return zipped Zarr 2.0 where one axis corresponds to the global identifiers of sub-zones (textual or 64-bit integer)\nFor zone data in CoverageJSON (`application/prs.coverage+json`):\n`covjson`: return CoverageJSON (not quantized to DGGH)\n`covjson-dggs`: return CoverageJSON where one axis corresponds to local sub-zone indices\n`covjson-dggs-zoneids`: return CoverageJSON where one axis corresponds to the global identifiers of sub-zones (textual or 64-bit integer)",
+        "style": "form",
+        "explode": false,
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "rfc7946",
+            "jsonfg",
+            "jsonfg-plus",
+            "jsonfg-dggs",
+            "jsonfg-dggs-plus",
+            "jsonfg-dggs-zoneids",
+            "jsonfg-dggs-zoneids-plus",
+            "covjson",
+            "covjson-dggs",
+            "covjson-dggs-zoneids",
+            "netcdf3",
+            "netcdf3-dggs",
+            "netcdf3-dggs-zoneids",
+            "netcdf4",
+            "netcdf4-dggs",
+            "netcdf4-dggs-zoneids",
+            "zarr2",
+            "zarr2-dggs",
+            "zarr2-dggs-zoneids"
+          ]
+        }
+      },
+      "values-scale": {
+        "name": "values-scale",
+        "in": "query",
+        "description": "Specify the scale factor for a zone data output format such as PNG not supporting floating-point, to be applied before adding an offset and resulting in the encoded integer values (e.g., 8-bit or 16-bit unsigned for PNG).\n",
+        "style": "form",
+        "explode": false,
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      "values-offset": {
+        "name": "values-offset",
+        "in": "query",
+        "description": "Specify the offset for a zone data output format such as PNG not supporting floating-point, to be applied after multiplying by the scale factor and resulting in the encoded integer values (e.g., 8-bit or 16-bit unsigned for PNG).\n",
+        "style": "form",
+        "explode": false,
+        "required": false,
+        "schema": {
+          "type": "number"
+        }
+      },
+      "f-zoneData": {
+        "name": "f",
+        "in": "query",
+        "description": "The format of the zone data response (e.g. GeoJSON, GeoTIFF).",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "json",
+            "geotiff",
+            "geojson",
+            "png"
+          ]
+        },
+        "style": "form",
+        "explode": false
+      },
+      "f-zoneQueries": {
+        "name": "f",
+        "in": "query",
+        "description": "The format of the response. If no value is provided, the accept header is used to determine the format. Accepted values are 'json', 'html', 'geojson', 'geotiff' or 'uint64'.",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "json",
+            "html",
+            "geojson",
+            "geotiff",
+            "png",
+            "uint64"
+          ]
+        },
+        "style": "form",
+        "explode": false
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "The requested resource does not exist on the server. For example, a path parameter had an incorrect value.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/exception"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NotAcceptable": {
+        "description": "Content negotiation failed. For example, the `Accept` header submitted in the request did not support any of the media types supported by the server for the requested resource.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/exception"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "A server error occurred.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/exception"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InvalidParameter": {
+        "description": "A query parameter has an invalid value.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/exception"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Exception": {
+        "description": "An error occurred.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/exception"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "LandingPage": {
+        "description": "The landing page provides links to the API definition (link relation `service-desc`, in this case path `/api`),\nto the Conformance declaration (path `/conformance`, link relation `conformance`), and to the Collections of geospatial data (path `/collections`, link relation `data`).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/landingPage"
+            },
+            "example": {
+              "title": "Buildings in Bonn",
+              "description": "Access to data about buildings in the city of Bonn via a Web API that conforms to the OGC API - DGGS specification.",
+              "links": [
+                {
+                  "href": "http://data.example.org/",
+                  "rel": "self",
+                  "type": "application/json",
+                  "title": "this document"
+                },
+                {
+                  "href": "http://data.example.org/api",
+                  "rel": "service-desc",
+                  "type": "application/vnd.oai.openapi+json;version=3.0",
+                  "title": "the API definition"
+                },
+                {
+                  "href": "http://data.example.org/api.html",
+                  "rel": "service-doc",
+                  "type": "text/html",
+                  "title": "the API documentation"
+                },
+                {
+                  "href": "http://data.example.org/conformance",
+                  "rel": "http://www.opengis.net/def/rel/ogc/1.0/conformance",
+                  "type": "application/json",
+                  "title": "OGC API conformance classes implemented by this service"
+                },
+                {
+                  "href": "http://data.example.org/collections",
+                  "rel": "http://www.opengis.net/def/rel/ogc/1.0/data",
+                  "type": "application/json",
+                  "title": "Information about the collections"
+                },
+                {
+                  "href": "http://data.example.org/dggs",
+                  "rel": "http://www.opengis.net/def/rel/ogc/1.0/dggs-list",
+                  "type": "application/json",
+                  "title": "List of DGGS implemented by this service"
+                }
+              ]
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Conformance": {
+        "description": "The URIs of all conformance classes supported by the server",
+        "content": {
+          "application/json": {
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/confClasses"
+                }
+              ],
+              "example": {
+                "conformsTo": [
+                  "https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/core",
+                  "https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/landing-page",
+                  "https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/json",
+                  "https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/html",
+                  "https://www.opengis.net/spec/ogcapi-common-1/1.0/conf/oas30",
+                  "https://www.opengis.net/spec/ogcapi-common-2/1.0/conf/collections",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/core",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-retrieval",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-query",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-subsetting",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-custom-depths",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-cql2-filter",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-query-cql2-filter",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/root-dggs",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/collection-dggs",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/operation-ids",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-json",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-ubjson",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-dggs-fgjson",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-dggs-fgubjson",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-geojson",
+                  "https://www.opengis.net/spec/json-fg-1/0.2/conf/core",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-tiff",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-netcdf",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-coveragejson",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-zarr",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-jpegxl",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/data-png",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-html",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-uint64",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-geojson",
+                  "https://www.opengis.net/spec/ogcapi-dggs-1/1.0/conf/zone-tiff"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "API": {
+        "description": "The OpenAPI definition of the API.",
+        "content": {
+          "application/vnd.oai.openapi+json;version=3.0": {
+            "schema": {
+              "type": "object"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Enumeration": {
+        "description": "An enumerated list of valid string values for API parameters.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/enumeration"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CollectionsList": {
+        "description": "The collections of (mostly geospatial) data available from this API. The dataset contains one or more collections. This resource provides information about and access to the collections. The response contains the list of collections. Each collection is accessible via one or more OGC API set of specifications, for which a link to relevant accessible resources, e.g. /collections/{collectionId}/(items, coverage, map, tiles...) is provided, with the corresponding relation type, as well as key information about the collection. This information includes:\n* a local identifier for the collection that is unique for the dataset;\n* a list of coordinate reference systems (CRS) in which data may be returned by the server. The first CRS is the default coordinate reference system (the default is always WGS 84 with axis order longitude/latitude);\n* an optional title and description for the collection;\n* an optional extent that can be used to provide an indication of the spatial and temporal extent of the collection - typically derived from the data;\n* for collections accessible via the Features or Records API, an optional indicator about the type of the items in the collection (the default value, if the indicator is not provided, is 'feature').",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/collections"
+            },
+            "example": {
+              "links": [
+                {
+                  "href": "http://data.example.org/collections.json",
+                  "rel": "self",
+                  "type": "application/json",
+                  "title": "this document"
+                },
+                {
+                  "href": "http://data.example.org/collections.html",
+                  "rel": "alternate",
+                  "type": "text/html",
+                  "title": "this document as HTML"
+                },
+                {
+                  "href": "http://schemas.example.org/1.0/buildings.xsd",
+                  "rel": "describedby",
+                  "type": "application/xml",
+                  "title": "GML application schema for Acme Corporation building data"
+                },
+                {
+                  "href": "http://download.example.org/buildings.gpkg",
+                  "rel": "enclosure",
+                  "type": "application/geopackage+sqlite3",
+                  "title": "Bulk download (GeoPackage)",
+                  "length": 472546
+                }
+              ],
+              "collections": [
+                {
+                  "id": "buildings",
+                  "title": "Buildings",
+                  "description": "Buildings in the city of Bonn.",
+                  "extent": {
+                    "spatial": {
+                      "bbox": [
+                        [
+                          7.01,
+                          50.63,
+                          7.22,
+                          50.78
+                        ]
+                      ]
+                    },
+                    "temporal": {
+                      "interval": [
+                        [
+                          "2010-02-15T12:34:56Z",
+                          null
+                        ]
+                      ]
+                    }
+                  },
+                  "links": [
+                    {
+                      "href": "http://data.example.org/collections/buildings/items",
+                      "rel": "items",
+                      "type": "application/geo+json",
+                      "title": "Buildings"
+                    },
+                    {
+                      "href": "http://data.example.org/collections/buildings/items.html",
+                      "rel": "items",
+                      "type": "text/html",
+                      "title": "Buildings"
+                    },
+                    {
+                      "href": "https://creativecommons.org/publicdomain/zero/1.0/",
+                      "rel": "license",
+                      "type": "text/html",
+                      "title": "CC0-1.0"
+                    },
+                    {
+                      "href": "https://creativecommons.org/publicdomain/zero/1.0/rdf",
+                      "rel": "license",
+                      "type": "application/rdf+xml",
+                      "title": "CC0-1.0"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Collection": {
+        "description": "Information about a particular collection of (mostly geospatial) data available from this API. The collection is accessible via one or more OGC API set of specifications, for which a link to relevant accessible resources, e.g. /collections/{collectionId}/(items, coverage, map, tiles...) is contained in the response, with the corresponding relation type, as well as key information about the collection. This information includes:\n* a local identifier for the collection that is unique for the dataset;\n* a list of coordinate reference systems (CRS) in which data may be returned by the server. The first CRS is the default coordinate reference system (the default is always WGS 84 with axis order longitude/latitude);\n* an optional title and description for the collection;\n* an optional extent that can be used to provide an indication of the spatial and temporal extent of the collection - typically derived from the data;\n* for collections accessible via the Features or Records API, an optional indicator about the type of the items in the collection (the default value, if the indicator is not provided, is 'feature').",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/collectionDesc"
+            },
+            "example": {
+              "id": "buildings",
+              "title": "Buildings",
+              "description": "Buildings in the city of Bonn.",
+              "extent": {
+                "spatial": {
+                  "bbox": [
+                    [
+                      7.01,
+                      50.63,
+                      7.22,
+                      50.78
+                    ]
+                  ]
+                },
+                "temporal": {
+                  "interval": [
+                    [
+                      "2010-02-15T12:34:56Z",
+                      null
+                    ]
+                  ]
+                }
+              },
+              "links": [
+                {
+                  "href": "http://data.example.org/collections/buildings/items",
+                  "rel": "items",
+                  "type": "application/geo+json",
+                  "title": "Buildings"
+                },
+                {
+                  "href": "http://data.example.org/collections/buildings/items.html",
+                  "rel": "items",
+                  "type": "text/html",
+                  "title": "Buildings"
+                },
+                {
+                  "href": "https://creativecommons.org/publicdomain/zero/1.0/",
+                  "rel": "license",
+                  "type": "text/html",
+                  "title": "CC0-1.0"
+                },
+                {
+                  "href": "https://creativecommons.org/publicdomain/zero/1.0/rdf",
+                  "rel": "license",
+                  "type": "application/rdf+xml",
+                  "title": "CC0-1.0"
+                }
+              ]
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DGGSList": {
+        "description": "List of available Discrete Global Grid Reference Systems.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "dggrs"
+              ],
+              "properties": {
+                "links": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/link"
+                  }
+                },
+                "dggrs": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/dggrs-item"
+                  }
+                }
+              }
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "DGGRS": {
+        "description": "Description for a specific Discrete Global Grid Reference System.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/dggrs"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ZoneData": {
+        "description": "DGGRS zone data returned as a response.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/dggs-json"
+            }
+          },
+          "image/png": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "image/tiff; application=geotiff": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "application/geo+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "format": "geojson-feature-collection"
+                },
+                {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "EmptyData": {
+        "description": "No data available for this zone."
+      },
+      "ZonesList": {
+        "description": "List of DGGRS Zones. In addition to a compact JSON response intended for fast DGGS client/server exchange (which should support compression),\nvisual representations such as GeoTIFF and/or GeoJSON may also be supported.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "zones"
+              ],
+              "properties": {
+                "zones": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "returnedAreaMetersSquare": {
+                  "type": "number"
+                },
+                "returnedVolumeMetersCube": {
+                  "type": "number"
+                },
+                "returnedVolumeMetersSquareSeconds": {
+                  "type": "number"
+                },
+                "returnedHyperVolumeMetersCubeSeconds": {
+                  "type": "number"
+                },
+                "links": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/link"
+                  }
+                }
+              }
+            }
+          },
+          "image/png": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "application/geo+json": {
+            "schema": {
+              "allOf": [
+                {
+                  "format": "geojson-feature-collection"
+                },
+                {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              ]
+            }
+          },
+          "image/tiff; application=geotiff": {
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

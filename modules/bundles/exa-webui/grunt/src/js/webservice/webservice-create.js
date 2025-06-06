@@ -108,6 +108,9 @@ angular.module('cstl-webservice-create', [
             if (self.type === 'wcs') {
                 return [{ 'id': '1.0.0'}, { 'id': '2.0.1', 'checked': true}];
             }
+            if (self.type === 'dggs') {
+                return [{ 'id': '1.0.0', 'checked': true}];
+            }
             if (self.type === 'wmts') {
                 return [{ 'id': '1.0.0', 'checked': true}];
             }
@@ -192,7 +195,7 @@ angular.module('cstl-webservice-create', [
                 function(response) {
                     webserviceFactory.serviceId = response.data.id;
                     Growl('success', 'Success', 'Service ' + self.metadata.name + ' successfully created');
-                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts' || self.type === 'wps') {
+                    if (self.type === 'csw' || self.type === 'sos' || self.type === 'sts' || self.type === 'wfs' || self.type === 'wms' || self.type === 'wcs' || self.type === 'wmts' || self.type === 'wps' || self.type === 'dggs') {
                         $location.path('/webservice/'+ self.type +'/'+ self.metadata.identifier +'/source');
                     } else {
                         $location.path('/webservice');
@@ -310,7 +313,7 @@ angular.module('cstl-webservice-create', [
             if (self.guiConfig.transactional) {
                 if (self.type === 'sos' || self.type === 'csw' || self.type === 'sts') {
                     self.source.profile = 'transactional';
-                } else if(self.type === 'wfs' || self.type === 'wps') {
+                } else if(self.type === 'wfs' || self.type === 'wps' || self.type === 'dggs') {
                     self.source.customParameters.transactional = self.guiConfig.transactional;
                 }
             }
@@ -343,7 +346,7 @@ angular.module('cstl-webservice-create', [
             } else {
                 dburl = self.guiConfig.url;
             }
-            
+
             var dataSource = {
                 type: "database",
                 url: dburl,
@@ -354,7 +357,7 @@ angular.module('cstl-webservice-create', [
                     readOnly: self.guiConfig.readOnly
                 }
             };
-            
+
             Examind.dataSources.create(dataSource)
                 .then(function (response) {
                         body  = {
@@ -382,7 +385,7 @@ angular.module('cstl-webservice-create', [
                     }
                 );
         }
-        
+
         function createSensorProvider(omProviderBody) {
             var sensorProviderId = self.id + '-' + self.type +'-sensor';
             // SML file system mode
@@ -401,8 +404,8 @@ angular.module('cstl-webservice-create', [
                         Growl('error','Error','Unable to create SML provider');
                     }
                 );
-        
-            // direct provider mode 
+
+            // direct provider mode
             } else if (self.guiConfig.directProvider) {
                 omProviderBody.type = "sensor-store";
                 omProviderBody.subType = "om2sensor";
@@ -413,13 +416,13 @@ angular.module('cstl-webservice-create', [
                         Growl('error','Error','Unable to create SML provider');
                     }
                 );
-            
+
             // default internal mode
             } else {
                 linkProviders('default-internal-sensor', false);
             }
         }
-        
+
         function linkProviders(sensorProviderId, sensorFullLink) {
             Examind.sensorServices.linkSensorProvider(webserviceFactory.serviceId, sensorProviderId, sensorFullLink).then(
             function() {},

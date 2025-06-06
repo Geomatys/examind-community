@@ -19,8 +19,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
+import jakarta.xml.bind.Unmarshaller;
+import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
+import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.constellation.api.ProviderType;
@@ -168,6 +171,21 @@ public class TestEnvironment {
          * Generated using Python library <a href="https://rasterio.readthedocs.io/en/latest/index.html">rasterio</a>.
          */
         public static final TestResource NETCDF_WITH_NAN = new TestResource("org/constellation/netcdf/with_nan.nc", TestEnvironment::createNCProvider);
+
+        /**
+         * In memory provider.
+         *
+         * data :
+         * - coverage4d : 1 band
+         */
+        public static final TestResource COVERAGE_4D = new TestResource(InMemoryDatas.COVERAGE_4D);
+        /**
+         * In memory provider.
+         *
+         * data :
+         * - coverage2d : 2 band
+         */
+        public static final TestResource COVERAGE_2D = new TestResource(InMemoryDatas.COVERAGE_2D);
 
         /**
          * Coverage xml pyramid datastore.
@@ -337,18 +355,18 @@ public class TestEnvironment {
             this(path, createProvider, null, null, createStore, null);
         }
 
-        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore, 
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore,
                 BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
             this(path, createProvider, null, createProviders, createStore, null);
         }
-        
+
         public TestResource(BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
             this(null, null, createProviderWithDatasource, null, null, createStoreWithDatasource);
         }
-        
-        public TestResource(String path, 
+
+        public TestResource(String path,
                 BiFunction<IProviderBusiness, Path, Integer> createProvider,  BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource,
-                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders, 
+                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders,
                 Function<Path, DataStore> createStore, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
             this.path = path;
             this.createProvider = createProvider;
@@ -356,6 +374,16 @@ public class TestEnvironment {
             this.createProviders = createProviders;
             this.createStoreWithDatasource = createStoreWithDatasource;
             this.createProviderWithDatasource = createProviderWithDatasource;
+            values.add(this);
+        }
+
+        public TestResource(final DataSet ds) {
+            this("", new BiFunction<IProviderBusiness, Path, Integer> (){
+                @Override
+                public Integer apply(IProviderBusiness t, Path u) {
+                    return createMemoryProvider(t, ds);
+                }
+            });
             values.add(this);
         }
     }
@@ -446,7 +474,7 @@ public class TestEnvironment {
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
-        
+
         public ProviderImport createProviderWithDatasource(TestResource tr, IProviderBusiness providerBusiness, IDatasourceBusiness dsBusiness, Integer datasetId) throws ConstellationException {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
@@ -546,7 +574,7 @@ public class TestEnvironment {
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
-        
+
         public DataStore createStore(TestResource tr, IDatasourceBusiness dsBusiness) {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
@@ -568,7 +596,7 @@ public class TestEnvironment {
         public Integer createProvider(IProviderBusiness providerBusiness, Integer datasetId) {
             return tr.createProvider.apply(providerBusiness, dataDir);
         }
-        
+
         public Integer createProviderWithDatasource(IProviderBusiness providerBusiness, IDatasourceBusiness dsBusiness, Integer datasetId) {
             return tr.createProviderWithDatasource.apply(providerBusiness, dsBusiness);
         }
@@ -580,7 +608,7 @@ public class TestEnvironment {
         public DataStore createStore() {
             return tr.createStore.apply(dataDir);
         }
-        
+
         public DataStore createStore(IDatasourceBusiness dsBusiness) {
             return tr.createStoreWithDatasource.apply(dsBusiness);
         }
@@ -893,6 +921,25 @@ public class TestEnvironment {
         }
     }
 
+    private static Integer createMemoryProvider(IProviderBusiness providerBusiness, DataSet dataset) {
+        final String providerIdentifier = "mem-" + UUID.randomUUID().toString();
+        try {
+            final DataProviderFactory dsFactory = DataProviders.getFactory("data-store");
+            final ParameterValueGroup source = dsFactory.getProviderDescriptor().createValue();
+            source.parameter("id").setValue(providerIdentifier);
+            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) dsFactory.getStoreDescriptor(), source);
+
+            final Parameters parameters = MemoryDataStoreProvider.register(dataset);
+            final ParameterValueGroup config = choice.addGroup(MemoryDataStoreProvider.NAME);
+            Parameters.copy(parameters, config);
+
+
+            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "data-store", source);
+        } catch (Exception ex) {
+            throw new ConstellationRuntimeException(ex);
+        }
+    }
+
     private static String buildEmbeddedOM2Database(String providerIdentifier, boolean withData, boolean ddb, String mode) throws Exception {
         final String url;
         String urlSuffix = "";
@@ -957,7 +1004,7 @@ public class TestEnvironment {
     private static Integer createOM2DatabaseDDBProviderNoData(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, false, true, "default");
     }
-    
+
     private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, true, "mixed");
     }
@@ -970,7 +1017,7 @@ public class TestEnvironment {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb, mode);
-            
+
             org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
             int dsId = datasourceBusiness.create(ds);
 
@@ -998,7 +1045,7 @@ public class TestEnvironment {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
-            
+
             org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
             int dsId = datasourceBusiness.create(ds);
 
@@ -1019,12 +1066,12 @@ public class TestEnvironment {
             throw new ConstellationRuntimeException(ex);
         }
     }
-    
+
     private static DataStore createOM2DatabaseSensorStore(IDatasourceBusiness datasourceBusiness) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
-            
+
             org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
             int dsId = datasourceBusiness.create(ds);
 
@@ -1145,7 +1192,7 @@ public class TestEnvironment {
             throw new ConstellationRuntimeException(ex);
         }
     }
-    
+
     private static Integer createSensorOM2Provider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         boolean withData = false; // TODO
         boolean ddb = false; // TODO

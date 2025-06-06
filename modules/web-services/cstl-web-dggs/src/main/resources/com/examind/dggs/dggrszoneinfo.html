@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>OGC-API DGGS service</title>
+    <meta charset="UTF-8">
+    <base href="_baseurl_" />
+    <link rel="icon" type="image/png" href="./img/favicon.ico" />
+    <link href="https://viglino.github.io/font-gis/css/font-gis.css" rel="stylesheet" />
+    <style>
+        html { height: 100%; width: 100%; margin: 0; }
+        body {
+          height: 100%;
+          width: 100%;
+          margin: 0;
+          font-family: Verdana,Arial,Helvetica,sans-serif;
+          color: #EEE;
+          font-size: 14px;
+          background-image : url("./img/pattern.jpg");
+          background-color : #555;
+          line-height: 1.5;
+          }
+        a {
+          color: #CCC;
+          text-decoration: none;
+          background-color : rgba(255,255,255,.05);
+          padding : 3px;
+          margin : 4px;
+          border-bottom: 1px solid rgba(255,255,255,.5);
+          }
+        a:hover {
+          color: #FFF;
+          text-decoration: none;
+          background-color : rgba(0,0,0,.2);
+          border-bottom : 1px solid rgba(255,255,255,.5);
+          }
+        td {
+          vertical-align: middle;
+          white-space: nowrap;
+        }
+        tr {
+          border-color: #777;
+        }
+        tr.zone:hover {
+          cursor: pointer;
+          background: #FFFFFF44;
+        }
+        .container { display: flex; flex-direction: column; height: 100%; }
+        .body {
+          flex: 1 1 auto;
+          display: block;
+          overflow: auto;
+          padding: 40px;
+          }
+        .group-header {
+          color: #BBB;
+          background-color: #2c2c2c;
+          font-size: 20px;
+          font-weight: bold;
+          padding: 10px;
+          border-radius: 10px 10px 0px 0px;
+          }
+        .group-body {
+          background-color: rgba(150,150,150,.3);
+          margin: 0px 0px 8px 0px;
+          border-radius: 0px 0px 4px 4px;
+          padding: 20px;
+          }
+        .subgroup-header {
+          color: #BBB;
+          background-color: rgba(0,0,0,0.4);
+          font-size: 15px;
+          font-weight: bold;
+          padding: 8px;
+          border-radius: 10px 10px 0px 0px;
+          }
+        .subgroup-body {
+          background-color: rgba(0,0,0,0.1);
+          margin: 0px 0px 8px 0px;
+          border-radius: 0px 0px 4px 4px;
+          padding: 10px;
+          }
+        #alternates {
+          color: #BBB;
+          background-color: #359cbb6b;
+          font-size: 16px;
+          padding: 10px;
+          border-radius: 20px;
+          margin: 0px 0px 10px 0px;
+          }
+        #header {background-image: linear-gradient(to bottom,#6f6f6f 0,#303030 46px);padding:6px 0px 4px 19px}
+        #footer {
+          background-color: #333;
+          text-align: end;
+          padding:6px 19px 4px 19px
+          }
+
+        #datatable tr:nth-child(odd) td{
+          padding : 7px;
+          background-color: rgba(0,0,0,0.15);
+        }
+        #datatable tr:nth-child(even) td{
+          padding : 7px;
+        }
+        #datatable tr:nth-child(1){
+          font-size:smaller;
+        }
+        #datatable tr td:last-of-type {
+          width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="header">
+            <img src="./img/constellation-menu.svg" style="height:34px;">
+        </div>
+        <div class="body">
+
+          <div id="alternates"></div>
+
+          <div id="title" class="group-header">Zone</div>
+          <div class="group-body">
+
+
+            <div style="width: 100%;overflow:auto;">
+              <div style="float:left; width: 50%">
+              <div id="content"></div>
+              </div>
+              <div style="float:right; width: 50%">
+              <div id="links" style="width: fit-content"></div>
+              </div>
+            </div>
+
+            <div id="parents">
+              <div class="subgroup-header">Parents</div>
+              <div id="parents_tab" class="subgroup-body2"></div>
+            </div>
+            <br/>
+
+            <div id="neighbors">
+              <div class="subgroup-header">Neighbors</div>
+              <div id="neighbors_tab" class="subgroup-body2"></div>
+            </div>
+            <br/>
+
+            <div id="children">
+              <div class="subgroup-header">Children</div>
+              <div id="children_tab" class="subgroup-body2"></div>
+            </div>
+
+          </div>
+
+        </div>
+        <div id="footer">
+            <a class="logo-geomatys-a" href="http://www.geomatys.com" target="_blank">
+             <img class="logo-geomatys" src="./img/logo-geomatys-footer.svg" alt="Geomatys" style="height:34px;">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // utils scripts
+        const json = JSON.parse(_json_);
+
+        function linksBlock(title, links) {
+          var all = document.createElement('div');
+          var head = document.createElement('div');
+          head.className = "subgroup-header";
+          var span = document.createElement('span');
+          span.className = "fg-poi";
+          var title = document.createTextNode(title);
+          var content = document.createElement('div');
+          content.className = "subgroup-body";
+          content.appendChild(linksTable(links));
+          head.appendChild(span);
+          head.appendChild(title);
+          all.appendChild(head);
+          all.appendChild(content);
+          return all;
+        }
+
+        function linksTable(links) {
+          var table = document.createElement('table');
+            for (const link of links) {
+              var tr = document.createElement('tr');
+              var td = document.createElement('td');
+              var a = document.createElement('a');
+              let target = URL.parse(link.href, window.location.href);
+              a.href = target;
+              a.textContent = link.title;
+              td.appendChild(a);
+              tr.appendChild(td);
+              table.appendChild(tr);
+            }
+          return table;
+        }
+
+        function removeLinksByRel(links, relName) {
+            var alternates = [];
+            for (var i = links.length-1; i >= 0; i--) {
+                var link = links[i];
+                if (link.rel != null && link.rel == relName) {
+                    alternates = links.splice(i,1).concat(alternates);
+                }
+            }
+            return alternates;
+        }
+
+        function relLinksBlock(links, relName) {
+            var alternates = removeLinksByRel(links, relName);
+            if (alternates.length === 0) {
+                return "";
+            } else {
+                var text = "View in : ";
+                for (const link of alternates) {
+                    let target = URL.parse(link.href, window.location.href);
+                    text += ` <a href="${target}">${link.title}</a> `;
+                }
+                return text;
+            }
+        }
+
+        function zoneTable(links) {
+          var table = document.createElement('table');
+          table.id = "datatable";
+          table.border = 1;
+          table.frame = 'void';
+          table.rules = 'rows';
+          { //header
+            var tr = document.createElement('tr');
+            tr.innerHTML = "<td>Zone ID</td><td>Centroid(lon)</td><td>Centroid(lat)</td><td>Bbox(west)</td><td>Bbox(south)</td><td>Bbox(east)</td><td>Bbox(north)</td>";
+            table.appendChild(tr);
+          }
+          for (const zone of links) {
+              var tr = document.createElement('tr');
+              let td1 = document.createElement('td');
+              let tdlon = document.createElement('td');
+              let tdlat = document.createElement('td');
+              let tdwest = document.createElement('td');
+              let tdeast = document.createElement('td');
+              let tdnorth = document.createElement('td');
+              let tdsouth = document.createElement('td');
+              var title = document.createTextNode(zone.title);
+              let target = URL.parse(zone.href, window.location.href);
+              
+              tr.className = 'zone';
+              tr.onclick = function() { window.open(target,"_self") };
+
+              let promise = getData(target);
+              promise.then(function (result) {
+                tdlon.innerHTML = result.centroid[0].toFixed(7);
+                tdlat.innerHTML = result.centroid[1].toFixed(7);
+                tdwest.innerHTML = result.bbox[0].toFixed(7);
+                tdsouth.innerHTML = result.bbox[1].toFixed(7);
+                tdeast.innerHTML = result.bbox[2].toFixed(7);
+                tdnorth.innerHTML = result.bbox[3].toFixed(7);
+              });
+
+              td1.appendChild(title);
+              tr.appendChild(td1);
+              tr.appendChild(tdlon);
+              tr.appendChild(tdlat);
+              tr.appendChild(tdwest);
+              tr.appendChild(tdeast);
+              tr.appendChild(tdnorth);
+              tr.appendChild(tdsouth);
+              table.appendChild(tr);
+          }
+          return table;
+        }
+
+        async function getData(url) {
+          try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                  "Accept": "application/json"
+                }});
+            if (!response.ok) {
+              throw new Error(`Response status: ${response.status}`);
+            }
+
+            return await response.json();
+          } catch (error) {
+            console.error(error.message);
+          }
+        }
+
+
+    </script>
+
+    <script>
+        document.getElementById("alternates").innerHTML = relLinksBlock(json.links, "alternate");
+
+        let parentLinks = removeLinksByRel(json.links,"https://www.opengis.net/def/rel/ogc/1.0/dggrs-zone-parent");
+        let neighborsLinks = removeLinksByRel(json.links,"https://www.opengis.net/def/rel/ogc/1.0/dggrs-zone-neighbor");
+        let childrenLinks = removeLinksByRel(json.links,"https://www.opengis.net/def/rel/ogc/1.0/dggrs-zone-child");
+        if (parentLinks.length === 0) document.getElementById("parents").style.display = "none";
+        if (neighborsLinks.length === 0) document.getElementById("neighbors").style.display = "none";
+        if (childrenLinks.length === 0) document.getElementById("children").style.display = "none";
+        document.getElementById("parents_tab").appendChild(zoneTable(parentLinks));
+        document.getElementById("neighbors_tab").appendChild(zoneTable(neighborsLinks));
+        document.getElementById("children_tab").appendChild(zoneTable(childrenLinks));
+
+        document.getElementById("title").innerHTML = "Zone " + json.id;
+
+        var text = `<b>Id : </b> ${json.id} <br>`
+                + `<b>Shape type: </b> ${json.shapeType} <br>`
+                + `<b>Level	: </b> ${json.level} <br>`
+                + `<b>CRS	: </b> ${json.crs} <br>`
+                + `<b>Centroid	: </b> ${json.centroid} <br>`
+                + `<b>BBox	: </b> ${json.bbox} <br>`
+                + `<b>Geometry	: </b> ${json.geometry} <br>`;
+        if (json.areaMetersSquare != undefined) text += `<b>Area (m\u00b2)	: </b> ${json.areaMetersSquare} <br>`;
+        if (json.volumeMetersCube != undefined) text += `<b>Volume (m\u00b3)	: </b> ${json.volumeMetersCube} <br>`;
+        if (json.temporalDurationSeconds != undefined) text += `<b>Temporal duration (s)	: </b> ${json.temporalDurationSeconds} <br>`;
+        if (json.temporalInterval != undefined) text += `<b>Temporal interval	: </b> ${json.temporalInterval} <br>`;
+        text += `<br>`;
+
+        document.getElementById("content").innerHTML = text;
+        document.getElementById("links").appendChild(linksBlock("Links", json.links));
+
+    </script>
+</body>
+
+</html>

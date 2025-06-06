@@ -62,6 +62,9 @@ angular.module('cstl-webservice-edit', [
             if ($scope.type === 'wcs') {
                 return [{ 'id': '1.0.0','checked':false}, { 'id': '2.0.1','checked':false}];
             }
+            if ($scope.type === 'dggs') {
+                return [{ 'id': '1.0.0','checked':false}];
+            }
             if ($scope.type === 'wmts') {
                 return [{ 'id': '1.0.0','checked':false}];
             }
@@ -799,7 +802,7 @@ angular.module('cstl-webservice-edit', [
         $scope.serviceType = serviceType;
         $scope.serviceIdentifier = serviceIdentifier;
         $scope.selectedLayer = selectedLayer;
-        
+
         var name = selectedLayer.name;
         var namespace = "";
         if (selectedLayer.name && selectedLayer.name.startsWith("{")) {
@@ -825,7 +828,7 @@ angular.module('cstl-webservice-edit', [
         $scope.save = function() {
             $scope.selectedLayer.alias = $scope.layerForm.alias;
             $scope.selectedLayer.title = $scope.layerForm.title;
-            
+
             var name = $scope.layerForm.name;
             if($scope.layerForm.namespace && $scope.layerForm.namespace !== '') {
                 name = '{' + $scope.layerForm.namespace + '}' + name;
@@ -867,7 +870,7 @@ angular.module('cstl-webservice-edit', [
                     return false;
                 });
         };
-        
+
         $scope.checkName = function () {
             $scope.errors.nameEmpty   = false;
             $scope.errors.nameInuse   = false;

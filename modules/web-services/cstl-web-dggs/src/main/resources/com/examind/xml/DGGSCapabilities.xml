@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<details xmlns="http://www.constellation.org/config">
+    <description>Constellation OGC-Api DGGS maintained by geomatys.</description>
+    <identifier>default</identifier>
+    <keywords>DGGS</keywords>
+    <keywords>Constellation</keywords>
+    <keywords>Geomatys</keywords>
+    <name>Discrete Global Grid System</name>
+    <serviceConstraints>
+        <accessConstraint>NONE</accessConstraint>
+        <fees>NONE</fees>
+    </serviceConstraints>
+    <serviceContact>
+        <address>24 rue Pierre Renaudel</address>
+        <city>Arles</city>
+        <country>France</country>
+        <email>vincent.heurteaux@geomatys.com</email>
+        <fax>04 67 54 87 00</fax>
+        <fullname>Vincent Heurteaux</fullname>
+        <organisation>Geomatys</organisation>
+        <phone>04 67 54 87 30</phone>
+        <position>dev</position>
+        <state>PACA</state>
+        <zipCode>13200</zipCode>
+    </serviceContact>
+    <versions>1.0.0</versions>
+</details>

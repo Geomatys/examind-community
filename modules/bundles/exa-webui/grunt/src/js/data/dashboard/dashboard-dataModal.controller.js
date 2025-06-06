@@ -65,6 +65,10 @@ function DataModalController($scope, Dashboard, $modalInstance, service, exclude
                             return item;
                         }
                     });
+                } else if ($scope.service.type.toLowerCase() === 'dggs') {
+                    dataList = dataList.map(function(item){
+                        return item;
+                    });
                 } else if ($scope.service.type.toLowerCase() === 'wfs') {
                     dataList = dataList.map(function(item){
                         if (item.type.toLowerCase() === 'vector' || item.type.toLowerCase() === 'sensor' || item.type.toLowerCase() === 'observation') {

@@ -51,6 +51,7 @@
         <module>cstl-web-thw</module>
         <module>cstl-web-sensor</module>
         <module>cstl-web-sts</module>
+        <module>cstl-web-dggs</module>
         <module>wps-logic</module>
     </modules>
 

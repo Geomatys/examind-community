@@ -20,7 +20,8 @@
     "sos": true,
     "wps": true,
     "thw": true,
-    "sts": true
+    "sts": true,
+    "dggs": true
   },
   "showDatabaseImportData": true
 }

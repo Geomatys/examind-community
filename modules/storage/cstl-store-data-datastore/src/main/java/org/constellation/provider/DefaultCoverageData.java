@@ -566,9 +566,14 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
                 subSample[0] = Math.round(extent.getSize(0) * 0.05);
                 subSample[1] = Math.round(extent.getSize(1) * 0.05);
                 for (int i = 2; i < extent.getDimension(); i++) {
-                    subSample[i] = Math.toIntExact(extent.getSize(i));
+                    subSample[i] = 1;
                 }
                 gg = gg.derive().subgrid(null, subSample).build();
+                if (subSample.length > 2) {
+                    //pick a slice on the other dimensions
+                    gg = gg.derive().sliceByRatio(0.5, 0,1).build();
+                }
+
 
             } else if (gg.isDefined(GridGeometry.ENVELOPE)) {
                 final Envelope env = gg.getEnvelope();

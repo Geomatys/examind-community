@@ -88,7 +88,10 @@ public enum ServiceDef {
     QUANTIZEDMESH(Specification.QUANTIZEDMESH, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", "1.0.0", true, true),
 
     // VTS service definitions
-    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", "1.0.0", true, true);
+    VTS(Specification.VTS, Organization.NONE, "1.0.0", Profile.NONE, "2.0.0", "1.0.0", true, true),
+
+    // OGC-API DGGS
+    DGGS_1_0_0(Specification.DGGS, Organization.OGC, "1.0.0", Profile.NONE, null, "1.1.0", false, true);
 
     /**
      * Name of the specification.
@@ -219,7 +222,8 @@ public enum ServiceDef {
         STS("Sensor Things Service"),
         TILES3D("3DTiles"),
         QUANTIZEDMESH("QuantizedMesh"),
-        VTS("VTS");
+        VTS("VTS"),
+        DGGS("Discrete Global Grid System");
 
         public final String fullName;
 
@@ -260,6 +264,8 @@ public enum ServiceDef {
                 return VTS;
             } else if (STS.name().equalsIgnoreCase(shortName)) {
                 return STS;
+            } else if (DGGS.name().equalsIgnoreCase(shortName)) {
+                return DGGS;
             }
             throw new IllegalArgumentException(shortName + " is not a valid service specification.");
         }
@@ -269,6 +275,7 @@ public enum ServiceDef {
                  ||this.equals(Specification.WFS)  ||this.equals(Specification.CSW)
                  ||this.equals(Specification.WCS)  ||this.equals(Specification.SOS)
                  ||this.equals(Specification.WPS)
+                 ||this.equals(Specification.DGGS)
                  ||this.equals(Specification.STS)  ||this.equals(Specification.TILES3D)
                  ||this.equals(Specification.QUANTIZEDMESH)||this.equals(Specification.VTS);
         }

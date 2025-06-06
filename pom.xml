@@ -333,13 +333,12 @@
                 <version>${jettison.version}</version>
             </dependency>
 
+            <!-- Apache SIS -->
             <dependency>
                 <groupId>org.apache.sis.core</groupId>
                 <artifactId>sis-portrayal</artifactId>
                 <version>${sis.version}</version>
             </dependency>
-
-            <!-- Apache SIS -->
             <dependency>
                 <groupId>org.apache.sis.storage</groupId>
                 <artifactId>sis-sqlstore</artifactId>
@@ -350,6 +349,12 @@
                 <artifactId>sis-xmlstore</artifactId>
                 <version>${sis.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.sis.storage</groupId>
+                <artifactId>sis-shapefile</artifactId>
+                <version>${sis.version}</version>
+            </dependency>
+
             <!-- Geotoolkit version -->
             <dependency>
                 <groupId>org.geotoolkit</groupId>
@@ -696,6 +701,26 @@
             <dependency>
                 <groupId>org.geotoolkit</groupId>
                 <artifactId>geotk-openeo</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-ubjson</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-hips</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-dggs</artifactId>
+                <version>${geotoolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotoolkit</groupId>
+                <artifactId>geotk-dggal</artifactId>
                 <version>${geotoolkit.version}</version>
             </dependency>
             <dependency>

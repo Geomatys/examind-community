@@ -129,6 +129,7 @@ public abstract class AbstractGrizzlyServer {
             "org.constellation.wmts.ws.rs",
             "org.constellation.metadata.ws.rs.provider",
             "org.constellation.wps.ws.rs",
+            "com.examind.dggs.ws.rs",
             "com.examind.sts.ws.rs",
             "org.constellation.thesaurus.ws.rs"}));
 

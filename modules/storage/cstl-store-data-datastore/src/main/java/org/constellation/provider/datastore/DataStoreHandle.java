@@ -24,6 +24,7 @@ import org.apache.sis.storage.DataSet;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.FeatureNaming;
+import org.apache.sis.storage.IllegalNameException;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.WritableAggregate;
 import org.apache.sis.util.Classes;
@@ -83,8 +84,14 @@ final class DataStoreHandle implements AutoCloseable {
                 final GenericName baseName = name.get();
                 final GenericName indexedName = forceAbsolutePath(baseName);
                 // Cached data use base name to retrieve it from data-store.
-                index.add(store, indexedName, new CachedData(baseName));
-                nameList.add(baseName);
+                try {
+                    index.add(store, indexedName, new CachedData(baseName));
+                    nameList.add(baseName);
+                } catch (IllegalNameException ex) {
+                    //likely a duplicated name in the store
+                    LOGGER.log(Level.WARNING, "DataSet " + baseName + " ignored because of an exception", ex);
+                }
+
             } else {
                 LOGGER.log(Level.WARNING, "DataSet ignored because it is unidentified: {0}", rs);
             }
@@ -180,7 +187,7 @@ final class DataStoreHandle implements AutoCloseable {
         String ns = NamesExt.getNamespace(dataName);
         String local = dataName.tip().toString();
         if ("".equals(ns)) ns = null;
-        
+
         final Integer dataId = dataBiz.findIdFromProvider(ns, local, providerName);
         if (dataId == null) throw new ConstellationException(String.format("No data found for name %s in provider %s", dataName, providerName));
         return dataId;

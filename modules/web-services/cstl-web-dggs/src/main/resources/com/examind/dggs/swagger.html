@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>DGGS Swagger UI</title>
+        <meta charset="utf-8" />
+        <base href="_baseurl_" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+            name="description"
+            content="SwaggerUI"
+            />
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui.css" />
+        <style>
+            html { height: 100%; width: 100%; margin: 0; }
+            body {
+              height: 100%;
+              width: 100%;
+              margin: 0;
+              font-family: Verdana,Arial,Helvetica,sans-serif;
+              color: #EEE;
+              font-size: 14px;
+              background-image : url("./img/pattern.jpg");
+              background-color : #555;
+              line-height: 1.5;
+              }
+            a {
+              color: #CCC;
+              text-decoration: none;
+              background-color : rgba(255,255,255,.05);
+              padding : 3px;
+              margin : 4px;
+              border-bottom: 1px solid rgba(255,255,255,.5);
+              }
+            a:hover {
+              color: #FFF;
+              text-decoration: none;
+              background-color : rgba(0,0,0,.2);
+              border-bottom : 1px solid rgba(255,255,255,.5);
+              }
+            .container { display: flex; flex-direction: column; height: 100%; }
+            .body {
+              flex: 1 1 auto;
+              display: block;
+              overflow: auto;
+              padding: 20px;
+              }
+            #header {background-image: linear-gradient(to bottom,#6f6f6f 0,#303030 46px);padding:6px 0px 4px 19px}
+            #footer {
+              background-color: #333;
+              text-align: end;
+              padding:6px 19px 4px 19px
+              }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div id="header">
+                <img src="./img/constellation-menu.svg" style="height:34px;">
+            </div>
+            <div class="body">
+                <div id="swagger-ui" style="background-color: rgba(255,255,255,0.6); border-radius:20px;"></div>
+            </div>
+            <div id="footer">
+                <a class="logo-geomatys-a" href="http://www.geomatys.com" target="_blank">
+                 <img class="logo-geomatys" src="./img/logo-geomatys-footer.svg" alt="Geomatys" style="height:34px;">
+                </a>
+            </div>
+        </div>
+
+        <script src="https://unpkg.com/swagger-ui-dist@4.5.0/swagger-ui-bundle.js" crossorigin></script>
+        <script>
+            window.onload = () => {
+                window.ui = SwaggerUIBundle({
+                    url: '$${url}',
+                    dom_id: '#swagger-ui'
+                });
+            };
+        </script>
+    </body>
+</html>
