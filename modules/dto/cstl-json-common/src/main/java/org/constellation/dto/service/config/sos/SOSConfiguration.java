@@ -255,21 +255,6 @@ public class SOSConfiguration extends AbstractConfigurationObject {
     }
 
     /**
-     * Replace all the password in this object by '****'
-     */
-    public void hideSensibleField() {
-        for (Automatic aut: getExtensions()) {
-            aut.hideSensibleField();
-        }
-        if (omConfiguration != null) {
-            omConfiguration.hideSensibleField();
-        }
-        if (omConfiguration != null) {
-            smlConfiguration.hideSensibleField();
-        }
-    }
-
-    /**
      * @return the parameters
      */
     public HashMap<String, String> getParameters() {

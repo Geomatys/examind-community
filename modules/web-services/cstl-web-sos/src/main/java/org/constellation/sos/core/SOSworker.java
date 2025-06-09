@@ -66,7 +66,6 @@ import static org.constellation.api.ServiceConstants.*;
 import static com.examind.sensor.ws.SensorUtils.isCompleteEnvelope3D;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
-import org.constellation.sos.legacy.SensorConfigurationUpgrade;
 import org.constellation.ws.CstlServiceException;
 import org.geotoolkit.gml.xml.AbstractFeature;
 import org.geotoolkit.gml.xml.Envelope;
@@ -277,10 +276,6 @@ public class SOSworker extends SensorWorker {
         if (WorkerState.ERROR == getState()) return;
         // Database configuration
         try {
-
-            // legacy
-            SensorConfigurationUpgrade upgrader = new SensorConfigurationUpgrade();
-            upgrader.upgradeConfiguration(getServiceId());
 
             this.verifySynchronization = getBooleanProperty(VERIFY_SYNCHRONIZATION, false);
             this.keepCapabilities      = getBooleanProperty(KEEP_CAPABILITIES, false);

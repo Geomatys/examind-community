@@ -19,22 +19,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.sql.DataSource;
-import jakarta.xml.bind.Unmarshaller;
 import org.apache.sis.storage.image.WorldFileStoreProvider;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
-import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
 import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
-import org.constellation.dto.service.config.generic.Automatic;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.ConstellationRuntimeException;
-import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.provider.DataProviderFactory;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
@@ -244,7 +240,6 @@ public class TestEnvironment {
 
 
         public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
-        public static final TestResource OM_GENERIC_DB = new TestResource("org/constellation/xml/sos/config/generic-config.xml", TestEnvironment::createOMGenericDBProvider);
         public static final TestResource OM_LUCENE = new TestResource("org/constellation/xml/sos",  TestEnvironment::createOMLuceneProvider, null);
 
         // Sensor Providers
@@ -993,35 +988,6 @@ public class TestEnvironment {
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
 
             return sensorFactory.createProvider(providerIdentifier, source).getMainStore();
-        } catch (Exception ex) {
-            throw new ConstellationRuntimeException(ex);
-        }
-    }
-
-    private static Integer createOMGenericDBProvider(IProviderBusiness providerBusiness, Path p) {
-        try {
-            final String providerIdentifier = "omGenericDBSrc-" + UUID.randomUUID().toString();
-
-            final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
-
-            MarshallerPool pool = GenericDatabaseMarshallerPool.getInstance();
-            Unmarshaller unmarshaller = pool.acquireUnmarshaller();
-            Automatic OMConfiguration = (Automatic) unmarshaller.unmarshal(p.toFile());
-            OMConfiguration.getBdd().setConnectURL(url);
-            pool.recycle(unmarshaller);
-
-            final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
-            final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
-            source.parameter("id").setValue(providerIdentifier);
-            final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
-
-            final ParameterValueGroup config = choice.addGroup("observationSOSGeneric");
-            config.parameter("Configuration").setValue(OMConfiguration);
-            config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
-            config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
-            config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
-            config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
-            return providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
         } catch (Exception ex) {
             throw new ConstellationRuntimeException(ex);
         }

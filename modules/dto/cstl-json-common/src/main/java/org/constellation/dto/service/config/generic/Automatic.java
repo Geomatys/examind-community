@@ -55,16 +55,6 @@ public class Automatic extends AbstractConfigurationObject {
     public static final int BYID        = 2;
 
     /**
-     * The database connection informations.
-     */
-    private BDD bdd;
-
-    /**
-     * A List of thesaurus database connection informations.
-     */
-    private List<BDD> thesaurus;
-
-    /**
      * The directory where is stored the configuration file.
      * must be set by java, not in the xml file because it is transient.
      */
@@ -151,18 +141,6 @@ public class Automatic extends AbstractConfigurationObject {
 
     private HashMap<String, String> customparameters = new HashMap<>();
 
-    /**
-     * In the case of a generic Implementation,
-     * this object contains all the SQL queries used to retrieve and build metadata.
-     */
-    private Queries queries;
-
-    /**
-     * In the case of a generic Obervation filter,
-     * this object contains the SQL request to filter the observations.
-     */
-    private Query filterQueries;
-
     private String indexType = "lucene-node";
 
     /**
@@ -180,54 +158,6 @@ public class Automatic extends AbstractConfigurationObject {
     public Automatic(final String format, final String dataDirectory) {
         this.format        = format;
         this.dataDirectory = dataDirectory;
-    }
-
-    /**
-     * Build an configuration object for SGBD dataSource.
-     *
-     * @param format format type of the implementation.
-     * @param bdd A dataSource description.
-     */
-    public Automatic(final String format, final BDD bdd) {
-        this.format = format;
-        this.bdd    = bdd;
-    }
-
-    /**
-     * Build an configuration object for SGBD dataSource with generic SQL queries.
-     *
-      * @param format format type of the implementation.
-     * @param bdd A dataSource description.
-     * @param queries A list of SQL queries
-     */
-    public Automatic(final String format, final BDD bdd, final Queries queries) {
-        this.format  = format;
-        this.bdd     = bdd;
-        this.queries = queries;
-    }
-
-    /**
-     * return The generic SQL Queries
-     * @return
-     */
-    public Queries getQueries() {
-        return queries;
-    }
-
-    /**
-     * return the database connection informations.
-     * @return
-     */
-    public BDD getBdd() {
-        return bdd;
-    }
-
-    /**
-     * Set the database connection informations.
-     * @param bdd a database description.
-     */
-    public void setBdd(final BDD bdd) {
-        this.bdd = bdd;
     }
 
     /**
@@ -302,23 +232,6 @@ public class Automatic extends AbstractConfigurationObject {
      */
     public void setProfile(final String profile) {
         this.profile = profile;
-    }
-
-    /**
-     * @return the Thesaurus database informations
-     */
-    public List<BDD> getThesaurus() {
-        if (thesaurus == null) {
-            thesaurus = new ArrayList<>();
-        }
-        return thesaurus;
-    }
-
-    /**
-     * @param thesaurus the Thesaurus to set
-     */
-    public void setThesaurus(final List<BDD> thesaurus) {
-        this.thesaurus = thesaurus;
     }
 
     /**
@@ -430,19 +343,6 @@ public class Automatic extends AbstractConfigurationObject {
         this.indexOnlyPublishedMetadata = indexOnlyPublishedMetadata;
     }
 
-    /**
-     * Replace all the password in this object by '****'
-     */
-    public void hideSensibleField() {
-        final String hidden = "****";
-        if (bdd != null) {
-            bdd.setPassword(hidden);
-        }
-        for (BDD bd : getThesaurus()) {
-            bd.setPassword(hidden);
-        }
-    }
-
      /**
      * @return the customparameters
      */
@@ -524,20 +424,6 @@ public class Automatic extends AbstractConfigurationObject {
         this.customparameters = customparameters;
     }
 
-    /**
-     * @return the filterQueries
-     */
-    public Query getFilterQueries() {
-        return filterQueries;
-    }
-
-    /**
-     * @param filterQueries the filterQueries to set
-     */
-    public void setFilterQueries(Query filterQueries) {
-        this.filterQueries = filterQueries;
-    }
-
     public String getIndexType() {
         return indexType;
     }
@@ -556,12 +442,6 @@ public class Automatic extends AbstractConfigurationObject {
         if (format != null) {
             s.append("format: ").append(format).append('\n');
         }
-        if (bdd != null) {
-            s.append("BDD:").append(bdd).append('\n');
-        }
-        if (thesaurus != null) {
-            s.append("thesaurus:").append(thesaurus).append('\n');
-        }
         if (dataDirectory != null) {
             s.append("dataDirectory:").append(dataDirectory).append('\n');
         }
@@ -570,9 +450,6 @@ public class Automatic extends AbstractConfigurationObject {
         }
         if (profile != null) {
             s.append("profile:").append(profile).append('\n');
-        }
-        if (filterQueries != null) {
-            s.append("Filter queries:").append(filterQueries).append('\n');
         }
         if (customparameters != null) {
             s.append("custom parameters:\n");
@@ -613,19 +490,15 @@ public class Automatic extends AbstractConfigurationObject {
         if (this.getClass() == object.getClass()) {
             final Automatic that = (Automatic) object;
 
-            return Objects.equals(this.bdd,              that.bdd)              &&
-                   Objects.equals(this.name  ,           that.name)             &&
+            return Objects.equals(this.name  ,           that.name)             &&
                    Objects.equals(this.format  ,         that.format)           &&
                    Objects.equals(this.dataDirectory,    that.dataDirectory)    &&
                    Objects.equals(this.enableCache,      that.enableCache)      &&
                    Objects.equals(this.enableThread,     that.enableThread)     &&
                    Objects.equals(this.profile,          that.profile)          &&
-                   Objects.equals(this.thesaurus,        that.thesaurus)        &&
                    Objects.equals(this.noIndexation,     that.noIndexation)     &&
                    Objects.equals(this.harvester,        that.harvester)        &&
-                   Objects.equals(this.customparameters, that.customparameters) &&
-                   Objects.equals(this.filterQueries,    that.filterQueries)    &&
-                   Objects.equals(this.queries,          that.queries);
+                   Objects.equals(this.customparameters, that.customparameters);
         }
         return false;
     }
@@ -633,18 +506,14 @@ public class Automatic extends AbstractConfigurationObject {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 37 * hash + (this.bdd != null ? this.bdd.hashCode() : 0);
         hash = 37 * hash + (this.format != null ? this.format.hashCode() : 0);
-        hash = 37 * hash + (this.queries != null ? this.queries.hashCode() : 0);
         hash = 37 * hash + (this.name != null ? this.name.hashCode() : 0);
-        hash = 37 * hash + (this.thesaurus != null ? this.thesaurus.hashCode() : 0);
         hash = 37 * hash + (this.profile != null ? this.profile.hashCode() : 0);
         hash = 37 * hash + (this.enableThread != null ? this.enableThread.hashCode() : 0);
         hash = 37 * hash + (this.enableCache != null ? this.enableCache.hashCode() : 0);
         hash = 37 * hash + (this.dataDirectory != null ? this.dataDirectory.hashCode() : 0);
         hash = 37 * hash + (this.noIndexation != null ? this.noIndexation.hashCode() : 0);
         hash = 37 * hash + (this.harvester != null ? this.harvester.hashCode() : 0);
-        hash = 37 * hash + (this.filterQueries != null ? this.filterQueries.hashCode() : 0);
         return hash;
     }
 

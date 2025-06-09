@@ -34,8 +34,8 @@ import org.constellation.admin.SpringHelper;
 import org.constellation.business.IServiceBusiness;
 
 import org.constellation.dto.service.Service;
+import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.repository.ServiceRepository;
-import org.constellation.dto.service.config.generic.BDD;
 import org.constellation.generic.database.GenericDatabaseMarshallerPool;
 import org.constellation.test.SpringContextTest;
 import org.constellation.ws.CstlServiceException;
@@ -182,7 +182,7 @@ public class SOSWorkerInitialisationTest extends SpringContextTest {
          * Test 4: A malformed configuration file (bad unrecognized type).
          */
         sw = new StringWriter();
-        marshaller.marshal(new BDD(), sw);
+        marshaller.marshal(new Automatic(), sw);
         service = serviceRepository.findByIdentifierAndType("default", "sos");
         service.setConfig(sw.toString());
         final Service s4 = service;
