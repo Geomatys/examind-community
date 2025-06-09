@@ -18,6 +18,7 @@
  */
 package org.constellation.admin;
 
+import com.zaxxer.hikari.HikariConfig;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -57,6 +58,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
+import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.util.collection.Cache;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -81,6 +83,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviders;
+import org.constellation.util.DatasourceCache;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
 import org.constellation.util.SQLUtilities;
@@ -132,6 +135,9 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     private final Map<Integer, Thread> currentRunningAnalysis = new ConcurrentHashMap<>();
 
     private final Cache<Integer, Object> datasourceLocks = new Cache<>(19, 0, false);
+    
+    // TODO: dependency injection would be preferable
+    private static final DatasourceCache cache = new DatasourceCache();
 
     /**
      * {@inheritDoc}
@@ -419,20 +425,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private javax.sql.DataSource convert(DataSource ds) throws ConfigurationException {
         if (!"database".equals(ds.getType())) throw new ConfigurationException("Datasource is not a sql database");
-        String dbKey = SQLUtilities.addUserPwdToHirokuUrl(ds.getUrl(), ds.getUsername(), ds.getPwd());
-        javax.sql.DataSource result = SQL_DATASOURCE_CACHE.get(dbKey);
-        if (result == null) {
-            // special case to use the datasource of examind.
-            if (dbKey.equals(Application.getProperty(AppProperty.CSTL_DATABASE_URL))) {
-                result = dataSource;
-            } else {
-                result = SQLUtilities.getDataSource(ds.getUrl(), null, ds.getUsername(), ds.getPwd());
-            }
-            SQL_DATASOURCE_CACHE.put(dbKey, result);
+        if (Application.getProperty(AppProperty.CSTL_DATABASE_URL).equals(ds.getUrl())) {
+            return dataSource;
         }
-        return result;
+        HikariConfig config = SQLUtilities.createHikariConfig(ds.getUrl(), null, ds.getUsername(), ds.getPwd());
+        return cache.getOrCreate(config);
     }
-
+    
 
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
 

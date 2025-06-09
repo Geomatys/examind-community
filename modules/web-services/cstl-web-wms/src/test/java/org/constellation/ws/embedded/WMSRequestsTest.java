@@ -650,7 +650,7 @@ public class WMSRequestsTest extends AbstractGrizzlyServer {
 
                 DataImport d15 = testResource.createProvider(TestResource.JSON_FEATURE_COLLECTION, providerBusiness, null).datas.get(0);
                 
-                datas.addAll(testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).datas);
+                datas.addAll(testResource.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).datas);
                 
                 final LayerContext config = new LayerContext();
                 config.setGetFeatureInfoCfgs(FeatureInfoUtilities.createGenericConfiguration());

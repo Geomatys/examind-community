@@ -28,12 +28,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.ISensorBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.test.SpringContextTest;
 import org.geotoolkit.observation.OMUtils;
 import org.junit.Assert;
 import org.opengis.temporal.TemporalPrimitive;
@@ -43,15 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class SOSConfigurerTest extends SpringContextTest {
-
-    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
-    @Autowired
-    protected IServiceBusiness serviceBusiness;
-    @Autowired
-    protected IProviderBusiness providerBusiness;
-    @Autowired
-    protected ISensorBusiness sensorBusiness;
+public abstract class SOSConfigurerTest extends AbstractSOSWorkerTest {
 
     @Autowired
     private SensorServiceBusiness sensorServBusiness;

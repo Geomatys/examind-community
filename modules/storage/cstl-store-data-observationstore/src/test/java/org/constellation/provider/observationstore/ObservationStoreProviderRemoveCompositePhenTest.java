@@ -43,7 +43,7 @@ import org.geotoolkit.observation.model.Observation;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderRemoveCompositePhenTest extends AbstractObservationStoreProviderRemoveTest {
+public class ObservationStoreProviderRemoveCompositePhenTest extends AbstractObservationStoreProviderTest {
 
     @Test
     public void removePhenomenonTest() throws Exception {

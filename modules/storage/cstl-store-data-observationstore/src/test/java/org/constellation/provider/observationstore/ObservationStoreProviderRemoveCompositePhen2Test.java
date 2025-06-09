@@ -40,7 +40,7 @@ import org.geotoolkit.observation.model.Observation;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractObservationStoreProviderRemoveTest {
+public class ObservationStoreProviderRemoveCompositePhen2Test extends AbstractObservationStoreProviderTest {
 
     @Test
     public void removePhenomenonTest() throws Exception {

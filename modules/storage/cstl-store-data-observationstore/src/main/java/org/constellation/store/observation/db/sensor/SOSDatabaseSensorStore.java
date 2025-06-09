@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db.sensor;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,11 +26,15 @@ import org.apache.sis.parameter.Parameters;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
+import org.constellation.admin.SpringHelper;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.exception.ConstellationException;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATASOURCE_ID;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX_NAME;
-import org.constellation.store.observation.db.SOSDatabaseParamsUtils;
 import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE;
@@ -43,6 +46,7 @@ import org.geotoolkit.sensor.AbstractSensorStore;
 import org.geotoolkit.storage.DataStores;
 import org.opengis.metadata.Metadata;
 import org.opengis.util.GenericName;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -50,10 +54,25 @@ import org.opengis.util.GenericName;
  */
 public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resource {
     
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
+    
     public SOSDatabaseSensorStore(Parameters params) throws DataStoreException {
         super(params);
         try {
-            DataSource source  =  SOSDatabaseParamsUtils.extractOM2Datasource(params);
+            SpringHelper.injectDependencies(this);
+            Integer datasourceId = params.getValue(DATASOURCE_ID);
+            var exads = datasourceBusiness.getDatasource(datasourceId);
+            if (exads == null) throw new DataStoreException("No examind datasource find for id: " + datasourceId);
+            DataSource source;
+            try {
+                source = datasourceBusiness.getSQLDatasource(datasourceId).orElse(null);
+            } catch (ConstellationException ex) {
+                throw new DataStoreException(ex);
+            }
+            String url = exads.getUrl();
+            int i = url.indexOf(':');
+            OMSQLDialect dialect = OMSQLDialect.valueOf(SQLUtilities.getSGBDType(exads.getUrl()).toUpperCase());
             
             String schemaPrefix = params.getValue(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX);
             if (schemaPrefix == null) {
@@ -63,7 +82,6 @@ public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resou
                     throw new DataStoreException("Invalid schema prefix value");
                 }
             }
-            OMSQLDialect dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
             
             final Map<String,Object> properties = new HashMap<>();
             extractParameter(config, PHENOMENON_ID_BASE, properties);
@@ -74,7 +92,7 @@ public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resou
             properties.put(SQL_DIALECT, dialect);
         
             this.reader = new OM2SensorReader(source, properties);
-        } catch (RuntimeException | IOException ex) {
+        } catch (RuntimeException ex) {
             throw new DataStoreException("Error in SOS Database sensor store constructor", ex);
         }
     }

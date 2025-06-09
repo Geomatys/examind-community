@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.List;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
@@ -53,6 +54,9 @@ public abstract class AbstractObservationStoreProviderWriteTest extends SpringCo
 
     @Autowired
     protected IProviderBusiness providerBusiness;
+    
+    @Autowired
+    protected IDatasourceBusiness datasourceBusiness;
 
     protected static ObservationProvider omPr;
 

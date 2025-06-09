@@ -92,6 +92,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import static junit.framework.Assert.assertTrue;
 import org.apache.catalina.Context;
+import org.constellation.business.IDatasourceBusiness;
 import org.geotoolkit.test.xml.DocumentComparator;
 import org.constellation.business.IMapContextBusiness;
 import org.constellation.business.IPyramidBusiness;
@@ -150,6 +151,7 @@ public abstract class AbstractGrizzlyServer {
 
     protected static MarshallerPool pool;
 
+    protected IDatasourceBusiness datasourceBusiness;
     protected IServiceBusiness serviceBusiness;
     protected ILayerBusiness layerBusiness;
     protected IProviderBusiness providerBusiness;
@@ -197,6 +199,7 @@ public abstract class AbstractGrizzlyServer {
         mapBusiness      = SpringHelper.getBean(IMapContextBusiness.class).orElseThrow(IllegalStateException::new);
         dataCoverageJob  = SpringHelper.getBean(IDataCoverageJob.class).orElseThrow(IllegalStateException::new);
         styleBusiness    = SpringHelper.getBean(IStyleBusiness.class).orElseThrow(IllegalStateException::new);
+        datasourceBusiness = SpringHelper.getBean(IDatasourceBusiness.class).orElseThrow(IllegalStateException::new);
     }
 
     /**

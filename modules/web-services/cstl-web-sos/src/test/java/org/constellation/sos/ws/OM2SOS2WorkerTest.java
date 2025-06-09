@@ -57,7 +57,7 @@ public class OM2SOS2WorkerTest extends SOS2WorkerTest {
 
                 final TestResources testResource = initDataDirectory();
 
-                Integer omPid  = testResource.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPid  = testResource.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
                 Integer smlPid = testResource.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 testResource.generateSensors(sensorBusiness, omPid, smlPid);

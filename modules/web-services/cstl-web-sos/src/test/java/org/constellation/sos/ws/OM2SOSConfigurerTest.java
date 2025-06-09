@@ -52,7 +52,7 @@ public class OM2SOSConfigurerTest extends SOSConfigurerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                Integer omPrId  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPrId  = testResources.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
                 Integer senPrId = testResources.createProvider(TestResource.SENSOR_FILE, providerBusiness, null).id;
 
                 //we write the configuration file

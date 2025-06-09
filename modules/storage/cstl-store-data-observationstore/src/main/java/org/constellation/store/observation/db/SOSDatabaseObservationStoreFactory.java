@@ -51,51 +51,10 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
 
     private static final ParameterBuilder BUILDER = new ParameterBuilder();
 
-    /**
-     * Parameter for database port
-     */
-    public static final String PORT_NAME = "port";
-    public static final ParameterDescriptor<Integer> PORT = BUILDER.addName(PORT_NAME).setRemarks("Port").setRequired(false).create(Integer.class, 5432);
-
-    /**
-     * Parameter for database type (postgres, derby, ...)
-     */
-    public static final String SGBDTYPE_NAME = "sgbdtype";
-    public static final ParameterDescriptor<String> SGBDTYPE =
-             BUILDER.addName(SGBDTYPE_NAME).setRequired(false).createEnumerated(String.class, new String[]{"derby","duckdb","postgres"}, "derby");
-
-    /**
-     * Parameter for database url for derby database
-     */
-    public static final String DERBY_URL_NAME = "derbyurl";
-    public static final ParameterDescriptor<String> DERBY_URL =
-             BUILDER.addName(DERBY_URL_NAME).setRemarks("DerbyURL").setRequired(false).create(String.class, null);
-
-    /**
-     * Parameter for database host
-     */
-    public static final String HOST_NAME = "host";
-    public static final ParameterDescriptor<String> HOST =
-             BUILDER.addName(HOST_NAME).setRemarks("Host").setRequired(false).create(String.class, "localhost");
-
-    /**
-     * Parameter for database name
-     */
-    public static final String DATABASE_NAME = "database";
-    public static final ParameterDescriptor<String> DATABASE =
-             BUILDER.addName(DATABASE_NAME).setRemarks("Database").setRequired(false).create(String.class, null);
-
-    /**
-     * Parameter for database user name
-     */
-    public static final String USER_NAME = "user";
-    public static final ParameterDescriptor<String> USER =
-             BUILDER.addName(USER_NAME).setRemarks("User").setRequired(false).create(String.class, null);
+    public static final String DATASOURCE_ID_NAME = "datasource-id";
+    public static final ParameterDescriptor<Integer> DATASOURCE_ID =  
+            BUILDER.addName(DATASOURCE_ID_NAME).setDescription("Examind datasource identifier").create(Integer.class, null);
     
-    public static final String DATABASE_READONLY_NAME = "database-readonly";
-    public static final ParameterDescriptor<Boolean> DATABASE_READONLY =
-             BUILDER.addName(DATABASE_READONLY_NAME).setRemarks("database readonly").setRequired(false).create(Boolean.class, null);
-
     public static final String SCHEMA_PREFIX_NAME = "schema-prefix";
     public static final ParameterDescriptor<String> SCHEMA_PREFIX =
              BUILDER.addName(SCHEMA_PREFIX_NAME).setRemarks(SCHEMA_PREFIX_NAME).setRequired(false).create(String.class, null);
@@ -120,20 +79,13 @@ public class SOSDatabaseObservationStoreFactory extends AbstractObservationStore
             .setRequired(false)
             .create(Integer.class, 1000);
     
-    /**
-     * Parameter for database user password
-     */
-    public static final String PASSWD_NAME = "password";
-    public static final ParameterDescriptor<String> PASSWD =
-             BUILDER.addName(PASSWD_NAME).setRemarks("Password").setRequired(false).create(String.class, null);
-    
     public static final String MODE_NAME = "mode";
     public static final ParameterDescriptor<String> MODE =
              BUILDER.addName(MODE_NAME).setRemarks(MODE_NAME).setRequired(false).create(String.class, "default");
 
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR = BUILDER.addName(NAME).addName("SOSDBParameters").setRequired(true)
-            .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
-                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY, MODE);
+            .createGroup(IDENTIFIER, DATASOURCE_ID, NAMESPACE, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, MODE);
 
     @Override
     public ParameterDescriptorGroup getOpenParameters() {

@@ -539,11 +539,9 @@ public class ObservationStoreProvider extends IndexedNameDataProvider<DataStore>
             ParameterValueGroup choice = source.groups("choice").get(0);
             if (!choice.groups("SOSDBParameters").isEmpty()) {
                 ParameterValueGroup config = choice.groups("SOSDBParameters").get(0);
-                final String host     = String.valueOf(config.parameter("host").getValue());
-                final String database = String.valueOf(config.parameter("database").getValue());
-                final String port     = String.valueOf(config.parameter("port").getValue());
+                final String dsId     = String.valueOf(config.parameter("datasourceId").getValue());
                 final String schema   = String.valueOf(config.parameter("schema-prefix").getValue());
-                return host + '-' + database + '-' + port + '-' + schema;
+                return dsId + '-' + schema;
             }
         }
         return getId();

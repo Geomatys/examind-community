@@ -40,6 +40,7 @@ import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_MODEL;
 import static org.constellation.api.CommonConstants.TRANSACTIONAL;
 import static org.constellation.api.CommonConstants.TRANSACTION_SECURIZED;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -109,7 +110,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
     protected IProviderBusiness providerBusiness;
     @Autowired
     protected ISensorBusiness sensorBusiness;
-
+    @Autowired
+    protected IDatasourceBusiness datasourceBusiness;
+     
     private static boolean initialized = false;
 
     protected static STSWorker worker;
@@ -132,7 +135,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                Integer omPid  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPid  = testResources.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
                 Integer smlPid = testResources.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 testResources.generateSensors(sensorBusiness, omPid, smlPid);

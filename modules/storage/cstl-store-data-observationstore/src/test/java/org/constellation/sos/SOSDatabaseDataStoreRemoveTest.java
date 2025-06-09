@@ -21,7 +21,11 @@ package org.constellation.sos;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.List;
+import org.constellation.business.IDatasourceBusiness;
+import org.constellation.business.IProviderBusiness;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
+import org.constellation.test.SpringContextTest;
+import org.constellation.test.utils.Order;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.constellation.util.Util;
@@ -32,33 +36,40 @@ import org.geotoolkit.observation.model.ObservationDataset;
 import org.geotoolkit.observation.query.DatasetQuery;
 import org.geotoolkit.observation.query.ProcedureQuery;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.geotoolkit.observation.model.Procedure;
+import org.junit.Before;
 import org.opengis.temporal.Period;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SOSDatabaseDataStoreRemoveTest {
+public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
 
     private static TestEnvironment.TestResources testResource;
 
     private ObservationStore store;
+    
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
+    
+    @Autowired
+    private IProviderBusiness providerBusiness;
 
     @BeforeClass
     public static void setUp() throws Exception {
         testResource = initDataDirectory();
     }
 
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper = ObservationJsonUtils.getMapper();
 
     @Before
-    public void before() {
-        mapper = ObservationJsonUtils.getMapper();
-        store = (ObservationStore) testResource.createStore(TestEnvironment.TestResource.OM2_DB);
+    public void before() throws Exception {
+        providerBusiness.removeAll();
+        store = (ObservationStore) testResource.createStore(TestEnvironment.TestResource.OM2_DB, datasourceBusiness);
     }
     
     @Test

@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 
@@ -38,16 +37,20 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.util.Version;
+import org.constellation.admin.SpringHelper;
 
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V100_XML;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT_V200_XML;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
+import org.constellation.exception.ConstellationException;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
 import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.store.observation.db.mixed.MixedObservationFilterReader;
+import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import org.geotoolkit.observation.AbstractFilteredObservationStore;
 import org.geotoolkit.observation.FilterAppend;
@@ -69,6 +72,7 @@ import org.opengis.filter.Filter;
 import org.opengis.filter.LogicalOperator;
 import org.opengis.filter.LogicalOperatorName;
 import org.opengis.filter.ValueReference;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -76,6 +80,9 @@ import org.opengis.filter.ValueReference;
  */
 public class SOSDatabaseObservationStore extends AbstractFilteredObservationStore implements Aggregate {
 
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
+    
     public static final String SQL_DIALECT = "sql_dialect";
     public static final String TIMESCALEDB_VERSION = "timescaledb_version";
 
@@ -99,67 +106,71 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
 
     public SOSDatabaseObservationStore(final Parameters params) throws DataStoreException {
         super(params);
+        SpringHelper.injectDependencies(this);
+        Integer datasourceId = params.getValue(DATASOURCE_ID);
+        var exads = datasourceBusiness.getDatasource(datasourceId);
+        if (exads == null) throw new DataStoreException("No examind datasource find for id: " + datasourceId);
         try {
-            source  =  SOSDatabaseParamsUtils.extractOM2Datasource(params);
-            dialect = OMSQLDialect.valueOf((params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE)).toUpperCase());
-            mode    = params.getValue(SOSDatabaseObservationStoreFactory.MODE);
-            boolean timescaleDB = params.getValue(SOSDatabaseObservationStoreFactory.TIMESCALEDB);
+            source = datasourceBusiness.getSQLDatasource(datasourceId).orElse(null);
+        } catch (ConstellationException ex) {
+            throw new DataStoreException(ex);
+        }
+        dialect = OMSQLDialect.valueOf(SQLUtilities.getSGBDType(exads.getUrl()).toUpperCase());
+        mode    = params.getValue(SOSDatabaseObservationStoreFactory.MODE);
+        boolean timescaleDB = params.getValue(SOSDatabaseObservationStoreFactory.TIMESCALEDB);
 
-            String sp = params.getValue(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX);
-            if (sp == null) {
-                this.schemaPrefix = "";
-            } else {
-                if (Util.containsForbiddenCharacter(sp)) {
-                    throw new DataStoreException("Invalid schema prefix value");
+        String sp = params.getValue(SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX);
+        if (sp == null) {
+            this.schemaPrefix = "";
+        } else {
+            if (Util.containsForbiddenCharacter(sp)) {
+                throw new DataStoreException("Invalid schema prefix value");
+            }
+            this.schemaPrefix = sp;
+        }
+        this.maxFieldByTable = params.getValue(SOSDatabaseObservationStoreFactory.MAX_FIELD_BY_TABLE);
+
+        // decimation algorithm
+        String decAlgo = params.getValue(SOSDatabaseObservationStoreFactory.DECIMATION_ALGORITHM);
+
+        // allow to get default value from application properties if not set
+        if (decAlgo == null || decAlgo.isEmpty()) {
+            this.decimationAlgorithm = Application.getProperty(AppProperty.EXA_OM2_DEFAULT_DECIMATION_ALGORITHM, "");
+        } else {
+            this.decimationAlgorithm = decAlgo;
+        }
+
+         // build database structure if needed
+         buildDatasource();
+
+        // Test if the connection is valid
+        try(final Connection c = this.source.getConnection()) {
+            if (dialect.equals(OMSQLDialect.DUCKDB)) {
+                try (Statement loadExt = c.createStatement()) {
+                    String tsExtDirValue = Application.getProperty(AppProperty.EXA_OM2_DUCKDB_EXTENSION_DIRECTORY, null);
+                    if (tsExtDirValue != null) {
+                        loadExt.execute("SET extension_directory='" + tsExtDirValue + "'");
+                    }
+                    loadExt.execute("INSTALL spatial");
+                    loadExt.execute("LOAD spatial");
                 }
-                this.schemaPrefix = sp;
             }
-            this.maxFieldByTable = params.getValue(SOSDatabaseObservationStoreFactory.MAX_FIELD_BY_TABLE);
-
-            // decimation algorithm
-            String decAlgo = params.getValue(SOSDatabaseObservationStoreFactory.DECIMATION_ALGORITHM);
-
-            // allow to get default value from application properties if not set
-            if (decAlgo == null || decAlgo.isEmpty()) {
-                this.decimationAlgorithm = Application.getProperty(AppProperty.EXA_OM2_DEFAULT_DECIMATION_ALGORITHM, "");
-            } else {
-                this.decimationAlgorithm = decAlgo;
-            }
-
-            // build database structure if needed
-            buildDatasource();
-
-            // Test if the connection is valid
-            try(final Connection c = this.source.getConnection()) {
-                if (dialect.equals(OMSQLDialect.DUCKDB)) {
-                    try (Statement loadExt = c.createStatement()) {
-                        String tsExtDirValue = Application.getProperty(AppProperty.EXA_OM2_DUCKDB_EXTENSION_DIRECTORY, null);
-                        if (tsExtDirValue != null) {
-                            loadExt.execute("SET extension_directory='" + tsExtDirValue + "'");
-                        }
-                        loadExt.execute("INSTALL spatial");
-                        loadExt.execute("LOAD spatial");
+            if (timescaleDB) {
+                try (Statement stmt = c.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT installed_version FROM pg_available_extensions where name = 'timescaledb'")) {
+                    if (rs.next()) {
+                        String version = rs.getString(1);
+                        LOGGER.log(Level.INFO, "TimescaleDB version: {0}", version);
+                        timescaleDBVersion = new Version(version);
+                    } else {
+                        LOGGER.warning("Unable to read timescaleDB version, assuming < 1.11.0");
+                        timescaleDBVersion = new Version("1.10.0");
                     }
                 }
-                if (timescaleDB) {
-                    try (Statement stmt = c.createStatement();
-                         ResultSet rs = stmt.executeQuery("SELECT installed_version FROM pg_available_extensions where name = 'timescaledb'")) {
-                        if (rs.next()) {
-                            String version = rs.getString(1);
-                            LOGGER.log(Level.INFO, "TimescaleDB version: {0}", version);
-                            timescaleDBVersion = new Version(version);
-                        } else {
-                            LOGGER.warning("Unable to read timescaleDB version, assuming < 1.11.0");
-                            timescaleDBVersion = new Version("1.10.0");
-                        }
-                    }
-                } else {
-                    timescaleDBVersion = null;
-                }
-            } catch (SQLException ex) {
-                throw new DataStoreException(ex);
+            } else {
+                timescaleDBVersion = null;
             }
-        } catch(IOException ex) {
+        } catch (SQLException ex) {
             throw new DataStoreException(ex);
         }
     }

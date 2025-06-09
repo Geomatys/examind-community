@@ -33,7 +33,7 @@ import org.junit.Test;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderRemoveTest extends AbstractObservationStoreProviderRemoveTest {
+public class ObservationStoreProviderRemoveTest extends AbstractObservationStoreProviderTest {
 
     @Test
     public void removeFullDatasetTest() throws Exception {

@@ -179,7 +179,7 @@ public abstract class AbstractSosHarvesterTest extends SpringContextTest {
             providerBusiness.removeAll();
             datasourceBusiness.deleteAll();
 
-            Integer pid = testResources.createProvider(TestEnvironment.TestResource.OM2_DB, providerBusiness, null).id;
+            Integer pid = testResources.createProviderWithDatasource(TestEnvironment.TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
 
             //we write the configuration file
             final SOSConfiguration configuration = new SOSConfiguration();

@@ -21,6 +21,7 @@ package org.constellation.sos;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.util.Collection;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.TestEnvironment;
@@ -35,10 +36,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class SOSDatabaseSensorStoreTest  extends SpringContextTest {
+public class SOSDatabaseSensorStoreTest extends SpringContextTest {
 
     @Autowired
     protected IProviderBusiness providerBusiness;
+    
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
     
     private static final long TOTAL_NB_SENSOR = 19;
 
@@ -55,7 +59,7 @@ public class SOSDatabaseSensorStoreTest  extends SpringContextTest {
 
             final TestEnvironment.TestResources testResource = initDataDirectory();
 
-            SensPr = (SensorStore) testResource.createStore(TestEnvironment.TestResource.SENSOR_OM2_DB);
+            SensPr = (SensorStore) testResource.createStore(TestEnvironment.TestResource.SENSOR_OM2_DB, datasourceBusiness);
             initialized = true;
           }
     }

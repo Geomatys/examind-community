@@ -21,7 +21,6 @@ package org.constellation.sos.ws;
 
 import org.constellation.sos.core.SOSworker;
 import org.apache.sis.xml.MarshallerPool;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.MetadataUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -91,7 +90,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 import org.apache.sis.util.ComparisonMode;
 import org.apache.sis.util.Utilities;
 
@@ -99,9 +97,6 @@ import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.PROCEDURE_DESCRIPTION_FORMAT;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.ISensorBusiness;
-import org.constellation.business.IServiceBusiness;
 
 import static org.constellation.test.utils.TestEnvironment.EPSG_VERSION;
 import org.geotoolkit.observation.xml.v200.OMProcessPropertyType;
@@ -115,26 +110,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StreamUtils;
 
 /**
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class SOS2WorkerTest extends SpringContextTest {
+public abstract class SOS2WorkerTest extends AbstractSOSWorkerTest {
 
-    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
-
-    @Autowired
-    protected IServiceBusiness serviceBusiness;
-    @Autowired
-    protected IProviderBusiness providerBusiness;
-    @Autowired
-    protected ISensorBusiness sensorBusiness;
-
-    protected static final int NB_SENSOR = 19;
-    
     protected static SOSworker worker;
 
     protected static MarshallerPool marshallerPool;

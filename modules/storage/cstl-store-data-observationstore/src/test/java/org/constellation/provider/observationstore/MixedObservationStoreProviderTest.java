@@ -38,6 +38,7 @@ import org.apache.sis.referencing.CommonCRS;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.ProcedureDataset;
@@ -101,13 +102,16 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
     @Autowired
     protected IProviderBusiness providerBusiness;
     
-    private static final long TOTAL_NB_SENSOR = 18;
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
     
-    private static final long TOTAL_NB_TEMPLATE = 16;
+    private static final long NB_SENSOR = 18;
     
-    private static final long TOTAL_NB_OBS_NAME = 122; //TODO verify number
+    private static final long NB_TEMPLATE = 16;
     
-    private static final long TOTAL_NB_MEAS = 208; // number looks legit since the flat_csv_data table has 208 lines
+    private static final long NB_OBS_NAME = 122; //TODO verify number
+    
+    private static final long NB_MEAS = 208; // number looks legit since the flat_csv_data table has 208 lines
 
     private static final FilterFactory ff = FilterUtilities.FF;
 
@@ -137,7 +141,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
             providerBusiness.removeAll();
 
             final TestEnvironment.TestResources testResource = initDataDirectory();
-            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB_DUCK_MIXED, providerBusiness, null).id;
+            Integer omPid  = testResource.createProviderWithDatasource(TestEnvironment.TestResource.OM2_DB_DUCK_MIXED, providerBusiness, datasourceBusiness, null).id;
 
             omPr = (ObservationProvider) DataProviders.getProvider(omPid);
             initialized = true;
@@ -161,7 +165,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         assertNotNull(omPr);
 
         List<ProcedureDataset> procs = omPr.getProcedureTrees(null);
-        assertEquals(TOTAL_NB_SENSOR, procs.size());
+        assertEquals(NB_SENSOR, procs.size());
 
         Set<String> resultIds = new HashSet<>();
         procs.stream().forEach(s -> resultIds.add(s.getId()));
@@ -2055,10 +2059,10 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         LocationQuery query = new LocationQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
 
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(NB_SENSOR, resultIds.size());
 
         long count = omPr.getCount(query);
-        assertEquals(TOTAL_NB_SENSOR, count);
+        assertEquals(NB_SENSOR, count);
 
         /**
          * procedure filter
@@ -2090,7 +2094,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         LocationQuery query = new LocationQuery();
         Map<String, Geometry> results = omPr.getLocation(query);
 
-        assertEquals(TOTAL_NB_SENSOR, results.size());
+        assertEquals(NB_SENSOR, results.size());
 
         /**
          * procedure filter
@@ -2125,7 +2129,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new ProcedureQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:1");
@@ -2149,7 +2153,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR);
+        assertEquals(result, NB_SENSOR);
 
         /**
          * sensor type filter
@@ -2170,9 +2174,9 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
+        assertEquals(NB_SENSOR - 1, resultIds.size());
         result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR - 1);
+        assertEquals(result, NB_SENSOR - 1);
 
         /*
         * by id filter
@@ -2403,7 +2407,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         List<Procedure> results = omPr.getProcedures(query);
 
         Set<String> resultIds = getProcessIds(results);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("urn:ogc:object:sensor:GEOM:1");
@@ -2447,7 +2451,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         results = omPr.getProcedures(query);
 
         resultIds = getProcessIds(results);
-        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
+        assertEquals(NB_SENSOR - 1, resultIds.size());
 
         /*
         * by id filter
@@ -2669,7 +2673,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new OfferingQuery();
         Collection<String> resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR, resultIds.size());
+        assertEquals(NB_SENSOR, resultIds.size());
 
         Set<String> expectedIds = new LinkedHashSet<>();
         expectedIds.add("offering-1");
@@ -2693,7 +2697,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR);
+        assertEquals(result, NB_SENSOR);
 
         /*
         * sensor type filter
@@ -2712,12 +2716,12 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         filter = ff.equal(ff.property("sensorType") , ff.literal("system"));
         query.setSelection(filter);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_SENSOR - 1, resultIds.size());
+        assertEquals(NB_SENSOR - 1, resultIds.size());
 
         assertFalse(resultIds.contains("offering-2"));
 
         result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR - 1);
+        assertEquals(result, NB_SENSOR - 1);
 
         /*
         * procedure filter
@@ -2776,7 +2780,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
          */
         AbstractObservationQuery query = new OfferingQuery();
         List<Offering> results = omPr.getOfferings(query);
-        assertEquals(TOTAL_NB_SENSOR, results.size());
+        assertEquals(NB_SENSOR, results.size());
 
         Set<String> resultIds = results.stream().map(off -> off.getId()).collect(Collectors.toSet());
 
@@ -2802,7 +2806,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         Assert.assertEquals(expectedIds, resultIds);
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_SENSOR);
+        assertEquals(result, NB_SENSOR);
 
         /*
         * sensor type filter
@@ -2820,7 +2824,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         query.setSelection(filter);
         results = omPr.getOfferings(query);
 
-        assertEquals(TOTAL_NB_SENSOR - 1, results.size());
+        assertEquals(NB_SENSOR - 1, results.size());
 
         resultIds = results.stream().map(off -> off.getId()).collect(Collectors.toSet());
 
@@ -3267,7 +3271,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         query.setIncludeTimeInTemplate(false);
 
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(TOTAL_NB_TEMPLATE, results.size());
+        assertEquals(NB_TEMPLATE, results.size());
 
         for (Observation p : results) {
             assertTrue(p instanceof org.geotoolkit.observation.model.Observation);
@@ -4395,17 +4399,17 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         List<String> todo = new ArrayList<>(resultIds);
         Collections.sort(todo);
         
-        assertEquals(TOTAL_NB_MEAS, resultIds.size());
+        assertEquals(NB_MEAS, resultIds.size());
 
         long result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_MEAS);
+        assertEquals(result, NB_MEAS);
 
         query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         resultIds = omPr.getIdentifiers(query);
-        assertEquals(TOTAL_NB_OBS_NAME, resultIds.size());
+        assertEquals(NB_OBS_NAME, resultIds.size());
 
         result = omPr.getCount(query);
-        assertEquals(result, TOTAL_NB_OBS_NAME);
+        assertEquals(result, NB_OBS_NAME);
 
         query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
         Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:test-1"));
@@ -4738,7 +4742,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         todo = new ArrayList<>(todo);
         Collections.sort(todo);
         
-        assertEquals(TOTAL_NB_MEAS, results.size());
+        assertEquals(NB_MEAS, results.size());
 
        
         for (Observation p : results) {
@@ -4910,7 +4914,7 @@ public class MixedObservationStoreProviderTest extends SpringContextTest {
         ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
         query.setSeparatedProfileObservation(false);
         List<Observation> results = omPr.getObservations(query);
-        assertEquals(TOTAL_NB_TEMPLATE, results.size());
+        assertEquals(NB_TEMPLATE, results.size());
 
         Set<String> resultIds = new LinkedHashSet<>();
         for (Observation p : results) {

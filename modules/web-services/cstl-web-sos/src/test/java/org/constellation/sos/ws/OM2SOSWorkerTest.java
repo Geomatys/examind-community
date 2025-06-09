@@ -52,7 +52,7 @@ public class OM2SOSWorkerTest extends SOSWorkerTest {
                 serviceBusiness.deleteAll();
                 providerBusiness.removeAll();
 
-                Integer omPid  = testResources.createProvider(TestResource.OM2_DB, providerBusiness, null).id;
+                Integer omPid  = testResources.createProviderWithDatasource(TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
                 Integer smlPid = testResources.createProvider(TestResource.SENSOR_INTERNAL, providerBusiness, null).id;
 
                 testResources.generateSensors(sensorBusiness, omPid, smlPid);

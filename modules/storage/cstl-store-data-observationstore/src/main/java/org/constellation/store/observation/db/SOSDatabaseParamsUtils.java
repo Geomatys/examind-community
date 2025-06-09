@@ -35,7 +35,7 @@ public class SOSDatabaseParamsUtils {
     
     private static final Logger LOGGER = Logger.getLogger("org.constellation.store.observation.db");
     
-    public static String getDriverClassName(final Parameters params){
+    /*public static String getDriverClassName(final Parameters params){
         final String type  = params.getValue(SOSDatabaseObservationStoreFactory.SGBDTYPE);
         return switch (type) {
             case "derby"    ->  "org.apache.derby.jdbc.EmbeddedDriver";
@@ -113,5 +113,5 @@ public class SOSDatabaseParamsUtils {
                 candidate = SQLUtilities.getDataSource(jdbcUrl, driver, user, passwd, ro_prop, readOnly);
             }
             return candidate;
-    }
+    }*/
 }

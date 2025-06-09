@@ -27,18 +27,11 @@ import org.apache.sis.storage.ProbeResult;
 import org.apache.sis.storage.StorageConnector;
 import org.apache.sis.storage.base.Capability;
 import org.apache.sis.storage.base.StoreMetadata;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATABASE;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATABASE_READONLY;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DERBY_URL;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.HOST;
+import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATASOURCE_ID;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.MAX_FIELD_BY_TABLE;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.MODE;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.PASSWD;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.PORT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SGBDTYPE;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.TIMESCALEDB;
-import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.USER;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.NAMESPACE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_TEMPLATE_ID_BASE;
@@ -70,8 +63,8 @@ public class SOSDatabaseSensorStoreFactory extends DataStoreProvider {
     public static final ParameterDescriptorGroup PARAMETERS_DESCRIPTOR =
             new ParameterBuilder().addName(NAME)
                                   .addName("OM2SensorParameters")
-                                  .createGroup(IDENTIFIER,HOST,PORT,DATABASE,USER,PASSWD,NAMESPACE, SGBDTYPE, DERBY_URL, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
-                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, DATABASE_READONLY, MODE);
+                                  .createGroup(IDENTIFIER,DATASOURCE_ID,NAMESPACE, PHENOMENON_ID_BASE, OBSERVATION_TEMPLATE_ID_BASE,
+                         OBSERVATION_ID_BASE, SENSOR_ID_BASE, SCHEMA_PREFIX, TIMESCALEDB, MAX_FIELD_BY_TABLE, MODE);
 
     @Override
     public String getShortName() {

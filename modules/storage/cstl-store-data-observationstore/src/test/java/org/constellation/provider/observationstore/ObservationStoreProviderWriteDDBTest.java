@@ -43,7 +43,7 @@ public class ObservationStoreProviderWriteDDBTest extends AbstractObservationSto
             providerBusiness.removeAll();
 
             final TestEnvironment.TestResources testResource = initDataDirectory();
-            Integer omPid  = testResource.createProvider(TestEnvironment.TestResource.OM2_DB_DUCK, providerBusiness, null).id;
+            Integer omPid  = testResource.createProviderWithDatasource(TestEnvironment.TestResource.OM2_DB_DUCK, providerBusiness, datasourceBusiness, null).id;
 
             omPr = (ObservationProvider) DataProviders.getProvider(omPid);
             initialized = true;

@@ -26,6 +26,7 @@ import org.apache.sis.storage.DataStore;
 import org.apache.sis.storage.geotiff.GeoTiffStoreProvider;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.api.ProviderType;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorBusiness;
 import org.constellation.dto.Sensor;
@@ -236,10 +237,10 @@ public class TestEnvironment {
          * data :
          * - http://www.opengis.net/sampling/1.0 : SamplingPoint
          */
-        public static final TestResource OM2_DB = new TestResource(null, TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
-        public static final TestResource OM2_DB_NO_DATA = new TestResource(null, TestEnvironment::createOM2DatabaseProviderNoData);
-        public static final TestResource OM2_DB_DUCK = new TestResource(null,  TestEnvironment::createOM2DatabaseDDBProviderNoData);
-        public static final TestResource OM2_DB_DUCK_MIXED = new TestResource(null,  TestEnvironment::createOM2DatabaseDDBMixedProvider);
+        public static final TestResource OM2_DB            = new TestResource(TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
+        public static final TestResource OM2_DB_NO_DATA    = new TestResource(TestEnvironment::createOM2DatabaseProviderNoData, null);
+        public static final TestResource OM2_DB_DUCK       = new TestResource(TestEnvironment::createOM2DatabaseDDBProviderNoData, null);
+        public static final TestResource OM2_DB_DUCK_MIXED = new TestResource(TestEnvironment::createOM2DatabaseDDBMixedProvider, null);
 
 
         public static final TestResource OM_XML = new TestResource("org/constellation/xml/sos/omfile/single-observations.xml", TestEnvironment::createOMFileProvider);
@@ -249,7 +250,7 @@ public class TestEnvironment {
         // Sensor Providers
         public static final TestResource SENSOR_FILE = new TestResource("org/constellation/xml/sos/sensors", TestEnvironment::createSensorFileProvider);
         public static final TestResource SENSOR_INTERNAL = new TestResource(null, TestEnvironment::createSensorInternalProvider);
-        public static final TestResource SENSOR_OM2_DB = new TestResource(null, TestEnvironment::createSensorOM2Provider, TestEnvironment::createOM2DatabaseSensorStore);
+        public static final TestResource SENSOR_OM2_DB = new TestResource(TestEnvironment::createSensorOM2Provider, TestEnvironment::createOM2DatabaseSensorStore);
 
         // metadata providers
         public static final TestResource METADATA_FILE = new TestResource(null, TestEnvironment::createMetadataFileProvider);
@@ -306,27 +307,43 @@ public class TestEnvironment {
 
         protected final String path;
 
+        private final BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource;
         private final BiFunction<IProviderBusiness, Path, Integer> createProvider;
         private final BiFunction<IProviderBusiness, Path, List<Integer>> createProviders;
         private final Function<Path, DataStore> createStore;
+        private final Function<IDatasourceBusiness, DataStore> createStoreWithDatasource;
 
         public TestResource(String path) {
             this(path, null, null, null);
         }
 
         public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider) {
-            this(path, createProvider, null, null);
+            this(path, createProvider, null, null, null, null);
         }
 
         public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore) {
-            this(path, createProvider, createStore, null);
+            this(path, createProvider, null, null, createStore, null);
         }
 
-        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore, BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
+        public TestResource(String path, BiFunction<IProviderBusiness, Path, Integer> createProvider, Function<Path, DataStore> createStore, 
+                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders) {
+            this(path, createProvider, null, createProviders, createStore, null);
+        }
+        
+        public TestResource(BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
+            this(null, null, createProviderWithDatasource, null, null, createStoreWithDatasource);
+        }
+        
+        public TestResource(String path, 
+                BiFunction<IProviderBusiness, Path, Integer> createProvider,  BiFunction<IProviderBusiness, IDatasourceBusiness, Integer> createProviderWithDatasource,
+                BiFunction<IProviderBusiness, Path, List<Integer>> createProviders, 
+                Function<Path, DataStore> createStore, Function<IDatasourceBusiness, DataStore> createStoreWithDatasource) {
             this.path = path;
             this.createProvider = createProvider;
-            this.createStore= createStore;
+            this.createStore = createStore;
             this.createProviders = createProviders;
+            this.createStoreWithDatasource = createStoreWithDatasource;
+            this.createProviderWithDatasource = createProviderWithDatasource;
             values.add(this);
         }
     }
@@ -409,6 +426,19 @@ public class TestEnvironment {
            DeployedTestResource dpr = resources.get(tr);
            if (dpr != null) {
                int pid = dpr.createProvider(providerBusiness, datasetId);
+               int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
+               List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
+                       .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
+                       .collect(Collectors.toList());
+               return new ProviderImport(pid, dsId, datas);
+           }
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
+        }
+        
+        public ProviderImport createProviderWithDatasource(TestResource tr, IProviderBusiness providerBusiness, IDatasourceBusiness dsBusiness, Integer datasetId) throws ConstellationException {
+           DeployedTestResource dpr = resources.get(tr);
+           if (dpr != null) {
+               int pid = dpr.createProviderWithDatasource(providerBusiness, dsBusiness, datasetId);
                int dsId = providerBusiness.createOrUpdateData(pid, datasetId, true, false, null);
                List<DataImport> datas = providerBusiness.getDataBriefsFromProviderId(pid, null, true, false, false, false)
                        .stream().map(db -> new DataImport(db.getId(), db.getNamespace(), db.getName(), pid, db.getProvider()))
@@ -504,6 +534,14 @@ public class TestEnvironment {
            }
            throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
         }
+        
+        public DataStore createStore(TestResource tr, IDatasourceBusiness dsBusiness) {
+           DeployedTestResource dpr = resources.get(tr);
+           if (dpr != null) {
+               return dpr.createStore(dsBusiness);
+           }
+           throw new ConstellationRuntimeException("Missing test resource:" + tr.path);
+        }
     }
 
     public static class DeployedTestResource {
@@ -518,6 +556,10 @@ public class TestEnvironment {
         public Integer createProvider(IProviderBusiness providerBusiness, Integer datasetId) {
             return tr.createProvider.apply(providerBusiness, dataDir);
         }
+        
+        public Integer createProviderWithDatasource(IProviderBusiness providerBusiness, IDatasourceBusiness dsBusiness, Integer datasetId) {
+            return tr.createProviderWithDatasource.apply(providerBusiness, dsBusiness);
+        }
 
         public List<Integer> createProviders(IProviderBusiness providerBusiness, Integer datasetId) {
             return tr.createProviders.apply(providerBusiness, dataDir);
@@ -525,6 +567,10 @@ public class TestEnvironment {
 
         public DataStore createStore() {
             return tr.createStore.apply(dataDir);
+        }
+        
+        public DataStore createStore(IDatasourceBusiness dsBusiness) {
+            return tr.createStoreWithDatasource.apply(dsBusiness);
         }
     }
 
@@ -817,9 +863,10 @@ public class TestEnvironment {
             fileSuffix = "_ddb";
         }else {
             /* you can pass in file mode for debugging purpose
-               final String url = "jdbc:derby:/tmp/" + providerIdentifier + ".derby";
-               System.out.println("DERBY URL:" + url);*/
-            url = "jdbc:derby:memory:" + providerIdentifier;
+               */
+            url = "jdbc:derby:/tmp/" + providerIdentifier + ".derby";
+               System.out.println("DERBY URL:" + url);
+           // url = "jdbc:derby:memory:" + providerIdentifier;
             urlSuffix = ";create=true";
         }
         final DataSource ds = SQLUtilities.getDataSource(url + urlSuffix);
@@ -855,26 +902,29 @@ public class TestEnvironment {
         }
     }
 
-    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, true, false, "default");
+    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
+        return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, false, "default");
     }
 
-    private static Integer createOM2DatabaseProviderNoData(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, false, false, "default");
+    private static Integer createOM2DatabaseProviderNoData(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
+        return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, false, false, "default");
     }
 
-    private static Integer createOM2DatabaseDDBProviderNoData(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, false, true, "default");
+    private static Integer createOM2DatabaseDDBProviderNoData(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
+        return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, false, true, "default");
     }
     
-    private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, Path p) {
-        return createOM2DatabaseProvider(providerBusiness, p, true, true, "mixed");
+    private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
+        return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, true, "mixed");
     }
 
-    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, Path p, boolean withData, boolean ddb, String mode) {
+    private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness, boolean withData, boolean ddb, String mode) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb, mode);
+            
+            org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
+            int dsId = datasourceBusiness.create(ds);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -882,14 +932,12 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
 
             final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
-            config.parameter("sgbdtype").setValue(ddb ? "duckdb" : "derby");
-            config.parameter("derbyurl").setValue(url);
+            config.parameter("datasource-id").setValue(dsId);
             config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
             config.parameter("sensor-id-base").setValue("urn:ogc:object:sensor:GEOM:");
             config.parameter("max-field-by-table").setValue(10);
-            config.parameter("database-readonly").setValue(false);
             config.parameter("mode").setValue(mode);
 
             return  providerBusiness.storeProvider(providerIdentifier, ProviderType.LAYER, "observation-store", source);
@@ -898,10 +946,13 @@ public class TestEnvironment {
         }
     }
 
-    private static DataStore createOM2DatabaseStore(Path p) {
+    private static DataStore createOM2DatabaseStore(IDatasourceBusiness datasourceBusiness) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
+            
+            org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
+            int dsId = datasourceBusiness.create(ds);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -909,8 +960,7 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
 
             final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
-            config.parameter("sgbdtype").setValue("derby");
-            config.parameter("derbyurl").setValue(url);
+            config.parameter("datasource-id").setValue(dsId);
             config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
@@ -922,10 +972,13 @@ public class TestEnvironment {
         }
     }
     
-    private static DataStore createOM2DatabaseSensorStore(Path p) {
+    private static DataStore createOM2DatabaseSensorStore(IDatasourceBusiness datasourceBusiness) {
         try {
             final String providerIdentifier = "omSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, true, false, "default");
+            
+            org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
+            int dsId = datasourceBusiness.create(ds);
 
             final DataProviderFactory sensorFactory = DataProviders.getFactory("sensor-store");
             final ParameterValueGroup source    = sensorFactory.getProviderDescriptor().createValue();
@@ -933,8 +986,7 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) sensorFactory.getStoreDescriptor(), source);
 
             final ParameterValueGroup config = choice.addGroup("om2sensor");
-            config.parameter("sgbdtype").setValue("derby");
-            config.parameter("derbyurl").setValue(url);
+            config.parameter("datasource-id").setValue(dsId);
             config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");
@@ -1075,12 +1127,15 @@ public class TestEnvironment {
         }
     }
     
-    private static Integer createSensorOM2Provider(IProviderBusiness providerBusiness, Path p) {
+    private static Integer createSensorOM2Provider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         boolean withData = false; // TODO
         boolean ddb = false; // TODO
         try {
             final String providerIdentifier = "omSensorSrc-" + UUID.randomUUID().toString();
             final String url = buildEmbeddedOM2Database(providerIdentifier, withData, ddb, "default");
+
+            org.constellation.dto.DataSource ds = new org.constellation.dto.DataSource(null, "database", url, null, null, null, false, System.currentTimeMillis(), null, null, false, Map.of());
+            int dsId = datasourceBusiness.create(ds);
 
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
             final ParameterValueGroup source    = omFactory.getProviderDescriptor().createValue();
@@ -1088,8 +1143,7 @@ public class TestEnvironment {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
 
             final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
-            config.parameter("sgbdtype").setValue(ddb ? "duckdb" : "derby");
-            config.parameter("derbyurl").setValue(url);
+            config.parameter("datasource-id").setValue(dsId);
             config.parameter("phenomenon-id-base").setValue("urn:ogc:def:phenomenon:GEOM:");
             config.parameter("observation-template-id-base").setValue("urn:ogc:object:observation:template:GEOM:");
             config.parameter("observation-id-base").setValue("urn:ogc:object:observation:GEOM:");

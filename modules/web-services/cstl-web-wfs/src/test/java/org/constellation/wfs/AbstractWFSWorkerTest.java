@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import org.apache.sis.xml.MarshallerPool;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDataBusiness;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -57,6 +58,8 @@ public abstract class AbstractWFSWorkerTest extends SpringContextTest {
     protected IProviderBusiness providerBusiness;
     @Autowired
     protected IDataBusiness dataBusiness;
+    @Autowired
+    protected IDatasourceBusiness datasourceBusiness;
 
      @AfterClass
     public static void tearDownClass() throws Exception {

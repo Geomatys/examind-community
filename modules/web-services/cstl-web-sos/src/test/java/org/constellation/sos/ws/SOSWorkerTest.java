@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -40,10 +39,6 @@ import static org.constellation.api.CommonConstants.OFFERING;
 import static org.constellation.api.CommonConstants.PROCEDURE;
 import static org.constellation.api.CommonConstants.RESPONSE_FORMAT;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
-import org.constellation.business.IProviderBusiness;
-import org.constellation.business.ISensorBusiness;
-import org.constellation.business.IServiceBusiness;
-import org.constellation.test.SpringContextTest;
 import org.constellation.test.utils.MetadataUtilities;
 import org.constellation.util.Util;
 import org.constellation.ws.CstlServiceException;
@@ -110,7 +105,6 @@ import static org.junit.Assert.assertTrue;
 import org.opengis.observation.Observation;
 import org.opengis.observation.sampling.SamplingPoint;
 import org.opengis.temporal.TemporalPrimitive;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StreamUtils;
 
 
@@ -118,18 +112,7 @@ import org.springframework.util.StreamUtils;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public abstract class SOSWorkerTest extends SpringContextTest {
-
-    protected static final Logger LOGGER = Logger.getLogger("org.constellation.sos.ws");
-
-    @Autowired
-    protected IServiceBusiness serviceBusiness;
-    @Autowired
-    protected IProviderBusiness providerBusiness;
-    @Autowired
-    protected ISensorBusiness sensorBusiness;
-
-    protected static final int NB_SENSOR = 19;
+public abstract class SOSWorkerTest extends AbstractSOSWorkerTest {
 
     protected static SOSworker worker;
 

@@ -210,6 +210,7 @@ public final class ConfigDirectory {
      * @throws IOException if provider directory creation failed
      */
     public static Path getDataIntegratedDirectory(String providerId, boolean create) throws IOException {
+        if (config == null) return null;
         final Path rootFolder = getDataIntegratedDirectory().normalize();
         final Path f = rootFolder.resolve(providerId).normalize();
         if (!f.startsWith(rootFolder)) throw new IllegalArgumentException("Invalid provider ID: "+providerId);

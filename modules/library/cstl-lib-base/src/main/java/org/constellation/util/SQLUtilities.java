@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 import org.constellation.exception.ConfigurationRuntimeException;
 
 /**
- *
+ * 
  * @author Guilhem Legal (Geomatys)
  */
 public class SQLUtilities {
@@ -134,11 +134,17 @@ public class SQLUtilities {
         HikariConfig config = createHikariConfig(poolName, className, maxPoolSize, databaseURL, userName, password, leakDetectionThreshold, minIdle, idleTimeout, dsPropertie, readOnly);
         return new HikariDataSource(config);
     }
+    
+    
+    public static HikariConfig createHikariConfig(String connectURL, String className, String user, String password) {
+        return createHikariConfig(null, className, null, connectURL, user, password, null, null, null, null, null);
+    }
 
     /**
      * Build an Hikaru configuration.
      *
      * @param poolName Name assigned to the connection pool.
+     * @param className A JDBC driver class name or {@code null}
      * @param maxPoolSize Maximum pool size. If null use Hikari default value.
      * @param jdbcUrl  An JDBC database URL. accept hiroku form.
      * @param userName User name.
@@ -149,10 +155,12 @@ public class SQLUtilities {
      * including both idle and in-use connections.
      * @param idleTimeout The maximum amount of time (in milliseconds) that a connection is allowed to sit
      * idle in the pool. A value of 0 means that idle connections are never removed from the pool.
+     * @param dsProperties Datasource properties. Can be {@code null}.
+     * @param readOnly Set read only on the datasource. Can be {@code null}.
      *
      * @return An Hikari configuration.
      */
-    private static HikariConfig createHikariConfig(String poolName, String className, Integer maxPoolSize, String jdbcUrl, String userName,
+    public static HikariConfig createHikariConfig(String poolName, String className, Integer maxPoolSize, String jdbcUrl, String userName,
             String password, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsProperties, Boolean readOnly) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(convertToJDBCUrl(jdbcUrl));
@@ -261,5 +269,13 @@ public class SQLUtilities {
         } catch (URISyntaxException e) {
             throw new ConfigurationRuntimeException("", e);
         }
+    }
+    
+    public static String getSGBDType(String databaseURL) {
+        if (databaseURL.startsWith("jdbc:")) {
+            databaseURL = databaseURL.substring(5);
+        }
+        int i = databaseURL.indexOf(':');
+        return databaseURL.substring(0, i);
     }
 }

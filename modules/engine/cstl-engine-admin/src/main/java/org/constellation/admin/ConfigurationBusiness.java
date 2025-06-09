@@ -104,8 +104,14 @@ public class ConfigurationBusiness implements IConfigurationBusiness {
             throw new IllegalArgumentException("ProviderId must not be null or empty");
         }
         try {
-            final Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId, false).normalize();
-            final Path baseDir = ConfigDirectory.getDataIntegratedDirectory().normalize();
+            Path provDir = ConfigDirectory.getDataIntegratedDirectory(providerId, false);
+            Path baseDir = ConfigDirectory.getDataIntegratedDirectory();
+            if (provDir == null || baseDir == null) {
+               return false; 
+            } else {
+                provDir = provDir.normalize();
+                baseDir = baseDir.normalize();
+            }
             // Security: if given "." or ".." or any fragment allowing to resolve directory upstream, launch an error to prevent data corruption
             if (!provDir.startsWith(baseDir) || baseDir.startsWith(provDir)) {
                 throw new IllegalArgumentException("Given provider ID is invalid");
