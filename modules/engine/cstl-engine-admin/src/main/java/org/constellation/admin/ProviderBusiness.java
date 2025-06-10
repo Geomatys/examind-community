@@ -44,7 +44,6 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.CstlUser;
 import org.constellation.dto.DataBrief;
-import org.constellation.dto.DataSource;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.ProviderConfiguration;
 import org.constellation.dto.Sensor;
@@ -120,9 +119,6 @@ public class ProviderBusiness implements IProviderBusiness {
 
     @Autowired
     private IConfigurationBusiness configBusiness;
-
-    @Autowired
-    private IDatasourceBusiness datasourceBusiness;
 
     @Autowired
     private DatasourceRepository datasourceRepository;
@@ -318,9 +314,6 @@ public class ProviderBusiness implements IProviderBusiness {
         final String subType = config.getSubType();
         final Map<String,String> inParams = config.getParameters();
 
-        // we record the sql datasource if we found one in the parameters (not really generic for now)
-        recordSQLDataSource(config);
-
         final DataProviderFactory providerService = DataProviders.getFactory(type);
         if (providerService != null) {
             final ParameterDescriptorGroup sourceDesc = providerService.getProviderDescriptor();
@@ -334,30 +327,6 @@ public class ProviderBusiness implements IProviderBusiness {
     }
 
 
-    /**
-     * Datasource will be created through the front / api
-     * 
-     * @deprecated
-     */
-    @Deprecated
-    private void recordSQLDataSource(ProviderConfiguration config) throws ConstellationException {
-        String sgbdtype = config.getParameters().get("sgbdtype");
-        String host = config.getParameters().get("host");
-        String port = config.getParameters().get("port");
-        String database = config.getParameters().get("database");
-        String user = config.getParameters().get("user");
-        String pwd = config.getParameters().get("password");
-
-        if (sgbdtype != null && host != null && port != null && database != null && user != null && pwd != null) {
-            String dbUrl = sgbdtype + "://" + host + ':' + port + '/' + database;
-            List<DataSource> dss = datasourceBusiness.search(dbUrl, null, null, user, pwd);
-            if (dss.isEmpty()) {
-                DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
-                datasourceBusiness.create(ds);
-            }
-        }
-    }
-    
     /**
      * {@inheritDoc}
      */
@@ -516,14 +485,7 @@ public class ProviderBusiness implements IProviderBusiness {
                     break;
                 case "observationSOSDatabase":
                     final ParameterValueGroup dbObsParams = sources.groups("choice").get(0).addGroup("SOSDBParameters");
-                    dbObsParams.parameter("sgbdtype").setValue(inParams.get("sgbdtype"));
-                    dbObsParams.parameter("host").setValue(inParams.get("host"));
-                    if (inParams.get("port") != null) {
-                        dbObsParams.parameter("port").setValue(Integer.parseInt(inParams.get("port")));
-                    }
-                    dbObsParams.parameter("database").setValue(inParams.get("database"));
-                    dbObsParams.parameter("user").setValue(inParams.get("user"));
-                    dbObsParams.parameter("password").setValue(inParams.get("password"));
+                    dbObsParams.parameter("datasource-id").setValue(Integer.parseInt(inParams.get("datasource-id")));
                     dbObsParams.parameter("schema-prefix").setValue(inParams.get("schema-prefix"));
                     dbObsParams.parameter("mode").setValue(inParams.get("mode"));
                     if (inParams.get("timescaledb") != null) {
@@ -536,7 +498,6 @@ public class ProviderBusiness implements IProviderBusiness {
                     dbObsParams.parameter("observation-template-id-base").setValue(inParams.get("observation-template-id-base"));
                     dbObsParams.parameter("observation-id-base").setValue(inParams.get("observation-id-base"));
                     dbObsParams.parameter("sensor-id-base").setValue(inParams.get("sensor-id-base"));
-                    dbObsParams.parameter("derbyurl").setValue(inParams.get("derbyurl"));
                     break;
             }
         }else if("filesensor".equals(subType)){

@@ -163,14 +163,24 @@ public class SQLUtilities {
     public static HikariConfig createHikariConfig(String poolName, String className, Integer maxPoolSize, String jdbcUrl, String userName,
             String password, Long leakDetectionThreshold, Integer minIdle, Long idleTimeout, Properties dsProperties, Boolean readOnly) {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(convertToJDBCUrl(jdbcUrl));
+        jdbcUrl = convertToJDBCUrl(jdbcUrl);
+        config.setJdbcUrl(jdbcUrl);
 
         config.setUsername(userName);
         config.setPassword(password);
 
-        if (className != null) {
-            config.setDriverClassName(className);
+        if (className == null) {
+            if (jdbcUrl.startsWith("jdbc:hsqldb")) {
+                className = "org.hsqldb.jdbc.JDBCDriver";
+            } else if (jdbcUrl.startsWith("jdbc:duckdb")) {
+                className = "org.duckdb.DuckDBDriver";
+            } else if (jdbcUrl.startsWith("jdbc:postgres")) {
+                className = "org.postgresql.Driver";
+            } else if (jdbcUrl.startsWith("jdbc:derby")) {
+                className = "org.apache.derby.jdbc.EmbeddedDriver";
+            }
         }
+        config.setDriverClassName(className);
         if (poolName != null) {
             config.setPoolName(poolName);
         }

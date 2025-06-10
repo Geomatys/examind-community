@@ -328,66 +328,51 @@ angular.module('cstl-webservice-create', [
         };
 
         function createProviders() {
+            var dburl;
             var body;
             if (self.guiConfig.className === 'org.postgresql.Driver') {
-                body = {
-                        type: "observation-store",
-                        subType: "observationSOSDatabase",
-                        parameters: {
-                            port: self.guiConfig.port,
-                            host: self.guiConfig.url,
-                            database: self.guiConfig.name,
-                            user: self.guiConfig.user,
-                            password: self.guiConfig.password,
-                            'schema-prefix':self.guiConfig.schema,
-                            timescaledb: self.guiConfig.timescaledb,
-                            sgbdtype: 'postgres',
-                            'database-readonly': self.guiConfig.readOnly,
-                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
-                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
-                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
-                            'mode': self.guiConfig.mode
-                        }
-                    };
-            } else if (self.guiConfig.className === 'org.duckdb.DuckDBDriver') {
-                body = {
-                        type: "observation-store",
-                        subType: "observationSOSDatabase",
-                        parameters: {
-                            derbyurl: self.guiConfig.url,
-                            'schema-prefix':self.guiConfig.schema,
-                            sgbdtype: 'duckdb',
-                            'database-readonly': self.guiConfig.readOnly,
-                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
-                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
-                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
-                            'mode': self.guiConfig.mode
-                        }
-                    };
-            } else if (self.guiConfig.className === 'org.apache.derby.jdbc.EmbeddedDriver') {
-                body = {
-                        type: "observation-store",
-                        subType: "observationSOSDatabase",
-                        parameters: {
-                            derbyurl: self.guiConfig.url,
-                            'schema-prefix':self.guiConfig.schema,
-                            sgbdtype: 'derby',
-                            'database-readonly': self.guiConfig.readOnly,
-                            'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
-                            'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
-                            'observation-id-base':"urn:ogc:object:observation:GEOM:",
-                            'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
-                            'mode': self.guiConfig.mode
-                        }
-                    };
+                dburl = "postgres://" + self.guiConfig.url + ":" + self.guiConfig.port + "/" + self.guiConfig.name;
+            } else {
+                dburl = self.guiConfig.url;
             }
-            Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData, body).then(function() {
-                 createSensorProvider(body);
-            }, function() {
-                Growl('error','Error','Unable to create OM2 provider');
-            });
+            
+            var dataSource = {
+                type: "database",
+                url: dburl,
+                username: self.guiConfig.user,
+                pwd: self.guiConfig.password,
+                permanent: true,
+                properties: {
+                    readOnly: self.guiConfig.readOnly
+                }
+            };
+            
+            Examind.dataSources.create(dataSource)
+                .then(function (response) {
+                        body  = {
+                            type: "observation-store",
+                            subType: "observationSOSDatabase",
+                            parameters: {
+                                'datasource-id': response.data,
+                                'schema-prefix':self.guiConfig.schema,
+                                timescaledb: self.guiConfig.timescaledb,
+                                'phenomenon-id-base':"urn:ogc:def:phenomenon:GEOM:",
+                                'observation-template-id-base':"urn:ogc:object:observation:template:GEOM:",
+                                'observation-id-base':"urn:ogc:object:observation:GEOM:",
+                                'sensor-id-base':"urn:ogc:object:sensor:GEOM:",
+                                'mode': self.guiConfig.mode
+                            }
+                        };
+                        Examind.providers.create(self.id + '-' + self.type +'-om', self.guiConfig.createData, body).then(function() {
+                            createSensorProvider(body);
+                       }, function() {
+                           Growl('error','Error','Unable to create OM2 provider');
+                       });
+                    },
+                    function (response) {
+                        Growl('error','Error','Unable to create OM2 datasource');
+                    }
+                );
         }
         
         function createSensorProvider(omProviderBody) {
