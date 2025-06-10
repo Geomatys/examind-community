@@ -63,9 +63,11 @@ public class DataStatisticsListener extends ProcessListenerAdapter {
                     data.setStatsResult(statisticsAsString(event));
                     updateData(data);
                 } catch (JsonProcessingException e) {
-                    data.setStatsState(STATE_ERROR);
-                    data.setStatsResult("Error during statistic serializing.");
-                    updateData(data);
+                    // we no longer set the stats to error at progressing state.
+                    
+                    //data.setStatsState(STATE_ERROR);
+                    //data.setStatsResult("Error during statistic serializing.");
+                    //updateData(data);
                 }
             }
         }

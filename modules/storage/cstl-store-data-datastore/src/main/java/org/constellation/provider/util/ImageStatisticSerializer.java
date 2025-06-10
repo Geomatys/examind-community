@@ -24,16 +24,12 @@ public class ImageStatisticSerializer extends JsonSerializer<ImageStatistics> {
 
             jsonGen.writeStartObject();
             jsonGen.writeNumberField("index", band.getBandIndex());
-            if (band.getName() != null) {
-                jsonGen.writeStringField("name", band.getName());
-            }
-            if (band.getDataType() != null) {
-                jsonGen.writeStringField("dataType", band.getDataType().name());
-            }
-            jsonGen.writeNumberField("min", band.getMin());
-            jsonGen.writeNumberField("max", band.getMax());
-            jsonGen.writeNumberField("mean", band.getMean());
-            jsonGen.writeNumberField("std", band.getStd());
+            if (band.getName()     != null) jsonGen.writeStringField("name", band.getName());
+            if (band.getDataType() != null)  jsonGen.writeStringField("dataType", band.getDataType().name());
+            if (band.getMin()      != null) jsonGen.writeNumberField("min", band.getMin());
+            if (band.getMax()      != null) jsonGen.writeNumberField("max", band.getMax());
+            if (band.getMean()     != null) jsonGen.writeNumberField("mean", band.getMean());
+            if (band.getStd()      != null) jsonGen.writeNumberField("std", band.getStd());
 
             if (band.getNoData() != null) {
                 jsonGen.writeArrayFieldStart("noData");

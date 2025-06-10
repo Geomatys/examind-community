@@ -37,6 +37,7 @@ import org.constellation.dto.DataBrief;
 import org.constellation.dto.FeatureDataDescription;
 import org.constellation.dto.ParameterValues;
 import org.constellation.dto.PropertyDescription;
+import org.constellation.exception.ConstellationException;
 import org.constellation.provider.Data;
 import org.constellation.provider.DataProviders;
 import org.constellation.test.utils.TestEnvironment.TestResource;
@@ -143,10 +144,8 @@ public class DataBusinessTest extends AbstractBusinessTest {
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for SSTMDE200305 stats to complete.....");
-        while (db.getStatsState() == null || db.getStatsState().equals(StatisticState.STATE_PENDING))  {
-            db = dataBusiness.getDataBrief(coverage1DID, true, true);
-            Thread.sleep(1000);
-        }
+        db = waitForStatsCompletion(db, coverage1DID);
+        
         Assert.assertEquals("COMPLETED", db.getStatsState());
 
         Assert.assertNotNull(db.getDataDescription());
@@ -206,10 +205,8 @@ public class DataBusinessTest extends AbstractBusinessTest {
         Assert.assertNotNull(db);
 
         LOGGER.info("wait for Aggregated data stats to complete.....");
-        while (db.getStatsState() == null || db.getStatsState().equals("PENDING"))  {
-            db = dataBusiness.getDataBrief(aggregatedDID, true, true);
-            Thread.sleep(1000);
-        }
+        db = waitForStatsCompletion(db, aggregatedDID);
+        
         Assert.assertEquals("COMPLETED", db.getStatsState());
 
         Assert.assertNotNull(db.getDataDescription());
@@ -246,5 +243,13 @@ public class DataBusinessTest extends AbstractBusinessTest {
 
         exportData = dataBusiness.exportData(coverage2DID);
         Assert.assertEquals(1, exportData.length);
+    }
+    
+    private DataBrief waitForStatsCompletion(DataBrief db, Integer dataId) throws Exception {
+        while (db.getStatsState() == null || !(db.getStatsState().equals(StatisticState.STATE_COMPLETED) || db.getStatsState().equals(StatisticState.STATE_ERROR)))  {
+            db = dataBusiness.getDataBrief(dataId, true, true);
+            Thread.sleep(1000);
+        }
+        return db;
     }
 }
