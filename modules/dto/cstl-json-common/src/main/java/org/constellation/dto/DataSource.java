@@ -20,6 +20,7 @@ package org.constellation.dto;
 
 import java.io.Serializable;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -205,6 +206,9 @@ public class DataSource extends Identifiable implements Serializable {
     }
 
     public Map<String, String> getProperties() {
+        if (properties == null) {
+            properties = new HashMap<>();
+        }
         return properties;
     }
 

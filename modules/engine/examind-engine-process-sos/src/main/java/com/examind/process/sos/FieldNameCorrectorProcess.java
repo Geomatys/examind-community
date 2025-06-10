@@ -26,10 +26,10 @@ import java.sql.PreparedStatement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import javax.sql.DataSource;
 import org.apache.sis.parameter.Parameters;
 import org.apache.sis.util.UnconvertibleObjectException;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.dto.ProviderBrief;
 import org.constellation.process.AbstractCstlProcess;
 import org.constellation.provider.DataProvider;
@@ -39,7 +39,6 @@ import static org.constellation.provider.DataProviders.getFactory;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.repository.ProviderRepository;
 import org.constellation.util.ParamUtilities;
-import org.constellation.util.SQLUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.Field;
@@ -64,6 +63,9 @@ public class FieldNameCorrectorProcess extends AbstractCstlProcess {
  
     @Autowired
     private ProviderRepository repository;
+    
+    @Autowired
+    private IDatasourceBusiness dsBusiness;
             
     public FieldNameCorrectorProcess(final ProcessDescriptor desc, final ParameterValueGroup input) {
         super(desc,input);
@@ -110,7 +112,9 @@ public class FieldNameCorrectorProcess extends AbstractCstlProcess {
             }
             Parameters parameters = Parameters.castOrWrap(factoryconfig);
             
-            final DataSource source =  extractOM2Datasource(parameters);
+            final ParameterDescriptorGroup desc = parameters.getDescriptor();
+            final Integer dsId  = parameters.getValue((ParameterDescriptor<Integer>) desc.descriptor("datasource-id"));
+            final DataSource source =  dsBusiness.getSQLDatasource(dsId).orElse(null);
             
             String schemPrefix = parameters.getValue((ParameterDescriptor<String>) parameters.getDescriptor().descriptor("schema-prefix"));
             if (schemPrefix == null) {
@@ -155,24 +159,5 @@ public class FieldNameCorrectorProcess extends AbstractCstlProcess {
             }
         }
         return null;
-    }
-    
-    private static DataSource extractOM2Datasource(final Parameters params) throws IOException {
-        final ParameterDescriptorGroup desc = params.getDescriptor();
-        // driver
-        final String driver = "org.postgresql.Driver";
-
-        // jdbc url
-        final String host  = params.getValue((ParameterDescriptor<String>) desc.descriptor("host"));
-        final Integer port = params.getValue((ParameterDescriptor<Integer>) desc.descriptor("port"));
-        final String db    = params.getValue((ParameterDescriptor<String>) desc.descriptor("database"));
-        final String jdbcUrl = "jdbc:postgresql" + "://" + host + ":" + port + "/" + db;
-
-        final String user = params.getValue((ParameterDescriptor<String>) desc.descriptor("user"));
-
-        // password
-        final String passwd = params.getValue((ParameterDescriptor<String>) desc.descriptor("password"));
-
-        return SQLUtilities.getDataSource(jdbcUrl, driver, user, passwd, new Properties(), false);
     }
 }

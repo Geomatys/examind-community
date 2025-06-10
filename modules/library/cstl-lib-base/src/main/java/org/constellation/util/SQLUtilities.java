@@ -58,38 +58,6 @@ public class SQLUtilities {
     }
     
     /**
-     * Build a SQL datasource.
-     * 
-     * @param className A JDBC driver class name or {@code null}
-     * @param connectURL JDBC datasource url.
-     * @param user user name.
-     * @param password user pwd.
-     * @param dsPropertie Datasource properties. Can be {@code null}.
-     * @param readOnly Set read only on the datasource. Can be {@code null}.
-     *
-     * @return A SQL Datasource.
-     */
-    public static DataSource getDataSource(String connectURL, String className, String user, String password, Properties dsPropertie, Boolean readOnly) {
-        return getDataSource(connectURL, className, null, user, password, null, null, null, null, dsPropertie, readOnly);
-    }
-
-    /**
-     * Build an Hikari datasource.
-     *
-     * @param databaseURL A database URL in Hiroku like format with included username/password.
-     * @param poolName Name assigned to the connection pool.
-     * @param maxPoolSize Maximum pool size. If null use Hikari default value.
-     * @param leakDetectionThreshold This property controls the amount of time that a connection can be out of the pool before a message is
-    * logged indicating a possible connection leak. can be {@code null}.
-    *
-     * @return An Hikari datasource.
-     */
-    public static DataSource getDataSource(String databaseURL, String poolName, Integer maxPoolSize, Long leakDetectionThreshold) {
-        var userInfos = extractUserPasswordUrl(databaseURL);
-        return getDataSource(userInfos[0], null, poolName, userInfos[1], userInfos[2], maxPoolSize, leakDetectionThreshold, null, null, null, null);
-    }
-
-    /**
      * Build an Hikari datasource.
      *
      * @param databaseURL A database URL in Hiroku like format with included username/password.
@@ -178,6 +146,8 @@ public class SQLUtilities {
                 className = "org.postgresql.Driver";
             } else if (jdbcUrl.startsWith("jdbc:derby")) {
                 className = "org.apache.derby.jdbc.EmbeddedDriver";
+            } else {
+                throw new IllegalArgumentException("Unable to find a driver for jdbc url: " + jdbcUrl);
             }
         }
         config.setDriverClassName(className);
@@ -196,11 +166,17 @@ public class SQLUtilities {
         if (idleTimeout != null) {
             config.setIdleTimeout(idleTimeout);
         }
-        if (dsProperties != null) {
-            config.setDataSourceProperties(dsProperties);
-        }
         if (readOnly != null) {
             config.setReadOnly(readOnly);
+            
+            // special case for duckbd, the read only property must be set on properties
+            if ("org.duckdb.DuckDBDriver".equals(className)) {
+                if (dsProperties == null) dsProperties = new Properties();
+                dsProperties.setProperty("duckdb.read_only", "true");   
+            }
+        }
+        if (dsProperties != null) {
+            config.setDataSourceProperties(dsProperties);
         }
         return config;
     }

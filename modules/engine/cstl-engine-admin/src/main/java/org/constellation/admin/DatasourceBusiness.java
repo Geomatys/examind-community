@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -428,10 +429,25 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         if (Application.getProperty(AppProperty.CSTL_DATABASE_URL).equals(ds.getUrl())) {
             return dataSource;
         }
-        HikariConfig config = SQLUtilities.createHikariConfig(ds.getUrl(), null, ds.getUsername(), ds.getPwd());
+        // extract datasource properties
+        String className      = ds.getProperties().get("className");
+        Integer maxPoolSize   = parseIfPresentI(ds.getProperties(), "maxPoolSize");
+        Long leakDetectionThr = parseIfPresentL(ds.getProperties(), "leakDetectionThreshold");
+        Integer minIdle       = parseIfPresentI(ds.getProperties(), "minIdle");
+        Long idleTimeout      = parseIfPresentL(ds.getProperties(), "idleTimeout");
+        Boolean readOnly      = Boolean.valueOf(ds.getProperties().getOrDefault("readOnly", "false"));
+        HikariConfig config = SQLUtilities.createHikariConfig(null, className, maxPoolSize, ds.getUrl(), ds.getUsername(), ds.getPwd(), leakDetectionThr, minIdle, idleTimeout, null, readOnly);
         return cache.getOrCreate(config);
     }
     
+    private static Integer parseIfPresentI(Map<String, String> m, String key) {
+        if (m.containsKey(key)) return Integer.valueOf(m.get(key));
+        return null;
+    }
+    private static Long parseIfPresentL(Map<String, String> m, String key) {
+        if (m.containsKey(key)) return Long.valueOf(m.get(key));
+        return null;
+    }
 
     private static class S63FileVisitor extends SimpleFileVisitor<Path>  {
 
