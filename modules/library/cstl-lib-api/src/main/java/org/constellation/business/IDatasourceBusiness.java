@@ -393,16 +393,4 @@ public interface IDatasourceBusiness {
      */
     Optional<javax.sql.DataSource> getSQLDatasource(int id) throws ConstellationException;
 
-    /**
-     * Search for an existing sql datasource, if found,  instanciate or return a cached sql datasource.
-     * If no datasource match for the specified parameters, return empty.
-     *
-     * @param hirokuUrl database url in hiroku form
-     * @param userName user name.
-     * @param pwd user password.
-     *
-     * @return An Optional datasource. If no datasource match for the specified parameters, return empty.
-     * @throws ConstellationException If we found a datasource with the specified parameters, but not of type "sql". this should never happen in a consistent database.
-     */
-    Optional<javax.sql.DataSource> getSQLDatasource(String hirokuUrl, String userName, String pwd) throws ConstellationException;
 }

@@ -876,6 +876,10 @@ public class TestEnvironment {
                 }
                 sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2" + fileSuffix + ".sql"));
             }
+        } finally {
+            if (ds instanceof AutoCloseable ac) {
+                ac.close();
+            }
         }
         return url;
     }

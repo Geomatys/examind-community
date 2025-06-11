@@ -172,7 +172,7 @@ public class SQLUtilities {
             // special case for duckbd, the read only property must be set on properties
             if ("org.duckdb.DuckDBDriver".equals(className)) {
                 if (dsProperties == null) dsProperties = new Properties();
-                dsProperties.setProperty("duckdb.read_only", "true");   
+                dsProperties.setProperty("duckdb.read_only", readOnly.toString());   
             }
         }
         if (dsProperties != null) {

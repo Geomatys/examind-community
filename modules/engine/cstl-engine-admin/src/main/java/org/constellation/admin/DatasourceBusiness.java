@@ -398,8 +398,6 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private final Map<String, javax.sql.DataSource> SQL_DATASOURCE_CACHE = new HashMap<>();
-
     /**
      * {@inheritDoc}
      */
@@ -408,18 +406,6 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         DataSource ds = dsRepository.findById(id);
         if (ds != null) {
             return Optional.of(convert(ds));
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<javax.sql.DataSource> getSQLDatasource(String hirokuUrl, String userName, String pwd) throws ConstellationException {
-        List<org.constellation.dto.DataSource> dss = search(hirokuUrl, null, null, userName, pwd);
-        if (!dss.isEmpty()) {
-            return Optional.of(convert(dss.get(0)));
         }
         return Optional.empty();
     }

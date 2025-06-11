@@ -1,8 +1,6 @@
 org.constellation.util.converter.CRSConverters$String2CoordinateReferenceSystem
 org.constellation.util.converter.CRSConverters$Map2CoordinateReferenceSystem
 org.constellation.util.converter.CRSConverters$String2CRSProcessReference
-org.constellation.util.converter.DataSourceToStringConverter
-org.constellation.util.converter.StringToDataSourceConverter
 org.constellation.util.converter.TemporalConverters$LocalDateToDate
 org.constellation.util.converter.TemporalConverters$DateToLocalDate
 org.constellation.util.converter.TemporalConverters$DateToDouble
