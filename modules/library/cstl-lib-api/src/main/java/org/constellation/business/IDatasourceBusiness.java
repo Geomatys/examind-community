@@ -133,11 +133,10 @@ public interface IDatasourceBusiness {
      * @param storeId filter on store id can be {@code null}.
      * @param format filter on format can be {@code null}
      * @param userName filter on user name can be {@code null}
-     * @param pwd filter on user password can be {@code null}
      *
      * @return A List of Datasources (never {@code null})
      */
-    List<DataSource> search(String url, String storeId, String format, String userName, String pwd);
+    List<DataSource> search(String url, String storeId, String format, String userName);
 
     /**
      * Test if the url pointed by the datasource is reachable.

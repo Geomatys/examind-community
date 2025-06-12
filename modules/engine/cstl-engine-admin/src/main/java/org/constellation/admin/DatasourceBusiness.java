@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.GeneralSecurityException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -59,7 +59,6 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.storage.DataStoreProvider;
 import org.apache.sis.storage.Resource;
 import org.apache.sis.storage.StorageConnector;
-import static org.apache.sis.util.ArgumentChecks.ensureNonNull;
 import org.apache.sis.util.collection.Cache;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
@@ -84,6 +83,7 @@ import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConstellationException;
 import org.constellation.exception.TargetNotFoundException;
 import org.constellation.provider.DataProviders;
+import org.constellation.util.CipherUtilities;
 import org.constellation.util.DatasourceCache;
 import org.constellation.util.FileSystemReference;
 import org.constellation.util.FileSystemUtilities;
@@ -163,6 +163,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
             throw new ConfigurationException("Datasource type must be filled.");
         }
         ds.setType(ds.getType().toLowerCase());
+        try {
+            // encrypt pwd before saving
+            String encPwd = CipherUtilities.encrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            ds.setPwd(encPwd);
+        } catch (GeneralSecurityException ex) {
+            throw new ConfigurationException("Error while encrypting password", ex);
+        }
         return dsRepository.create(ds);
     }
 
@@ -174,6 +181,13 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     public void update(DataSource ds) throws ConstellationException {
         if (("file".equals(ds.getType()) || "local_files".equals(ds.getType())) && !configBusiness.allowedFilesystemAccess(ds.getUrl())) {
             throw new UnauthorizedException("You are not authorized to access this filesystem path");
+        }
+        try {
+            // encrypt pwd before saving
+            String encPwd = CipherUtilities.encrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            ds.setPwd(encPwd);
+        } catch (GeneralSecurityException ex) {
+            throw new ConfigurationException("Error while encrypting password", ex);
         }
         dsRepository.update(ds);
     }
@@ -279,15 +293,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
      */
     @Override
     public List<DataSource> search(String url, String storeId, String format) {
-        return search(url, storeId, format, null, null);
+        return search(url, storeId, format, null);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<DataSource> search(String url, String storeId, String format, String userName, String password) {
-        return dsRepository.search(url, storeId, format, userName, password);
+    public List<DataSource> search(String url, String storeId, String format, String userName) {
+        return dsRepository.search(url, storeId, format, userName);
     }
 
     /**
@@ -325,8 +339,15 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         }
     }
 
-    private FileSystemReference getFileSystem(DataSource ds, boolean create) throws URISyntaxException, IOException {
-        return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId(), create, ds.getProperties());
+    private FileSystemReference getFileSystem(DataSource ds, boolean create) throws ConstellationException {
+        try {
+            String decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), decryptedPwd, ds.getId(), create, ds.getProperties());
+        } catch (GeneralSecurityException ex) {
+            throw new ConfigurationException("Error while decrypting saved password", ex);
+        } catch (URISyntaxException | IOException ex) {
+            throw new ConfigurationException("Error instanciate filesystem", ex);
+        }
     }
 
     /**
@@ -422,7 +443,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         Integer minIdle       = parseIfPresentI(ds.getProperties(), "minIdle");
         Long idleTimeout      = parseIfPresentL(ds.getProperties(), "idleTimeout");
         Boolean readOnly      = Boolean.valueOf(ds.getProperties().getOrDefault("readOnly", "false"));
-        HikariConfig config = SQLUtilities.createHikariConfig(null, className, maxPoolSize, ds.getUrl(), ds.getUsername(), ds.getPwd(), leakDetectionThr, minIdle, idleTimeout, null, readOnly);
+        String decryptedPwd;
+        if (ds.getPwd() != null && ds.getPwd().contains("#")) {
+            try {
+                decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            } catch (GeneralSecurityException ex) {
+                throw new ConfigurationException("Error while decrypting saved password", ex);
+            }
+        // for datasource test and backward compatibility
+        } else {
+            decryptedPwd = ds.getPwd();
+        }
+        HikariConfig config = SQLUtilities.createHikariConfig(null, className, maxPoolSize, ds.getUrl(), ds.getUsername(), decryptedPwd, leakDetectionThr, minIdle, idleTimeout, null, readOnly);
         return cache.getOrCreate(config);
     }
     
@@ -459,9 +491,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         switch (ds.getType().toLowerCase()) {
             case "database":
                 if (ds.getUrl() == null) return "Missing url.";
-                String dbURL = SQLUtilities.convertToJDBCUrl(ds.getUrl());
-                DefaultDataSource database = new DefaultDataSource(dbURL);
-                try (Connection c = database.getConnection(ds.getUsername(), ds.getPwd())){
+                javax.sql.DataSource database;
+                try {
+                    database = convert(ds);
+                } catch (ConfigurationException ex) {
+                    LOGGER.warning(ex.getMessage());
+                    return ex.getMessage();
+                }
+                try (Connection c = database.getConnection()){
                 } catch (SQLException ex) {
                     LOGGER.warning(ex.getMessage());
                     return ex.getMessage();
@@ -523,7 +560,12 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private void closeFileSystem(DataSource ds) {
         if (!ds.getReadFromRemote()) {
-            FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getPwd(), ds.getId());
+            try {
+                String decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+                FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), decryptedPwd, ds.getId());
+            } catch (GeneralSecurityException ex) {
+                LOGGER.log(Level.WARNING, "Error while decrypting saved password", ex);
+            }
         }
     }
 
@@ -544,20 +586,14 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         switch (ds.getType()) {
             case "smb":
             case "s3":
-                try {
-                    String userUrl = getFileSystem(ds, true).uri;
-                    url = userUrl + subPath;
-                } catch (IOException | URISyntaxException ex) {
-                    throw new ConfigurationException(ex);
-                }   break;
+                String userUrl = getFileSystem(ds, true).uri;
+                url = userUrl + subPath;
+                break;
             case "ftp":
-                try {
-                    String userUrl = getFileSystem(ds, true).uri;
-                    String mainPath = URI.create(ds.getUrl()).getPath();
-                    url = userUrl + mainPath + subPath;
-                } catch (IOException | URISyntaxException ex) {
-                    throw new ConfigurationException(ex);
-                }   break;
+                String ftpUserUrl = getFileSystem(ds, true).uri;
+                String mainPath = URI.create(ds.getUrl()).getPath();
+                url = ftpUserUrl + mainPath + subPath;
+                break;
             default:
                 url = ds.getUrl() + subPath;
                 break;

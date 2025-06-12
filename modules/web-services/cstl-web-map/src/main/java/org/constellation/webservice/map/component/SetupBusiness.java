@@ -237,7 +237,7 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         String dbUrl = infos[0];
         String user  = infos[1];
         String pwd   = infos[2];
-        List<DataSource> datasources = datasourceBusiness.search(dbUrl, "NULL", "NULL", user, pwd);
+        List<DataSource> datasources = datasourceBusiness.search(dbUrl, "NULL", "NULL", user);
         if (datasources.isEmpty()) {
             DataSource ds = new DataSource(null, "database", dbUrl, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, Map.of());
             datasourceBusiness.create(ds);

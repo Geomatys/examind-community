@@ -104,7 +104,10 @@ public class DatasourceRestAPI extends AbstractRestAPI {
     @RequestMapping(value = "/datasources/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity getDatasource(@PathVariable("id") int id) {
         try {
-            return new ResponseEntity(datasourceBusiness.getDatasource(id), OK);
+            DataSource ds = datasourceBusiness.getDatasource(id);
+            if (ds == null) return ResponseEntity.notFound().build();
+            ds.hideSensibleField();
+            return new ResponseEntity(ds, OK);
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, ex.getLocalizedMessage(), ex);
             return new ErrorMessage(ex).build();

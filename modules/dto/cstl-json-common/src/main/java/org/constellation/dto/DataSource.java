@@ -215,4 +215,10 @@ public class DataSource extends Identifiable implements Serializable {
     public void setProperties(Map<String, String> properties) {
         this.properties = properties;
     }
+    
+    public void hideSensibleField() {
+        if (pwd != null) {
+            pwd = "******";
+        }
+    }
 }
