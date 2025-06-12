@@ -751,24 +751,24 @@ public class DefaultWMSWorker extends LayerWorker implements WMSWorker {
     private org.geotoolkit.wms.xml.Style convertStyleToWmsStyle(final String currentVersion, final org.apache.sis.style.Style ms, final Data data,
             final Map<String, String> legendUrls)
     {
-        String styleName = (ms instanceof org.opengis.style.Style st) ? styleName = st.getName() : "unnamed";
+        String styleName = (ms instanceof org.opengis.style.Style st) ? st.getName() : "unnamed";
         final LegendTemplate lt = mapPortrayal.getDefaultLegendTemplate();
-        final Dimension dimension;
+        Dimension dimension = null;
         try {
             dimension = DefaultLegendService.legendPreferredSize(lt, data.getMapLayer(ms));
         } catch (ConstellationStoreException ex) {
-            LOGGER.log(Level.INFO, ex.getLocalizedMessage(), ex);
-            return null;
+            LOGGER.log(Level.WARNING, "Cannot estimate legend dimension (an arbitrary size will be set)", ex);
+        }
+        // If we cannot assign a dimension, we set an arbitrary one to avoid failing entire style markup
+        if (dimension == null || dimension.getWidth() <= 0 || dimension.getHeight() <= 0) {
+            dimension = new Dimension(256, 256);
         }
         AbstractLegendURL[] legends = new AbstractLegendURL[legendUrls.size()];
         
         int i = 0;
         for (Entry<String, String> entry : legendUrls.entrySet()) {
             AbstractOnlineResource or = createOnlineResource(currentVersion, entry.getKey());
-            // no dimension for json glg
-            Integer width  = entry.getValue().equals(MimeType.APP_JSON) ? null : dimension.width;
-            Integer height = entry.getValue().equals(MimeType.APP_JSON) ? null : dimension.height;
-            legends[i] = createLegendURL(currentVersion, entry.getValue(), or, width, height);
+            legends[i] = createLegendURL(currentVersion, entry.getValue(), or, dimension.width, dimension.height);
             i++;
         }
         return createStyle(currentVersion, styleName, styleName, null, legends);
