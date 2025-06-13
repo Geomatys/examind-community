@@ -155,14 +155,14 @@ public class FileSystemUtilities {
         }
     }
 
-    public static void closeFileSystem(String type, String baseUrl, String userName, String password, Integer refId) {
+    public static void closeFileSystem(String type, String baseUrl, String userName, Integer refId) {
         switch (type.toLowerCase()) {
             case "smb":
             case "ftp":
             case "s3":
                 if (baseUrl != null) {
                     try {
-                        FileSystemReference fsr = getFileSystem(type, baseUrl, userName, password, refId, false, Map.of());
+                        FileSystemReference fsr = getFileSystem(type, baseUrl, userName, null, refId, false, Map.of());
                         if (fsr != null && fsr.closeFs(refId)) {
                             synchronized(USED_FILESYSTEMS) {
                                 USED_FILESYSTEMS.remove(fsr.uri);

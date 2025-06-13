@@ -341,10 +341,18 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private FileSystemReference getFileSystem(DataSource ds, boolean create) throws ConstellationException {
         try {
-            String decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+            String decryptedPwd;
+            if (ds.getPwd() != null && ds.getPwd().contains("#")) {
+                try {
+                    decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
+                } catch (GeneralSecurityException ex) {
+                    throw new ConfigurationException("Error while decrypting saved password", ex);
+                }
+            // for datasource test and backward compatibility
+            } else {
+                decryptedPwd = ds.getPwd();
+            }
             return FileSystemUtilities.getFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), decryptedPwd, ds.getId(), create, ds.getProperties());
-        } catch (GeneralSecurityException ex) {
-            throw new ConfigurationException("Error while decrypting saved password", ex);
         } catch (URISyntaxException | IOException ex) {
             throw new ConfigurationException("Error instanciate filesystem", ex);
         }
@@ -560,12 +568,7 @@ public class DatasourceBusiness implements IDatasourceBusiness {
 
     private void closeFileSystem(DataSource ds) {
         if (!ds.getReadFromRemote()) {
-            try {
-                String decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
-                FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), decryptedPwd, ds.getId());
-            } catch (GeneralSecurityException ex) {
-                LOGGER.log(Level.WARNING, "Error while decrypting saved password", ex);
-            }
+            FileSystemUtilities.closeFileSystem(ds.getType(), ds.getUrl(), ds.getUsername(), ds.getId());
         }
     }
 
