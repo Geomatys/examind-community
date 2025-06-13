@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -47,6 +48,7 @@ import org.constellation.business.IStyleBusiness;
 import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.dto.DataSource;
+import org.constellation.dto.ProviderBrief;
 import org.constellation.dto.service.ServiceComplete;
 import org.constellation.exception.ConfigurationException;
 import org.constellation.exception.ConfigurationRuntimeException;
@@ -78,7 +80,6 @@ import static org.geotoolkit.style.StyleConstants.DEFAULT_LINE_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POINT_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_POLYGON_SYMBOLIZER;
 import static org.geotoolkit.style.StyleConstants.DEFAULT_RASTER_SYMBOLIZER;
-import org.opengis.style.StyleFactory;
 
 /**
  * Specific setup for map service
@@ -172,6 +173,13 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "An error occurred when creating default map context provider.", ex);
         }
+        
+        LOGGER.log(Level.INFO, "update datasource providers ...");
+        try {
+            updateOldSQLProvider();
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "An error occurred when updating datasource providers.", ex);
+        }
 
         //check if data analysis is required
         boolean doAnalysis = Application.getBooleanProperty(AppProperty.DATA_AUTO_ANALYSE, Boolean.TRUE);
@@ -225,6 +233,106 @@ public class SetupBusiness implements InitializingBean, DisposableBean {
     public void destroy() {
         DataProviders.dispose();
     }
+    
+    private void updateOldSQLProvider() {
+        LOGGER.info("=== Updating legacy SQL providers ===");
+        for (ProviderBrief pb : providerBusiness.getProviders()) {
+            String config = pb.getConfig();
+            if (config.contains("<SQL>") && config.contains("<location>")) {
+                String url     = extractMarkValue(config, "location", false);
+                String user    = extractMarkValue(config, "user", false);
+                String pwd     = extractMarkValue(config, "password", false);
+                String jmx     = extractMarkValue(config, "activateJmxMetrics", false);
+                String leakThs = extractMarkValue(config, "leakDetectionThreshold", false);
+                String maxCon  = extractMarkValue(config, "maxConnections", false);
+                String minId   = extractMarkValue(config, "minIdle", false);
+                String idtM    = extractMarkValue(config, "idleTimeoutMs", false);
+                String coTM    = extractMarkValue(config, "connectTimeoutMs", false);
+
+                List<DataSource> existing = datasourceBusiness.search(url, null, null, user);
+                try {
+                    // create datasource
+                    int dsId;
+                    if (existing.isEmpty()) {
+                        Map<String, String> properties = new HashMap<>();
+                        if (jmx     != null) properties.put("activateJmxMetrics",     jmx);
+                        if (leakThs != null) properties.put("leakDetectionThreshold", leakThs);
+                        if (maxCon  != null) properties.put("maxPoolSize",            maxCon);
+                        if (minId   != null) properties.put("minIdle",                minId);
+                        if (idtM    != null) properties.put("idleTimeoutMs",          idtM);
+                        if (coTM    != null) properties.put("connectTimeoutMs",       coTM);
+                        DataSource ds = new DataSource(null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
+                        dsId = datasourceBusiness.create(ds);
+                    } else {
+                        dsId = existing.get(0).getId();
+                    }
+                    config = replaceMark(config, "location", "<datasourceId>" + dsId + "</datasourceId>");
+                    config = removeMarks(config, "user", "password", "activateJmxMetrics","leakDetectionThreshold","maxConnections","minIdle","idleTimeoutMs","connectTimeoutMs");
+                    providerBusiness.update(pb.getId(), config);
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "Error while migrating SQL provider to new version.", ex);
+                }
+            } else if ((config.contains("<observationSOSDatabase>") ||  config.contains("<om2sensor>")) && config.contains("<sgbdtype>")) {
+                String sgbdType = extractMarkValue(config, "sgbdtype", false);
+                String host     = extractMarkValue(config, "host", false);
+                String port     = extractMarkValue(config, "port", false);
+                String database = extractMarkValue(config, "database", false);
+                String user     = extractMarkValue(config, "user", false);
+                String pwd      = extractMarkValue(config, "password", false);
+                String readOnly = extractMarkValue(config, "database-readonly", false);
+                String url      = extractMarkValue(config, "derbyurl", false);
+
+                if ("postgres".equals(sgbdType)) {
+                    url = "postgres://" + host + ':' + port + '/' + database;
+                }
+                List<DataSource> existing = datasourceBusiness.search(url, null, null, user);
+                try {
+                    // create datasource
+                    int dsId;
+                    if (existing.isEmpty()) {
+                        Map<String, String> properties = new HashMap<>();
+                        if (readOnly != null) properties.put("readOnly",     readOnly);
+                        DataSource ds = new DataSource(null, "database", url, user, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, properties);
+                        dsId = datasourceBusiness.create(ds);
+                    } else {
+                        dsId = existing.get(0).getId();
+                    }
+                    config = replaceMark(config, "sgbdtype", "<datasourceId>" + dsId + "</datasourceId>");
+                    config = removeMarks(config, "user", "password", "host","port","database-readonly","derbyurl", "database");
+                    providerBusiness.update(pb.getId(), config);
+                } catch (ConstellationException ex) {
+                    LOGGER.log(Level.WARNING, "Error while migrating Observation provider to new version.", ex);
+                }
+            }
+        }
+    }
+    
+    private static String removeMarks(String xml, String... tags) {
+        for (String tag : tags) {
+            String mark = extractMarkValue(xml, tag, true);
+            if (mark == null) continue;
+            xml = xml.replace(mark, "");
+        }
+        return xml;
+    }
+    
+    private static String replaceMark(String xml, String tag, String replacement) {
+        String mark = extractMarkValue(xml, tag, true);
+        if (mark == null) return xml;
+        return xml.replace(mark, replacement);
+    }
+    
+    private static String extractMarkValue(String xml, String tag, boolean includeTag) {
+        int st = xml.indexOf("<" + tag + ">");
+        int en = xml.indexOf("</" + tag + ">");
+        if (en == -1 || st == -1) return null;
+        if (includeTag) {
+            return xml.substring(st, en +  tag.length() + 3);
+        } else {
+            return xml.substring(st + tag.length() + 2, en);
+        }
+    }
+    
 
     /**
      * Record the current sql datasource ine order to use it for further usage.
