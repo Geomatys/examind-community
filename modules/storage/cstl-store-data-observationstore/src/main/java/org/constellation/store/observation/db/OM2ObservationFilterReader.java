@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
+import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
@@ -740,6 +741,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
         } else {
             processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
+        }
+        if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
+            processor.setPhenomenons(getPhenomenonFields(fields, c));
+            processor.setProcedureProperties(readProperties("procedures_properties", "id_procedure", currentProcedure.id, c));
         }
         return processor;
     }

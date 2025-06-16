@@ -11,6 +11,7 @@ import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 
@@ -28,8 +29,10 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     private Map<String, csvFlatLine> currentLines = new HashMap<>();
     
     private final List<Field> fields;
+    private final Map<Field, Phenomenon> phenomenons;
+    private final Map<String, Object> procedureProperties;
             
-    public CsvFlatResultBuilder(ProcedureInfo procedure, List<Field> fields, final TextEncoderProperties encoding) {
+    public CsvFlatResultBuilder(ProcedureInfo procedure, List<Field> fields, Map<Field, Phenomenon> phenomenons,  Map<String, Object> procedureProperties, final TextEncoderProperties encoding) {
         super(ResultMode.CSV, encoding, false);
         this.encoding = encoding;
         values = new StringBuilder();
@@ -41,6 +44,8 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             if (fields.get(i).type == FieldType.MEASURE) break;
         }
         this.fields = fields.subList(i, fields.size());
+        this.phenomenons = phenomenons != null ? phenomenons : Map.of();
+        this.procedureProperties = procedureProperties != null ? procedureProperties : Map.of();
     }
     
     /**
@@ -58,7 +63,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     public void newBlock() {
         currentLines.clear();
         for (Field field : fields) {
-            currentLines.put(field.name, new csvFlatLine(field, procedure, encoding));
+            currentLines.put(field.name, new csvFlatLine(field, procedure, phenomenons.get(field), procedureProperties, encoding));
         }
     }
 
@@ -306,11 +311,12 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         values.append("sensor_id").append(encoding.getTokenSeparator());
         values.append("sensor_name").append(encoding.getTokenSeparator());
         values.append("sensor_description").append(encoding.getTokenSeparator());
+        values.append("sensor_properties").append(encoding.getTokenSeparator());
         values.append("obsprop_id").append(encoding.getTokenSeparator());
         values.append("obsprop_name").append(encoding.getTokenSeparator());
         values.append("obsprop_desc").append(encoding.getTokenSeparator());
         values.append("obsprop_unit").append(encoding.getTokenSeparator());
-        // quality ?
+        values.append("obsprop_properties").append(encoding.getTokenSeparator());
         values.append("z_value").append(encoding.getTokenSeparator());
         values.append("value").append(encoding.getTokenSeparator());
         values.append("value_quality").append(encoding.getTokenSeparator());
@@ -334,7 +340,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         public Map<String, Object> qualityValues = new HashMap<>();
         public Map<String, Object> parameterValues = new HashMap<>();
         
-        public csvFlatLine(Field field, ProcedureInfo procedure, TextEncoderProperties encoding) {
+        public csvFlatLine(Field field, ProcedureInfo procedure, Phenomenon phen, Map<String, Object> procedureProperties, TextEncoderProperties encoding) {
             StringBuilder sb = new StringBuilder();
             
             // prepare the line
@@ -342,10 +348,12 @@ public class CsvFlatResultBuilder extends ResultBuilder {
             sb.append(valueOrEmpty(procedure.id)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(procedure.name)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(procedure.description)).append(encoding.getTokenSeparator());
+            sb.append(mapToString(procedureProperties)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.name)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.label)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.description)).append(encoding.getTokenSeparator());
             sb.append(valueOrEmpty(field.uom)).append(encoding.getTokenSeparator());
+            sb.append(mapToString(phen.getProperties())).append(encoding.getTokenSeparator());
             sb.append("${z_value}").append(encoding.getTokenSeparator());
             sb.append("${result}").append(encoding.getTokenSeparator());
             sb.append("${result_quality}").append(encoding.getTokenSeparator());
@@ -406,7 +414,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         
         private static String mapToString(Map<String, Object> m) {
             String result = "";
-            if (!m.isEmpty()) {
+            if (m != null && !m.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
                 for (Entry<String, Object> entry : m.entrySet()) {
                     sb.append(entry.getKey()).append(":");

@@ -22,15 +22,19 @@ import java.sql.Connection;
 import org.constellation.util.SQLResult;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
+import static org.constellation.api.CommonConstants.CSV;
+import static org.constellation.api.CommonConstants.CSV_FLAT;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.store.observation.db.result.CsvFlatResultBuilder;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.temp.ObservationType;
+import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import static org.geotoolkit.observation.model.TextEncoderProperties.CSV_ENCODING;
@@ -56,6 +60,12 @@ public class ResultProcessor {
     protected final ProcedureInfo procedure;
     protected final int mainFieldIndex;
     protected final String idSuffix;
+    
+    /**
+     * loaded only for some mode.
+     */
+    protected Map<Field, Phenomenon> phenomenons;
+    protected Map<String, Object> procedureProperties;
 
     public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
         this.fields = fields;
@@ -69,15 +79,16 @@ public class ResultProcessor {
         this.idSuffix = idSuffix == null ? "" : idSuffix;
     }
 
+    
     public ResultBuilder initResultBuilder(String responseFormat, boolean countRequest) {
         if (DATA_ARRAY.equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.DATA_ARRAY, null, false);
-        } else if ("text/csv".equals(responseFormat)) {
+        } else if (CSV.equals(responseFormat)) {
             values = new ResultBuilder(ResultMode.CSV, CSV_ENCODING, true);
             // Add the header
             values.appendHeaders(fields);
-        } else if ("text/csv-flat".equals(responseFormat)) {
-            values = new CsvFlatResultBuilder(procedure, fields, CSV_FLAT_ENCODING);
+        } else if (CSV_FLAT.equals(responseFormat)) {
+            values = new CsvFlatResultBuilder(procedure, fields, phenomenons, procedureProperties, CSV_FLAT_ENCODING);
             // Add the header
             values.appendHeaders(fields);
         } else if (countRequest) {
@@ -125,5 +136,13 @@ public class ResultProcessor {
             }
             parser.parseLine(rs);
         }
+    }
+    
+    public void setPhenomenons(Map<Field, Phenomenon> phenomenons) {
+        this.phenomenons = phenomenons;
+    }
+    
+    public void setProcedureProperties(Map<String, Object> procProp) {
+        this.procedureProperties = procProp;
     }
 }

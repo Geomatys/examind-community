@@ -83,7 +83,6 @@ import org.geotoolkit.observation.query.ObservedPropertyQuery;
 import org.geotoolkit.observation.query.ResultQuery;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.locationtech.jts.io.ParseException;
-import org.opengis.filter.BinaryComparisonOperator;
 import org.opengis.filter.BinarySpatialOperator;
 import org.opengis.filter.ComparisonOperator;
 import org.opengis.filter.ComparisonOperatorName;
@@ -2138,6 +2137,14 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         try {
             boolean removeMainField  = procedure.mainField.dataType == FieldDataType.TIME;
             List<Field> fields = readFields(procedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters);
+            return getPhenomenonFields(fields, c);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    protected Map<Field, Phenomenon> getPhenomenonFields(List<Field> fields, Connection c) {
+        try {
             final Map<Field, Phenomenon> results = new LinkedHashMap<>();
             for (Field f : fields) {
                 results.put(f, getSinglePhenomenon(f.name, c));
