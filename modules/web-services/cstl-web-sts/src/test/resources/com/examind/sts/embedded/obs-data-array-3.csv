@@ -63,11 +63,11 @@ time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_de
 2009-05-01T14:02:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;7.8;;
 2009-05-01T14:03:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.9;;
 2009-05-01T14:04:00.0;urn:ogc:object:sensor:GEOM:10;Sensor 10;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;9.1;;
-1980-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.1;
-1981-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.2;
-1982-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.3;
-1983-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.4;
-1984-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qres:3.5;
+1980-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qflag:ok|qres:3.1;
+1981-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qflag:ko|qres:3.2;
+1982-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qflag:ok|qres:3.3;
+1983-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qflag:ko|qres:3.4;
+1984-03-01T21:52:00.0;urn:ogc:object:sensor:GEOM:quality_sensor;Sensor quality;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;qflag:ok|qres:3.5;
 2007-05-01T12:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
 2007-05-01T13:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;
 2007-05-01T14:59:00.0;urn:ogc:object:sensor:GEOM:test-1;Sensor test 1;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.56;;

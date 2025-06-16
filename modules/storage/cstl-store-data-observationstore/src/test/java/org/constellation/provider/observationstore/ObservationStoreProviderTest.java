@@ -6000,42 +6000,42 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
 
         String expectedResult =
                             "time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_desc;obsprop_unit;z_value;value;value_quality;value_parameter\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:fr;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;blue;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;false;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;27.0;age_qual:37.0;age_slice:2.0\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:en;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;green;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;true;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;28.0;age_qual:38.0;age_slice:2.0\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:fr;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;red;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;false;;\n" +
-                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;29.0;age_qual:39.1;age_slice:2.0\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:fr;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;yellow;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;true;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;16.3;age_qual:16.3;age_slice:1.0\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:sp;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;yellow;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;true;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;26.4;age_qual:25.4;age_slice:2.0\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:fr;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;yellow;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;true;;\n" +
-                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;30.0;age_qual:28.1;age_slice:2.0\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:fr;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;brown;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;false;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;11.0;age_qual:0.0;age_slice:1.0\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:fr;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;black;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;false;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;22.0;age_qual:0.0;age_slice:1.0\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:de;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;black;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;false;;\n" +
-                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;33.0;age_qual:0.0;age_slice:2.0\n";
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;blue;color_qual:good;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;false;isHot_qual:false;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;27.0;age_qual:37.0;age_slice:2.0|age_param:almost 30\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:[en];;metadata_param:country:[England]\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;green;color_qual:fade;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;true;isHot_qual:false;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;28.0;age_qual:38.0;age_slice:2.0|age_param:almost 30\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;red;color_qual:bad;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;false;isHot_qual:true;\n" +
+                            "2000-01-01T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;29.0;age_qual:39.1;age_slice:2.0|age_param:almost 30\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;yellow;color_qual:good;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;true;isHot_qual:true;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;16.3;age_qual:16.3;age_slice:1.0|age_param:teenager\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:[sp];;metadata_param:country:[Spain]\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;yellow;color_qual:good;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;true;isHot_qual:true;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;26.4;age_qual:25.4;age_slice:2.0|age_param:still young\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;yellow;color_qual:good;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;true;isHot_qual:true;\n" +
+                            "2000-01-02T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;30.0;age_qual:28.1;age_slice:2.0|age_param:thirty\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;1.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;1.0;brown;color_qual:bad;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;1.0;false;isHot_qual:false;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;1.0;11.0;age_qual:0.0;age_slice:1.0|age_param:child\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;2.0;country:[fr];;metadata_param:country:[France]\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;2.0;black;color_qual:fade;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;2.0;false;isHot_qual:false;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;2.0;22.0;age_qual:0.0;age_slice:1.0|age_param:young\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;metadata;metadata;urn:ogc:def:phenomenon:GEOM:metadata;;3.0;country:[de];;metadata_param:country:[Germany]\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;color;color;urn:ogc:def:phenomenon:GEOM:color;;3.0;black;color_qual:fade;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;isHot;isHot;urn:ogc:def:phenomenon:GEOM:isHot;;3.0;false;isHot_qual:false;\n" +
+                            "2000-01-03T00:00:00.0;urn:ogc:object:sensor:GEOM:17;Sensor 17;;age;age;urn:ogc:def:phenomenon:GEOM:age;;3.0;33.0;age_qual:0.0;age_slice:2.0|age_param:thirty\n";
 
         assertEquals(expectedResult, result);
     }

@@ -156,11 +156,14 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendBoolean(Boolean value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
         if (value != null) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendResult(value);
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(value);
+            }
         }
     }
 
@@ -169,11 +172,14 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendFloat(Float value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
         if (value != null && !Float.isNaN(value)) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendResult(value);
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(value);
+            }
         }
     }
 
@@ -182,11 +188,14 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendInteger(Integer value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
         if (value != null) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendResult(value);
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(value);
+            }
         }
     }
 
@@ -195,12 +204,15 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendString(String value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
          // we don't want to add the id
         if (!f.name.equals("id") && value != null) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendResult(value);
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(value);
+            }
         }
     }
 
@@ -209,26 +221,27 @@ public class CsvFlatResultBuilder extends ResultBuilder {
      */
     @Override
     public void appendLong(Long value, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
-        
         if (value != null) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
-            currentLine.appendResult(value);
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, value);
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(value);
+            }
         }
     }
 
     @Override
     public void appendMap(Map map, boolean measureField, Field f) {
-        if (f.type == FieldType.PARAMETER || f.type == FieldType.QUALITY) return;
         if (map != null && !map.isEmpty()) {
-            csvFlatLine currentLine = getCurrentLine(f.name);
             StringBuilder sb = new StringBuilder();
             for (Object key : map.keySet()) {
                 if (key instanceof String keyStr) {
                     sb.append(keyStr).append(":");
                     Object value = map.get(key);
                     if (value instanceof String valueStr) {
-                        sb.append(valueStr);
+                        sb.append('[').append(valueStr).append(']');
                     } else if (value instanceof List lst) {
                         sb.append('[');
                         for (Object lsValue : lst) {
@@ -243,7 +256,13 @@ public class CsvFlatResultBuilder extends ResultBuilder {
                 }
             }
             sb.deleteCharAt(sb.length() -1);
-            currentLine.appendResult(sb.toString());
+            if (f.getParent() != null) {
+                csvFlatLine currentLine = getCurrentLine(f.getParent().name);
+                currentLine.appendSubField(f, sb.toString());
+            } else {
+                csvFlatLine currentLine = getCurrentLine(f.name);
+                currentLine.appendResult(sb.toString());
+            }
         }
     }
 
