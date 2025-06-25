@@ -56,6 +56,9 @@ allInOne:
     enabled: true
     pathType: Prefix
     path: /examind
+    annotations:
+      # By default, allow to upload data files up to 2 gigabytes in size
+      nginx.ingress.kubernetes.io/proxy-body-size: 2g
   service:
     type: ClusterIP
     port: 8080
