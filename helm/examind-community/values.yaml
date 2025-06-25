@@ -50,8 +50,8 @@ allInOne:
   image:
     repository: >-
       {{ printf "%s.geomatys.com/examind/examind-%s" (eq .Values.edition "community" | ternary "images" "docker") ( .Values.edition ) }}
-    tag: latest
-    pullPolicy: Always
+    tag: 1.2.0
+    pullPolicy: IfNotPresent
   ingress:
     enabled: true
     pathType: Prefix
