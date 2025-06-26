@@ -61,12 +61,13 @@ public class SOSDatabaseSensorStore extends AbstractSensorStore implements Resou
         super(params);
         try {
             SpringHelper.injectDependencies(this);
-            Integer datasourceId = params.getValue(DATASOURCE_ID);
+            Integer datasourceId = params.getMandatoryValue(DATASOURCE_ID);
             var exads = datasourceBusiness.getDatasource(datasourceId);
             if (exads == null) throw new DataStoreException("No examind datasource find for id: " + datasourceId);
             DataSource source;
             try {
-                source = datasourceBusiness.getSQLDatasource(datasourceId).orElse(null);
+                source = datasourceBusiness.getSQLDatasource(datasourceId)
+                        .orElseThrow(() -> new DataStoreException("Cannot create SQL DataSource"));
             } catch (ConstellationException ex) {
                 throw new DataStoreException(ex);
             }

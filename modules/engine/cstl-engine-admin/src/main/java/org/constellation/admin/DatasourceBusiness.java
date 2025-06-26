@@ -342,7 +342,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
     private FileSystemReference getFileSystem(DataSource ds, boolean create) throws ConstellationException {
         try {
             String decryptedPwd;
-            if (ds.getPwd() != null && ds.getPwd().contains("#")) {
+            var rawPwd = ds.getPwd();
+            if (rawPwd != null && rawPwd.startsWith("{{") && rawPwd.endsWith("}}")) {
                 try {
                     decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
                 } catch (GeneralSecurityException ex) {
@@ -452,7 +453,8 @@ public class DatasourceBusiness implements IDatasourceBusiness {
         Long idleTimeout      = parseIfPresentL(ds.getProperties(), "idleTimeout");
         Boolean readOnly      = Boolean.valueOf(ds.getProperties().getOrDefault("readOnly", "false"));
         String decryptedPwd;
-        if (ds.getPwd() != null && ds.getPwd().contains("#")) {
+        var rawPwd = ds.getPwd();
+        if (rawPwd != null && rawPwd.startsWith("{{") && rawPwd.endsWith("}}")) {
             try {
                 decryptedPwd = CipherUtilities.decrypt(ds.getPwd(), Application.getProperty(AppProperty.CSTL_TOKEN_SECRET, "examind-secret"));
             } catch (GeneralSecurityException ex) {

@@ -247,16 +247,6 @@ public class SQLUtilities {
         return new String[]{databaseURL, null, null};
     }
 
-    public static String addUserPwdToHirokuUrl(String databaseURL, String userName, String password) {
-        URI dbUri;
-        try {
-            dbUri = new URI(databaseURL);
-            return dbUri.getScheme() +"://" + userName + ':' + password + '@'+ dbUri.getHost() + ':' + dbUri.getPort() + dbUri.getPath();
-        } catch (URISyntaxException e) {
-            throw new ConfigurationRuntimeException("", e);
-        }
-    }
-    
     public static String getSGBDType(String databaseURL) {
         if (databaseURL.startsWith("jdbc:")) {
             databaseURL = databaseURL.substring(5);

@@ -63,16 +63,6 @@ public class SQLProvider extends DataStoreProvider {
     
     public static final ParameterDescriptor<Integer> DATASOURCE_ID;
 
-//    public static final ParameterDescriptor<String> LOCATION;
-//    public static final ParameterDescriptor<String> USER;
-//    public static final ParameterDescriptor<String> PASSWORD;
-//    public static final ParameterDescriptor<Integer> MIN_IDLE;
-//    public static final ParameterDescriptor<Integer> MAX_CONNECTIONS;
-//    public static final ParameterDescriptor<Long> IDLE_TIMEOUT;
-//    public static final ParameterDescriptor<Long> CONNECT_TIMEOUT;
-//    public static final ParameterDescriptor<Long> LEAK_DETECTION_THRESHOLD;
-//    public static final ParameterDescriptor<Boolean> ACTIVATE_JMX_METRICS;
-
     /**
      * An SQL query to consider as a feature set.
      *
@@ -105,33 +95,6 @@ public class SQLProvider extends DataStoreProvider {
         QUERY = builder.addName("query")
                 .setDescription("An SQL query to consider as a feature set")
                 .create(String.class, null);
-
-        /*MIN_IDLE = builder.addName("minIdle")
-                .setDescription("Minimum number of idle (available) connections to try to maintain in the connection pool")
-                .create(Integer.class, null);
-
-        MAX_CONNECTIONS = builder.addName("maxConnections")
-                .setDescription("Maximum number of connections accepted in the pool")
-                .create(Integer.class, 10);
-
-        IDLE_TIMEOUT = builder.addName("idleTimeoutMs")
-                .setDescription("Maximum number of milliseconds to keep idle connections alive")
-                .create(Long.class, null);
-
-        CONNECT_TIMEOUT = builder.addName("connectTimeoutMs")
-                .setDescription("Time to wait for connection in milliseconds")
-                .create(Long.class, null);
-
-        LEAK_DETECTION_THRESHOLD = builder.addName("leakDetectionThreshold")
-                .setDescription("DEBUG/ADMINISTRATOR OPTION: amount of time that a connection can be out of the pool" +
-                        " before a message is logged indicating a possible connection leak. A value of 0 means leak " +
-                        "detection is disabled (this is the default behavior).")
-                .create(Long.class, 0L);
-
-        ACTIVATE_JMX_METRICS = builder.addName("activateJmxMetrics")
-                .setDescription("DEBUG/ADMINISTRATOR OPTION: If true, Hikari datasource will be asked to post pool " +
-                        "information through JMX. The JMX metrics will then be logged (level FINE or DEBUG)")
-                .create(Boolean.class, false);*/
 
         INPUT = builder.addName(NAME).createGroup(
                 DATASOURCE_ID,

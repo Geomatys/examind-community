@@ -107,7 +107,7 @@ public class SOSDatabaseObservationStore extends AbstractFilteredObservationStor
     public SOSDatabaseObservationStore(final Parameters params) throws DataStoreException {
         super(params);
         SpringHelper.injectDependencies(this);
-        Integer datasourceId = params.getValue(DATASOURCE_ID);
+        Integer datasourceId = params.getMandatoryValue(DATASOURCE_ID);
         var exads = datasourceBusiness.getDatasource(datasourceId);
         if (exads == null) throw new DataStoreException("No examind datasource find for id: " + datasourceId);
         try {

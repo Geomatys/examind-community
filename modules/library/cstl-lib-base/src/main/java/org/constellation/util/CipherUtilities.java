@@ -62,7 +62,7 @@ public class CipherUtilities {
         var encoder = Base64.getEncoder();
         var encrypt64 = encoder.encode(encryptedData);
         var iv64 = encoder.encode(iv);
-        return new String(encrypt64) + "#" + new String(iv64);
+        return "{{" + new String(encrypt64) + "#" + new String(iv64) + "}}";
     }
     
     public static String decrypt(String toDecrypt, String key) throws GeneralSecurityException {
@@ -73,7 +73,12 @@ public class CipherUtilities {
 
     public static String decrypt(String toDecrypt, SecretKey secretKey) throws GeneralSecurityException {
         if (toDecrypt == null) return null;
-        var split = toDecrypt.split("#");
+        if (!toDecrypt.startsWith("{{") || !toDecrypt.endsWith("}}"))
+            throw new IllegalArgumentException("Unrecognized encoded text");
+        var split = toDecrypt.substring(2, toDecrypt.length() - 2).split("#");
+        if (split.length != 2 || split[0].isEmpty() || split[1].isEmpty()) 
+            throw new IllegalArgumentException("Unrecognized encoded text");
+
         var decoder = Base64.getDecoder();
         var cypherText = decoder.decode(split[0]);
         var iv = decoder.decode(split[1]);
