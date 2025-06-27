@@ -23,48 +23,44 @@ import java.util.Map;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class Provider {
+public class Datasource {
     
-    private String identifier;
-    private String dataType;
+    private String userName;
+    private String password;
     private String location;
-    private String providerType;
-    private String dataset;
     
-    private Datasource source;
-
     private Map<String, String> advancedParameters;
 
     /**
-     * @return the identifier
+     * @return the userName
      */
-    public String getIdentifier() {
-        return identifier;
+    public String getUserName() {
+        return userName;
     }
 
     /**
-     * @param identifier the identifier to set
+     * @param userName the userName to set
      */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     /**
-     * @return the dataType
+     * @return the password
      */
-    public String getDataType() {
-        return dataType;
+    public String getPassword() {
+        return password;
     }
 
     /**
-     * @param dataType the dataType to set
+     * @param password the password to set
      */
-    public void setDataType(String dataType) {
-        this.dataType = dataType;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     /**
-     * @return the path
+     * @return the location
      */
     public String getLocation() {
         return location;
@@ -75,34 +71,6 @@ public class Provider {
      */
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    /**
-     * @return the providerType
-     */
-    public String getProviderType() {
-        return providerType;
-    }
-
-    /**
-     * @param providerType the providerType to set
-     */
-    public void setProviderType(String providerType) {
-        this.providerType = providerType;
-    }
-
-    /**
-     * @return the dataset
-     */
-    public String getDataset() {
-        return dataset;
-    }
-
-    /**
-     * @param dataset the dataset to set
-     */
-    public void setDataset(String dataset) {
-        this.dataset = dataset;
     }
 
     /**
@@ -119,18 +87,5 @@ public class Provider {
     public void setAdvancedParameters(Map<String, String> advancedParameters) {
         this.advancedParameters = advancedParameters;
     }
-
-    /**
-     * @return the source
-     */
-    public Datasource getSource() {
-        return source;
-    }
-
-    /**
-     * @param source the source to set
-     */
-    public void setSource(Datasource source) {
-        this.source = source;
-    }
+    
 }

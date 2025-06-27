@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.constellation.admin.SpringHelper;
 import org.constellation.business.IDatasetBusiness;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IFileSystemStartupCleanerBusiness;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.IServiceBusiness;
@@ -62,6 +63,9 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
     @Autowired
     private MetadataRepository metadataRepository;
     
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
+    
     @PostConstruct
     public void initFsConfiguration() {
         cleanupDatas();
@@ -96,6 +100,7 @@ public class FileSystemStartupCleanerBusiness implements IFileSystemStartupClean
             providerBusiness.removeAll();
             datasetBusiness.removeAllDatasets();
             styleBusiness.deleteAll();
+            datasourceBusiness.deleteAll();
         
         } catch (ConstellationException ex) {
             LOGGER.log(Level.SEVERE, "Error a filesystem configuration startup", ex);

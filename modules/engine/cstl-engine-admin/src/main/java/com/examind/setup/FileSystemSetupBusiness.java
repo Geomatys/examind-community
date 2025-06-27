@@ -44,6 +44,7 @@ import org.constellation.api.ProviderType;
 import org.constellation.business.IConfigurationBusiness;
 import org.constellation.business.IDataBusiness;
 import org.constellation.business.IDatasetBusiness;
+import org.constellation.business.IDatasourceBusiness;
 import org.constellation.business.IFileSystemSetupBusiness;
 import org.constellation.business.ILayerBusiness;
 import org.constellation.business.IMetadataBusiness;
@@ -55,8 +56,10 @@ import org.springframework.stereotype.Component;
 import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.DataBrief;
+import org.constellation.dto.DataSource;
 import org.constellation.dto.fs.Collection;
 import org.constellation.dto.fs.CollectionItem;
+import org.constellation.dto.fs.Datasource;
 import org.constellation.dto.fs.DimensionItem;
 import org.constellation.dto.fs.Provider;
 import org.constellation.dto.fs.Service;
@@ -104,6 +107,9 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
     
     @Autowired
     private IDataBusiness dataBusiness;
+    
+    @Autowired
+    private IDatasourceBusiness datasourceBusiness;
     
     @Autowired
     private ILayerBusiness layerBusiness;
@@ -196,13 +202,21 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                     serviceBusiness.setConfiguration(sid, conf);
                 }
                 
-                int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters());
+                Integer datasourceId;
+                Datasource source = instance.getSource();
+                if (source != null) {
+                    datasourceId = createDatasource(source);
+                } else {
+                    throw new ConstellationException("Source missing for STS service.");
+                }
+                
+                int pid = createOM2DatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                 serviceBusiness.linkServiceAndSensorProvider(sid, pid, true);
                 
                 boolean fullLink;
                 int spid;
                 if (directProvider) {
-                    spid = createSensorDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters());
+                    spid = createSensorDatabaseProvider(instance.getIdentifier(), instance.getAdvancedParameters(), datasourceId);
                     fullLink = true;
                 } else {
                     String sensorFolder = instance.getAdvancedParameters().getOrDefault("sensor-metadata-path", null);
@@ -353,7 +367,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         return metadataBusiness.getDefaultInternalProviderID();
     }
     
-    private Integer createOM2DatabaseProvider(String serviceId, Map<String, String> parameters) {
+    private Integer createOM2DatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
             final String providerIdentifier = "omSrc-" + serviceId;
             final DataProviderFactory omFactory = DataProviders.getFactory("observation-store");
@@ -362,22 +376,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("observationSOSDatabase");
             
-            String sgbdtype = parameters.get("sgbdtype");
-           
-            if ("postgres".equals(sgbdtype)) {
-                setParameter(config, parameters, "host",     true);
-                setParameter(config, parameters, "port",     true);
-                setParameter(config, parameters, "database", true);
-                setParameter(config, parameters, "user",     true);
-                setParameter(config, parameters, "password", true);
-                
-            } else if ("derby".equals(sgbdtype) || "duckdb".equals(sgbdtype)) {
-                setParameter(config, parameters, "derbyurl", true);
-            } else {
-                throw new ConstellationException("Missing or invalid sgbdtype parameter: " + sgbdtype);
-            }
-            config.parameter("sgbdtype").setValue(sgbdtype);
-            
+            config.parameter("datasource-id").setValue(datasourceId);
             setParameter(config, parameters, "max-field-by-table", false);
             setParameter(config, parameters, "database-readonly", false);
             setParameter(config, parameters, "mode", false);
@@ -395,7 +394,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         }
     }
     
-    private Integer createSensorDatabaseProvider(String serviceId, Map<String, String> parameters) {
+    private Integer createSensorDatabaseProvider(String serviceId, Map<String, String> parameters, Integer datasourceId) {
         try {
             final String providerIdentifier = "sensorSrc-" + serviceId;
             final DataProviderFactory omFactory = DataProviders.getFactory("sensor-store");
@@ -404,21 +403,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
             final ParameterValueGroup choice = ProviderParameters.getOrCreate((ParameterDescriptorGroup) omFactory.getStoreDescriptor(), source);
             final ParameterValueGroup config = choice.addGroup("om2sensor");
             
-            String sgbdtype = parameters.get("sgbdtype");
-           
-            if ("postgres".equals(sgbdtype)) {
-                setParameter(config, parameters, "host",     true);
-                setParameter(config, parameters, "port",     true);
-                setParameter(config, parameters, "database", true);
-                setParameter(config, parameters, "user",     true);
-                setParameter(config, parameters, "password", true);
-                
-            } else if ("derby".equals(sgbdtype) || "duckdb".equals(sgbdtype)) {
-                setParameter(config, parameters, "derbyurl", true);
-            } else {
-                throw new ConstellationException("Missing or invalid sgbdtype parameter: " + sgbdtype);
-            }
-            config.parameter("sgbdtype").setValue(sgbdtype);
+            config.parameter("datasource-id").setValue(datasourceId);
             
             setParameter(config, parameters, "max-field-by-table", false);
             setParameter(config, parameters, "database-readonly", false);
@@ -465,6 +450,14 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
         parameter.setValue(ObjectConverters.convert(value, parameter.getDescriptor().getValueClass()));
     }
     
+    private Integer createDatasource(Datasource source) throws ConstellationException {
+        String location = source.getLocation();
+        String userName = source.getUserName();
+        String pwd = source.getPassword();
+        DataSource ds = new DataSource(null, "database", location, userName, pwd, null, false, System.currentTimeMillis(), "COMPLETED", null, true, source.getAdvancedParameters());
+        return datasourceBusiness.create(ds);
+    }
+    
     private void createProviderFromFile(final Path path) {
         try {
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
@@ -472,36 +465,50 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
 
             String dataType = providerConf.getDataType();
             String impl = providerConf.getProviderType();
-            URI dataURI = URI.create(providerConf.getLocation());
+            String dataStr = providerConf.getLocation() != null ? providerConf.getLocation() : null;
             String dataset = providerConf.getDataset();
             String pathParamName = "location";
             String providerIdentifier = providerConf.getIdentifier();
+            Integer datasourceId = null;
             
             // special case
             if ("coverage-xml-pyramid".equals(impl)) {
                 pathParamName = "path";
+            } else if ("SQL".equals(impl)) {
+                pathParamName = "datasourceId";
+                Datasource source = providerConf.getSource();
+                if (source != null) {
+                    datasourceId = createDatasource(source);
+                } else {
+                    throw new ConstellationException("Provider source missing for SQL provider.");
+                }
             }
             
             // special case for folder
-            List<URI> files = new ArrayList<>();
+            List<Object> files = new ArrayList<>();
             
-            try {
-                Path dataDir = Paths.get(dataURI);
-                if (ALLOWED_MULTI_PROVIDER.containsKey(impl) && Files.isDirectory(dataDir)) {
-                    List<String> exts = ALLOWED_MULTI_PROVIDER.get(impl);
-                    try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir)) {
-                        for (Path file : stream) {
-                            if (!Files.isDirectory(file) && exts.contains(FileNameUtils.getExtension(file).toLowerCase())) {
-                                files.add(file.toUri());
+            if (datasourceId != null) {
+                files.add(datasourceId);
+            } else {
+                try {
+                    URI dataUri = URI.create(dataStr);
+                    Path dataDir = Paths.get(dataUri);
+                    if (ALLOWED_MULTI_PROVIDER.containsKey(impl) && Files.isDirectory(dataDir)) {
+                        List<String> exts = ALLOWED_MULTI_PROVIDER.get(impl);
+                        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dataDir)) {
+                            for (Path file : stream) {
+                                if (!Files.isDirectory(file) && exts.contains(FileNameUtils.getExtension(file).toLowerCase())) {
+                                    files.add(file.toUri());
+                                }
                             }
                         }
+                    } else {
+                        files.add(dataUri);
                     }
-                } else {
-                    files.add(dataURI);
+                } catch (FileSystemNotFoundException ex) {
+                    LOGGER.log(Level.FINER, ex.getMessage(), ex);
+                    files = List.of(dataStr);
                 }
-            } catch (FileSystemNotFoundException ex) {
-                LOGGER.log(Level.FINER, ex.getMessage(), ex);
-                files = List.of(dataURI);
             }
 
             Integer dsId = dataset != null ? datasetBusiness.getDatasetId(dataset) : null;
@@ -521,7 +528,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 throw new ConstellationException("Provider service not found.");
             }
             
-            for (URI fileUri : files) {
+            for (Object fileUri : files) {
                 try {
                     String currentProviderId;
                     if (providerIdentifier == null) {

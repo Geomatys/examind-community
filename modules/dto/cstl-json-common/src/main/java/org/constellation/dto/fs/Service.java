@@ -41,6 +41,8 @@ public class Service {
     
     private Map<String, String> advancedParameters;
 
+    private Datasource source;
+    
     /**
      * @return the name
      */
@@ -142,5 +144,19 @@ public class Service {
      */
     public void setAdvancedParameters(Map<String, String> advancedParameters) {
         this.advancedParameters = advancedParameters;
+    }
+
+    /**
+     * @return the source
+     */
+    public Datasource getSource() {
+        return source;
+    }
+
+    /**
+     * @param source the source to set
+     */
+    public void setSource(Datasource source) {
+        this.source = source;
     }
 }
