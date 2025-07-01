@@ -424,10 +424,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         switch(objectType) {
             case OBSERVED_PROPERTY ->  {
                 final FilterSQLRequest phenoFilter = new SingleFilterSQLRequest();
-                phenoFilter.append(" op.\"id\" =").appendValue(phenomenon).append(" OR ");
+                phenoFilter.append(" op.\"id\" =").appendValue(phenomenon);
                 // try to be flexible and allow to call this ommiting phenomenon id base
                 if (!phenomenon.startsWith(phenomenonIdBase)) {
-                    phenoFilter.append(" op.\"id\" =").appendValue(phenomenonIdBase + phenomenon);
+                    phenoFilter.append(" OR op.\"id\" =").appendValue(phenomenonIdBase + phenomenon);
                 }
                 fields.addAll(getFieldsForPhenomenon(phenomenon));
                 filter = phenoFilter;
