@@ -2456,6 +2456,13 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         String result = getStringResponse(getFoiUrl) + "\n";
         String expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-1.json");
         compareJSON(expResult, result);
+        
+        filter = "((Datastreams/Thing/id eq 'urn:ogc:object:sensor:GEOM:17'))".replace(" ", "%20");
+        getFoiUrl = new URI(getDefaultURL() + "/Observations?$resultFormat=dataArray&$filter=" + filter).toURL();
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/obs-data-array-2.json");
+        compareJSON(expResult, result);
     }
     
     @Test

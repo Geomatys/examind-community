@@ -1,0 +1,321 @@
+{
+    "value": [{
+            "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
+            "dataArray": [
+                ["urn:ogc:object:observation:GEOM:8001-6-1-1", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 1.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-1-2", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", false, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": false
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-1-3", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "blue", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "good"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-1-4", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "2000-01-01T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-01T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-1-5", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 27.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 37.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8001-6-1-6", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-1", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 2.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-2", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", true, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": false
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-3", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "green", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "fade"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-4", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "2000-01-01T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-01T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-5", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 28.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 38.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8001-6-2-6", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "en"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "England"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-1", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 3.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-2", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", false, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": true
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-3", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "red", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "bad"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-4", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", "2000-01-01T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-01T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-5", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", 29.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 39.1
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "almost 30"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8001-6-3-6", "1999-12-31T23:00:00Z", "1999-12-31T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-1", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 1.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-2", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", true, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": true
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "yellow", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "good"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-4", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "2000-01-02T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-02T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-5", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 16.3, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 16.3
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "teenager"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-1-6", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-1", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 2.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-2", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", true, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": true
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "yellow", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "good"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-4", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "2000-01-02T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-02T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-5", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 26.4, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 25.4
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "still young"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-2-6", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "sp"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "Spain"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-1", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 3.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-2", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", true, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": true
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-3", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "yellow", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "good"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-4", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", "2000-01-02T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-02T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-5", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", 30.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 28.1
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8002-6-3-6", "2000-01-01T23:00:00Z", "2000-01-01T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-1", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 1.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-2", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", false, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": false
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "brown", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "bad"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-4", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "2000-01-03T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-03T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-5", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 11.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "child"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-1-6", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-1", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 2.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-2", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", false, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": false
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "black", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "fade"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-4", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "2000-01-03T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-03T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-5", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 22.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 1.0,
+                        "age_param": "young"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-2-6", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "fr"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "France"
+                        }
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-1", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 3.0, [], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-2", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", false, [{
+                            "nameOfMeasure": "isHot_qual",
+                            "DQ_Result": {
+                                "code": false
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-3", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "black", [{
+                            "nameOfMeasure": "color_qual",
+                            "DQ_Result": {
+                                "code": "fade"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-4", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", "2000-01-03T21:00:00Z", [{
+                            "nameOfMeasure": "expiration_qual",
+                            "DQ_Result": {
+                                "code": "2000-01-03T22:00:00Z"
+                            }
+                        }], {}], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-5", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", 33.0, [{
+                            "nameOfMeasure": "age_qual",
+                            "DQ_Result": {
+                                "code": 0.0
+                            }
+                        }], {
+                        "age_slice": 2.0,
+                        "age_param": "thirty"
+                    }], 
+                ["urn:ogc:object:observation:GEOM:8003-6-3-6", "2000-01-02T23:00:00Z", "2000-01-02T23:00:00Z", {
+                        "country": "de"
+                    }, [], {
+                        "metadata_param": {
+                            "country": "Germany"
+                        }
+                    }]]
+        }]
+}

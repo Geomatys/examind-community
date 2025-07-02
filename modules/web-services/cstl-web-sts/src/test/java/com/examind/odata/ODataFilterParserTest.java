@@ -360,5 +360,24 @@ public class ODataFilterParserTest {
         Assert.assertEquals(geom.getMaximum(0), 40, 0);
         Assert.assertEquals(geom.getMinimum(1), -3, 0);
         Assert.assertEquals(geom.getMaximum(1), 40, 0);
+        
+        
+        filterStr = "st_contains(location, geography'MULTIPOLYGON (((10 10, 10 20, 20 20, 20 15, 10 10)),((60 60, 70 70, 80 60, 60 60)))')";
+        result = ODataFilterParser.parseFilter(OMEntity.PROCEDURE, filterStr);
+        Assert.assertTrue(result instanceof SpatialOperator);
+        spa = (SpatialOperator) result;
+        Assert.assertEquals(SpatialOperatorName.BBOX, spa.getOperatorType());
+        Assert.assertEquals(2, spa.getExpressions().size());
+        Assert.assertTrue(spa.getExpressions().get(0) instanceof ValueReference);
+        pName = (ValueReference) spa.getExpressions().get(0);
+        Assert.assertEquals("location", pName.getXPath());
+        Assert.assertTrue(spa.getExpressions().get(1) instanceof Literal);
+        lit = (Literal) spa.getExpressions().get(1);
+        Assert.assertTrue(lit.getValue() instanceof Envelope);
+        geom = (Envelope) lit.getValue();
+        Assert.assertEquals(geom.getMinimum(0), 10, 0);
+        Assert.assertEquals(geom.getMaximum(0), 80, 0);
+        Assert.assertEquals(geom.getMinimum(1), 10, 0);
+        Assert.assertEquals(geom.getMaximum(1), 70, 0);
     }
 }

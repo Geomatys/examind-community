@@ -699,6 +699,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVEDPROPERTIES, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forDS", "true");
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
@@ -739,6 +740,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETOBSERVATION, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forDS", "true");
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);
@@ -759,6 +761,7 @@ public class STSService extends OGCWebService<STSWorker> {
             try {
                 AbstractSTSRequest request = (AbstractSTSRequest) adaptQuery(STR_GETSENSORS, worker, req.getPathInfo());
                 request.getExtraFilter().put("observationId", id);
+                request.getExtraFlag().put("forDS", "true");
                 return treatIncomingRequest(request).getResponseEntity(response);
             } catch (Exception ex) {
                 return processExceptionResponse(ex, null, worker).getResponseEntity(response);

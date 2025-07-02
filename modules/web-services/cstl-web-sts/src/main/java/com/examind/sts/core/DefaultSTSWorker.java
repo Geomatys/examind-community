@@ -378,6 +378,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
 
             final QName model;
             final boolean forMds = req.getExtraFlag().containsKey("forMDS") && req.getExtraFlag().get("forMDS").equals("true");
+            final boolean forDs = req.getExtraFlag().containsKey("forDS") && req.getExtraFlag().get("forDS").equals("true");
             final RequestOptions exp = new RequestOptions(req);
             final boolean includeFoi = exp.featureOfInterest.expanded;
             ResultMode resMode = null;
@@ -428,7 +429,7 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                     }
                 }
                 if (DATA_ARRAY.equals(req.getResultFormat())) {
-                    return buildDataArrayFromResults(results, model, count, null);
+                    return buildDataArrayFromResults(results, forMds, forDs, count, null);
 
                 // here we assume the we are in csv like mode
                 } else {
@@ -722,21 +723,20 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         return quality;
     }
     
-    private DataArrayResponse buildDataArrayFromResults(Map<String, ComplexResult> arrays, QName resultModel, BigDecimal count, String nextLink) throws ConstellationStoreException {
+    private DataArrayResponse buildDataArrayFromResults(Map<String, ComplexResult> arrays, boolean forMds, boolean forDs, BigDecimal count, String nextLink) throws ConstellationStoreException {
         DataArray result = new DataArray();
         result.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         for (Entry<String, ComplexResult> entry : arrays.entrySet()) {
             String sensorId = entry.getKey() + "-dec";
             ComplexResult resultArray = entry.getValue();
-            boolean single = MEASUREMENT_QNAME.equals(resultModel);
-            List<Object> results = formatSTSArray(sensorId, resultArray, single, true);
+            List<Object> results = formatSTSArray(sensorId, resultArray, forMds, forDs, true);
             result.getDataArray().addAll(results);
         }
         return new DataArrayResponse(Arrays.asList(result)).iotCount(count).iotNextLink(nextLink);
     }
 
-    private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean single, boolean idIncluded) {
-        List<Field> fields = flatFields(cr.getFields());
+    private List<Object> formatSTSArray(final String oid, ComplexResult cr, boolean forMds, boolean forDs, boolean idIncluded) {
+        List<Field> fields = cr.getFields();
         List<Object> resultArray = cr.getDataArray();
         List<Object> results = new ArrayList<>();
         // reformat the results
@@ -747,53 +747,72 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
             int col = 0;
 
             // id
+            Object id;
             if (idIncluded) {
-                newLine.add(arrayLine.get(col));
+                id = arrayLine.get(col);
                 col++;
             } else {
-                newLine.add(oid + "-" + j);
+                id = oid + "-" + j;
             }
 
             // time
             Date d = (Date) arrayLine.get(col);
             col++;
-            newLine.add(d);
-            newLine.add(d);
 
-            if (single) {
-                newLine.add(arrayLine.get(col));
+            List measures     = new ArrayList<>();
+            List<Map> quality = new ArrayList<>();
+            Map parameters    = new HashMap<>();
+            for (int i = col; i < fields.size(); i++) {
+                 Field f = fields.get(i);
+
+                // add measure
+                Object measure = arrayLine.get(col);
                 col++;
-                List<Map> quality = new ArrayList<>();
-                Map parameters    = new HashMap<>();
-                if (arrayLine.size() > col) {
-                    for (int i = col; i < arrayLine.size(); i++) {
-                        Field f = fields.get(i);
-                        switch (f.type) {
-                            case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
-                            case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
-                            default        -> LOGGER.warning("Non quality/parameter field found in single dataArray. This should not happen");
-                        }
-                    }
+
+                // add quality
+                for (Field sub : f.qualityFields) {
+                    quality.add(buildResultQuality(sub, arrayLine.get(col)));
+                    col++;
                 }
-                newLine.add(quality);
-                newLine.add(parameters);
-            } else {
-                List<Map> quality = new ArrayList<>();
-                Map parameters    = new HashMap<>();
-                List measures     = new ArrayList<>();
-                for (int i = col; i < arrayLine.size(); i++) {
-                    Field f = fields.get(i);
-                    switch (f.type) {
-                        case QUALITY   -> quality.add(buildResultQuality(f, arrayLine.get(i)));
-                        case PARAMETER -> parameters.put(f.name, arrayLine.get(i));
-                        default        -> measures.add(arrayLine.get(i));
-                    }
+
+                // add parameters
+                for (Field sub : f.parameterFields) {
+                    parameters.put(sub.name, arrayLine.get(col));
+                    col++;
                 }
+
+                // build a new single line
+                if (!forMds) {
+                    if (!forDs) {
+                        newLine.add(id + "-" + f.index);
+                    } else {
+                        newLine.add(id);
+                    }
+                    newLine.add(d);
+                    newLine.add(d);
+                    newLine.add(measure);
+                    newLine.add(quality);
+                    newLine.add(parameters);
+                    results.add(newLine);
+                    
+                    quality    = new ArrayList<>();
+                    parameters = new HashMap<>();
+                    newLine    = new ArrayList<>();
+                } else {
+                    measures.add(measure);
+                }
+            }
+
+            // build a new multi line
+            if (forMds) {
+                newLine.add(id); // todo increment ?
+                newLine.add(d);
+                newLine.add(d);
                 newLine.add(measures);
                 newLine.add(quality);
                 newLine.add(parameters);
+                results.add(newLine);
             }
-            results.add(newLine);
             j++;
         }
         return results;
