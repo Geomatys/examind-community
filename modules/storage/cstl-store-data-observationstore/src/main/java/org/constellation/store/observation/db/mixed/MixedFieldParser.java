@@ -41,6 +41,7 @@ import org.geotoolkit.observation.model.FieldDataType;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
@@ -68,8 +69,8 @@ public class MixedFieldParser extends FieldParser {
     public Map<String, Observation> parseSingleMeasureObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen) throws SQLException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         final Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type);
-        final boolean profile = "profile".equals(pti.type);
+        properties.put("type", pti.type.name().toLowerCase());
+        final boolean profile = pti.type == ObservationType.PROFILE;
         int mainFieldIndex = fields.indexOf(pti.mainField);
         Object previousKey    = null;
         Long previousMeasureId = null;
@@ -192,13 +193,13 @@ public class MixedFieldParser extends FieldParser {
     @Override
     public Map<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
         final String obsID               = "obs-" + oid;
-        boolean profile                  = "profile".equals(pti.type);
+        boolean profile                  = pti.type == ObservationType.PROFILE;
         int mainFieldIndex               = fields.indexOf(pti.mainField);
         Object prevLineKey               = null;
         Object prevObsKey                = null;
         boolean hasData                  = false;
         Map<String, Object> blocValues   = createNewBlocValues(profile, mainFieldIndex);
-        Map<String, Object> properties   = Map.of("type", pti.type);
+        Map<String, Object> properties   = Map.of("type", pti.type.name().toLowerCase());
         Map<String, Observation> results = new HashMap<>();
         boolean separated                = (separatedProfileObs && profile);
         
@@ -322,7 +323,7 @@ public class MixedFieldParser extends FieldParser {
     
     @Override
     public void completeObservation(final SQLResult rs2, final ProcedureInfo pti, Observation observation) throws SQLException {
-        boolean profile                = "profile".equals(pti.type);
+        boolean profile                = pti.type == ObservationType.PROFILE;
         int mainFieldIndex             = fields.indexOf(pti.mainField);
         boolean hasData                = false;
         Object previousKey             = null;

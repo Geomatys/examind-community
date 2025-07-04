@@ -398,7 +398,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // if a new phenomenon has been added we must create a composite and change the observation reference
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
-                    List<Field> readFields = readFields(procedureID, true, c, new ArrayList<>(), new ArrayList<>());
+                    boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+                    List<Field> readFields = readFields(procedureID, removeMainField, c, new ArrayList<>(), new ArrayList<>());
                     Phenomenon replacingPhen = getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
@@ -1817,7 +1818,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      */
     private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.id, true, c, new ArrayList<>(), new ArrayList<>());
+        boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>());
 
         List<String> rmSQLs = new ArrayList<>();
         StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m ");
@@ -1863,7 +1865,8 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
 
     private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
-        List<Field> fields = readFields(pi.id, true, c, new ArrayList<>(), new ArrayList<>());
+        boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
+        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>());
 
         StringBuilder sql = new StringBuilder("SELECT ");
 
@@ -2278,8 +2281,14 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                         removeObservation(cdt.identifier, cdt.pi, c);
                         LOGGER.fine("Main field removed:" + cdt.identifier);
                         
-                     // 3. At least one component of the observation phenomenon is involved => update observed property
-                     } else if (isPartOf(cdt.phenomenon, phenToRemove)) {
+                    // 3. main field is the only field that is left after (for profile with the main field part of the phenomenon)  => full removal
+                    } else if (isOnlyMainFieldLeft(cdt.pi.mainField, cdt.phenomenon, phenToRemove)) {
+                        removeObservation(cdt.identifier, cdt.pi, c);
+                        LOGGER.fine("Only main field left:" + cdt.identifier);
+                        
+                        
+                    // 4. At least one component of the observation phenomenon is involved => update observed property
+                    } else if (isPartOf(cdt.phenomenon, phenToRemove)) {
                         final List<Field> fields                 = getPhenomenonsFields(phenToRemove);
                         final List<InsertDbField> fieldsToRemove  = completeDbField(cdt.pi.id, fields, c);
                         OM2MeasureFieldRemover remover            = new OM2MeasureFieldRemover(cdt, schemaPrefix, dialect, fieldsToRemove);

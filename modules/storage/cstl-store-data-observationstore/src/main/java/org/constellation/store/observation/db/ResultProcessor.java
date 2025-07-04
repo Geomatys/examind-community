@@ -30,6 +30,7 @@ import org.constellation.store.observation.db.result.CsvFlatResultBuilder;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 import static org.geotoolkit.observation.model.TextEncoderProperties.CSV_ENCODING;
@@ -47,7 +48,7 @@ public class ResultProcessor {
     
     protected ResultBuilder values = null;
     protected final List<Field> fields;
-    protected final boolean profile;
+    protected final boolean nonTimeseries;
     protected final boolean includeId;
     protected final boolean includeTimeInProfile;
     protected final boolean includeQuality;
@@ -58,7 +59,7 @@ public class ResultProcessor {
 
     public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
         this.fields = fields;
-        this.profile = "profile".equals(procedure.type);
+        this.nonTimeseries = procedure.type != ObservationType.TIMESERIES;
         this.includeId = includeId;
         this.includeQuality = includeQuality;
         this.includeParameter = includeParameter;
@@ -91,7 +92,7 @@ public class ResultProcessor {
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (profile) {
+        if (nonTimeseries) {
             select.append(", o.\"id\" as oid ");
             if (includeTimeInProfile) {
                 select.append(", o.\"time_begin\" ");

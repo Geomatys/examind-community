@@ -70,6 +70,8 @@ import org.geotoolkit.observation.model.OMEntity;
 import static org.geotoolkit.observation.model.OMEntity.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.CompositePhenomenon;
+import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Phenomenon;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.INVALID_PARAMETER_VALUE;
@@ -263,11 +265,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
              * As an optimization, we try to avoid to join the observation table if possible.
              * mandatory case to join the table:
              *
-             *  - profile procedure (because of time)
+             *  - non-timeseries procedure (because of time)
              *  - include id in un-decimated extraction (debatable, but like this for now)
              *  - some filter has been set on observation table (obsJoin flag will be set as true later in this case)
              */
-            obsJoin = "profile".equals(currentProcedure.type) || !decimate && includeIDInDataBlock;
+            obsJoin = (currentProcedure.type != ObservationType.TIMESERIES) || !decimate && includeIDInDataBlock;
 
            sqlRequest = new SingleFilterSQLRequest();
 
@@ -741,7 +743,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
 
         TemporalOperatorName type = tFilter.getOperatorType();
-        String currentOMType = currentProcedure != null ? currentProcedure.type : null;
+        ObservationType currentOMType = currentProcedure != null ? currentProcedure.type : null;
         boolean skipforResult = false;
         final String tableAlias;
         switch (objectType) {
@@ -785,7 +787,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         OM2Utils.addtimeDuringSQLFilter(timeRequest, TemporalObjects.createInstant(ti.get()), tableAlias);
                     }
 
-                    if (!"profile".equals(currentOMType)) {
+                    if ((currentOMType == null || currentOMType == ObservationType.TIMESERIES)) {
                         boolean conditional = (currentOMType == null);
                         if (conditional) {
                             String condId = UUID.randomUUID().toString();
@@ -815,7 +817,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     if (!skipforResult) {
                         timeRequest.append(" ").append(tableAlias).append(".\"time_begin\"<=").appendValue(position);
                     }
-                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                    if (includeTimeInprofileMeasureRequest || (currentOMType == null || currentOMType == ObservationType.TIMESERIES)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         if (conditional) {
                             String condId = UUID.randomUUID().toString();
@@ -847,7 +849,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         timeRequest.append(tableAlias).append(".\"time_end\" IS NULL AND ").append(tableAlias).append(".\"time_begin\" >=").appendValue(position).append(")");
                     }
                     
-                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                    if (includeTimeInprofileMeasureRequest || (currentOMType == null || currentOMType == ObservationType.TIMESERIES)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         if (conditional) {
                             String condId = UUID.randomUUID().toString();
@@ -876,7 +878,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                         OM2Utils.addtimeDuringSQLFilter(timeRequest, tp, tableAlias);
                     }
 
-                    if (includeTimeInprofileMeasureRequest || !"profile".equals(currentOMType)) {
+                    if (includeTimeInprofileMeasureRequest || (currentOMType == null || currentOMType == ObservationType.TIMESERIES)) {
                         boolean conditional = includeTimeInprofileMeasureRequest ? false : (currentOMType == null);
                         if (conditional) {
                             String condId = UUID.randomUUID().toString();
@@ -1282,7 +1284,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     
     protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
         // $time will be present only for timeseries in this implementation
-        if ("timeseries".equals(pti.type) || "timeserie".equals(pti.type)) {
+        if (pti.type == ObservationType.TIMESERIES) {
             single.replaceAll("$time", pti.mainField.name);
         }
     }
@@ -1541,8 +1543,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 } else {
                     final long oid           = rs.getLong("id");
                     final String name        = rs.getString("identifier");
-                    final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters));
                     final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
+                    boolean removeMainField  = pti.mainField.dataType == FieldDataType.TIME;
+                    final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, removeMainField, c, fieldIndexFilters, fieldIdFilters));
+                    
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
@@ -2130,9 +2134,10 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         request.append(" (").append(qname).append(" = ").append(qname).append(") ");
     }
 
-    protected Map<Field, Phenomenon> getPhenomenonFields(String procedure, Connection c) {
+    protected Map<Field, Phenomenon> getPhenomenonFields(ProcedureInfo procedure, Connection c) {
         try {
-            List<Field> fields = readFields(procedure, true, c, fieldIndexFilters, fieldIdFilters);
+            boolean removeMainField  = procedure.mainField.dataType == FieldDataType.TIME;
+            List<Field> fields = readFields(procedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters);
             final Map<Field, Phenomenon> results = new LinkedHashMap<>();
             for (Field f : fields) {
                 results.put(f, getSinglePhenomenon(f.name, c));

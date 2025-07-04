@@ -74,6 +74,7 @@ import static org.geotoolkit.observation.model.FieldDataType.TEXT;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
@@ -685,43 +686,59 @@ public class OM2BaseReader {
         return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>());
     }
 
-    protected List<Field> readFields(final String procedureID, final boolean removeMainTimeField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters) {
+    protected List<Field> readFields(final String procedureID, boolean removeMainField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters) {
         final List<Field> results = new ArrayList<>();
-        StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL");
-        if (removeMainTimeField) {
-            query.append(" AND NOT(\"order\"= 1 AND \"field_type\"= 'Time')");
+        StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL ");
+        
+        StringBuilder fieldFilterQuery = new StringBuilder();
+        if (!fieldIndexFilters.isEmpty() || !fieldIdFilters.isEmpty()) {
+            
+            
+            boolean hasIndex = !fieldIndexFilters.isEmpty();
+            if (hasIndex) {
+                
+                // field id filter exclude main non time filter unless we want to filter on it
+                fieldFilterQuery.append(" AND (( \"order\"= 1 AND \"field_type\"= 'Time') OR (");
+                         
+                fieldFilterQuery.append(" (");
+                for (Integer fieldFilter : fieldIndexFilters) {
+                    fieldFilterQuery.append("\"order\"= ").append(fieldFilter).append(" OR ");
+                }
+                fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
+                fieldFilterQuery.append(")))");
+            }
+            
+            if (!fieldIdFilters.isEmpty()) {
+                 // always include main
+                fieldFilterQuery.append(" AND ( \"order\"= 1 OR (");
+                
+                if (hasIndex) fieldFilterQuery.append(" AND ");
+                fieldFilterQuery.append(" ( ");
+                for (String fieldFilter : fieldIdFilters) {
+                    fieldFilterQuery.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
+                }
+                // main field name may vary
+                fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
+                fieldFilterQuery.append(")))");
+            }
         }
-        if (fieldIndexFilters != null && !fieldIndexFilters.isEmpty()) {
-            query.append(" AND (");
-            for (Integer fieldFilter : fieldIndexFilters) {
-                query.append("\"order\"= ").append(fieldFilter).append(" OR ");
-            }
-            if (!removeMainTimeField) {
-                query.append("(\"order\"= 1 AND \"field_type\"= 'Time'))");
-            } else {
-                query.delete(query.length() - 4, query.length());
-                query.append(")");
-            }
-        }
-        if (fieldIdFilters != null && !fieldIdFilters.isEmpty()) {
-            query.append(" AND (");
-            for (String fieldFilter : fieldIdFilters) {
-                query.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
-            }
-            // main field name may vary
-            if (!removeMainTimeField) {
-                query.append("\"order\"= 1)");
-            } else {
-                query.delete(query.length() - 4, query.length());
-                query.append(")");
-            }
-        }
+        query.append(fieldFilterQuery.toString());
         query.append(" ORDER BY \"order\"");
         try(final PreparedStatement stmt = c.prepareStatement(query.toString())) {//NOSONAR
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     results.add(getFieldFromDb(rs, procedureID, c, true));
+                }
+                
+                // its just way more easy to remove it afterward instead of doing it with SQL. you are welcome to try.
+                if (removeMainField) {
+                    for (Field f : results) {
+                        if ((removeMainField && f.type == FieldType.MAIN)) {
+                            results.remove(f);
+                            break;
+                        }
+                    }
                 }
                 return results;
             }
@@ -852,11 +869,13 @@ public class OM2BaseReader {
         int order = rs.getInt("order");
         String fieldType = rs.getString("sub_field_type");
         FieldType ft;
-         if (fieldType != null) {
+        if (fieldType != null) {
             ft = FieldType.valueOf(fieldType);
+       
+        // legacy behavior. should be removed at some point    
         } else if (order == 1) {
             ft = FieldType.MAIN;
-        } else{
+        } else {
             ft = FieldType.MEASURE;
         }
         final DbField f = new DbField(
@@ -1232,7 +1251,7 @@ public class OM2BaseReader {
      * @return A Multi filter request on measure tables.
      */
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
-        final boolean profile = "profile".equals(pti.type);
+        final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         final Map<Integer, List<DbField>> queryTableFields = extractTableFields(mainFieldName, queryFields);
@@ -1360,7 +1379,7 @@ public class OM2BaseReader {
             /*
             * Append measure filter on each measure request
             */
-            boolean includeConditional = !profile;
+            boolean includeConditional = !nonTimeseries;
             boolean isEmpty = measureFilter == null || 
                              ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum, includeConditional)) ||
                              measureFilter.isEmpty(includeConditional);

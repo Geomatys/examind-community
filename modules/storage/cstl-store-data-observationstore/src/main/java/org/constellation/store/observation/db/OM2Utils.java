@@ -40,6 +40,7 @@ import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.SRIDGenerator;
+import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
@@ -48,6 +49,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.temporal.object.TemporalUtilities;
 import org.opengis.filter.TemporalOperatorName;
@@ -211,6 +213,23 @@ public class OM2Utils {
         }
         return false;
     }
+    
+    public static boolean isOnlyMainFieldLeft(Field main, Phenomenon obsPhen, Phenomenon toRemove) {
+        List<Field> obsFields = OMUtils.getPhenomenonsFields(obsPhen);
+        List<Field> rmFields = OMUtils.getPhenomenonsFields(toRemove);
+        List<Field> toRm = new ArrayList<>();
+        // only id count for removal
+        for (Field of : obsFields) {
+            for (Field rmf : rmFields) {
+                if (of.name.equals(rmf.name)) {
+                    toRm.add(of);
+                    break;
+                }
+            }
+        }
+        obsFields.removeAll(toRm);
+        return (obsFields.size() == 1 && obsFields.get(0).name.equals(main.name));
+    }
 
     public static String getTimeScalePeriod(long millisecond) throws SQLException {
         if (millisecond > Integer.MAX_VALUE) {
@@ -255,7 +274,7 @@ public class OM2Utils {
     public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
         final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
-        final Boolean profile = getLoc ? null : "profile".equals(proc.type);
+        final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;
         if (getLoc) {
             request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
             request.append(" GROUP BY hl.\"procedure\" order by hl.\"procedure\"");

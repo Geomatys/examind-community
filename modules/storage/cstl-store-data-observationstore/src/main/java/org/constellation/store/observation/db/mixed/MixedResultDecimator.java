@@ -41,6 +41,7 @@ import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
 import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.OMEntity;
+import org.geotoolkit.observation.model.temp.ObservationType;
 
 /**
  *
@@ -65,7 +66,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (profile) {
+        if (nonTimeseries) {
             if (includeTimeInProfile) {
                 select.append(", m.\"time\" ");
             }
@@ -85,7 +86,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
         final boolean getLoc  = OMEntity.HISTORICAL_LOCATION.equals(objectType);
         final Field mainField = getLoc ? DEFAULT_TIME_FIELD :  proc.mainField;
-        final Boolean profile = getLoc ? null : "profile".equals(proc.type);
+        final Boolean profile = getLoc ? null : proc.type == ObservationType.PROFILE;
         if (getLoc) {
             request.replaceSelect("MIN(\"" + mainField.name + "\") as tmin, MAX(\"" + mainField.name + "\") as tmax, hl.\"procedure\" ");
             request.append(" GROUP BY hl.\"procedure\" order by hl.\"procedure\"");
@@ -169,7 +170,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         
         while (rs.nextOnField(procedure.mainField.name)) {
             final Object currentObs;
-            if (profile) {
+            if (nonTimeseries) {
                 currentObs = rs.getTimestamp("time");
             } else {
                 currentObs = 1;
@@ -188,7 +189,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
                 first.set(true);
                 step = times.get(currentObs)[1];
                 start = times.get(currentObs)[0];
-                mapValues = new StepValues(start, step, fields, profile);
+                mapValues = new StepValues(start, step, fields, nonTimeseries);
             }
             prevObs = currentObs;
             
@@ -212,7 +213,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
                             start = start + step;
                         }
                     }
-                    mapValues = new StepValues(start, step, fields, profile);
+                    mapValues = new StepValues(start, step, fields, nonTimeseries);
                 }
                 if (includedFields.contains(fieldName)) {
                     mapValues.addToMapVal(mainValue, fieldName, value);

@@ -174,7 +174,7 @@
             "name": "Sensor 9",
             "description": "",
             "properties": {
-                "type": "profile"
+                "type": "simple"
             },
             "@iot.id": "urn:ogc:object:sensor:GEOM:9",
             "@iot.selfLink": "http://localhost:9090/WS/sts/default/v1.1/Things(urn:ogc:object:sensor:GEOM:9)",

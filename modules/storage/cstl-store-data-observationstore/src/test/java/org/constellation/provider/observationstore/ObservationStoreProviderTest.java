@@ -4717,6 +4717,21 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
 
         Assert.assertEquals(expectedIds, resultIds);
     }
+    
+    @Test
+    public void getMeasurementsSimpleTest() throws Exception {
+        assertNotNull(omPr);
+        Filter procFilter = ff.equal(ff.property("procedure"), ff.literal("urn:ogc:object:sensor:GEOM:9"));
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        query.setSelection(procFilter);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(7, results.size());
+
+        for (Observation result : results) {
+            assertNotNull("null sampling time on measurement", result.getSamplingTime());
+            assertTrue(result.getResult() instanceof MeasureResult);
+        }
+    }
 
     @Test
     public void getMeasurementsTest() throws Exception {
@@ -4883,6 +4898,44 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
 
         assertEquals(expectedValues, cr.getValues());
 
+    }
+    
+    @Test
+    public void getObservationsSimpleTest() throws Exception {
+        assertNotNull(omPr);
+
+        /**
+         * the observation from sensor '9' which is a "simple" type (meaning it has no main field)
+         */
+        ObservationQuery query = new ObservationQuery(OBSERVATION_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:9"));
+        query.setSelection(filter);
+        query.setIncludeTimeForProfile(true);
+        List<Observation> results =  omPr.getObservations(query);
+        assertEquals(1, results.size());
+
+        Observation result = results.get(0);
+        assertTrue(result instanceof org.geotoolkit.observation.model.Observation);
+        assertEquals("urn:ogc:object:observation:GEOM:901", result.getName().getCode());
+        
+        assertNotNull(result.getSamplingTime());
+
+        assertNotNull(result.getObservedProperty());
+        assertEquals("depth", getPhenomenonId(result));
+
+        assertTrue(result.getResult() instanceof ComplexResult);
+
+        ComplexResult cr = (ComplexResult) result.getResult();
+
+        String expectedValues = "2009-05-01T13:47:00.0,15.5@@" +
+                                "2009-05-01T13:47:00.0,17.1@@" +
+                                "2009-05-01T13:47:00.0,18.4@@" +
+                                "2009-05-01T13:47:00.0,19.7@@" +
+                                "2009-05-01T13:47:00.0,21.2@@" +
+                                "2009-05-01T13:47:00.0,22.2@@" +
+                                "2009-05-01T13:47:00.0,23.9@@";
+
+        assertEquals(expectedValues, cr.getValues());
     }
 
     @Test
@@ -6597,6 +6650,28 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     }
     
     @Test
+    public void getResultsSimpleTest() throws Exception {
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:9", "csv");
+        query.setIncludeTimeForProfile(true);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "2009-05-01T13:47:00.0,15.5@@"
+                + "2009-05-01T13:47:00.0,17.1@@"
+                + "2009-05-01T13:47:00.0,18.4@@"
+                + "2009-05-01T13:47:00.0,19.7@@"
+                + "2009-05-01T13:47:00.0,21.2@@"
+                + "2009-05-01T13:47:00.0,22.2@@"
+                + "2009-05-01T13:47:00.0,23.9@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
     public void getResultsNanTest() throws Exception {
         // sensor 13 no decimation
         ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:13", "csv");
@@ -7261,6 +7336,34 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
                         + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,192,26.2@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-11T00:00:00.0,12,18.5@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-22T00:00:00.0,12,18.5@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsProfileFilter2Test() throws Exception {
+        assertNotNull(omPr);
+
+        // sensor 2 no decimation
+        ResultQuery query = new ResultQuery(null, null, "urn:ogc:object:sensor:GEOM:2", "csv");
+        BinaryComparisonOperator filter = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        query.setSelection(filter);
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                          "12.0,18.5@@"
+                        + "24.0,19.7@@"
+                        + "48.0,21.2@@"
+                        + "96.0,23.9@@"
+                        + "192.0,26.2@@"
+                        + "384.0,31.4@@"
+                        + "768.0,35.1@@"
+                        + "12.0,18.5@@"
+                        + "12.0,18.5@@";
 
         assertEquals(expectedResult, result);
     }

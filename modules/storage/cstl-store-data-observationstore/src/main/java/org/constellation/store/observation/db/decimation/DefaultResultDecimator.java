@@ -65,7 +65,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (profile) {
+        if (nonTimeseries) {
             select.append(", o.\"id\" as oid ");
             if (includeTimeInProfile) {
                 select.append(", o.\"time_begin\" ");
@@ -101,7 +101,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         AtomicBoolean first  = new AtomicBoolean(true);
         while (rs.nextOnField(procedure.mainField.name)) {
             Long currentObs;
-            if (profile) {
+            if (nonTimeseries) {
                 currentObs = rs.getLong("oid");
             } else {
                 currentObs = 1L;
@@ -115,7 +115,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 first.set(true);
                 step = times.get(currentObs)[1];
                 start = times.get(currentObs)[0];
-                mapValues = new StepValues(start, step, fields, profile);
+                mapValues = new StepValues(start, step, fields, nonTimeseries);
             }
             prevObs = currentObs;
 
@@ -129,7 +129,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                         start = start + step;
                     }
                 }
-                mapValues = new StepValues(start, step, fields, profile);
+                mapValues = new StepValues(start, step, fields, nonTimeseries);
             }
 
             for (int i = 0; i < fields.size(); i++) {
@@ -139,7 +139,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 // already extracted
                 if (i == mainFieldIndex) {
 
-                // time for profile field (present in all resultSets)
+                // time for nonTimeseries field (present in all resultSets)
                 } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
                     t = dateFromTS(rs.getTimestamp(field.name));
 
@@ -269,7 +269,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 if (FieldDataType.TIME.equals(field.dataType)) {
                     values.appendTime(new Date(mainValue), false, field);
                 } else if (FieldDataType.QUANTITY.equals(field.dataType)) {
-                    // special case for profile + datastream on another phenomenon that the main field.
+                    // special case for nonTimeseries + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
                     if (!skipProfileMain) {
                         values.appendLong(mainValue, onlyProfileMain, field);
@@ -278,7 +278,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                     throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                 }
 
-            // time for profile field
+            // time for nonTimeseries field
             } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
                 values.appendTime(t, false, field);
             // id field

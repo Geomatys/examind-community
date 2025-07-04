@@ -36,7 +36,9 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.geotoolkit.observation.model.Field;
 import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.ResultMode;
@@ -66,7 +68,8 @@ public class FieldParser {
     protected final ResultBuilder values;
     protected String obsName;
     protected final int fieldOffset;
-    protected final int mainFieldIndex;
+    
+    protected boolean onlyMain;
 
     protected boolean first = true;
 
@@ -83,7 +86,13 @@ public class FieldParser {
      * @param fieldOffset The index of the first measure field, in the field list.
      */
     public FieldParser(int mainFieldIndex, List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
-        this.mainFieldIndex = mainFieldIndex;
+        this.onlyMain = true;
+        for (Field f : fields) {
+            if (f.type == FieldType.MEASURE)  {
+                this.onlyMain = false;
+                break;
+            }
+        }
         this.profileWithTime = profileWithTime;
         this.fields = fields;
         this.includeID = includeID;
@@ -154,18 +163,18 @@ public class FieldParser {
            isMeasureField = true;
         } else {
            fieldName = field.name;
-           isMeasureField = fieldIndex >= offset;
+           isMeasureField = (field.type == FieldType.MEASURE) || (onlyMain && field.type == FieldType.MAIN );
         }
         int rsIndex = field.tableNumber;
         switch (field.dataType) {
             case TIME:
-                // profile with time field
+                // profile with time field whth value set externally
                 if (profileWithTime && fieldIndex < offset) {
                     values.appendTime(firstTime, isMeasureField, field);
                 } else {
                     Date t;
-                    // main timeseries field
-                    if (fieldIndex < offset || field.index == mainFieldIndex &&  parent == null) {
+                    // main timeseries field or joined profile time field 
+                    if (field.type == FieldType.MAIN || fieldIndex < offset) {
                         t = dateFromTS(rs.getTimestamp(fieldName)); // main field is present in every table request
                         if (first) {
                             firstTime = t;
@@ -181,7 +190,7 @@ public class FieldParser {
             case QUANTITY:
                 Double d;
                 // profile main field
-                if (field.index == mainFieldIndex  &&  parent == null) {
+                if (field.type == FieldType.MAIN) {
                     d =  rs.getDouble(fieldName); // main field is present in every table request
                     if (rs.wasNull()) {
                         d = Double.NaN;
@@ -233,7 +242,7 @@ public class FieldParser {
     public Map<String, Observation> parseSingleMeasureObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen) throws SQLException {
         final Map<String, Observation> observations = new LinkedHashMap<>();
         Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type);
+        properties.put("type", pti.type.name().toLowerCase());
                 
         while (rs2.nextOnField(pti.mainField.name)) {
             parseLine(rs2);
@@ -266,9 +275,9 @@ public class FieldParser {
     
     public Map<String, Observation> parseComplexObservation(SQLResult rs2, long oid, final ProcedureInfo pti, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, boolean separatedProfileObs) throws SQLException {
         final String obsID             = "obs-" + oid;
-        boolean profile                = "profile".equals(pti.type);
+        boolean profile                = pti.type == ObservationType.PROFILE;
         Map<String, Object> properties = new HashMap<>();
-        properties.put("type", pti.type);
+        properties.put("type", pti.type.name().toLowerCase());
         
         while (rs2.nextOnField(pti.mainField.name)) {
             parseLine(rs2);

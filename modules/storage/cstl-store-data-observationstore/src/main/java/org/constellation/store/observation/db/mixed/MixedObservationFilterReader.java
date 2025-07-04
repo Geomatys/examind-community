@@ -57,6 +57,7 @@ import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.OMEntity;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -171,7 +172,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      */
     @Override
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
-        final boolean profile = "profile".equals(pti.type);
+        final boolean profile = pti.type == ObservationType.PROFILE;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         final int tableNum = 1;
@@ -294,17 +295,17 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 final String featureID = rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
-                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
+                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
                  *  BUILD RESULT
                  */
-                boolean profile       = "profile".equals(pti.type);
+                boolean profile       = pti.type == ObservationType.PROFILE;
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type);
+                properties.put("type", pti.type.name().toLowerCase());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
                 final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);

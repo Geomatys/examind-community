@@ -41,7 +41,7 @@ public abstract class AbstractResultDecimator extends ResultProcessor {
         this.width = width;
         this.fieldFilters = fieldFilters;
         onlyProfileMain = fieldFilters.contains(procedure.mainField.index) && fieldFilters.size() == 1;
-        skipProfileMain = profile && !fieldFilters.isEmpty() && !fieldFilters.contains(procedure.mainField.index);
+        skipProfileMain = nonTimeseries && !fieldFilters.isEmpty() && !fieldFilters.contains(procedure.mainField.index);
     }
 
 }

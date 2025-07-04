@@ -45,7 +45,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         // calculate step
         final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), fields, c, width, OMEntity.RESULT, procedure);
         final long step;
-        if (profile) {
+        if (nonTimeseries) {
             // choose the first step
             // (may be replaced by one request by observation, maybe by looking if the step is uniform)
             step = times.values().iterator().next()[1];
@@ -54,7 +54,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         }
 
         StringBuilder select  = new StringBuilder();
-        if (profile) {
+        if (nonTimeseries) {
             // need review for integer overflow
             select.append("time_bucket('").append(step).append("', \"");
         } else {
@@ -65,7 +65,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
              select.append(", avg(\"").append(fields.get(i).name).append("\") AS \"").append(fields.get(i).name).append("\"");
         }
         
-        if (profile) {
+        if (nonTimeseries) {
             select.append(", o.\"id\" as \"oid\" ");
             if (includeTimeInProfile) {
                 select.append(", o.\"time_begin\" ");
@@ -73,7 +73,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         }
         sqlRequest.replaceSelect(select.toString());
 
-        if (profile) {
+        if (nonTimeseries) {
             sqlRequest.append(" GROUP BY step, \"oid\" ORDER BY \"oid\", step");
         } else {
             sqlRequest.append(" GROUP BY step ORDER BY step");

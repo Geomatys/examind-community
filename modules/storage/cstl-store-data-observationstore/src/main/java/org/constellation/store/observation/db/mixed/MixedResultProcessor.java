@@ -41,7 +41,7 @@ import org.geotoolkit.observation.model.FieldDataType;
  */
 public class MixedResultProcessor extends ResultProcessor {
     
-    // used for profile case like "only-main" or "no-main"
+    // used for nonTimeseries case like "only-main" or "no-main"
     private final Set<String> includedFields; 
     private boolean onlyMain;
     private boolean mainIncluded;
@@ -49,7 +49,7 @@ public class MixedResultProcessor extends ResultProcessor {
     public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
         super(fields, includeId, includeQuality, includeParameter, includeTimeInProfile, procedure, idSuffix);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
-        if (profile) {
+        if (nonTimeseries) {
             mainIncluded = mainFieldIndex != -1;
             onlyMain = true;
             for (Field field : fields) {
@@ -69,7 +69,7 @@ public class MixedResultProcessor extends ResultProcessor {
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (profile) {
+        if (nonTimeseries) {
             if (includeTimeInProfile) {
                 select.append(", m.\"time\" ");
             }
@@ -105,9 +105,9 @@ public class MixedResultProcessor extends ResultProcessor {
             final String fieldName = rs.getString("obsprop_id");
             final Double value     = rs.getDouble("result");
             
-            // observations for profile are a combination of the time and the z_value
+            // observations for nonTimeseries are a combination of the time and the z_value
             Object mainKey;
-            if (profile) {
+            if (nonTimeseries) {
                 long time = rs.getTimestamp("time").getTime();
                 mainKey = time + '-' + mainValue.toString();
             } else {
@@ -130,7 +130,7 @@ public class MixedResultProcessor extends ResultProcessor {
                     Field f = fields.get(i);
                     if (includeId && f.name.equals("id")) {
                         values.appendString("urn:ogc:object:observation:GEOM:" + procedure.pid + idSuffix + '-' + rs.getLong("id"), false, f);
-                    } else if (f.dataType.equals(FieldDataType.TIME) && profile) {
+                    } else if (f.dataType.equals(FieldDataType.TIME) && nonTimeseries) {
                         values.appendTime(dateFromTS(rs.getTimestamp("time")), false, f);
                     }
                 }
@@ -172,7 +172,7 @@ public class MixedResultProcessor extends ResultProcessor {
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
             if (!((includeId && f.name.equals("id"))          || // id field
-                  (f.dataType.equals(FieldDataType.TIME) && profile)  || // time field fr profile
+                  (f.dataType.equals(FieldDataType.TIME) && nonTimeseries)  || // time field fr nonTimeseries
                   (mainFieldIndex == i))) {                        // main field
                 results.put(fields.get(i).name, null);
             } 

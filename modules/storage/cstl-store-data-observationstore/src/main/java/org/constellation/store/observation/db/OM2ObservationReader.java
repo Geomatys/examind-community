@@ -62,6 +62,7 @@ import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import static org.geotoolkit.observation.model.ObservationUtils.setIdentifier;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -450,7 +451,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             Map<String, Object> properties = new HashMap<>();
             final ProcedureInfo pi = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
-            properties.put("type", pi.type);
+            properties.put("type", pi.type.name().toLowerCase());
             final Procedure proc = getProcess(procedure, c);
             final Phenomenon resultPhen;
             final Result result;
@@ -475,7 +476,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     resultQuality = buildResultQuality(pi, identifier, measureId, selectedField, c);
                     parameters    = buildParameters(pi, identifier, measureId, selectedField, c);
                     result = getResult(pi, oid, resultModel, measureId, selectedField, c);
-                    if ("timeseries".equals(pi.type)) {
+                    if (pi.type == ObservationType.TIMESERIES) {
                         time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId, fieldIndex);
                     }
                 }

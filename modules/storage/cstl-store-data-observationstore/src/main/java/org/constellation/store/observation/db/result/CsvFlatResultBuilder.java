@@ -10,6 +10,7 @@ import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldType;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.ResultMode;
 import org.geotoolkit.observation.model.TextEncoderProperties;
 
@@ -33,13 +34,13 @@ public class CsvFlatResultBuilder extends ResultBuilder {
         this.encoding = encoding;
         values = new StringBuilder();
         this.procedure = procedure;
-        this.profile = "profile".equals(procedure.type);
-        // remove fields before the main field (included)
+        this.profile = procedure.type == ObservationType.PROFILE;
+        // remove fields before first measure field
         int i = 0;
         for (; i < fields.size(); i++) {
-            if (fields.get(i).name.equals(procedure.mainField.name)) break;
+            if (fields.get(i).type == FieldType.MEASURE) break;
         }
-        this.fields = fields.subList(i + 1, fields.size());
+        this.fields = fields.subList(i, fields.size());
     }
     
     /**

@@ -2253,7 +2253,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
         /**
-         * profile
+         * simple (no main field)
          */
         filter = "(time ge 2009-05-01T08:59:00Z and time le 2009-05-01T19:59:00Z)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:9)/Observations?$resultFormat=dataArray&$filter=" + filter);
@@ -2263,7 +2263,7 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         compareJSON(expResult, result);
 
         /**
-         * profile empty out filter
+         * simple (no main field) empty out filter
          */
         filter = "(time ge 2008-05-01T08:59:00Z and time le 2008-05-01T19:59:00Z)".replace(" ", "%20");
         getFoiUrl = new URL(getDefaultURL() + "/MultiDatastreams(urn:ogc:object:observation:template:GEOM:9)/Observations?$resultFormat=dataArray&$filter=" + filter);

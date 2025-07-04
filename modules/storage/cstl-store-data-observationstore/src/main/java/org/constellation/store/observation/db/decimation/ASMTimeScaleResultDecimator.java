@@ -49,11 +49,11 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
         select.append(width).append(")");
 
         // will not work
-        if (profile) {
+        if (nonTimeseries) {
             select.append(", o.\"id\" as \"oid\" ");
         }
         // will not work
-        if (profile && includeTimeInProfile) {
+        if (nonTimeseries && includeTimeInProfile) {
             select.append(", o.\"time_begin\" ");
         }
         sqlRequest.replaceSelect(select.toString());

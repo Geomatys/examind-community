@@ -139,4 +139,11 @@ time;sensor_id;sensor_name;sensor_description;obsprop_id;obsprop_name;obsprop_de
 2007-05-01T19:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
 2007-05-01T20:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
 2007-05-01T21:59:00.0;urn:ogc:object:sensor:GEOM:3;Sensor 3;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;6.55;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;15.5;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;17.1;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;18.4;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;19.7;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;21.2;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;22.2;;
+2009-05-01T13:47:00.0;urn:ogc:object:sensor:GEOM:9;Sensor 9;;depth;depth;urn:ogc:def:phenomenon:GEOM:depth;m;;23.9;;
 

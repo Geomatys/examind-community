@@ -30,8 +30,6 @@ import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -63,6 +61,7 @@ import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.MeasureResult;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Observation;
+import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
@@ -389,48 +388,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final long oid           = rs.getLong("id");
                 Observation observation  = observations.get(procedure + '-' + featureID);
                 ProcedureInfo pti        = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                boolean profile          = "profile".equals(pti.type);
-                final boolean profileWithTime = profile && includeTimeForProfile;
-
-                Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type);
+                boolean timeseries       = pti.type == ObservationType.TIMESERIES;
+                final boolean includeObservationTime = (!timeseries) && includeTimeForProfile;
 
                /*
                 * Compute procedure fields
                 */
                 List<Field> fields = fieldMap.get(procedure);
                 if (fields == null) {
-                    if (!fieldIdFilters.isEmpty()) {
-                        fields = new ArrayList<>();
-                        fields.add(pti.mainField);
-
-                        List<Field> phenFields = new ArrayList<>();
-                        for (String f : fieldIdFilters) {
-                            final Field field = getProcedureField(procedure, f, c);
-                            if (field != null && !fields.contains(field)) {
-                                phenFields.add(field);
-                            }
-                        }
-
-                        // add proper order to fields
-                        Collections.sort(phenFields, Comparator.comparing(field -> field.index));
-                        fields.addAll(phenFields);
-
-                        // special case for trajectory observation
-                        // if lat/lon are available, include it anyway if they are not part of the phenomenon.
-                        final List<Field> llFields = getPosFields(procedure, c);
-                        for (Field llField : llFields) {
-                            if (!fields.contains(llField)) {
-                                fields.add(1, llField);
-                            }
-                        }
-
-                    } else {
-                        fields = readFields(procedure, c);
-                    }
+                    
+                    fields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters);
 
                     // add the time for profile in the dataBlock if requested
-                    if (profileWithTime) {
+                    if (includeObservationTime) {
                         fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1, List.of(), List.of()));
                     }
                     // add the result id in the dataBlock if requested
@@ -443,16 +413,16 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                /*
                 * Compute procedure measure request
                 */
-                final int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+                final int fieldOffset = getFieldsOffset(!timeseries, includeObservationTime, includeIDInDataBlock);
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
                 final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
                 LOGGER.fine(measureRequests.toString());
                 
                 final String obsName = rs.getString("identifier");
-                final FieldParser parser = buildFieldParser(pti.mainField.index, fields, profileWithTime, obsName, fieldOffset);
+                final FieldParser parser = buildFieldParser(pti.mainField.index, fields, includeObservationTime, obsName, fieldOffset);
 
                 // profile oservation are instant
-                if (profile) {
+                if (!timeseries) {
                     parser.setFirstTime(dateFromTS(rs.getTimestamp("time_begin")));
                 }
 
@@ -544,17 +514,17 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final String featureID = rs.getString("foi");
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
-                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(p, c));
+                final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
                 final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
                  *  BUILD RESULT
                  */
-                boolean profile       = "profile".equals(pti.type);
+                boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
-                properties.put("type", pti.type);
+                properties.put("type", pti.type.name().toLowerCase());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
                 final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
@@ -572,7 +542,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalPrimitive measureTime;
                             Date mt = null;
-                            if (!profile) {
+                            if (timeseries) {
                                 mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
                             }
 
@@ -597,7 +567,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                     MeasureResult result = new MeasureResult(field, resultValue);
                                     final String measId =  obsID + '-' + field.index + '-' + rid;
                                     final String measName = name + '-' + field.index + '-' + rid;
-                                    if (profile) {
+                                    if (!timeseries) {
                                         measureTime = time;
                                     } else {
                                         measureTime = buildTime(measId, mt, null);
@@ -637,15 +607,15 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     /**
      * Return the index of the first measure fields.
      *
-     * @param profile Set to {@code true} if the current observation is a Profile.
-     * @param profileWithTime Set to {@code true} if the time has to be included in the result for a profile.
+     * @param nonTimeseries Set to {@code true} if the current observation is a Profile.
+     * @param observationIncludedTime Set to {@code true} if the time has to be included in the result for a non timeseries.
      * @param includeIDInDataBlock Set to {@code true} if the measure identifier has to be included in the result.
      *
      * @return The index where starts the measure fields.
      */
-    protected int getFieldsOffset(boolean profile, boolean profileWithTime, boolean includeIDInDataBlock) {
-        int fieldOffset = profile ? 0 : 1; // for profile, the first phenomenon field is the main field
-        if (profileWithTime) {
+    protected int getFieldsOffset(boolean nonTimeseries, boolean observationIncludedTime, boolean includeIDInDataBlock) {
+        int fieldOffset = nonTimeseries ? 0 : 1; // for non Timeseries, the first phenomenon field is the main field
+        if (observationIncludedTime) {
             fieldOffset++;
         }
         if (includeIDInDataBlock) {
@@ -660,10 +630,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             throw new ObservationStoreException("Out of band response mode has not been implemented yet", NO_APPLICABLE_CODE, RESPONSE_MODE);
         }
         final boolean countRequest          = "count".equals(responseFormat);
-        final boolean includeTimeForProfile = !countRequest && this.includeTimeForProfile;
+        final boolean includeTimeForNTS     = !countRequest && this.includeTimeForProfile;
         final boolean decimate              = !countRequest && decimationSize != null;
-        final boolean profile               = "profile".equals(currentProcedure.type);
-        final boolean profileWithTime       = profile && includeTimeForProfile;
+        final boolean nonTimeseries         = currentProcedure.type != ObservationType.TIMESERIES;
+        final boolean ntsWithTime           = nonTimeseries && includeTimeForNTS;
 
         MultiFilterSQLRequest measureRequest = null;
         try (final Connection c = source.getConnection()) {
@@ -671,24 +641,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              *  1) build field list.
              */
             final List<Field> fields;
-            if (!fieldIdFilters.isEmpty()) {
-                fields = new ArrayList<>();
-                fields.add(currentProcedure.mainField);
-
-                List<Field> phenFields = new ArrayList<>();
-                for (String f : fieldIdFilters) {
-                    final Field field = getProcedureField(currentProcedure.id, f, c);
-                    if (field != null && !fields.contains(field)) {
-                        phenFields.add(field);
-                    }
-                }
-                // add proper order to fields
-                Collections.sort(phenFields, Comparator.comparing(field -> field.index));
-                fields.addAll(phenFields);
-
-            } else {
-                fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters);
-            }
+                
+            boolean removeMainField  = false; // currentProcedure.mainField.dataType != FieldDataType.TIME;
+            fields = readFields(currentProcedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters);
+            //}
             if (fields.isEmpty()) {
                 throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
             }
@@ -699,7 +655,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
 
             // add the time for profile in the dataBlock if requested
-            if (profileWithTime) {
+            if (ntsWithTime) {
                 fields.add(0, new DbField(0, FieldDataType.TIME, "time_begin", "time", "time", null, FieldType.METADATA, -1, List.of(), List.of()));
             }
             // add the result id in the dataBlock if requested
@@ -710,7 +666,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  2) complete SQL request.
              */
-            int fieldOffset = getFieldsOffset(profile, profileWithTime, includeIDInDataBlock);
+            int fieldOffset = getFieldsOffset(nonTimeseries, ntsWithTime, includeIDInDataBlock);
             FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
 
             measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, false, decimate);

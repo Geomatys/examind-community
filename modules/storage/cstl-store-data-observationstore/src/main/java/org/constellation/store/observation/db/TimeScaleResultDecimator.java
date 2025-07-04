@@ -57,7 +57,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                 if (i == mainFieldIndex) {
                     fieldName = "step";
 
-                    // special case for profile + datastream on another phenomenon that the main field.
+                    // special case for nonTimeseries + datastream on another phenomenon that the main field.
                     // we do not include the main field in the result
                     if (skipProfileMain) {
                         continue;
@@ -72,7 +72,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                     case TIME -> {
                         boolean measureField = i >= fieldOffset;
                         Date t;
-                        // time for profile
+                        // time for nonTimeseries
                         if (!measureField) {
                             t = dateFromTS(rs.getTimestamp(fieldName));
                         } else {

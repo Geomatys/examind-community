@@ -26,8 +26,10 @@ import static org.constellation.provider.observationstore.ObservationTestUtils.a
 import static org.constellation.provider.observationstore.ObservationTestUtils.castToModel;
 import static org.constellation.provider.observationstore.ObservationTestUtils.getObservationById;
 import org.constellation.store.observation.db.OM2Utils;
+import org.geotoolkit.observation.model.ComplexResult;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.query.DatasetQuery;
@@ -83,10 +85,10 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         // get the full content of the store to verify the deletion
         fullDataset = omPr.extractResults(new DatasetQuery());
         
-        nb_observation     = nb_observation - 2;     // 2 merged observations has been removed 
+        nb_observation     = nb_observation - 7;     // 2 merged observations has been removed 
         nb_used_phenomenon = nb_used_phenomenon - 2; // 2 phenomenon removed (temperature + aggregatePhenomenon in which only one component was remaining)
-        nb_used_procedure  = nb_used_procedure - 2;  // 2 procedure has been removed
-        nb_procedure       = nb_procedure - 2;
+        nb_used_procedure  = nb_used_procedure - 3;  // 3 procedure has been removed
+        nb_procedure       = nb_procedure - 3;
          // no foi removed, still in use
 
         Assert.assertEquals(nb_observation,     fullDataset.observations.size());
@@ -94,6 +96,22 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         Assert.assertEquals(nb_foi,             fullDataset.featureOfInterest.size());
         Assert.assertEquals(nb_used_procedure,  fullDataset.procedures.size());
         assertPeriodEquals("1980-03-01T21:52:00Z", "2012-12-22T00:00:00Z", fullDataset.spatialBound);
+        
+        // verify that the removal does not let observation with only main field (for profile)
+        for (Observation obs: fullDataset.observations) {
+            String type = (String) obs.getProcedure().getProperties().get("type");
+            if ("profile".equals(type)) {
+                Assert.assertTrue(obs.getResult() instanceof ComplexResult);
+                ComplexResult cr = (ComplexResult) obs.getResult();
+                boolean hasMeasure = false;
+                for (Field f : cr.getFields()) {
+                    if (f.type == FieldType.MEASURE) {
+                        hasMeasure = true;
+                    }
+                }
+                Assert.assertTrue(obs.getId() + " has no measure field!",  hasMeasure);
+            }
+        }
 
         // verify that the procedures has been totaly removed
         procedures = omPr.getProcedures(new ProcedureQuery());
@@ -101,23 +119,15 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         
         /* 
          * observations phenomenon having previously the phenomenon 'aggregatePhenomenon' is now 'depth' and as now one less field.
-         * unless for profile observations that aree harmonized at procedure level
+         * unless for profile observations that removed due to only main field status
          */
-        List<String> depthObservations = Arrays.asList("urn:ogc:object:observation:GEOM:201", "urn:ogc:object:observation:GEOM:507");
+        List<String> depthObservations = Arrays.asList("urn:ogc:object:observation:GEOM:801", "urn:ogc:object:observation:GEOM:507");
         for (String obsId : depthObservations) {
             Observation obs = getObservationById(obsId, fullDataset.observations);
-            Phenomenon phen = castToModel(obs.getObservedProperty(), Phenomenon.class);
-            Assert.assertEquals("depth", phen.getId());
+            Assert.assertEquals("depth", obs.getObservedProperty().getId());
             
-            boolean isProfile = castToModel(obs.getProcedure(), Procedure.class).getProperties().get("type").equals("profile");
-
             List<Field> fields = OM2Utils.getMeasureFields(obs);
-            // the main field is not included
-            if (isProfile) {
-                 Assert.assertEquals(0, fields.size());
-            } else {
-                Assert.assertEquals(1, fields.size());
-            }
+            Assert.assertEquals(1, fields.size());
         }
         
         /*
@@ -125,8 +135,6 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         */
         List<String> aggregateObservations = Arrays.asList("urn:ogc:object:observation:GEOM:3000", 
                                                            "urn:ogc:object:observation:GEOM:4001",
-                                                           "urn:ogc:object:observation:GEOM:5001", 
-                                                           "urn:ogc:object:observation:GEOM:5002", 
                                                            "urn:ogc:object:observation:GEOM:5003", 
                                                            "urn:ogc:object:observation:GEOM:5004");
         for (String obsId : aggregateObservations) {
@@ -146,7 +154,8 @@ public class ObservationStoreProviderRemove2PhenTest extends AbstractObservation
         }
 
         for (ProcedureDataset pd : fullDataset.procedures) {
-            Assert.assertFalse(pd.fields.contains("temperature"));
+            List<String> fieldNames = pd.fields.stream().map(f -> f.name).toList();
+            Assert.assertFalse(fieldNames.contains("temperature"));
         }
         
         // list all phenomenons
