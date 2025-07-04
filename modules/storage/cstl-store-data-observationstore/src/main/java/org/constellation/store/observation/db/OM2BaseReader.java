@@ -1181,13 +1181,22 @@ public class OM2BaseReader {
     private static Map<Integer, List<DbField>> extractTableFields(String mainFieldName, List<Field> queryFields) {
         final Map<Integer, List<DbField>> results = new HashMap<>();
         
-        // add a special where the only field requested is the main.
-        if (queryFields.size() == 1 && queryFields.get(0).name.equals(mainFieldName)) {
-            if (queryFields.get(0) instanceof DbField df) {
-                return Map.of(df.tableNumber, List.of(df));
-            }  else {
-                throw new IllegalStateException("Unexpected field implementation: " + queryFields.get(0).getClass().getName());
-            } 
+        // add a special where the only measure field requested is the main (some metadata fields can be present).
+        DbField singleMain = null; 
+        for (Field f : queryFields) {
+            if (f.name.equals(mainFieldName)) {
+                if (f instanceof DbField df) {
+                    singleMain = df;
+                } else {
+                    throw new IllegalStateException("Unexpected field implementation: " + queryFields.get(0).getClass().getName());
+                }
+            } else if (f.type == FieldType.MEASURE) {
+                singleMain = null;
+                break;
+            }
+        }
+        if (singleMain != null) {
+            return Map.of(singleMain.tableNumber, List.of(singleMain));
         }
         
         for (Field f : queryFields) {

@@ -1016,18 +1016,53 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             } else if (objectType == OBSERVATION && targetEntity == FEATURE_OF_INTEREST) {
                 // we joins with the observations
                 obsJoin = true;
+            } else if (objectType == RESULT && targetEntity == OBSERVED_PROPERTY) {
+                // we joins with the observations
+                obsJoin = true;
             }
+        }
+        
+         // special case for like
+        Object filterValue = value.getValue();
+        if (filter instanceof LikeOperator lo) {
+            if (!(filterValue instanceof String)) throw new ObservationStoreException("Like filter expect iteral to be a String");
+            String strValue = (String) filterValue;
+            strValue = strValue.replace(lo.getWildCard(), '%');
+            strValue = strValue.replace(lo.getSingleChar(), '?');
+            filterValue = strValue;
         }
 
         String propertyName = XPath.substring(pos + 11);
         sqlRequest.append(" ( ");
 
         String select;
+        String extra = null;
 
         switch (targetEntity) {
             case OBSERVED_PROPERTY -> {
                 select = " ${phen-prop-join} IN (select DISTINCT(\"id_phenomenon\") FROM \"" + schemaPrefix + "om\".\"observed_properties_properties\" WHERE ";
+                extra = " UNION select DISTINCT(c.\"phenomenon\") FROM \"" + schemaPrefix + "om\".\"components\" c, \"" + schemaPrefix + "om\".\"observed_properties_properties\" opp" +
+                        " WHERE c.\"component\" = opp.\"id_phenomenon\" AND ";
                 phenPropJoin = true;
+                
+                // for result extraction we need to filter the measure fields
+                // TODO look if this is also neccesary for OBSERVATION
+                if (objectType == RESULT || objectType == OBSERVATION) {
+                    try (final Connection c = source.getConnection();
+                         final PreparedStatement stmt = c.prepareStatement("SELECT DISTINCT(\"id_phenomenon\") " +
+                                                                            "FROM \"" + schemaPrefix + "om\".\"observed_properties_properties\" " + 
+                                                                            "WHERE \"property_name\" = ? AND \"value\" " + operator + " ? ")) {
+                        stmt.setString(1, propertyName);
+                        stmt.setObject(2, filterValue);
+                        try (ResultSet rs = stmt.executeQuery()) {
+                            while (rs.next()) {
+                                fieldIdFilters.add(rs.getString(1)); // NB: this will include composite id (they are not fields). but i guess its not really an issue
+                            }
+                        }
+                    } catch (SQLException ex) {
+                        throw new DataStoreException("Error while listing field with property", ex);
+                    }
+                }
             }
             case PROCEDURE -> {
                 select = " ${proc-prop-join} IN (select DISTINCT(\"id_procedure\") FROM \"" + schemaPrefix + "om\".\"procedures_properties\" WHERE ";
@@ -1041,17 +1076,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 throw new ObservationStoreException("Unsuported property filter on entity:" + objectType);
             }
         }
-        // special case for like
-        Object filterValue = value.getValue();
-        if (filter instanceof LikeOperator lo) {
-            if (!(filterValue instanceof String)) throw new ObservationStoreException("Like filter expect iteral to be a String");
-            String strValue = (String) filterValue;
-            strValue = strValue.replace(lo.getWildCard(), '%');
-            strValue = strValue.replace(lo.getSingleChar(), '?');
-            filterValue = strValue;
-        }
+       
         sqlRequest.append(select).append("\"property_name\" = ").appendValue(propertyName).append(" AND ");
         sqlRequest.append("\"value\" ").append(operator).appendObjectValue(filterValue);
+        if (extra != null) {
+            sqlRequest.append(extra).append("\"property_name\" = ").appendValue(propertyName).append(" AND ");
+            sqlRequest.append("\"value\" ").append(operator).appendObjectValue(filterValue);
+        }
         sqlRequest.append(" )) ");
         firstFilter = false;
         result.main = true;

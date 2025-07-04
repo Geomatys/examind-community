@@ -29,24 +29,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jakarta.annotation.PostConstruct;
 import org.apache.sis.geometry.GeneralEnvelope;
 import org.apache.sis.referencing.CRS;
 import org.apache.sis.referencing.CommonCRS;
 import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.OBSERVATION_QNAME;
-import org.constellation.business.IDatasourceBusiness;
-import org.constellation.business.IProviderBusiness;
 import org.geotoolkit.observation.model.Offering;
 import org.geotoolkit.observation.model.ProcedureDataset;
 import org.constellation.exception.ConstellationStoreException;
-import org.constellation.provider.DataProviders;
-import org.constellation.provider.ObservationProvider;
 import static org.constellation.provider.observationstore.ObservationTestUtils.*;
-import org.constellation.test.SpringContextTest;
-import org.constellation.test.utils.TestEnvironment;
-import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.ComplexResult;
@@ -83,7 +75,6 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
-import org.junit.Ignore;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 
@@ -1534,7 +1525,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
 
        /*
         * sub properties filter => procedure properties
-        * (the result is all the foi related to 'urn:ogc:object:sensor:GEOM:1')
+        * (the result is all the observed proeprty related to 'urn:ogc:object:sensor:GEOM:2')
         * +
         * observed properties filter
         */
@@ -1546,10 +1537,14 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         results = omPr.getPhenomenon(query);
 
         resultIds = getPhenomenonIds(results);
-        assertEquals(0, resultIds.size());
+        assertEquals(1, resultIds.size());
+        
+        expectedIds = new ArrayList<>();
+        expectedIds.add("aggregatePhenomenon");
+        Assert.assertEquals(expectedIds, resultIds);
 
         count = omPr.getCount(query);
-        assertEquals(0, count);
+        assertEquals(1, count);
 
         // no composite
         query.setNoCompositePhenomenon(true);
@@ -5242,6 +5237,33 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     }
     
     @Test
+    public void getObservationsFilter2Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter p = ff.equal(ff.property("procedure") , ff.literal("urn:ogc:object:sensor:GEOM:17"));
+        Filter e1 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        Filter e2 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("eutrophisation")); // NOT EXISTING
+        Filter filter = ff.and(p, ff.or(e1,e2));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(9, results.size());
+
+        for (Observation obs : results) {
+            Phenomenon obProp = obs.getObservedProperty();
+            assertTrue(obProp.getId() + " has no phen-category.", obProp.getProperties().containsKey("phen-category"));
+            Object values = obProp.getProperties().get("phen-category");
+            if (values instanceof String v) {
+                assertEquals(obProp.getId() + " has bad phen-category: " + v, "biological", v);
+            } else if (values instanceof List ls) {
+                assertTrue(obProp.getId() + " has bad phen-category: " + ls, ls.contains("biological"));
+            } else {
+                Assert.fail("unexpected propertie type");
+            } 
+        }
+    }
+    
+    @Test
     public void getObservationsNanTest() throws Exception {
         assertNotNull(omPr);
 
@@ -7239,6 +7261,45 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
                         + "urn:ogc:object:sensor:GEOM:2-dec-3,2000-12-01T00:00:00.0,192,26.2@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-4,2000-12-11T00:00:00.0,12,18.5@@"
                         + "urn:ogc:object:sensor:GEOM:2-dec-5,2000-12-22T00:00:00.0,12,18.5@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsobsPropPropertiesTest() throws Exception {
+        
+        Filter f = ff.equal(ff.property("observedProperty/properties/phen-usage"), ff.literal("production"));
+        ResultQuery query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:8", "csv");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "2007-05-01T12:59:00.0,6.56@@"
+                + "2007-05-01T13:59:00.0,6.56@@"
+                + "2007-05-01T14:59:00.0,6.56@@"
+                + "2007-05-01T15:59:00.0,6.56@@"
+                + "2007-05-01T16:59:00.0,6.56@@";
+
+        assertEquals(expectedResult, result);
+    }
+    
+    @Test
+    public void getResultsobsPropProperties2Test() throws Exception {
+        Filter e1 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("biological"));
+        Filter e2 = ff.equal(ff.property("observedProperty/properties/phen-category"), ff.literal("physics"));
+        Filter f = ff.or(e1,e2);
+        ResultQuery query = new ResultQuery(f, null, null, "urn:ogc:object:sensor:GEOM:17", "csv");
+        Object results = omPr.getResults(query);
+        assertTrue(results instanceof ComplexResult);
+        ComplexResult cr = (ComplexResult) results;
+        assertNotNull(cr.getValues());
+        String result = cr.getValues();
+
+        String expectedResult =
+                  "1.0@@2.0@@3.0@@1.0@@2.0@@3.0@@1.0@@2.0@@3.0@@";
 
         assertEquals(expectedResult, result);
     }
