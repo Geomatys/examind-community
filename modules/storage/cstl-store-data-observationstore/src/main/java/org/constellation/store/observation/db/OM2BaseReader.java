@@ -691,37 +691,35 @@ public class OM2BaseReader {
         StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL ");
         
         StringBuilder fieldFilterQuery = new StringBuilder();
-        if (!fieldIndexFilters.isEmpty() || !fieldIdFilters.isEmpty()) {
-            
-            
-            boolean hasIndex = !fieldIndexFilters.isEmpty();
-            if (hasIndex) {
-                
-                // field id filter exclude main non time filter unless we want to filter on it
-                fieldFilterQuery.append(" AND (( \"order\"= 1 AND \"field_type\"= 'Time') OR (");
-                         
-                fieldFilterQuery.append(" (");
-                for (Integer fieldFilter : fieldIndexFilters) {
-                    fieldFilterQuery.append("\"order\"= ").append(fieldFilter).append(" OR ");
-                }
-                fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
-                fieldFilterQuery.append(")))");
+        
+        boolean hasIndex = !fieldIndexFilters.isEmpty();
+        if (hasIndex) {
+
+            // field id filter exclude main non time filter unless we want to filter on it
+            fieldFilterQuery.append(" AND (( \"order\"= 1 AND \"field_type\"= 'Time') OR (");
+
+            fieldFilterQuery.append(" (");
+            for (Integer fieldFilter : fieldIndexFilters) {
+                fieldFilterQuery.append("\"order\"= ").append(fieldFilter).append(" OR ");
             }
-            
-            if (!fieldIdFilters.isEmpty()) {
-                 // always include main
-                fieldFilterQuery.append(" AND ( \"order\"= 1 OR (");
-                
-                if (hasIndex) fieldFilterQuery.append(" AND ");
-                fieldFilterQuery.append(" ( ");
-                for (String fieldFilter : fieldIdFilters) {
-                    fieldFilterQuery.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
-                }
-                // main field name may vary
-                fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
-                fieldFilterQuery.append(")))");
-            }
+            fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
+            fieldFilterQuery.append(")))");
         }
+
+        if (!fieldIdFilters.isEmpty()) {
+             // always include main
+            fieldFilterQuery.append(" AND ( \"order\"= 1 OR (");
+
+            if (hasIndex) fieldFilterQuery.append(" AND ");
+            fieldFilterQuery.append(" ( ");
+            for (String fieldFilter : fieldIdFilters) {
+                fieldFilterQuery.append("\"field_name\"= '").append(fieldFilter).append("' OR ");
+            }
+            // main field name may vary
+            fieldFilterQuery.delete(fieldFilterQuery.length() - 4, fieldFilterQuery.length());
+            fieldFilterQuery.append(")))");
+        }
+        
         query.append(fieldFilterQuery.toString());
         query.append(" ORDER BY \"order\"");
         try(final PreparedStatement stmt = c.prepareStatement(query.toString())) {//NOSONAR
@@ -734,7 +732,7 @@ public class OM2BaseReader {
                 // its just way more easy to remove it afterward instead of doing it with SQL. you are welcome to try.
                 if (removeMainField) {
                     for (Field f : results) {
-                        if ((removeMainField && f.type == FieldType.MAIN)) {
+                        if (f.type == FieldType.MAIN) {
                             results.remove(f);
                             break;
                         }

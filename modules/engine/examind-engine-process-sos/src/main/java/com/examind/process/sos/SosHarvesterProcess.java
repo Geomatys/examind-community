@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.logging.Level;
+import static org.constellation.api.CommonConstants.DATA_ARRAY;
 import org.constellation.business.IDatasourceBusiness.AnalysisState;
 import org.constellation.business.IProviderBusiness;
 import org.constellation.business.ISensorServiceBusiness;
@@ -608,7 +609,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             throw new ConfigurationException("Failure : Available only on Observation provider for now");
         }
         int nbObsTotal                              = 0;
-        final List<ObservationProvider> treated     = new ArrayList<>();
         final double byInsert                       = byData / services.size();
 
         for (SensorService sosRef : services) {
@@ -620,7 +620,9 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             final Set<Phenomenon> existingPhenomenons   = new HashSet<>(omServiceProvider.getPhenomenon(new ObservedPropertyQuery()));
             final Set<SamplingFeature> existingFois     = generateFoi ? new HashSet<>(omServiceProvider.getFeatureOfInterest(new SamplingFeatureQuery())) : new HashSet<>();
 
-            final ObservationDataset result = csvOmProvider.extractResults(new DatasetQuery());
+            DatasetQuery dsQuery = new DatasetQuery();
+            dsQuery.setResponseFormat(DATA_ARRAY);
+            final ObservationDataset result = csvOmProvider.extractResults(dsQuery);
             if (result.observations.isEmpty()) {
                 throw new ConstellationException("The data provider did not produce any observations.");
             }
@@ -643,7 +645,6 @@ public class SosHarvesterProcess extends AbstractCstlProcess {
             LOGGER.log(Level.INFO, "observations imported in :{0} ms", (System.currentTimeMillis() - start));
 
             nbObsTotal = nbObsTotal + result.observations.size();
-            treated.add(omServiceProvider);
 
             for (ServiceProcessReference servRef : sosRef.services) {
                 // link sensors to the service

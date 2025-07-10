@@ -309,6 +309,23 @@ public abstract class FileParsingObservationStore extends AbstractObservationSto
             this.mainColumns = mainColumns;
             this.measureFields = measureFields;
         }
+        
+        public MeasureField getExtraField(String fieldName, int index, FieldType type) {
+            MeasureField field = null;
+            for (MeasureField mf : measureFields) {
+                if (mf.name.equals(fieldName)) {
+                    field = mf;
+                    break;
+                }
+            }
+            if (field == null) throw new IllegalStateException("Unable to find a field named: " + fieldName);
+            if (type  == null) throw new IllegalArgumentException("fieldtype must not be null");
+            return switch (type) {
+                case PARAMETER -> field.parameterFields.get(index);
+                case QUALITY   -> field.qualityFields.get(index);
+                default        -> throw new IllegalArgumentException("Only PARAMETER or QUALITY field type are expected");
+            };
+        }
     }
 
     protected ObservationBlock getOrCreateObservationBlock(Map<String, ObservationBlock> observationBlock, Procedure procedure, String foiID, Long time, MeasureColumns measColumns) {

@@ -349,17 +349,8 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
                     LOGGER.fine(String.format("Problem parsing double for measure field at line %d and column %d (value='%s'). skipping line...", lineNumber, valueColumnIndex, line[valueColumnIndex]));
                     continue;
                 }
-                // todo extra field types
-                String[] qualityValues = new String[qualityIndexes.size()];
-                for (int i = 0; i < qualityIndexes.size(); i++) {
-                    Integer qIndex = qualityIndexes.get(i);
-                    qualityValues[i] = asString(line[qIndex]);
-                }
-                String[] parameterValues = new String[parameterIndexes.size()];
-                for (int i = 0; i < parameterIndexes.size(); i++) {
-                    Integer pIndex = parameterIndexes.get(i);
-                    parameterValues[i] = asString(line[pIndex]);
-                 }
+                Object[] qualityValues   = parseExtraFields(line, qualityIndexes,   observedProperty.id, measureColums, FieldType.QUALITY, sdf);
+                Object[] parameterValues = parseExtraFields(line, parameterIndexes, observedProperty.id, measureColums, FieldType.PARAMETER, sdf);
                 currentBlock.appendValue(mainValue, observedProperty.id, measureValue, lineNumber, qualityValues, parameterValues);
             }
 
@@ -380,6 +371,21 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
             LOGGER.log(Level.WARNING, "problem reading csv file", ex);
             throw new DataStoreException(ex);
         }
+    }
+    
+    private static Object[] parseExtraFields(Object[] line, List<Integer> indexes, String observedProperty, MeasureColumns measureColums, FieldType type, DateFormat sdf ) {
+        Object[] values = new String[indexes.size()];
+        for (int i = 0; i < indexes.size(); i++) {
+            Integer qIndex = indexes.get(i);
+            MeasureField mf = measureColums.getExtraField(observedProperty, i, type);
+            Object value = line[qIndex];
+            try {
+                values[i] = parseFieldValue(value, mf.dataType, sdf);
+            } catch (ParseException | NumberFormatException ex) {
+                LOGGER.fine(String.format("Problem parsing value for extra field  at column %d (value='%s').", qIndex, line[qIndex]));
+            }
+        }
+        return values;
     }
 
     /**

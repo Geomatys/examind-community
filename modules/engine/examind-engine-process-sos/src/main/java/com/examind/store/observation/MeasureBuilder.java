@@ -20,7 +20,6 @@
 package com.examind.store.observation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -55,18 +54,10 @@ public class MeasureBuilder {
 
     private static class Measure {
         public final Object value;
-        public final String[] qualityValues;
-        public final String[] parameterValues;
+        public final Object[] qualityValues;
+        public final Object[] parameterValues;
 
-        public Measure(int qualitySize, int parameterSize) {
-            this.value = null;
-            this.qualityValues = new String[qualitySize];
-            Arrays.fill(qualityValues, "");
-            this.parameterValues = new String[parameterSize];
-            Arrays.fill(parameterValues, "");
-
-        }
-        public Measure(Object value, String[] qualityValues, String[] parameterValues) {
+        public Measure(Object value, Object[] qualityValues, Object[] parameterValues) {
             this.value = value;
             this.qualityValues = qualityValues;
             this.parameterValues = parameterValues;
@@ -99,13 +90,9 @@ public class MeasureBuilder {
         this.mainColumns =  new ArrayList<>(cmb.mainColumns);
     }
      
-     public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, String[] qualityValues, String[] parameterValues) {
-         if (!mmb.containsKey(mainValue)) {
-            LinkedHashMap<String, Measure> row = new LinkedHashMap<>();
-            for (Entry<String, MeasureField>  measure: measureColumns.entrySet()) {
-                row.put(measure.getKey(), new Measure(measure.getValue().qualityFields.size(), measure.getValue().parameterFields.size()));
-            }
-            mmb.put(mainValue, row);
+    public void appendValue(Number mainValue, String measureCode, Object measureValue, int lineNumber, Object[] qualityValues, Object[] parameterValues) {
+        if (!mmb.containsKey(mainValue)) {
+            mmb.put(mainValue, new LinkedHashMap<>());
         }
         // add measure code
         if (measureCode != null && !measureCode.isEmpty() && measureColumns.keySet().contains(measureCode)) {
@@ -116,7 +103,7 @@ public class MeasureBuilder {
             row.put(measureCode, new Measure(measureValue, qualityValues, parameterValues));
             mmb.put(mainValue, row);
         }
-     }
+    }
      
      private Set<String> getMeasureFromMap() {
         Set<String> result = new HashSet<>();
@@ -134,7 +121,7 @@ public class MeasureBuilder {
     public Set<MeasureField> getUsedMeasureColumns() {
         final Set<String> measureColumnFound = getMeasureFromMap();
 
-        // On complète les champs de mesures seulement avec celles trouvées dans la donnée
+        //we complete the measure field only with those found in the data
         Set<MeasureField> filteredMeasure = new LinkedHashSet<>();
         if (isProfile) {
             if (mainColumns.size() > 1) {
@@ -162,21 +149,14 @@ public class MeasureBuilder {
 
      public ResultBuilder buildMeasureStringBuilderFromMap(ResultMode resultMode) {
        final Set<String> measureColumnFound = getMeasureFromMap();
-        ResultBuilder result = new ResultBuilder(ResultMode.CSV, TextEncoderProperties.DEFAULT_ENCODING, false);
+        ResultBuilder result = new ResultBuilder(resultMode, TextEncoderProperties.DEFAULT_ENCODING, false);
         boolean noneValue = true;
 
         List<Number> keys = new ArrayList<>(mmb.keySet());
         Collections.sort(keys, new MainColumnComparator());
         for (Number mainValue: keys) {
             // verify that the line is not all NAN
-            boolean emptyLine = true;
-            for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
-                final String measureName = entry2.getKey();
-                if (measureColumnFound.contains(measureName) && !entry2.getValue().isNaN()) {
-                    emptyLine = false;
-                    break;
-                }
-            }
+            boolean emptyLine = mmb.get(mainValue).isEmpty();
             if (emptyLine) {
                 continue;
             }
@@ -188,19 +168,30 @@ public class MeasureBuilder {
             } else {
                 result.appendTime((long)mainValue, false, null);
             }
-            for (Map.Entry<String, Measure> entry2: mmb.get(mainValue).entrySet()) {
-                final String measureName = entry2.getKey();
-                if (measureColumnFound.contains(measureName)) {
-                    final Measure measure = entry2.getValue();
+            Map<String, Measure> measures = mmb.get(mainValue);
+            for (Entry<String,MeasureField> measureField: measureColumns.entrySet()) {
+                if (measureColumnFound.contains(measureField.getKey())) {
+                    final Measure measure = measures.get(measureField.getKey());
                     
-                    result.appendValue(measure.value, true, null);
-                    for (String qValue : measure.qualityValues) {
-                        result.appendString(qValue, false, null);
+                    if (measure != null) {
+                        result.appendValue(measure.value, true, null);
+                        for (Object qValue : measure.qualityValues) {
+                            result.appendValue(qValue, false, null);
+                        }
+                        for (Object pValue : measure.parameterValues) {
+                            result.appendValue(pValue, false, null);
+                        }
+                        noneValue = false;
+                    } else {
+                        MeasureField f = measureField.getValue();
+                        result.appendValue(null, true, null);
+                        for (MeasureField qf : f.qualityFields) {
+                            result.appendString(null, false, null);
+                        }
+                        for (MeasureField pf : f.parameterFields) {
+                            result.appendString(null, false, null);
+                        }
                     }
-                    for (String pValue : measure.parameterValues) {
-                        result.appendString(pValue, false, null);
-                    }
-                    noneValue = false;
                 }
             }
             result.endBlock();

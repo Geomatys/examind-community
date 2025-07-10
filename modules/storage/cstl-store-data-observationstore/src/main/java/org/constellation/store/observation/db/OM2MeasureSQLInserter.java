@@ -140,7 +140,7 @@ public class OM2MeasureSQLInserter extends OM2MeasureHandler {
             for (DataLine block : blocks) {
 
                 List<Entry<InsertDbField, String>> fieldValues = block.extractValues(fields);
-
+                
                 // look for an existing line to update
                 if (update) {
                     final Entry<InsertDbField, String> main = fieldValues.get(0);

@@ -176,7 +176,7 @@ public class ResultValuesIterator {
                             d = (Double) field.convertValue(d);
                             value = Double.toString(d);
                         } else {
-                            throw new DataStoreException("expecting boolean for field " + field.name + " value : " + measure);
+                            throw new DataStoreException("expecting double for field " + field.name + " value : " + measure);
                         }
                     }
                 }

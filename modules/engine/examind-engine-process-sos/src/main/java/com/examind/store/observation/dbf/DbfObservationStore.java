@@ -250,16 +250,15 @@ public class DbfObservationStore extends AbstractCsvStore {
                             };
                         }
 
-                        String[] qValues = new String[field.qualityFields.size()];
+                        Object[] qValues = new Object[field.qualityFields.size()];
                         for (int i = 0; i < qValues.length; i++) {
                             MeasureField qField = field.qualityFields.get(i);
-                            qValues[i] = asString(line[qField.columnIndex]);
+                            qValues[i] = parseFieldValue(line[qField.columnIndex], qField.dataType, sdf);
                         }
-                        
-                        String[] pValues = new String[field.parameterFields.size()];
+                        Object[] pValues = new Object[field.parameterFields.size()];
                         for (int i = 0; i < pValues.length; i++) {
                             MeasureField pField = field.parameterFields.get(i);
-                            pValues[i] = asString(line[pField.columnIndex]);
+                            pValues[i] = parseFieldValue(line[pField.columnIndex], pField.dataType, sdf);
                         }
                         
                         currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);

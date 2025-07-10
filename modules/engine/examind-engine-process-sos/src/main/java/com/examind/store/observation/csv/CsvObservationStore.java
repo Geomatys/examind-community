@@ -250,28 +250,17 @@ public class CsvObservationStore extends AbstractCsvStore {
                     Object value       = line[index];
 
                     try {
-                        final Object measureValue;
-                        if (value == null) {
-                            measureValue = null;
-                        } else {
-                            measureValue = switch (field.dataType) {
-                                case BOOLEAN  -> parseBoolean(value);
-                                case QUANTITY -> parseDouble(value);
-                                case TEXT     -> value instanceof String ? value : value.toString();
-                                case TIME     -> parseObjectDate(value, sdf);
-                                case JSON     -> parseMap(value);
-                            };
-                        }
+                        final Object measureValue = parseFieldValue(value, field.dataType, sdf);
                         
-                        String[] qValues = new String[field.qualityFields.size()];
+                        Object[] qValues = new Object[field.qualityFields.size()];
                         for (int i = 0; i < qValues.length; i++) {
                             MeasureField qField = field.qualityFields.get(i);
-                            qValues[i] = asString(line[qField.columnIndex]);
+                            qValues[i] = parseFieldValue(line[qField.columnIndex], qField.dataType, sdf);
                         }
-                        String[] pValues = new String[field.parameterFields.size()];
+                        Object[] pValues = new Object[field.parameterFields.size()];
                         for (int i = 0; i < pValues.length; i++) {
                             MeasureField pField = field.parameterFields.get(i);
-                            pValues[i] = asString(line[pField.columnIndex]);
+                            pValues[i] = parseFieldValue(line[pField.columnIndex], pField.dataType, sdf);
                         }
 
                         currentBlock.appendValue(mainValue, field.name, measureValue, lineNumber, qValues, pValues);

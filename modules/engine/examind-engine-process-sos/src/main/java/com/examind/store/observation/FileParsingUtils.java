@@ -46,6 +46,11 @@ import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.observation.OMUtils;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
+import static org.geotoolkit.observation.model.FieldDataType.BOOLEAN;
+import static org.geotoolkit.observation.model.FieldDataType.JSON;
+import static org.geotoolkit.observation.model.FieldDataType.QUANTITY;
+import static org.geotoolkit.observation.model.FieldDataType.TEXT;
+import static org.geotoolkit.observation.model.FieldDataType.TIME;
 import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.SamplingFeature;
 import org.locationtech.jts.geom.Coordinate;
@@ -441,6 +446,17 @@ public class FileParsingUtils {
         }
         return true;
     }
+    
+    public static Object parseFieldValue(Object value, FieldDataType dataType, DateFormat sdf) throws ParseException {
+        if (value == null) return null;
+        return switch (dataType) {
+            case BOOLEAN  -> parseBoolean(value);
+            case QUANTITY -> parseDouble(value);
+            case TEXT     -> value instanceof String ? value : value.toString();
+            case TIME     -> parseObjectDate(value, sdf);
+            case JSON     -> parseMap(value);
+        };
+    }
 
     /**
      * Return {@code true} if the input line is empty or didn't match the expected minimal length maxIndex
@@ -779,17 +795,17 @@ public class FileParsingUtils {
         return s.toLowerCase().replace(" ", "_");
     }
     
-    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> idColumns, List<String> typeColumns) {
+    public static List<MeasureField> buildExtraMeasureFields(List<String> nameColumns, List<String> columnIds, List<String> columnTypes) {
         List<MeasureField> results = new ArrayList<>();
         for (int i = 0; i < nameColumns.size(); i++) {
             String qName = nameColumns.get(i);
-            if (i < idColumns.size()) {
-                qName = idColumns.get(i);
+            if (i < columnIds.size()) {
+                qName = columnIds.get(i);
             }
             qName = normalizeFieldName(qName);
             FieldDataType qtype = FieldDataType.TEXT;
-            if (i < typeColumns.size()) {
-                qtype = FieldDataType.valueOf(typeColumns.get(i));
+            if (i < columnTypes.size()) {
+                qtype = FieldDataType.valueOf(columnTypes.get(i));
             }
             results.add(new MeasureField(- 1, qName, qtype, List.of(), List.of()));
         }
