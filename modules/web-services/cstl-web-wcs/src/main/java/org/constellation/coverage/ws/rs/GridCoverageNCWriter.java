@@ -27,9 +27,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map.Entry;
+import org.apache.sis.coverage.SampleDimension;
 import org.apache.sis.coverage.grid.GridCoverage;
-import org.constellation.util.WCSUtils;
+import org.apache.sis.coverage.grid.GridGeometry;
+import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
+import org.apache.sis.coverage.grid.PixelInCell;
+import org.apache.sis.referencing.operation.transform.LinearTransform;
+import org.geotoolkit.image.io.metadata.ReferencingBuilder;
+import org.geotoolkit.image.io.metadata.SpatialMetadataFormat;
+import org.geotoolkit.internal.image.io.DimensionAccessor;
+import org.geotoolkit.internal.image.io.GridDomainAccessor;
+import org.opengis.coverage.CannotEvaluateException;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -41,7 +51,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCoverage, SpatialMetadata>> {
+public class GridCoverageNCWriter implements HttpMessageConverter<GridCoverage> {
 
     @Override
     public boolean canRead(Class<?> clazz, MediaType mediaType) {
@@ -59,18 +69,69 @@ public class GridCoverageNCWriter implements HttpMessageConverter<Entry<GridCove
     }
 
     @Override
-    public Entry read(Class<? extends Entry<GridCoverage, SpatialMetadata>> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
+    public GridCoverage read(Class<? extends GridCoverage> type, HttpInputMessage him) throws IOException, HttpMessageNotReadableException {
         throw new HttpMessageNotReadableException("Entry message converter do not support reading.", him);
     }
 
     @Override
-    public void write(Entry<GridCoverage, SpatialMetadata> entry, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
-        writeInStream(entry, outputMessage.getBody());
+    public void write(GridCoverage gc, MediaType contentType, HttpOutputMessage outputMessage) throws IOException, HttpMessageNotWritableException {
+        writeInStream(gc, outputMessage.getBody());
+    }
+    
+    /**
+     * Add information about given coverage in input metadata.
+     *
+     * @return A new spatial metadata. The metadata has been modified with target data information.
+     * @throws IncompleteGridGeometryException when the coordinate reference system or the grid to crs of given geometry
+     * is not available.
+     * @throws CannotEvaluateException when we cannot safely extract a 2D part of input grid geometry. Note that this is
+     * caused due to limitations of the {@link SpatialMetadata} capabilities.
+     */
+    @Deprecated
+    private static SpatialMetadata adapt(final GridCoverage targetData) throws IncompleteGridGeometryException, CannotEvaluateException {
+        
+        //  The metadata to modify to match given coverage structure. we'll create and send back a fresh one.
+        SpatialMetadata source = new SpatialMetadata(SpatialMetadataFormat.getImageInstance(SpatialMetadataFormat.GEOTK_FORMAT_NAME));
+        
+        // The grid geometry which will serve to fill metadata grid information. If null, no grid information is added into metadata.
+        GridGeometry gg = targetData.getGridGeometry();
+        
+        final SampleDimension[] targetDims = targetData.getSampleDimensions().toArray(new SampleDimension[0]);
+
+        //add ImageCRS in SpatialMetadata
+        if (gg != null) {
+            if (!(gg.getGridToCRS(PixelInCell.CELL_CENTER) instanceof LinearTransform)) {
+                /* HACK : For now, we cannot write properly additional dimension information, because grid domain
+                 * accessor skip the entire grid to CRS if it is not linear. So, to at least keep 2D projection information,
+                 * We delete time and elevation information. Another solution would be to use jacobian matrix to reduce
+                 * non linear parts of the grid geometry to constants, but I have no time for now. Plus, all this code
+                 * should not be necessary if we used proper APIs for response writing.
+                 */
+                gg = gg.selectDimensions(gg.getExtent().getSubspaceDimensions(2));
+            }
+
+            new ReferencingBuilder(source).setCoordinateReferenceSystem(gg.getCoordinateReferenceSystem());
+            new GridDomainAccessor(source).setGridGeometry(gg, null, null);
+        }
+
+        if (targetDims != null) {
+            DimensionAccessor dimAccess = new org.geotoolkit.internal.image.io.DimensionAccessor(source);
+            if (dimAccess.childCount() != targetDims.length) {
+                dimAccess.removeChildren();
+                for (SampleDimension gsd : targetDims) {
+                    dimAccess.selectChild(dimAccess.appendChild());
+                    dimAccess.setDimension(gsd, Locale.ROOT);
+                    dimAccess.selectParent();
+                }
+            }
+        }
+        source.clearInstancesCache();
+
+        return source;
     }
 
-    public static void writeInStream(final Entry<GridCoverage, SpatialMetadata> entry, final OutputStream out) throws IOException {
-        final GridCoverage coverage  = entry.getKey();
-        final SpatialMetadata metadata = WCSUtils.adapt(entry.getValue(), coverage);
+    public static void writeInStream(final GridCoverage coverage, final OutputStream out) throws IOException {
+        final SpatialMetadata metadata = adapt(coverage);
         final IIOImage iioimage        = new IIOImage(coverage.render(null), null, metadata);
         final ImageWriter iowriter     = ImageIO.getImageWritersByFormatName("netcdf").next();
 

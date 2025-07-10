@@ -66,7 +66,6 @@ import org.constellation.provider.util.DataStatisticsListener;
 import org.constellation.repository.DataRepository;
 import org.geotoolkit.coverage.grid.GridGeometryIterator;
 import org.geotoolkit.coverage.grid.GridIterator;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.geotoolkit.map.MapBuilder;
 import org.geotoolkit.processing.coverage.statistics.Statistics;
 import org.geotoolkit.processing.coverage.statistics.StatisticsDescriptor;
@@ -354,14 +353,6 @@ public class DefaultCoverageData extends DefaultGeoData<GridCoverageResource> im
             }
         }
         return Optional.empty();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public SpatialMetadata getSpatialMetadata() throws ConstellationStoreException {
-        return null;
     }
 
     /**

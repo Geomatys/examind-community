@@ -1,54 +1,69 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns27:CoverageDescription xmlns:mex="http://standards.iso.org/iso/19115/-3/mex/1.0" xmlns:gco="http://standards.iso.org/iso/19115/-3/gco/1.0" xmlns:srv="http://standards.iso.org/iso/19115/-3/srv/2.0" xmlns:gex="http://standards.iso.org/iso/19115/-3/gex/1.0" xmlns:mmi="http://standards.iso.org/iso/19115/-3/mmi/1.0" xmlns:mac="http://standards.iso.org/iso/19115/-3/mac/1.0" xmlns:mas="http://standards.iso.org/iso/19115/-3/mas/1.0" xmlns:mcc="http://standards.iso.org/iso/19115/-3/mcc/1.0" xmlns:mdq="http://standards.iso.org/iso/19157/-2/mdq/1.0" xmlns:mri="http://standards.iso.org/iso/19115/-3/mri/1.0" xmlns:mrd="http://standards.iso.org/iso/19115/-3/mrd/1.0" xmlns:cit="http://standards.iso.org/iso/19115/-3/cit/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mco="http://standards.iso.org/iso/19115/-3/mco/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:mrs="http://standards.iso.org/iso/19115/-3/mrs/1.0" xmlns:srv1="http://www.isotc211.org/2005/srv" xmlns:mpc="http://standards.iso.org/iso/19115/-3/mpc/1.0" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:mrc="http://standards.iso.org/iso/19115/-3/mrc/1.0" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:lan="http://standards.iso.org/iso/19115/-3/lan/1.0" xmlns:msr="http://standards.iso.org/iso/19115/-3/msr/1.0" xmlns:ns24="http://www.opengis.net/gml" xmlns:gcx="http://standards.iso.org/iso/19115/-3/gcx/1.0" xmlns:mdb="http://standards.iso.org/iso/19115/-3/mdb/1.0" xmlns:ns27="http://www.opengis.net/wcs" xmlns:ns28="http://www.opengis.net/ows/1.1" xmlns:ns29="http://www.opengis.net/wcs/1.1.1" xmlns:ns30="http://www.opengis.net/ows/2.0" xmlns:ns31="http://www.opengis.net/wcs/2.0" xmlns:ns32="http://www.opengis.net/gmlcov/1.0" xmlns:ns33="http://www.opengis.net/swe/2.0" xmlns:ns34="http://www.opengis.net/gmlcov/geotiff/1.0" xmlns:ns35="http://www.opengis.net/ogc" version="1.0.0">
-  <ns27:CoverageOffering>
-    <ns27:description></ns27:description>
-    <ns27:name>aliased</ns27:name>
-    <ns27:label>aliased</ns27:label>
-    <ns27:lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-      <ns24:pos>-180.0 -89.82421875</ns24:pos>
-      <ns24:pos>180.0 90.0</ns24:pos>
-    </ns27:lonLatEnvelope>
-    <ns27:keywords>
-      <ns27:keyword>WCS</ns27:keyword>
-      <ns27:keyword>aliased</ns27:keyword>
-    </ns27:keywords>
-    <ns27:domainSet>
-      <ns27:spatialDomain>
-        <ns24:Envelope srsName="urn:ogc:def:crs:EPSG::4326">
-          <ns24:pos>-180.0 -89.82421875</ns24:pos>
-          <ns24:pos>180.0 90.0</ns24:pos>
-        </ns24:Envelope>
-        <ns24:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-          <ns24:pos>-180.17578125 -89.82421875</ns24:pos>
-          <ns24:pos>179.82421875 90.17578125</ns24:pos>
-        </ns24:Envelope>
-      </ns27:spatialDomain>
-      <ns27:temporalDomain/>
-    </ns27:domainSet>
-    <ns27:rangeSet>
-      <ns27:RangeSet>
+    <ns27:CoverageOffering>
+        <ns27:description></ns27:description>
         <ns27:name>aliased</ns27:name>
         <ns27:label>aliased</ns27:label>
-      </ns27:RangeSet>
-    </ns27:rangeSet>
-    <ns27:supportedCRSs>
-      <ns27:requestResponseCRSs>urn:ogc:def:crs:EPSG::4326</ns27:requestResponseCRSs>
-      <ns27:nativeCRSs>urn:ogc:def:crs:OGC:1.3:CRS84</ns27:nativeCRSs>
-    </ns27:supportedCRSs>
-    <ns27:supportedFormats nativeFormat="png">
-      <ns27:formats>png</ns27:formats>
-      <ns27:formats>gif</ns27:formats>
-      <ns27:formats>jpeg</ns27:formats>
-      <ns27:formats>bmp</ns27:formats>
-      <ns27:formats>tiff</ns27:formats>
-      <ns27:formats>geotiff</ns27:formats>
-      <ns27:formats>matrix</ns27:formats>
-      <ns27:formats>ascii-grid</ns27:formats>
-    </ns27:supportedFormats>
-    <ns27:supportedInterpolations default="nearest neighbor">
-      <ns27:interpolationMethod>bilinear</ns27:interpolationMethod>
-      <ns27:interpolationMethod>bicubic</ns27:interpolationMethod>
-      <ns27:interpolationMethod>nearest neighbor</ns27:interpolationMethod>
-    </ns27:supportedInterpolations>
-  </ns27:CoverageOffering>
+        <ns27:lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+            <ns24:pos>-180.0 -89.82421875</ns24:pos>
+            <ns24:pos>180.0 90.0</ns24:pos>
+        </ns27:lonLatEnvelope>
+        <ns27:keywords>
+            <ns27:keyword>WCS</ns27:keyword>
+            <ns27:keyword>aliased</ns27:keyword>
+        </ns27:keywords>
+        <ns27:domainSet>
+            <ns27:spatialDomain>
+                <ns24:Envelope srsName="urn:ogc:def:crs:EPSG::4326">
+                    <ns24:pos>-180.0 -89.82421875</ns24:pos>
+                    <ns24:pos>180.0 90.0</ns24:pos>
+                </ns24:Envelope>
+                <ns24:Envelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84" srsDimension="2" axisLabels="λ φ">
+                    <ns24:pos>-180.17578125 -89.82421875</ns24:pos>
+                    <ns24:pos>179.82421875 90.17578125</ns24:pos>
+                </ns24:Envelope>
+                <ns24:RectifiedGrid dimension="2" ns24:id="grid-aliased">
+                    <ns24:limits>
+                        <ns24:GridEnvelope>
+                            <ns24:low>0 0</ns24:low>
+                            <ns24:high>1023 511</ns24:high>
+                        </ns24:GridEnvelope>
+                    </ns24:limits>
+                    <ns24:axisName>λ</ns24:axisName>
+                    <ns24:axisName>φ</ns24:axisName>
+                    <ns24:origin>
+                        <ns24:pos>-180.17578125 90.17578125</ns24:pos>
+                    </ns24:origin>
+                    <ns24:offsetVector>0.3515625 0.0</ns24:offsetVector>
+                    <ns24:offsetVector>0.0 -0.3515625</ns24:offsetVector>
+                </ns24:RectifiedGrid>
+            </ns27:spatialDomain>
+            <ns27:temporalDomain/>
+        </ns27:domainSet>
+        <ns27:rangeSet>
+            <ns27:RangeSet>
+                <ns27:name>aliased</ns27:name>
+                <ns27:label>aliased</ns27:label>
+            </ns27:RangeSet>
+        </ns27:rangeSet>
+        <ns27:supportedCRSs>
+            <ns27:requestResponseCRSs>urn:ogc:def:crs:EPSG::4326</ns27:requestResponseCRSs>
+            <ns27:nativeCRSs>urn:ogc:def:crs:OGC:1.3:CRS84</ns27:nativeCRSs>
+        </ns27:supportedCRSs>
+        <ns27:supportedFormats nativeFormat="png">
+            <ns27:formats>png</ns27:formats>
+            <ns27:formats>gif</ns27:formats>
+            <ns27:formats>jpeg</ns27:formats>
+            <ns27:formats>bmp</ns27:formats>
+            <ns27:formats>tiff</ns27:formats>
+            <ns27:formats>geotiff</ns27:formats>
+            <ns27:formats>matrix</ns27:formats>
+            <ns27:formats>ascii-grid</ns27:formats>
+        </ns27:supportedFormats>
+        <ns27:supportedInterpolations default="nearest neighbor">
+            <ns27:interpolationMethod>bilinear</ns27:interpolationMethod>
+            <ns27:interpolationMethod>bicubic</ns27:interpolationMethod>
+            <ns27:interpolationMethod>nearest neighbor</ns27:interpolationMethod>
+        </ns27:supportedInterpolations>
+    </ns27:CoverageOffering>
 </ns27:CoverageDescription>

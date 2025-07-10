@@ -32,18 +32,15 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedSet;
@@ -134,16 +131,13 @@ import org.geotoolkit.geometry.jts.JTSEnvelope2D;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
 import org.geotoolkit.gml.xml.v311.EnvelopeType;
 import org.geotoolkit.gml.xml.v311.GridType;
-import org.geotoolkit.gml.xml.v311.RectifiedGridType;
 import org.geotoolkit.gml.xml.v321.AssociationRoleType;
 import org.geotoolkit.gml.xml.v321.FileType;
 import org.geotoolkit.gmlcov.geotiff.xml.v100.CompressionType;
 import org.geotoolkit.gmlcov.geotiff.xml.v100.ParametersType;
 import org.geotoolkit.gmlcov.xml.v100.AbstractDiscreteCoverageType;
 import org.geotoolkit.gmlcov.xml.v100.ObjectFactory;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.apache.sis.map.MapLayers;
-import org.apache.sis.referencing.operation.transform.MathTransforms;
 import static org.constellation.map.util.MapUtils.combine;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.CURRENT_UPDATE_SEQUENCE;
 import static org.geotoolkit.ows.xml.OWSExceptionCode.FILE_SIZE_EXCEEDED;
@@ -160,6 +154,7 @@ import static org.geotoolkit.ows.xml.OWSExceptionCode.VERSION_NEGOTIATION_FAILED
 
 import org.constellation.util.Util;
 import org.constellation.util.CRSUtilities;
+import org.geotoolkit.gml.xml.v311.RectifiedGridType;
 import org.geotoolkit.ows.xml.AbstractCapabilitiesCore;
 import org.geotoolkit.ows.xml.AbstractOperationsMetadata;
 import org.geotoolkit.ows.xml.AbstractServiceIdentification;
@@ -217,7 +212,6 @@ import org.geotoolkit.wcs.xml.v200.DimensionTrimType;
 import org.geotoolkit.wcs.xml.v200.ExtensionType;
 import org.geotoolkit.wcs.xml.v200.ServiceParametersType;
 import org.opengis.coverage.grid.RectifiedGrid;
-import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.Envelope;
 import org.opengis.metadata.extent.GeographicBoundingBox;
 import org.opengis.metadata.spatial.DimensionNameType;
@@ -364,31 +358,10 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                 envelopes.add(nativeEnvelope);
             }
 
-            GridType grid = null;
-            try {
-                SpatialMetadata meta = data.getSpatialMetadata();
-                if (meta != null) {
-                    RectifiedGrid brutGrid = meta.getInstanceForType(RectifiedGrid.class);
-                    if (brutGrid != null) {
-                        grid = new RectifiedGridType(brutGrid);
-                        /*
-                         * UGLY PATCH : remove it when geotk will fill this data
-                         */
-                        if (grid.getDimension() == 0) {
-                            int dimension = brutGrid.getOffsetVectors().size();
-                            grid.setDimension(dimension);
-                        }
-                        if (grid.getAxisName().isEmpty()) {
-                            if (grid.getDimension() == 2) {
-                                grid.setAxisName(Arrays.asList("x", "y"));
-                            } else if (grid.getDimension() == 3) {
-                                grid.setAxisName(Arrays.asList("x", "y", "z"));
-                            }
-                        }
-                    }
-                }
-            } catch (ConstellationStoreException ex) {
-                LOGGER.log(Level.WARNING, "Unable to get coverage spatial metadata", ex);
+            GridType grid = new RectifiedGridType(data.getGeometry());
+            grid.setId("grid-" + identifier.replace(':', '_')); // gml id does not like ':'
+            if (grid.getAxisName() != null && !grid.getAxisName().isEmpty()) {
+                  nativeEnvelope.setAxisLabels(grid.getAxisName());
             }
 
             final SpatialDomainType spatialDomain =
@@ -414,7 +387,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             return new CoverageOfferingType(null, identifier,
                     identifier, "", llenvelope,
                     keywords, domainSet, rangeSet, supCRS, supForm, supInt);
-        } catch (ConstellationStoreException ex) {
+        } catch (ConstellationStoreException | TransformException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
     }
@@ -992,7 +965,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                     refEnvel = combine(refEnvel, dates, elevations, null);
                 }
                 GeotiffResponse response = new GeotiffResponse();
-                response.metadata = data.getSpatialMetadata();
                 response.coverage = data.getCoverage(refEnvel, size);
                 return response;
             } catch (ConstellationStoreException | FactoryException ex) {
@@ -1065,7 +1037,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             }
         }
         final CoverageData data = (CoverageData) layer.getData();
-        final SpatialMetadata metadata;
         final GridCoverageResource ref = (GridCoverageResource) data.getOrigin();
         GeneralEnvelope readEnv;
         CoordinateReferenceSystem crs;
@@ -1086,8 +1057,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             } else {
                 crs = readEnv.getCoordinateReferenceSystem();
             }
-            metadata = data.getSpatialMetadata();
-        } catch (ConstellationStoreException | DataStoreException | FactoryException  | TransformException ex) {
+        } catch (DataStoreException | FactoryException  | TransformException ex) {
             throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
         }
 
@@ -1179,17 +1149,16 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 
             try {
                 final GridCoverage coverage = data.getCoverage(readEnv, null);
-                final SimpleEntry response = new SimpleEntry(coverage, metadata);
                 if (isMultiPart) {
                     final File img = File.createTempFile(layer.getName().getLocalPart(), ".nc");
-                    GridCoverageNCWriter.writeInStream(response, new FileOutputStream(img));
+                    GridCoverageNCWriter.writeInStream(coverage, new FileOutputStream(img));
                     final String xml = buildXmlPart(describeCoverage200(layer), format);
                     final MultiPart multiPart = new MultiPart();
                     multiPart.bodyPart("application/xml", xml)
                             .bodyPart(format, img);
                     return multiPart;
                 } else {
-                    return response;
+                    return coverage;
                 }
 
             } catch (IOException | JAXBException | ConstellationStoreException ex) {
@@ -1200,7 +1169,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             try {
                 final GeotiffResponse response = new GeotiffResponse();
                 response.coverage = data.getCoverage(readEnv, null);
-                response.metadata = metadata;
                 response.outputCRS = request.getResponseCRS();
                 if (request.getExtension() instanceof ExtensionType ext) {
                     final ParametersType geoExt = ext.getForClass(ParametersType.class);
@@ -1309,12 +1277,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
             GeneralEnvelope readEnv = getGeneralEnvelope(data, bboxCrs);
 
             CoordinateReferenceSystem crs = readEnv.getCoordinateReferenceSystem();
-            final SpatialMetadata metadata;
-            try {
-                metadata = data.getSpatialMetadata();
-            } catch (ConstellationStoreException ex) {
-                throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
-            }
 
             processBbox(readEnv, bbox);
             GridGeometry originGeometry = data.getGeometry();
@@ -1504,8 +1466,7 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
 //                try {
                     //TODO : Reuse data.getCoverage(readEnv,null) when we will use Apache SIS Tiff writer
                     final GridCoverage coverage = gridCoverageSource; //data.getCoverage(readEnv, null);
-                    final SimpleEntry response = new SimpleEntry(coverage, metadata);
-                    return response;
+                    return coverage;
 
 //                } catch (ConstellationStoreException ex) {
 //                    throw new CstlServiceException(ex, NO_APPLICABLE_CODE);
@@ -1540,7 +1501,6 @@ public final class DefaultWCSWorker extends LayerWorker implements WCSWorker {
                         gcb.setRanges(resultSdList);
                         response.coverage = gcb.build();
                     }
-                    response.metadata = metadata;
                     response.outputCRS = crs;
                     return response;
 

@@ -31,8 +31,6 @@ import org.apache.sis.map.MapItem;
 import org.apache.sis.storage.GridCoverageResource;
 import org.apache.sis.style.Style;
 
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
-
 import org.constellation.exception.ConstellationStoreException;
 
 /**
@@ -50,8 +48,6 @@ public interface CoverageData extends Data<GridCoverageResource> {
      * @return The original MIME type of the data.
      */
     Optional<String> getImageFormat();
-
-    SpatialMetadata getSpatialMetadata() throws ConstellationStoreException;
 
     List<SampleDimension> getSampleDimensions() throws ConstellationStoreException;
 

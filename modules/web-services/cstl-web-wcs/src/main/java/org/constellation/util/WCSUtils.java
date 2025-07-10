@@ -27,30 +27,19 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TimeZone;
-import org.apache.sis.coverage.SampleDimension;
-import org.apache.sis.coverage.grid.GridCoverage;
-import org.apache.sis.coverage.grid.GridExtent;
 import org.apache.sis.coverage.grid.GridGeometry;
-import org.apache.sis.coverage.grid.IncompleteGridGeometryException;
 import org.apache.sis.geometry.GeneralDirectPosition;
-import org.apache.sis.referencing.operation.transform.LinearTransform;
 import org.apache.sis.referencing.operation.transform.MathTransforms;
 import org.constellation.ws.MimeType;
 import org.geotoolkit.display2d.ext.pattern.PatternSymbolizer;
 import org.geotoolkit.filter.FilterUtilities;
 import org.geotoolkit.gml.xml.v311.DirectPositionType;
 import org.geotoolkit.gml.xml.v311.TimePositionType;
-import org.geotoolkit.image.io.metadata.ReferencingBuilder;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
-import org.geotoolkit.image.io.metadata.SpatialMetadataFormat;
-import org.geotoolkit.internal.image.io.DimensionAccessor;
-import org.geotoolkit.internal.image.io.GridDomainAccessor;
 import org.geotoolkit.style.DefaultStyleFactory;
 import org.geotoolkit.style.MutableStyle;
 import org.geotoolkit.style.MutableStyleFactory;
@@ -58,7 +47,6 @@ import org.geotoolkit.style.function.ThreshholdsBelongTo;
 import org.geotoolkit.wcs.xml.RangeSubset;
 import org.geotoolkit.wcs.xml.v100.IntervalType;
 import org.geotoolkit.wcs.xml.v100.TypedLiteralType;
-import org.opengis.coverage.CannotEvaluateException;
 import org.opengis.coverage.grid.GridCell;
 import org.opengis.coverage.grid.GridCoordinates;
 import org.opengis.coverage.grid.GridEnvelope;
@@ -306,73 +294,6 @@ public final class WCSUtils {
        return ext;
     }
 
-    /**
-     * Add information about given coverage in input metadata.
-     *
-     * @param source The metadata to modify to match given coverage structure. If null, we'll create and send back a
-     * fresh one.
-     * @param targetData The coverage to use to add information in the metadata.
-     * @return Given spatial metadata if not null, or a new one. In all cases, the metadata has been modified with
-     * target data information.
-     */
-    public static SpatialMetadata adapt(SpatialMetadata source, final GridCoverage targetData) {
-        return adapt(source, targetData.getGridGeometry(), targetData.getSampleDimensions().toArray(new SampleDimension[0]));
-    }
-
-    /**
-     * Add information about given coverage in input metadata.
-     *
-     * @param source The metadata to modify to match given coverage structure. If null, we'll create and send back a
-     * fresh one.
-     * @param gg The grid geometry which will serve to fill metadata grid information. If null, no grid information is
-     * added into metadata.
-     *
-     * @param targetDims Information about sample values to add in metadata. If null, we skip this step.
-     * @return Given spatial metadata if not null, or a new one. In all cases, the metadata has been modified with
-     * target data information.
-     * @throws IncompleteGridGeometryException when the coordinate reference system or the grid to crs of given geometry
-     * is not available.
-     * @throws CannotEvaluateException when we cannot safely extract a 2D part of input grid geometry. Note that this is
-     * caused due to limitations of the {@link SpatialMetadata} capabilities.
-     */
-    @Deprecated
-    public static SpatialMetadata adapt(SpatialMetadata source, GridGeometry gg, final SampleDimension[] targetDims) throws IncompleteGridGeometryException, CannotEvaluateException {
-        if (source == null) {
-            source = new SpatialMetadata(SpatialMetadataFormat.getImageInstance(SpatialMetadataFormat.GEOTK_FORMAT_NAME));
-        }
-
-        //add ImageCRS in SpatialMetadata
-        if (gg != null) {
-            if (!(gg.getGridToCRS(PixelInCell.CELL_CENTER) instanceof LinearTransform)) {
-                /* HACK : For now, we cannot write properly additional dimension information, because grid domain
-                 * accessor skip the entire grid to CRS if it is not linear. So, to at least keep 2D projection information,
-                 * We delete time and elevation information. Another solution would be to use jacobian matrix to reduce
-                 * non linear parts of the grid geometry to constants, but I have no time for now. Plus, all this code
-                 * should not be necessary if we used proper APIs for response writing.
-                 */
-                gg = gg.selectDimensions(gg.getExtent().getSubspaceDimensions(2));
-            }
-
-            new ReferencingBuilder(source).setCoordinateReferenceSystem(gg.getCoordinateReferenceSystem());
-            new GridDomainAccessor(source).setGridGeometry(gg, null, null);
-        }
-
-        if (targetDims != null) {
-            DimensionAccessor dimAccess = new org.geotoolkit.internal.image.io.DimensionAccessor(source);
-            if (dimAccess.childCount() != targetDims.length) {
-                dimAccess.removeChildren();
-                for (SampleDimension gsd : targetDims) {
-                    dimAccess.selectChild(dimAccess.appendChild());
-                    dimAccess.setDimension(gsd, Locale.ROOT);
-                    dimAccess.selectParent();
-                }
-            }
-        }
-        source.clearInstancesCache();
-
-        return source;
-    }
-    
     public static RectifiedGrid createRectifiedGrid(final GridGeometry gg) throws TransformException {
         CoordinateReferenceSystem crs = gg.getCoordinateReferenceSystem();
         MathTransform gridToCRS = gg.getGridToCRS(PixelInCell.CELL_CORNER);

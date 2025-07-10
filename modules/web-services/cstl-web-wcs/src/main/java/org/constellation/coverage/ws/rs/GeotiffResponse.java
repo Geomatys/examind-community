@@ -20,7 +20,6 @@
 package org.constellation.coverage.ws.rs;
 
 import org.apache.sis.coverage.grid.GridCoverage;
-import org.geotoolkit.image.io.metadata.SpatialMetadata;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -30,8 +29,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 public class GeotiffResponse {
 
     public GridCoverage coverage;
-
-    public SpatialMetadata metadata;
 
     public String compression;
 
