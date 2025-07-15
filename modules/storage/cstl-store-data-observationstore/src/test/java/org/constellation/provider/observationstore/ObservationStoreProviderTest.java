@@ -75,6 +75,7 @@ import org.geotoolkit.observation.model.Observation;
 import org.geotoolkit.observation.model.Phenomenon;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.observation.model.SamplingFeature;
+import org.junit.Ignore;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.temporal.TemporalPrimitive;
 
@@ -3976,15 +3977,20 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         for (Observation p : results) {
             resultIds.add(p.getName().getCode());
         }
-        assertEquals(1, resultIds.size());
+        assertEquals(6, resultIds.size());
 
         Set<String> expectedIds = new HashSet<>();
         expectedIds.add("urn:ogc:object:observation:template:GEOM:quality_sensor-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:4-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
 
         Assert.assertEquals(expectedIds, resultIds);
 
         long count = omPr.getCount(query);
-        assertEquals(1L, count);
+        assertEquals(6L, count);
 
         // get all the sensor templates that have at least ONE qres quality field value les or equals to '3.4'
         query = new ObservationQuery(MEASUREMENT_QNAME, RESULT_TEMPLATE, null);
@@ -5180,11 +5186,11 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
        String result = getResultValues(results.get(0));
 
        String expectedResult =
-                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
-                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
-                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
-                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+                          "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -5198,8 +5204,8 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
 
         result = getResultValues(results.get(0));
 
-        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -5214,11 +5220,11 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         result = getResultValues(results.get(0));
 
         expectedResult =
-                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
-                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
-                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
-                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+                          "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -5314,6 +5320,41 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
                 Assert.fail("unexpected propertie type");
             } 
         }
+    }
+    
+    /**
+     * issue to fix
+     */
+    @Ignore
+    public void getObservationsFilter3Test() throws Exception {
+        assertNotNull(omPr);
+
+        ObservationQuery query = new ObservationQuery(MEASUREMENT_QNAME, INLINE, null);
+        Filter filter = ff.equal(ff.property("result.qflag") , ff.literal("ok"));
+        query.setSelection(filter);
+        List<Observation> results = omPr.getObservations(query);
+        assertEquals(5, results.size());
+
+        Set<String> resultIds = new HashSet<>();
+        for (Observation result : results) {
+            resultIds.add(result.getName().getCode());
+            assertNotNull(result.getObservedProperty());
+            assertEquals("depth", getPhenomenonId(result));
+            assertTrue(result.getResult() instanceof MeasureResult);
+            assertFalse(result.getResultQuality().isEmpty());
+        }
+        
+        // the problem here is that we loose tthe results from urn:ogc:object:sensor:GEOM:18
+        // its because of a multi table issue
+        Set<String> expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:GEOM:406-2-5");
+        expectedIds.add("urn:ogc:object:observation:GEOM:6001-2-3");
+        expectedIds.add("urn:ogc:object:observation:GEOM:406-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:6001-2-1");
+        expectedIds.add("urn:ogc:object:observation:GEOM:6001-2-5");
+        
+        assertEquals(expectedIds, resultIds);
+        
     }
     
     @Test
@@ -6223,11 +6264,11 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         assertNotNull(cr.getValues());
         String result = cr.getValues();
 
-        String expectedResult = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                                "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"  +
-                                "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                                "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                                "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        String expectedResult = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                                "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"  +
+                                "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                                "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                                "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6258,8 +6299,8 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                          "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        expectedResult =  "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                          "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6286,9 +6327,9 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                          "2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                          "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                          "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6320,9 +6361,9 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "urn:ogc:object:observation:GEOM:3000-1,2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                          "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                          "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@";
+        expectedResult =  "urn:ogc:object:observation:GEOM:3000-1,2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                          "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                          "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6356,10 +6397,10 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         result = cr.getValues();
         assertTrue(result instanceof String);
 
-        expectedResult = "urn:ogc:object:observation:GEOM:3000-2,2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                         "urn:ogc:object:observation:GEOM:3000-5,2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        expectedResult = "urn:ogc:object:observation:GEOM:3000-2,2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-3,2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-4,2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                         "urn:ogc:object:observation:GEOM:3000-5,2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6397,11 +6438,11 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         String result = cr.getValues();
 
         String expectedResult =
-                          "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-                        + "2009-12-01T14:00:00.0,5.9,1.5,3.0@@"
-                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@"
-                        + "2009-12-15T14:02:00.0,7.8,14.5,1.0@@"
-                        + "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+                          "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@"
+                        + "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@"
+                        + "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@"
+                        + "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6431,8 +6472,8 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         assertNotNull(cr.getValues());
         result = cr.getValues();
 
-        expectedResult =  "2000-12-01T00:00:00.0,2.5,98.5,4.0@@"
-                        + "2009-12-11T14:01:00.0,8.9,78.5,2.0@@";
+        expectedResult =  "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@"
+                        + "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@";
 
         assertEquals(expectedResult, result);
 
@@ -6949,16 +6990,16 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         String result = cr.getValues();
 
         String expectedResult =
-                  "2000-01-01T00:00:00.0,4.5@@"
-                + "2000-02-01T00:00:00.0,4.6@@"
-                + "2000-03-01T00:00:00.0,4.7@@"
-                + "2000-04-01T00:00:00.0,4.8@@"
-                + "2000-05-01T00:00:00.0,4.9@@"
-                + "2000-06-01T00:00:00.0,5.0@@"
-                + "2000-07-01T00:00:00.0,5.1@@"
-                + "2000-08-01T00:00:00.0,5.2@@"
-                + "2000-09-01T00:00:00.0,5.3@@"
-                + "2000-10-01T00:00:00.0,5.4@@";
+                  "2000-01-01T00:00:00.0,4.5,ok@@"
+                + "2000-02-01T00:00:00.0,4.6,ko@@"
+                + "2000-03-01T00:00:00.0,4.7,ko@@"
+                + "2000-04-01T00:00:00.0,4.8,ko@@"
+                + "2000-05-01T00:00:00.0,4.9,ko@@"
+                + "2000-06-01T00:00:00.0,5.0,ko@@"
+                + "2000-07-01T00:00:00.0,5.1,ko@@"
+                + "2000-08-01T00:00:00.0,5.2,ko@@"
+                + "2000-09-01T00:00:00.0,5.3,ko@@"
+                + "2000-10-01T00:00:00.0,5.4,ko@@";
 
         assertEquals(expectedResult, result);
         
@@ -6972,16 +7013,16 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         result = cr.getValues();
 
         expectedResult =
-                  "2000-01-01T00:00:00.0,98.5@@"
-                + "2000-02-01T00:00:00.0,97.5@@"
-                + "2000-03-01T00:00:00.0,97.5@@"
-                + "2000-04-01T00:00:00.0,96.5@@"
-                + "2000-08-01T00:00:00.0,98.5@@"
-                + "2000-09-01T00:00:00.0,87.5@@"
-                + "2000-10-01T00:00:00.0,77.5@@"
-                + "2000-11-01T00:00:00.0,96.5@@"
-                + "2000-12-01T00:00:00.0,99.5@@"
-                + "2001-01-01T00:00:00.0,96.5@@";
+                  "2000-01-01T00:00:00.0,98.5,ok@@"
+                + "2000-02-01T00:00:00.0,97.5,ok@@"
+                + "2000-03-01T00:00:00.0,97.5,ko@@"
+                + "2000-04-01T00:00:00.0,96.5,ko@@"
+                + "2000-08-01T00:00:00.0,98.5,ko@@"
+                + "2000-09-01T00:00:00.0,87.5,ko@@"
+                + "2000-10-01T00:00:00.0,77.5,ko@@"
+                + "2000-11-01T00:00:00.0,96.5,ko@@"
+                + "2000-12-01T00:00:00.0,99.5,ko@@"
+                + "2001-01-01T00:00:00.0,96.5,ko@@";
 
         assertEquals(expectedResult, result);
         

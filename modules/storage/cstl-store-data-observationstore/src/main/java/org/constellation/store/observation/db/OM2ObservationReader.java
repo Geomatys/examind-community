@@ -488,7 +488,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                 parameters    = new HashMap<>();
                 resultPhen    = phen;
                 if (ResponseMode.RESULT_TEMPLATE.equals(mode)) {
-                    final List<Field> fields = readFields(procedure, false, c, new ArrayList<>(), new ArrayList<>());
+                    final List<Field> fields = readFields(procedure, c);
                     result = new ComplexResult(fields, DEFAULT_ENCODING, null, null);
                 } else {
                     result = getResult(pi, oid, resultModel, measureId, null, c);

@@ -1,7 +1,26 @@
 {
     "value": [{
             "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
-            "dataArray": [["urn:ogc:object:observation:GEOM:3000-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], [], {}],
-                          ["urn:ogc:object:observation:GEOM:3000-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", [8.9, 78.5, 2.0], [], {}]]
+            "dataArray": [["urn:ogc:object:observation:GEOM:3000-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], [{
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ok"
+                            }
+                        }, {
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ok"
+                            }
+                        }], {}], ["urn:ogc:object:observation:GEOM:3000-3", "2009-12-11T13:01:00Z", "2009-12-11T13:01:00Z", [8.9, 78.5, 2.0], [{
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ko"
+                            }
+                        }, {
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ko"
+                            }
+                        }], {}]]
         }]
 }

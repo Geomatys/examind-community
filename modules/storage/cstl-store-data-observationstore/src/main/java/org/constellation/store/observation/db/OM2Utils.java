@@ -365,4 +365,9 @@ public class OM2Utils {
             throw ex;
         }
     }
+    
+    public static void clearExtraFields(Field f) {
+        if (!f.qualityFields.isEmpty()) f.qualityFields.clear();
+        if (!f.parameterFields.isEmpty()) f.parameterFields.clear();
+    }
 }

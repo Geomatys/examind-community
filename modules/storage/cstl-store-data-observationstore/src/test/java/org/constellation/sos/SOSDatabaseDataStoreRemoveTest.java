@@ -539,11 +539,11 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(5), cr.getNbValues());
 
-        values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                 "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                 "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                 "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                 "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"  +
+                 "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                 "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
 
@@ -561,11 +561,11 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(5), cr.getNbValues());
 
-        values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                 "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                 "2009-12-11T14:01:00.0,,78.5,@@" + // emptied
-                 "2009-12-15T14:02:00.0,,14.5,@@" + // emptied
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                 "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                 "2009-12-11T14:01:00.0,,ko,78.5,ko,@@" + // emptied (but not the quality fields.....)
+                 "2009-12-15T14:02:00.0,,ko,14.5,ko,@@" + // emptied (but not the quality fields.....)
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
        /*
@@ -590,9 +590,9 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(3), cr.getNbValues());
 
-        values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                 "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                 "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
          /*
@@ -616,8 +616,8 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(2), cr.getNbValues());
 
-        values = "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
          /*
@@ -639,7 +639,7 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(1), cr.getNbValues());
 
-        values = "2009-12-01T14:00:00.0,5.9,1.5,3.0@@";
+        values = "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@";
         Assert.assertEquals(values, cr.getValues());
 
         /*
@@ -839,11 +839,11 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         ComplexResult cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(5), cr.getNbValues());
 
-        String values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                        "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                        "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                        "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                        "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        String values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                        "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@"  +
+                        "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                        "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                        "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
 
@@ -871,11 +871,11 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(5), cr.getNbValues());
 
-        values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                 "2009-12-01T14:00:00.0,,1.5,3.0@@"     + // emptied
-                 "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" + 
-                 "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                 "2009-12-01T14:00:00.0,,ok,1.5,ko,3.0@@"     + // emptied
+                 "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" + 
+                 "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
         /*
@@ -902,10 +902,10 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(4), cr.getNbValues());
 
-        values = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                 "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                 "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                 "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                 "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                 "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                 "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
         
         /*
@@ -925,7 +925,7 @@ public class SOSDatabaseDataStoreRemoveTest extends SpringContextTest{
         cr = (ComplexResult) dataset12.observations.get(0).getResult();
         Assert.assertEquals(Integer.valueOf(1), cr.getNbValues());
 
-        values = "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        values = "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(values, cr.getValues());
 
         /*

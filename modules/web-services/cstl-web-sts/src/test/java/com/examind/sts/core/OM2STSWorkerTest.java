@@ -54,6 +54,8 @@ import org.constellation.test.utils.TestEnvironment.TestResource;
 import org.geotoolkit.geometry.jts.JTS;
 import org.geotoolkit.internal.geojson.binding.GeoJSONFeature;
 import org.geotoolkit.internal.geojson.binding.GeoJSONGeometry;
+import org.geotoolkit.observation.OMUtils;
+import org.geotoolkit.observation.model.FieldDataType;
 import org.geotoolkit.sts.GetCapabilities;
 import org.geotoolkit.sts.GetDatastreamById;
 import org.geotoolkit.sts.GetDatastreams;
@@ -519,17 +521,26 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2000-11-30T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, new ArrayList<>(), new HashMap<>()));
+        Map qualityOk = new HashMap<>();
+        qualityOk.put("nameOfMeasure", "qflag");
+        qualityOk.put("DQ_Result", Map.of("code", "ok"));
+        
+        Map qualityKo = new HashMap<>();
+        qualityKo.put("nameOfMeasure", "qflag");
+        qualityKo.put("DQ_Result", Map.of("code", "ko"));
+        
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-01T13:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-11T13:01:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, List.of(qualityKo), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-15T13:02:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, List.of(qualityKo), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2012-12-21T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
+        Assert.assertEquals(expResult.getDataArray().get(0), result.getDataArray().get(0));
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
         Assert.assertEquals(expResult, result);
         
@@ -546,7 +557,7 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2012-12-21T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -565,11 +576,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2000-11-30T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-01T13:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-15T13:02:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -588,9 +599,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2000-11-30T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-1-2", d, d, 2.5, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-01T13:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, List.of(qualityOk), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -609,11 +620,11 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2009-12-11T13:01:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, List.of(qualityKo), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-15T13:02:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, List.of(qualityKo), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2012-12-21T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -632,9 +643,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2009-12-11T13:01:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-3-2", d, d, 8.9, List.of(qualityKo), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2012-12-21T23:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-5-2", d, d, 9.9, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());
@@ -653,9 +664,9 @@ public class OM2STSWorkerTest extends SpringContextTest {
         expResult.setComponents(Arrays.asList("id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"));
         array = new ArrayList<>();
         d = ISO_8601_3_FORMATTER.parse("2009-12-01T13:00:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-2-2", d, d, 5.9, List.of(qualityOk), new HashMap<>()));
         d = ISO_8601_3_FORMATTER.parse("2009-12-15T13:02:00.0");
-        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, new ArrayList<>(), new HashMap<>()));
+        array.add(Arrays.asList("urn:ogc:object:observation:GEOM:3000-2-4-2", d, d, 7.8, List.of(qualityKo), new HashMap<>()));
         expResult.setDataArray(array);
 
         Assert.assertEquals(expResult.getDataArray(), result.getDataArray());

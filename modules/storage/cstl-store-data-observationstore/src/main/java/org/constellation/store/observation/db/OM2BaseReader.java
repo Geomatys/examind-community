@@ -683,10 +683,10 @@ public class OM2BaseReader {
     }
 
     protected List<Field> readFields(final String procedureID, final Connection c) {
-        return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>());
+        return readFields(procedureID, false, c, new ArrayList<>(), new ArrayList<>(), true);
     }
 
-    protected List<Field> readFields(final String procedureID, boolean removeMainField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters) {
+    protected List<Field> readFields(final String procedureID, boolean removeMainField, final Connection c, List<Integer> fieldIndexFilters, List<String> fieldIdFilters, boolean fetchExtraFields) {
         final List<Field> results = new ArrayList<>();
         StringBuilder query = new StringBuilder("SELECT * FROM \"" + schemaPrefix + "om\".\"procedure_descriptions\" WHERE \"procedure\"=? AND \"parent\" IS NULL ");
         
@@ -726,7 +726,7 @@ public class OM2BaseReader {
             stmt.setString(1, procedureID);
             try(final ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    results.add(getFieldFromDb(rs, procedureID, c, true));
+                    results.add(getFieldFromDb(rs, procedureID, c, fetchExtraFields));
                 }
                 
                 // its just way more easy to remove it afterward instead of doing it with SQL. you are welcome to try.
@@ -1137,7 +1137,7 @@ public class OM2BaseReader {
 
     private ComplexResult buildComplexResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Connection c) throws DataStoreException, SQLException {
 
-        final List<Field> fields    = readFields(ti.id, false, c, new ArrayList<>(), new ArrayList<>());
+        final List<Field> fields    = readFields(ti.id, false, c, new ArrayList<>(), new ArrayList<>(), true);
 
         FilterSQLRequest measureFilter = null;
         if (measureId != null) {

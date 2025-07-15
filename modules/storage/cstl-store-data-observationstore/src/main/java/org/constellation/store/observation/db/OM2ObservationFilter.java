@@ -1544,7 +1544,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                     final String name        = rs.getString("identifier");
                     final ProcedureInfo pti  = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                     boolean removeMainField  = pti.mainField.dataType == FieldDataType.TIME;
-                    final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, removeMainField, c, fieldIndexFilters, fieldIdFilters));
+                    final List<Field> fields = fieldMap.computeIfAbsent(procedure,  p -> readFields(procedure, removeMainField, c, fieldIndexFilters, fieldIdFilters, true));
                     
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
@@ -2136,7 +2136,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     protected Map<Field, Phenomenon> getPhenomenonFields(ProcedureInfo procedure, Connection c) {
         try {
             boolean removeMainField  = procedure.mainField.dataType == FieldDataType.TIME;
-            List<Field> fields = readFields(procedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters);
+            List<Field> fields = readFields(procedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters, true);
             return getPhenomenonFields(fields, c);
         } catch (Exception ex) {
             throw new RuntimeException(ex);

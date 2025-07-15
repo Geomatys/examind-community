@@ -1,6 +1,16 @@
 {
     "value": [{
             "components": ["id", "phenomenonTime", "resultTime", "result", "resultQuality", "parameters"],
-            "dataArray": [["urn:ogc:object:observation:GEOM:3000-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], [], {}]]
-                }]
+            "dataArray": [["urn:ogc:object:observation:GEOM:3000-1", "2000-11-30T23:00:00Z", "2000-11-30T23:00:00Z", [2.5, 98.5, 4.0], [{
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ok"
+                            }
+                        }, {
+                            "nameOfMeasure": "qflag",
+                            "DQ_Result": {
+                                "code": "ok"
+                            }
+                        }], {}]]
+        }]
 }

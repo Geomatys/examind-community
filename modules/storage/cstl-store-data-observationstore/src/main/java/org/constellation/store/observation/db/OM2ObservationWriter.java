@@ -399,7 +399,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 // for now we write the full procedure phenomenon. we should build a more precise phenomenon
                 if (replacePhen) {
                     boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
-                    List<Field> readFields = readFields(procedureID, removeMainField, c, new ArrayList<>(), new ArrayList<>());
+                    List<Field> readFields = readFields(procedureID, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
                     Phenomenon replacingPhen = getPhenomenonModels(null, readFields, phenomenonIdBase, getAllPhenomenon(c));
                     writePhenomenon(replacingPhen, c, false);
                     phenRef = replacingPhen;
@@ -1819,7 +1819,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private int removeEmptyMeasures(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
         boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
-        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>());
+        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
 
         List<String> rmSQLs = new ArrayList<>();
         StringBuilder sb = new StringBuilder("SELECT m.\"id\" FROM \"" + schemaPrefix + "mesures\".\"mesure" + pi.pid + "\" m ");
@@ -1866,7 +1866,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
     private List<Field> getEmptyFieldsForObservation(final ObservationInfos obsInfo, Connection c) throws SQLException {
         final ProcedureInfo pi = obsInfo.pi;
         boolean removeMainField  = pi.mainField.dataType == FieldDataType.TIME;
-        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>());
+        List<Field> fields = readFields(pi.id, removeMainField, c, new ArrayList<>(), new ArrayList<>(), true);
 
         StringBuilder sql = new StringBuilder("SELECT ");
 

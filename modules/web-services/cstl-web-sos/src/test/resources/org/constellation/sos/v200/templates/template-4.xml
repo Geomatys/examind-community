@@ -41,6 +41,9 @@
                     </swe:field>
                     <swe:field name="depth">
                         <swe:Quantity definition="urn:ogc:def:phenomenon:GEOM:depth">
+                            <swe:quality>
+                                <swe:Text id="qflag" definition="urn:ogc:def:phenomenon:GEOM:quality_flag"/>
+                            </swe:quality>
                             <swe:uom code="m"/>
                         </swe:Quantity>
                     </swe:field>

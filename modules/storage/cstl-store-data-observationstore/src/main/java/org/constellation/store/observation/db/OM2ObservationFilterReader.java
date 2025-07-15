@@ -398,7 +398,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 List<Field> fields = fieldMap.get(procedure);
                 if (fields == null) {
                     
-                    fields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters);
+                    fields = readFields(procedure, false, c, fieldIndexFilters, fieldIdFilters, true);
 
                     // add the time for profile in the dataBlock if requested
                     if (includeObservationTime) {
@@ -642,9 +642,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              *  1) build field list.
              */
             final List<Field> fields;
-                
-            boolean removeMainField  = false; // currentProcedure.mainField.dataType != FieldDataType.TIME;
-            fields = readFields(currentProcedure.id, removeMainField, c, fieldIndexFilters, fieldIdFilters);
+            fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters, true);
             //}
             if (fields.isEmpty()) {
                 throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
@@ -714,6 +712,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
     protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) throws SQLException {
         ResultProcessor processor;
         if (decimate) {
+            // remove quality / parameters fields
+            for (Field f: fields) {
+                OM2Utils.clearExtraFields(f);
+            }
             if (timescaleDB) {
                 boolean singleField = (fields.size() - fieldOffset) == 1;
                 boolean smoothAvailable = timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0;

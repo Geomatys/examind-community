@@ -661,11 +661,11 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
         Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
 
         Assert.assertEquals(Integer.valueOf(5), resultDAP.getNbValues());
-        String expectedValues = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@" +
-                                "2009-12-01T14:00:00.0,5.9,1.5,3.0@@" +
-                                "2009-12-11T14:01:00.0,8.9,78.5,2.0@@" +
-                                "2009-12-15T14:02:00.0,7.8,14.5,1.0@@" +
-                                "2012-12-22T00:00:00.0,9.9,5.5,0.0@@";
+        String expectedValues = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@" +
+                                "2009-12-01T14:00:00.0,5.9,ok,1.5,ko,3.0@@" +
+                                "2009-12-11T14:01:00.0,8.9,ko,78.5,ko,2.0@@" +
+                                "2009-12-15T14:02:00.0,7.8,ko,14.5,ko,1.0@@" +
+                                "2012-12-22T00:00:00.0,9.9,ko,5.5,ko,0.0@@";
         Assert.assertEquals(expectedValues, resultDAP.getValues());
 
         obs = reader.getObservation("urn:ogc:object:observation:GEOM:3000-1", OBSERVATION_QNAME, ResponseMode.INLINE);
@@ -685,7 +685,7 @@ public class SOSDatabaseDataStoreTest extends SpringContextTest {
         Assert.assertEquals("salinity", resultDAP.getFields().get(3).name);
 
         Assert.assertEquals(Integer.valueOf(1), resultDAP.getNbValues());
-        expectedValues = "2000-12-01T00:00:00.0,2.5,98.5,4.0@@";
+        expectedValues = "2000-12-01T00:00:00.0,2.5,ok,98.5,ok,4.0@@";
         Assert.assertEquals(expectedValues, resultDAP.getValues());
 
         obs = reader.getObservation("urn:ogc:object:observation:GEOM:3000-2-1", MEASUREMENT_QNAME, ResponseMode.INLINE);

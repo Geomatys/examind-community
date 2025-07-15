@@ -42,7 +42,13 @@
                 "dataType": "QUANTITY",
                 "name": "depth",
                 "description": "urn:ogc:def:phenomenon:GEOM:depth",
-                "uom": "m"
+                "uom": "m",
+                "qualityFields": [{
+                        "index": 2,
+                        "dataType": "TEXT",
+                        "name": "qflag",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    }]
             }],
         "nbValues": 5,
         "textEncodingProperties": {
@@ -50,7 +56,7 @@
             "blockSeparator": "@@",
             "decimalSeparator": "."
         },
-        "values": "2007-05-01T12:59:00.0,6.56@@2007-05-01T13:59:00.0,6.56@@2007-05-01T14:59:00.0,6.56@@2007-05-01T15:59:00.0,6.56@@2007-05-01T16:59:00.0,6.56@@"
+        "values": "2007-05-01T12:59:00.0,6.56,ok@@2007-05-01T13:59:00.0,6.56,ko@@2007-05-01T14:59:00.0,6.56,ko@@2007-05-01T15:59:00.0,6.56,ko@@2007-05-01T16:59:00.0,6.56,ok@@"
     },
     "type": "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_ComplexObservation",
     "properties": {

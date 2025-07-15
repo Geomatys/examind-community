@@ -1115,12 +1115,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
 
         getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter);
         result = getStringResponse(getFoiUrl) + "\n";
-        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4.json");
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-6.json");
         compareJSON(expResult, result);
 
         getFoiUrl = new URL(getDefaultURL() + "/Datastreams?$filter=" + filter + "&$count=true");
         result = getStringResponse(getFoiUrl) + "\n";
-        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-4-ct.json");
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-result-6-ct.json");
         compareJSON(expResult, result);
 
         filter = "Observations/result.isHot_qual eq FALSE".replace("'", "%27").replace(" ", "%20");

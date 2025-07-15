@@ -33,7 +33,12 @@
                 "name": "depth",
                 "description": "urn:ogc:def:phenomenon:GEOM:depth",
                 "uom": "m",
-                "qualityFields": []
+                "qualityFields": [{
+                        "index": 2,
+                        "dataType": "TEXT",
+                        "name": "qflag",
+                        "description": "urn:ogc:def:phenomenon:GEOM:quality_flag"
+                    }]
             }],
         "textEncodingProperties": {
             "tokenSeparator": ",",
