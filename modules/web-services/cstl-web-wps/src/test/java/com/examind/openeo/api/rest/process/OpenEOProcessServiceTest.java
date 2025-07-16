@@ -86,6 +86,7 @@ public class OpenEOProcessServiceTest extends AbstractGrizzlyServer {
             writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
 
             Path processDirectory = ConfigDirectory.getProcessDirectory();
+            Files.createDirectories(processDirectory);
             Path conditionalParamFile = processDirectory.resolve("test.param.dependency.csv");
 
             String cpfContent = """

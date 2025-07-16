@@ -55,6 +55,7 @@ public class FsConfigTest {
         mapper.writeValue(sw, s);
         
         String expected = """
+                          ---
                           name: "WMS 1"
                           identifier: "wms1"
                           type: "WMS"
@@ -68,9 +69,13 @@ public class FsConfigTest {
                             data:
                             - name: "data1_nm"
                               namespace: "data2_nmsp"
+                              title: null
                               alias: "alibi"
                               style: null
+                              dimensions: []
+                          processFactories: []
                           advancedParameters: {}
+                          source: null
                           """;
         assertEquals(expected, sw.toString());
         

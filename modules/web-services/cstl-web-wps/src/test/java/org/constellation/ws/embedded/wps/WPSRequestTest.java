@@ -109,6 +109,7 @@ public class WPSRequestTest extends AbstractGrizzlyServer {
             writeResourceDataFile(hostedDirectory, "org/constellation/embedded/test/SimpleType.xsd", "SimpleType.xsd");
             
             Path processDirectory = ConfigDirectory.getProcessDirectory();
+            Files.createDirectory(processDirectory);
             Path conditionalParamFile = processDirectory.resolve("test.param.dependency.csv");
             
             String cpfContent = """
