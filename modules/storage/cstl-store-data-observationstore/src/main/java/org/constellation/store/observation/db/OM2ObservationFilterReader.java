@@ -28,6 +28,7 @@ import org.constellation.store.observation.db.decimation.ASMTimeScaleResultDecim
 import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -502,6 +503,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         final Map<String, Procedure> processMap = new HashMap<>();
         final Map<String, Map<Field, Phenomenon>> phenMap = new HashMap<>();
         final Map<String, ProcedureInfo> ptiMap = new HashMap<>();
+        FilterSQLRequest curExec = sqlRequest; // for error log
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
@@ -533,12 +535,13 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 /**
                  * coherence verification
                  */
+                curExec = measureRequest;
                 LOGGER.fine(measureRequest.toString());
-                try (final SQLResult rs2 = measureRequest.execute(c)) {
-                    // get the first for now
-                    int tableNum = rs2.getFirstTableNumber();
+                try (final SQLResult rs2 = measureRequest.execute(c, SQLResult.NextMode.UNION, dialect)) {
             
-                    while (rs2.nextOnField(pti.mainField.name)) {
+                    while (rs2.nextOnField(pti.mainField.name, SQLResult.NextMode.UNION)) {
+                        // get the first for now
+                        int tableNum = rs2.getFirstTableNumber();
                         final Long rid = rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalPrimitive measureTime;
@@ -596,7 +599,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
 
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
+            LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", curExec.toString());
             throw new DataStoreException("the service has throw a SQL Exception.", ex);
         } catch (DataStoreException | RuntimeException ex) {
             throw new DataStoreException("the service has throw an Exception:" + ex.getMessage(), ex);

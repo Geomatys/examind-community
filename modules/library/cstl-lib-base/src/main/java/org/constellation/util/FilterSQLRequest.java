@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import org.constellation.util.SQLResult.NextMode;
 import org.opengis.temporal.Instant;
 
 /**
@@ -70,6 +71,10 @@ public interface FilterSQLRequest {
     FilterSQLRequest clone();
 
     SQLResult execute(Connection c) throws SQLException;
+    
+    SQLResult execute(Connection c, NextMode fetchMode, OMSQLDialect dialect) throws SQLException;
+    
+    SQLResult execute(Connection c, int resultSetType, int resultSetConcurrency) throws SQLException;
 
     boolean isEmpty();
     

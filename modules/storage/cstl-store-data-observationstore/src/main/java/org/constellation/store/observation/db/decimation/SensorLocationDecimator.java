@@ -30,7 +30,7 @@ import org.apache.sis.referencing.CommonCRS;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Utilities;
 import org.constellation.store.observation.db.OM2Utils;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.util.SQLResult;
 import org.geotoolkit.geometry.jts.JTS;
 import org.locationtech.jts.geom.Coordinate;

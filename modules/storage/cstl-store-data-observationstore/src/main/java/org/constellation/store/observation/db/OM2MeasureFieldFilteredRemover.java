@@ -19,7 +19,7 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.store.observation.db.model.InsertDbField;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

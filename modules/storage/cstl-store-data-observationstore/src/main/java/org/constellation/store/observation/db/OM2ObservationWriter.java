@@ -19,7 +19,7 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.store.observation.db.model.InsertDbField;
 import org.locationtech.jts.geom.Geometry;
 import org.apache.sis.storage.DataStoreException;
@@ -50,9 +50,9 @@ import java.util.logging.Level;
 import org.constellation.dto.service.config.sos.OM2ResultEventDTO;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
 import static org.constellation.store.observation.db.OM2Utils.*;
-import static org.constellation.store.observation.db.model.OMSQLDialect.DERBY;
-import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
-import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
+import static org.constellation.util.OMSQLDialect.DERBY;
+import static org.constellation.util.OMSQLDialect.DUCKDB;
+import static org.constellation.util.OMSQLDialect.POSTGRES;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.PreparedSQLBatch;

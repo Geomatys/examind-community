@@ -16,7 +16,7 @@
  */
 package org.constellation.store.observation.db;
 
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -46,7 +46,7 @@ import org.constellation.configuration.AppProperty;
 import org.constellation.configuration.Application;
 import org.constellation.exception.ConstellationException;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
-import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
+import static org.constellation.util.OMSQLDialect.POSTGRES;
 
 import org.constellation.store.observation.db.feature.SensorFeatureSet;
 import org.constellation.store.observation.db.mixed.MixedObservationFilterReader;

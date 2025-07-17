@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import org.apache.sis.storage.WritableFeatureSet;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.geotoolkit.storage.event.FeatureStoreContentEvent;
 import org.opengis.filter.ResourceId;
 

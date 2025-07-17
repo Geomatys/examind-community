@@ -48,8 +48,8 @@ import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import org.apache.sis.temporal.TemporalObjects;
 
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
-import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
-import static org.constellation.store.observation.db.model.OMSQLDialect.POSTGRES;
+import static org.constellation.util.OMSQLDialect.DUCKDB;
+import static org.constellation.util.OMSQLDialect.POSTGRES;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;

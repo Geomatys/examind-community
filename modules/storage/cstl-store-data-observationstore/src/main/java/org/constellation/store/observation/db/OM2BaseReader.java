@@ -20,7 +20,7 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.store.observation.db.model.InsertDbField;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -54,7 +54,6 @@ import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
-import static org.constellation.store.observation.db.model.OMSQLDialect.DUCKDB;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;

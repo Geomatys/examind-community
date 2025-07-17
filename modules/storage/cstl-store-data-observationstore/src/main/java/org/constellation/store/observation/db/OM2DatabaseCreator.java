@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.util.Util;
 import org.geotoolkit.internal.sql.ScriptRunner;
 
@@ -30,7 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.constellation.store.observation.db.model.OMSQLDialect.*;
+import static org.constellation.util.OMSQLDialect.*;
 import org.geotoolkit.nio.IOUtilities;
 
 /**

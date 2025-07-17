@@ -19,7 +19,7 @@
 package org.constellation.store.observation.db;
 
 import org.constellation.store.observation.db.model.DbField;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.store.observation.db.model.InsertDbField;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.sis.storage.DataStoreException;
 import static org.constellation.store.observation.db.OM2Utils.flatFields;
-import static org.constellation.store.observation.db.model.OMSQLDialect.*;
+import static org.constellation.util.OMSQLDialect.*;
 import org.constellation.util.SQLBatch;
 import org.constellation.store.observation.db.ResultValuesIterator.DataLine;
 import org.constellation.store.observation.db.model.ProcedureInfo;

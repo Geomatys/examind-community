@@ -19,7 +19,7 @@
 package org.constellation.store.observation.db.decimation;
 
 import java.util.Map;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.store.observation.db.SensorLocationProcessor;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.geometry.Envelope;

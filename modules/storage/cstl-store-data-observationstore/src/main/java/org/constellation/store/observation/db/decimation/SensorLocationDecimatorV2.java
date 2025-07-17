@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.store.observation.db.OM2Utils;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.geotoolkit.geometry.jts.JTS;
 import static org.geotoolkit.observation.OMUtils.geometryMatchEnvelope;
 import org.locationtech.jts.geom.Geometry;

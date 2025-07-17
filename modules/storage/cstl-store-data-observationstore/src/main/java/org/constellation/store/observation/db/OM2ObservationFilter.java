@@ -56,7 +56,7 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
-import static org.constellation.store.observation.db.model.OMSQLDialect.*;
+import static org.constellation.util.OMSQLDialect.*;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest.TableJoin;
 import org.constellation.util.MultiFilterSQLRequest;
@@ -71,6 +71,7 @@ import static org.geotoolkit.observation.model.OMEntity.*;
 import static org.geotoolkit.observation.OMUtils.*;
 import org.geotoolkit.observation.model.CompositePhenomenon;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.temp.ObservationType;
 import org.geotoolkit.observation.model.ResponseMode;
 import org.geotoolkit.observation.model.Phenomenon;
@@ -1158,64 +1159,11 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
             handleAllPhenParam(single, tableNum, fields, offset, pti);
 
             /**
-            * 3)  Look for measure filter applying on all result quality/parameter  fields.
+            * 3)  Look for measure filter applying on all result quality fields.
             * 
             */
-            Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
-            for (int i = offset; i < fields.size(); i++) {
-                DbField field = (DbField) fields.get(i);
-                if (field.tableNumber == tableNum) {
-                    for (Field qField : field.qualityFields) {
-                        final String allQPhenKeyword = "${allphen_extra_" + qField.name;
-                        List<Param> allQPhenParams = single.getParamsByName("allphen_extra_" + qField.name);
-                        for (Param qparam : allQPhenParams) {
-                            extraFilter.put(qparam, new AtomicInteger(-1));
-                            // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
-                            if (!single.contains(allQPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
-
-                            String block = extractAllPhenBlock(single, allQPhenKeyword);
-                            StringBuilder sb = new StringBuilder();
-                            if (matchType(qparam, qField)) {
-                                sb.append(" (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_quality_" + qField.name + "\" ").replace('}', ' ')).append(") ");
-                                extraFilter.get(qparam).incrementAndGet();
-                            } else {
-                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.dataType);
-                                sb.append(" FALSE ");
-                            }
-                            single.replaceFirst(block, sb.toString());
-                        }
-                    }
-                    for (Field qField : field.parameterFields) {
-                        final String allQPhenKeyword = "${allphen_extra_" + qField.name;
-                        List<Param> allQPhenParams = single.getParamsByName("allphen_extra_" + qField.name);
-                        for (Param qparam : allQPhenParams) {
-                            extraFilter.put(qparam, new AtomicInteger(-1));
-                            // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
-                            if (!single.contains(allQPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
-
-                            String block = extractAllPhenBlock(single, allQPhenKeyword);
-                            StringBuilder sb = new StringBuilder();
-                            if (matchType(qparam, qField)) {
-                                sb.append(" (").append(block.replace(allQPhenKeyword, "\"" + field.name + "_parameter_" + qField.name + "\" ").replace('}', ' ')).append(") ");
-                                extraFilter.get(qparam).incrementAndGet();
-                            } else {
-                                LOGGER.fine("Param type is not matching the field type: " + qparam.type.getName() + " => " + field.dataType);
-                                sb.append(" FALSE ");
-                            }
-                            single.replaceFirst(block, sb.toString());
-                        }
-                    }
-                }
-            }
-            for (Entry<Param, AtomicInteger> entry : extraFilter.entrySet()) {
-                if (entry.getValue().intValue() == -1) {
-                    // the filter has been removed, we need to remove the param
-                    single.removeNamedParam(entry.getKey());
-                } else {
-                    single.duplicateNamedParam(entry.getKey(), entry.getValue().intValue());
-                }
-            }
-
+            handleExtraFieldFilter(single, offset, fields, tableNum, FieldType.QUALITY);
+            handleExtraFieldFilter(single, offset, fields, tableNum, FieldType.PARAMETER);
 
             /**
              * 4)  Look for left over unexisting quality field filter.
@@ -1236,7 +1184,6 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                 int cpos = measureFilter.indexOf("}", opos + allQPhenKeyword.length());
                 String block = measureFilter.substring(opos, cpos + 1);
                 single.replaceFirst(block, " FALSE ");
-
             }
 
             /**
@@ -1280,6 +1227,54 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
         return result;
     }
+    
+    protected void handleExtraFieldFilter(SingleFilterSQLRequest single, int offset, List<Field> fields, int tableNum, FieldType fType) {
+        String fieldSuffix = fType == FieldType.QUALITY ? "_quality_" : "_parameter_";
+        Map<Param, AtomicInteger> extraFilter = new LinkedHashMap<>();
+        Map<String, StringBuilder> replace = new HashMap<>();
+        for (int i = offset; i < fields.size(); i++) {
+            DbField field = (DbField) fields.get(i);
+            if (field.tableNumber == tableNum) {
+                List<Field> subFields = fType == FieldType.QUALITY ? field.qualityFields : field.parameterFields; 
+                for (Field subField : subFields) {
+                    final String allExtraPhenKeyword = "${allphen_extra_" + subField.name;
+                    List<Param> allExtraPhenParams = single.getParamsByName( "allphen_extra_" + subField.name);
+                    for (Param param : allExtraPhenParams) {
+                        extraFilter.computeIfAbsent(param, f -> new AtomicInteger(-1));
+                        // it must be one ${allphen _extra_ ...} for each "allPhen _extra_" param
+                        if (!single.contains(allExtraPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
+
+                        String block = extractAllPhenBlock(single, allExtraPhenKeyword);
+
+                        StringBuilder sb = replace.computeIfAbsent(block, f -> new StringBuilder());
+                        if (matchType(param, subField)) {
+                            sb.append(" (").append(block.replace(allExtraPhenKeyword, "\"" + field.name + fieldSuffix + subField.name + "\" ").replace('}', ' ')).append(") OR ");
+                            extraFilter.get(param).incrementAndGet();
+                        } else {
+                            LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + subField.dataType);
+                            sb.append(" FALSE ");
+                        }
+                    }
+                }
+            }
+        }
+        for (Entry<String, StringBuilder> entry : replace.entrySet()) {
+            String filter = entry.getValue().toString();
+            if (filter.endsWith(" OR ")) {
+                filter = filter.substring(0, filter.length() - 4);
+            }
+            single.replaceFirst(entry.getKey(), filter);
+        }
+        for (Entry<Param, AtomicInteger> entry : extraFilter.entrySet()) {
+            if (entry.getValue().intValue() == -1) {
+                // the filter has been removed, we need to remove the param
+                single.removeNamedParam(entry.getKey());
+            } else {
+                single.duplicateNamedParam(entry.getKey(), entry.getValue().intValue());
+            }
+        }
+    }
+    
     
     protected void handleTimeMeasureFilterInRequest(SingleFilterSQLRequest single, ProcedureInfo pti) {
         // $time will be present only for timeseries in this implementation

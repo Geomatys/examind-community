@@ -25,7 +25,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -66,11 +68,17 @@ public class SQLResult implements AutoCloseable {
     }
     
     public Integer getFirstTableNumber() {
-        return rss.firstKey();
+        for (Integer index : rss.keySet()) {
+            if (!emptyCell.contains(index)) return index;
+        }
+        throw new IllegalStateException("All the result sets are in empty cell mode. this should not happen");
     }
     
     private ResultSet getFirstResultSet() {
-        return rss.firstEntry().getValue();
+        for (Integer index : rss.keySet()) {
+            if (!emptyCell.contains(index)) return rss.get(index);
+        }
+        throw new IllegalStateException("All the result sets are in empty cell mode. this should not happen");
     }
 
     public boolean next() throws SQLException {
@@ -87,15 +95,30 @@ public class SQLResult implements AutoCloseable {
         return result;
     }
 
+    public boolean nextOnField(String field) throws SQLException {
+        return nextOnField(field, NextMode.INTERSECT);
+    }
+    
+    public static enum NextMode {
+        INTERSECT,
+        UNION
+    }
+    
     /**
-     * For a special case where the resultsets are not of the same size (because diferent filter are applied on each request).
-     * We want to eliminate the results that are not in each resultSet.
-     *
+     * For a special case where the resultsets are not of the same size (because diferent filter are applied on each request).We want to eliminate the results that are not in each resultSet.
      * we use a "main" field that we know is acendending and contains no null value, to eliminate some results
      * @param field
+     * @param mode
      * @return
      */
-    public boolean nextOnField(String field) throws SQLException {
+    public boolean nextOnField(String field, NextMode mode) throws SQLException {
+        if (mode == NextMode.UNION) return nextOnFieldUnion(field);
+        return nextOnFieldIntersect(field);
+    }
+        
+        
+    private boolean nextOnFieldIntersect(String field) throws SQLException {
+        
         if (rss.size() == 1) return rss.values().iterator().next().next();
         
         for (ResultSet rs : rss.values()) {
@@ -108,11 +131,11 @@ public class SQLResult implements AutoCloseable {
         int i = 0;
         while (i < rss.size()) {
             ResultSet rs = rss.get(indexes.get(i));
-            Comparable c = (Comparable) rs.getObject(field);
-            if (prev != null && !prev.equals(c)) {
+            Comparable main = (Comparable) rs.getObject(field);
+            if (prev != null && !prev.equals(main)) {
                 boolean next;
-                if (prev.compareTo(c) == -1) {
-                    // the previous resultset is behind the current.
+                if (prev.compareTo(main) == -1) {
+                    // the previous resultset is after the current.
                     next = rss.get(indexes.get(i - 1)).next();
                 } else {
                     // the current resultset is after the previous.
@@ -125,9 +148,58 @@ public class SQLResult implements AutoCloseable {
                 i = 0;
                 prev = null;
             } else {
-                prev = c;
+                prev = main;
                 i++;
             }
+        }
+        return true;
+    }
+    
+    private final Set<Integer> emptyCell = new HashSet<>();
+    
+    private boolean nextOnFieldUnion(String field) throws SQLException {
+        emptyCell.clear();
+        if (rss.size() == 1) return rss.values().iterator().next().next();
+        
+        TreeMap<Integer, ResultSet> rsets = new TreeMap<>(rss);
+        Set<Integer> toRm = new HashSet<>();
+        for (Entry<Integer, ResultSet> rs : rsets.entrySet()) {
+            // if one is false, we eliminate the resultSet;
+            if (!rs.getValue().next()) {
+                toRm.add(rs.getKey());
+            }
+        }
+        // if they are all false return false
+        if (toRm.size() == rsets.size()) return false;
+        
+        toRm.forEach(t -> {
+            rsets.remove(t);
+            emptyCell.add(t);
+        });
+        
+        List<Integer> indexes = new ArrayList<>(rsets.keySet());
+        Comparable prevMain   = null;
+        Integer prevIndex     = null;
+        int i = 0;
+        while (i < rsets.size()) {
+            Integer index = indexes.get(i);
+            ResultSet rs = rsets.get(indexes.get(i));
+            Comparable main = (Comparable) rs.getObject(field);
+            if (prevMain != null && !prevMain.equals(main)) {
+                
+                // the previous resultset is after the current.
+                if (prevMain.compareTo(main) == -1) {
+                    rss.get(prevIndex).previous();
+                    emptyCell.add(prevIndex);
+                // the current resultset is after the previous.    
+                } else {
+                    rs.previous();
+                    emptyCell.add(index);
+                }
+            }
+            prevMain  = main;
+            prevIndex = index;
+            i++;
         }
         return true;
     }
@@ -141,10 +213,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public String getString(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getString(fieldIndex);
     }
 
     public String getString(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getString(fieldName);
     }
 
@@ -157,10 +231,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public Blob getBlob(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getBlob(fieldIndex);
     }
 
     public Blob getBlob(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getBlob(fieldName);
     }
 
@@ -173,10 +249,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public int getInt(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return -1;
         return rss.get(resultSetIndex).getInt(fieldIndex);
     }
 
     public int getInt(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return -1;
         return rss.get(resultSetIndex).getInt(fieldName);
     }
 
@@ -189,10 +267,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public Timestamp getTimestamp(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getTimestamp(fieldIndex);
     }
 
     public Timestamp getTimestamp(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getTimestamp(fieldName);
     }
 
@@ -205,10 +285,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public byte[] getBytes(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getBytes(fieldIndex);
     }
 
     public byte[] getBytes(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return null;
         return rss.get(resultSetIndex).getBytes(fieldName);
     }
 
@@ -221,10 +303,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public double getDouble(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return Double.NaN;
         return rss.get(resultSetIndex).getDouble(fieldIndex);
     }
 
     public double getDouble(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return Double.NaN;
         return rss.get(resultSetIndex).getDouble(fieldName);
     }
 
@@ -237,15 +321,18 @@ public class SQLResult implements AutoCloseable {
     }
 
     public boolean getBoolean(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return false; // TODO?
         return rss.get(resultSetIndex).getBoolean(fieldIndex);
     }
 
     public boolean getBoolean(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return false; // TODO?
         return rss.get(resultSetIndex).getBoolean(fieldName);
     }
 
     public boolean wasNull(int resultSetIndex) throws SQLException {
-         return rss.get(resultSetIndex).wasNull();
+        if (emptyCell.contains(resultSetIndex)) return true;
+        return rss.get(resultSetIndex).wasNull();
     }
     
     public boolean wasNull() throws SQLException {
@@ -257,10 +344,12 @@ public class SQLResult implements AutoCloseable {
     }
 
     public long getLong(int fieldIndex, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return -1L;
         return rss.get(resultSetIndex).getLong(fieldIndex);
     }
 
     public long getLong(String fieldName, int resultSetIndex) throws SQLException {
+        if (emptyCell.contains(resultSetIndex)) return -1L;
         return rss.get(resultSetIndex).getLong(fieldName);
     }
     

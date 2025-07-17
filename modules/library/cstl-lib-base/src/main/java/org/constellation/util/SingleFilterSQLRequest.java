@@ -360,11 +360,59 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         }
     }
     
+    @Override
+    public SQLResult execute(Connection c, int resultSetType, int resultSetConcurrency) throws SQLException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = c.prepareStatement(getRequest(), resultSetType, resultSetConcurrency);
+            fillParams(stmt);
+            rs = stmt.executeQuery();
+            return new SQLResult(stmt, rs, 1);
+        } catch (SQLException ex) {
+            if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            
+            throw ex;
+        }
+    }
+    
     public SQLResult execute(Connection c, int tableNum) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
             stmt = c.prepareStatement(getRequest());
+            fillParams(stmt);
+            rs = stmt.executeQuery();
+            return new SQLResult(stmt, rs, tableNum);
+        } catch (SQLException ex) {
+            if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
+            throw ex;
+        }
+    }
+    
+    @Override
+    public SQLResult execute(Connection c, SQLResult.NextMode fetchMode, OMSQLDialect dialect) throws SQLException {
+        int resultSetType = ResultSet.TYPE_FORWARD_ONLY; 
+        int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+        /*
+         UNNECESARY FOR SINGLE request
+         if (fetchMode == SQLResult.NextMode.UNION) {
+            if (!dialect.equals(OMSQLDialect.DUCKDB)) {
+                resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
+            } else {
+                LOGGER.warning("Unable to set scroll mode on DuckDB resultset");
+            }
+        }*/
+        return execute(c, resultSetType, resultSetConcurrency);
+    }
+    
+    public SQLResult execute(Connection c, int resultSetType, int resultSetConcurrency, int tableNum) throws SQLException {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = c.prepareStatement(getRequest(), resultSetType, resultSetConcurrency);
             fillParams(stmt);
             rs = stmt.executeQuery();
             return new SQLResult(stmt, rs, tableNum);
@@ -534,6 +582,9 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         cleanupOperator("OR");
         if (this.contains(" ( ) ")) {
             this.replaceAll(" ( ) ", "");
+        }
+        if (this.toString().equals(" ")) {
+            this.replaceAll(" ", "");
         }
     }
     

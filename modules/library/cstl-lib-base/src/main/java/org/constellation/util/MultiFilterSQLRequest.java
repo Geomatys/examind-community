@@ -19,6 +19,7 @@
 package org.constellation.util;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -27,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
+import org.constellation.util.SQLResult.NextMode;
 import org.opengis.temporal.Instant;
 
 /**
@@ -35,6 +38,8 @@ import org.opengis.temporal.Instant;
  */
 public class MultiFilterSQLRequest implements FilterSQLRequest {
 
+    private static final Logger LOGGER = Logger.getLogger("org.constellation.util");
+    
     private final Map<Integer, SingleFilterSQLRequest> requests = new HashMap<>();
 
     public MultiFilterSQLRequest() {
@@ -179,6 +184,29 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
             sqlr.add(request.getValue().execute(c, request.getKey()));
         }
         return new SQLResult(sqlr);
+    }
+    
+    @Override
+    public SQLResult execute(Connection c, int resultSetType, int resultSetConcurrency) throws SQLException {
+        List<SQLResult> sqlr = new ArrayList<>();
+        for (Entry<Integer, SingleFilterSQLRequest> request : requests.entrySet()) {
+            sqlr.add(request.getValue().execute(c, resultSetType, resultSetConcurrency, request.getKey()));
+        }
+        return new SQLResult(sqlr);
+    }
+    
+    @Override
+    public SQLResult execute(Connection c, NextMode fetchMode, OMSQLDialect dialect) throws SQLException {
+        int resultSetType = ResultSet.TYPE_FORWARD_ONLY; 
+        int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
+        if (requests.size() > 1 && fetchMode == NextMode.UNION) {
+            if (!dialect.equals(OMSQLDialect.DUCKDB)) {
+                resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
+            } else {
+                LOGGER.warning("Unable to set scroll mode on DuckDB resultset");
+            }
+        }
+        return execute(c, resultSetType, resultSetConcurrency);
     }
 
     @Override

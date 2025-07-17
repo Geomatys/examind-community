@@ -33,7 +33,7 @@ import static org.constellation.store.observation.db.SOSDatabaseObservationStore
 import org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.DATASOURCE_ID;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.SCHEMA_PREFIX_NAME;
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.util.SQLUtilities;
 import org.constellation.util.Util;
 import static org.geotoolkit.observation.AbstractObservationStoreFactory.OBSERVATION_ID_BASE;

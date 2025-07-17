@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import java.util.logging.Logger;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 

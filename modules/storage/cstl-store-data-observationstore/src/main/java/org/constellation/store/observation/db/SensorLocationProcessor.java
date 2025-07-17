@@ -18,7 +18,7 @@
  */
 package org.constellation.store.observation.db;
 
-import org.constellation.store.observation.db.model.OMSQLDialect;
+import org.constellation.util.OMSQLDialect;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.LinkedHashMap;
