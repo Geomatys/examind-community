@@ -2,7 +2,7 @@
  *    Examind community - An open source and standard compliant SDI
  *    https://community.examind.com/fr
  *
- * Copyright 2019 Geomatys.
+ * Copyright 2025 Geomatys.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,57 +19,53 @@
 package org.constellation.provider.observationstore;
 
 import jakarta.annotation.PostConstruct;
-import java.io.File;
+import java.util.Locale;
 import org.constellation.provider.DataProviders;
 import org.constellation.provider.ObservationProvider;
 import org.constellation.test.utils.TestEnvironment;
 import static org.constellation.test.utils.TestEnvironment.initDataDirectory;
-import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  *
- * @author Guilhem Legal (Geomatys)
+ * @author glegal
  */
-public class ObservationStoreProviderTest extends AbstractObservationStoreProviderTest {
+public class MixedObservationStoreProviderDDBTest extends AbstractMixedObservationStoreProviderTest {
     
-    public ObservationStoreProviderTest() {
-        super(19L,   // NB_SENSOR
-              18,    // NB_TEMPLATE
-              134L,  // NB_OBS_NAME with nan value removed it should be 124. TODO verify count ?
-              271L   // NB_MEAS with nan value removed it should be  248. TODO verify count ?;
+    private static boolean initialized = false;
+    
+    /**
+     * Hack: disable tests using DuckDB when host computer is not using english locale.
+     * This hack remain valid until DuckDB spatial fixes this issue:
+     *
+     * <a href="https://github.com/duckdb/duckdb-spatial/issues/575">Query fails when using JDBC driver</a>
+     */
+    @BeforeClass
+    public static void ensureEnglishLocale() {
+        Assume.assumeTrue(
+                "DuckDB related tests can only be done in an English Locale environment",
+                Locale.getDefault().getISO3Language().equals("en")
         );
     }
 
-    private static boolean initialized = false;
-
     @PostConstruct
     public void setUp() throws Exception {
-        if (!initialized) {
+          if (!initialized) {
 
-          // clean up
-          providerBusiness.removeAll();
+            // clean up
+            providerBusiness.removeAll();
 
-          final TestEnvironment.TestResources testResource = initDataDirectory();
-          Integer omPid  = testResource.createProviderWithDatasource(TestEnvironment.TestResource.OM2_DB, providerBusiness, datasourceBusiness, null).id;
+            final TestEnvironment.TestResources testResource = initDataDirectory();
+            Integer omPid  = testResource.createProviderWithDatasource(TestEnvironment.TestResource.OM2_DB_DUCK_MIXED, providerBusiness, datasourceBusiness, null).id;
 
-          omPr = (ObservationProvider) DataProviders.getProvider(omPid);
-          initialized = true;
-        }
+            omPr = (ObservationProvider) DataProviders.getProvider(omPid);
+            initialized = true;
+          }
     }
     
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-        File derbyLog = new File("derby.log");
-        if (derbyLog.exists()) {
-            derbyLog.delete();
-        }
-        File mappingFile = new File("mapping.properties");
-        if (mappingFile.exists()) {
-            mappingFile.delete();
-        }
-    }
-
     @Test
     @Override
     public void getProcedureTreesTest() throws Exception {
@@ -94,13 +90,27 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getFeatureOfInterestTest();
     }
     
-    @Test
+    /**
+     *  This test cannot work because of the disparity between geometry CRS.
+     * TODO:
+     * - harmonize geometry crs in test data
+     * - add a global crs configuration
+     * - reproject the envelope before applying filter if in a different crs
+     */
+    @Ignore
     @Override
     public void getFeatureOfInterestIdsBBOXTest() throws Exception {
         super.getFeatureOfInterestIdsBBOXTest();
     }
 
-    @Test
+    /**
+     *  This test cannot work because of the disparity between geometry CRS.
+     * TODO:
+     * - harmonize geometry crs in test data
+     * - add a global crs configuration
+     * - reproject the envelope before applying filter if in a different crs
+     */
+    @Ignore
     @Override
     public void getFullFeatureOfInterestBBOXTest() throws Exception {
         super.getFullFeatureOfInterestBBOXTest();
@@ -121,9 +131,9 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     @Test
     @Override
     public void getPhenomenonNames2Test() throws Exception {
-       super.getPhenomenonNames2Test();
+        super.getPhenomenonNames2Test();
     }
-
+    
     @Test
     @Override
     public void getPhenomenonsTest() throws Exception {
@@ -169,7 +179,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     @Test
     @Override
     public void getLocationNameTest() throws Exception {
-        super.getLocationNameTest();
+       super.getLocationNameTest();
     }
 
     @Test
@@ -177,7 +187,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getLocationTest() throws Exception {
         super.getLocationTest();
     }
-
+    
     @Test
     @Override
     public void existProcedureTest() throws Exception {
@@ -207,7 +217,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getProcedure2Test() throws Exception {
         super.getProcedureTest();
     }
-
+    
     @Test
     @Override
     public void getProcedureComplexFilterTest() throws Exception {
@@ -273,8 +283,11 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getMeasurementTemplateResultFilterTest() throws Exception {
         super.getMeasurementTemplateResultFilterTest();
     }
-    
-    @Test
+
+    /**
+     * No text field in this implementation
+     */
+    @Ignore
     @Override
     public void getMeasurementTemplateResultFilterTextFieldTest() throws Exception {
         super.getMeasurementTemplateResultFilterTextFieldTest();
@@ -286,30 +299,33 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getMeasurementTemplateResult2FilterTest();
     }
 
-    @Test
+    /**
+     * No quality flag in this implementation 
+     */
+    @Ignore
     @Override
     public void getMeasurementTemplateResult3FilterTest() throws Exception {
         super.getMeasurementTemplateResult3FilterTest();
     }
-
+    
     @Test
     @Override
     public void getMeasurementTemplateFilterTest() throws Exception {
         super.getMeasurementTemplateFilterTest();
     }
-
+    
     @Test
     @Override
     public void getMeasurementTemplateFilter2Test() throws Exception {
         super.getMeasurementTemplateFilter2Test();
     }
-
+    
     @Test
     @Override
     public void getMeasurementTemplateFilter3Test() throws Exception {
-       super.getMeasurementTemplateFilter3Test();
+        super.getMeasurementTemplateFilter3Test();
     }
-
+    
     @Test
     @Override
     public void getObservationNamesTest() throws Exception {
@@ -327,19 +343,23 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getObservationNames3Test() throws Exception {
         super.getObservationNames3Test();
     }
-    
-    @Test
+
+    /**
+     * TODO the followings test don't work has the result fiters only remove the not matching values from lines
+     * 
+     */
+    @Ignore
     @Override
     public void getObservationNames4Test() throws Exception {
         super.getObservationNames4Test();
     }
-    
+
     @Test
     @Override
     public void getMeasurementsSimpleTest() throws Exception {
         super.getMeasurementsSimpleTest();
     }
-
+    
     @Test
     @Override
     public void getMeasurementsTest() throws Exception {
@@ -388,13 +408,21 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getObservationsFilterTest();
     }
     
-    @Test
+    /**
+     * TODO not working because measure of the sensor 17 are not handled yet
+     * @throws Exception 
+     */
+    @Ignore
     @Override
     public void getObservationsFilter2Test() throws Exception {
         super.getObservationsFilter2Test();
     }
     
-    @Test
+    /**
+     * TODO not working because there is no quality field handling for now
+     * @throws Exception 
+     */
+    @Ignore
     @Override
     public void getObservationsFilter3Test() throws Exception {
         super.getObservationsFilter3Test();
@@ -427,7 +455,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     @Test
     @Override
     public void getResultsTest() throws Exception {
-       super.getResultsTest();
+        super.getResultsTest();
     }
     
     @Test
@@ -448,7 +476,13 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getResultsSingleFilterFlatProfileTest();
     }
     
-    @Test
+    /**
+     * the sensor "urn:ogc:object:sensor:GEOM:17" does not have any measure int this implementation because:
+     * - quality flag are not supported
+     * - non-double field are not supported
+     * 
+     */
+    @Ignore
     @Override
     public void getResultsSingleFilterFlatSubFIeldTest() throws Exception {
         super.getResultsSingleFilterFlatSubFIeldTest();
@@ -471,20 +505,32 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getResultsMultiFilterTest() throws Exception {
         super.getResultsMultiFilterTest();
     }
-
-    @Test
+    
+    /**
+     * This implementation does not handle quality field for now
+     */
+    @Ignore
     @Override
     public void getResultsMultiFilterQualityTest() throws Exception {
         super.getResultsMultiFilterQualityTest();
     }
     
-    @Test
+    /**
+     * This implementation does not handle parameter field for now
+     */
+    @Ignore
     @Override
     public void getResultsMultiFilterParameterTest() throws Exception {
         super.getResultsMultiFilterParameterTest();
     }
     
-    @Test
+    /**
+     * the sensor "urn:ogc:object:sensor:GEOM:17" does not have any measure int this implementation because:
+     * - quality flag are not supported
+     * - non-double field are not supported
+     * 
+     */
+    @Ignore
     @Override
     public void getResultsMultiTableTest() throws Exception {
         super.getResultsMultiTableTest();
@@ -543,7 +589,7 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getResultsProfileFilter2Test() throws Exception {
         super.getResultsProfileFilter2Test();
     }
-    
+
     @Test
     @Override
     public void getResultTest() throws Exception {
@@ -556,7 +602,10 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
         super.getResultsobsPropPropertiesTest();
     }
     
-    @Test
+    /**
+     *  TODO the sensor 17 has no data in this implementation.
+     */
+    @Ignore
     @Override
     public void getResultsobsPropProperties2Test() throws Exception {
         super.getResultsobsPropProperties2Test();

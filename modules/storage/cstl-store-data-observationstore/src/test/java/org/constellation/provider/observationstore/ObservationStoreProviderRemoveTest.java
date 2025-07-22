@@ -33,7 +33,7 @@ import org.junit.Test;
  *
  * @author Guilhem Legal (Geomatys)
  */
-public class ObservationStoreProviderRemoveTest extends AbstractObservationStoreProviderTest {
+public class ObservationStoreProviderRemoveTest extends AbstractObservationStoreRemoveProviderTest {
 
     @Test
     public void removeFullDatasetTest() throws Exception {
@@ -43,8 +43,8 @@ public class ObservationStoreProviderRemoveTest extends AbstractObservationStore
         int nb_phenomenon      = NB_PHENOMENON;
         int nb_composite       = NB_COMPOSITE;
         int nb_foi             = NB_FOI;
-        int nb_procedure       = NB_PROCEDURE;
-        int nb_used_procedure  = NB_USED_PROCEDURE;
+        int nb_procedure       = NB_SENSOR;
+        int nb_used_procedure  = NB_USED_SENSOR;
 
         // get the full content of the store
         ObservationDataset fullDataset = omPr.extractResults(new DatasetQuery());

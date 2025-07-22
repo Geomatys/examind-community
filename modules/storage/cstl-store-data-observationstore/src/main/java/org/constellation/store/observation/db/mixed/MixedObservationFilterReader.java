@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
+import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import org.constellation.store.observation.db.FieldParser;
 import org.constellation.store.observation.db.OM2FilterAppend;
@@ -42,6 +43,7 @@ import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.MultiFilterSQLRequest;
+import org.constellation.util.OMSQLDialect;
 import org.constellation.util.SQLResult;
 import org.constellation.util.SingleFilterSQLRequest;
 import org.geotoolkit.observation.OMUtils;
@@ -109,7 +111,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) throws SQLException {
         // for now we don't handle timescaledb case, has we assume we are in a duckdb context
         ResultProcessor processor;
         if (decimate) {
@@ -121,6 +123,10 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             
         } else {
             processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
+        }
+        if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
+            processor.setPhenomenons(getPhenomenonFields(fields, c));
+            processor.setProcedureProperties(readProperties("procedures_properties", "id_procedure", currentProcedure.id, c));
         }
         return processor;
     }
@@ -172,14 +178,14 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      */
     @Override
     protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
-        final boolean profile = pti.type == ObservationType.PROFILE;
+        final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
         final int tableNum = 1;
         
         // OID is no longer relevant in this implementation as there is one observation by procedure
         boolean onlyMain = false;
-        if (profile) {
+        if (nonTimeseries) {
             int mainFieldIndex = queryFields.indexOf(pti.mainField);
             onlyMain = true;
             for (Field field : queryFields) {
@@ -193,19 +199,20 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         String select;
         String where  = "WHERE \"thing_id\" = '" + pti.id + "'";
         if (idOnly) {
-            if (profile) {
+            if (nonTimeseries) {
                 select = "getmesureidpr(\"z_value\", \"time\") as \"id\"";
             } else {
                 select = "getmesureidts(\"time\") as \"id\"";
             }
         } else {
-            if (profile) {
+            if (nonTimeseries) {
                 select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\", m.\"time\" ";
             } else {
                 select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
             }
             if (!decimate) {
-                if (profile) {
+                if (nonTimeseries) {
+                    // probably an issue here for non profile
                     select = select + ", getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
                 } else {
                     select = select + ", getmesureidts(m.\"time\") as \"id\" ";
@@ -236,7 +243,11 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         measureRequest.append(" FROM \"" + schemaPrefix + "main\".\"" + TABLE_NAME + "\" m ");
         if (obsJoin) {
             measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
-            where = where + " AND o.id = getpid(m.\"thing_id\") ";
+            if (OMSQLDialect.DERBY.equals(dialect)) {
+                where = where + " AND o.\"id\" IN (select \"pid\" from \"" + schemaPrefix + "om\".\"procedures\"  where \"id\" = m.\"thing_id\") ";
+            } else {
+                where = where + " AND o.\"id\" = getpid(m.\"thing_id\") ";
+            }
         }
         measureRequest.append(where);
         
@@ -245,7 +256,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         /*
         * Append measure filter on each measure request
         */
-        boolean includeConditional = !profile;
+        boolean includeConditional = !nonTimeseries;
         boolean isEmpty = measureFilter == null || 
                         ((measureFilter instanceof MultiFilterSQLRequest mf) && mf.isEmpty(tableNum, includeConditional)) ||
                         measureFilter.isEmpty(includeConditional);
@@ -255,14 +266,14 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             
             FilterSQLRequest clone = measureFilter.clone();
             if (clone instanceof MultiFilterSQLRequest mf) {
-                measureRequest.append(mf.getRequest(tableNum), !profile);
+                measureRequest.append(mf.getRequest(tableNum), includeConditional);
             } else {
-                measureRequest.append(clone, !profile);
+                measureRequest.append(clone, includeConditional);
             }
         }
         if (addOrderBy) {
             measureRequests.append(" ORDER BY ");
-            if (profile) {
+            if (!includeConditional) {
                 measureRequests.append("m.\"time\",");
             }
             measureRequests.append("m.\"" + pti.mainField.name + "\"");
@@ -272,6 +283,15 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     
     @Override
     protected List<Observation> getMesurements() throws DataStoreException {
+        if (phenPropJoin) {
+            sqlRequest.replaceAll("${phen-prop-join}", "o.\"observed_property\"");
+        }
+        if (procPropJoin) {
+            sqlRequest.replaceAll("${proc-prop-join}", "o.\"procedure\"");
+        }
+        if (foiPropJoin) {
+            sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
+        }
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
         if (firstFilter) {
@@ -302,7 +322,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 /*
                  *  BUILD RESULT
                  */
-                boolean profile       = pti.type == ObservationType.PROFILE;
+                boolean timeseries = (pti.type == ObservationType.TIMESERIES);
 
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type.name().toLowerCase());
@@ -322,11 +342,11 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                         final Long rid = rs2.getLong("id", tableNum);
                         if (measureIdFilters.isEmpty() || measureIdFilters.contains(rid)) {
                             TemporalPrimitive measureTime;
-                            if (profile) {
-                                measureTime = time;
-                            } else {
+                            if (timeseries) {
                                 final Date mt = dateFromTS(rs2.getTimestamp(pti.mainField.name, tableNum));
                                 measureTime = buildTime(oid + "-" + rid, mt, null);
+                            } else {
+                                measureTime = time;
                             }
                             String currentFname = rs2.getString("obsprop_id");
                             

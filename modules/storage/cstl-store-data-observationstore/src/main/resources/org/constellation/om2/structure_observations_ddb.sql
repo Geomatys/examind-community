@@ -131,9 +131,6 @@ CREATE OR REPLACE FUNCTION getpid(tid)
 	where "id" = tid
        );    
 
-CREATE OR REPLACE FUNCTION getobservationidpr(tid, t)
-    AS (select t * 1000000  + getpid(tid));
-
 CREATE OR REPLACE FUNCTION getmesureidpr(z_value, t)
     AS (select EPOCH(t::TIMESTAMP)::BIGINT  * 1000000  + z_value * 1000);
 

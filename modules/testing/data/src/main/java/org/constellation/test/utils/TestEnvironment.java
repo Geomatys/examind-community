@@ -235,6 +235,7 @@ public class TestEnvironment {
          */
         public static final TestResource OM2_DB            = new TestResource(TestEnvironment::createOM2DatabaseProvider, TestEnvironment::createOM2DatabaseStore);
         public static final TestResource OM2_DB_NO_DATA    = new TestResource(TestEnvironment::createOM2DatabaseProviderNoData, null);
+        public static final TestResource OM2_DB_MIXED      = new TestResource(TestEnvironment::createOM2DatabaseMixedProvider, null);
         public static final TestResource OM2_DB_DUCK       = new TestResource(TestEnvironment::createOM2DatabaseDDBProviderNoData, null);
         public static final TestResource OM2_DB_DUCK_MIXED = new TestResource(TestEnvironment::createOM2DatabaseDDBMixedProvider, null);
 
@@ -872,7 +873,7 @@ public class TestEnvironment {
             sr.run(sql);
             if (withData) {
                 if (mode.equals("mixed")) {
-                    fileSuffix = "_mixed";
+                    fileSuffix = fileSuffix + "_mixed";
                 }
                 sr.run(Util.getResourceAsStream("org/constellation/sql/sos-data-om2" + fileSuffix + ".sql"));
             }
@@ -915,6 +916,10 @@ public class TestEnvironment {
     
     private static Integer createOM2DatabaseDDBMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
         return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, true, "mixed");
+    }
+    
+    private static Integer createOM2DatabaseMixedProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness) {
+        return createOM2DatabaseProvider(providerBusiness, datasourceBusiness, true, false, "mixed");
     }
 
     private static Integer createOM2DatabaseProvider(IProviderBusiness providerBusiness, IDatasourceBusiness datasourceBusiness, boolean withData, boolean ddb, String mode) {

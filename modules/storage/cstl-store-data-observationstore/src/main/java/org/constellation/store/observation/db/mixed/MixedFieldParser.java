@@ -291,12 +291,13 @@ public class MixedFieldParser extends FieldParser {
     
     private Entry<String, Observation> buildObservation(String obsID, final Procedure proc, final SamplingFeature feature, final Phenomenon phen, final TemporalPrimitive time, Map<String, Object> properties, boolean separatedObs) {
         String observationKey;
+         String fid = feature != null ? feature.getId() : "null";
         if (separatedObs) {
             synchronized (format2) {
-                observationKey = proc.getId() + '-' + feature.getId() + '-' + format2.format(firstTime);
+                observationKey = proc.getId() + '-' + fid + '-' + format2.format(firstTime);
             }
         } else {
-            observationKey = proc.getId() + '-' + feature.getId();
+            observationKey = proc.getId() + '-' + fid;
         }
         final ComplexResult result = buildComplexResult();
         
