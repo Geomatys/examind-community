@@ -57,12 +57,12 @@ import org.constellation.business.IServiceBusiness;
 import org.constellation.business.IStyleBusiness;
 import org.constellation.dto.DataBrief;
 import org.constellation.dto.DataSource;
-import org.constellation.dto.fs.Collection;
-import org.constellation.dto.fs.CollectionItem;
-import org.constellation.dto.fs.Datasource;
-import org.constellation.dto.fs.DimensionItem;
-import org.constellation.dto.fs.Provider;
-import org.constellation.dto.fs.Service;
+import com.examind.dto.fs.Collection;
+import com.examind.dto.fs.CollectionItem;
+import com.examind.dto.fs.Datasource;
+import com.examind.dto.fs.DimensionItem;
+import com.examind.dto.fs.Provider;
+import com.examind.dto.fs.Service;
 import org.constellation.dto.service.config.generic.Automatic;
 import org.constellation.dto.service.config.sos.SOSConfiguration;
 import org.constellation.dto.service.config.wps.ProcessContext;
@@ -267,7 +267,7 @@ public class FileSystemSetupBusiness implements IFileSystemSetupBusiness {
                 if (!instance.getProcessFactories().isEmpty()) {
                     ProcessContext conf = (ProcessContext) serviceBusiness.getConfiguration(sid);
                     List<ProcessFactory> factories = new ArrayList<>();
-                    for (org.constellation.dto.fs.ProcessFactory factory : instance.getProcessFactories()) {
+                    for (com.examind.dto.fs.ProcessFactory factory : instance.getProcessFactories()) {
                         ProcessFactory processFactory;
                         if (factory.getProcess().isEmpty()) {
                             processFactory = new ProcessFactory(factory.getAuthority(), Boolean.TRUE);
