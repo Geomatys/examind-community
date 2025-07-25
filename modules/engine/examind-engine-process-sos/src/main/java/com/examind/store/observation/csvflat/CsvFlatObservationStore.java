@@ -374,7 +374,7 @@ public class CsvFlatObservationStore extends FileParsingObservationStore {
     }
     
     private static Object[] parseExtraFields(Object[] line, List<Integer> indexes, String observedProperty, MeasureColumns measureColums, FieldType type, DateFormat sdf ) {
-        Object[] values = new String[indexes.size()];
+        Object[] values = new Object[indexes.size()];
         for (int i = 0; i < indexes.size(); i++) {
             Integer qIndex = indexes.get(i);
             MeasureField mf = measureColums.getExtraField(observedProperty, i, type);

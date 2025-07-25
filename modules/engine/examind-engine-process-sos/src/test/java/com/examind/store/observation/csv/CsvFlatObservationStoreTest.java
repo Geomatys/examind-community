@@ -487,6 +487,7 @@ public class CsvFlatObservationStoreTest extends AbstractCsvStoreTest {
         params.parameter(CsvFlatObservationStoreFactory.OBSERVATION_TYPE.getName().getCode()).setValue("Timeserie");
         params.parameter(CsvFlatObservationStoreFactory.PROCEDURE_ID.getName().getCode()).setValue("urn:space-qual:1");
         params.parameter(CsvFlatObservationStoreFactory.QUALITY_COLUMN.getName().getCode()).setValue("QUA LITY FI");
+        params.parameter(CsvFlatObservationStoreFactory.QUALITY_COLUMN_TYPE.getName().getCode()).setValue("QUANTITY");
 
 
         params.parameter(CSVProvider.SEPARATOR.getName().getCode()).setValue(Character.valueOf(';'));
