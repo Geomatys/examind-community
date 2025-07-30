@@ -312,20 +312,6 @@
                                           title="{{'tooltip.service.source.url.duckdb' | translate }}"></span>
                                 </div>
                              </div>
-                            <div class="form-group row">
-                                <label class="col-sm-12 control-label new-service-form-label"
-                                       translate="service.config.source.database.mode">Database Mode</label>
-                                <div class="col-sm-11">
-                                    <input type="text" class="form-control"
-                                           name="dbMode" required
-                                           ng-model="wsChooseCtrl.guiConfig.mode"/>
-                                </div>
-                                <div class="btn-lg tooltipicon">
-                                    <span class="glyphicon glyphicon-info-sign"
-                                          tooltip data-placement="bottom"
-                                          title="{{'tooltip.service.source.database.mode' | translate }}"></span>
-                                </div>
-                            </div>
                         </div>
                         <div ng-if="wsChooseCtrl.guiConfig.className === 'org.postgresql.Driver'">
                             <div class="form-group row">
@@ -383,15 +369,6 @@
                                            ng-model="wsChooseCtrl.guiConfig.password"/>
                                 </div>
                             </div>
-                            <div class="form-group row">
-                                <label class="col-sm-12 control-label new-service-form-label"
-                                       translate="service.config.source.database.schema">Schema prefix</label>
-                                <div class="col-sm-11">
-                                    <input type="text" class="form-control"
-                                           name="dbSchema"
-                                           ng-model="wsChooseCtrl.guiConfig.schema"/>
-                                </div>
-                            </div>
                             <div class="form-group">
                                 <div class="checkbox inline">
                                     <input type="checkbox"
@@ -406,6 +383,29 @@
                                 <input type="checkbox"
                                        ng-model="wsChooseCtrl.guiConfig.transactional"/>
                                 <span translate="service.config.source.transactional">Transactional</span>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.schema">Schema prefix</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbSchema"
+                                       ng-model="wsChooseCtrl.guiConfig.schema"/>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label class="col-sm-12 control-label new-service-form-label"
+                                   translate="service.config.source.database.mode">Database Mode</label>
+                            <div class="col-sm-11">
+                                <input type="text" class="form-control"
+                                       name="dbMode" required
+                                       ng-model="wsChooseCtrl.guiConfig.mode"/>
+                            </div>
+                            <div class="btn-lg tooltipicon">
+                                <span class="glyphicon glyphicon-info-sign"
+                                      tooltip data-placement="bottom"
+                                      title="{{'tooltip.service.source.database.mode' | translate }}"></span>
                             </div>
                         </div>
                         <div class="form-group">

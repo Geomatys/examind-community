@@ -242,7 +242,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         } else {
             measureRequest.append(select);
         }
-        measureRequest.append(" FROM \"" + schemaPrefix + "main\".\"" + TABLE_NAME + "\" m ");
+        measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + TABLE_NAME + "\" m ");
         if (obsJoin) {
             measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
             if (OMSQLDialect.DERBY.equals(dialect)) {

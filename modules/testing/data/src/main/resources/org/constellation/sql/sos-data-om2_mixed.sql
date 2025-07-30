@@ -292,7 +292,7 @@ INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:1
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:19',             1, 'time',        'Time',     'urn:ogc:data:time:iso8601',                NULL,  NULL,    1, 'Time',          'MAIN');
 INSERT INTO "om"."procedure_descriptions"  VALUES ('urn:ogc:object:sensor:GEOM:19',             2, 'temperature', 'Quantity', 'urn:ogc:def:phenomenon:GEOM:temperature',  '°C',  NULL,    1, 'temperature',   'MEASURE');
 
-CREATE TABLE "main"."flat_csv_data" (
+CREATE TABLE "mesures"."flat_csv_data" (
 	"time" TIMESTAMP NOT NULL,
 	"z_value" DOUBLE,
 	"latitude" DOUBLE,
@@ -312,288 +312,288 @@ CREATE TABLE "main"."flat_csv_data" (
 -- timeseries => CONSTRAINT FLAT_CSV_DATA_PK PRIMARY KEY ("thing_id","obsprop_id","time")
 
 -- 201
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 24,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 24,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 24);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 48,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 48,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 48);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 96,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 96,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 96);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 192, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 26.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 192, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 192);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 384, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 31.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 384, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 384);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 768, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 35.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 768, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 768);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 24,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 24,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 24);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 48,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 48,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 48);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 96,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 96,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 96);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 192, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 26.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 192, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 192);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 384, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 31.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 384, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 384);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 768, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 35.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00.0', 768, NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 768);
 
 -- 202
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
 
 -- 203
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL, '°C', 'temperature', 'temperature', NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00.0', 12,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:2', 'Sensor 2', NULL,  'm', 'depth',       'depth',       NULL, 12);
 
 
 -- 304
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 02:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 03:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 04:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 05:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 06:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 02:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 03:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 04:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 05:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 06:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
 
 -- 305
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 07:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 08:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 09:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 10:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 11:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 07:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 08:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 09:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 10:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 11:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
 
 -- intentionally inserted in bad temporal order
 -- 307
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 21:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 17:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 18:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 19:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 20:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 21:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 17:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 18:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 19:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 20:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:3', 'Sensor 3', NULL, 'm', 'depth', 'depth', NULL, 6.55);
 
 
 -- 507 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-1', 'Sensor test 1', NULL, 'm', 'depth', 'depth', NULL, 6.56);
 
 -- 406
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:4', 'Sensor 4', NULL, 'm', 'depth', 'depth', NULL, 6.56);
 
 -- 801 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 12.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 12:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 12.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 13.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 13:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 13.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 14.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 14:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 14.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 15.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 15:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 15.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 16.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, 'm',  'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:8', 'Sensor 8', NULL, '°C', 'temperature', 'temperature', NULL, 16.0);
 
 
 -- 702 
-INSERT INTO "main"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:7', 'Sensor 7', NULL, '°C', 'temperature', 'temperature', NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2007-05-01 16:59:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:7', 'Sensor 7', NULL, '°C', 'temperature', 'temperature', NULL, 6.56);
 
 
 -- 901
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 15.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 15.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 22.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 22.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 18.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 18.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 17.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 17.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 15.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 15.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 22.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 22.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 18.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 18.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', 17.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:9', 'Sensor 9', NULL, 'm',  'depth',       'depth',       NULL, 17.1);
 
 
 -- 1001
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 4.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 5.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 4.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 5.9);
 
 -- 1002
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 8.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 7.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:03:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 9.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 8.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 7.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:03:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 9.9);
 
 -- 1003
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:04:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 9.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:04:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:10', 'Sensor 10', NULL, 'm',  'depth',       'depth',       NULL, 9.1);
 
 
 -- 2000
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 13:47:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 4.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 5.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 8.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 7.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-05-01 14:03:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 9.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 13:47:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 4.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 5.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 8.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 7.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-05-01 14:03:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:test-id', 'Sensor test id', NULL, 'm',  'depth',       'depth',       NULL, 9.9);
 
 -- 3000  
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 2.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 2.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 4);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 5.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 1.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 5.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 1.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-01 14:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 3);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 8.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 78.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 8.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 78.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-11 14:01:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 2);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 7.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 14.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 7.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 14.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2009-12-15 14:02:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 9.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 5.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'm',   'depth',       'depth',       NULL, 9.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, '°C',  'temperature', 'temperature', NULL, 5.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2012-12-22 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:12', 'Sensor 12', NULL, 'msu', 'salinity',    'salinity',    NULL, 0);
 
 -- 4XXX inserted in time disorder on purpose
 
 -- 4000 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-05-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-06-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.0);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-07-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-05-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-06-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-07-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.1);
 
 -- 4001
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.6);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 4.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
 
 -- 4002
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.3);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 87.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 87.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 77.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'm',   'depth',       'depth',       NULL, 5.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 77.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.3);
 
 -- 4003
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-11-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 99.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2001-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-11-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 99.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2001-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:13', 'Sensor 13', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
 
 
 -- 5001
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.7);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.6);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.4);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.3);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.2);
 
 -- 5002
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.9);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.2);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.3);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-11 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.4);
 
 -- 5003
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.2);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.6);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.3);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.4);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.3);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.6);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-22 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.7);
 
 -- 5004
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 18.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 18.5,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 19.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 12.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 19.7,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 5.0);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.0);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 21.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 21.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.9);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 23.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 23.9,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.8);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 24.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 24.2,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.7);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.3);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 29.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 29.4,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.6);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'm',   'depth',       'depth',       NULL, 31.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, '°C',  'temperature', 'temperature', NULL, 13.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-24 00:00:00', 31.1,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:14', 'Sensor 14', NULL, 'msu', 'salinity',    'salinity',    NULL, 4.5);
 
 
 -- 6001 quality flags are not yet supported by this implementation
 
-INSERT INTO "main"."flat_csv_data" VALUES ('1980-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('1981-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('1982-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('1983-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
-INSERT INTO "main"."flat_csv_data" VALUES ('1984-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('1980-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('1981-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('1982-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('1983-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('1984-03-01 21:52:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:quality_sensor', 'Sensor quality', NULL, 'm',   'depth',       'depth',       NULL, 6.56);
 
 --CREATE TABLE "mesures"."mesure15"("id_observation"      integer NOT NULL,
 --                                  "id"                  integer NOT NULL,
@@ -682,40 +682,40 @@ INSERT INTO "main"."flat_csv_data" VALUES ('1984-03-01 21:52:00', NULL,  NULL, N
 -- 9XXX inserted in time disorder on purpose
 
 -- 9000 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-05-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.9);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-06-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.0);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-07-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-05-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.9);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-06-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.0);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-07-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.1);
 
 -- 9001 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.6);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-02-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.7);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.7);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-03-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 97.5);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.8);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 4.8);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-04-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
 
 -- 9002
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.2);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.2);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 98.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-08-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.3);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 87.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 87.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-09-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.1);
 
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.4);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 77.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.3);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'm',   'depth',       'depth',       NULL, 5.4);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 77.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-10-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, 'msu', 'salinity',    'salinity',    NULL, 1.3);
 
 -- 9003
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-11-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 99.5);
-INSERT INTO "main"."flat_csv_data" VALUES ('2001-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-11-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-12-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 99.5);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2001-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:18', 'Sensor 18', NULL, '°C',  'temperature', 'temperature', NULL, 96.5);
 
 -- 9004
-INSERT INTO "main"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:19', 'Sensor 19 No FOI', NULL, '°C',  'temperature', 'temperature', NULL, 6.6);
+INSERT INTO "mesures"."flat_csv_data" VALUES ('2000-01-01 00:00:00', NULL,  NULL, NULL, 'urn:ogc:object:sensor:GEOM:19', 'Sensor 19 No FOI', NULL, '°C',  'temperature', 'temperature', NULL, 6.6);
