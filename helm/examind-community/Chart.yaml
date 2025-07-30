@@ -6,7 +6,7 @@ description: |
   If you are a paid customer, use `edition: server` value to deploy a complete edition.
 type: application
 home: https://www.examind.com
-version: "1.0.2"
+version: "1.0.3"
 appVersion: "1.2.0"
 
 maintainers:

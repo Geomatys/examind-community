@@ -1,0 +1,12 @@
+global:
+  ingress:
+    annotations:
+      "cert-manager.io/cluster-issuer": "letsencrypt-prod"
+    hosts:
+      - first.geomatys.com
+      - second.geomatys.com
+    tls:
+      - secretName: my-tls-secret
+        hosts:
+          - first.geomatys.com
+          - second.geomatys.com

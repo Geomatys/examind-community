@@ -279,8 +279,8 @@ metadata:
   {{- /*
    Search for annotations to add to this ingress definition, either in common annotation values, or specific to this ingress
    */}}
-  {{- if or .Values.allInOne.ingress.annotations .Values.commonAnnotations }}
-  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list .Values.allInOne.ingress.annotations .Values.commonAnnotations ) "context" . ) }}
+  {{- if or (.Values.allInOne.ingress).annotations .Values.commonAnnotations ((.Values.global).ingress).annotations }}
+  {{- $annotations := include "common.tplvalues.merge" ( dict "values" ( list (.Values.allInOne.ingress).annotations .Values.commonAnnotations ((.Values.global).ingress).annotations ) "context" . ) }}
   annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $) | nindent 4 }}
   {{- end }}
 spec:
