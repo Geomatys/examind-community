@@ -19,9 +19,9 @@
 package org.constellation.store.observation.db.mixed;
 
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -30,20 +30,24 @@ import java.util.TimeZone;
  */
 public class DerbyFunctions {
     
+    public static final DateFormat ISO_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    static {
+        // hack for timezone in test to be synchronized with DuckD
+        ISO_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+    
     public static long getMesureIdTs(Timestamp ts) throws ParseException {
-       
-        return adjustZone(ts).getTime() / 1000;
+        return adjustZone(ts) / 1000;
     }
     
     public static long getMesureIdPr(double z_value, Timestamp ts) throws ParseException {
-        return adjustZone(ts).getTime() * 1000L  + (int)(z_value * 1000L);
+        return adjustZone(ts) * 1000L  + (int)(z_value * 1000L);
     }
     
-    private static Date adjustZone(Timestamp ts) throws ParseException {
-         // hack for timezone in test to be synchronized with DuckD
-        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return isoFormat.parse(ts.toString());
+    private static long adjustZone(Timestamp ts) throws ParseException {
+        synchronized (ISO_FORMAT) {
+            return ISO_FORMAT.parse(ts.toString()).getTime();
+        }
     }
     
 }

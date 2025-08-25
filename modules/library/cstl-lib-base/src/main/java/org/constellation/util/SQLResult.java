@@ -112,8 +112,10 @@ public class SQLResult implements AutoCloseable {
      * @return
      */
     public boolean nextOnField(String field, NextMode mode) throws SQLException {
-        if (mode == NextMode.UNION) return nextOnFieldUnion(field);
-        return nextOnFieldIntersect(field);
+        return switch (mode) {
+            case UNION     -> nextOnFieldUnion(field);
+            case INTERSECT -> nextOnFieldIntersect(field);
+        };
     }
         
         

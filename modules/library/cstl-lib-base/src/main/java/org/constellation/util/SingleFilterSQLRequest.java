@@ -352,7 +352,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             fillParams(stmt);
             rs = stmt.executeQuery();
             return new SQLResult(stmt, rs, 1);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
             if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
             
@@ -369,7 +369,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             fillParams(stmt);
             rs = stmt.executeQuery();
             return new SQLResult(stmt, rs, 1);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
             if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
             
@@ -385,7 +385,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             fillParams(stmt);
             rs = stmt.executeQuery();
             return new SQLResult(stmt, rs, tableNum);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
             if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
             throw ex;
@@ -416,7 +416,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
             fillParams(stmt);
             rs = stmt.executeQuery();
             return new SQLResult(stmt, rs, tableNum);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             if (rs != null)   try {rs.close();}   catch (SQLException ex1) {ex.addSuppressed(ex1);}
             if (stmt != null) try {stmt.close();} catch (SQLException ex1) {ex.addSuppressed(ex1);}
             throw ex;

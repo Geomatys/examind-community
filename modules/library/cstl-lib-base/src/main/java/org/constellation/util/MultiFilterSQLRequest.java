@@ -200,7 +200,7 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         int resultSetType = ResultSet.TYPE_FORWARD_ONLY; 
         int resultSetConcurrency = ResultSet.CONCUR_READ_ONLY;
         if (requests.size() > 1 && fetchMode == NextMode.UNION) {
-            if (!dialect.equals(OMSQLDialect.DUCKDB)) {
+            if (!OMSQLDialect.DUCKDB.equals(dialect)) {
                 resultSetType = ResultSet.TYPE_SCROLL_INSENSITIVE;
             } else {
                 LOGGER.warning("Unable to set scroll mode on DuckDB resultset");
