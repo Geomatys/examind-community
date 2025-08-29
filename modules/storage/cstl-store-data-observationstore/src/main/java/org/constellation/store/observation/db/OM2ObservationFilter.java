@@ -2189,6 +2189,19 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         }
     }
     
+    protected boolean breakPostPagination(List full) {
+        if (offset == null && limit == null) return false;
+        if (limit == null) return false;
+        
+        int size = full.size();
+        
+        int from = 0;
+        if (offset != null) {
+            from = offset.intValue();
+        }
+        return size >= from + limit.intValue();
+    }
+    
     protected List applyPostPagination(List full) {
         if (offset == null && limit == null) return full;
 

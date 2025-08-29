@@ -296,6 +296,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         if (rs2.next()) {
                             int count = rs2.getInt(1, field.tableNumber);
                             // TODO pagination broken
+                            // handled by breakPostPagination/applyPostPagination
                             if (count == 0) continue;
                         }
                     } catch (Exception ex) {
@@ -352,6 +353,9 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                                                           properties,
                                                           new HashMap<>());
                 observations.add(observation);
+                if (hasMeasureFilter && breakPostPagination(observations)) {
+                    return applyPostPagination(observations);
+                }
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());
