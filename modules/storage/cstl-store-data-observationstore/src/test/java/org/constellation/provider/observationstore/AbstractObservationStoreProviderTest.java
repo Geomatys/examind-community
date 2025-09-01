@@ -3814,6 +3814,29 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
 
         count = omPr.getCount(query);
         assertEquals(4L, count);
+        
+        // get all the sensor templates that have at least ONE temperature value between 30.0 and  100.0
+        // plus time filter
+        TemporalOperator during = ff.during(ff.property("phenomenonTime"), ff.literal(buildPeriod("2000-12-01T00:00:00Z", "2000-12-22T00:00:00Z"))); 
+        eqObs = ff.equal(ff.property("observedProperty") , ff.literal("temperature"));
+        eqRes = ff.lessOrEqual(ff.property("result") , ff.literal(100.0));
+        eqRes2 = ff.greaterOrEqual(ff.property("result") , ff.literal( 30.0));
+        filter = ff.and(Arrays.asList(eqObs, eqRes, eqRes2, during));
+        query.setSelection(filter);
+        results = omPr.getObservations(query);
+
+        resultIds = results.stream().map(obs -> obs.getName().getCode()).collect(Collectors.toSet());
+        assertEquals(4, resultIds.size());
+
+        expectedIds = new HashSet<>();
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:12-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:13-3");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:2-2");
+        expectedIds.add("urn:ogc:object:observation:template:GEOM:18-3");
+        Assert.assertEquals(expectedIds, resultIds);
+
+        count = omPr.getCount(query);
+        assertEquals(4L, count);
     }
     
     protected void getMeasurementTemplateResultFilterTextFieldTest() throws Exception {

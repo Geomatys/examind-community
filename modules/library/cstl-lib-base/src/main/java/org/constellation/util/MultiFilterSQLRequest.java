@@ -122,6 +122,12 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         requests.values().forEach(r -> r.appendObjectValue(value));
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest appendAndOrWhere() {
+        requests.values().forEach(r -> r.appendAndOrWhere());
+        return this;
+    }
 
     @Override
     public FilterSQLRequest appendNamedObjectValue(String name, Object value) {

@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
@@ -1273,7 +1272,6 @@ public class OM2BaseReader {
             
             String baseTableName = "mesure" + pti.pid;
             final SingleFilterSQLRequest measureRequest;
-            AtomicBoolean whereSet = new AtomicBoolean(false);
             
             // first main table
             if (tableNum == 1) {
@@ -1310,13 +1308,12 @@ public class OM2BaseReader {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
                 if (oid != null) {
-                    measureRequest.append(" WHERE m.\"id_observation\" = ").appendValue(oid);
-                    whereSet.set(true);
+                    measureRequest.appendAndOrWhere();
+                    measureRequest.append(" m.\"id_observation\" = ").appendValue(oid);
                 }
                 if (obsJoin) {
-                    String where = whereSet.get() ? " AND " : " WHERE ";
-                    measureRequest.append(where).append(" o.\"id\" = m.\"id_observation\" ");
-                    whereSet.set(true);
+                    measureRequest.appendAndOrWhere();
+                    measureRequest.append(" o.\"id\" = m.\"id_observation\" ");
                 }
                 
                 /*
@@ -1326,7 +1323,7 @@ public class OM2BaseReader {
                  * TODO maybe add the main field on each extra table to solve this problem.
                  */
                 if (!multiTable && tableFields != null) {
-                    appendNotNullFilter(tableFields, mainFieldName, whereSet, measureRequest);
+                    appendNotNullFilter(tableFields, mainFieldName, measureRequest);
                 }
                         
             // other tables
@@ -1356,17 +1353,20 @@ public class OM2BaseReader {
                 } else {
                     measureRequest.append(select);
                 }
-                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2, \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2");
+                measureRequest.append(", \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
                 if (obsJoin) {
                     measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
                 }
-                measureRequest.append(" WHERE (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
-                whereSet.set(true);
+                measureRequest.appendAndOrWhere();
+                measureRequest.append(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
                 if (oid != null) {
-                    measureRequest.append(" AND m2.\"id_observation\" = ").appendValue(oid);
+                    measureRequest.appendAndOrWhere();
+                    measureRequest.append(" m2.\"id_observation\" = ").appendValue(oid);
                 }
                 if (obsJoin) {
-                    measureRequest.append(" AND o.\"id\" = m2.\"id_observation\" ");
+                    measureRequest.appendAndOrWhere();
+                    measureRequest.append(" o.\"id\" = m2.\"id_observation\" ");
                 }
                 
                /*
@@ -1376,7 +1376,7 @@ public class OM2BaseReader {
                  * TODO maybe add the main field on each extra table to solve this problem.
                  */
                 if (!multiTable && tableFields != null) {
-                    appendNotNullFilter(tableFields, mainFieldName, whereSet, measureRequest);
+                    appendNotNullFilter(tableFields, mainFieldName, measureRequest);
                 }
             }
             
@@ -1389,12 +1389,7 @@ public class OM2BaseReader {
                              measureFilter.isEmpty(includeConditional);
                     
             if (!isEmpty) {
-                if (whereSet.get()) {
-                    measureRequest.append(" AND ");
-                } else {
-                    measureRequest.append(" WHERE ");
-                    whereSet.set(true);
-                }
+                measureRequest.appendAndOrWhere();
                 
                 FilterSQLRequest clone = measureFilter.clone();
                 if (clone instanceof MultiFilterSQLRequest mf) {
@@ -1430,10 +1425,9 @@ public class OM2BaseReader {
      * 
      * @param tableFields Field list for a specific measure table.
      * @param mainFieldName Name of the main field (the filter will not apply to this field).
-     * @param whereSet True if a WHERE has already be append to the sql query.
      * @param measureRequest Appendable measure query.
      */
-    private void appendNotNullFilter(List<DbField> tableFields, String mainFieldName, AtomicBoolean whereSet, SingleFilterSQLRequest measureRequest) {
+    private void appendNotNullFilter(List<DbField> tableFields, String mainFieldName, SingleFilterSQLRequest measureRequest) {
          boolean nullFilterApplied = false;
 
         // 1. we sort the field identified as measure field along their table number
@@ -1448,9 +1442,8 @@ public class OM2BaseReader {
         if (nullFilterApplied) {
             s.delete(s.length() - 3, s.length());
             s.append(")");
-            String where = whereSet.get() ? " AND " : " WHERE ";
-            measureRequest.append(where).append(s.toString());
-            whereSet.set(true);
+            measureRequest.appendAndOrWhere();
+            measureRequest.append(s.toString());
         }
     }
 }

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sis.util.ArgumentChecks;
@@ -49,6 +50,8 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
      * the SQL query to build.
      */
     private StringBuilder sqlRequest;
+    
+    private final AtomicBoolean whereSet = new AtomicBoolean(false);
 
     private final List<Param> params = new ArrayList<>();
     
@@ -81,6 +84,17 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest append(String s) {
         this.sqlRequest.append(s);
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest appendAndOrWhere() {
+        if (whereSet.get()) {
+            this.sqlRequest.append(" AND ");
+        } else {
+            this.sqlRequest.append(" WHERE ");
+            whereSet.set(true);
+        }
         return this;
     }
 

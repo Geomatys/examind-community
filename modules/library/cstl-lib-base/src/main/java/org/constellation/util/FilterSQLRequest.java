@@ -53,6 +53,8 @@ public interface FilterSQLRequest {
     FilterSQLRequest appendObjectValue(Object value);
     
     FilterSQLRequest appendNamedObjectValue(String name, Object value);
+    
+    FilterSQLRequest appendAndOrWhere() ;
 
     String getRequest();
 
