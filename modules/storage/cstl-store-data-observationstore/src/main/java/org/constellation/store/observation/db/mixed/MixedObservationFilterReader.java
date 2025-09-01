@@ -34,6 +34,7 @@ import javax.sql.DataSource;
 import org.apache.sis.storage.DataStoreException;
 import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
 import org.constellation.store.observation.db.FieldParser;
 import org.constellation.store.observation.db.OM2FilterAppend;
 import org.constellation.store.observation.db.OM2ObservationFilter;
@@ -172,12 +173,12 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @param obsJoin If true, a join with the observation table will be applied.
      * @param addOrderBy If true, an order by main filed will be applied.
      * @param idOnly If true, only the measure identifier will be selected.
-     * @param count If true, forge a count request instead of a select one.
+     * @param mode Indicate the query context: count / decimation / existenz
      * 
      * @return A Multi filter request on measure tables.
      */
     @Override
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -210,7 +211,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             } else {
                 select = "m.\"" + pti.mainField.name + "\", m.\"obsprop_id\", m.\"result\" ";
             }
-            if (!decimate) {
+            if (mode != DECIMATE) {
                 if (nonTimeseries) {
                     // probably an issue here for non profile
                     select = select + ", getmesureidpr(m.\"z_value\", m.\"time\") as \"id\" ";
@@ -233,7 +234,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             }
         }
         final SingleFilterSQLRequest measureRequest = new SingleFilterSQLRequest("SELECT ");
-        if (count) {
+        if (mode == COUNT) {
             // the "as id" throw an error when present
             select = select.replace("as \"id\"", "");
             measureRequest.append("COUNT(").append(select).append(")");
@@ -328,7 +329,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 properties.put("type", pti.type.name().toLowerCase());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
+                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
 
                 /**
                  * coherence verification

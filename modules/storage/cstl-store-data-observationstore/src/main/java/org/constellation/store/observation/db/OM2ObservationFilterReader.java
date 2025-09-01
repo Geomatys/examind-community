@@ -28,7 +28,6 @@ import org.constellation.store.observation.db.decimation.ASMTimeScaleResultDecim
 import org.constellation.util.FilterSQLRequest;
 import org.locationtech.jts.io.ParseException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,6 +46,7 @@ import org.constellation.api.CommonConstants;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
+import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -291,14 +291,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                     final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true, false);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, EXIST);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
-                        if (rs2.next()) {
-                            int count = rs2.getInt(1, field.tableNumber);
-                            // TODO pagination broken
-                            // handled by breakPostPagination/applyPostPagination
-                            if (count == 0) continue;
-                        }
+                        boolean hasResults = rs2.next();
+                        // TODO pagination broken
+                        // handled by breakPostPagination/applyPostPagination
+                        if (!hasResults) continue;
                     } catch (Exception ex) {
                         LOGGER.log(Level.SEVERE, "Exception while executing the query: {0}", measureRequests.toString());
                         throw new DataStoreException("the service has throw a Exception.", ex);
@@ -421,7 +419,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 */
                 final int fieldOffset = getFieldsOffset(!timeseries, includeObservationTime, includeIDInDataBlock);
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
-                final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
+                final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
                 LOGGER.fine(measureRequests.toString());
                 
                 final String obsName = rs.getString("identifier");
@@ -534,7 +532,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 properties.put("type", pti.type.name().toLowerCase());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
                 final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, false, false);
+                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
 
                 /**
                  * coherence verification
@@ -675,7 +673,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             int fieldOffset = getFieldsOffset(nonTimeseries, ntsWithTime, includeIDInDataBlock);
             FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
 
-            measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, false, decimate);
+            MesureRequestMode mode = decimate ? DECIMATE : NONE;
+            measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, mode);
             // TODO not fan of this
             // this will append the time filter but ....
             if (!sqlRequest.isEmpty()) {

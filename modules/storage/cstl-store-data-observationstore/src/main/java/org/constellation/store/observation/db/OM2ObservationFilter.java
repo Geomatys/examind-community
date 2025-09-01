@@ -56,6 +56,7 @@ import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.LOGGER;
+import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
 import static org.constellation.util.OMSQLDialect.*;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest.TableJoin;
@@ -1520,13 +1521,12 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
                             final DbField field = getFieldByIndex(procedure, fieldIndex, true, c);
                             final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
                             final FilterSQLRequest measureFilter   = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, true, false);
+                            final FilterSQLRequest measureRequests = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, EXIST);
                             try (final SQLResult rs2 = measureRequests.execute(c)) {
-                                if (rs2.next()) {
-                                    int count = rs2.getInt(1, field.tableNumber);
-                                    // WARNING if we set a proper SQL pagination, this will broke it;
-                                    if (count == 0) continue;
-                                }
+                                boolean hasResults = rs2.next();
+                                // TODO pagination broken
+                                // handled by breakPostPagination/applyPostPagination
+                                if (!hasResults) continue;
                             }
                         }
                         results.add(observationTemplateIdBase + procedureID + '-' + fieldIndex);
@@ -1544,7 +1544,7 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
                     final boolean idOnly = !MEASUREMENT_QNAME.equals(resultModel);
                     final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                    final FilterSQLRequest mesureRequest      = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, false, false);
+                    final FilterSQLRequest mesureRequest      = buildMesureRequests(pti, fields, measureFilter, oid, false, true, idOnly, NONE);
                     LOGGER.fine(mesureRequest.toString());
 
                     try (final SQLResult rs2 = mesureRequest.execute(c)) {

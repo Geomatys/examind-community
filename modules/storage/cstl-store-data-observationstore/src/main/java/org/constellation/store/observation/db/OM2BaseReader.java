@@ -51,6 +51,7 @@ import javax.xml.namespace.QName;
 import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
+import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
@@ -1142,7 +1143,7 @@ public class OM2BaseReader {
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, false, false);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, NONE);
         final FieldParser parser            = new FieldParser(ti.mainField.index, fields, ResultMode.CSV, false, false, true, true, null, 0);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
@@ -1228,6 +1229,13 @@ public class OM2BaseReader {
         }
         return results;
     }
+    
+    public static enum MesureRequestMode {
+        NONE,
+        COUNT,
+        EXIST,
+        DECIMATE
+    }
 
     /**
      * Build one or more SQL request on the measure(s) tables.
@@ -1242,12 +1250,11 @@ public class OM2BaseReader {
      * @param obsJoin If true, a join with the observation table will be applied.
      * @param addOrderBy If true, an order by main filed will be applied.
      * @param idOnly If true, only the measure identifier will be selected.
-     * @param count
-     * @param decimate Indicate if we are in a decimation context.
+     * @param mode Indicate the query context: count / decimation / existenz
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, boolean count, boolean decimate) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -1293,7 +1300,7 @@ public class OM2BaseReader {
                     }
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ");
-                if (count) {
+                if (mode == COUNT) {
                     measureRequest.append("COUNT(").append(select).append(")");
                 } else {
                     measureRequest.append(select);
@@ -1344,7 +1351,7 @@ public class OM2BaseReader {
                     }
                 }
                 measureRequest = new SingleFilterSQLRequest("SELECT ");
-                if (count) {
+                if (mode == COUNT) {
                     measureRequest.append("COUNT(").append(select).append(")");
                 } else {
                     measureRequest.append(select);
@@ -1404,7 +1411,16 @@ public class OM2BaseReader {
                 measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
             }
             
+            if (mode == EXIST) {
+                if (OMSQLDialect.DERBY.equals(dialect)) {
+                    measureRequest.append(" fetch first 1 rows only");
+                } else {
+                    measureRequest.append(" LIMIT 1");
+                }
+            }
             measureRequests.addRequest(tableNum, measureRequest);
+            
+           
         }
         return measureRequests;
     }
