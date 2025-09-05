@@ -977,26 +977,38 @@ public class OM2BaseReader {
         }
     }
 
-    public Procedure getProcess(String id, final Connection c) throws SQLException {
-        final Map<String, Object> properties = readProperties("procedures_properties", "id_procedure", id, c);
-        try(final PreparedStatement stmt = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?")) {//NOSONAR
+    public Procedure getProcess(String id, Selection select, final Connection c) throws SQLException {
+        StringBuilder query = new StringBuilder("SELECT \"id\",");
+        if (select.isSelected("name")) query.append("\"name\",");
+        if (select.isSelected("description")) query.append("\"description\",");
+        if (select.isSelected("properties")) query.append("\"om_type\",");
+        query.deleteCharAt(query.length() - 1);
+        query.append(" FROM \"" + schemaPrefix + "om\".\"procedures\" WHERE \"id\"=?");
+        try(final PreparedStatement stmt = c.prepareStatement(query.toString())) {//NOSONAR
             stmt.setString(1, id);
             try (final ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    String omType = rs.getString("om_type");
-                    if (omType != null) {
-                        properties.putIfAbsent("type", ObservationType.parse(omType).name());
+                    Map<String, Object> properties = null;
+                    if (select.isSelected("properties")) {
+                        properties = readProperties("procedures_properties", "id_procedure", id, c);
+                        String omType = rs.getString("om_type");
+                        if (omType != null) {
+                            properties.putIfAbsent("type", ObservationType.parse(omType));
+                        }
                     }
-                    return new Procedure(rs.getString("id"), rs.getString("name"), rs.getString("description"), properties);
+                    if (!select.isSelected("id")) id = null;
+                    String name = select.getIfSelected(rs, "name");
+                    String description = select.getIfSelected(rs, "description");
+                    return new Procedure(id, name, description, properties);
                 }
             }
         }
         return null;
     }
 
-    public Procedure getProcessSafe(String identifier, final Connection c) throws RuntimeException {
+    protected Procedure getProcessSafe(String identifier, Selection select, final Connection c) throws RuntimeException {
         try {
-            return getProcess(identifier, c);
+            return getProcess(identifier, select, c);
         } catch (SQLException ex) {
             throw new RuntimeException(ex);
         }

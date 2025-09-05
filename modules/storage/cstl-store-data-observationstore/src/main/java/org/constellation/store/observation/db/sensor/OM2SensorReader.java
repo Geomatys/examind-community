@@ -36,6 +36,7 @@ import static org.constellation.api.CommonConstants.SENSORML_100_FORMAT_V200;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V100;
 import static org.constellation.api.CommonConstants.SENSORML_101_FORMAT_V200;
 import org.constellation.store.observation.db.OM2BaseReader;
+import org.constellation.store.observation.db.Selection;
 import org.geotoolkit.observation.model.Procedure;
 import org.geotoolkit.sensor.SensorReader;
 import org.geotoolkit.sml.xml.AbstractClassification;
@@ -88,7 +89,7 @@ public class OM2SensorReader extends OM2BaseReader implements SensorReader {
         // TODO hard coded SML for now until procedure table will have a metadata column
         Procedure process;
         try (Connection c = source.getConnection()) {
-            process = getProcess(sensorID, c);
+            process = getProcess(sensorID, new Selection(), c);
             if (process == null) return null;
         } catch (SQLException ex) {
             throw new DataStoreException(ex);

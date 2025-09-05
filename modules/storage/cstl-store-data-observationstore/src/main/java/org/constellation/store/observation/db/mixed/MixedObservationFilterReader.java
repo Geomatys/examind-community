@@ -40,6 +40,7 @@ import org.constellation.store.observation.db.OM2FilterAppend;
 import org.constellation.store.observation.db.OM2ObservationFilter;
 import org.constellation.store.observation.db.OM2ObservationFilterReader;
 import org.constellation.store.observation.db.ResultProcessor;
+import org.constellation.store.observation.db.Selection;
 import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
@@ -317,7 +318,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
                 final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
-                final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
+                // TODO sub selection?
+                final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, new Selection(), c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*

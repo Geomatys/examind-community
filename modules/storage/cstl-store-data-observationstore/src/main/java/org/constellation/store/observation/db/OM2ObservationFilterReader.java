@@ -216,7 +216,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", getProcedureOMType(procedure, c));
 
-                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
+                // TODO sub selection?
+                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, new Selection(), c);});
                 /*
                  *  BUILD RESULT
                  */
@@ -350,7 +351,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 /*
                  *  BUILD RESULT
                  */
-                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
+                // TODO sub selection?
+                final Procedure proc = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, new Selection(), c);});
 
                 TemporalPrimitive tempTime = null;
                 if (includeTimeInTemplate) {
@@ -464,7 +466,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (observation == null) {
                     final SamplingFeature feature = getFeatureOfInterest(featureID,  c);
                     final Phenomenon phen         = getGlobalCompositePhenomenon(c, procedure);
-                    final Procedure proc          = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, c);});
+                    // TODO sub selection?
+                    final Procedure proc          = processMap.computeIfAbsent(procedure, f -> {return getProcessSafe(procedure, new Selection(), c);});
                     
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                        /**
@@ -549,7 +552,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 final SamplingFeature feature = getFeatureOfInterest(featureID, c);
                 final ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow());// we know that the procedure exist
                 final Map<Field, Phenomenon> fieldPhen = phenMap.computeIfAbsent(procedure,  p -> getPhenomenonFields(pti, c));
-                final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, c));
+                // TODO sub selection?
+                final Procedure proc = processMap.computeIfAbsent(procedure, p -> getProcessSafe(p, new Selection(), c));
                 final TemporalPrimitive time = buildTime(obsID, startTime, endTime);
 
                 /*
@@ -820,24 +824,30 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         try(final Connection c            = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
             while (rs.next()) {
-                final String id   = rs.getString("id");
-                final String name = rs.getString("name");
-                final String desc = rs.getString("description");
-                final String sf   = rs.getString("sampledfeature");
-                final int srid    = rs.getInt("crs");
-                final org.locationtech.jts.geom.Geometry geom = readGeom(rs, "shape");
-                if (geom != null) {
-                    final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
-                    JTS.setCRS(geom, crs);
-                    
-                    // exclude from spatial filter (will be removed when postgis filter will be set in request)
-                    if (envelopeFilter != null && !geometryMatchEnvelope(geom, envelopeFilter)) {
+                final String id   = selection.getIfSelected(rs, "id");
+                final String name = selection.getIfSelected(rs, "name");
+                final String desc = selection.getIfSelected(rs, "description");
+                final String sf   = selection.getIfSelected(rs, "sampledfeature");
+                org.locationtech.jts.geom.Geometry geom = null;
+                if (selection.isSelected("feature") || envelopeFilter != null) {
+                    geom = readGeom(rs, "shape");
+                    if (geom != null) {
+                        final int srid = rs.getInt("crs");
+                        final CoordinateReferenceSystem crs = OM2Utils.parsePostgisCRS(srid);
+                        JTS.setCRS(geom, crs);
+
+                        // exclude from spatial filter (will be removed when postgis filter will be set in request)
+                        if (envelopeFilter != null && !geometryMatchEnvelope(geom, envelopeFilter)) {
+                            continue;
+                        }
+                    } else if (envelopeFilter != null) {
                         continue;
                     }
-                } else if (envelopeFilter != null) {
-                    continue;
                 }
-                final Map<String, Object> properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
+                Map<String, Object> properties = null;
+                if (selection.isSelected("properties")) {
+                    properties = readProperties("sampling_features_properties", "id_sampling_feature", id, c);
+                }
                 results.add(new SamplingFeature(id, name, desc, properties, sf, geom));
             }
         } catch (SQLException | FactoryException | ParseException ex) {
@@ -979,7 +989,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                         throw new DataStoreException("the service has throw a Exception.", ex);
                     }
                 }
-                results.add(getProcess(procedure, c));
+                results.add(getProcess(procedure, selection, c));
             }
         } catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, "SQLException while executing the query: {0}", sqlRequest.toString());

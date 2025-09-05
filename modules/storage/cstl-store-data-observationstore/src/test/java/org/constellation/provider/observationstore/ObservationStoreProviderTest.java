@@ -105,6 +105,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     public void getFullFeatureOfInterestBBOXTest() throws Exception {
         super.getFullFeatureOfInterestBBOXTest();
     }
+    
+    @Test
+    @Override
+    public void getFeatureOfInterestSelectTest() throws Exception {
+        super.getFeatureOfInterestSelectTest();
+    }
 
     @Test
     @Override
@@ -218,6 +224,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     @Override
     public void getProcedureComplexFilterTest() throws Exception {
          super.getProcedureComplexFilterTest();
+    }
+    
+    @Test
+    @Override
+    public  void getProcedureSelectTest() throws Exception {
+        super.getProcedureSelectTest();
     }
 
     @Test

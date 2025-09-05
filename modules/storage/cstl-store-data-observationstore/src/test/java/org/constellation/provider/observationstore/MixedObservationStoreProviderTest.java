@@ -88,6 +88,12 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
         super.getFeatureOfInterestTest();
     }
     
+    @Test
+    @Override
+    public void getFeatureOfInterestSelectTest() throws Exception {
+        super.getFeatureOfInterestSelectTest();
+    }
+
     /**
      *  This test cannot work because of the disparity between geometry CRS.
      * TODO:
@@ -226,6 +232,12 @@ public class MixedObservationStoreProviderTest extends AbstractMixedObservationS
     @Override
     public void getProcedureComplexFilterTest() throws Exception {
          super.getProcedureComplexFilterTest();
+    }
+
+    @Test
+    @Override
+    public  void getProcedureSelectTest() throws Exception {
+        super.getProcedureSelectTest();
     }
 
     @Test

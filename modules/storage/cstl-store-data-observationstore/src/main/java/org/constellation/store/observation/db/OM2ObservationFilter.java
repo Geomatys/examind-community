@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import org.apache.sis.filter.visitor.FunctionNames;
+import org.apache.sis.storage.FeatureQuery;
 import org.apache.sis.temporal.TemporalObjects;
 import static org.constellation.api.CommonConstants.EVENT_TIME;
 import org.geotoolkit.observation.model.Field;
@@ -160,6 +161,8 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
     // a flag set by implementation.
     protected final boolean includeTimeInprofileMeasureRequest;
     
+    protected Selection selection = new Selection();
+    
     /**
      * Clone a new Observation Filter.
      *
@@ -187,6 +190,13 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
         this.objectType = query.getEntityType();
         this.limit                 = query.getLimit().isPresent() ? query.getLimit().getAsLong() : null;
         this.offset                = query.getOffset();
+        List<String> selected      = new ArrayList<>();
+        if (query.getProjection() != null) {
+            for (FeatureQuery.NamedExpression ne : query.getProjection()) {
+                selected.add(((ValueReference)ne.expression()).getXPath());
+            }
+        }
+        this.selection.addSelection(selected);
 
         switch (objectType) {
             case FEATURE_OF_INTEREST -> initFilterGetFeatureOfInterest();
@@ -278,12 +288,20 @@ public abstract class OM2ObservationFilter extends OM2BaseReader implements Obse
 
     private void initFilterGetFeatureOfInterest() {
         String geomColum = switch(dialect) {
-            case POSTGRES -> "st_asBinary(\"shape\") as \"shape\"";
-            case DUCKDB   -> "ST_AsText(\"shape\") as \"shape\"";
-            case DERBY    -> "\"shape\"";
+            case POSTGRES -> "st_asBinary(\"shape\") as \"shape\",";
+            case DUCKDB   -> "ST_AsText(\"shape\") as \"shape\",";
+            case DERBY    -> "\"shape\",";
         };
-        sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT sf.\"id\", sf.\"name\", sf.\"description\", sf.\"sampledfeature\", sf.\"crs\", ").append(geomColum).append(" FROM \"")
-                    .append(schemaPrefix).append("om\".\"sampling_features\" sf ");
+        
+        sqlRequest = new SingleFilterSQLRequest("SELECT DISTINCT ");
+        if (selection.isSelected("id")) sqlRequest.append("sf.\"id\",");
+        if (selection.isSelected("name")) sqlRequest.append("sf.\"name\",");
+        if (selection.isSelected("description")) sqlRequest.append("sf.\"description\",");
+        if (selection.isSelected("sampledfeature")) sqlRequest.append("sf.\"sampledfeature\",");
+        if (selection.isSelected("feature")) sqlRequest.append("sf.\"crs\",").append(geomColum);
+        
+        sqlRequest.deleteLastChar(1);
+        sqlRequest.append(" FROM \"").append(schemaPrefix).append("om\".\"sampling_features\" sf ");
         sqlRequest.appendAndOrWhere();
         obsJoin = false;
     }

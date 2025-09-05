@@ -212,7 +212,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     @Override
     public Procedure getProcess(String identifier) throws DataStoreException {
         try (final Connection c = source.getConnection()) {
-            return getProcess(identifier, c);
+            return getProcess(identifier, new Selection(), c);
         } catch (SQLException ex) {
             throw new DataStoreException("Error while retrieving phenomenon.", ex);
         }
@@ -452,8 +452,8 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
 
             Map<String, Object> properties = new HashMap<>();
             final ProcedureInfo pi = getPIDFromProcedure(procedure, c).orElseThrow(IllegalArgumentException::new);
-            properties.put("type", pi.type.name());
-            final Procedure proc = getProcess(procedure, c);
+            properties.put("type", pi.type.name().toLowerCase());
+            final Procedure proc = getProcess(procedure, new Selection(), c);
             final Phenomenon resultPhen;
             final Result result;
             final List<Element> resultQuality;
@@ -629,7 +629,7 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             List<Field> fields = readFields(procedure, c);
             Map<String, Object> properties = new HashMap<>();
             properties.put("type", getProcedureOMType(procedure, c));
-            final Procedure proc = (Procedure) getProcess(procedure, c);
+            final Procedure proc = (Procedure) getProcess(procedure, new Selection(), c);
             /*
              *  BUILD RESULT
              */

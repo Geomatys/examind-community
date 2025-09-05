@@ -837,6 +837,52 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         assertEquals(0, results.size());
     }
     
+    protected void getFeatureOfInterestSelectTest() throws Exception {
+        assertNotNull(omPr);
+
+        /*
+        * FULL SELECT
+        */
+        List<SamplingFeature> results = omPr.getFeatureOfInterest(null);
+        assertEquals(6, results.size());
+        
+        for (SamplingFeature sf : results) {
+            assertNotNull(sf.getId());
+            assertNotNull(sf.getName());
+            assertNotNull(sf.getDescription());
+            assertNotNull(sf.getGeometry());
+            assertNotNull(sf.getProperties());
+        }
+
+        SamplingFeatureQuery query = new SamplingFeatureQuery();
+        query.setProjection("id", "name", "description", "feature", "properties");
+        
+        results = omPr.getFeatureOfInterest(query);
+        assertEquals(6, results.size());
+        
+        for (SamplingFeature sf : results) {
+            assertNotNull(sf.getId());
+            assertNotNull(sf.getName());
+            assertNotNull(sf.getDescription());
+            assertNotNull(sf.getGeometry());
+            assertNotNull(sf.getProperties());
+        }
+        
+        query = new SamplingFeatureQuery();
+        query.setProjection("id");
+        results = omPr.getFeatureOfInterest(query);
+        assertEquals(6, results.size());
+        
+        for (SamplingFeature sf : results) {
+            assertNotNull(sf.getId());
+            assertNull(sf.getName());
+            assertNull(sf.getDescription());
+            assertNull(sf.getGeometry());
+            assertTrue(sf.getProperties().isEmpty());
+        }
+        
+    }
+    
     protected void existPhenomenonTest() throws Exception {
         assertNotNull(omPr);
 
@@ -2725,6 +2771,47 @@ public abstract class AbstractObservationStoreProviderTest extends SpringContext
         expectedIds.add("urn:ogc:object:sensor:GEOM:18");
         expectedIds.add("urn:ogc:object:sensor:GEOM:19");
         Assert.assertEquals(expectedIds, resultIds);
+    }
+    
+    protected void getProcedureSelectTest() throws Exception {
+        assertNotNull(omPr);
+
+        /*
+        * FULL SELECT
+        */
+        List<Procedure> results = omPr.getProcedures(null);
+        assertEquals(NB_SENSOR, results.size());
+        
+        for (Procedure proc : results) {
+            assertNotNull(proc.getId());
+            assertNotNull(proc.getName());
+        //    assertNotNull(proc.getDescription());
+            assertNotNull(proc.getProperties());
+        }
+        
+        ProcedureQuery query = new ProcedureQuery();
+        query.setProjection("id", "name", "description", "properties");
+        results = omPr.getProcedures(query);
+        assertEquals(NB_SENSOR, results.size());
+        
+        for (Procedure proc : results) {
+            assertNotNull(proc.getId());
+            assertNotNull(proc.getName());
+          //  assertNotNull(proc.getDescription());
+            assertNotNull(proc.getProperties());
+        }
+        
+        query = new ProcedureQuery();
+        query.setProjection("id");
+        results = omPr.getProcedures(query);
+        assertEquals(NB_SENSOR, results.size());
+        
+        for (Procedure proc : results) {
+            assertNotNull(proc.getId());
+            assertNull(proc.getName());
+            assertNull(proc.getDescription());
+            assertTrue(proc.getProperties().isEmpty());
+        }
     }
     
     protected void existOfferingTest() throws Exception {

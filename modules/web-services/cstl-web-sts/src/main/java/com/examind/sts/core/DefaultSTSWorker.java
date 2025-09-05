@@ -308,6 +308,10 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else if (!filters.isEmpty()){
             subquery.setSelection(ff.and(filters));
         }
+        
+        if (req.getSelect() != null && !req.getSelect().isEmpty()) {
+            subquery.setProjection(req.getSelect().toArray(new String[req.getSelect().size()]));
+        }
         return subquery;
     }
 
