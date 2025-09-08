@@ -618,6 +618,12 @@ public class ObservationStoreProviderTest extends AbstractObservationStoreProvid
     
     @Test
     @Override
+    public void getResultSelectOperationTest() throws Exception {
+        super.getResultSelectOperationTest();
+    }
+    
+    @Test
+    @Override
     public void getResultsobsPropPropertiesTest() throws Exception {
         super.getResultsobsPropPropertiesTest();
     }
