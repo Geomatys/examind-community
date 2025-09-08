@@ -41,7 +41,7 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int offset, Connection c) throws SQLException {
         // calculate step
         final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), fields, c, width, OMEntity.RESULT, procedure);
         long step;
@@ -83,9 +83,6 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
         } else {
             sqlRequest.append(" GROUP BY step ORDER BY step");
         }
-
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
     }
 }

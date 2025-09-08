@@ -55,6 +55,12 @@ public interface FilterSQLRequest {
     FilterSQLRequest appendNamedObjectValue(String name, Object value);
     
     FilterSQLRequest appendAndOrWhere() ;
+    
+    FilterSQLRequest setHasFilter();
+    
+    FilterSQLRequest addNewFilter();
+    
+    FilterSQLRequest cleanupWhere();
 
     String getRequest();
 
@@ -64,7 +70,7 @@ public interface FilterSQLRequest {
 
     FilterSQLRequest replaceAll(String text, String replacement);
 
-    FilterSQLRequest join(List<TableJoin> joins, boolean firstFilter);
+    FilterSQLRequest join(List<TableJoin> joins);
 
     FilterSQLRequest deleteLastChar(int nbChar);
 

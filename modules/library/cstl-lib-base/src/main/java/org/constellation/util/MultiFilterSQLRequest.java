@@ -130,6 +130,24 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
+    public FilterSQLRequest setHasFilter() {
+        requests.values().forEach(r -> r.setHasFilter());
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest addNewFilter() {
+        requests.values().forEach(r -> r.addNewFilter());
+        return this;
+    }
+
+    @Override
+    public FilterSQLRequest cleanupWhere() {
+        requests.values().forEach(r -> r.cleanupWhere());
+        return this;
+    }
+    
+    @Override
     public FilterSQLRequest appendNamedObjectValue(String name, Object value) {
         requests.values().forEach(r -> r.appendNamedObjectValue(name, value));
         return this;
@@ -163,8 +181,8 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public FilterSQLRequest join(List<TableJoin> joins, boolean firstFilter) {
-        requests.values().forEach(r -> r.join(joins, firstFilter));
+    public FilterSQLRequest join(List<TableJoin> joins) {
+        requests.values().forEach(r -> r.join(joins));
         return this;
     }
 

@@ -95,7 +95,6 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         this.decimationSize        = query.getDecimationSize();
         this.resultModel           = query.getResultModel();
 
-        this.firstFilter = false;
         try (final Connection c = source.getConnection()) {
             currentProcedure = getPIDFromProcedure(query.getProcedure(), c).orElseThrow(() -> new DataStoreException("Unexisting procedure:" + query.getProcedure()));
 
@@ -105,6 +104,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
              */
             obsJoin = false;
             sqlRequest = new SingleFilterSQLRequest();
+            
+            sqlRequest.setHasFilter(); // TODO why
             
         } catch (SQLException ex) {
             throw new DataStoreException("Error while initailizing getResultFilter", ex);
@@ -251,6 +252,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             }
         }
         measureRequest.append(where);
+        measureRequest.setHasFilter();
         
         measureRequests.addRequest(tableNum, measureRequest);
         
@@ -295,9 +297,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         }
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
 
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
@@ -535,7 +535,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
             fieldIdFilters.addAll(fields);
 
             sqlRequest.append(" ( ").append(sb).append(") ");
-            firstFilter = false;
+            sqlRequest.setHasFilter();
             return new OM2FilterAppend(true, false);
         } else {
             return super.setObservedProperty(phenomenon);

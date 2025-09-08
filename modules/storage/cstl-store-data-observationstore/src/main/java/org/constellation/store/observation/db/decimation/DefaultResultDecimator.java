@@ -57,7 +57,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
 
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
         times = OM2Utils.getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
@@ -77,10 +77,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         orderBy.append("\"").append(procedure.mainField.name).append("\"");
         sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         sqlRequest.append(orderBy.toString());
-
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
     }
 
 

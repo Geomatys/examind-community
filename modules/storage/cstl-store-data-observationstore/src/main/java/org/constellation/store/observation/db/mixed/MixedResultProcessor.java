@@ -66,7 +66,7 @@ public class MixedResultProcessor extends ResultProcessor {
     }
     
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
         String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
         StringBuilder select  = new StringBuilder(mainFieldSelect);
         StringBuilder orderBy = new StringBuilder(" ORDER BY ");
@@ -81,10 +81,7 @@ public class MixedResultProcessor extends ResultProcessor {
         
         sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         sqlRequest.append(orderBy.toString());
-
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
     }
     
     @Override

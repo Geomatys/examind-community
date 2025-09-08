@@ -157,7 +157,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (foiPropJoin) {
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY o.\"procedure\" ");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
@@ -228,23 +228,19 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (obsJoin) {
             String obsFrom = ",\"" + schemaPrefix + "om\".\"observations\" o  LEFT JOIN \"" + schemaPrefix + "om\".\"components\" c ON o.\"observed_property\" = c.\"phenomenon\"";
             sqlRequest.replaceAll("${obs-join-from}", obsFrom);
-            if (!firstFilter) {
-                sqlRequest.append(" AND ");
-            }
+            sqlRequest.addNewFilter();
             sqlRequest.append(" (CASE WHEN c.\"component\" IS NULL THEN o.\"observed_property\" ELSE \"component\" END) = pd.\"field_name\" ");
             sqlRequest.append(" AND pd.\"procedure\" = o.\"procedure\" ");
         } else {
             sqlRequest.replaceAll("${obs-join-from}", "");
             // we must add a field filter to remove the "time" field of the timeseries
-            if (!firstFilter) {
-                sqlRequest.append(" AND ");
-            }
+            sqlRequest.addNewFilter();
             // we must add a field filter to remove the "time" field of the timeseries
             sqlRequest.append(" NOT ( pd.\"field_type\" = 'Time' AND pd.\"order\" = 1 ) ");
             // we must remove the quality fields
             sqlRequest.append(" AND (pd.\"parent\" IS NULL) ");
         }
-        firstFilter = false;
+        sqlRequest.setHasFilter();
         if (phenPropJoin) {
             sqlRequest.replaceAll("${phen-prop-join}", "pd.\"field_name\"");
         }
@@ -254,7 +250,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (foiPropJoin) {
             sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY pd.\"procedure\", pd.\"order\" ");
 
         if (!hasMeasureFilter) {
@@ -379,9 +375,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             resultMode = ResultMode.CSV;
         }
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
         LOGGER.fine(sqlRequest.toString());
         try(final Connection c = source.getConnection();
             final SQLResult rs = sqlRequest.execute(c)) {
@@ -497,9 +491,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
         // add orderby to the query
         sqlRequest.append(" ORDER BY o.\"time_begin\"");
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
 
         final List<Observation> observations = new ArrayList<>();
         final Map<String, Procedure> processMap = new HashMap<>();
@@ -693,7 +685,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             
             ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix, c);
-            processor.computeRequest(measureRequest, fieldOffset, firstFilter, c);
+            processor.computeRequest(measureRequest, fieldOffset, c);
             LOGGER.fine(measureRequest.toString());
 
             /**
@@ -778,7 +770,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             //joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"observed_properties_properties\" opp", "opp.\"id_phenomenon\" = offop.\"phenomenon\""));
             sqlRequest.replaceAll("${phen-prop-join}",  "offop.\"phenomenon\"");
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         
         boolean applyPostPagination = true;
         if (envelopeFilter == null) {
@@ -867,7 +859,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             secondRequest.replaceFirst("op.\"id\"", "c.\"component\"");
             List<FilterSQLRequest.TableJoin> joins2 = new ArrayList<>(joins);
             joins2.add(new TableJoin("\"" + schemaPrefix +"om\".\"components\" c", "c.\"phenomenon\" = op.\"id\""));
-            secondRequest.join(joins2, firstFilter);
+            secondRequest.join(joins2);
 
             // -- TODO REALLY find a cleaner way to do this
             secondRequest.replaceAll("op.\"id\" =", "c.\"component\" =");
@@ -876,11 +868,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             secondRequest.replaceFirst("op.\"id\" NOT IN (SELECT DISTINCT(\"phenomenon\")", "op.\"id\" IN (SELECT DISTINCT(\"phenomenon\")");
 
-            sqlRequest.join(joins, firstFilter);
+            sqlRequest.join(joins);
 
             sqlRequest.append(" UNION ").append(secondRequest);
         } else {
-            sqlRequest.join(joins, firstFilter);
+            sqlRequest.join(joins);
         }
 
         if (procDescJoin && !obsJoin) {
@@ -925,7 +917,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             joins.add(new TableJoin("\"" + schemaPrefix +"om\".\"offering_foi\" offf", "offf.\"id_offering\" = off.\"identifier\""));
             sqlRequest.replaceAll("${foi-prop-join}", "offf.\"foi\"");
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Procedure> results = new ArrayList<>();
@@ -950,7 +942,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (procJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"procedures\" pr", "off.\"procedure\" = pr.\"id\""));
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());
         final List<Offering> results = new ArrayList<>();
@@ -972,7 +964,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         if (obsJoin) {
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", "o.\"procedure\" = pr.\"id\""));
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         
         sqlRequest.append(" ORDER BY pr.\"id\"");
 
@@ -1038,7 +1030,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
 
@@ -1071,9 +1063,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @throws DataStoreException
      */
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocations() throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
         FilterSQLRequest stepRequest = sqlRequest.clone();
         sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
@@ -1109,9 +1099,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @throws DataStoreException
      */
     private Map<String, Map<Date, Geometry>> getDecimatedSensorLocationsV2(int decimSize) throws DataStoreException {
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
         FilterSQLRequest stepRequest = sqlRequest.clone();
         sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
@@ -1150,7 +1138,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
             joins.add(new TableJoin("\"" + schemaPrefix + "om\".\"observations\" o", obsStmt));
         }
-        sqlRequest.join(joins, firstFilter);
+        sqlRequest.join(joins);
         sqlRequest.append(" ORDER BY hl.\"procedure\", \"time\"");
         sqlRequest = appendPaginationToRequest(sqlRequest);
         LOGGER.fine(sqlRequest.toString());

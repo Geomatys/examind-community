@@ -52,6 +52,8 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     private StringBuilder sqlRequest;
     
     private final AtomicBoolean whereSet = new AtomicBoolean(false);
+    
+    private final AtomicBoolean hasFilter = new AtomicBoolean(false);
 
     private final List<Param> params = new ArrayList<>();
     
@@ -62,14 +64,14 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     private final Map<String, SingleFilterSQLRequest> conditionalRequests = new HashMap<>();
 
     public SingleFilterSQLRequest() {
-        this("", new ArrayList<>(), new HashMap<>());
+        this("", List.of(), Map.of(), false, false);
     }
 
     public SingleFilterSQLRequest(String s) {
-        this(s, new ArrayList<>(), new HashMap<>());
+        this(s, List.of(), Map.of(), false, false);
     }
 
-    private SingleFilterSQLRequest(String s, List<Param> params, Map<String, SingleFilterSQLRequest> cs) {
+    private SingleFilterSQLRequest(String s, List<Param> params, Map<String, SingleFilterSQLRequest> cs, boolean whereSet, boolean hasFilter) {
         this.sqlRequest = new StringBuilder(s);
         if (cs != null) {
             for (Entry<String, SingleFilterSQLRequest> entryCs : cs.entrySet()) {
@@ -79,6 +81,8 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         if (params != null) {
             this.params.addAll(new ArrayList<>(params));
         }
+        this.hasFilter.set(hasFilter);
+        this.whereSet.set(whereSet);
     }
 
     @Override
@@ -97,7 +101,30 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         }
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest setHasFilter() {
+        hasFilter.set(true);
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest addNewFilter() {
+        if (hasFilter.get()) {
+            append(" AND ");
+        }
+        hasFilter.set(true);
+        return this;
+    }
 
+    @Override
+    public FilterSQLRequest cleanupWhere() {
+        if (!hasFilter.get()) {
+            replaceFirst("WHERE", "");
+        }
+        return this;
+    }
+    
     @Override
     public FilterSQLRequest appendConditional(String condId, SingleFilterSQLRequest conditionalRequest) {
         this.sqlRequest.append(" $").append(condId).append(" ");
@@ -349,7 +376,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
     @Override
     public SingleFilterSQLRequest clone() {
-        return new SingleFilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequests);
+        return new SingleFilterSQLRequest(this.sqlRequest.toString(), this.params, this.conditionalRequests, this.whereSet.get(), this.hasFilter.get());
     }
 
     @Override
@@ -459,7 +486,7 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     }
 
     @Override
-    public FilterSQLRequest join(List<TableJoin> joins, boolean firstFilter) {
+    public FilterSQLRequest join(List<TableJoin> joins) {
         StringBuilder tables = new StringBuilder();
         StringBuilder stmts  = new StringBuilder();
 
@@ -478,11 +505,11 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
 
             String sql = tables.toString() + " WHERE " + stmts.toString();
 
-            if (!firstFilter) {
+            if (hasFilter.get()) {
                 sql = sql + " AND ";
             }
             this.replaceFirst("WHERE", sql);
-        } else if (firstFilter) {
+        } else if (!hasFilter.get()) {
             this.replaceFirst("WHERE", "");
         }
         return this;

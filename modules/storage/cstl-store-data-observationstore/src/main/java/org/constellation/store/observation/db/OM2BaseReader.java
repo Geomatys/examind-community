@@ -1310,10 +1310,12 @@ public class OM2BaseReader {
                 if (oid != null) {
                     measureRequest.appendAndOrWhere();
                     measureRequest.append(" m.\"id_observation\" = ").appendValue(oid);
+                    measureRequest.setHasFilter();
                 }
                 if (obsJoin) {
                     measureRequest.appendAndOrWhere();
                     measureRequest.append(" o.\"id\" = m.\"id_observation\" ");
+                    measureRequest.setHasFilter();
                 }
                 
                 /*
@@ -1360,6 +1362,7 @@ public class OM2BaseReader {
                 }
                 measureRequest.appendAndOrWhere();
                 measureRequest.append(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+                measureRequest.setHasFilter();
                 if (oid != null) {
                     measureRequest.appendAndOrWhere();
                     measureRequest.append(" m2.\"id_observation\" = ").appendValue(oid);
@@ -1397,6 +1400,7 @@ public class OM2BaseReader {
                 } else {
                     measureRequest.append(clone, includeConditional);
                 }
+                measureRequest.setHasFilter();
             }
             
             /*
@@ -1444,6 +1448,7 @@ public class OM2BaseReader {
             s.append(")");
             measureRequest.appendAndOrWhere();
             measureRequest.append(s.toString());
+            measureRequest.setHasFilter();
         }
     }
 }

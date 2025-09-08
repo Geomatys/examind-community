@@ -58,7 +58,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     }
     
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
 
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
         times = getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
@@ -77,10 +77,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         orderBy.append("\"").append(procedure.mainField.name).append("\"");
         sqlRequest.replaceFirst(mainFieldSelect, select.toString());
         sqlRequest.append(orderBy.toString());
-
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
     }
     
     public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {

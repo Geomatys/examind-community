@@ -37,7 +37,7 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, boolean firstFilter, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, int offset, Connection c) throws SQLException {
         // extract value field
         Field f = fields.get(mainFieldIndex + 1);
 
@@ -57,10 +57,7 @@ public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
             select.append(", o.\"time_begin\" ");
         }
         sqlRequest.replaceSelect(select.toString());
-        
-        if (firstFilter) {
-            sqlRequest.replaceFirst("WHERE", "");
-        }
+        sqlRequest.cleanupWhere();
         sqlRequest.append("))"); // close unnest
     }
 
