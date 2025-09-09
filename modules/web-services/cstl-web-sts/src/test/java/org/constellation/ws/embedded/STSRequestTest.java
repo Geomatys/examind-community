@@ -1003,6 +1003,12 @@ public class STSRequestTest extends AbstractGrizzlyServer {
         result = getStringResponse(getFoiUrl) + "\n";
         expResult = getStringFromFile("com/examind/sts/embedded/ds-sel.json");
         compareJSON(expResult, result);
+        
+        getFoiUrl = new URL(getDefaultURL() + "/Datastreams(urn:ogc:object:observation:template:GEOM:8-3)?$select=unitOfMeasurement/name");
+
+        result = getStringResponse(getFoiUrl) + "\n";
+        expResult = getStringFromFile("com/examind/sts/embedded/ds-sel-2.json");
+        compareJSON(expResult, result);
     }
 
     @Test

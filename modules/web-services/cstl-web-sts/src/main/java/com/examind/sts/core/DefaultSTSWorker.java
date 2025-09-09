@@ -956,7 +956,9 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
         } else {
             LOGGER.warning("measurement result type not handled yet");
         }
-        if (exp.isSelected("UnitOfMeasurement")) datastream.setUnitOfMeasurement(uom);
+        if (exp.isSelected("UnitOfMeasurement", true)) {
+            datastream.setUnitOfMeasurement(buildUnitOfMeasure(uom, exp));
+        }
 
         final String id = (exp.isSelected("id")) ? obs.getName().getCode() : null;
         final String description = (exp.isSelected("description")) ? "" : null; // mandatory
@@ -965,6 +967,13 @@ public class DefaultSTSWorker extends SensorWorker implements STSWorker {
                                .description(description)
                                .iotSelfLink(selfLink);
         return datastream;
+    }
+    
+    private UnitOfMeasure buildUnitOfMeasure(UnitOfMeasure uom, RequestOptions opt) {
+        if (!opt.isSelected("UnitOfMeasurement/name",       true)) uom.setName(null);
+        if (!opt.isSelected("UnitOfMeasurement/symbol",     true)) uom.setSymbol(null);
+        if (!opt.isSelected("UnitOfMeasurement/definition", true)) uom.setDefinition(null);
+        return uom;
     }
 
     @Override

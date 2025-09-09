@@ -102,11 +102,17 @@ public class RequestOptions {
 
 
     public boolean isSelected(String attribute) {
+        return isSelected(attribute, false);
+    }
+    
+    public boolean isSelected(String attribute, boolean complexAttribute) {
         if (select.isEmpty()) {
             return true;
         }
         for (String sel : select) {
-            if (sel.equalsIgnoreCase(attribute)) {
+            if (sel.equalsIgnoreCase(attribute) || 
+               (complexAttribute && (sel.startsWith(attribute.toLowerCase()) || attribute.toLowerCase().startsWith(sel)))) {  // integrate main complex attribute
+                
                 return true;
             }
         }
