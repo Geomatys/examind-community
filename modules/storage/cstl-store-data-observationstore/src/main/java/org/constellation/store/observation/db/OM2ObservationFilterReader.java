@@ -47,6 +47,7 @@ import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.api.CommonConstants.RESPONSE_MODE;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.result.ResultBuilder;
@@ -101,20 +102,23 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
     @Override
     public List<Observation> getObservations() throws DataStoreException {
-        if (ResponseMode.RESULT_TEMPLATE.equals(responseMode)) {
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
+        if (responseMode == null) throw new DataStoreException("Null response mode.");
+        switch (responseMode) {
+            case RESULT_TEMPLATE -> {
+                if (MEASUREMENT_QNAME.equals(resultModel)) {
                 return getMesurementTemplates();
-            } else {
-                return getObservationTemplates();
+                } else {
+                    return getObservationTemplates();
+                }
             }
-        } else if (ResponseMode.INLINE.equals(responseMode)) {
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
-                return getMesurements();
-            } else {
-                return getComplexObservations();
-            }
-        } else {
-            throw new DataStoreException("Unsupported response mode:" + responseMode);
+            case INLINE -> {
+                if (MEASUREMENT_QNAME.equals(resultModel)) {
+                    return getMesurements();
+                } else {
+                    return getComplexObservations();
+                }
+            }    
+            default -> throw new DataStoreException("Unsupported response mode:" + responseMode);
         }
     }
 
@@ -313,8 +317,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
 
                 if (hasMeasureFilter) {
                     ProcedureInfo pti = ptiMap.computeIfAbsent(procedure, p -> getPIDFromProcedureSafe(procedure, c).orElseThrow()); // we know that the procedure exist
-                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, List.of(field), pti);
-                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, List.of(field), measureFilter, null, false, false, true, EXIST);
+                    final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(List.of(field), pti);
+                    final FilterSQLRequest measureRequests    = buildMesureRequests(pti, List.of(field), measureFilter, null, false, EXIST);
                     try (final SQLResult rs2 = measureRequests.execute(c)) {
                         boolean hasResults = rs2.next();
                         // TODO pagination broken
@@ -442,7 +446,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                     }
                     // add the result id in the dataBlock if requested
                     if (includeIDInDataBlock) {
-                        fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                        fields.add(0, new DbField(0, FieldDataType.TEXT, IDENTIFIER_FIELD_NAME, "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
                     }
                     fieldMap.put(procedure, fields);
                 }
@@ -450,13 +454,12 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                /*
                 * Compute procedure measure request
                 */
-                final int fieldOffset = getFieldsOffset(!timeseries, includeObservationTime, includeIDInDataBlock);
-                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, pti);
-                final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
+                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
+                final FilterSQLRequest measureRequests    = buildMesureRequests(pti, fields, measureFilter, oid, false, MEASURE);
                 LOGGER.fine(measureRequests.toString());
                 
                 final String obsName = rs.getString("identifier");
-                final FieldParser parser = buildFieldParser(pti.mainField.index, fields, includeObservationTime, obsName, fieldOffset);
+                final FieldParser parser = buildFieldParser(fields, includeObservationTime, obsName);
 
                 // profile oservation are instant
                 if (!timeseries) {
@@ -511,12 +514,11 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
      * @param fields Procedure fields.
      * @param profileWithTime Flag indicating if the time must be included for profile observations.
      * @param obsName Observation base identifier.
-     * @param fieldOffset index of the first measure field in the field list.
      * 
      * @return A field parser. 
      */
-    protected FieldParser buildFieldParser(int mainFieldIndex, List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new FieldParser(mainFieldIndex,fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
+    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName) {
+        return new FieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName);
     }
 
     protected List<Observation> getMesurements() throws DataStoreException {
@@ -564,8 +566,8 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type.name());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
-                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
+                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
+                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, MEASURE);
 
                 /**
                  * coherence verification
@@ -643,26 +645,6 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         return applyPostPagination(observations);
     }
     
-    /**
-     * Return the index of the first measure fields.
-     *
-     * @param nonTimeseries Set to {@code true} if the current observation is a Profile.
-     * @param observationIncludedTime Set to {@code true} if the time has to be included in the result for a non timeseries.
-     * @param includeIDInDataBlock Set to {@code true} if the measure identifier has to be included in the result.
-     *
-     * @return The index where starts the measure fields.
-     */
-    protected int getFieldsOffset(boolean nonTimeseries, boolean observationIncludedTime, boolean includeIDInDataBlock) {
-        int fieldOffset = nonTimeseries ? 0 : 1; // for non Timeseries, the first phenomenon field is the main field
-        if (observationIncludedTime) {
-            fieldOffset++;
-        }
-        if (includeIDInDataBlock) {
-            fieldOffset++;
-        }
-        return fieldOffset;
-    }
-
     @Override
     public Result getResults() throws DataStoreException {
         if (ResponseMode.OUT_OF_BAND.equals(responseMode)) {
@@ -679,16 +661,10 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             /**
              *  1) build field list.
              */
-            final List<Field> fields;
-            fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters, true);
-            //}
+            final List<Field> fields = readFields(currentProcedure.id, false, c, fieldIndexFilters, fieldIdFilters, true);
+            
             if (fields.isEmpty()) {
                 throw new DataStoreException("The sensor: " + currentProcedure + " has no fields.");
-            }
-            // in a measurement context, the last field is the one we look want to use for identifier construction.
-            String idSuffix = "";
-            if (MEASUREMENT_QNAME.equals(resultModel)) {
-                idSuffix = "-" + fields.get(fields.size() - 1).index;
             }
 
             // add the time for profile in the dataBlock if requested
@@ -697,17 +673,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
             }
             // add the result id in the dataBlock if requested
             if (includeIDInDataBlock) {
-                fields.add(0, new DbField(0, FieldDataType.TEXT, "id", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
+                fields.add(0, new DbField(0, FieldDataType.TEXT, "identifier", "measure identifier", "measure identifier", null, FieldType.METADATA, -1));
             }
 
             /**
              *  2) complete SQL request.
              */
-            int fieldOffset = getFieldsOffset(nonTimeseries, ntsWithTime, includeIDInDataBlock);
-            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fieldOffset, fields, currentProcedure);
-
-            MesureRequestMode mode = decimate ? DECIMATE : NONE;
-            measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, false, false, mode);
+            FilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, currentProcedure);
+            
             // TODO not fan of this
             // this will append the time filter but ....
             if (!sqlRequest.isEmpty()) {
@@ -722,11 +695,14 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 if (foiPropJoin) {
                     sqlRequest.replaceAll("${foi-prop-join}", "o.\"foi\"");
                 }
-                measureRequest.append(" AND ").append(sqlRequest);
+                measureFilter.append(" AND ").append(sqlRequest);
             }
+
+            MesureRequestMode mode = decimate ? DECIMATE : RESULTS;
+            measureRequest = buildMesureRequests(currentProcedure, fields, measureFilter, null, obsJoin, mode);
             
-            ResultProcessor processor = chooseResultProcessor(decimate, fields, fieldOffset, idSuffix, c);
-            processor.computeRequest(measureRequest, fieldOffset, c);
+            ResultProcessor processor = chooseResultProcessor(decimate, fields, c);
+            processor.computeRequest(measureRequest, c);
             LOGGER.fine(measureRequest.toString());
 
             /**
@@ -734,7 +710,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
              */
             ResultBuilder values = processor.initResultBuilder(responseFormat, countRequest);
             try (final SQLResult rs = measureRequest.execute(c)) {
-                processor.processResults(rs, fieldOffset);
+                processor.processResults(rs);
             }
             switch (values.getMode()) {
                 case DATA_ARRAY:  return new ComplexResult(fields, values.getDataArray(), null);
@@ -748,7 +724,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
         }
     }
     
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) throws SQLException {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, Connection c) throws SQLException {
         ResultProcessor processor;
         if (decimate) {
             // remove quality / parameters fields
@@ -756,7 +732,7 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 OM2Utils.clearExtraFields(f);
             }
             if (timescaleDB) {
-                boolean singleField = (fields.size() - fieldOffset) == 1;
+                boolean singleField = fields.stream().filter(f -> OM2Utils.isMeasureField(f, currentProcedure)).count() == 1L;
                 boolean smoothAvailable = timescaleDBVersion.compareTo(MIN_TIMESCALE_VERSION_SMOOTH) >= 0;
 
                 /**
@@ -764,24 +740,29 @@ public class OM2ObservationFilterReader extends OM2ObservationFilter {
                 * asap_smooth (lttb todo)
                 */
                if (singleField && smoothAvailable && !decimationAlgorithm.equals("time_bucket")) {
-                   processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+                   processor = new ASMTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
 
                /**
                 * otherwise we use time bucket method.
                 * This methods seems not to be so fast with very large group of data.
                 */
                } else {
-                   processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+                   processor = new BucketTimeScaleResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
                }
             } else {
                 /**
                  * default java bucket decimation.
                  * no algorithm change possible yet
                  */
-                processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+                processor = new DefaultResultDecimator(fields, includeIDInDataBlock, decimationSize,  currentProcedure);
             }
         } else {
-            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
+            // in a measurement context, the last field is the one we look want to use for identifier construction.
+            String idSuffix = "";
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                idSuffix = "-" + fields.get(fields.size() - 1).index;
+            }
+            processor = new ResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, currentProcedure, idSuffix);
         }
         if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
             processor.setPhenomenons(getPhenomenonFields(fields, c));

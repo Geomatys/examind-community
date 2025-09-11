@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.OMUtils;
 import static org.geotoolkit.observation.OMUtils.buildTime;
@@ -67,7 +68,6 @@ public class FieldParser {
     protected final boolean includeParameter;
     protected final ResultBuilder values;
     protected String obsName;
-    protected final int fieldOffset;
     
     protected boolean onlyMain;
 
@@ -83,9 +83,8 @@ public class FieldParser {
      * @param includeQuality A flag indicating if we must include quality field for measure.
      * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
-     * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(int mainFieldIndex, List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
+    public FieldParser(List<Field> fields, ResultBuilder values, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
         this.onlyMain = true;
         for (Field f : fields) {
             if (f.type == FieldType.MEASURE)  {
@@ -100,7 +99,6 @@ public class FieldParser {
         this.includeParameter = includeParameter;
         this.obsName = obsName;
         this.values = values;
-        this.fieldOffset = fieldOffset;
     }
     
     /**
@@ -113,10 +111,9 @@ public class FieldParser {
      * @param includeQuality A flag indicating if we must include quality field for measure.
      * @param includeParameter A flag indicating if we must include parameter field for measure.
      * @param obsName Main observation identifier (used to build measure identifier).
-     * @param fieldOffset The index of the first measure field, in the field list.
      */
-    public FieldParser(int mainFieldIndex, List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
-        this(mainFieldIndex, fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName, fieldOffset);
+    public FieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
+        this(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName);
     }
 
     public void setName(String name) {
@@ -139,23 +136,23 @@ public class FieldParser {
         for (int i = 0; i < fields.size(); i++) {
 
             DbField field = (DbField) fields.get(i);
-            parseField(field, rs, i, fieldOffset, null, null);
+            parseField(field, rs, null, null);
 
             if (includeQuality && field.qualityFields != null) {
                 for (Field qField : field.qualityFields) {
-                    parseField((DbField) qField, rs, -1, -1, field, "quality");
+                    parseField((DbField) qField, rs, field, "quality");
                 }
             }
             if (includeParameter && field.parameterFields != null) {
                 for (Field pField : field.parameterFields) {
-                    parseField((DbField) pField, rs, -1, -1, field, "parameter");
+                    parseField((DbField) pField, rs, field, "parameter");
                 }
             }
         }
         nbParsed = nbParsed + values.endBlock();
     }
 
-    private void parseField(DbField field, SQLResult rs, int fieldIndex, int offset, Field parent, String subFileType) throws SQLException {
+    private void parseField(DbField field, SQLResult rs, Field parent, String subFileType) throws SQLException {
         boolean isMeasureField;
         String fieldName;
         if (parent != null) {
@@ -169,12 +166,12 @@ public class FieldParser {
         switch (field.dataType) {
             case TIME:
                 // profile with time field whth value set externally
-                if (profileWithTime && fieldIndex < offset) {
+                if (profileWithTime && field.type.equals(FieldType.METADATA)) {
                     values.appendTime(firstTime, isMeasureField, field);
                 } else {
                     Date t;
                     // main timeseries field or joined profile time field 
-                    if (field.type == FieldType.MAIN || fieldIndex < offset) {
+                    if (field.type == FieldType.MAIN || field.type.equals(FieldType.METADATA)) {
                         t = dateFromTS(rs.getTimestamp(fieldName)); // main field is present in every table request
                         if (first) {
                             firstTime = t;
@@ -216,8 +213,8 @@ public class FieldParser {
             default:
                 String svalue;
                 // id field is present in all th resultSets
-                if (includeID && fieldName.equals("id")) {
-                    svalue =  obsName + '-' + rs.getString(fieldName);
+                if (includeID && fieldName.equals(IDENTIFIER_FIELD_NAME)) {
+                    svalue =  obsName + '-' + rs.getString("id");
                 } else {
                     svalue = rs.getString(fieldName, rsIndex);
                 }

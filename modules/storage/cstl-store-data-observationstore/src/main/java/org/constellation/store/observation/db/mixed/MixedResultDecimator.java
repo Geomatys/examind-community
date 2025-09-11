@@ -52,32 +52,16 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     // used for case like "only-main"
     private final Set<String> includedFields; 
     
-    public MixedResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
+    public MixedResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
+        super(fields, includeId, width, procedure);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
     }
     
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
-
+    public void computeRequest(FilterSQLRequest sqlRequest, Connection c) throws SQLException {
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
+        fieldRequest.removeOrderBy();
         times = getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
-
-        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
-        StringBuilder select  = new StringBuilder(mainFieldSelect);
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (nonTimeseries) {
-            if (includeTimeInProfile) {
-                select.append(", m.\"time\" ");
-            }
-            orderBy.append(" m.\"time\", ");
-        }
-        
-        // always order by main field
-        orderBy.append("\"").append(procedure.mainField.name).append("\"");
-        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
-        sqlRequest.append(orderBy.toString());
-        sqlRequest.cleanupWhere();
     }
     
     public static Map<Object, long[]> getMainFieldStep(FilterSQLRequest request, List<Field> measureFields, final Connection c, final int width, OMEntity objectType, ProcedureInfo proc) throws SQLException {
@@ -147,7 +131,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
     }
     
     @Override
-    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -180,7 +164,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
             if (!currentObs.equals(prevObs)) {
                 if (prevObs != null) {
                     // append the last values
-                    appendValue(prevTime, cpt, mapValues, first, true, fieldOffset);
+                    appendValue(prevTime, cpt, mapValues, first, true);
                 }
 
                 first.set(true);
@@ -202,7 +186,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
             } else {
                 
                 if (mainValue > (start + step)) {
-                    appendValue(time, cpt, mapValues, first, false, fieldOffset);
+                    appendValue(time, cpt, mapValues, first, false);
 
                     // move to the next closest step
                     if (step > 0) {
@@ -222,11 +206,7 @@ public class MixedResultDecimator extends DefaultResultDecimator {
         }
 
         // append the last values
-        appendValue(time, cpt, mapValues, first, true, fieldOffset);
+        appendValue(time, cpt, mapValues, first, true);
     }
-    
-    
-   
-    
     
 }

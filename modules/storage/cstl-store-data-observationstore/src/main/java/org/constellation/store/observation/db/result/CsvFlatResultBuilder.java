@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.geotoolkit.observation.result.ResultBuilder;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
@@ -210,7 +211,7 @@ public class CsvFlatResultBuilder extends ResultBuilder {
     @Override
     public void appendString(String value, boolean measureField, Field f) {
          // we don't want to add the id
-        if (!f.name.equals("id") && value != null) {
+        if (!f.name.equals(IDENTIFIER_FIELD_NAME) && value != null) {
             if (f.getParent() != null) {
                 csvFlatLine currentLine = getCurrentLine(f.getParent().name);
                 currentLine.appendSubField(f, value);

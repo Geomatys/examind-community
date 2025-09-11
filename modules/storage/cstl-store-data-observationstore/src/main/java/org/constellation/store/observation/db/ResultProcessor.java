@@ -55,11 +55,9 @@ public class ResultProcessor {
     protected final List<Field> fields;
     protected final boolean nonTimeseries;
     protected final boolean includeId;
-    protected final boolean includeTimeInProfile;
     protected final boolean includeQuality;
     protected final boolean includeParameter;
     protected final ProcedureInfo procedure;
-    protected final int mainFieldIndex;
     protected final String idSuffix;
     
     /**
@@ -68,15 +66,13 @@ public class ResultProcessor {
     protected Map<Field, Phenomenon> phenomenons;
     protected Map<String, Object> procedureProperties;
 
-    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
+    public ResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure, String idSuffix) {
         this.fields = fields;
         this.nonTimeseries = procedure.type != ObservationType.TIMESERIES;
         this.includeId = includeId;
         this.includeQuality = includeQuality;
         this.includeParameter = includeParameter;
-        this.includeTimeInProfile = includeTimeInProfile;
         this.procedure = procedure;
-        this.mainFieldIndex = fields.indexOf(procedure.mainField);
         this.idSuffix = idSuffix == null ? "" : idSuffix;
     }
 
@@ -100,33 +96,15 @@ public class ResultProcessor {
         return values;
     }
 
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
-        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
-        StringBuilder select  = new StringBuilder(mainFieldSelect);
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (nonTimeseries) {
-            select.append(", o.\"id\" as oid ");
-            if (includeTimeInProfile) {
-                select.append(", o.\"time_begin\" ");
-            }
-            orderBy.append(" o.\"time_begin\", ");
-        }
-        if (includeId) {
-            select.append(", o.\"identifier\" ");
-        }
-        // always order by main field
-        orderBy.append("\"").append(procedure.mainField.name).append("\"");
-        
-        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
-        sqlRequest.append(orderBy.toString());
-        sqlRequest.cleanupWhere();
+    public void computeRequest(FilterSQLRequest sqlRequest, Connection c) throws SQLException {
+        // nothing in this implementation
     }
     
-    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
-        FieldParser parser = new FieldParser(mainFieldIndex, fields, values, false, includeId, includeQuality, includeParameter, null, fieldOffset);
+        FieldParser parser = new FieldParser(fields, values, false, includeId, includeQuality, includeParameter, null);
         while (rs.nextOnField(procedure.mainField.name)) {
             if (includeId) {
                 String name = rs.getString(IDENTIFIER_FIELD_NAME);

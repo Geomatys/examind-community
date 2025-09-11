@@ -128,7 +128,24 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
         requests.values().forEach(r -> r.appendAndOrWhere());
         return this;
     }
+    
+    @Override
+    public FilterSQLRequest appendFilter(String sql) {
+        requests.values().forEach(r -> r.appendFilter(sql));
+        return this;
+    }
+    @Override
+    public FilterSQLRequest appendFilter(String sql, long value) {
+        requests.values().forEach(r -> r.appendFilter(sql, value));
+        return this;
+    }
 
+    @Override
+    public FilterSQLRequest appendToSelect(String sql) {
+        requests.values().forEach(r -> r.appendToSelect(sql));
+        return this;
+    }
+    
     @Override
     public FilterSQLRequest setHasFilter() {
         requests.values().forEach(r -> r.setHasFilter());
@@ -150,6 +167,12 @@ public class MultiFilterSQLRequest implements FilterSQLRequest {
     @Override
     public FilterSQLRequest cleanupWhere() {
         requests.values().forEach(r -> r.cleanupWhere());
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest removeOrderBy() {
+        requests.values().forEach(r -> r.removeOrderBy());
         return this;
     }
     

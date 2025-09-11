@@ -29,6 +29,7 @@ import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 
 /**
  *
@@ -36,12 +37,12 @@ import org.geotoolkit.observation.model.FieldDataType;
  */
 public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
 
-    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
+    public TimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
+        super(fields, includeId, width, procedure);
     }
 
     @Override
-    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -54,7 +55,7 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                 int rsIndex = field.tableNumber;
 
                 // main field
-                if (i == mainFieldIndex) {
+                if (field.type.equals(FieldType.MAIN)) {
                     fieldName = "step";
 
                     // special case for nonTimeseries + datastream on another phenomenon that the main field.
@@ -63,14 +64,14 @@ public abstract class TimeScaleResultDecimator extends AbstractResultDecimator {
                         continue;
                     }
                 // id field
-                } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
+                } else if (field.dataType == FieldDataType.TEXT && field.type.equals(FieldType.METADATA)) {
                     values.appendString(procedure.id + "-dec-" + cpt, false, field);
                     cpt++;
                     continue;
                 }
                 switch (field.dataType) {
                     case TIME -> {
-                        boolean measureField = i >= fieldOffset;
+                        boolean measureField = !(nonTimeseries && field.type.equals(FieldType.METADATA));
                         Date t;
                         // time for nonTimeseries
                         if (!measureField) {

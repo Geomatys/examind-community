@@ -21,6 +21,7 @@ package org.constellation.store.observation.db.decimation;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.TimeScaleResultDecimator;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
@@ -32,30 +33,25 @@ import org.geotoolkit.observation.model.Field;
  */
 public class ASMTimeScaleResultDecimator extends TimeScaleResultDecimator {
 
-    public ASMTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters,  boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
+    public ASMTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width,  ProcedureInfo procedure) {
+        super(fields, includeId, width, procedure);
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, Connection c) throws SQLException {
-        // extract value field
-        Field f = fields.get(mainFieldIndex + 1);
+    public void computeRequest(FilterSQLRequest sqlRequest, Connection c) throws SQLException {
+        // extract value field.this implementation require a single field, for a timeserie procedure
+        Field f = fields.stream().filter(mf -> OM2Utils.isMeasureField(mf, procedure)).findFirst().orElse(null);
+        
+        if (f == null) throw new SQLException("One and only one measure field should be requested");
 
+        sqlRequest.removeOrderBy();
         StringBuilder select  = new StringBuilder();
         select.append("time as \"step\", value as \"").append(f.name);
         select.append("\" FROM unnest ((SELECT asap_smooth(");
         select.append("\"").append(procedure.mainField.name).append("\",");
-        select.append("\"").append(fields.get(offset).name).append("\",");
+        select.append("\"").append(f.name).append("\",");
         select.append(width).append(")");
 
-        // will not work
-        if (nonTimeseries) {
-            select.append(", o.\"id\" as \"oid\" ");
-        }
-        // will not work
-        if (nonTimeseries && includeTimeInProfile) {
-            select.append(", o.\"time_begin\" ");
-        }
         sqlRequest.replaceSelect(select.toString());
         sqlRequest.cleanupWhere();
         sqlRequest.append("))"); // close unnest

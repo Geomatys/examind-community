@@ -161,7 +161,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
         public final Timestamp extendStartTime;
         public final Timestamp extendEndTime;
 
-        public ObservationRef(int id, String name, String phenomenonId, String foiId, Timestamp startTime, Timestamp endTime, Timestamp extendStartTime, Timestamp extendEndTime) {
+        public ObservationRef(long id, String name, String phenomenonId, String foiId, Timestamp startTime, Timestamp endTime, Timestamp extendStartTime, Timestamp extendEndTime) {
             this.id = id;
             this.name = name;
             this.phenomenonId = phenomenonId;
@@ -206,7 +206,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                             extEnd = newEnd;
                         }
                     }
-                    obs.add(new ObservationRef(rs.getInt("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"),
+                    obs.add(new ObservationRef(rs.getLong("id"), rs.getString("identifier"), rs.getString("observed_property"), rs.getString("foi"),
                             obsBegin, obsEnd, extBegin, extEnd));
 
                 }
@@ -268,7 +268,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
              * insert a new observation
              */
             if (conflictedObservations.isEmpty()) {
-                int oid;
+                long oid;
                 if (observation.getName() == null) {
                     oid = generatedID;
                     observationName = observationIdBase + oid;
@@ -286,7 +286,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 }
 
                 insertObs.setString(1, observationName);
-                insertObs.setInt(2, oid);
+                insertObs.setLong(2, oid);
 
                 if (samplingTime instanceof Period p) {
                     final Timestamp beginDate = getInstantTimestamp(p.getBeginning());
@@ -337,9 +337,9 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
                 final ProcedureInfo pi = getPIDFromProcedure(procedureID, c).get(); //we know that the procedure exist
                 Timestamp begin, end;
                 ObservationRef replacingObs = conflictedObservations.get(0);
-                long modOid                = replacingObs.id;
-                observationName            = replacingObs.name;
-                boolean replacePhen        = false;
+                Long modOid                 = replacingObs.id;
+                observationName             = replacingObs.name;
+                boolean replacePhen         = false;
 
                 // write the new phenomenon even if its not actually used in the observation
                 // for a composite, we need to write at least the component
@@ -916,7 +916,7 @@ public class OM2ObservationWriter extends OM2BaseReader implements ObservationWr
      * @throws SQLException
      * @throws DataStoreException
      */
-    private void writeResult(final long oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
+    private void writeResult(final Long oid, final ProcedureInfo pi, final Result result, final Connection c, boolean update) throws SQLException, DataStoreException {
         if (result instanceof MeasureResult measRes) {
 
             buildMeasureTable(pi, Arrays.asList(MEASURE_SINGLE_FIELD),  c);

@@ -39,6 +39,7 @@ import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.OMEntity;
 
 /**
@@ -51,38 +52,26 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     protected Map<Object, long[]> times = null;
 
-    public DefaultResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters,  boolean includeTimeInProfile, ProcedureInfo procedure) {
+    public DefaultResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
         // as this algorithm may produce two point by cell, we cut the size in 2
-        super(fields, includeId, width / 2, fieldFilters, includeTimeInProfile, procedure);
+        super(fields, includeId, width / 2, procedure);
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
-
+    public void computeRequest(FilterSQLRequest sqlRequest, Connection c) throws SQLException {
         final FilterSQLRequest fieldRequest = sqlRequest.clone();
+        fieldRequest.removeOrderBy();
         times = OM2Utils.getMainFieldStep(fieldRequest, fields, c, width, OMEntity.RESULT, procedure);
 
-        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
-        StringBuilder select  = new StringBuilder(mainFieldSelect);
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
         if (nonTimeseries) {
-            select.append(", o.\"id\" as oid ");
-            if (includeTimeInProfile) {
-                select.append(", o.\"time_begin\" ");
-            }
-            orderBy.append(" o.\"time_begin\", ");
+            sqlRequest.appendToSelect(", o.\"id\" as oid ");
         }
-        
-        // always order by main field
-        orderBy.append("\"").append(procedure.mainField.name).append("\"");
-        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
-        sqlRequest.append(orderBy.toString());
         sqlRequest.cleanupWhere();
     }
 
 
     @Override
-    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -106,7 +95,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             if (!currentObs.equals(prevObs)) {
                 if (prevObs != null) {
                     // append the last values
-                    appendValue(t, cpt, mapValues, first, true, fieldOffset);
+                    appendValue(t, cpt, mapValues, first, true);
                 }
 
                 first.set(true);
@@ -118,7 +107,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
             final long currentMainValue = extractMainValue(procedure.mainField, rs);
             if (currentMainValue > (start + step)) {
-                appendValue(t, cpt, mapValues, first, false, fieldOffset);
+                appendValue(t, cpt, mapValues, first, false);
 
                 // move to the next closest step
                 if (step > 0) {
@@ -134,14 +123,14 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
                 int rsIndex = field.tableNumber;
 
                 // already extracted
-                if (i == mainFieldIndex) {
+                if (field.type.equals(FieldType.MAIN)) {
 
                 // time for nonTimeseries field (present in all resultSets)
-                } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
+                } else if (field.dataType == FieldDataType.TIME && field.type.equals(FieldType.METADATA)) {
                     t = dateFromTS(rs.getTimestamp(field.name));
 
                 // identifier field
-                } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
+                } else if (field.dataType == FieldDataType.TEXT && field.type.equals(FieldType.METADATA)) {
                     // nothing to extract
 
                 } else {
@@ -154,7 +143,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
         }
 
         // append the last values
-        appendValue(t, cpt, mapValues, first, true, fieldOffset);
+        appendValue(t, cpt, mapValues, first, true);
     }
 
     protected class StepValues {
@@ -199,7 +188,7 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
         private boolean minMaxEquals() {
             return fields.stream()
-                         .skip(mainFieldIndex + 1)
+                         .filter(field -> field.type == FieldType.MEASURE)
                          .map(field -> mapValues.get(field.name))
                          .noneMatch(minMax -> minMax[0] != minMax[1]);
         }
@@ -223,22 +212,22 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
 
     }
 
-    protected void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last, int fieldOffset) throws DataStoreException {
+    protected void appendValue(Date t, AtomicInteger cpt, StepValues sv, AtomicBoolean first, boolean last) throws DataStoreException {
         if (sv == null) {
             return;
         }
 
         // if there is only one value in the step, we use the original main value.
         if (sv.mainValues.size() == 1) {
-            appendValue(t, cpt.getAndIncrement(), sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
+            appendValue(t, cpt.getAndIncrement(), sv.mainValues.iterator().next(), sv.mapValues, Double.MAX_VALUE, 0);
 
         // if min and max are equals we only write one value in the middle of the step.
         } else if (sv.minMaxEquals() && !(first.get() || last)) {
-            appendValue(t, cpt.getAndIncrement(), sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
+            appendValue(t, cpt.getAndIncrement(), sv.start + (sv.step / 2), sv.mapValues, Double.MAX_VALUE, 0);
 
         // special case where we have only one value in the series, main value has not been recorded
         } else if (first.get() && last) {
-            appendValue(t, cpt.getAndIncrement(), sv.start, sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
+            appendValue(t, cpt.getAndIncrement(), sv.start, sv.mapValues, Double.MAX_VALUE, 0);
 
         // else we write the minimum value at the 1/3 of the step, and the max, at the 2/3 of the step.
         } else {
@@ -249,37 +238,37 @@ public class DefaultResultDecimator extends AbstractResultDecimator {
             long maxVal = (last) ? sv.start + sv.step : sv.start + 2*(sv.step / 3L);
 
             //min
-            appendValue(t, cpt.getAndIncrement(), minVal, sv.mapValues, Double.MAX_VALUE, 0, fieldOffset);
+            appendValue(t, cpt.getAndIncrement(), minVal, sv.mapValues, Double.MAX_VALUE, 0);
             //max
-            appendValue(t, cpt.getAndIncrement(), maxVal, sv.mapValues, -Double.MAX_VALUE, 1, fieldOffset);
+            appendValue(t, cpt.getAndIncrement(), maxVal, sv.mapValues, -Double.MAX_VALUE, 1);
         }
         first.set(false);
     }
 
-    protected void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index, int fieldOffset) throws DataStoreException {
+    protected void appendValue(Date t, int cpt, long mainValue, Map<String, double[]> fieldValues, double undefinedValue, int index) throws DataStoreException {
         values.newBlock();
         for (int i = 0; i < fields.size(); i++) {
             Field field = fields.get(i);
 
             // main field
-            if (i == mainFieldIndex) {
-                if (FieldDataType.TIME.equals(field.dataType)) {
-                    values.appendTime(new Date(mainValue), false, field);
-                } else if (FieldDataType.QUANTITY.equals(field.dataType)) {
-                    // special case for nonTimeseries + datastream on another phenomenon that the main field.
-                    // we do not include the main field in the result
-                    if (!skipProfileMain) {
-                        values.appendLong(mainValue, onlyProfileMain, field);
+            if (field.type.equals(FieldType.MAIN)) {
+                switch( field.dataType) {
+                    case TIME -> values.appendTime(new Date(mainValue), false, field);
+                    case QUANTITY -> {
+                        // special case for nonTimeseries + datastream on another phenomenon that the main field.
+                        // we do not include the main field in the result
+                        if (!skipProfileMain) {
+                            values.appendLong(mainValue, onlyProfileMain, field);
+                        }
                     }
-                } else {
-                    throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
+                    default -> throw new DataStoreException("main field other than Time or Quantity are not yet allowed");
                 }
 
             // time for nonTimeseries field
-            } else if (i < fieldOffset && field.dataType == FieldDataType.TIME) {
+            } else if (field.dataType.equals(FieldDataType.TIME) && field.type.equals(FieldType.METADATA)) {
                 values.appendTime(t, false, field);
             // id field
-            } else if (i < fieldOffset && field.dataType == FieldDataType.TEXT) {
+            } else if (field.dataType.equals(FieldDataType.TEXT) && field.type.equals(FieldType.METADATA) ) {
                 values.appendString(procedure.id + "-dec-" + cpt, false, field);
             } else {
                 final double value = fieldValues.get(field.name)[index];

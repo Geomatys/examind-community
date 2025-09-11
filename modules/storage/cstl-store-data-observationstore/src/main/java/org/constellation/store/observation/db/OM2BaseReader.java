@@ -51,6 +51,7 @@ import org.apache.sis.storage.DataStoreException;
 import org.apache.sis.util.Version;
 import static org.constellation.api.CommonConstants.MEASUREMENT_QNAME;
 import static org.constellation.store.observation.db.OM2BaseReader.MesureRequestMode.*;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.SQL_DIALECT;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStore.TIMESCALEDB_VERSION;
 import static org.constellation.store.observation.db.SOSDatabaseObservationStoreFactory.*;
@@ -1102,7 +1103,7 @@ public class OM2BaseReader {
         return -1;
     }
 
-    protected Result getResult(final ProcedureInfo ti, long oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    protected Result getResult(final ProcedureInfo ti, Long oid , final QName resultModel, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (resultModel.equals(MEASUREMENT_QNAME)) {
             return buildMeasureResult(ti, oid, measureId, selectedField, c);
         } else {
@@ -1118,8 +1119,8 @@ public class OM2BaseReader {
         if (measureId != null) {
             measureFilter = new SingleFilterSQLRequest(" AND m.\"id\" = ").appendValue(measureId);
         }
-        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, true, false, NONE);
-        final FieldParser parser            = new FieldParser(ti.mainField.index, fields, ResultMode.CSV, false, false, true, true, null, 0);
+        final MultiFilterSQLRequest queries = buildMesureRequests(ti, fields, measureFilter,  oid, false, MEASURE);
+        final FieldParser parser            = new FieldParser(fields, ResultMode.CSV, false, false, true, true, null);
         try (SQLResult rs = queries.execute(c)) {
             while (rs.next()) {
                 parser.parseLine(rs);
@@ -1128,7 +1129,7 @@ public class OM2BaseReader {
         }
     }
 
-    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final long oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
+    private MeasureResult buildMeasureResult(final ProcedureInfo ti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws DataStoreException, SQLException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
@@ -1207,6 +1208,9 @@ public class OM2BaseReader {
     
     public static enum MesureRequestMode {
         NONE,
+        RESULTS,
+        MEASURE,
+        ID,
         COUNT,
         EXIST,
         DECIMATE
@@ -1223,13 +1227,11 @@ public class OM2BaseReader {
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
-     * @param addOrderBy If true, an order by main filed will be applied.
-     * @param idOnly If true, only the measure identifier will be selected.
      * @param mode Indicate the query context: count / decimation / existenz
      * 
      * @return A Multi filter request on measure tables.
      */
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, MesureRequestMode mode) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -1246,112 +1248,68 @@ public class OM2BaseReader {
             // this can be null
             List<DbField> tableFields = queryTableFields.get(tableNum);
             
-            String baseTableName = "mesure" + pti.pid;
-            final SingleFilterSQLRequest measureRequest;
+            final String baseTableName = "mesure" + pti.pid;
+            final String tableAlias    = tableNum == 1 ? "m" : "m2";
             
-            // first main table
-            if (tableNum == 1) {
-                String select;
-                if (idOnly) {
-                    select = "m.\"id\"";
-                } else {
-                    // add always id and main field
-                    select = "m.\"id\", m.\"" + mainFieldName + "\"";
-                    if (tableFields != null) {
-                        for (DbField df : tableFields) {
-                            if (!df.name.equals(mainFieldName)) {
-                                select = select + ", m.\"" + df.name + "\"";
-
-                                // add also quality fields (TODO disable for decimation ?)
-                                for (Field qf : df.qualityFields) {
-                                    select = select + ", m.\"" + df.name + "_quality_" + qf.name + "\"";
-                                }
-                                for (Field pf : df.parameterFields) {
-                                    select = select + ", m.\"" + df.name + "_parameter_" + pf.name + "\"";
-                                }
-                            }
-                        }
-                    }
-                }
-                measureRequest = new SingleFilterSQLRequest("SELECT ");
-                if (mode == COUNT) {
-                    measureRequest.append("COUNT(").append(select).append(")");
-                } else {
-                    measureRequest.append(select);
-                }
-                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
-                if (obsJoin) {
-                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
-                }
-                if (oid != null) {
-                    measureRequest.addNewFilter();
-                    measureRequest.append(" m.\"id_observation\" = ").appendValue(oid);
-                }
-                if (obsJoin) {
-                    measureRequest.addNewFilter(" o.\"id\" = m.\"id_observation\" ");
-                }
-                
-                /*
-                 * append filter on null values
-                 *  
-                 * Deactivated on multi- table for now.
-                 * TODO maybe add the main field on each extra table to solve this problem.
-                 */
-                if (!multiTable && tableFields != null) {
-                    appendNotNullFilter(tableFields, mainFieldName, measureRequest);
-                }
-                        
-            // other tables
+            final StringBuilder select;
+            if (mode == ID || mode == EXIST) {
+                select = new StringBuilder("m.\"id\"");
             } else {
-                String tableName = baseTableName + "_" + tableNum;
-                String select;
-                if (idOnly) {
-                    select = "m2.\"id\"";
-                } else {
-                    // add always id and main field
-                    select = "m.\"id\", m.\"" + pti.mainField.name + "\"";
-                    for (DbField df : queryTableFields.get(tableNum)) {
-                        select = select + ", m2.\"" + df.name + "\"";
-
-                        // add also quality fields (TODO disable for decimation ?)
-                        for (Field qf : df.qualityFields) {
-                            select = select + ", m2.\"" + df.name + "_quality_" + qf.name + "\"";
-                        }
-                        for (Field pf : df.parameterFields) {
-                            select = select + ", m2.\"" + df.name + "_parameter_" + pf.name + "\"";
+                // add always id and main field
+                select = new StringBuilder("m.\"id\", m.\"" + mainFieldName + "\"");
+                if (tableFields != null) {
+                    for (DbField df : tableFields) {
+                        if (!df.name.equals(mainFieldName)) {
+                            select.append(", " + tableAlias + ".\"" + df.name + "\"");
+                            for (Field qf : df.qualityFields)   select.append(", " + tableAlias + ".\"" + df.name + "_quality_" + qf.name + "\"");
+                            for (Field pf : df.parameterFields) select.append(", " + tableAlias + ".\"" + df.name + "_parameter_" + pf.name + "\"");
                         }
                     }
-                }
-                measureRequest = new SingleFilterSQLRequest("SELECT ");
-                if (mode == COUNT) {
-                    measureRequest.append("COUNT(").append(select).append(")");
-                } else {
-                    measureRequest.append(select);
-                }
-                measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + tableName + "\" m2");
-                measureRequest.append(", \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
-                if (obsJoin) {
-                    measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
-                }
-                measureRequest.addNewFilter(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
-                if (oid != null) {
-                    measureRequest.appendAndOrWhere();
-                    measureRequest.append(" m2.\"id_observation\" = ").appendValue(oid);
-                }
-                if (obsJoin) {
-                    measureRequest.addNewFilter(" o.\"id\" = m2.\"id_observation\" ");
-                }
-                
-               /*
-                 * append filter on null values
-                 *  
-                 * Deactivated on multi- table for now.
-                 * TODO maybe add the main field on each extra table to solve this problem.
-                 */
-                if (!multiTable && tableFields != null) {
-                    appendNotNullFilter(tableFields, mainFieldName, measureRequest);
                 }
             }
+            // metadata fields treatment for RESULTS / DECIMATE mode
+            if (mode == RESULTS || mode == DECIMATE) {
+                for (Field field : queryFields) {
+                    if (field.type == FieldType.METADATA && 
+                        !(mode == DECIMATE && field.name.equals(IDENTIFIER_FIELD_NAME))) {    // we exclude identifier field for decimation TODO find a cleaner way
+                        select.append(", \"" + field.name + "\"");
+                    }
+                }
+            }
+            
+            final SingleFilterSQLRequest measureRequest = new SingleFilterSQLRequest("SELECT ");
+            if (mode == COUNT) {
+                measureRequest.append("COUNT(").append(select.toString()).append(")");
+            } else {
+                measureRequest.append(select.toString());
+            }
+            measureRequest.append(" FROM \"" + schemaPrefix + "mesures\".\"" + baseTableName + "\" m");
+            if (obsJoin) {
+                measureRequest.append(",\"" + schemaPrefix + "om\".\"observations\" o ");
+            }
+            
+            if (tableNum != 1) {
+                String tableName = baseTableName + "_" + tableNum;
+                measureRequest.append(", \"" + schemaPrefix + "mesures\".\"" + tableName + "\" " + tableAlias);
+                measureRequest.appendFilter(" (m.\"id\" = m2.\"id\" AND  m.\"id_observation\" = m2.\"id_observation\") ");
+            }
+            
+            if (oid != null) {
+                measureRequest.appendFilter(" m.\"id_observation\" = ", oid);
+            }
+            if (obsJoin) {
+                measureRequest.appendFilter(" o.\"id\" = m.\"id_observation\" ");
+            }
+            
+            /*
+              * append filter on null values
+              *  
+              * Deactivated on multi- table for now.
+              * TODO maybe add the main field on each extra table to solve this problem.
+              */
+             if (!multiTable && tableFields != null) {
+                 appendNotNullFilter(tableFields, mainFieldName, measureRequest);
+             }
             
             /*
             * Append measure filter on each measure request
@@ -1374,8 +1332,12 @@ public class OM2BaseReader {
             /*
             * Append order by on main field
             */
-            if (addOrderBy) {
-                measureRequest.append(" ORDER BY ").append("m.\"" + pti.mainField.name + "\"");
+            if (mode == MEASURE || mode == RESULTS || mode == DECIMATE) {
+                measureRequest.append(" ORDER BY ");
+                if ((mode == RESULTS || mode == DECIMATE) && nonTimeseries) {
+                    measureRequest.append(" o.\"time_begin\", ");
+                }
+                measureRequest.append("m.\"" + mainFieldName + "\"");
             }
             
             if (mode == EXIST) {
@@ -1386,7 +1348,6 @@ public class OM2BaseReader {
                 }
             }
             measureRequests.addRequest(tableNum, measureRequest);
-            
            
         }
         return measureRequests;

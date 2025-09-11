@@ -18,7 +18,6 @@
  */
 package org.constellation.store.observation.db.mixed;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,13 +26,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import org.apache.sis.storage.DataStoreException;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.ResultProcessor;
 import org.constellation.store.observation.db.model.ProcedureInfo;
-import org.constellation.util.FilterSQLRequest;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.dateFromTS;
 import org.geotoolkit.observation.model.Field;
 import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 
 /**
  *
@@ -43,21 +43,19 @@ public class MixedResultProcessor extends ResultProcessor {
     
     // used for nonTimeseries case like "only-main" or "no-main"
     private final Map<String, Field> includedFields; 
-    private boolean onlyMain;
-    private boolean mainIncluded;
+    private final boolean onlyMain;
+    private final boolean mainIncluded;
     
-    public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, boolean includeTimeInProfile, ProcedureInfo procedure, String idSuffix) {
-        super(fields, includeId, includeQuality, includeParameter, includeTimeInProfile, procedure, idSuffix);
+    public MixedResultProcessor(List<Field> fields, boolean includeId, boolean includeQuality, boolean includeParameter, ProcedureInfo procedure, String idSuffix) {
+        super(fields, includeId, includeQuality, includeParameter, procedure, idSuffix);
         includedFields = new HashMap<>();
         fields.forEach(f -> includedFields.put(f.name, f));
         if (nonTimeseries) {
-            mainIncluded = mainFieldIndex != -1;
-            onlyMain = true;
-            for (Field field : fields) {
-                if (field.index > mainFieldIndex + 1) {
-                    onlyMain = false;
-                    break;
-                }
+            mainIncluded = fields.stream().anyMatch(f -> f.type.equals(FieldType.MAIN));
+            if (mainIncluded) {
+                onlyMain = fields.stream().noneMatch(f -> f.type.equals(FieldType.MEASURE));
+            } else {
+                onlyMain = false;
             }
         } else {
             onlyMain = false;
@@ -66,26 +64,7 @@ public class MixedResultProcessor extends ResultProcessor {
     }
     
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int fieldOffset, Connection c) throws SQLException {
-        String mainFieldSelect = "m.\"" + procedure.mainField.name + "\"";
-        StringBuilder select  = new StringBuilder(mainFieldSelect);
-        StringBuilder orderBy = new StringBuilder(" ORDER BY ");
-        if (nonTimeseries) {
-            if (includeTimeInProfile) {
-                select.append(", m.\"time\" ");
-            }
-            orderBy.append(" m.\"time\", ");
-        }
-        // always order by main field
-        orderBy.append("\"").append(procedure.mainField.name).append("\"");
-        
-        sqlRequest.replaceFirst(mainFieldSelect, select.toString());
-        sqlRequest.append(orderBy.toString());
-        sqlRequest.cleanupWhere();
-    }
-    
-    @Override
-    public void processResults(SQLResult rs, int fieldOffset) throws SQLException, DataStoreException {
+    public void processResults(SQLResult rs) throws SQLException, DataStoreException {
         if (values == null) {
             throw new DataStoreException("initResultBuilder(...) must be called before processing the results");
         }
@@ -126,7 +105,7 @@ public class MixedResultProcessor extends ResultProcessor {
                 // handle non measure fields
                 for (int i = 0; i < fields.size(); i++) {
                     Field f = fields.get(i);
-                    if (includeId && f.name.equals("id")) {
+                    if (includeId && f.name.equals(IDENTIFIER_FIELD_NAME)) {
                         values.appendString("urn:ogc:object:observation:GEOM:" + procedure.pid + idSuffix + '-' + rs.getLong("id"), false, f);
                     } else if (f.dataType.equals(FieldDataType.TIME) && nonTimeseries) {
                         values.appendTime(dateFromTS(rs.getTimestamp("time")), false, f);
@@ -169,9 +148,9 @@ public class MixedResultProcessor extends ResultProcessor {
         // exclude non measure fields
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
-            if (!((includeId && f.name.equals("id"))                        || // id field
+            if (!((includeId && f.name.equals(IDENTIFIER_FIELD_NAME))       || // id field
                   (f.dataType.equals(FieldDataType.TIME) && nonTimeseries)  || // time field fr nonTimeseries
-                  (mainFieldIndex == i))) {                                    // main field
+                  (f.type.equals(FieldType.MAIN)))) {                          // main field
                 results.put(f, null);
             } 
         }

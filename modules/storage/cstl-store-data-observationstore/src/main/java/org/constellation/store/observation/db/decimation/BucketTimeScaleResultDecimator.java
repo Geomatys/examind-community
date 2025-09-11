@@ -25,9 +25,12 @@ import java.util.Map;
 import org.constellation.store.observation.db.OM2Utils;
 import org.constellation.store.observation.db.TimeScaleResultDecimator;
 import static org.constellation.store.observation.db.OM2Utils.getTimeScalePeriod;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.FilterSQLRequest;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldDataType;
+import org.geotoolkit.observation.model.FieldType;
 import org.geotoolkit.observation.model.OMEntity;
 
 /**
@@ -36,13 +39,14 @@ import org.geotoolkit.observation.model.OMEntity;
  */
 public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
 
-    public BucketTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters,  boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, width, fieldFilters, includeTimeInProfile, procedure);
+    public BucketTimeScaleResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
+        super(fields, includeId, width, procedure);
     }
 
     @Override
-    public void computeRequest(FilterSQLRequest sqlRequest, int offset, Connection c) throws SQLException {
+    public void computeRequest(FilterSQLRequest sqlRequest, Connection c) throws SQLException {
         // calculate step
+        sqlRequest.removeOrderBy();
         final Map<Object, long[]> times = OM2Utils.getMainFieldStep(sqlRequest.clone(), fields, c, width, OMEntity.RESULT, procedure);
         long step;
         if (nonTimeseries) {
@@ -66,14 +70,15 @@ public class BucketTimeScaleResultDecimator extends TimeScaleResultDecimator {
             select.append("time_bucket('").append(getTimeScalePeriod(step)).append("', \"");
         }
         select.append(procedure.mainField.name).append("\") AS \"step\"");
-        for (int i = offset; i < fields.size(); i++) {
-             select.append(", avg(\"").append(fields.get(i).name).append("\") AS \"").append(fields.get(i).name).append("\"");
+        List<DbField> measureFields = OM2Utils.getMeasureFields(fields, procedure);
+        for (DbField f : measureFields) {
+             select.append(", avg(\"").append(f.name).append("\") AS \"").append(f.name).append("\"");
         }
         
         if (nonTimeseries) {
             select.append(", o.\"id\" as \"oid\" ");
-            if (includeTimeInProfile) {
-                select.append(", o.\"time_begin\" ");
+            if (fields.stream().anyMatch(f -> f.dataType.equals(FieldDataType.TIME) && f.type.equals(FieldType.METADATA))) {
+                select.append(", o.\"time_begin\" "); // todo use the field name directly?
             }
         }
         sqlRequest.replaceSelect(select.toString());

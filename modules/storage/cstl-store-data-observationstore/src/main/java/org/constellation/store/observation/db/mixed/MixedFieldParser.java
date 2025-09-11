@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import static org.constellation.api.CommonConstants.COMPLEX_OBSERVATION;
 import org.constellation.store.observation.db.FieldParser;
+import static org.constellation.store.observation.db.OM2Utils.IDENTIFIER_FIELD_NAME;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.constellation.util.SQLResult;
 import static org.geotoolkit.observation.OMUtils.buildTime;
@@ -60,8 +61,8 @@ public class MixedFieldParser extends FieldParser {
     
     private final Set<String> includedFields; 
     
-    public MixedFieldParser(int mainFieldIndex, List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName, int fieldOffset) {
-        super(mainFieldIndex, fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName, fieldOffset);
+    public MixedFieldParser(List<Field> fields, ResultMode resultMode, boolean profileWithTime, boolean includeID, boolean includeQuality, boolean includeParameter, String obsName) {
+        super(fields, new ResultBuilder(resultMode, DEFAULT_ENCODING, false), profileWithTime, includeID, includeQuality, includeParameter, obsName);
         includedFields = fields.stream().map(f -> f.name).collect(Collectors.toSet());
     }
     
@@ -111,7 +112,7 @@ public class MixedFieldParser extends FieldParser {
                 // handle non measure fields
                 for (int i = 0; i < fields.size(); i++) {
                     Field f = fields.get(i);
-                    if (includeID && f.name.equals("id")) {
+                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
                         values.appendString(obsName + '-' + measureId, false, f);
                     } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);
@@ -181,7 +182,7 @@ public class MixedFieldParser extends FieldParser {
         // exclude non measure fields
         for (int i = 0; i < fields.size(); i++) {
             Field f = fields.get(i);
-            if (!((includeID && f.name.equals("id"))          || // id field
+            if (!((includeID && f.name.equals(IDENTIFIER_FIELD_NAME))          || // id field
                   (f.dataType.equals(FieldDataType.TIME) && profile)  || // time field fr profile
                   (mainFieldIndex == i))) {                        // main field
                 results.put(fields.get(i).name, null);
@@ -253,7 +254,7 @@ public class MixedFieldParser extends FieldParser {
                 // handle non measure fields
                 for (int i = 0; i < fields.size(); i++) {
                     Field f = fields.get(i);
-                    if (includeID && f.name.equals("id")) {
+                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
                         values.appendString(obsName + '-' + measureId, false, f);
                     } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);
@@ -371,7 +372,7 @@ public class MixedFieldParser extends FieldParser {
                 // handle non measure fields
                 for (int i = 0; i < fields.size(); i++) {
                     Field f = fields.get(i);
-                    if (includeID && f.name.equals("id")) {
+                    if (includeID && f.name.equals(IDENTIFIER_FIELD_NAME)) {
                         values.appendString(obsName + '-' + measureId, false, f);
                     } else if (f.dataType.equals(FieldDataType.TIME) && profileWithTime) {
                         values.appendTime(dateFromTS(time), false, f);

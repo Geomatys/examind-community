@@ -54,7 +54,11 @@ public interface FilterSQLRequest {
     
     FilterSQLRequest appendNamedObjectValue(String name, Object value);
     
-    FilterSQLRequest appendAndOrWhere() ;
+    FilterSQLRequest appendAndOrWhere();
+    
+    FilterSQLRequest appendFilter(String sql);
+    
+    FilterSQLRequest appendFilter(String sql, long value);
     
     FilterSQLRequest setHasFilter();
     
@@ -63,6 +67,8 @@ public interface FilterSQLRequest {
     FilterSQLRequest addNewFilter(String sql);
     
     FilterSQLRequest cleanupWhere();
+    
+    FilterSQLRequest removeOrderBy();
 
     String getRequest();
 
@@ -71,6 +77,8 @@ public interface FilterSQLRequest {
     FilterSQLRequest replaceSelect(String replacement);
 
     FilterSQLRequest replaceAll(String text, String replacement);
+    
+    FilterSQLRequest appendToSelect(String sql);
 
     FilterSQLRequest join(List<TableJoin> joins);
 

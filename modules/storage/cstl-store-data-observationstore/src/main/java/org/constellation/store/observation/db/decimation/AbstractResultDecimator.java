@@ -19,9 +19,12 @@
 package org.constellation.store.observation.db.decimation;
 
 import java.util.List;
+import static org.constellation.store.observation.db.OM2Utils.getMeasureFields;
 import org.constellation.store.observation.db.ResultProcessor;
+import org.constellation.store.observation.db.model.DbField;
 import org.constellation.store.observation.db.model.ProcedureInfo;
 import org.geotoolkit.observation.model.Field;
+import org.geotoolkit.observation.model.FieldType;
 
 /**
  *
@@ -31,17 +34,15 @@ public abstract class AbstractResultDecimator extends ResultProcessor {
 
     protected final int width;
 
-    protected final List<Integer> fieldFilters;
-
     protected final boolean skipProfileMain;
     protected final boolean onlyProfileMain;
 
-    public AbstractResultDecimator(List<Field> fields, boolean includeId, int width, List<Integer> fieldFilters, boolean includeTimeInProfile, ProcedureInfo procedure) {
-        super(fields, includeId, false, false, includeTimeInProfile, procedure, "");
+    public AbstractResultDecimator(List<Field> fields, boolean includeId, int width, ProcedureInfo procedure) {
+        super(fields, includeId, false, false, procedure, "");
         this.width = width;
-        this.fieldFilters = fieldFilters;
-        onlyProfileMain = fieldFilters.contains(procedure.mainField.index) && fieldFilters.size() == 1;
-        skipProfileMain = nonTimeseries && !fieldFilters.isEmpty() && !fieldFilters.contains(procedure.mainField.index);
+        List<DbField> measureFields = getMeasureFields(fields, procedure);
+        onlyProfileMain = measureFields.size() == 1 && measureFields.get(0).type.equals(FieldType.MAIN); // main field will only be included in measure fields for profile
+        skipProfileMain = nonTimeseries && !measureFields.stream().anyMatch(mf -> mf.type.equals(FieldType.MAIN));
     }
 
 }

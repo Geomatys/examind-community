@@ -415,14 +415,14 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
             final String observedProperty;
             final String procedure;
             final String foi;
-            final int oid;
+            final Long oid;
             TemporalPrimitive time = null;
 
             try(final PreparedStatement stmt  = c.prepareStatement("SELECT * FROM \"" + schemaPrefix + "om\".\"observations\" WHERE \"identifier\"=?")) {//NOSONAR
                 stmt.setString(1, identifier);
                 try(final ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        oid = rs.getInt(2);
+                        oid = rs.getLong(2);
                         final Date b = rs.getTimestamp(3);
                         final Date e = rs.getTimestamp(4);
                         if (b != null && e == null) {
@@ -474,11 +474,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
                     parameters    = new HashMap<>();
                     result        = new MeasureResult(selectedField, null);
                 } else {
-                    resultQuality = buildResultQuality(pi, identifier, measureId, selectedField, c);
-                    parameters    = buildParameters(pi, identifier, measureId, selectedField, c);
+                    resultQuality = buildResultQuality(pi, oid, measureId, selectedField, c);
+                    parameters    = buildParameters(pi, oid, measureId, selectedField, c);
                     result = getResult(pi, oid, resultModel, measureId, selectedField, c);
                     if (pi.type == ObservationType.TIMESERIES) {
-                        time = getMeasureTimeForTimeSeries(pi, identifier, c, measureId, fieldIndex);
+                        time = getMeasureTimeForTimeSeries(pi, identifier, oid, c, measureId, fieldIndex);
                     }
                 }
                 omType = getOmTypeFromFieldType(selectedField.dataType);
@@ -525,15 +525,15 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
      * @return the time value (main field) for the specified measure.
      * @throws SQLException
      */
-    private TemporalPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, final Connection c, int measureId, int fieldId) throws SQLException {
-        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, null, true, false, false, NONE);
+    private TemporalPrimitive getMeasureTimeForTimeSeries(ProcedureInfo pti, String identifier, Long oid, final Connection c, int measureId, int fieldId) throws SQLException {
+        FilterSQLRequest query  = buildMesureRequests(pti, List.of(pti.mainField), null, oid, true, NONE);
         String obsId = identifier;
         if (obsId.startsWith(observationIdBase)) {
             obsId = obsId.substring(observationIdBase.length());
         }
         obsId = "obs-" + obsId + '-' + fieldId + '-' + measureId;
-        query.append(" AND o.\"identifier\"=").appendValue(identifier);
         query.append(" AND m.\"id\" = ").appendValue(measureId);
+        
         try (final SQLResult rs  = query.execute(c)) {
             int tableNum = rs.getFirstTableNumber();
             if (rs.next()) {
@@ -547,12 +547,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
     /*
     * Not optimal at all. should be merged with buildResult
     */
-    private List<Element> buildResultQuality(ProcedureInfo pti, final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+    private List<Element> buildResultQuality(ProcedureInfo pti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, null, true, false, false, NONE);
-        query.append("AND o.\"identifier\"=").appendValue(identifier);
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, oid, true, NONE);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
         }
@@ -568,12 +567,11 @@ public class OM2ObservationReader extends OM2BaseReader implements ObservationRe
         return new ArrayList<>();
     }
     
-    private Map<String, Object> buildParameters(ProcedureInfo pti, final String identifier, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
+    private Map<String, Object> buildParameters(ProcedureInfo pti, final Long oid, final Integer measureId, final Field selectedField, final Connection c) throws SQLException, DataStoreException {
         if (selectedField == null) {
             throw new DataStoreException("Measurement extraction need a field index specified");
         }
-        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, null, true, false, false, NONE);
-        query.append("AND o.\"identifier\"=").appendValue(identifier);
+        FilterSQLRequest query = buildMesureRequests(pti, List.of(selectedField), null, oid, true, NONE);
         if (measureId != null) {
             query.append(" AND m.\"id\" = " + measureId + " ");
         }

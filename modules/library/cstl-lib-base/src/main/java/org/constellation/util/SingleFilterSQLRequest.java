@@ -125,6 +125,23 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
     }
     
     @Override
+    public FilterSQLRequest appendFilter(String filter) {
+        appendAndOrWhere();
+        append(filter);
+        setHasFilter();
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest appendFilter(String filter, long value) {
+        appendAndOrWhere();
+        append(filter);
+        appendValue(value);
+        setHasFilter();
+        return this;
+    }
+    
+    @Override
     public FilterSQLRequest setHasFilter() {
         hasFilter.set(true);
         return this;
@@ -160,6 +177,15 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         if (whereSet.get() && !hasFilter.get()) {
             replaceFirst("WHERE", "");
             whereSet.set(false);
+        }
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest removeOrderBy() {
+        int orderBy = this.sqlRequest.indexOf("ORDER BY ");
+        if (orderBy != -1) {
+            this.sqlRequest.delete(orderBy, this.sqlRequest.length());
         }
         return this;
     }
@@ -404,7 +430,21 @@ public class SingleFilterSQLRequest implements FilterSQLRequest {
         s = "SELECT " + replacement + s.substring(fromPos);
         this.sqlRequest = new StringBuilder(s);
 
-        // do we need to replace in conditional as well? i son't think so
+        // do we need to replace in conditional as well? i don't think so
+        return this;
+    }
+    
+    @Override
+    public FilterSQLRequest appendToSelect(String sql) {
+        // this method has an issues if the select from contains a sub FROM
+        String s = this.sqlRequest.toString();
+        int fromPos = s.indexOf(" FROM");
+        if (fromPos == -1) throw new IllegalArgumentException("No from clause found.");
+        String select = s.substring(0, fromPos);
+        s = select + sql + s.substring(fromPos);
+        this.sqlRequest = new StringBuilder(s);
+
+        // do we need to replace in conditional as well? i don't think so
         return this;
     }
 

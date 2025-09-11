@@ -39,6 +39,7 @@ import org.constellation.store.observation.db.FieldParser;
 import org.constellation.store.observation.db.OM2FilterAppend;
 import org.constellation.store.observation.db.OM2ObservationFilter;
 import org.constellation.store.observation.db.OM2ObservationFilterReader;
+import static org.constellation.store.observation.db.OM2Utils.isMeasureField;
 import org.constellation.store.observation.db.ResultProcessor;
 import org.constellation.store.observation.db.Selection;
 import org.constellation.store.observation.db.model.DbField;
@@ -114,7 +115,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, int fieldOffset, String idSuffix, Connection c) throws SQLException {
+    protected ResultProcessor chooseResultProcessor(boolean decimate, final List<Field> fields, Connection c) throws SQLException {
         // for now we don't handle timescaledb case, has we assume we are in a duckdb context
         ResultProcessor processor;
         if (decimate) {
@@ -122,10 +123,15 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
              * default java bucket decimation.
              * no algorithm change possible yet
              */
-            processor = new MixedResultDecimator(fields, includeIDInDataBlock, decimationSize, fieldIndexFilters, includeTimeForProfile, currentProcedure);
+            processor = new MixedResultDecimator(fields, includeIDInDataBlock, decimationSize, currentProcedure);
             
         } else {
-            processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, includeTimeForProfile, currentProcedure, idSuffix);
+            // in a measurement context, the last field is the one we look want to use for identifier construction.
+            String idSuffix = "";
+            if (MEASUREMENT_QNAME.equals(resultModel)) {
+                idSuffix = "-" + fields.get(fields.size() - 1).index;
+            }
+            processor = new MixedResultProcessor(fields, includeIDInDataBlock, includeQualityFields, includeParameterFields, currentProcedure, idSuffix);
         }
         if (CommonConstants.CSV_FLAT.equals(responseFormat)) {
             processor.setPhenomenons(getPhenomenonFields(fields, c));
@@ -135,7 +141,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected void extractObservationIds(SQLResult rs2, List<Field> fields, final CountOrIdentifiers results, String name) throws SQLException {
+    protected void extractObservationIds(SQLResult rs2, List<DbField> fields, final CountOrIdentifiers results, String name) throws SQLException {
         int tNum = rs2.getFirstTableNumber();
         if (MEASUREMENT_QNAME.equals(resultModel)) {
             Map<String, Integer> fieldIndex = new HashMap<>();
@@ -173,14 +179,12 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
      * @param measureFilter Piece of SQL to apply to all the measure query. (can be null)
      * @param oid An Observation id used to filter the measure. (can be null)
      * @param obsJoin If true, a join with the observation table will be applied.
-     * @param addOrderBy If true, an order by main filed will be applied.
-     * @param idOnly If true, only the measure identifier will be selected.
      * @param mode Indicate the query context: count / decimation / existenz
      * 
      * @return A Multi filter request on measure tables.
      */
     @Override
-    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, boolean addOrderBy, boolean idOnly, MesureRequestMode mode) {
+    protected MultiFilterSQLRequest buildMesureRequests(ProcedureInfo pti, List<Field> queryFields, FilterSQLRequest measureFilter, Long oid, boolean obsJoin, MesureRequestMode mode) {
         final boolean nonTimeseries = pti.type != ObservationType.TIMESERIES;
         final String mainFieldName = pti.mainField.name;
         final MultiFilterSQLRequest measureRequests = new MultiFilterSQLRequest();
@@ -201,7 +205,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
         
         String select;
         String where  = "WHERE \"thing_id\" = '" + pti.id + "'";
-        if (idOnly) {
+        if (mode == ID || mode == EXIST) {
             if (nonTimeseries) {
                 select = "\"" + schemaPrefix + "mesures\".getmesureidpr(\"z_value\", \"time\") as \"id\"";
             } else {
@@ -275,7 +279,7 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 measureRequest.append(clone, includeConditional);
             }
         }
-        if (addOrderBy) {
+        if (mode == MEASURE || mode == RESULTS || mode == DECIMATE) {
             measureRequests.append(" ORDER BY ");
             if (!includeConditional) {
                 measureRequests.append("m.\"time\",");
@@ -330,8 +334,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
                 Map<String, Object> properties = new HashMap<>();
                 properties.put("type", pti.type.name());
                 List<Field> fields = new ArrayList<>(fieldPhen.keySet());
-                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(0, fields, pti);
-                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, true, false, NONE);
+                final MultiFilterSQLRequest measureFilter = applyFilterOnMeasureRequest(fields, pti);
+                final FilterSQLRequest measureRequest     =  buildMesureRequests(pti, fields, measureFilter, oid, false, MEASURE);
 
                 /**
                  * coherence verification
@@ -418,29 +422,31 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
     
     @Override
-    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, int offset, ProcedureInfo pti) {
+    protected void handleAllPhenParam(SingleFilterSQLRequest single, int tableNum, List<Field> fields, ProcedureInfo pti) {
         
         final String allPhenKeyword = "${allphen ";
         List<SingleFilterSQLRequest.Param> allPhenParams = single.getParamsByName("allphen");
         for (SingleFilterSQLRequest.Param param : allPhenParams) {
             // it must be one ${allphen ...} for each "allPhen" param
             if (!single.contains(allPhenKeyword)) throw new IllegalStateException("Result filter is malformed");
-            String block = extractAllPhenBlock(single, allPhenKeyword);
+            String block     = extractAllPhenBlock(single, allPhenKeyword);
             StringBuilder sb = new StringBuilder();
-            int extraFilter = -1;
-            for (int i = offset; i < fields.size(); i++) {
-                DbField field = (DbField) fields.get(i);
-                if (matchType(param, field)) {
-                    String mFilter = " m.\"obsprop_id\" = '" + field.name + "' AND m.\"result\" ";
-                    if (i != offset) sb.append(" OR"); // not for the first
-                    sb.append(" (").append(block.replace(allPhenKeyword, mFilter).replace('}', ' ')).append(") ");
-                    extraFilter++;
-                } else {
-                    LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
-                    if (i != offset) sb.append(" AND"); // not for the first
-                    sb.append(" (FALSE) ");  // TODO is this invalidating anything?
+            int extraFilter  = -1;
+            boolean first    = true;
+            for (int i = 0; i < fields.size(); i++) {
+                if (fields.get(i) instanceof DbField field && isMeasureField(field, pti)) {
+                    if (matchType(param, field)) {
+                        String mFilter = " m.\"obsprop_id\" = '" + field.name + "' AND m.\"result\" ";
+                        if (!first) sb.append(" OR"); // not for the first
+                        sb.append(" (").append(block.replace(allPhenKeyword, mFilter).replace('}', ' ')).append(") ");
+                        extraFilter++;
+                    } else {
+                        LOGGER.fine("Param type is not matching the field type: " + param.type.getName() + " => " + field.dataType);
+                        if (!first) sb.append(" AND"); // not for the first
+                        sb.append(" (FALSE) ");  // TODO is this invalidating anything?
+                    }
+                    first = false;
                 }
-                
             }
             String filter = sb.toString();
             if (!filter.isEmpty()) {
@@ -505,8 +511,8 @@ public class MixedObservationFilterReader extends OM2ObservationFilterReader {
     }
 
     @Override
-    protected FieldParser buildFieldParser(int mainFieldIndex, List<Field> fields, boolean profileWithTime, String obsName, int fieldOffset) {
-        return new MixedFieldParser(mainFieldIndex, fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName, fieldOffset);
+    protected FieldParser buildFieldParser(List<Field> fields, boolean profileWithTime, String obsName) {
+        return new MixedFieldParser(fields, resultMode, profileWithTime, includeIDInDataBlock, includeQualityFields, includeParameterFields, obsName);
     }
     
   @Override
